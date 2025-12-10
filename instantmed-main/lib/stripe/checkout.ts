@@ -17,6 +17,14 @@ interface CheckoutResult {
   error?: string
 }
 
+/**
+ * Check if test mode is enabled
+ * Test mode allows bypassing Stripe for testing the flow
+ */
+function isTestModeEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true"
+}
+
 function getBaseUrl(): string {
   // Try NEXT_PUBLIC_SITE_URL first
   let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -191,6 +199,99 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
     console.error("Error in createRequestAndCheckoutAction:", error)
+    return {
+      success: false,
+      error: "Something went wrong. Please try again or contact support if the problem persists.",
+    }
+  }
+}
+
+/**
+ * Create a request with test payment (bypasses Stripe)
+ * Only available when NEXT_PUBLIC_ENABLE_TEST_MODE is true
+ * This directly marks the request as paid and redirects to success
+ */
+export async function createTestRequestAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
+  // Double-check test mode is enabled (server-side validation)
+  if (!isTestModeEnabled()) {
+    return { success: false, error: "Test mode is not enabled" }
+  }
+
+  try {
+    // 1. Get authenticated user
+    const authUser = await getAuthenticatedUserWithProfile()
+    if (!authUser) {
+      return { success: false, error: "You must be logged in to submit a request" }
+    }
+
+    const patientId = authUser.profile.id
+
+    // 2. Get the Supabase client
+    const supabase = await createClient()
+
+    const baseUrl = getBaseUrl()
+    if (!isValidUrl(baseUrl)) {
+      console.error("Invalid base URL configuration:", baseUrl)
+      return { success: false, error: "Server configuration error. Please contact support." }
+    }
+
+    // 3. Create the request with PAID status (bypassing payment)
+    const { data: request, error: requestError } = await supabase
+      .from("requests")
+      .insert({
+        patient_id: patientId,
+        type: input.type,
+        status: "pending", // Visible to doctors immediately
+        category: input.category,
+        subtype: input.subtype,
+        paid: true, // Mark as paid immediately
+        payment_status: "paid", // Skip payment step
+      })
+      .select()
+      .single()
+
+    if (requestError || !request) {
+      console.error("Error creating test request:", requestError)
+      if (requestError?.code === "23503") {
+        return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
+      }
+      if (requestError?.code === "42501") {
+        return { success: false, error: "You don't have permission to create requests. Please contact support." }
+      }
+      return { success: false, error: "Failed to create your request. Please try again." }
+    }
+
+    // 4. Insert the answers
+    const { error: answersError } = await supabase.from("request_answers").insert({
+      request_id: request.id,
+      answers: input.answers,
+    })
+
+    if (answersError) {
+      console.error("Error creating answers:", answersError)
+      // Don't fail the whole request, answers are supplementary
+    }
+
+    // 5. Create a test payment record
+    const { error: paymentError } = await supabase.from("payments").insert({
+      request_id: request.id,
+      stripe_session_id: `test_session_${Date.now()}`,
+      amount: 1999, // $19.99 in cents
+      currency: "aud",
+      status: "paid",
+    })
+
+    if (paymentError) {
+      console.error("Error creating test payment record:", paymentError)
+      // Don't fail - the payment record is for tracking
+    }
+
+    // 6. Return success URL (same as real payment success)
+    const successUrl = `${baseUrl}/patient/requests/success?request_id=${request.id}&session_id=test_session&test_mode=true`
+    
+    return { success: true, checkoutUrl: successUrl }
+  } catch (error) {
+    console.error("Error in createTestRequestAction:", error)
     return {
       success: false,
       error: "Something went wrong. Please try again or contact support if the problem persists.",

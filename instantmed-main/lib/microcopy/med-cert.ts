@@ -100,6 +100,10 @@ export const MICROCOPY = {
       startDigit: "Must start with 2, 3, 4, 5, or 6",
       checksum: "Please check your Medicare number",
     },
+    testMode: {
+      fillButton: "Use test data",
+      tooltip: "Fill with test Medicare details for testing",
+    },
   },
 
   // Step: Signup
@@ -157,6 +161,11 @@ export const MICROCOPY = {
       "A GP will review your information and may request further details if needed. Certificates are issued at the GP's discretion based on clinical assessment.",
     cta: "Pay & submit request",
     processing: "Processing...",
+    testMode: {
+      badge: "Test Mode",
+      cta: "Submit (skip payment)",
+      tooltip: "Test mode enabled - payment will be skipped",
+    },
   },
 
   // Navigation

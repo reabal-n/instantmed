@@ -28,8 +28,9 @@ import {
   FileText,
   Shield,
   Pencil,
+  FlaskConical,
 } from "lucide-react"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createRequestAndCheckoutAction, createTestRequestAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -65,6 +66,16 @@ const SYMPTOMS = ["Headache", "Fever", "Nausea", "Pain", "Fatigue", "Cold/Flu", 
 const RELATIONSHIPS = ["Parent", "Child", "Partner", "Sibling", "Grandparent", "Other"] as const
 
 const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
+
+// Test mode - allows testing the flow without real Medicare/payment details
+const IS_TEST_MODE = process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true"
+
+// Test data for Medicare
+const TEST_MEDICARE_DATA = {
+  number: "2123 45670 1", // Valid test Medicare number
+  irn: 1,
+  dob: "1990-01-15",
+}
 
 interface MedCertFlowClientProps {
   patientId: string | null
@@ -524,6 +535,16 @@ export function MedCertFlowClient({
     setMedicareValid(valid)
   }
 
+  // Fill test Medicare data (only available in test mode)
+  const fillTestMedicareData = () => {
+    if (!IS_TEST_MODE) return
+    setMedicareNumber(TEST_MEDICARE_DATA.number)
+    setMedicareValid(true)
+    setMedicareError(null)
+    setIrn(TEST_MEDICARE_DATA.irn)
+    setDateOfBirth(TEST_MEDICARE_DATA.dob)
+  }
+
   // Date range calculation
   const getDateRange = () => {
     if (duration === "specific") {
@@ -721,7 +742,10 @@ export function MedCertFlowClient({
     }
 
     try {
-      const result = await createRequestAndCheckoutAction({
+      // Use test action if test mode is enabled
+      const checkoutAction = IS_TEST_MODE ? createTestRequestAction : createRequestAndCheckoutAction
+      
+      const result = await checkoutAction({
         category: "medical_certificate",
         subtype: certType || "work",
         type: "med_cert",
@@ -1031,6 +1055,18 @@ export function MedCertFlowClient({
         return (
           <section aria-labelledby="step-medicare-heading" className="space-y-4">
             <StepHeader title={MICROCOPY.medicare.heading} subtitle={MICROCOPY.medicare.subtitle} />
+
+            {/* Test Mode Button */}
+            {IS_TEST_MODE && (
+              <button
+                type="button"
+                onClick={fillTestMedicareData}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span className="text-sm font-medium">{MICROCOPY.medicare.testMode.fillButton}</span>
+              </button>
+            )}
 
             <div className="p-4 rounded-xl bg-white border border-border space-y-4">
               <div className="space-y-1">
@@ -1393,6 +1429,17 @@ export function MedCertFlowClient({
           <section aria-labelledby="step-payment-heading" className="space-y-4">
             <StepHeader title={MICROCOPY.payment.heading} subtitle={MICROCOPY.payment.subtitle} />
 
+            {/* Test Mode Banner */}
+            {IS_TEST_MODE && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <FlaskConical className="w-5 h-5 text-amber-600" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800">{MICROCOPY.payment.testMode.badge}</p>
+                  <p className="text-xs text-amber-600">{MICROCOPY.payment.testMode.tooltip}</p>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-xl border border-border bg-white p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -1488,11 +1535,20 @@ export function MedCertFlowClient({
             )}
 
             {step === "payment" ? (
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl gap-2">
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting} 
+                className={`flex-1 h-12 rounded-xl gap-2 ${IS_TEST_MODE ? "bg-amber-500 hover:bg-amber-600" : ""}`}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     {MICROCOPY.payment.processing}
+                  </>
+                ) : IS_TEST_MODE ? (
+                  <>
+                    <FlaskConical className="w-5 h-5" />
+                    {MICROCOPY.payment.testMode.cta}
                   </>
                 ) : (
                   <>
