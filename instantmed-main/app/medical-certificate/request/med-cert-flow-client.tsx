@@ -77,6 +77,18 @@ const TEST_MEDICARE_DATA = {
   dob: "1990-01-15",
 }
 
+// Complete test data for entire flow
+const TEST_FLOW_DATA = {
+  certType: "work" as const,
+  duration: "2" as const,
+  symptoms: ["Cold/Flu", "Fatigue"] as string[],
+  additionalNotes: "Testing the medical certificate flow",
+  hasChestPain: false,
+  hasSevereSymptoms: false,
+  isEmergency: false,
+  medicare: TEST_MEDICARE_DATA,
+}
+
 interface MedCertFlowClientProps {
   patientId: string | null
   isAuthenticated: boolean
@@ -545,6 +557,32 @@ export function MedCertFlowClient({
     setDateOfBirth(TEST_MEDICARE_DATA.dob)
   }
 
+  // Fill ALL test data and skip to review (only available in test mode)
+  const fillAllTestData = () => {
+    if (!IS_TEST_MODE) return
+    // Questionnaire data
+    setCertType(TEST_FLOW_DATA.certType)
+    setDuration(TEST_FLOW_DATA.duration)
+    setSelectedSymptoms(TEST_FLOW_DATA.symptoms)
+    setAdditionalNotes(TEST_FLOW_DATA.additionalNotes)
+    // Safety data
+    setHasChestPain(TEST_FLOW_DATA.hasChestPain)
+    setHasSevereSymptoms(TEST_FLOW_DATA.hasSevereSymptoms)
+    setIsEmergency(TEST_FLOW_DATA.isEmergency)
+    // Medicare data
+    setMedicareNumber(TEST_FLOW_DATA.medicare.number)
+    setMedicareValid(true)
+    setMedicareError(null)
+    setIrn(TEST_FLOW_DATA.medicare.irn)
+    setDateOfBirth(TEST_FLOW_DATA.medicare.dob)
+    // Skip to appropriate step based on auth state
+    if (isAuthenticated && !needsOnboarding) {
+      setStep("review")
+    } else {
+      setStep("medicare")
+    }
+  }
+
   // Date range calculation
   const getDateRange = () => {
     if (duration === "specific") {
@@ -800,6 +838,18 @@ export function MedCertFlowClient({
               stepNumber={1}
               totalSteps={5}
             />
+
+            {/* Test Mode: Skip entire flow with test data */}
+            {IS_TEST_MODE && (
+              <button
+                type="button"
+                onClick={fillAllTestData}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span className="text-sm font-medium">Skip to review with test data</span>
+              </button>
+            )}
 
             <div className="space-y-2" role="radiogroup" aria-label="Certificate type">
               {CERT_TYPES.map((type) => (

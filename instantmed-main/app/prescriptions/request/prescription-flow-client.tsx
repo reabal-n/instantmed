@@ -22,8 +22,9 @@ import {
   Check,
   Pencil,
   ExternalLink,
+  FlaskConical,
 } from "lucide-react"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createRequestAndCheckoutAction, createTestRequestAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -127,6 +128,33 @@ const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
 
 // Progress stages
 const PROGRESS_STAGES = ["Details", "Medicare", "Account", "Pay"] as const
+
+// Test mode - allows testing the flow without real data
+const IS_TEST_MODE = process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === "true"
+
+// Test data for Medicare
+const TEST_MEDICARE_DATA = {
+  number: "2123 45670 1",
+  irn: 1,
+  dob: "1990-01-15",
+}
+
+// Complete test data for entire flow
+const TEST_FLOW_DATA = {
+  rxType: "repeat" as const,
+  medication: "Metformin 500mg",
+  condition: "diabetes",
+  duration: "3-12months",
+  control: "well",
+  sideEffects: "none",
+  notes: "Testing prescription flow",
+  safetyAnswers: {
+    allergies: false,
+    pregnant: false,
+    breastfeeding: false,
+    seriousSideEffects: false,
+  },
+}
 
 interface Props {
   patientId: string | null
@@ -389,6 +417,36 @@ export function PrescriptionFlowClient({
   const medicareValidation = validateMedicare(medicareNumber)
   const medicareDigits = medicareNumber.replace(/\D/g, "").length
 
+  // Fill test Medicare data
+  const fillTestMedicareData = () => {
+    if (!IS_TEST_MODE) return
+    setMedicareNumber(TEST_MEDICARE_DATA.number)
+    setIrn(TEST_MEDICARE_DATA.irn)
+    setDob(TEST_MEDICARE_DATA.dob)
+  }
+
+  // Fill ALL test data and skip to review
+  const fillAllTestData = () => {
+    if (!IS_TEST_MODE) return
+    setRxType(TEST_FLOW_DATA.rxType)
+    setMedication(TEST_FLOW_DATA.medication)
+    setCondition(TEST_FLOW_DATA.condition)
+    setDuration(TEST_FLOW_DATA.duration)
+    setControl(TEST_FLOW_DATA.control)
+    setSideEffects(TEST_FLOW_DATA.sideEffects)
+    setNotes(TEST_FLOW_DATA.notes)
+    setSafetyAnswers(TEST_FLOW_DATA.safetyAnswers)
+    setMedicareNumber(TEST_MEDICARE_DATA.number)
+    setIrn(TEST_MEDICARE_DATA.irn)
+    setDob(TEST_MEDICARE_DATA.dob)
+    // Skip to appropriate step
+    if (isAuthenticated && !needsOnboarding) {
+      goTo("review")
+    } else {
+      goTo("medicare")
+    }
+  }
+
   // Check for controlled substance
   useEffect(() => {
     if (medication && isControlledSubstance(medication)) {
@@ -556,7 +614,10 @@ export function PrescriptionFlowClient({
     setError(null)
 
     try {
-      const result = await createRequestAndCheckoutAction({
+      // Use test action if test mode is enabled
+      const checkoutAction = IS_TEST_MODE ? createTestRequestAction : createRequestAndCheckoutAction
+      
+      const result = await checkoutAction({
         category: "prescription",
         subtype: rxType || "repeat",
         type: "script",
@@ -634,6 +695,19 @@ export function PrescriptionFlowClient({
           {step === "type" && (
             <div className="space-y-4">
               <StepHeader title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
+              
+              {/* Test Mode: Skip entire flow with test data */}
+              {IS_TEST_MODE && (
+                <button
+                  type="button"
+                  onClick={fillAllTestData}
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                >
+                  <FlaskConical className="w-4 h-4" />
+                  <span className="text-sm font-medium">Skip to review with test data</span>
+                </button>
+              )}
+
               <div className="space-y-2">
                 {RX_TYPES.map((type) => (
                   <OptionTile
@@ -828,6 +902,19 @@ export function PrescriptionFlowClient({
           {step === "medicare" && (
             <div className="space-y-4">
               <StepHeader title={RX_MICROCOPY.medicare.heading} subtitle={RX_MICROCOPY.medicare.subtitle} />
+
+              {/* Test Mode: Fill Medicare data */}
+              {IS_TEST_MODE && (
+                <button
+                  type="button"
+                  onClick={fillTestMedicareData}
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                >
+                  <FlaskConical className="w-4 h-4" />
+                  <span className="text-sm font-medium">Use test data</span>
+                </button>
+              )}
+
               <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium">{RX_MICROCOPY.medicare.numberLabel}</label>
@@ -1060,6 +1147,18 @@ export function PrescriptionFlowClient({
           {step === "payment" && (
             <div className="space-y-4">
               <StepHeader title={RX_MICROCOPY.payment.heading} subtitle={RX_MICROCOPY.payment.subtitle} />
+
+              {/* Test Mode Banner */}
+              {IS_TEST_MODE && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <FlaskConical className="w-5 h-5 text-amber-600" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-800">Test Mode</p>
+                    <p className="text-xs text-amber-600">Payment will be skipped</p>
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
@@ -1090,11 +1189,20 @@ export function PrescriptionFlowClient({
           <footer className="sticky bottom-0 bg-background/80 backdrop-blur-lg border-t px-4 py-3">
             <div className="max-w-md mx-auto">
               {step === "payment" ? (
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-12">
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting} 
+                  className={`w-full h-12 ${IS_TEST_MODE ? "bg-amber-500 hover:bg-amber-600" : ""}`}
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       {RX_MICROCOPY.payment.processing}
+                    </>
+                  ) : IS_TEST_MODE ? (
+                    <>
+                      <FlaskConical className="w-4 h-4 mr-2" />
+                      Submit (skip payment)
                     </>
                   ) : (
                     RX_MICROCOPY.payment.cta
