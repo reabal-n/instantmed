@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Shield, ArrowLeft, Mail, User, Calendar, CheckCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -51,6 +52,12 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [termsAccepted, setTermsAccepted] = useState(false)
+
+  // Validation states
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [dobError, setDobError] = useState<string | null>(null)
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -120,8 +127,87 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     }
   }
 
+  // Real-time validation
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!value) {
+      setEmailError(null)
+      return false
+    }
+    if (!emailRegex.test(value)) {
+      setEmailError("Please enter a valid email address")
+      return false
+    }
+    setEmailError(null)
+    return true
+  }
+
+  const validatePassword = (value: string) => {
+    if (!value) {
+      setPasswordError(null)
+      return false
+    }
+    if (value.length < 6) {
+      setPasswordError("Password must be at least 6 characters")
+      return false
+    }
+    setPasswordError(null)
+    return true
+  }
+
+  const validateName = (value: string) => {
+    if (!value) {
+      setNameError(null)
+      return false
+    }
+    if (value.trim().length < 2) {
+      setNameError("Name must be at least 2 characters")
+      return false
+    }
+    setNameError(null)
+    return true
+  }
+
+  const validateDob = (value: string) => {
+    if (!value) {
+      setDobError(null)
+      return false
+    }
+    const dob = new Date(value)
+    const today = new Date()
+    const age = today.getFullYear() - dob.getFullYear()
+    if (age < 18) {
+      setDobError("You must be at least 18 years old")
+      return false
+    }
+    if (age > 120) {
+      setDobError("Please enter a valid date of birth")
+      return false
+    }
+    setDobError(null)
+    return true
+  }
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Clear previous errors
+    setError(null)
+    setEmailError(null)
+    setPasswordError(null)
+    setNameError(null)
+    setDobError(null)
+
+    // Validate all fields
+    const isNameValid = validateName(fullName)
+    const isDobValid = validateDob(dateOfBirth)
+    const isEmailValid = validateEmail(email)
+    const isPasswordValid = validatePassword(password)
+
+    if (!isNameValid || !isDobValid || !isEmailValid || !isPasswordValid) {
+      setError("Please fix the errors above")
+      return
+    }
 
     if (!termsAccepted) {
       setError("Please accept the terms and conditions")
@@ -339,7 +425,11 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
           <p className="mt-1 text-sm text-muted-foreground">Your answers are saved - just need your details</p>
         </div>
 
-        {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
+        {error && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-in fade-in slide-in-from-top-2">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-2">
@@ -352,10 +442,22 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
               placeholder="John Smith"
               required
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) => {
+                setFullName(e.target.value)
+                if (nameError) validateName(e.target.value)
+              }}
+              onBlur={() => validateName(fullName)}
               disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
+              className={cn(
+                "h-11 rounded-xl bg-background/50 border transition-all",
+                nameError
+                  ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                  : "border-border focus:border-primary/50 focus:ring-primary/20"
+              )}
             />
+            {nameError && (
+              <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">{nameError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -368,10 +470,23 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
               type="date"
               required
               value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
+              onChange={(e) => {
+                setDateOfBirth(e.target.value)
+                if (dobError) validateDob(e.target.value)
+              }}
+              onBlur={() => validateDob(dateOfBirth)}
               disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+              className={cn(
+                "h-11 rounded-xl bg-background/50 border transition-all",
+                dobError
+                  ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                  : "border-border focus:border-primary/50 focus:ring-primary/20"
+              )}
             />
+            {dobError && (
+              <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">{dobError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -385,10 +500,22 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
               placeholder="you@example.com"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (emailError) validateEmail(e.target.value)
+              }}
+              onBlur={() => validateEmail(email)}
               disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
+              className={cn(
+                "h-11 rounded-xl bg-background/50 border transition-all",
+                emailError
+                  ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                  : "border-border focus:border-primary/50 focus:ring-primary/20"
+              )}
             />
+            {emailError && (
+              <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">{emailError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -402,10 +529,25 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
               required
               minLength={6}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (passwordError) validatePassword(e.target.value)
+              }}
+              onBlur={() => validatePassword(password)}
               disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
+              className={cn(
+                "h-11 rounded-xl bg-background/50 border transition-all",
+                passwordError
+                  ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                  : "border-border focus:border-primary/50 focus:ring-primary/20"
+              )}
             />
+            {passwordError && (
+              <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">{passwordError}</p>
+            )}
+            {password && !passwordError && password.length >= 6 && (
+              <p className="text-xs text-success animate-in fade-in slide-in-from-top-1">✓ Password looks good</p>
+            )}
           </div>
 
           <div className="flex items-start gap-2 pt-1">

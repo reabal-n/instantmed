@@ -28,6 +28,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { ThemeToggle } from "@/components/shared/theme-toggle"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -117,6 +118,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </Link>
                 ))}
                 <div className="ml-3 flex items-center gap-2">
+                  <ThemeToggle />
                   <Button variant="ghost" size="sm" asChild className="rounded-lg text-sm">
                     <Link href="/auth/login">Sign in</Link>
                   </Button>
@@ -177,6 +179,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Theme Toggle */}
+                <ThemeToggle />
+
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -232,6 +237,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <User className="h-4 w-4" aria-hidden="true" />
                   Patients
                 </Link>
+
+                {/* Theme Toggle */}
+                <ThemeToggle />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -298,6 +306,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         </Link>
                       ))}
                       <div className="pt-4 space-y-2">
+                        <div className="flex items-center justify-center px-3 py-2">
+                          <ThemeToggle />
+                        </div>
                         <Button variant="outline" asChild className="w-full rounded-lg bg-transparent">
                           <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                             Sign in
@@ -363,6 +374,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                             <span className="text-sm">{service.title}</span>
                           </Link>
                         ))}
+                      </div>
+
+                      <div className="pt-4 border-t mt-4">
+                        <div className="flex items-center justify-center px-3 py-2">
+                          <ThemeToggle />
+                        </div>
                       </div>
 
                       <div className="pt-4 border-t mt-4">

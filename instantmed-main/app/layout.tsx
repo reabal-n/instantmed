@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Work_Sans, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from "@/components/theme-provider"
 import { LiveChatWidget } from "@/components/shared/live-chat-widget"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
@@ -146,21 +147,28 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${workSans.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${workSans.variable} ${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head>
         <JsonLd />
       </head>
       <body className="font-sans antialiased">
-        <SkipToContent />
-        <div id="main-content" className="page-enter">
-          {children}
-        </div>
-        <Toaster position="top-center" richColors />
-        <LiveChatWidget />
-        <SocialProofPopup />
-        <StickyCTABar />
-        <ExitIntentPopup />
-        <Analytics />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <SkipToContent />
+          <div id="main-content" className="page-enter">
+            {children}
+          </div>
+          <Toaster position="top-center" richColors />
+          <LiveChatWidget />
+          <SocialProofPopup />
+          <StickyCTABar />
+          <ExitIntentPopup />
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )
