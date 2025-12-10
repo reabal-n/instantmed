@@ -1,0 +1,1118 @@
+"use client"
+
+import type React from "react"
+
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  ArrowLeft,
+  Loader2,
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw,
+  Pill,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  X,
+  Check,
+  Pencil,
+  ExternalLink,
+} from "lucide-react"
+import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createClient } from "@/lib/supabase/client"
+import { createOrGetProfile } from "@/app/actions/create-profile"
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { RX_MICROCOPY, isControlledSubstance } from "@/lib/microcopy/prescription"
+
+// Flow steps
+type FlowStep =
+  | "type"
+  | "medication"
+  | "condition"
+  | "duration"
+  | "control"
+  | "sideEffects"
+  | "notes"
+  | "safety"
+  | "medicare"
+  | "signup"
+  | "review"
+  | "payment"
+
+const REPEAT_STEPS: FlowStep[] = [
+  "type",
+  "medication",
+  "condition",
+  "duration",
+  "control",
+  "sideEffects",
+  "notes",
+  "safety",
+  "medicare",
+  "signup",
+  "review",
+  "payment",
+]
+const NEW_STEPS: FlowStep[] = [
+  "type",
+  "medication",
+  "condition",
+  "notes",
+  "safety",
+  "medicare",
+  "signup",
+  "review",
+  "payment",
+]
+
+// Prescription types
+const RX_TYPES = [
+  {
+    id: "repeat",
+    label: RX_MICROCOPY.type.repeat.label,
+    description: RX_MICROCOPY.type.repeat.description,
+    icon: RefreshCw,
+  },
+  { id: "new", label: RX_MICROCOPY.type.new.label, description: RX_MICROCOPY.type.new.description, icon: Pill },
+] as const
+
+// Conditions
+const CONDITIONS = [
+  { id: "mental_health", label: "Mental health" },
+  { id: "cardiovascular", label: "Blood pressure / heart" },
+  { id: "diabetes", label: "Diabetes" },
+  { id: "respiratory", label: "Asthma / respiratory" },
+  { id: "contraceptive", label: "Contraception" },
+  { id: "infection", label: "Infection" },
+  { id: "skin", label: "Skin condition" },
+  { id: "other", label: "Other" },
+] as const
+
+// Duration options
+const DURATIONS = [
+  { id: "<3months", label: "< 3 months" },
+  { id: "3-12months", label: "3–12 months" },
+  { id: ">1year", label: "> 1 year" },
+] as const
+
+// Control options
+const CONTROL_OPTIONS = [
+  { id: "well", label: "Well controlled" },
+  { id: "partial", label: "Partially" },
+  { id: "poor", label: "Poorly controlled" },
+] as const
+
+// Side effects options
+const SIDE_EFFECTS = [
+  { id: "none", label: "None" },
+  { id: "mild", label: "Mild" },
+  { id: "significant", label: "Significant" },
+] as const
+
+// Safety questions
+const SAFETY_QUESTIONS = [
+  { id: "allergies", label: "Known allergies to this medication?", knockout: true },
+  { id: "pregnant", label: "Pregnant or possibly pregnant?", knockout: false },
+  { id: "breastfeeding", label: "Currently breastfeeding?", knockout: false },
+  { id: "seriousSideEffects", label: "Previous serious side effects?", knockout: true },
+] as const
+
+// IRN options
+const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
+
+// Progress stages
+const PROGRESS_STAGES = ["Details", "Medicare", "Account", "Pay"] as const
+
+interface Props {
+  patientId: string | null
+  isAuthenticated: boolean
+  needsOnboarding: boolean
+  userEmail?: string
+  userName?: string
+}
+
+// Google icon
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      />
+    </svg>
+  )
+}
+
+// Progress indicator
+function Progress({ stages, currentIndex }: { stages: readonly string[]; currentIndex: number }) {
+  return (
+    <nav aria-label="Progress" className="w-full">
+      <ol className="flex gap-1">
+        {stages.map((label, i) => (
+          <li key={label} className="flex-1 flex flex-col items-center gap-1">
+            <div
+              className={`h-1 w-full rounded-full transition-colors ${
+                i < currentIndex ? "bg-primary" : i === currentIndex ? "bg-primary/50" : "bg-muted"
+              }`}
+            />
+            <span className={`text-[10px] ${i <= currentIndex ? "text-foreground" : "text-muted-foreground"}`}>
+              {label}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+// Step header
+function StepHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <header className="text-center space-y-0.5">
+      <h1 className="text-lg font-semibold">{title}</h1>
+      {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+    </header>
+  )
+}
+
+// Option tile
+function OptionTile({
+  selected,
+  onClick,
+  label,
+  description,
+  icon: Icon,
+}: {
+  selected: boolean
+  onClick: () => void
+  label: string
+  description?: string
+  icon?: React.ElementType
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full p-3 rounded-xl border text-left transition-all active:scale-[0.98] ${
+        selected
+          ? "border-primary bg-primary/5 ring-1 ring-primary"
+          : "border-border/60 bg-background hover:border-border"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center ${selected ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+          >
+            <Icon className="w-4 h-4" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium ${selected ? "text-primary" : ""}`}>{label}</p>
+          {description && <p className="text-xs text-muted-foreground truncate">{description}</p>}
+        </div>
+        {selected && <Check className="w-4 h-4 text-primary shrink-0" />}
+      </div>
+    </button>
+  )
+}
+
+// Pill button
+function PillButton({
+  selected,
+  onClick,
+  children,
+}: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+        selected ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+// Controlled substance warning
+function ControlledWarning({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-background rounded-2xl p-5 max-w-sm w-full space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-amber-600" />
+          </div>
+          <div>
+            <h2 className="font-semibold">{RX_MICROCOPY.controlled.title}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{RX_MICROCOPY.controlled.body}</p>
+          </div>
+        </div>
+        <div className="p-3 bg-muted rounded-lg">
+          <p className="text-xs text-muted-foreground mb-2">Includes:</p>
+          <div className="flex flex-wrap gap-1">
+            {RX_MICROCOPY.controlled.affected.map((med) => (
+              <span key={med} className="text-xs bg-background px-2 py-0.5 rounded">
+                {med}
+              </span>
+            ))}
+          </div>
+        </div>
+        <Button onClick={onClose} className="w-full">
+          I understand
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Safety knockout screen
+function SafetyKnockout() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
+      <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+        <AlertTriangle className="w-8 h-8 text-amber-600" />
+      </div>
+      <h1 className="text-xl font-semibold mb-2">{RX_MICROCOPY.safety.knockoutTitle}</h1>
+      <p className="text-sm text-muted-foreground max-w-xs mb-6">{RX_MICROCOPY.safety.knockoutBody}</p>
+      <Button asChild variant="outline">
+        <Link href="https://www.healthdirect.gov.au/australian-health-services" target="_blank">
+          {RX_MICROCOPY.safety.knockoutCta}
+          <ExternalLink className="w-4 h-4 ml-2" />
+        </Link>
+      </Button>
+    </div>
+  )
+}
+
+export function PrescriptionFlowClient({
+  patientId: initialPatientId,
+  isAuthenticated: initialIsAuthenticated,
+  needsOnboarding: initialNeedsOnboarding,
+  userEmail,
+  userName,
+}: Props) {
+  const router = useRouter()
+  const supabase = createClient()
+
+  // Auth state
+  const [patientId, setPatientId] = useState(initialPatientId)
+  const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
+  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
+
+  // Flow state
+  const [rxType, setRxType] = useState<"repeat" | "new" | null>(null)
+  const [step, setStep] = useState<FlowStep>("type")
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Form state
+  const [medication, setMedication] = useState("")
+  const [condition, setCondition] = useState<string | null>(null)
+  const [otherCondition, setOtherCondition] = useState("")
+  const [duration, setDuration] = useState<string | null>(null)
+  const [control, setControl] = useState<string | null>(null)
+  const [sideEffects, setSideEffects] = useState<string | null>(null)
+  const [notes, setNotes] = useState("")
+  const [safetyAnswers, setSafetyAnswers] = useState<Record<string, boolean | null>>({})
+
+  // Medicare state
+  const [medicareNumber, setMedicareNumber] = useState("")
+  const [irn, setIrn] = useState<number | null>(null)
+  const [dob, setDob] = useState("")
+
+  // Signup state
+  const [isSignUp, setIsSignUp] = useState(true)
+  const [fullName, setFullName] = useState(userName || "")
+  const [email, setEmail] = useState(userEmail || "")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false)
+
+  // Controlled substance warning
+  const [showControlledWarning, setShowControlledWarning] = useState(false)
+  const [isKnockedOut, setIsKnockedOut] = useState(false)
+
+  const steps = rxType === "repeat" ? REPEAT_STEPS : NEW_STEPS
+  const stepIndex = steps.indexOf(step)
+
+  // Get progress stage index
+  const getProgressIndex = () => {
+    if (["type", "medication", "condition", "duration", "control", "sideEffects", "notes", "safety"].includes(step))
+      return 0
+    if (step === "medicare") return 1
+    if (step === "signup") return 2
+    return 3
+  }
+
+  // Medicare validation
+  const formatMedicare = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 10)
+    if (digits.length <= 4) return digits
+    if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4)}`
+    return `${digits.slice(0, 4)} ${digits.slice(4, 9)} ${digits.slice(9)}`
+  }
+
+  const validateMedicare = (num: string) => {
+    const digits = num.replace(/\D/g, "")
+    if (digits.length < 10) return { valid: false, error: `${10 - digits.length} more` }
+    if (!/^[2-6]/.test(digits)) return { valid: false, error: "Invalid start" }
+    // Checksum validation
+    const weights = [1, 3, 7, 9, 1, 3, 7, 9]
+    const sum = weights.reduce((acc, w, i) => acc + w * Number.parseInt(digits[i], 10), 0)
+    if (sum % 10 !== Number.parseInt(digits[8], 10)) return { valid: false, error: "Check number" }
+    return { valid: true, error: null }
+  }
+
+  const medicareValidation = validateMedicare(medicareNumber)
+  const medicareDigits = medicareNumber.replace(/\D/g, "").length
+
+  // Check for controlled substance
+  useEffect(() => {
+    if (medication && isControlledSubstance(medication)) {
+      setShowControlledWarning(true)
+    }
+  }, [medication])
+
+  // Step transitions
+  const goTo = useCallback((nextStep: FlowStep) => {
+    setIsTransitioning(true)
+    setTimeout(() => {
+      setStep(nextStep)
+      setIsTransitioning(false)
+    }, 150)
+  }, [])
+
+  const goNext = useCallback(() => {
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex < steps.length - 1) {
+      // Skip steps based on auth state
+      let nextIndex = currentIndex + 1
+      if (steps[nextIndex] === "medicare" && !needsOnboarding && patientId) {
+        nextIndex++
+      }
+      if (steps[nextIndex] === "signup" && isAuthenticated && !needsOnboarding) {
+        nextIndex++
+      }
+      goTo(steps[nextIndex])
+    }
+  }, [step, steps, goTo, isAuthenticated, needsOnboarding, patientId])
+
+  const goBack = useCallback(() => {
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex > 0) {
+      goTo(steps[currentIndex - 1])
+    }
+  }, [step, steps, goTo])
+
+  // Auto-advance for type selection
+  const selectType = (type: "repeat" | "new") => {
+    setRxType(type)
+    setTimeout(() => goTo("medication"), 150)
+  }
+
+  // Check if can continue
+  const canContinue = () => {
+    switch (step) {
+      case "type":
+        return !!rxType
+      case "medication":
+        return medication.trim().length > 0 && !isControlledSubstance(medication)
+      case "condition":
+        return !!condition && (condition !== "other" || otherCondition.trim().length > 0)
+      case "duration":
+        return !!duration
+      case "control":
+        return !!control
+      case "sideEffects":
+        return !!sideEffects
+      case "notes":
+        return true
+      case "safety":
+        return Object.keys(safetyAnswers).length === SAFETY_QUESTIONS.length
+      case "medicare":
+        return medicareValidation.valid && !!irn && !!dob
+      case "signup":
+        return isSignUp ? fullName && email && password && agreedToTerms : email && password
+      case "review":
+        return true
+      default:
+        return false
+    }
+  }
+
+  // Check for safety knockout
+  const checkSafetyKnockout = () => {
+    return SAFETY_QUESTIONS.some((q) => q.knockout && safetyAnswers[q.id] === true)
+  }
+
+  // Handle signup/signin
+  const handleAuth = async () => {
+    setAuthLoading(true)
+    setError(null)
+
+    try {
+      if (isSignUp) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
+          },
+        })
+
+        if (signUpError) throw signUpError
+
+        if (data.session) {
+          // Immediate login - create profile
+          const profileResult = await createOrGetProfile({
+            userId: data.user!.id,
+            email,
+            fullName,
+            dateOfBirth: dob,
+            medicareNumber: medicareNumber.replace(/\s/g, ""),
+            medicareIrn: irn!,
+          })
+
+          if (profileResult.success && profileResult.profileId) {
+            setPatientId(profileResult.profileId)
+            setIsAuthenticated(true)
+            setNeedsOnboarding(false)
+            goTo("review")
+          }
+        } else {
+          setShowEmailConfirm(true)
+        }
+      } else {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) throw signInError
+
+        // Check if profile exists
+        const profileResult = await createOrGetProfile({
+          userId: data.user.id,
+          email,
+          fullName: data.user.user_metadata?.full_name || fullName,
+          dateOfBirth: dob,
+          medicareNumber: medicareNumber.replace(/\s/g, ""),
+          medicareIrn: irn!,
+        })
+
+        if (profileResult.success && profileResult.profileId) {
+          setPatientId(profileResult.profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+          goTo("review")
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || RX_MICROCOPY.errors.generic)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  // Handle Google auth
+  const handleGoogleAuth = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/prescriptions/request`,
+      },
+    })
+    if (error) setError(error.message)
+  }
+
+  // Handle submit
+  const handleSubmit = async () => {
+    if (!patientId) {
+      setError("Please sign in to continue")
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const result = await createRequestAndCheckoutAction({
+        category: "prescription",
+        subtype: rxType || "repeat",
+        type: "script",
+        answers: {
+          medication,
+          condition,
+          otherCondition: condition === "other" ? otherCondition : undefined,
+          duration: rxType === "repeat" ? duration : undefined,
+          control: rxType === "repeat" ? control : undefined,
+          sideEffects: rxType === "repeat" ? sideEffects : undefined,
+          notes,
+          safetyAnswers,
+        },
+      })
+
+      if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl
+      } else {
+        setError(result.error || RX_MICROCOPY.errors.generic)
+      }
+    } catch {
+      setError(RX_MICROCOPY.errors.generic)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // If knocked out by safety check
+  if (isKnockedOut) {
+    return <SafetyKnockout />
+  }
+
+  return (
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        {showControlledWarning && (
+          <ControlledWarning
+            onClose={() => {
+              setShowControlledWarning(false)
+              setMedication("")
+            }}
+          />
+        )}
+
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
+          <div className="max-w-md mx-auto px-4 py-3">
+            <div className="flex items-center gap-3 mb-3">
+              {stepIndex > 0 && (
+                <button
+                  onClick={goBack}
+                  className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              )}
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <Pill className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Prescription Request</span>
+              </div>
+              <Link href="/" className="p-2 -mr-2 rounded-lg hover:bg-muted transition-colors">
+                <X className="w-5 h-5" />
+              </Link>
+            </div>
+            <Progress stages={PROGRESS_STAGES} currentIndex={getProgressIndex()} />
+          </div>
+        </header>
+
+        {/* Content */}
+        <main
+          className={`max-w-md mx-auto px-4 py-5 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}
+        >
+          {/* Step: Type */}
+          {step === "type" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
+              <div className="space-y-2">
+                {RX_TYPES.map((type) => (
+                  <OptionTile
+                    key={type.id}
+                    selected={rxType === type.id}
+                    onClick={() => selectType(type.id as "repeat" | "new")}
+                    label={type.label}
+                    description={type.description}
+                    icon={type.icon}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-center text-muted-foreground">{RX_MICROCOPY.doctorReview}</p>
+            </div>
+          )}
+
+          {/* Step: Medication */}
+          {step === "medication" && (
+            <div className="space-y-4">
+              <StepHeader
+                title={rxType === "repeat" ? RX_MICROCOPY.medication.headingRepeat : RX_MICROCOPY.medication.heading}
+                subtitle={RX_MICROCOPY.medication.subtitle}
+              />
+              <Input
+                value={medication}
+                onChange={(e) => setMedication(e.target.value)}
+                placeholder={
+                  rxType === "repeat" ? RX_MICROCOPY.medication.placeholderRepeat : RX_MICROCOPY.medication.placeholder
+                }
+                className="h-12 text-base"
+                autoFocus
+              />
+              {medication && isControlledSubstance(medication) && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800">{RX_MICROCOPY.errors.controlled}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step: Condition */}
+          {step === "condition" && (
+            <div className="space-y-4">
+              <StepHeader
+                title={rxType === "new" ? RX_MICROCOPY.condition.headingNew : RX_MICROCOPY.condition.heading}
+                subtitle={RX_MICROCOPY.condition.subtitle}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                {CONDITIONS.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setCondition(c.id)}
+                    className={`p-3 rounded-xl border text-sm text-left transition-all ${
+                      condition === c.id
+                        ? "border-primary bg-primary/5 font-medium"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              {condition === "other" && (
+                <Input
+                  value={otherCondition}
+                  onChange={(e) => setOtherCondition(e.target.value)}
+                  placeholder={RX_MICROCOPY.condition.otherPlaceholder}
+                  className="h-11"
+                  autoFocus
+                />
+              )}
+            </div>
+          )}
+
+          {/* Step: Duration (repeat only) */}
+          {step === "duration" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.duration.heading} />
+              <div className="flex flex-wrap gap-2 justify-center">
+                {DURATIONS.map((d) => (
+                  <PillButton
+                    key={d.id}
+                    selected={duration === d.id}
+                    onClick={() => {
+                      setDuration(d.id)
+                      setTimeout(goNext, 150)
+                    }}
+                  >
+                    {d.label}
+                  </PillButton>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step: Control (repeat only) */}
+          {step === "control" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.control.heading} />
+              <div className="flex flex-wrap gap-2 justify-center">
+                {CONTROL_OPTIONS.map((c) => (
+                  <PillButton
+                    key={c.id}
+                    selected={control === c.id}
+                    onClick={() => {
+                      setControl(c.id)
+                      setTimeout(goNext, 150)
+                    }}
+                  >
+                    {c.label}
+                  </PillButton>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step: Side Effects (repeat only) */}
+          {step === "sideEffects" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.sideEffects.heading} />
+              <div className="flex flex-wrap gap-2 justify-center">
+                {SIDE_EFFECTS.map((s) => (
+                  <PillButton
+                    key={s.id}
+                    selected={sideEffects === s.id}
+                    onClick={() => {
+                      setSideEffects(s.id)
+                      setTimeout(goNext, 150)
+                    }}
+                  >
+                    {s.label}
+                  </PillButton>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step: Notes */}
+          {step === "notes" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.notes.heading} subtitle={RX_MICROCOPY.notes.subtitle} />
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+                placeholder={RX_MICROCOPY.notes.placeholder}
+                className="min-h-[100px] resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-right text-muted-foreground">{notes.length}/500</p>
+            </div>
+          )}
+
+          {/* Step: Safety */}
+          {step === "safety" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.safety.heading} subtitle={RX_MICROCOPY.safety.subtitle} />
+              <div className="space-y-3">
+                {SAFETY_QUESTIONS.map((q) => (
+                  <div key={q.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60">
+                    <p className="text-sm pr-4">{q.label}</p>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [q.id]: false }))}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                          safetyAnswers[q.id] === false ? "bg-primary text-primary-foreground" : "bg-muted"
+                        }`}
+                      >
+                        No
+                      </button>
+                      <button
+                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [q.id]: true }))}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                          safetyAnswers[q.id] === true ? "bg-amber-500 text-white" : "bg-muted"
+                        }`}
+                      >
+                        Yes
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {checkSafetyKnockout() && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <p className="text-xs text-amber-800">{RX_MICROCOPY.safety.knockoutBody}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step: Medicare */}
+          {step === "medicare" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.medicare.heading} subtitle={RX_MICROCOPY.medicare.subtitle} />
+              <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">{RX_MICROCOPY.medicare.numberLabel}</label>
+                  <div className="relative">
+                    <Input
+                      value={medicareNumber}
+                      onChange={(e) => setMedicareNumber(formatMedicare(e.target.value))}
+                      placeholder={RX_MICROCOPY.medicare.numberPlaceholder}
+                      className="h-12 text-lg tracking-widest font-mono pr-10"
+                      inputMode="numeric"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {medicareDigits === 10 && medicareValidation.valid ? (
+                        <Check className="w-5 h-5 text-green-500" />
+                      ) : medicareDigits > 0 ? (
+                        <span className="text-xs text-muted-foreground">{medicareDigits}/10</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  {medicareDigits > 0 && !medicareValidation.valid && (
+                    <p className="text-xs text-destructive">{medicareValidation.error}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-medium">{RX_MICROCOPY.medicare.irnLabel}</label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[200px] text-xs">
+                        {RX_MICROCOPY.medicare.irnTooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="flex gap-1">
+                    {IRNS.map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setIrn(n)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+                          irn === n ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Date of birth</label>
+                  <Input
+                    type="date"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    className="h-11"
+                    max={new Date().toISOString().split("T")[0]}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step: Signup */}
+          {step === "signup" && (
+            <div className="space-y-4">
+              {showEmailConfirm ? (
+                <div className="text-center space-y-4 py-8">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-semibold">Check your email</h2>
+                  <p className="text-sm text-muted-foreground">We sent a confirmation link to {email}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsSignUp(false)
+                      setShowEmailConfirm(false)
+                    }}
+                  >
+                    Sign in instead
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <StepHeader
+                    title={isSignUp ? RX_MICROCOPY.signup.headingNew : RX_MICROCOPY.signup.headingExisting}
+                    subtitle={RX_MICROCOPY.signup.subtitle}
+                  />
+
+                  <Button variant="outline" className="w-full h-11 bg-transparent" onClick={handleGoogleAuth}>
+                    <GoogleIcon className="w-5 h-5 mr-2" />
+                    Continue with Google
+                  </Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted-foreground">or</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+
+                  <div className="space-y-3">
+                    {isSignUp && (
+                      <Input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Full name"
+                        className="h-11"
+                      />
+                    )}
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                      className="h-11"
+                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        className="h-11 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    {isSignUp && (
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTerms}
+                          onChange={(e) => setAgreedToTerms(e.target.checked)}
+                          className="mt-1 rounded border-border"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          I agree to the{" "}
+                          <Link href="/terms" className="underline">
+                            Terms
+                          </Link>{" "}
+                          and{" "}
+                          <Link href="/privacy" className="underline">
+                            Privacy Policy
+                          </Link>
+                        </span>
+                      </label>
+                    )}
+
+                    {error && (
+                      <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                        <p className="text-xs text-destructive">{error}</p>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleAuth}
+                      disabled={authLoading || (isSignUp ? !agreedToTerms : false)}
+                      className="w-full h-11"
+                    >
+                      {authLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isSignUp ? (
+                        "Create account"
+                      ) : (
+                        "Sign in"
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-center text-muted-foreground">
+                      {isSignUp ? "Already have an account?" : "New here?"}{" "}
+                      <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary underline">
+                        {isSignUp ? "Sign in" : "Create account"}
+                      </button>
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Step: Review */}
+          {step === "review" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.review.heading} subtitle={RX_MICROCOPY.review.subtitle} />
+              <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.medication}</p>
+                    <p className="text-sm font-medium">{medication}</p>
+                  </div>
+                  <button onClick={() => goTo("medication")} className="p-1 hover:bg-muted rounded">
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                  </button>
+                </div>
+                <hr className="border-border/40" />
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.condition}</p>
+                    <p className="text-sm font-medium">
+                      {condition === "other" ? otherCondition : CONDITIONS.find((c) => c.id === condition)?.label}
+                    </p>
+                  </div>
+                  <button onClick={() => goTo("condition")} className="p-1 hover:bg-muted rounded">
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                  </button>
+                </div>
+                {rxType === "repeat" && (
+                  <>
+                    <hr className="border-border/40" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.duration}</p>
+                      <p className="text-sm font-medium">{DURATIONS.find((d) => d.id === duration)?.label}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step: Payment */}
+          {step === "payment" && (
+            <div className="space-y-4">
+              <StepHeader title={RX_MICROCOPY.payment.heading} subtitle={RX_MICROCOPY.payment.subtitle} />
+              <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Total</span>
+                  <span className="text-2xl font-bold">{RX_MICROCOPY.payment.price}</span>
+                </div>
+                <hr className="border-border/40" />
+                <ul className="space-y-2">
+                  {RX_MICROCOPY.payment.includes.map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">{RX_MICROCOPY.payment.disclaimer}</p>
+              {error && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-xs text-destructive">{error}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        {/* Footer */}
+        {step !== "type" && !showEmailConfirm && (
+          <footer className="sticky bottom-0 bg-background/80 backdrop-blur-lg border-t px-4 py-3">
+            <div className="max-w-md mx-auto">
+              {step === "payment" ? (
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-12">
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {RX_MICROCOPY.payment.processing}
+                    </>
+                  ) : (
+                    RX_MICROCOPY.payment.cta
+                  )}
+                </Button>
+              ) : step === "safety" && checkSafetyKnockout() ? (
+                <Button onClick={() => setIsKnockedOut(true)} variant="outline" className="w-full h-12">
+                  Find a GP near you
+                </Button>
+              ) : step !== "signup" ? (
+                <Button onClick={goNext} disabled={!canContinue()} className="w-full h-12">
+                  {RX_MICROCOPY.nav.continue}
+                </Button>
+              ) : null}
+            </div>
+          </footer>
+        )}
+      </div>
+    </TooltipProvider>
+  )
+}

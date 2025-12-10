@@ -1,0 +1,992 @@
+[00:00:00.737] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.821] Server  LOG      ✓ Ready in 634ms
+[00:00:25.148] Server  ERROR   Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:25.153] Server  ERROR    ⨯ "unhandledRejection:" Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:25.157] Server  ERROR    ⨯ "unhandledRejection: " Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:25.237] Server  ERROR   Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:25.242] Server  ERROR    ⨯ "unhandledRejection:" Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:25.245] Server  ERROR    ⨯ "unhandledRejection: " Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:28.173] Server  LOG      ✓ Compiled in 123ms
+[00:00:36.060] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:36.377] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <ScrollAndFocusHandler segmentPath={[...]}>
+      <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+        <ErrorBoundary errorComponent={function Error} errorStyles={<SegmentViewNode>} errorScripts={[...]}>
+          <ErrorBoundaryHandler pathname="/" errorComponent={function Error} errorStyles={<SegmentViewNode>} ...>
+            <LoadingBoundary name="/" loading={[...]}>
+              <Suspense name="/" fallback={<Fragment>}>
+                <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+                  <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+                    <RedirectBoundary>
+                      <RedirectErrorBoundary router={{...}}>
+                        <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                          <SegmentViewNode type="page" pagePath="page.tsx">
+                            <SegmentTrieNode>
+                            <LandingPage>
+                              <div
+                                className="flex min-h-screen flex-col bg-hero"
+-                               data-cursor-ref="ref-w7f4bmkh5tl"
+                              >
+                                <Navbar variant="marketing">
+                                  <header
+                                    className="fixed top-0 left-0 right-0 z-50 px-3 pt-3"
+-                                   data-cursor-ref="ref-o2y66r9uh3e"
+                                  >
+                                    <nav
+                                      className="mx-auto max-w-5xl rounded-2xl border border-border/40 bg-background/8..."
+                                      role="navigation"
+                                      aria-label="Main navigation"
+-                                     data-cursor-ref="ref-ewnroh20n4"
+                                    >
+                                      <div
+                                        className="flex items-center justify-between px-4"
+-                                       data-cursor-ref="ref-f9ifz1mozov"
+                                      >
+                                        <LinkComponent href="/" className="flex items..." aria-label="InstantMed...">
+                                          <a
+                                            className="flex items-center gap-2 group"
+                                            aria-label="InstantMed home"
+                                            ref={function}
+                                            onClick={function onClick}
+                                            onMouseEnter={function onMouseEnter}
+                                            onTouchStart={function onTouchStart}
+                                            href="/"
+-                                           data-cursor-ref="ref-txwbcvx8w3"
+                                          >
+                                        <div
+                                          className="hidden items-center gap-1 md:flex"
+-                                         data-cursor-ref="ref-agjx7he6g9"
+                                        >
+                                          <LinkComponent href="/medical-c..." className="px-3 py-1....">
+                                            <a
+                                              className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ..."
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/medical-certificate/request"
+-                                             data-cursor-ref="ref-psayk7w8ha"
+                                            >
++                                             Medical Certificates
+                                          <LinkComponent href="/prescript..." className="px-3 py-1....">
+                                            <a
+                                              className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ..."
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/prescriptions/request"
+-                                             data-cursor-ref="ref-do5sq732fc"
+                                            >
++                                             Prescriptions
+                                          <LinkComponent href="/referrals..." className="px-3 py-1....">
+                                            <a
+                                              className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ..."
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/referrals/pathology-imaging/request"
+-                                             data-cursor-ref="ref-hivwin4fyww"
+                                            >
++                                             {"Pathology & Imaging"}
+                                          <div
+                                            className="ml-3 flex items-center gap-2"
+-                                           data-cursor-ref="ref-ecy9xujadk"
+                                          >
+                                            ...
+                                              <Slot.SlotClone data-slot="button" className={"inline-f..."} ref={null}>
+                                                <LinkComponent href="/auth/login" data-slot="button" ...>
+                                                  <a
+                                                    data-slot="button"
+                                                    className={"inline-flex items-center justify-center whitespace-no..."}
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/auth/login"
+-                                                   data-cursor-ref="ref-g18g8pr072p"
+                                                  >
++                                                   Sign in
+                                            ...
+                                              <Slot.SlotClone data-slot="button" className={"inline-f..."} ref={null}>
+                                                <LinkComponent href="/medical-c..." data-slot="button" ...>
+                                                  <a
+                                                    data-slot="button"
+                                                    className={"inline-flex items-center justify-center whitespace-no..."}
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/medical-certificate/request"
+-                                                   data-cursor-ref="ref-5rqpwrvu7w"
+                                                  >
++                                                   Get started
+                                        ...
+                                          <Primitive.button.Slot type="button" aria-haspopup="dialog" ...>
+                                            <Primitive.button.SlotClone type="button" aria-haspopup="dialog" ...>
+                                              <Button variant="ghost" size="icon" className="md:hidden ..." ...>
+                                                <button
+                                                  data-slot="sheet-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  aria-label="Open menu"
+                                                  type="button"
+                                                  aria-haspopup="dialog"
+                                                  aria-expanded={false}
+                                                  aria-controls="radix-_R_6pbmalb_"
+                                                  data-state="closed"
+                                                  onClick={function handleEvent}
+                                                  ref={function}
+-                                                 data-cursor-ref="ref-h74ofbuzzql"
+                                                >
+                                                  <Menu className="h-5 w-5">
+                                                    <svg
+                                                      ref={null}
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width={24}
+                                                      height={24}
+                                                      viewBox="0 0 24 24"
+                                                      fill="none"
+                                                      stroke="currentColor"
+                                                      strokeWidth={2}
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      className="lucide lucide-menu h-5 w-5"
+-                                                     data-cursor-ref="ref-7kgzk5t3zv5"
+                                                    >
+                                <main
+                                  className="flex-1 pt-24"
+-                                 data-cursor-ref="ref-20lqktq3aij"
+                                >
+                                  <section
+                                    className="relative px-4 py-16 sm:px-6 lg:py-28 overflow-hidden"
+-                                   data-cursor-ref="ref-i4kjfdrn5yl"
+                                  >
+                                    <div>
+                                    <div>
+                                    <div
+                                      className="relative mx-auto max-w-4xl text-center"
+-                                     data-cursor-ref="ref-1gdcutg7ul9"
+                                    >
+                                      <div>
+                                      <h1
+                                        className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-..."
+                                        style={{animationDelay:"0.1s",animationFillMode:"forwards",fontFamily:"var(--font..."}}
+-                                       data-cursor-ref="ref-bw0701m5vjc"
+                                      >
+                                      <p
+                                        className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-mut..."
+                                        style={{animationDelay:"0.2s",animationFillMode:"forwards"}}
+-                                       data-cursor-ref="ref-asjdr2ktu34"
+                                      >
++                                       Med certificates, scripts, and referrals — reviewed by real AHPRA-registered do...
+                                      <div
+                                        className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row a..."
+                                        style={{animationDelay:"0.3s",animationFillMode:"forwards"}}
+-                                       data-cursor-ref="ref-gbysj52tae"
+                                      >
+                                        <Button>
+                                          <Slot.Slot>
+                                            <Slot.SlotClone>
+                                              <LinkComponent>
+                                                <LinkComponent href="#services" data-slot="button" ...>
+                                                  <a
+                                                    data-slot="button"
+                                                    className={"inline-flex items-center justify-center gap-2 whitesp..."}
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="#services"
+-                                                   data-cursor-ref="ref-2vj2rmxtf0o"
+                                                  >
+                                                    <ArrowRight>
+                                                      <>
+                                                        <svg
+                                                          xmlns="http://www.w3.org/2000/svg"
+                                                          width={24}
+                                                          height={24}
+                                                          viewBox="0 0 24 24"
+                                                          fill="none"
+                                                          stroke="currentColor"
+                                                          strokeWidth={2}
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                          className="lucide lucide-arrow-right ml-2 h-4 w-4 transition..."
+-                                                         data-cursor-ref="ref-nc1m2l2q23e"
+                                                        >
+                                        <Button>
+                                          <Slot.Slot>
+                                            <Slot.SlotClone>
+                                              <LinkComponent>
+                                                <LinkComponent href="/how-it-works" data-slot="button" ...>
+                                                  <a
+                                                    data-slot="button"
+                                                    className={"inline-flex items-center justify-center gap-2 whitesp..."}
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/how-it-works"
+-                                                   data-cursor-ref="ref-n9zdpvseyob"
+                                                  >
++                                                   How it works
+                                      ...
+                                    <div
+                                      className="relative mx-auto mt-12 max-w-sm animate-fade-in-up opacity-0"
+                                      style={{animationDelay:"0.5s",animationFillMode:"forwards"}}
+-                                     data-cursor-ref="ref-i8ac7qozel"
+                                    >
+                                      <TiltCard className="glass-card...">
+                                        <div
+                                          ref={{current:null}}
+                                          className="tilt-card relative overflow-hidden glass-card rounded-2xl p-5 ani..."
+                                          style={{transform:"",--mouse-x:"50%",--mouse-y:"50%"}}
+                                          onMouseMove={function handleMouseMove}
+                                          onMouseLeave={function handleMouseLeave}
+-                                         data-cursor-ref="ref-bgh881fl3fp"
+                                        >
+                                          <div>
+                                          <div>
+                                          <div
+                                            className="mt-4 pt-4 border-t border-[#0A0F1C]/5 flex items-center justify..."
+-                                           data-cursor-ref="ref-afqkciqhq6s"
+                                          >
+                                            <div>
+                                            <Button>
+                                              <button
+                                                data-slot="button"
+                                                className={"inline-flex items-center justify-center whitespace-nowrap..."}
+-                                               data-cursor-ref="ref-fezij61faip"
+                                              >
++                                               Online
+                                  <section
+                                    className="px-4 py-4 sm:px-6 bg-[#0A0F1C] overflow-hidden"
+-                                   data-cursor-ref="ref-v2js7mthbpi"
+                                  >
+                                  <section
+                                    id="services"
+                                    className="px-4 py-16 sm:px-6 lg:py-24 bg-mesh"
+-                                   data-cursor-ref="ref-bsencele9l6"
+                                  >
+                                    <div
+                                      className="mx-auto max-w-6xl"
+-                                     data-cursor-ref="ref-shep4f688p"
+                                    >
+                                      <div>
+                                      <div
+                                        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+-                                       data-cursor-ref="ref-50tigeactuf"
+                                      >
+                                        <LinkComponent>
+                                          <LinkComponent href="/medical-c..." className="block group">
+                                            <a
+                                              className="block group"
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/medical-certificate"
+-                                             data-cursor-ref="ref-8gmxv2xztp"
+                                            >
+                                        <LinkComponent>
+                                          <LinkComponent href="/prescript..." className="block group">
+                                            <a
+                                              className="block group"
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/prescriptions"
+-                                             data-cursor-ref="ref-tg3aq74ke5h"
+                                            >
+                                        <LinkComponent>
+                                          <LinkComponent href="/referrals" className="block group">
+                                            <a
+                                              className="block group"
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/referrals"
+-                                             data-cursor-ref="ref-ykjasjqa5n8"
+                                            >
+                                        <LinkComponent>
+                                          <LinkComponent href="/referrals..." className="block group">
+                                            <a
+                                              className="block group"
+                                              ref={function}
+                                              onClick={function onClick}
+                                              onMouseEnter={function onMouseEnter}
+                                              onTouchStart={function onTouchStart}
+                                              href="/referrals/pathology-imaging"
+-                                             data-cursor-ref="ref-k84xo7nkrsd"
+                                            >
+                                      <div
+                                        className="mt-10 text-center"
+-                                       data-cursor-ref="ref-359vglbp0wz"
+                                      >
+                                        <p
+                                          className="text-sm text-muted-foreground mb-4"
+-                                         data-cursor-ref="ref-ojkzlnm21ef"
+                                        >
+                                          <LinkComponent>
+                                            <LinkComponent href="/contact" className="text-[#00E...">
+                                              <a
+                                                className="text-[#00E2B5] hover:underline font-medium"
+                                                ref={function}
+                                                onClick={function onClick}
+                                                onMouseEnter={function onMouseEnter}
+                                                onTouchStart={function onTouchStart}
+                                                href="/contact"
+-                                               data-cursor-ref="ref-71xkosuzyao"
+                                              >
++                                               Get in touch
+                                  <section
+                                    className="px-4 py-16 sm:px-6 lg:py-24"
+-                                   data-cursor-ref="ref-yrmwu48t4x"
+                                  >
+                                    <div
+                                      className="mx-auto max-w-5xl"
+-                                     data-cursor-ref="ref-utb3j40xk4"
+                                    >
+                                      <div>
+                                      <div>
+                                      <div
+                                        className="mt-12 text-center"
+-                                       data-cursor-ref="ref-tzxf5n94i9q"
+                                      >
+                                        <Button>
+                                          <Slot.Slot>
+                                            <Slot.SlotClone>
+                                              <LinkComponent>
+                                                <LinkComponent href="/auth/regi..." data-slot="button" ...>
+                                                  <a
+                                                    data-slot="button"
+                                                    className={"inline-flex items-center justify-center gap-2 whitesp..."}
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/auth/register"
+-                                                   data-cursor-ref="ref-m4smev6u1"
+                                                  >
+                                                    <ArrowRight>
+                                                      <>
+                                                        <svg
+                                                          xmlns="http://www.w3.org/2000/svg"
+                                                          width={24}
+                                                          height={24}
+                                                          viewBox="0 0 24 24"
+                                                          fill="none"
+                                                          stroke="currentColor"
+                                                          strokeWidth={2}
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                          className="lucide lucide-arrow-right ml-2 h-4 w-4 group-hove..."
+-                                                         data-cursor-ref="ref-fbseslwfmdm"
+                                                        >
+                                        <p
+                                          className="mt-4 text-sm text-muted-foreground"
+-                                         data-cursor-ref="ref-l2wfzhs682h"
+                                        >
++                                         Medicare card required. Only pay if your request is approved.
+                                  <section
+                                    className="px-4 py-16 sm:px-6 lg:py-24 bg-[#0A0F1C] text-white"
+-                                   data-cursor-ref="ref-98l6p50cz9d"
+                                  >
+                                  <section
+                                    className="px-4 py-16 sm:px-6 lg:py-24 bg-mesh overflow-hidden"
+-                                   data-cursor-ref="ref-aqdy41hiyu"
+                                  >
+                                    <div>
+                                    <TestimonialMarquee>
+                                    <div
+                                      className="text-center mt-8"
+-                                     data-cursor-ref="ref-8cyfrc8teeh"
+                                    >
+                                      <LinkComponent>
+                                        <LinkComponent href="/reviews" className="text-sm fo...">
+                                          <a
+                                            className="text-sm font-medium text-[#00E2B5] hover:underline"
+                                            ref={function}
+                                            onClick={function onClick}
+                                            onMouseEnter={function onMouseEnter}
+                                            onTouchStart={function onTouchStart}
+                                            href="/reviews"
+-                                           data-cursor-ref="ref-pcs5e3z1hus"
+                                          >
++                                           Read all reviews →
+                                  <section
+                                    className="px-4 py-16 sm:px-6 lg:py-24"
+-                                   data-cursor-ref="ref-8do13hutw1j"
+                                  >
+                                    <div
+                                      className="mx-auto max-w-3xl text-center"
+-                                     data-cursor-ref="ref-or7pk9jbzfd"
+                                    >
+                                      <TiltCard className="glass-card...">
+                                        <div
+                                          ref={{current:null}}
+                                          className="tilt-card glass-card rounded-3xl p-10 sm:p-14 relative overflow-h..."
+                                          style={{transform:"",--mouse-x:"50%",--mouse-y:"50%"}}
+                                          onMouseMove={function handleMouseMove}
+                                          onMouseLeave={function handleMouseLeave}
+-                                         data-cursor-ref="ref-1ofdmmiewgl"
+                                        >
+                                          <div>
+                                          <div
+                                            className="relative"
+-                                           data-cursor-ref="ref-jh2jevv07vd"
+                                          >
+                                            <h2
+                                              className="text-3xl font-bold tracking-tight sm:text-4xl mb-4"
+                                              style={{fontFamily:"var(--font..."}}
+-                                             data-cursor-ref="ref-0f38rdcl61xc"
+                                            >
++                                             Need a certificate, script, or referral?
+                                            <p
+                                              className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto"
+-                                             data-cursor-ref="ref-qu2zskkmna"
+                                            >
++                                             No phone calls. No video consults. Fill out a quick form and a real docto...
+                                            <div
+                                              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+-                                             data-cursor-ref="ref-fz27y0cjfaq"
+                                            >
+                                              <Button>
+                                                <Slot.Slot>
+                                                  <Slot.SlotClone>
+                                                    <LinkComponent>
+                                                      <LinkComponent href="#services" data-slot="button" ...>
+                                                        <a
+                                                          data-slot="button"
+                                                          className={"inline-flex items-center justify-center gap-2 w..."}
+                                                          ref={function}
+                                                          onClick={function onClick}
+                                                          onMouseEnter={function onMouseEnter}
+                                                          onTouchStart={function onTouchStart}
+                                                          href="#services"
+-                                                         data-cursor-ref="ref-ir5ha81iid8"
+                                                        >
+                                                          <ArrowRight>
+                                                            <>
+                                                              <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={24}
+                                                                height={24}
+                                                                viewBox="0 0 24 24"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                strokeWidth={2}
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                className="lucide lucide-arrow-right ml-2 h-4 w-4 grou..."
+-                                                               data-cursor-ref="ref-g7r8h43db6h"
+                                                              >
+                                            <p
+                                              className="mt-6 text-sm text-muted-foreground"
+-                                             data-cursor-ref="ref-zwgitxdatz"
+                                            >
++                                             Medicare card required. Only pay if approved.
+                                <Footer>
+                                  <footer
+                                    className="border-t bg-muted/30"
+                                    role="contentinfo"
+-                                   data-cursor-ref="ref-2d4i5heq46p"
+                                  >
+                                    <div
+                                      className="mx-auto max-w-5xl px-4 py-10"
+-                                     data-cursor-ref="ref-ui6fhcwa1tk"
+                                    >
+                                      <div
+                                        className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
+-                                       data-cursor-ref="ref-v7ja4cpn2q"
+                                      >
+                                        <div
+                                          className="space-y-3 lg:col-span-1"
+-                                         data-cursor-ref="ref-kbbcatrbyvr"
+                                        >
+                                          <LinkComponent>
+                                            <LinkComponent href="/" className="flex items..." aria-label="InstantMed...">
+                                              <a
+                                                className="flex items-center gap-2"
+                                                aria-label="InstantMed home"
+                                                ref={function}
+                                                onClick={function onClick}
+                                                onMouseEnter={function onMouseEnter}
+                                                onTouchStart={function onTouchStart}
+                                                href="/"
+-                                               data-cursor-ref="ref-z1b0feh15rn"
+                                              >
+                                          <p
+                                            className="text-sm text-muted-foreground leading-relaxed"
+-                                           data-cursor-ref="ref-etdfna7cphe"
+                                          >
++                                           {"Medical certificates, prescriptions & referrals — handled online, no p..."}
+                                        <nav
+                                          className="space-y-3"
+                                          aria-label="Services"
+-                                         data-cursor-ref="ref-mdqx72mrnfj"
+                                        >
+                                          <h3
+                                            className="text-sm font-semibold"
+-                                           data-cursor-ref="ref-1l2u14pr8q4i"
+                                          >
++                                           Services
+                                          <ul
+                                            className="space-y-2"
+-                                           data-cursor-ref="ref-3tv1tv3774y"
+                                          >
+                                            <li
+-                                             data-cursor-ref="ref-a0jk31kamtb"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/medical-c..." className="flex items...">
+                                                  <a
+                                                    className="flex items-center gap-2 text-sm text-muted-foreground h..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/medical-certificate/request"
+-                                                   data-cursor-ref="ref-k5851r3nt08"
+                                                  >
+                                            <li
+-                                             data-cursor-ref="ref-y36rgl4cr7"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/prescript..." className="flex items...">
+                                                  <a
+                                                    className="flex items-center gap-2 text-sm text-muted-foreground h..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/prescriptions/request"
+-                                                   data-cursor-ref="ref-5clym4ql7md"
+                                                  >
+                                            <li
+-                                             data-cursor-ref="ref-ky9o6pkuiy"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/referrals..." className="flex items...">
+                                                  <a
+                                                    className="flex items-center gap-2 text-sm text-muted-foreground h..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/referrals/pathology-imaging/request"
+-                                                   data-cursor-ref="ref-h7d2p3yyfm4"
+                                                  >
+                                        <nav
+                                          className="space-y-3"
+                                          aria-label="Company"
+-                                         data-cursor-ref="ref-my3gzlzz6a"
+                                        >
+                                          <h3
+                                            className="text-sm font-semibold"
+-                                           data-cursor-ref="ref-kvjnte96fai"
+                                          >
++                                           Company
+                                          <ul
+                                            className="space-y-2"
+-                                           data-cursor-ref="ref-rzey5mifjvj"
+                                          >
+                                            <li
+-                                             data-cursor-ref="ref-oj9zwr04r0p"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/how-it-works" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/how-it-works"
+-                                                   data-cursor-ref="ref-8qn5zodq4jl"
+                                                  >
++                                                   How it works
+                                            <li
+-                                             data-cursor-ref="ref-xhuvj9knvvf"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/pricing" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/pricing"
+-                                                   data-cursor-ref="ref-gp6vpi7mhkt"
+                                                  >
++                                                   Pricing
+                                            <li
+-                                             data-cursor-ref="ref-8ghjlu4ki4q"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/faq" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/faq"
+-                                                   data-cursor-ref="ref-iepd1t50t0n"
+                                                  >
++                                                   FAQs
+                                            <li
+-                                             data-cursor-ref="ref-haw4gca0wlu"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/reviews" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/reviews"
+-                                                   data-cursor-ref="ref-7ceq1z7k2y"
+                                                  >
++                                                   Reviews
+                                        <div
+                                          className="space-y-3"
+-                                         data-cursor-ref="ref-4prvumo0dp"
+                                        >
+                                          <h3
+                                            className="text-sm font-semibold"
+-                                           data-cursor-ref="ref-ejqkup9vzus"
+                                          >
++                                           Support
+                                          <ul
+                                            className="space-y-2"
+-                                           data-cursor-ref="ref-ijdg2mfivpo"
+                                          >
+                                            <li
+-                                             data-cursor-ref="ref-zm83a8s46j"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/contact" className="flex items...">
+                                                  <a
+                                                    className="flex items-center gap-2 text-sm text-muted-foreground h..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/contact"
+-                                                   data-cursor-ref="ref-tcpn5ukots9"
+                                                  >
+                                            <li
+-                                             data-cursor-ref="ref-k5psq70xmc"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/privacy" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/privacy"
+-                                                   data-cursor-ref="ref-15o36e4j0yi"
+                                                  >
++                                                   Privacy
+                                            <li
+-                                             data-cursor-ref="ref-prx0lm65po9"
+                                            >
+                                              <LinkComponent>
+                                                <LinkComponent href="/terms" className="text-sm te...">
+                                                  <a
+                                                    className="text-sm text-muted-foreground hover:text-foreground tra..."
+                                                    ref={function}
+                                                    onClick={function onClick}
+                                                    onMouseEnter={function onMouseEnter}
+                                                    onTouchStart={function onTouchStart}
+                                                    href="/terms"
+-                                                   data-cursor-ref="ref-ru4hqa1pozm"
+                                                  >
++                                                   Terms
+                                      ...
+                          ...
+                        ...
+        ...
+
+[00:00:36.377] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:36.377] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:36.377] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355103257}
+[00:00:36.550] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:36.658] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:36.658] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:36.658] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355103512}
+[00:00:37.005] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:37.197] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:37.197] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[00:00:37.197] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355104052}
+[00:00:42.560] Browser ERROR   uncaughtError: Error: Element not found
+[00:00:47.713] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:47.822] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:47.822] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/auth/login","route":"/auth/login"}
+[00:00:47.822] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/auth/login color: rgb(120, 120, 120) color: inherit {"dp":"/auth/login","o":"http://localhost:3000/auth/login","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355114678}
+[00:00:54.581] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/auth/forgot-password color: rgb(120, 120, 120) color: inherit {"dp":"/auth/forgot-password","o":"http://localhost:3000/auth/forgot-password","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355121434}
+[00:01:13.156] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:13.611] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:01:13.611] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/medical-certificate/request","route":"/medical-certificate/request"}
+[00:01:13.611] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/medical-certificate/request color: rgb(120, 120, 120) color: inherit {"dp":"/medical-certificate/request","o":"http://localhost:3000/medical-certificate/request","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.6.1","sv":"0.1.3","ts":1765355140127}
+[00:01:23.611] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="request/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/medical-c..." tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                <SegmentViewNode type="page" pagePath="medical-ce...">
+                  <SegmentTrieNode>
+                  <MedCertRequestPage>
+                    <Script>
+                    <MedCertRequestPage>
+                      <MedCertFlowClient patientId={null} isAuthenticated={false} needsOnboarding={true}>
+                        <TooltipProvider>
+                          <TooltipProvider data-slot="tooltip-pr..." delayDuration={0}>
+                            <TooltipProviderProvider scope={undefined} isOpenDelayedRef={{current:true}} ...>
+                              <main
+                                ref={{current:null}}
+                                tabIndex={-1}
+                                className="min-h-screen bg-background flex flex-col"
+                                aria-label="Medical certificate request"
+-                               data-cursor-ref="ref-b1yhzk49a98"
+                              >
+                                <header
+                                  className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-borde..."
+-                                 data-cursor-ref="ref-46bgysoa783"
+                                >
+                                  <div
+                                    className="max-w-md mx-auto space-y-3"
+-                                   data-cursor-ref="ref-heknb8rfuu"
+                                  >
+                                    <div
+                                      className="flex items-center justify-between"
+-                                     data-cursor-ref="ref-n6m84w9x21i"
+                                    >
+                                      <LinkComponent href="/" className="text-sm fo...">
+                                        <a
+                                          className="text-sm font-semibold text-primary"
+                                          ref={function}
+                                          onClick={function onClick}
+                                          onMouseEnter={function onMouseEnter}
+                                          onTouchStart={function onTouchStart}
+                                          href="/"
+-                                         data-cursor-ref="ref-ph7067c9p8g"
+                                        >
++                                         InstantMed
+                                      ...
+                                    <ProgressIndicator steps={[...]} currentIndex={0}>
+                                      <nav
+                                        aria-label="Request progress"
+                                        className="w-full"
+-                                       data-cursor-ref="ref-x54l827hso"
+                                      >
+                                        <ol
+                                          className="flex items-center justify-between gap-1"
+                                          role="list"
+-                                         data-cursor-ref="ref-gi3h8pvivci"
+                                        >
+                                          <li
+                                            className="flex-1 flex flex-col items-center gap-1"
+                                            aria-current="step"
+-                                           data-cursor-ref="ref-ye1pdebjkng"
+                                          >
+                                            <div
+                                              className="h-1.5 w-full rounded-full transition-colors duration-300 bg-p..."
+                                              role="progressbar"
+                                              aria-valuenow={50}
+                                              aria-valuemin={0}
+                                              aria-valuemax={100}
+                                              aria-label="Details: In progress"
+-                                             data-cursor-ref="ref-bvwk1oeb5jj"
+                                            >
+                                            ...
+                                          <li
+                                            className="flex-1 flex flex-col items-center gap-1"
+                                            aria-current={undefined}
+-                                           data-cursor-ref="ref-nbq723licwj"
+                                          >
+                                            <div
+                                              className="h-1.5 w-full rounded-full transition-colors duration-300 bg-m..."
+                                              role="progressbar"
+                                              aria-valuenow={0}
+                                              aria-valuemin={0}
+                                              aria-valuemax={100}
+                                              aria-label="Medicare: Not started"
+-                                             data-cursor-ref="ref-xy26bjir6sn"
+                                            >
+                                            ...
+                                          <li
+                                            className="flex-1 flex flex-col items-center gap-1"
+                                            aria-current={undefined}
+-                                           data-cursor-ref="ref-l4yu2w2ude"
+                                          >
+                                            <div
+                                              className="h-1.5 w-full rounded-full transition-colors duration-300 bg-m..."
+                                              role="progressbar"
+                                              aria-valuenow={0}
+                                              aria-valuemin={0}
+                                              aria-valuemax={100}
+                                              aria-label="Account: Not started"
+-                                             data-cursor-ref="ref-uxi56rimhjj"
+                                            >
+                                            ...
+                                          <li
+                                            className="flex-1 flex flex-col items-center gap-1"
+                                            aria-current={undefined}
+-                                           data-cursor-ref="ref-izmpfv9zfir"
+                                          >
+                                            <div
+                                              className="h-1.5 w-full rounded-full transition-colors duration-300 bg-m..."
+                                              role="progressbar"
+                                              aria-valuenow={0}
+                                              aria-valuemin={0}
+                                              aria-valuemax={100}
+                                              aria-label="Review: Not started"
+-                                             data-cursor-ref="ref-8q643wbwmm7"
+                                            >
+                                            ...
+                                          <li
+                                            className="flex-1 flex flex-col items-center gap-1"
+                                            aria-current={undefined}
+-                                           data-cursor-ref="ref-pmjgproqc5"
+                                          >
+                                            <div
+                                              className="h-1.5 w-full rounded-full transition-colors duration-300 bg-m..."
+                                              role="progressbar"
+                                              aria-valuenow={0}
+                                              aria-valuemin={0}
+                                              aria-valuemax={100}
+                                              aria-label="Pay: Not started"
+-                                             data-cursor-ref="ref-ib1qyhginfb"
+                                            >
+                                            ...
+                                <div
+                                  className="flex-1 px-4 py-5"
+-                                 data-cursor-ref="ref-w8aytah3j0r"
+                                >
+                                  <div
+                                    className="max-w-md mx-auto"
+-                                   data-cursor-ref="ref-as7wpet7nh6"
+                                  >
+                                    <section
+                                      aria-labelledby="step-type-heading"
+                                      className="space-y-4"
+-                                     data-cursor-ref="ref-ibx3uvasbmn"
+                                    >
+                                      <StepHeader title="What type ..." subtitle="Select one..." stepNumber={1} ...>
+                                        <header
+                                          className="text-center space-y-1"
+-                                         data-cursor-ref="ref-mlakp86ou"
+                                        >
+                                          <p
+                                            className="sr-only"
+-                                           data-cursor-ref="ref-yzm7l6hcbr"
+                                          >
+                                          <h1
+                                            className="text-xl font-semibold text-foreground leading-tight"
+-                                           data-cursor-ref="ref-bs732iboi9h"
+                                          >
++                                           What type of certificate do you need?
+                                          <p
+                                            className="text-sm text-muted-foreground"
+-                                           data-cursor-ref="ref-j9ajmtogch"
+                                          >
++                                           Select one option
+                                      <div
+                                        className="space-y-2"
+                                        role="radiogroup"
+                                        aria-label="Certificate type"
+-                                       data-cursor-ref="ref-kglsdi72qog"
+                                      >
+                                        <TileButton selected={false} onClick={function onClick} icon={{...}} label="Work" ...>
+                                          <button
+                                            type="button"
+                                            onClick={function onClick}
+                                            aria-pressed={false}
+                                            className={"\n        w-full min-h-[48px] p-3 rounded-xl border-2 transit..."}
+-                                           data-cursor-ref="ref-047ts92fw7xu"
+                                          >
+                                        <TileButton selected={false} onClick={function onClick} icon={{...}} ...>
+                                          <button
+                                            type="button"
+                                            onClick={function onClick}
+                                            aria-pressed={false}
+                                            className={"\n        w-full min-h-[48px] p-3 rounded-xl border-2 transit..."}
+-                                           data-cursor-ref="ref-t60siqpe7a"
+                                          >
+                                        <TileButton selected={false} onClick={function onClick} icon={{...}} ...>
+                                          <button
+                                            type="button"
+                                            onClick={function onClick}
+                                            aria-pressed={false}
+                                            className={"\n        w-full min-h-[48px] p-3 rounded-xl border-2 transit..."}
+-                                           data-cursor-ref="ref-sf3fw4frf1d"
+                                          >
+                                <footer
+                                  className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border ..."
+-                                 data-cursor-ref="ref-f2gmf1nixbh"
+                                >
+                                  <div
+                                    className="max-w-md mx-auto flex gap-3"
+-                                   data-cursor-ref="ref-k7ignunkvx8"
+                                  >
+                                    <Button onClick={function MedCertFlowClient.useCallback[goNext]} disabled={true} ...>
+                                      <button
+                                        data-slot="button"
+                                        className={"inline-flex items-center justify-center whitespace-nowrap text-sm..."}
+                                        onClick={function MedCertFlowClient.useCallback[goNext]}
+                                        disabled={true}
+-                                       data-cursor-ref="ref-bcui5xe0c34"
+                                      >
+                                        <ArrowRight className="w-5 h-5">
+                                          <svg
+                                            ref={null}
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width={24}
+                                            height={24}
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="lucide lucide-arrow-right w-5 h-5"
+-                                           data-cursor-ref="ref-tcso5tixenc"
+                                          >
+                ...
+              ...
+

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/rey/Desktop/instantmed/instantmed-main/app/loading.tsx"],"sourcesContent":["export default function Loading() {\n  return (\n    <main className=\"min-h-screen bg-hero flex items-center justify-center px-4\">\n      <div className=\"text-center\">\n        {/* Animated Logo/Spinner */}\n        <div className=\"relative mb-6\">\n          <div className=\"w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00E2B5] to-[#00C9A0] animate-pulse\" />\n          <div className=\"absolute inset-0 w-16 h-16 rounded-2xl border-2 border-[#00E2B5]/30 animate-ping\" />\n        </div>\n\n        <p className=\"text-muted-foreground text-sm animate-pulse\">Loading...</p>\n      </div>\n    </main>\n  )\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAK,WAAU;kBACd,cAAA,8OAAC;YAAI,WAAU;;8BAEb,8OAAC;oBAAI,WAAU;;sCACb,8OAAC;4BAAI,WAAU;;;;;;sCACf,8OAAC;4BAAI,WAAU;;;;;;;;;;;;8BAGjB,8OAAC;oBAAE,WAAU;8BAA8C;;;;;;;;;;;;;;;;;AAInE"}}]
+}

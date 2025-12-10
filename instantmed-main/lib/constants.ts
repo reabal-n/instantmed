@@ -1,0 +1,80 @@
+/**
+ * Application constants
+ * Centralized place for all app-wide constants
+ */
+
+export const APP_NAME = "InstantMed"
+export const APP_DESCRIPTION =
+  "Get medical certificates, prescriptions, and referrals online from AHPRA-registered Australian GPs."
+
+// Contact info
+export const CONTACT_EMAIL = "support@instantmed.com.au"
+export const CONTACT_PHONE = "1800 INSTANT"
+export const CONTACT_PHONE_NUMBER = "1800467826"
+
+// Service pricing (in AUD cents)
+export const PRICING = {
+  MEDICAL_CERTIFICATE: 2900, // $29.00
+  PRESCRIPTION: 2900, // $29.00
+  REFERRAL_SPECIALIST: 2900, // $29.00
+  REFERRAL_PATHOLOGY: 2900, // $29.00
+} as const
+
+// Response time guarantees
+export const RESPONSE_TIMES = {
+  AVERAGE: "2-4 hours",
+  GUARANTEE: "24 hours",
+} as const
+
+// Service types
+export const REQUEST_TYPES = {
+  MEDICAL_CERTIFICATE: "medical_certificate",
+  PRESCRIPTION: "prescription",
+  REFERRAL: "referral",
+} as const
+
+// Medical certificate categories
+export const MEDCERT_CATEGORIES = {
+  WORK: "work",
+  UNI: "uni",
+  CARER: "carer",
+} as const
+
+// Referral categories
+export const REFERRAL_CATEGORIES = {
+  SPECIALIST: "specialist",
+  PATHOLOGY: "pathology",
+} as const
+
+// Australian states
+export const AUSTRALIAN_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] as const
+export type AustralianState = (typeof AUSTRALIAN_STATES)[number]
+
+// Status values
+export const REQUEST_STATUSES = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  DECLINED: "declined",
+  NEEDS_FOLLOW_UP: "needs_follow_up",
+} as const
+
+export const PAYMENT_STATUSES = {
+  PENDING: "pending_payment",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  REFUNDED: "refunded",
+} as const
+
+// Animation delays (for consistent staggered animations)
+export const ANIMATION_DELAYS = {
+  FAST: "0.1s",
+  MEDIUM: "0.2s",
+  SLOW: "0.3s",
+} as const
+
+// Regex patterns
+export const PATTERNS = {
+  MEDICARE: /^\d{10,11}$/,
+  PHONE: /^(?:\+61|0)[2-478](?:[ -]?\d){8}$/,
+  POSTCODE: /^\d{4}$/,
+} as const

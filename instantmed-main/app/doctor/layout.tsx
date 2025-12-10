@@ -1,0 +1,43 @@
+import type React from "react"
+import { redirect } from "next/navigation"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { Navbar } from "@/components/shared/navbar"
+import { Footer } from "@/components/shared/footer"
+import { DoctorSidebar } from "@/components/shared/doctor-sidebar"
+import { getDoctorDashboardStats } from "@/lib/data/requests"
+
+export default async function DoctorLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const authUser = await getAuthenticatedUserWithProfile()
+
+  if (!authUser) {
+    redirect("/auth/login")
+  }
+
+  if (authUser.profile.role !== "doctor") {
+    if (authUser.profile.role === "patient") {
+      redirect("/patient")
+    }
+    redirect("/auth/login")
+  }
+
+  const stats = await getDoctorDashboardStats()
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gradient-subtle">
+      <Navbar variant="doctor" userName={authUser.profile.full_name} />
+      <div className="flex-1">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex gap-8">
+            <DoctorSidebar pendingCount={stats.pending} scriptsToSend={stats.pending} />
+            <main className="flex-1 min-w-0">{children}</main>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  )
+}
