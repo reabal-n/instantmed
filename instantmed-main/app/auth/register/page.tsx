@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
-import { Loader2, Shield, Clock, CheckCircle } from "lucide-react"
+import { Loader2, Shield, Clock, CheckCircle, Eye, EyeOff, AlertCircle, Check, X } from "lucide-react"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -37,18 +37,102 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
+// Password strength checker
+function getPasswordStrength(password: string): { strength: number; label: string; color: string } {
+  let strength = 0
+  if (password.length >= 8) strength++
+  if (password.length >= 12) strength++
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++
+  if (/\d/.test(password)) strength++
+  if (/[^a-zA-Z0-9]/.test(password)) strength++
+
+  if (strength <= 1) return { strength, label: "Weak", color: "bg-red-500" }
+  if (strength <= 2) return { strength, label: "Fair", color: "bg-orange-500" }
+  if (strength <= 3) return { strength, label: "Good", color: "bg-yellow-500" }
+  if (strength <= 4) return { strength, label: "Strong", color: "bg-green-500" }
+  return { strength, label: "Excellent", color: "bg-emerald-500" }
+}
+
+// Password requirement checker
+function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
+  return (
+    <div className={`flex items-center gap-2 text-xs ${met ? "text-green-600" : "text-muted-foreground"}`}>
+      {met ? (
+        <Check className="w-3.5 h-3.5 text-green-500" />
+      ) : (
+        <X className="w-3.5 h-3.5 text-muted-foreground/50" />
+      )}
+      <span>{text}</span>
+    </div>
+  )
+}
+
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [dobError, setDobError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect")
+
+  // Password validation
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password])
+  const passwordRequirements = useMemo(() => ({
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+  }), [password])
+  const isPasswordValid = passwordRequirements.length && passwordRequirements.uppercase && 
+                          passwordRequirements.lowercase && passwordRequirements.number
+
+  // Email validation
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email) return null
+    if (!emailRegex.test(email)) return "Please enter a valid email address"
+    return null
+  }
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value)
+    setEmailError(validateEmail(value))
+  }
+
+  // Date of birth validation
+  const validateDob = (dob: string) => {
+    if (!dob) return null
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    if (age < 18) return "You must be at least 18 years old"
+    if (age > 120) return "Please enter a valid date of birth"
+    return null
+  }
+
+  const handleDobChange = (value: string) => {
+    setDateOfBirth(value)
+    setDobError(validateDob(value))
+  }
+
+  // Calculate max date for DOB (must be at least 18)
+  const maxDobDate = useMemo(() => {
+    const date = new Date()
+    date.setFullYear(date.getFullYear() - 18)
+    return date.toISOString().split('T')[0]
+  }, [])
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,60 +285,141 @@ export default function RegisterPage() {
                 <Label htmlFor="full-name" className="text-sm font-medium">
                   Full name
                 </Label>
-                <Input
-                  id="full-name"
-                  placeholder="John Smith"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
+                <div className="relative">
+                  <Input
+                    id="full-name"
+                    placeholder="John Smith"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    className={`h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20 pr-10 ${
+                      fullName.trim().split(' ').length >= 2 ? "border-green-400" : ""
+                    }`}
+                  />
+                  {fullName.trim().split(' ').length >= 2 && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                </div>
+                {fullName && fullName.trim().split(' ').length < 2 && (
+                  <p className="text-xs text-muted-foreground">Please enter your full name (first and last)</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dob" className="text-sm font-medium">
                   Date of birth
                 </Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  required
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
+                <div className="relative">
+                  <Input
+                    id="dob"
+                    type="date"
+                    required
+                    value={dateOfBirth}
+                    onChange={(e) => handleDobChange(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    max={maxDobDate}
+                    className={`h-11 rounded-xl bg-white/50 backdrop-blur-sm focus:ring-[#00E2B5]/20 pr-10 ${
+                      dobError ? "border-red-400 focus:border-red-400" : dateOfBirth && !dobError ? "border-green-400 focus:border-green-400" : "border-white/40 focus:border-[#00E2B5]"
+                    }`}
+                  />
+                  {dateOfBirth && !dobError && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                  {dobError && (
+                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                {dobError && <p className="text-xs text-red-500">{dobError}</p>}
+                <p className="text-xs text-muted-foreground">Must be 18 or older to use this service</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    className={`h-11 rounded-xl bg-white/50 backdrop-blur-sm focus:ring-[#00E2B5]/20 pr-10 ${
+                      emailError ? "border-red-400 focus:border-red-400" : email && !emailError ? "border-green-400 focus:border-green-400" : "border-white/40 focus:border-[#00E2B5]"
+                    }`}
+                  />
+                  {email && !emailError && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                  {emailError && (
+                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                {emailError && <p className="text-xs text-red-500">{emailError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    className={`h-11 rounded-xl bg-white/50 backdrop-blur-sm focus:ring-[#00E2B5]/20 pr-20 ${
+                      password && isPasswordValid ? "border-green-400 focus:border-green-400" : "border-white/40 focus:border-[#00E2B5]"
+                    }`}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {password && isPasswordValid && (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-1 rounded hover:bg-muted transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Password strength indicator */}
+                {password && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                          style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.strength <= 2 ? "text-red-500" : 
+                        passwordStrength.strength <= 3 ? "text-yellow-600" : "text-green-600"
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      <PasswordRequirement met={passwordRequirements.length} text="8+ characters" />
+                      <PasswordRequirement met={passwordRequirements.uppercase} text="Uppercase letter" />
+                      <PasswordRequirement met={passwordRequirements.lowercase} text="Lowercase letter" />
+                      <PasswordRequirement met={passwordRequirements.number} text="Number" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-start gap-2 pt-1">
                 <Checkbox
@@ -276,12 +441,17 @@ export default function RegisterPage() {
                 </label>
               </div>
 
-              {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+              {error && (
+                <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <p>{error}</p>
+                </div>
+              )}
 
               <Button
                 type="submit"
-                disabled={isLoading || isGoogleLoading}
-                className="w-full h-11 rounded-xl btn-premium text-[#0A0F1C] font-semibold"
+                disabled={isLoading || isGoogleLoading || !isPasswordValid || !!emailError || !!dobError}
+                className="w-full h-11 rounded-xl btn-premium text-[#0A0F1C] font-semibold disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

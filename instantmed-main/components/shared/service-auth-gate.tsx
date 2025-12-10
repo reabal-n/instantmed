@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogIn, UserPlus, ArrowRight, Loader2 } from "lucide-react"
+import { LogIn, UserPlus, ArrowRight, Loader2, Shield, Clock, Star } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -67,6 +67,22 @@ export function ServiceAuthGate({
 
   return (
     <div className="glass-card rounded-2xl p-8 max-w-md mx-auto text-center animate-scale-in">
+      {/* Trust badges */}
+      <div className="flex items-center justify-center gap-3 mb-6 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1 bg-white/60 rounded-full px-2.5 py-1">
+          <Shield className="h-3.5 w-3.5 text-[#00E2B5]" />
+          AHPRA doctors
+        </span>
+        <span className="flex items-center gap-1 bg-white/60 rounded-full px-2.5 py-1">
+          <Clock className="h-3.5 w-3.5 text-[#06B6D4]" />
+          ~1hr
+        </span>
+        <span className="flex items-center gap-1 bg-white/60 rounded-full px-2.5 py-1">
+          <Star className="h-3.5 w-3.5 text-[#F59E0B] fill-[#F59E0B]" />
+          4.9/5
+        </span>
+      </div>
+
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 mx-auto shadow-lg shadow-primary/20">
         <LogIn className="h-7 w-7 text-primary-foreground" />
       </div>
@@ -78,12 +94,12 @@ export function ServiceAuthGate({
         <Button
           onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
-          className="w-full rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
+          className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
         >
           {isGoogleLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <GoogleIcon className="mr-2 h-4 w-4" />
+            <GoogleIcon className="mr-2 h-5 w-5" />
           )}
           Continue with Google
         </Button>
@@ -97,13 +113,13 @@ export function ServiceAuthGate({
           </div>
         </div>
 
-        <Button asChild className="w-full rounded-xl btn-glow">
+        <Button asChild className="w-full h-12 rounded-xl btn-glow">
           <Link href={`/auth/register?redirect=${redirectParam}`}>
             <UserPlus className="mr-2 h-4 w-4" />
             Create account
           </Link>
         </Button>
-        <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80">
+        <Button variant="outline" asChild className="w-full h-11 rounded-xl bg-white/50 hover:bg-white/80">
           <Link href={`/auth/login?redirect=${redirectParam}`}>
             <LogIn className="mr-2 h-4 w-4" />
             Sign in with email
@@ -112,9 +128,9 @@ export function ServiceAuthGate({
       </div>
 
       <p className="mt-5 text-xs text-muted-foreground">
-        Already have an account with pending requests?{" "}
-        <Link href={`/auth/login?redirect=${redirectParam}`} className="text-primary hover:underline">
-          Check your dashboard
+        Already have an account?{" "}
+        <Link href={`/auth/login?redirect=${redirectParam}`} className="text-primary hover:underline font-medium">
+          Sign in
           <ArrowRight className="inline ml-0.5 h-3 w-3" />
         </Link>
       </p>

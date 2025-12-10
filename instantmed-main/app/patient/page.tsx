@@ -12,10 +12,15 @@ import {
   CreditCard,
   Download,
   MessageSquare,
+  Pill,
+  Stethoscope,
+  Sparkles,
+  Zap,
 } from "lucide-react"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getPatientRequests, getPatientRequestStats, formatRequestType, formatCategory } from "@/lib/data/requests"
 import { redirect } from "next/navigation"
+import { PatientDashboardClient } from "./patient-dashboard-client"
 
 export default async function PatientDashboardPage({
   searchParams,
@@ -39,6 +44,7 @@ export default async function PatientDashboardPage({
   const stats = await getPatientRequestStats(authUser.profile.id)
   const recentRequests = await getPatientRequests(authUser.profile.id)
   const displayRequests = recentRequests.slice(0, 5)
+  const isNewUser = stats.total === 0
 
   // Separate requests by urgency
   const needsAction = displayRequests.filter(
@@ -103,12 +109,8 @@ export default async function PatientDashboardPage({
 
   return (
     <main className="space-y-6">
-      {showOnboardedSuccess && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 flex items-center gap-3" role="alert">
-          <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" aria-hidden="true" />
-          <p className="text-sm text-emerald-800">Profile complete. You're ready to submit requests.</p>
-        </div>
-      )}
+      {/* Welcome celebration modal for new users */}
+      <PatientDashboardClient showWelcome={showOnboardedSuccess} firstName={firstName} />
 
       {/* Header */}
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -123,6 +125,47 @@ export default async function PatientDashboardPage({
           </Link>
         </Button>
       </header>
+
+      {/* Quick Actions for new users or users with no pending requests */}
+      {(isNewUser || stats.pending === 0) && (
+        <section aria-label="Quick actions" className="animate-fade-in-up">
+          <div className="rounded-2xl border bg-gradient-to-br from-[#00E2B5]/5 to-transparent p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-[#00E2B5]" />
+              <span className="text-sm font-medium text-foreground">Quick actions</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Link
+                href="/medical-certificate/request"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/60 hover:bg-white/80 border border-white/40 hover:border-[#00E2B5]/30 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <FileText className="w-5 h-5 text-[#0A0F1C]" />
+                </div>
+                <span className="text-xs font-medium text-center">Med Cert</span>
+              </Link>
+              <Link
+                href="/prescriptions/request"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/60 hover:bg-white/80 border border-white/40 hover:border-[#06B6D4]/30 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#0891B2] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <Pill className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xs font-medium text-center">Script</span>
+              </Link>
+              <Link
+                href="/referrals/pathology-imaging/request"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/60 hover:bg-white/80 border border-white/40 hover:border-[#8B5CF6]/30 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <Stethoscope className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xs font-medium text-center">Pathology</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Quick Stats */}
       <section aria-label="Request summary" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -244,15 +287,28 @@ export default async function PatientDashboardPage({
         </div>
         <div className="p-4">
           {displayRequests.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" aria-hidden="true" />
-              <p className="text-sm text-muted-foreground">No requests yet</p>
-              <Button asChild size="sm" variant="outline" className="mt-3 rounded-lg bg-transparent">
-                <Link href="/patient/requests/new">
-                  <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                  Start a request
-                </Link>
-              </Button>
+            <div className="text-center py-8 px-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00E2B5]/10 to-[#06B6D4]/10 flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-[#00E2B5]" aria-hidden="true" />
+              </div>
+              <h3 className="font-medium text-foreground mb-1">Ready when you are</h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
+                Need a med cert, script, or referral? A doctor will review your request — usually within 1 hour.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button asChild size="sm" className="rounded-lg">
+                  <Link href="/medical-certificate/request">
+                    <FileText className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Get Med Cert
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="rounded-lg bg-transparent">
+                  <Link href="/patient/requests/new">
+                    <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Other requests
+                  </Link>
+                </Button>
+              </div>
             </div>
           ) : (
             <ul className="divide-y">
