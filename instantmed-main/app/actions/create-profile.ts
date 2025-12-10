@@ -2,16 +2,23 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+interface CreateProfileInput {
+  userId: string
+  email: string
+  fullName: string
+  dateOfBirth?: string
+  medicareNumber?: string
+  medicareIrn?: number
+}
+
 export async function createOrGetProfile(
-  authUserId: string,
-  fullName: string,
-  dateOfBirth: string,
+  input: CreateProfileInput
 ): Promise<{ profileId: string | null; error: string | null }> {
   const supabase = createServiceRoleClient()
 
   try {
     // First verify the user exists in auth.users
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(authUserId)
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(input.userId)
 
     if (authError || !authUser?.user) {
       return {
@@ -24,18 +31,21 @@ export async function createOrGetProfile(
     const { data: existingProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("auth_user_id", authUserId)
+      .eq("auth_user_id", input.userId)
       .single()
 
     if (existingProfile) {
       // Update with the provided info if we have it
-      if (fullName || dateOfBirth) {
+      const updateData: Record<string, unknown> = {}
+      if (input.fullName) updateData.full_name = input.fullName
+      if (input.dateOfBirth) updateData.date_of_birth = input.dateOfBirth
+      if (input.medicareNumber) updateData.medicare_number = input.medicareNumber
+      if (input.medicareIrn) updateData.medicare_irn = input.medicareIrn
+
+      if (Object.keys(updateData).length > 0) {
         await supabase
           .from("profiles")
-          .update({
-            ...(fullName && { full_name: fullName }),
-            ...(dateOfBirth && { date_of_birth: dateOfBirth }),
-          })
+          .update(updateData)
           .eq("id", existingProfile.id)
       }
 
@@ -46,9 +56,11 @@ export async function createOrGetProfile(
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
       .insert({
-        auth_user_id: authUserId,
-        full_name: fullName || "User",
-        date_of_birth: dateOfBirth || null,
+        auth_user_id: input.userId,
+        full_name: input.fullName || "User",
+        date_of_birth: input.dateOfBirth || null,
+        medicare_number: input.medicareNumber || null,
+        medicare_irn: input.medicareIrn || null,
         role: "patient",
         onboarding_completed: false,
       })

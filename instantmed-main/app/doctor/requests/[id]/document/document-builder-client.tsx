@@ -39,8 +39,8 @@ interface DocumentBuilderClientProps {
   draft: DocumentDraft
   existingDocument: GeneratedDocument | null
   patientAge: number
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
+  formatCategory: (category: string | null | undefined) => string
+  formatSubtype: (subtype: string | null | undefined) => string
 }
 
 function getSubtypeIcon(subtype: string | null) {

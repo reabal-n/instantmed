@@ -340,7 +340,7 @@ export async function createDocument(requestId: string, documentType: string, co
  * Format a request category for display
  */
 export function formatCategory(category: RequestCategory | string | null | undefined): string {
-  if (!category) return "Unknown"
+  if (category === null || category === undefined) return "Unknown"
 
   const categoryMap: Record<string, string> = {
     medical_certificate: "Medical Certificate",
@@ -356,7 +356,7 @@ export function formatCategory(category: RequestCategory | string | null | undef
  * Format a request subtype for display
  */
 export function formatSubtype(subtype: RequestSubtype | string | null | undefined): string {
-  if (!subtype) return "General"
+  if (subtype === null || subtype === undefined) return "General"
 
   const subtypeMap: Record<string, string> = {
     // Medical certificates

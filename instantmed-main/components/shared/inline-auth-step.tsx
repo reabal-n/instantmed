@@ -73,7 +73,12 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
 
         // Now we can safely create profile - user exists in auth.users
-        const { profileId, error: profileError } = await createOrGetProfile(session.user.id, userName, userDob)
+        const { profileId, error: profileError } = await createOrGetProfile({
+          userId: session.user.id,
+          email: session.user.email || "",
+          fullName: userName,
+          dateOfBirth: userDob,
+        })
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -163,7 +168,12 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       // Check if we have an active session (email confirmation disabled)
       if (authData.session) {
         // User is confirmed and logged in immediately - safe to create profile
-        const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
+        const { profileId, error: profileError } = await createOrGetProfile({
+          userId: authData.user.id,
+          email,
+          fullName,
+          dateOfBirth,
+        })
 
         if (profileError || !profileId) {
           throw new Error(profileError || "Failed to create profile")
@@ -209,7 +219,12 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       const userName = pendingName || authData.user.user_metadata?.full_name || ""
       const userDob = pendingDob || authData.user.user_metadata?.date_of_birth || ""
 
-      const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, userName, userDob)
+      const { profileId, error: profileError } = await createOrGetProfile({
+        userId: authData.user.id,
+        email,
+        fullName: userName,
+        dateOfBirth: userDob,
+      })
 
       if (profileError || !profileId) {
         throw new Error(profileError || "Failed to create profile")

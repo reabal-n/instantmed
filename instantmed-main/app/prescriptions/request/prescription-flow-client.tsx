@@ -555,11 +555,13 @@ export function PrescriptionFlowClient({
             medicareIrn: irn!,
           })
 
-          if (profileResult.success && profileResult.profileId) {
+          if (!profileResult.error && profileResult.profileId) {
             setPatientId(profileResult.profileId)
             setIsAuthenticated(true)
             setNeedsOnboarding(false)
             goTo("review")
+          } else if (profileResult.error) {
+            throw new Error(profileResult.error)
           }
         } else {
           setShowEmailConfirm(true)
@@ -578,11 +580,13 @@ export function PrescriptionFlowClient({
           medicareIrn: irn!,
         })
 
-        if (profileResult.success && profileResult.profileId) {
+        if (!profileResult.error && profileResult.profileId) {
           setPatientId(profileResult.profileId)
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
           goTo("review")
+        } else if (profileResult.error) {
+          throw new Error(profileResult.error)
         }
       }
     } catch (err: any) {

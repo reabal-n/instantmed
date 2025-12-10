@@ -39,8 +39,8 @@ interface PathologyDocumentBuilderClientProps {
   draft: DocumentDraft
   existingDocument: GeneratedDocument | null
   patientAge: number
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
+  formatCategory: (category: string | null | undefined) => string
+  formatSubtype: (subtype: string | null | undefined) => string
 }
 
 const urgencyOptions = [
@@ -71,7 +71,7 @@ export function PathologyDocumentBuilderClient({
     (draft.subtype as PathologySubtype) || "pathology_imaging",
   )
 
-  const draftData = draft.data as PathologyDraftData
+  const draftData = draft.data as unknown as PathologyDraftData
   const [formData, setFormData] = useState<PathologyDraftData>({
     patient_name: draftData.patient_name || "",
     dob: draftData.dob || "",

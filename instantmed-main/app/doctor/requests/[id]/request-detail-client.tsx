@@ -41,8 +41,8 @@ interface RequestDetailClientProps {
   request: RequestWithDetails
   patientAge: number
   maskedMedicare: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
+  formatCategory: (category: string | null | undefined) => string
+  formatSubtype: (subtype: string | null | undefined) => string
   formatRequestType: (type: string) => string
   existingDocument?: GeneratedDocument | null
 }

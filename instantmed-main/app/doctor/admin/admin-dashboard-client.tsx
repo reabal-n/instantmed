@@ -24,8 +24,8 @@ interface AdminDashboardClientProps {
     needs_follow_up: number
   }
   doctorName: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
+  formatCategory: (category: string | null | undefined) => string
+  formatSubtype: (subtype: string | null | undefined) => string
 }
 
 export function AdminDashboardClient({
@@ -117,7 +117,7 @@ export function AdminDashboardClient({
     }
   }
 
-  const handleScriptSentToggle = async (requestId: string, currentValue: boolean) => {
+  const handleScriptSentToggle = async (requestId: string, currentValue: boolean | undefined) => {
     // Optimistic update
     setLocalRequests((prev) =>
       prev.map((r) =>

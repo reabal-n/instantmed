@@ -25,8 +25,8 @@ interface DoctorDashboardClientProps {
     awaiting_payment?: number
   }
   doctorName: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
+  formatCategory: (category: string | null | undefined) => string
+  formatSubtype: (subtype: string | null | undefined) => string
 }
 
 export function DoctorDashboardClient({

@@ -397,7 +397,12 @@ export function MedCertFlowClient({
         const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
         const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
 
-        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
+        const { profileId } = await createOrGetProfile({
+          userId: session.user.id,
+          email: session.user.email || "",
+          fullName: userNameFromSession,
+          dateOfBirth: userDob,
+        })
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -690,11 +695,12 @@ export function MedCertFlowClient({
         if (signInError) throw signInError
         if (!authData.user) throw new Error(MICROCOPY.errors.signIn)
 
-        const { profileId } = await createOrGetProfile(
-          authData.user.id,
-          authData.user.user_metadata?.full_name || "",
+        const { profileId } = await createOrGetProfile({
+          userId: authData.user.id,
+          email,
+          fullName: authData.user.user_metadata?.full_name || "",
           dateOfBirth,
-        )
+        })
 
         if (!profileId) throw new Error(MICROCOPY.errors.generic)
 
@@ -722,15 +728,20 @@ export function MedCertFlowClient({
         if (!authData.user) throw new Error(MICROCOPY.errors.signUp)
 
         if (authData.session) {
-          const { profileId } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
+          const { profileId } = await createOrGetProfile({
+            userId: authData.user.id,
+            email,
+            fullName,
+            dateOfBirth,
+            medicareNumber: medicareNumber.replace(/\s/g, ""),
+            medicareIrn: irn || undefined,
+          })
 
           if (!profileId) throw new Error(MICROCOPY.errors.generic)
 
           await supabase
             .from("profiles")
             .update({
-              medicare_number: medicareNumber.replace(/\s/g, ""),
-              medicare_irn: irn,
               onboarding_completed: true,
             })
             .eq("id", profileId)

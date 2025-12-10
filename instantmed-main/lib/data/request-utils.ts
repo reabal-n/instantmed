@@ -18,7 +18,7 @@ export function formatRequestType(type: string): string {
   return typeLabels[type] || type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
 }
 
-export function formatCategory(category: string | null): string {
+export function formatCategory(category: string | null | undefined): string {
   if (!category) return "Other"
   const labels: Record<string, string> = {
     medical_certificate: "Medical Certificate",
@@ -30,7 +30,7 @@ export function formatCategory(category: string | null): string {
   return labels[category] || category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
 }
 
-export function formatSubtype(subtype: string | null): string {
+export function formatSubtype(subtype: string | null | undefined): string {
   if (!subtype) return ""
   const labels: Record<string, string> = {
     work: "Work Certificate",

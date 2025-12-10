@@ -49,16 +49,16 @@ export interface Request {
   patient_id: string // uuid, FK to profiles.id
   type: RequestType
   status: RequestStatus
-  category: RequestCategory | null
-  subtype: RequestSubtype | null
-  clinical_note: string | null
+  category?: RequestCategory | null
+  subtype?: RequestSubtype | null
+  clinical_note?: string | null
   // Script tracking fields
-  script_sent: boolean
-  script_sent_at: string | null
-  script_notes: string | null
+  script_sent?: boolean
+  script_sent_at?: string | null
+  script_notes?: string | null
   // Payment fields
-  paid: boolean
-  payment_status: PaymentStatus
+  paid?: boolean
+  payment_status?: PaymentStatus
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
 }

@@ -315,10 +315,10 @@ export function PathologyImagingFlowClient({
       }
 
       const result = await createRequestAndCheckoutAction({
-        patientId,
         category: "referral",
         subtype: "pathology-imaging",
-        formData,
+        type: "referral",
+        answers: formData,
       })
 
       if (result.error) throw new Error(result.error)

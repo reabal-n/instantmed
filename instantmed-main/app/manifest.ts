@@ -51,7 +51,6 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/screenshots/home.png",
         sizes: "1280x720",
         type: "image/png",
-        // @ts-expect-error - form_factor is valid but not in types
         form_factor: "wide",
         label: "InstantMed Homepage",
       },
@@ -59,7 +58,6 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/screenshots/mobile.png",
         sizes: "750x1334",
         type: "image/png",
-        // @ts-expect-error - form_factor is valid but not in types
         form_factor: "narrow",
         label: "InstantMed Mobile View",
       },

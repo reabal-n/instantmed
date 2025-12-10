@@ -78,11 +78,11 @@ export function requestIdleCallback(callback: () => void, options?: { timeout: n
   }
 
   if ("requestIdleCallback" in window) {
-    return window.requestIdleCallback(callback, options)
+    return (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(callback, options)
   }
 
   // Fallback for Safari
-  return window.setTimeout(callback, options?.timeout || 1) as unknown as number
+  return globalThis.setTimeout(callback, options?.timeout || 1) as unknown as number
 }
 
 /**
@@ -92,9 +92,9 @@ export function cancelIdleCallback(id: number): void {
   if (typeof window === "undefined") return
 
   if ("cancelIdleCallback" in window) {
-    window.cancelIdleCallback(id)
+    (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(id)
   } else {
-    clearTimeout(id)
+    globalThis.clearTimeout(id)
   }
 }
 

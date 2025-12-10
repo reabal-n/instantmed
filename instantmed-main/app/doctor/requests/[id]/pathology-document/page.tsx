@@ -41,7 +41,7 @@ export default async function PathologyDocumentPage({ params }: PathologyDocumen
     ? Math.floor((Date.now() - new Date(patientDob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : 0
 
-  const formatCategory = (category: string | null) => {
+  const formatCategory = (category: string | null | undefined) => {
     if (!category) return "Unknown"
     return category
       .split("_")
@@ -49,7 +49,7 @@ export default async function PathologyDocumentPage({ params }: PathologyDocumen
       .join(" ")
   }
 
-  const formatSubtype = (subtype: string | null) => {
+  const formatSubtype = (subtype: string | null | undefined) => {
     if (!subtype) return "Unknown"
     return subtype
       .split("_")

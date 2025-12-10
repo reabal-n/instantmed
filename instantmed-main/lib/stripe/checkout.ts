@@ -1,5 +1,6 @@
 "use server"
 
+import type Stripe from "stripe"
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createClient } from "@/lib/supabase/server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
@@ -132,7 +133,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const cancelUrl = `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`
 
     // 7. Build checkout session params
-    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       line_items: [
         {
           price: priceId,
@@ -350,7 +351,7 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     }
 
     // 7. Build checkout session params
-    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       line_items: [
         {
           price: priceId,
