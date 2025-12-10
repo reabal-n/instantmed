@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { onboardingSchema, validateInput } from "@/lib/validation/schemas"
 import type { AustralianState } from "@/types/db"
 
 interface OnboardingInput {
@@ -18,7 +19,13 @@ interface OnboardingInput {
 export async function completeOnboardingAction(
   profileId: string,
   data: OnboardingInput,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string[]> }> {
+  // Validate input with Zod
+  const validation = validateInput(onboardingSchema, { profileId, data })
+  if (!validation.success) {
+    return { success: false, error: validation.error, fieldErrors: validation.fieldErrors }
+  }
+
   const supabase = await createClient()
 
   // Verify the user owns this profile
@@ -36,19 +43,20 @@ export async function completeOnboardingAction(
     return { success: false, error: "Unauthorized" }
   }
 
-  // Update profile with onboarding data
+  // Update profile with validated onboarding data
+  const validatedData = validation.data.data
   const { error } = await supabase
     .from("profiles")
     .update({
-      phone: data.phone,
-      address_line1: data.address_line1,
-      suburb: data.suburb,
-      state: data.state,
-      postcode: data.postcode,
-      medicare_number: data.medicare_number,
-      medicare_irn: data.medicare_irn,
-      medicare_expiry: data.medicare_expiry,
-      consent_myhr: data.consent_myhr,
+      phone: validatedData.phone,
+      address_line1: validatedData.address_line1,
+      suburb: validatedData.suburb,
+      state: validatedData.state,
+      postcode: validatedData.postcode,
+      medicare_number: validatedData.medicare_number,
+      medicare_irn: validatedData.medicare_irn,
+      medicare_expiry: validatedData.medicare_expiry,
+      consent_myhr: validatedData.consent_myhr,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),
     })

@@ -1,5 +1,4 @@
-import type { MedCertDraftData } from "@/types/db"
-import type { PathologyDraftData } from "@/types/db"
+import type { MedCertDraftData, PathologyDraftData } from "@/types/db"
 
 /**
  * APITemplate.io integration for PDF generation
@@ -13,7 +12,10 @@ interface APITemplateResponse {
 }
 
 type ValidMedCertSubtype = "work" | "uni" | "carer"
-type PathologySubtype = "pathology_bloods" | "pathology_imaging"
+export type PathologySubtype = "pathology_bloods" | "pathology_imaging"
+
+// Re-export for consumers
+export type { PathologyDraftData }
 
 /**
  * Get the correct template ID based on document type and subtype.

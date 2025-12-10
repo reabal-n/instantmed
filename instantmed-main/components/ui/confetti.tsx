@@ -32,7 +32,7 @@ export function Confetti({
   onComplete,
 }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | null>(null)
   const piecesRef = useRef<ConfettiPiece[]>([])
 
   const createPiece = useCallback(

@@ -2,11 +2,29 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
+import {
+  changePasswordSchema,
+  requestPasswordResetSchema,
+  notificationPreferencesSchema,
+  validateInput,
+} from "@/lib/validation/schemas"
 
 export async function changePassword(
   currentPassword: string,
   newPassword: string,
-): Promise<{ success: boolean; error: string | null }> {
+  confirmPassword?: string,
+): Promise<{ success: boolean; error: string | null; fieldErrors?: Record<string, string[]> }> {
+  // Validate input
+  const validation = validateInput(changePasswordSchema, {
+    currentPassword,
+    newPassword,
+    confirmPassword: confirmPassword || newPassword,
+  })
+  if (!validation.success) {
+    return { success: false, error: validation.error, fieldErrors: validation.fieldErrors }
+  }
+
   const supabase = await createClient()
 
   // Get current user
@@ -42,9 +60,15 @@ export async function changePassword(
 }
 
 export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
+  // Validate input
+  const validation = validateInput(requestPasswordResetSchema, { email })
+  if (!validation.success) {
+    return { success: false, error: validation.error }
+  }
+
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(validation.data.email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
   })
 
@@ -98,6 +122,15 @@ export async function updateNotificationPreferences(
   emailNotifications: boolean,
   smsNotifications: boolean,
 ): Promise<{ success: boolean; error: string | null }> {
+  // Validate input
+  const validation = validateInput(notificationPreferencesSchema, {
+    emailNotifications,
+    smsNotifications,
+  })
+  if (!validation.success) {
+    return { success: false, error: validation.error }
+  }
+
   const supabase = await createClient()
 
   const {
@@ -112,8 +145,8 @@ export async function updateNotificationPreferences(
   const { error } = await supabase
     .from("profiles")
     .update({
-      email_notifications: emailNotifications,
-      sms_notifications: smsNotifications,
+      email_notifications: validation.data.emailNotifications,
+      sms_notifications: validation.data.smsNotifications,
     })
     .eq("auth_user_id", user.id)
 

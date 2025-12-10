@@ -8,9 +8,39 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/patient/", "/doctor/", "/api/", "/auth/callback"],
+        disallow: [
+          // Protected routes
+          "/patient/",
+          "/doctor/",
+          // API routes
+          "/api/",
+          // Auth callbacks
+          "/auth/callback",
+          "/auth/reset-password",
+          // Dynamic request pages
+          "/patient/requests/",
+          "/doctor/requests/",
+        ],
+      },
+      {
+        // Block aggressive crawlers
+        userAgent: "GPTBot",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "ChatGPT-User",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "CCBot",
+        disallow: ["/"],
+      },
+      {
+        userAgent: "anthropic-ai",
+        disallow: ["/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   }
 }
