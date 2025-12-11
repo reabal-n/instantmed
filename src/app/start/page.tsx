@@ -42,17 +42,26 @@ interface FormData {
 
 const slideVariants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? 1000 : -1000,
+    x: direction > 0 ? 300 : -300,
     opacity: 0,
+    y: 10,
   }),
   center: {
     x: 0,
     opacity: 1,
+    y: 0,
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? -1000 : 1000,
+    x: direction > 0 ? -300 : 300,
     opacity: 0,
+    y: 10,
   }),
+}
+
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 260,
+  damping: 20,
 }
 
 function OnboardingContent() {
@@ -390,7 +399,7 @@ function OnboardingContent() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={springTransition}
               >
                 <ServiceSelection
                   value={formData.serviceType}
@@ -409,7 +418,7 @@ function OnboardingContent() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={springTransition}
               >
                 <MedCertIntake
                   onNext={handleIntakeComplete}
@@ -430,7 +439,7 @@ function OnboardingContent() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={springTransition}
               >
                 <ScriptIntake
                   onNext={handleIntakeComplete}
@@ -449,7 +458,7 @@ function OnboardingContent() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={springTransition}
               >
                 <PatientDetails
                   onNext={handlePatientDetailsComplete}
@@ -469,7 +478,7 @@ function OnboardingContent() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={springTransition}
               >
                 <AccountCreation
                   onNext={handleAccountCreate}

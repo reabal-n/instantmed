@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { 
   FileText, 
   Pill, 
@@ -16,17 +17,42 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
+// Animation variants for staggered children
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+}
+
 export default function Home() {
   const [hoveredService, setHoveredService] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      {/* Header - Glassmorphism */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50 dark:bg-slate-900/80 dark:border-slate-700/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+              <Stethoscope className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-semibold tracking-tight">InstantMed</span>
           </Link>
@@ -42,7 +68,7 @@ export default function Home() {
             </Link>
           </nav>
           <Link href="/start">
-            <Button className="touch-target">
+            <Button className="touch-target animate-pulse-cta">
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -100,180 +126,236 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20 md:py-28">
+      <section id="services" className="py-20 md:py-28 relative">
+        {/* Soft section separator - top */}
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-slate-100/50 to-transparent pointer-events-none" />
+        
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <motion.div 
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Choose the service you need and complete your consultation in minutes
             </p>
-          </div>
+          </motion.div>
           
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Medical Certificate Card */}
-            <Card 
-              className={`relative overflow-hidden transition-all duration-300 cursor-pointer ${
-                hoveredService === 'cert' ? 'shadow-xl scale-[1.02]' : 'shadow-md'
-              }`}
-              onMouseEnter={() => setHoveredService('cert')}
-              onMouseLeave={() => setHoveredService(null)}
-            >
-              <CardContent className="p-8">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-                  <FileText className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-3">Medical Certificate</h3>
-                <p className="text-muted-foreground mb-6">
-                  Get a legitimate medical certificate for work, university, or personal leave. 
-                  Valid for sick leave, carer&apos;s leave, or exam deferrals.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-3xl font-bold text-primary">$24.95</span>
-                    <span className="text-muted-foreground ml-2">AUD</span>
+          <motion.div 
+            className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {/* Medical Certificate Card - Float and Glow */}
+            <motion.div variants={itemVariants}>
+              <Card 
+                className={`relative overflow-hidden cursor-pointer border-slate-100 transition-all duration-300 ease-out ${
+                  hoveredService === 'cert' 
+                    ? '-translate-y-1 shadow-[0_8px_30px_rgb(0,0,0,0.04),0_0_0_1px_oklch(0.55_0.15_185_/_0.2)] border-teal-500/30' 
+                    : 'hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04),0_0_0_1px_oklch(0.55_0.15_185_/_0.1)] hover:border-teal-500/20'
+                }`}
+                onMouseEnter={() => setHoveredService('cert')}
+                onMouseLeave={() => setHoveredService(null)}
+              >
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center mb-6 transition-all duration-300 group-hover:bg-teal-100">
+                    <FileText className="w-8 h-8 text-teal-600" />
                   </div>
-                  <Link href="/start?service=sick_cert">
-                    <Button className="touch-target">
-                      Get Certificate
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-                <div className="mt-6 pt-6 border-t border-border">
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      Accepted by all Australian employers
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      Instant PDF delivery
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      Up to 7 days coverage
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+                  <h3 className="text-2xl font-semibold mb-3">Medical Certificate</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Get a legitimate medical certificate for work, university, or personal leave. 
+                    Valid for sick leave, carer&apos;s leave, or exam deferrals.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-3xl font-bold text-teal-600">$24.95</span>
+                      <span className="text-muted-foreground ml-2">AUD</span>
+                    </div>
+                    <Link href="/start?service=sick_cert">
+                      <Button className="touch-target bg-teal-600 hover:bg-teal-700">
+                        Get Certificate
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        Accepted by all Australian employers
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        Instant PDF delivery
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        Up to 7 days coverage
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            {/* Prescription Card */}
-            <Card 
-              className={`relative overflow-hidden transition-all duration-300 cursor-pointer ${
-                hoveredService === 'script' ? 'shadow-xl scale-[1.02]' : 'shadow-md'
-              }`}
-              onMouseEnter={() => setHoveredService('script')}
-              onMouseLeave={() => setHoveredService(null)}
-            >
-              <CardContent className="p-8">
-                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mb-6">
-                  <Pill className="w-8 h-8 text-accent" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-3">Prescription Renewal</h3>
-                <p className="text-muted-foreground mb-6">
-                  Renew your regular medications without visiting a clinic. 
-                  eScript sent directly to your preferred pharmacy.
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-3xl font-bold text-primary">$29.95</span>
-                    <span className="text-muted-foreground ml-2">AUD</span>
+            {/* Prescription Card - Float and Glow */}
+            <motion.div variants={itemVariants}>
+              <Card 
+                className={`relative overflow-hidden cursor-pointer border-slate-100 transition-all duration-300 ease-out ${
+                  hoveredService === 'script' 
+                    ? '-translate-y-1 shadow-[0_8px_30px_rgb(0,0,0,0.04),0_0_0_1px_oklch(0.55_0.15_185_/_0.2)] border-teal-500/30' 
+                    : 'hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04),0_0_0_1px_oklch(0.55_0.15_185_/_0.1)] hover:border-teal-500/20'
+                }`}
+                onMouseEnter={() => setHoveredService('script')}
+                onMouseLeave={() => setHoveredService(null)}
+              >
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mb-6">
+                    <Pill className="w-8 h-8 text-purple-600" />
                   </div>
-                  <Link href="/start?service=prescription">
-                    <Button className="touch-target">
-                      Get Prescription
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-                <div className="mt-6 pt-6 border-t border-border">
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      PBS eligible medications
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      eScript to any pharmacy
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      Repeats included
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  <h3 className="text-2xl font-semibold mb-3">Prescription Renewal</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Renew your regular medications without visiting a clinic. 
+                    eScript sent directly to your preferred pharmacy.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-3xl font-bold text-teal-600">$29.95</span>
+                      <span className="text-muted-foreground ml-2">AUD</span>
+                    </div>
+                    <Link href="/start?service=prescription">
+                      <Button className="touch-target bg-teal-600 hover:bg-teal-700">
+                        Get Prescription
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        PBS eligible medications
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        eScript to any pharmacy
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        Repeats included
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 md:py-28 bg-secondary/30">
+      <section id="how-it-works" className="py-20 md:py-28 bg-gradient-to-b from-slate-50 to-white relative">
+        {/* Soft fade separators */}
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+        
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Three simple steps to get your medical certificate or prescription
             </p>
-          </div>
+          </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 relative">
-                <span className="text-3xl font-bold text-primary">1</span>
+          <motion.div 
+            className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={itemVariants} className="text-center">
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-6 relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-teal-100">
+                <span className="text-3xl font-bold text-teal-600">1</span>
                 <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block">
-                  <ArrowRight className="w-8 h-8 text-border" />
+                  <ArrowRight className="w-8 h-8 text-slate-200" />
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-3">Answer Questions</h3>
               <p className="text-muted-foreground">
                 Complete our quick medical questionnaire. Takes less than 3 minutes.
               </p>
-            </div>
+            </motion.div>
             
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 relative">
-                <span className="text-3xl font-bold text-primary">2</span>
+            <motion.div variants={itemVariants} className="text-center">
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-6 relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-teal-100">
+                <span className="text-3xl font-bold text-teal-600">2</span>
                 <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block">
-                  <ArrowRight className="w-8 h-8 text-border" />
+                  <ArrowRight className="w-8 h-8 text-slate-200" />
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-3">Doctor Review</h3>
               <p className="text-muted-foreground">
                 An Australian registered doctor reviews your case and approves your request.
               </p>
-            </div>
+            </motion.div>
             
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl font-bold text-primary">3</span>
+            <motion.div variants={itemVariants} className="text-center">
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-teal-100">
+                <span className="text-3xl font-bold text-teal-600">3</span>
               </div>
               <h3 className="text-xl font-semibold mb-3">Receive Document</h3>
               <p className="text-muted-foreground">
                 Get your medical certificate or eScript delivered instantly to your email.
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
           
-          <div className="text-center mt-12">
+          <motion.div 
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.4 }}
+          >
             <Link href="/start">
-              <Button size="lg" className="touch-target text-base px-8">
+              <Button size="lg" className="touch-target text-base px-8 bg-teal-600 hover:bg-teal-700 animate-pulse-cta">
                 Start Now — It&apos;s Quick & Easy
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Trust Section */}
-      <section className="py-20 md:py-28">
+      <section className="py-20 md:py-28 relative">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <motion.div 
+            className="max-w-4xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              >
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">
                   Trusted by Thousands of Australians
                 </h2>
@@ -283,8 +365,8 @@ export default function Home() {
                 </p>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
                       <span className="font-medium">AHPRA Registered Doctors</span>
@@ -294,8 +376,8 @@ export default function Home() {
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
                       <span className="font-medium">TGA Compliant</span>
@@ -305,8 +387,8 @@ export default function Home() {
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
                       <span className="font-medium">Privacy Protected</span>
@@ -316,55 +398,70 @@ export default function Home() {
                     </div>
                   </li>
                 </ul>
-              </div>
-              <div className="relative">
-                <div className="aspect-square rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <div className="w-3/4 h-3/4 rounded-2xl bg-card shadow-2xl p-8 flex flex-col justify-center">
+              </motion.div>
+              <motion.div 
+                className="relative"
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
+              >
+                <div className="aspect-square rounded-3xl bg-gradient-to-br from-teal-100/50 to-teal-50/50 flex items-center justify-center p-4">
+                  <div className="w-full h-full rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 p-8 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-4">
-                      <Clock className="w-5 h-5 text-primary" />
+                      <Clock className="w-5 h-5 text-teal-600" />
                       <span className="text-sm font-medium text-muted-foreground">Average Response Time</span>
                     </div>
-                    <div className="text-5xl font-bold text-primary mb-2">{"<"}2 hrs</div>
+                    <div className="text-5xl font-bold text-teal-600 mb-2">{"<"}2 hrs</div>
                     <p className="text-sm text-muted-foreground">
                       Most requests approved within 2 hours during business hours
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 md:py-28 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 md:py-28 bg-gradient-to-br from-teal-600 to-teal-700 text-white relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
+        
+        <motion.div 
+          className="container mx-auto px-4 text-center relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        >
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Skip the Waiting Room?
           </h2>
-          <p className="text-primary-foreground/80 text-lg mb-10 max-w-2xl mx-auto">
+          <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto">
             Join thousands of Australians who trust InstantMed for their telehealth needs.
           </p>
           <Link href="/start">
             <Button 
               size="lg" 
-              variant="secondary" 
-              className="touch-target text-base px-8"
+              className="touch-target text-base px-8 bg-white text-teal-700 hover:bg-white/90 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5),0_4px_12px_rgba(0,0,0,0.1)]"
             >
               Start Your Consultation Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border">
+      <footer className="py-12 bg-white border-t border-slate-100">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Stethoscope className="w-5 h-5 text-primary-foreground" />
+              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                <Stethoscope className="w-5 h-5 text-white" />
               </div>
               <span className="font-semibold">InstantMed</span>
             </div>

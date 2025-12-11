@@ -228,8 +228,8 @@ function CheckoutForm({
         </div>
       )}
 
-      {/* Submit Button - Sticky on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-gray-200 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none space-y-4">
+      {/* Submit Button - Sticky on mobile with glassmorphism */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50 space-y-4">
         <Button
           type="submit"
           size="lg"
@@ -363,15 +363,15 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
+    <div className="min-h-screen bg-slate-50">
+      {/* Header - Glassmorphism */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+              <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold">InstantMed</span>
+            <span className="text-lg font-semibold tracking-tight">InstantMed</span>
           </Link>
           <button
             onClick={() => router.back()}
@@ -413,7 +413,7 @@ function CheckoutContent() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+              <div className="w-10 h-10 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin mb-4" />
               <p className="text-muted-foreground">Loading payment form...</p>
             </div>
           ) : clientSecret ? (
@@ -458,8 +458,8 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
       </div>
     }>
       <CheckoutContent />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowRight, ArrowLeft, Info, Plus, X } from 'lucide-react'
@@ -80,16 +81,21 @@ export function ScriptIntake({ onNext, onBack, defaultValues }: ScriptIntakeProp
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-slide-in">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <motion.div 
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      >
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
           Prescription Request
         </h2>
         <p className="text-muted-foreground">
           {step === 1 && 'Tell us about your medication'}
           {step === 2 && 'Medical history & allergies'}
         </p>
-      </div>
+      </motion.div>
 
       {/* Step 1: Medication Details */}
       {step === 1 && (
@@ -288,40 +294,42 @@ export function ScriptIntake({ onNext, onBack, defaultValues }: ScriptIntakeProp
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="sticky-bottom-button flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="touch-target"
-          onClick={prevIntakeStep}
-        >
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Back
-        </Button>
-        
-        {step < 2 ? (
+      {/* Navigation - Glassmorphism footer */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50">
+        <div className="flex gap-3 max-w-xl mx-auto">
           <Button
             type="button"
+            variant="outline"
             size="lg"
-            className="flex-1 touch-target text-base"
-            onClick={nextIntakeStep}
-            disabled={!selectedMedication || !watch('reason')}
+            className="h-11 md:h-12 min-h-[44px]"
+            onClick={prevIntakeStep}
           >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Back
           </Button>
-        ) : (
-          <Button
-            type="submit"
-            size="lg"
-            className="flex-1 touch-target text-base"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        )}
+          
+          {step < 2 ? (
+            <Button
+              type="button"
+              size="lg"
+              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+              onClick={nextIntakeStep}
+              disabled={!selectedMedication || !watch('reason')}
+            >
+              Continue
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="lg"
+              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Continue
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   )
