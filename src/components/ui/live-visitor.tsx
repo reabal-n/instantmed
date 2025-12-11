@@ -15,40 +15,25 @@ const AVATARS: string[] = [
 
 const AVATAR_COLORS: string[] = ["#dbeafe", "#dcfce7", "#fce7f3", "#ffedd5", "#f3f4f6"]
 
-interface AvatarConfig {
-  displayLimit: number
-  showPlus: boolean
-}
-
 interface DigitPlaceProps {
   place: number
   value: number
 }
 
 const LiveVisitorCounter = () => {
-  const [visitorCount, setVisitorCount] = useState<number>(135)
-  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({ displayLimit: 3, showPlus: false })
-
-  useEffect(() => {
-    const baseVisitors = 135
-    const baseAvatars = 5
-    const visitorsAboveBase = visitorCount - baseVisitors
-    const additionalAvatars = Math.floor(visitorsAboveBase / 3)
-    const calculatedLimit = baseAvatars + additionalAvatars
-    const displayLimit = Math.max(1, Math.min(calculatedLimit, 5))
-    const showPlus = calculatedLimit > 5
-
-    setAvatarConfig({ displayLimit, showPlus })
-  }, [visitorCount])
+  const [visitorCount, setVisitorCount] = useState<number>(12)
+  const MIN_COUNT = 5
+  const MAX_COUNT = 20
+  const MAX_AVATARS = 5
 
   useEffect(() => {
     const interval = setInterval(() => {
       setVisitorCount((prev) => {
-        const change = Math.floor(Math.random() * 11) - 5
+        const change = Math.floor(Math.random() * 5) - 2 // -2 to +2 change
         const newCount = prev + change
-        return Math.max(105, Math.min(140, newCount))
+        return Math.max(MIN_COUNT, Math.min(MAX_COUNT, newCount))
       })
-    }, 1660)
+    }, 2000)
 
     return () => clearInterval(interval)
   }, [])
