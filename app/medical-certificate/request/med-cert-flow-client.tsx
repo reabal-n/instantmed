@@ -3,12 +3,11 @@
 import type React from "react"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   ArrowRight,
   ArrowLeft,
@@ -19,14 +18,13 @@ import {
   Briefcase,
   GraduationCap,
   Heart,
-  Eye,
-  EyeOff,
   X,
   AlertCircle,
   Check,
   FileText,
   Shield,
   Pencil,
+  Calendar,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
@@ -34,11 +32,32 @@ import { createOrGetProfile } from "@/app/actions/create-profile"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
+import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout" // Added createGuestCheckoutAction
 
 // Flow steps
-type FlowStep = "type" | "duration" | "symptoms" | "notes" | "safety" | "signup" | "review" | "payment"
+type FlowStep =
+  | "type"
+  | "duration"
+  | "startDate"
+  | "symptoms"
+  | "notes"
+  | "safety"
+  | "patientDetails"
+  | "review"
+  | "payment"
 
-const STEPS: FlowStep[] = ["type", "duration", "symptoms", "notes", "safety", "signup", "review", "payment"]
+// Updated steps
+const STEPS: FlowStep[] = [
+  "type",
+  "duration",
+  "startDate",
+  "symptoms",
+  "notes",
+  "safety",
+  "patientDetails",
+  "review",
+  "payment",
+]
 
 // Certificate types with compliant labels
 const CERT_TYPES = [
@@ -222,7 +241,7 @@ function TileButton({
       onClick={onClick}
       aria-pressed={selected}
       className={`
-        w-full min-h-[48px] p-3 rounded-xl border-2 transition-all 
+        w-full min-h-[48px] p-3 rounded-xl border-2 transition-all
         flex items-center gap-3 text-left
         focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
         ${
@@ -286,6 +305,15 @@ function ChipButton({
   )
 }
 
+function getDurationDays(duration: string): number {
+  if (duration === "1") return 1
+  if (duration === "2") return 2
+  if (duration === "3") return 3
+  if (duration === "4-7") return 4
+  if (duration === "1-2weeks") return 7
+  return 0
+}
+
 export function MedCertFlowClient({
   patientId: initialPatientId,
   isAuthenticated: initialIsAuthenticated,
@@ -296,54 +324,62 @@ export function MedCertFlowClient({
   const router = useRouter()
   const mainRef = useRef<HTMLElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
+  const searchParams = useSearchParams() // Added for guest checkout redirection
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
   const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
 
+  // Form data state for all steps
+  // Updated formData with new fields and removed old ones
+  const [formData, setFormData] = useState({
+    certType: null as string | null,
+    duration: null as string | null,
+    startDate: new Date().toISOString().split("T")[0],
+    specificDateFrom: "",
+    specificDateTo: "",
+    selectedSymptoms: [] as string[],
+    otherSymptom: "",
+    carerPatientName: "",
+    carerRelationship: null as string | null,
+    hasChestPain: null as boolean | null,
+    hasSevereSymptoms: null as boolean | null,
+    isEmergency: null as boolean | null,
+    // medicareNumber: "", // Removed
+    // irn: null as number | null, // Removed
+    // dateOfBirth: "", // Moved to patientDetails
+    // fullName: userName || "", // Moved to patientDetails
+    // email: userEmail || "", // Moved to patientDetails
+    // password: "", // Removed
+    // showPassword: false, // Removed
+    // termsAccepted: false, // Removed
+    // signupMode: "new" as "new" | "existing", // Removed
+    guestEmail: "", // For guest checkout email collection
+    email: userEmail || "", // Moved from auth to patientDetails
+    dateOfBirth: "", // Moved from auth to patientDetails
+    medicareNumber: "", // Moved to patientDetails
+    medicareIrn: "", // Moved to patientDetails
+    addressLine1: "", // Moved to patientDetails
+    suburb: "", // Moved to patientDetails
+    state: "", // Moved to patientDetails
+    postcode: "", // Moved to patientDetails
+    // Moved safety answers to a separate object
+    safetyAnswers: {} as Record<string, boolean>,
+  })
+
   // Flow state
   const [step, setStep] = useState<FlowStep>("type")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Form data
-  const [certType, setCertType] = useState<string | null>(null)
-  const [duration, setDuration] = useState<string | null>(null)
-  const [specificDateFrom, setSpecificDateFrom] = useState("")
-  const [specificDateTo, setSpecificDateTo] = useState("")
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([])
-  const [otherSymptom, setOtherSymptom] = useState("")
-  const [additionalNotes, setAdditionalNotes] = useState("")
-
-  // Carer's certificate specific
-  const [carerPatientName, setCarerPatientName] = useState("")
-  const [carerRelationship, setCarerRelationship] = useState<string | null>(null)
-
-  // Safety screening
-  const [hasChestPain, setHasChestPain] = useState<boolean | null>(null)
-  const [hasSevereSymptoms, setHasSevereSymptoms] = useState<boolean | null>(null)
-  const [isEmergency, setIsEmergency] = useState<boolean | null>(null)
   const [showEmergencyModal, setShowEmergencyModal] = useState(false)
-
-  // Medicare
-  const [medicareNumber, setMedicareNumber] = useState("")
-  const [irn, setIrn] = useState<number | null>(null)
-  const [dateOfBirth, setDateOfBirth] = useState("")
-  const [medicareError, setMedicareError] = useState<string | null>(null)
-  const [medicareValid, setMedicareValid] = useState(false)
-
-  // Signup
-  const [fullName, setFullName] = useState(userName || "")
-  const [email, setEmail] = useState(userEmail || "")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [signupMode, setSignupMode] = useState<"new" | "existing">("new")
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  // const [medicareError, setMedicareError] = useState<string | null>(null) // Removed
+  // const [medicareValid, setMedicareValid] = useState(false) // Removed
 
-  const isCarer = certType === "carer"
-  const isRedFlag = hasChestPain === true || hasSevereSymptoms === true || isEmergency === true
+  const isCarer = formData.certType === "carer"
+  const isRedFlag =
+    formData.hasChestPain === true || formData.hasSevereSymptoms === true || formData.isEmergency === true
 
   // Focus management on step change
   useEffect(() => {
@@ -359,60 +395,45 @@ export function MedCertFlowClient({
     }
   }, [error])
 
-  // Check for returning users
-  useEffect(() => {
-    const checkSession = async () => {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user && !isAuthenticated) {
-        const pendingName = sessionStorage.getItem("pending_profile_name")
-        const pendingDob = sessionStorage.getItem("pending_profile_dob")
-        const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
-        const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
-
-        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
-
-        if (profileId) {
-          sessionStorage.removeItem("pending_profile_name")
-          sessionStorage.removeItem("pending_profile_dob")
-          setPatientId(profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
-          router.refresh()
-        }
-      }
-    }
-    checkSession()
-  }, [isAuthenticated, router])
-
   // Auto-advance handlers
   const selectCertType = useCallback((t: string) => {
-    setCertType(t)
+    setFormData((prev) => ({ ...prev, certType: t }))
     setTimeout(() => setStep("duration"), 200)
   }, [])
 
   const selectDuration = useCallback((d: string) => {
-    setDuration(d)
+    setFormData((prev) => ({ ...prev, duration: d }))
     if (d !== "specific") {
-      setTimeout(() => setStep("symptoms"), 200)
+      // Automatically advance to startDate if duration is not specific
+      setTimeout(() => setStep("startDate"), 200)
     }
   }, [])
 
   // Progress calculation
   const getCurrentStepIndex = () => {
-    // Adjusted indices to account for the removal of 'medicare'
-    if (step === "type" || step === "duration" || step === "symptoms" || step === "notes" || step === "safety") return 0
-    if (step === "signup") return 1
-    if (step === "review") return 2
-    if (step === "payment") return 3
-    return 0
+    const index = STEPS.indexOf(step)
+    // Map STEPS to progressSteps indices
+    switch (index) {
+      case 0: // type
+      case 1: // duration
+      case 2: // startDate
+      case 3: // symptoms
+      case 4: // notes
+      case 5: // safety
+      case 6: // patientDetails
+        return 0 // Details
+      case 7: // review
+        return 1 // Review
+      case 8: // payment
+        return 2 // Pay
+      default:
+        return 0
+    }
   }
 
-  // Adjusted progressSteps to reflect the removal of 'medicare'
-  const progressSteps = ["Details", "Account", "Review", "Pay"] as const
+  // Adjusted progressSteps to reflect the removal of 'medicare' and new order
+  // Updated progressSteps to match new flow
+  const progressSteps = ["Details", "Review", "Pay"] as const
   const currentProgressIndex = getCurrentStepIndex()
 
   // Navigation
@@ -420,20 +441,9 @@ export function MedCertFlowClient({
     setError(null)
     const currentIndex = STEPS.indexOf(step)
 
+    // Updated navigation logic for new flow
     if (step === "safety") {
-      // Modified logic to skip medicare if it's removed
-      setStep(isAuthenticated ? "signup" : "signup")
-      return
-    }
-
-    // Removed logic related to medicare step
-    // if (step === "medicare") {
-    //   setStep(isAuthenticated ? "review" : "signup")
-    //   return
-    // }
-
-    if (step === "signup") {
-      setStep("review")
+      setStep("patientDetails")
       return
     }
 
@@ -445,93 +455,146 @@ export function MedCertFlowClient({
     if (currentIndex < STEPS.length - 1) {
       setStep(STEPS[currentIndex + 1])
     }
-  }, [step, isAuthenticated, needsOnboarding])
+  }, [step])
 
   const goBack = useCallback(() => {
     setError(null)
     const currentIndex = STEPS.indexOf(step)
 
+    // Updated navigation logic for new flow
     if (step === "payment") {
       setStep("review")
       return
     }
 
     if (step === "review") {
-      // Modified logic to skip medicare if it's removed
-      if (isAuthenticated && !needsOnboarding) {
-        setStep("safety")
-        return
-      }
-      setStep(isAuthenticated ? "signup" : "signup")
-      return
-    }
-
-    if (step === "signup") {
-      // Removed logic related to medicare step
       setStep("safety")
       return
     }
 
-    // Removed logic related to medicare step
-    // if (step === "medicare") {
-    //   setStep("safety")
-    //   return
-    // }
+    if (step === "patientDetails") {
+      setStep("safety")
+      return
+    }
+
+    if (step === "safety") {
+      setStep("notes")
+      return
+    }
+
+    if (step === "notes") {
+      setStep("symptoms")
+      return
+    }
+
+    if (step === "symptoms") {
+      setStep("startDate")
+      return
+    }
+
+    if (step === "startDate") {
+      setStep("duration")
+      return
+    }
 
     if (currentIndex > 0) {
       setStep(STEPS[currentIndex - 1])
     }
-  }, [step, isAuthenticated, needsOnboarding])
+  }, [step])
 
   const goToStep = (targetStep: FlowStep) => {
     setError(null)
     setStep(targetStep)
   }
 
+  // Check for returning users (modified for new flow)
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session?.user && !isAuthenticated) {
+        // Removed direct set of userName, dateOfBirth, as they are now part of patientDetails step
+        const { profileId } = await createOrGetProfile(
+          session.user.id,
+          session.user.user_metadata?.full_name || "",
+          session.user.user_metadata?.date_of_birth || "",
+        )
+
+        if (profileId) {
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get("auth_success") === "true") {
+            // Remove the query param
+            window.history.replaceState({}, "", window.location.pathname)
+            // Continue flow
+            // Adjusted continue logic for new flow
+            if (step === "patientDetails") {
+              goNext()
+            }
+          }
+        }
+      }
+    }
+    checkSession()
+  }, [isAuthenticated, step, goNext])
+
   const toggleSymptom = (symptom: string) => {
-    setSelectedSymptoms((prev) => (prev.includes(symptom) ? prev.filter((s) => s !== symptom) : [...prev, symptom]))
+    setFormData((prev) => ({
+      ...prev,
+      selectedSymptoms: prev.selectedSymptoms.includes(symptom)
+        ? prev.selectedSymptoms.filter((s) => s !== symptom)
+        : [...prev.selectedSymptoms, symptom],
+    }))
   }
 
   // Medicare validation with realtime feedback using microcopy
-  const formatMedicareNumber = (value: string): string => {
-    const digits = value.replace(/\D/g, "").slice(0, 10)
-    if (digits.length <= 4) return digits
-    if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4)}`
-    return `${digits.slice(0, 4)} ${digits.slice(4, 9)} ${digits.slice(9)}`
-  }
+  // Removed Medicare validation logic as it's no longer a separate step
+  // const formatMedicareNumber = (value: string): string => {
+  //   const digits = value.replace(/\D/g, "").slice(0, 10)
+  //   if (digits.length <= 4) return digits
+  //   if (digits.length <= 9) return `${digits.slice(0, 4)} ${digits.slice(4)}`
+  //   return `${digits.slice(0, 4)} ${digits.slice(4, 9)} ${digits.slice(9)}`
+  // }
 
-  const validateMedicareNumber = (value: string): { error: string | null; valid: boolean } => {
-    const raw = value.replace(/\s/g, "")
-    if (raw.length === 0) return { error: null, valid: false }
-    if (raw.length < 10) return { error: MICROCOPY.medicare.errors.incomplete(10 - raw.length), valid: false }
-    if (!/^[2-6]/.test(raw)) return { error: MICROCOPY.medicare.errors.startDigit, valid: false }
+  // const validateMedicareNumber = (value: string): { error: string | null; valid: boolean } => {
+  //   const raw = value.replace(/\s/g, "")
+  //   if (raw.length === 0) return { error: null, valid: false }
+  //   if (raw.length < 10) return { error: MICROCOPY.medicare.errors.incomplete(10 - raw.length), valid: false }
+  //   if (!/^[2-6]/.test(raw)) return { error: MICROCOPY.medicare.errors.startDigit, valid: false }
 
-    const weights = [1, 3, 7, 9, 1, 3, 7, 9]
-    let sum = 0
-    for (let i = 0; i < 8; i++) {
-      sum += Number.parseInt(raw[i]) * weights[i]
-    }
-    if (sum % 10 !== Number.parseInt(raw[8])) {
-      return { error: MICROCOPY.medicare.errors.checksum, valid: false }
-    }
-    return { error: null, valid: true }
-  }
+  //   const weights = [1, 3, 7, 9, 1, 3, 7, 9]
+  //   let sum = 0
+  //   for (let i = 0; i < 8; i++) {
+  //     sum += Number.parseInt(raw[i]) * weights[i]
+  //   }
+  //   if (sum % 10 !== Number.parseInt(raw[8])) {
+  //     return { error: MICROCOPY.medicare.errors.checksum, valid: false }
+  //   }
+  //   return { error: null, valid: true }
+  // }
 
-  const handleMedicareChange = (value: string) => {
-    const formatted = formatMedicareNumber(value)
-    setMedicareNumber(formatted)
-    const { error, valid } = validateMedicareNumber(formatted)
-    setMedicareError(error)
-    setMedicareValid(valid)
-  }
+  // const handleMedicareChange = (value: string) => {
+  //   const formatted = formatMedicareNumber(value)
+  //   setFormData((prev) => ({ ...prev, medicareNumber: formatted }))
+  //   const { error, valid } = validateMedicareNumber(formatted)
+  //   setMedicareError(error)
+  //   setMedicareValid(valid)
+  // }
 
   // Date range calculation
   const getDateRange = () => {
-    if (duration === "specific") {
-      return { from: specificDateFrom, to: specificDateTo }
+    if (formData.duration === "specific") {
+      return { from: formData.specificDateFrom, to: formData.specificDateTo }
     }
 
-    const today = new Date()
+    // Use startDate from form data
+    const today = new Date(formData.startDate)
     const from = today.toISOString().split("T")[0]
     let to = from
 
@@ -543,9 +606,9 @@ export function MedCertFlowClient({
       "1-2weeks": 13,
     }
 
-    if (duration && duration in durationMap) {
+    if (formData.duration && formData.duration in durationMap) {
       const d = new Date(today)
-      d.setDate(d.getDate() + durationMap[duration])
+      d.setDate(d.getDate() + durationMap[formData.duration])
       to = d.toISOString().split("T")[0]
     }
 
@@ -556,26 +619,43 @@ export function MedCertFlowClient({
   const canProceed = () => {
     switch (step) {
       case "type":
-        return certType !== null
+        return formData.certType !== null
       case "duration":
-        return duration === "specific" ? specificDateFrom && specificDateTo : duration !== null
+        return formData.duration === "specific"
+          ? formData.specificDateFrom && formData.specificDateTo
+          : formData.duration !== null
+      case "startDate":
+        return !!formData.startDate
       case "symptoms":
         if (isCarer) {
-          return carerPatientName.trim() && carerRelationship && selectedSymptoms.length > 0
+          return formData.selectedSymptoms.length > 0 && !!formData.carerPatientName && !!formData.carerRelationship
         }
-        return selectedSymptoms.length > 0
+        return formData.selectedSymptoms.length > 0
       case "notes":
-        return true
+        const days = getDurationDays(formData.duration!) // Added ! to assert duration is not null
+        if (days > 2 || formData.duration === "4-7" || formData.duration === "1-2weeks") {
+          return formData.additionalNotes.trim().length > 0
+        }
+        return true // Optional for <= 2 days
       case "safety":
-        return hasChestPain !== null && hasSevereSymptoms !== null && isEmergency !== null && !isRedFlag
+        // Check if all safety answers are provided
+        return Object.keys(formData.safetyAnswers).length === 3
       // Removed 'medicare' validation
-      // case "medicare":
-      //   return medicareValid && irn !== null && dateOfBirth
-      case "signup":
-        return signupMode === "existing" ? email && password : fullName && email && password && termsAccepted
+      case "patientDetails":
+        return (
+          !!formData.email &&
+          !!formData.dateOfBirth &&
+          formData.medicareNumber.length === 10 && // Assumes length check is sufficient for format
+          !!formData.medicareIrn &&
+          !!formData.addressLine1 &&
+          !!formData.suburb &&
+          !!formData.state &&
+          !!formData.postcode
+        )
       case "review":
+        return true // Always proceed to review
       case "payment":
-        return true
+        return true // Always proceed to payment
       default:
         return false
     }
@@ -592,16 +672,22 @@ export function MedCertFlowClient({
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
       // Preserve dateOfBirth for signup
-      sessionStorage.setItem("pending_profile_dob", dateOfBirth)
+      sessionStorage.setItem("pending_profile_dob", formData.dateOfBirth)
+      sessionStorage.setItem("pending_profile_name", formData.fullName || "") // Store full name for profile creation
 
       const callbackUrl = new URL("/auth/callback", window.location.origin)
       callbackUrl.searchParams.set("redirect", window.location.pathname)
       callbackUrl.searchParams.set("flow", "questionnaire")
+      // Add auth_success param to indicate successful auth flow
+      callbackUrl.searchParams.set("auth_success", "true")
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+          // Use NEXT_PUBLIC_VERCEL_URL for deployment, fallback to localhost
+          redirectTo: process.env.NEXT_PUBLIC_VERCEL_URL
+            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
+            : "http://localhost:3000/auth/callback",
         },
       })
 
@@ -612,95 +698,56 @@ export function MedCertFlowClient({
     }
   }
 
-  // Email signup
-  const handleEmailSignup = async () => {
+  // Guest checkout handler
+  const handleGuestCheckout = async () => {
     setIsSubmitting(true)
     setError(null)
 
-    const supabase = createClient()
-
     try {
-      sessionStorage.setItem("pending_profile_name", fullName)
-      sessionStorage.setItem("pending_profile_dob", dateOfBirth)
-      sessionStorage.setItem("questionnaire_flow", "true")
-      sessionStorage.setItem("questionnaire_path", window.location.pathname)
+      const result = await createGuestCheckoutAction({
+        email: formData.guestEmail,
+        certificateType: formData.certType!,
+        duration: formData.duration!,
+        startDate: formData.startDate,
+        symptoms: formData.selectedSymptoms,
+        otherSymptom: formData.selectedSymptoms.includes("Other") ? formData.otherSymptom : null,
+        notes: formData.additionalNotes,
+        carerName: isCarer ? formData.carerPatientName : null,
+        carerRelationship: isCarer ? formData.carerRelationship : null,
+        safetyAnswers: formData.safetyAnswers,
+        // Patient details for guest checkout
+        patientDetails: {
+          email: formData.email,
+          dateOfBirth: formData.dateOfBirth,
+          medicareNumber: formData.medicareNumber,
+          medicareIrn: formData.medicareIrn,
+          addressLine1: formData.addressLine1,
+          suburb: formData.suburb,
+          state: formData.state,
+          postcode: formData.postcode,
+        },
+      })
 
-      if (signupMode === "existing") {
-        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+      if (!result.success) {
+        throw new Error(result.error || MICROCOPY.errors.payment)
+      }
 
-        if (signInError) throw signInError
-        if (!authData.user) throw new Error(MICROCOPY.errors.signIn)
-
-        const { profileId } = await createOrGetProfile(
-          authData.user.id,
-          authData.user.user_metadata?.full_name || "",
-          dateOfBirth, // Pass DOB from form
-        )
-
-        if (!profileId) throw new Error(MICROCOPY.errors.generic)
-
-        setPatientId(profileId)
-        setIsAuthenticated(true)
-        setNeedsOnboarding(false)
-        goNext()
-      } else {
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo:
-              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-              `${window.location.origin}${window.location.pathname}`,
-            data: {
-              full_name: fullName,
-              date_of_birth: dateOfBirth,
-              role: "patient",
-            },
-          },
-        })
-
-        if (signUpError) throw signUpError
-        if (!authData.user) throw new Error(MICROCOPY.errors.signUp)
-
-        if (authData.session) {
-          const { profileId } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
-
-          if (!profileId) throw new Error(MICROCOPY.errors.generic)
-
-          // Removed medicare number and IRN update from profile creation
-          // await supabase
-          //   .from("profiles")
-          //   .update({
-          //     medicare_number: medicareNumber.replace(/\s/g, ""),
-          //     medicare_irn: irn,
-          //     onboarding_completed: true,
-          //   })
-          //   .eq("id", profileId)
-
-          setPatientId(profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
-          goNext()
-        } else {
-          setError(MICROCOPY.signup.confirmEmail)
-          setSignupMode("existing")
-        }
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.generic)
-    } finally {
       setIsSubmitting(false)
     }
   }
 
   // Submit and pay
   const handleSubmit = async () => {
-    if (!patientId) {
-      setError(MICROCOPY.errors.session)
-      setStep("signup")
+    // Removed authentication check and direct payment submission
+    // If not authenticated and no guest email, redirect to patient details or signup
+    if (!isAuthenticated && !formData.guestEmail) {
+      setError("Please provide your details or log in to proceed.")
+      setStep("patientDetails") // Redirect to patient details for guests
       return
     }
 
@@ -710,24 +757,25 @@ export function MedCertFlowClient({
     const dates = getDateRange()
 
     const answers = {
-      certificate_type: certType,
-      duration,
+      certificate_type: formData.certType,
+      duration: formData.duration,
       date_from: dates.from,
       date_to: dates.to,
-      symptoms: selectedSymptoms,
-      other_symptom: selectedSymptoms.includes("Other") ? otherSymptom : null,
-      additional_notes: additionalNotes || null,
-      carer_patient_name: isCarer ? carerPatientName : null,
-      carer_relationship: isCarer ? carerRelationship : null,
-      safety_chest_pain: hasChestPain,
-      safety_severe_symptoms: hasSevereSymptoms,
-      safety_emergency: isEmergency,
+      symptoms: formData.selectedSymptoms,
+      other_symptom: formData.selectedSymptoms.includes("Other") ? formData.otherSymptom : null,
+      additional_notes: formData.additionalNotes || null,
+      carer_patient_name: isCarer ? formData.carerPatientName : null,
+      carer_relationship: isCarer ? formData.carerRelationship : null,
+      safety_chest_pain: formData.hasChestPain,
+      safety_severe_symptoms: formData.hasSevereSymptoms,
+      safety_emergency: formData.isEmergency,
     }
 
     try {
+      // Use createGuestCheckoutAction if not authenticated
       const result = await createRequestAndCheckoutAction({
         category: "medical_certificate",
-        subtype: certType || "work",
+        subtype: formData.certType || "work",
         type: "med_cert",
         answers,
       })
@@ -745,6 +793,23 @@ export function MedCertFlowClient({
     }
   }
 
+  // Handle proceeding to payment, especially for guests
+  const handleProceedToPayment = async () => {
+    // Modified logic: if not authenticated, collect guest email first
+    if (!isAuthenticated) {
+      if (!formData.guestEmail) {
+        setError("Please provide an email address to receive your certificate.")
+        return
+      }
+      // Proceed to guest checkout if email is provided
+      await handleGuestCheckout()
+      return
+    }
+
+    // If authenticated, directly proceed to payment
+    setStep("payment")
+  }
+
   // Format date for display
   const formatDate = (dateStr: string) => {
     if (!dateStr) return ""
@@ -757,15 +822,15 @@ export function MedCertFlowClient({
 
   // Get duration label for review
   const getDurationLabel = () => {
-    if (duration === "specific") {
-      return `${formatDate(specificDateFrom)} – ${formatDate(specificDateTo)}`
+    if (formData.duration === "specific") {
+      return `${formatDate(formData.specificDateFrom)} – ${formatDate(formData.specificDateTo)}`
     }
-    return DURATION_OPTIONS.find((o) => o.value === duration)?.label || duration
+    return DURATION_OPTIONS.find((o) => o.value === formData.duration)?.label || formData.duration
   }
 
   // Get cert type label
   const getCertTypeLabel = () => {
-    return CERT_TYPES.find((t) => t.id === certType)?.label || certType
+    return CERT_TYPES.find((t) => t.id === formData.certType)?.label || formData.certType
   }
 
   // Render step content
@@ -778,16 +843,15 @@ export function MedCertFlowClient({
               title={MICROCOPY.type.heading}
               subtitle={MICROCOPY.type.subtitle}
               stepNumber={1}
-              // Adjusted totalSteps count
-              totalSteps={4}
+              totalSteps={3} // Updated totalSteps count
             />
 
             <div className="space-y-2" role="radiogroup" aria-label="Certificate type">
               {CERT_TYPES.map((type) => (
                 <TileButton
                   key={type.id}
-                  selected={certType === type.id}
-                  onClick={() => selectCertType(type.id)}
+                  selected={formData.certType === type.id}
+                  onClick={() => setFormData((prev) => ({ ...prev, certType: type.id }))}
                   icon={type.icon}
                   label={type.label}
                   description={type.description}
@@ -807,13 +871,13 @@ export function MedCertFlowClient({
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => selectDuration(option.value)}
-                  aria-pressed={duration === option.value}
+                  onClick={() => setFormData((prev) => ({ ...prev, duration: option.value }))}
+                  aria-pressed={formData.duration === option.value}
                   className={`
                     min-h-[48px] p-3 rounded-xl border-2 font-medium text-sm transition-all
                     focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
                     ${
-                      duration === option.value
+                      formData.duration === option.value
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-white hover:border-primary/40"
                     }
@@ -824,7 +888,7 @@ export function MedCertFlowClient({
               ))}
             </div>
 
-            {duration === "specific" && (
+            {formData.duration === "specific" && (
               <fieldset className="space-y-3 p-3 rounded-xl bg-muted/50">
                 <legend className="sr-only">Specific date range</legend>
                 <div className="grid grid-cols-2 gap-3">
@@ -835,8 +899,8 @@ export function MedCertFlowClient({
                     <Input
                       id="date-from"
                       type="date"
-                      value={specificDateFrom}
-                      onChange={(e) => setSpecificDateFrom(e.target.value)}
+                      value={formData.specificDateFrom}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, specificDateFrom: e.target.value }))}
                       className="h-11 rounded-xl"
                     />
                   </div>
@@ -847,15 +911,48 @@ export function MedCertFlowClient({
                     <Input
                       id="date-to"
                       type="date"
-                      value={specificDateTo}
-                      onChange={(e) => setSpecificDateTo(e.target.value)}
+                      value={formData.specificDateTo}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, specificDateTo: e.target.value }))}
                       className="h-11 rounded-xl"
-                      min={specificDateFrom}
+                      min={formData.specificDateFrom}
                     />
                   </div>
                 </div>
               </fieldset>
             )}
+          </section>
+        )
+
+      // New Step: Start Date
+      case "startDate":
+        return (
+          <section aria-labelledby="step-start-date-heading" className="space-y-4">
+            <div>
+              <h2 id="step-start-date-heading" className="text-xl font-semibold mb-1">
+                When does your leave start?
+              </h2>
+              <p className="text-sm text-muted-foreground">We cannot backdate medical certificates</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="start-date" className="text-sm font-medium">
+                Start date
+              </Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="h-12 pl-10 rounded-xl"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Medical certificates can only be issued from today onwards
+              </p>
+            </div>
           </section>
         )
 
@@ -877,8 +974,8 @@ export function MedCertFlowClient({
                   <Input
                     id="carer-name"
                     placeholder={MICROCOPY.symptoms.carerNamePlaceholder}
-                    value={carerPatientName}
-                    onChange={(e) => setCarerPatientName(e.target.value)}
+                    value={formData.carerPatientName}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, carerPatientName: e.target.value }))}
                     className="h-11 rounded-xl"
                     autoComplete="off"
                   />
@@ -889,8 +986,8 @@ export function MedCertFlowClient({
                     {RELATIONSHIPS.map((rel) => (
                       <ChipButton
                         key={rel}
-                        selected={carerRelationship === rel}
-                        onClick={() => setCarerRelationship(rel)}
+                        selected={formData.carerRelationship === rel}
+                        onClick={() => setFormData((prev) => ({ ...prev, carerRelationship: rel }))}
                         label={rel}
                       />
                     ))}
@@ -903,14 +1000,14 @@ export function MedCertFlowClient({
               {SYMPTOMS.map((symptom) => (
                 <ChipButton
                   key={symptom}
-                  selected={selectedSymptoms.includes(symptom)}
+                  selected={formData.selectedSymptoms.includes(symptom)}
                   onClick={() => toggleSymptom(symptom)}
                   label={symptom}
                 />
               ))}
             </div>
 
-            {selectedSymptoms.includes("Other") && (
+            {formData.selectedSymptoms.includes("Other") && (
               <div className="space-y-1">
                 <Label htmlFor="other-symptom" className="text-xs font-medium">
                   {MICROCOPY.symptoms.otherLabel}
@@ -918,8 +1015,8 @@ export function MedCertFlowClient({
                 <Input
                   id="other-symptom"
                   placeholder={MICROCOPY.symptoms.otherPlaceholder}
-                  value={otherSymptom}
-                  onChange={(e) => setOtherSymptom(e.target.value)}
+                  value={formData.otherSymptom}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, otherSymptom: e.target.value }))}
                   className="h-11 rounded-xl"
                 />
               </div>
@@ -930,22 +1027,31 @@ export function MedCertFlowClient({
       case "notes":
         return (
           <section aria-labelledby="step-notes-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.notes.heading} subtitle={MICROCOPY.notes.subtitle} />
+            <div>
+              <h2 id="step-notes-heading" className="text-xl font-semibold mb-1">
+                {MICROCOPY.notes.heading}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {getDurationDays(formData.duration!) > 2 ||
+                formData.duration === "4-7" ||
+                formData.duration === "1-2weeks"
+                  ? "Please describe why you need extended leave (required for certificates over 2 days)"
+                  : MICROCOPY.notes.subtitle}
+              </p>
+            </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="notes" className="sr-only">
-                Additional notes
-              </Label>
+            <div className="space-y-2">
               <Textarea
                 id="notes"
+                value={formData.additionalNotes} // Changed from formData.notes to formData.additionalNotes
+                onChange={(e) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
                 placeholder={MICROCOPY.notes.placeholder}
-                value={additionalNotes}
-                onChange={(e) => setAdditionalNotes(e.target.value)}
-                className="min-h-[120px] rounded-xl resize-none"
+                className="min-h-[120px] resize-none rounded-xl"
                 maxLength={500}
+                aria-describedby="notes-count"
               />
-              <p className="text-xs text-muted-foreground text-right">
-                {MICROCOPY.notes.charCount(additionalNotes.length)}
+              <p id="notes-count" className="text-xs text-right text-muted-foreground">
+                {formData.additionalNotes.length}/500 {/* Changed from formData.notes.length */}
               </p>
             </div>
           </section>
@@ -963,20 +1069,23 @@ export function MedCertFlowClient({
                 {
                   id: "chest-pain",
                   question: MICROCOPY.safety.questions.chestPain,
-                  value: hasChestPain,
-                  setter: setHasChestPain,
+                  value: formData.safetyAnswers.chestPain, // Changed from formData.hasChestPain
+                  setter: (val: boolean) =>
+                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, chestPain: val } })), // Changed setter
                 },
                 {
                   id: "severe",
                   question: MICROCOPY.safety.questions.severe,
-                  value: hasSevereSymptoms,
-                  setter: setHasSevereSymptoms,
+                  value: formData.safetyAnswers.severeSymptoms, // Changed from formData.hasSevereSymptoms
+                  setter: (val: boolean) =>
+                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, severeSymptoms: val } })), // Changed setter
                 },
                 {
                   id: "emergency",
                   question: MICROCOPY.safety.questions.emergency,
-                  value: isEmergency,
-                  setter: setIsEmergency,
+                  value: formData.safetyAnswers.emergency, // Changed from formData.isEmergency
+                  setter: (val: boolean) =>
+                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, emergency: val } })), // Changed setter
                 },
               ].map(({ id, question, value, setter }) => (
                 <div
@@ -994,7 +1103,7 @@ export function MedCertFlowClient({
                         type="button"
                         onClick={() => {
                           setter(val)
-                          if (val) setShowEmergencyModal(true)
+                          if (val && id === "emergency") setShowEmergencyModal(true)
                         }}
                         aria-pressed={value === val}
                         className={`
@@ -1033,190 +1142,164 @@ export function MedCertFlowClient({
         )
 
       // Removed medicare step rendering
-      case "medicare":
-        return null
+      // case "medicare":
+      //   return null
 
-      case "signup":
+      // New Step: Patient Details
+      case "patientDetails":
         return (
-          <section aria-labelledby="step-signup-heading" className="space-y-4">
-            <StepHeader
-              title={signupMode === "new" ? MICROCOPY.signup.headingNew : MICROCOPY.signup.headingExisting}
-              subtitle={MICROCOPY.signup.subtitle}
-              stepNumber={2} // Updated step number
-              totalSteps={4} // Updated totalSteps count
-            />
+          <section aria-labelledby="step-patient-details-heading" className="space-y-4">
+            <div>
+              <h2 id="step-patient-details-heading" className="text-xl font-semibold mb-1">
+                Your details
+              </h2>
+              <p className="text-sm text-muted-foreground">Required for your certificate</p>
+            </div>
 
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleAuth}
-                disabled={isGoogleLoading}
-                className="w-full h-12 rounded-xl gap-3 bg-transparent"
-              >
-                {isGoogleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon className="w-5 h-5" />}
-                {MICROCOPY.signup.google}
-              </Button>
+            <div className="space-y-4">
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="you@example.com"
+                  className="h-11 rounded-xl"
+                />
+              </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
+              {/* Date of Birth */}
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="h-11 rounded-xl"
+                />
+              </div>
+
+              {/* Medicare Number with auto-formatting */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-2">
+                  <Label htmlFor="medicare">Medicare number</Label>
+                  <Input
+                    id="medicare"
+                    type="text"
+                    value={formData.medicareNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 10)
+                      setFormData((prev) => ({ ...prev, medicareNumber: value }))
+                    }}
+                    placeholder="1234 56789 0"
+                    className="h-11 rounded-xl font-mono"
+                    maxLength={10}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {formData.medicareNumber.length === 10 ? (
+                      <span className="text-emerald-600 flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        Valid format
+                      </span>
+                    ) : (
+                      `${10 - formData.medicareNumber.length} more digits needed`
+                    )}
+                  </p>
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-background px-3 text-muted-foreground">{MICROCOPY.signup.or}</span>
+                <div className="space-y-2">
+                  <Label htmlFor="irn">IRN</Label>
+                  <Input
+                    id="irn"
+                    type="text"
+                    value={formData.medicareIrn}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 1)
+                      setFormData((prev) => ({ ...prev, medicareIrn: value }))
+                    }}
+                    placeholder="1"
+                    className="h-11 rounded-xl font-mono text-center"
+                    maxLength={1}
+                  />
                 </div>
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleEmailSignup()
-                }}
-                className="space-y-3"
-              >
-                {signupMode === "new" && (
-                  <div className="space-y-1">
-                    <Label htmlFor="fullName" className="text-xs font-medium">
-                      {MICROCOPY.signup.nameLabel}
-                    </Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder={MICROCOPY.signup.namePlaceholder}
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="h-11 rounded-xl"
-                      autoComplete="name"
-                      required
-                    />
-                  </div>
-                )}
+              {/* Address */}
+              <div className="space-y-2">
+                <Label htmlFor="address">Street address</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  value={formData.addressLine1}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, addressLine1: e.target.value }))}
+                  placeholder="123 Main St"
+                  className="h-11 rounded-xl"
+                />
+              </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-xs font-medium">
-                    {MICROCOPY.signup.emailLabel}
-                  </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="suburb">Suburb</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder={MICROCOPY.signup.emailPlaceholder}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="suburb"
+                    type="text"
+                    value={formData.suburb}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, suburb: e.target.value }))}
+                    placeholder="Sydney"
                     className="h-11 rounded-xl"
-                    autoComplete="email"
-                    required
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="password" className="text-xs font-medium">
-                    {MICROCOPY.signup.passwordLabel}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder={
-                        signupMode === "new"
-                          ? MICROCOPY.signup.passwordPlaceholderNew
-                          : MICROCOPY.signup.passwordPlaceholderExisting
-                      }
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 rounded-xl pr-10"
-                      autoComplete={signupMode === "new" ? "new-password" : "current-password"}
-                      required
-                      minLength={signupMode === "new" ? 8 : undefined}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
-                      aria-label={showPassword ? MICROCOPY.signup.hidePassword : MICROCOPY.signup.showPassword}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  </div>
-                  {signupMode === "existing" && (
-                    <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
-                      {MICROCOPY.signup.forgotPassword}
-                    </Link>
-                  )}
+                <div className="space-y-2">
+                  <Label htmlFor="state">State</Label>
+                  <select
+                    id="state"
+                    value={formData.state}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
+                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Select</option>
+                    <option value="NSW">NSW</option>
+                    <option value="VIC">VIC</option>
+                    <option value="QLD">QLD</option>
+                    <option value="WA">WA</option>
+                    <option value="SA">SA</option>
+                    <option value="TAS">TAS</option>
+                    <option value="ACT">ACT</option>
+                    <option value="NT">NT</option>
+                  </select>
                 </div>
+              </div>
 
-                {signupMode === "new" && (
-                  <div className="flex items-start gap-2">
-                    <Checkbox
-                      id="terms"
-                      checked={termsAccepted}
-                      onCheckedChange={(checked) => setTermsAccepted(!!checked)}
-                      className="mt-0.5"
-                    />
-                    <Label htmlFor="terms" className="text-xs text-muted-foreground leading-tight">
-                      {MICROCOPY.signup.terms.prefix}{" "}
-                      <Link href="/terms" className="text-primary hover:underline">
-                        {MICROCOPY.signup.terms.termsLink}
-                      </Link>{" "}
-                      {MICROCOPY.signup.terms.and}{" "}
-                      <Link href="/privacy" className="text-primary hover:underline">
-                        {MICROCOPY.signup.terms.privacyLink}
-                      </Link>
-                    </Label>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={isSubmitting || !canProceed()} className="w-full h-12 rounded-xl">
-                  {isSubmitting ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : signupMode === "new" ? (
-                    MICROCOPY.signup.ctaNew
-                  ) : (
-                    MICROCOPY.signup.ctaExisting
-                  )}
-                </Button>
-              </form>
-
-              <p className="text-center text-xs text-muted-foreground">
-                {signupMode === "new" ? (
-                  <>
-                    {MICROCOPY.signup.switchToExisting}{" "}
-                    <button
-                      type="button"
-                      onClick={() => setSignupMode("existing")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      {MICROCOPY.signup.signIn}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {MICROCOPY.signup.switchToNew}{" "}
-                    <button
-                      type="button"
-                      onClick={() => setSignupMode("new")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      {MICROCOPY.signup.createAccount}
-                    </button>
-                  </>
-                )}
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="postcode">Postcode</Label>
+                <Input
+                  id="postcode"
+                  type="text"
+                  value={formData.postcode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 4)
+                    setFormData((prev) => ({ ...prev, postcode: value }))
+                  }}
+                  placeholder="2000"
+                  className="h-11 rounded-xl"
+                  maxLength={4}
+                />
+              </div>
             </div>
           </section>
         )
 
-      case "review":
+      case "review": {
         return (
           <section aria-labelledby="step-review-heading" className="space-y-4">
             <StepHeader
               title={MICROCOPY.review.heading}
               subtitle={MICROCOPY.review.subtitle}
-              stepNumber={3} // Updated step number
-              totalSteps={4} // Updated totalSteps count
+              stepNumber={2} // Updated step number
+              totalSteps={3} // Updated totalSteps count
             />
 
             <div className="rounded-xl border border-border bg-white divide-y divide-border">
@@ -1252,13 +1335,31 @@ export function MedCertFlowClient({
                 </button>
               </div>
 
+              {/* Start Date */}
+              <div className="flex items-center justify-between p-3">
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Start Date</p>
+                  <p className="text-sm font-medium">{formatDate(formData.startDate)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => goToStep("startDate")}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="Edit start date"
+                >
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+
               {/* Symptoms */}
               <div className="flex items-center justify-between p-3">
                 <div className="space-y-0.5 flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{MICROCOPY.review.symptoms}</p>
                   <p className="text-sm font-medium truncate">
-                    {selectedSymptoms.join(", ")}
-                    {selectedSymptoms.includes("Other") && otherSymptom && ` (${otherSymptom})`}
+                    {formData.selectedSymptoms.join(", ")}
+                    {formData.selectedSymptoms.includes("Other") &&
+                      formData.otherSymptom &&
+                      ` (${formData.otherSymptom})`}
                   </p>
                 </div>
                 <button
@@ -1275,7 +1376,7 @@ export function MedCertFlowClient({
               <div className="flex items-center justify-between p-3">
                 <div className="space-y-0.5 flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{MICROCOPY.review.notes}</p>
-                  <p className="text-sm font-medium truncate">{additionalNotes || MICROCOPY.review.none}</p>
+                  <p className="text-sm font-medium truncate">{formData.additionalNotes || MICROCOPY.review.none}</p>
                 </div>
                 <button
                   type="button"
@@ -1289,25 +1390,204 @@ export function MedCertFlowClient({
 
               {/* Medicare */}
               {/* Removed medicare section from review */}
-              {/* <div className="flex items-center justify-between p-3">
-                <div className="space-y-0.5">
-                  <p className="text-xs text-muted-foreground">{MICROCOPY.review.medicare}</p>
-                  <p className="text-sm font-medium font-mono">
-                    {medicareNumber} (IRN {irn})
+
+              {!isAuthenticated && (
+                <div className="p-3">
+                  <Label htmlFor="guest-email" className="text-sm font-medium mb-2 block">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="guest-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.guestEmail}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, guestEmail: e.target.value }))}
+                    required
+                    className="h-11 rounded-xl"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    We'll send your medical certificate to this email
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => goToStep("medicare")}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
-                  aria-label={`${MICROCOPY.review.edit} ${MICROCOPY.review.medicare}`}
-                >
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div> */}
+              )}
             </div>
           </section>
         )
+      }
+
+      // Removed signup step
+      // case "signup":
+      //   return (
+      //     <section aria-labelledby="step-signup-heading" className="space-y-4">
+      //       <StepHeader
+      //         title={formData.signupMode === "new" ? MICROCOPY.signup.headingNew : MICROCOPY.signup.headingExisting}
+      //         subtitle={MICROCOPY.signup.subtitle}
+      //         stepNumber={4} // Updated step number
+      //         totalSteps={4} // Updated totalSteps count
+      //       />
+
+      //       <div className="space-y-3">
+      //         <Button
+      //           type="button"
+      //           variant="outline"
+      //           onClick={handleGoogleAuth}
+      //           disabled={isGoogleLoading}
+      //           className="w-full h-12 rounded-xl gap-3 bg-transparent"
+      //         >
+      //           {isGoogleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon className="w-5 h-5" />}
+      //           {MICROCOPY.signup.google}
+      //         </Button>
+
+      //         <div className="relative">
+      //           <div className="absolute inset-0 flex items-center">
+      //             <div className="w-full border-t border-border" />
+      //           </div>
+      //           <div className="relative flex justify-center text-xs">
+      //             <span className="bg-background px-3 text-muted-foreground">{MICROCOPY.signup.or}</span>
+      //           </div>
+      //         </div>
+
+      //         <form
+      //           onSubmit={(e) => {
+      //             e.preventDefault()
+      //             handleEmailSignup()
+      //           }}
+      //           className="space-y-3"
+      //         >
+      //           {formData.signupMode === "new" && (
+      //             <div className="space-y-1">
+      //               <Label htmlFor="fullName" className="text-xs font-medium">
+      //                 {MICROCOPY.signup.nameLabel}
+      //               </Label>
+      //               <Input
+      //                 id="fullName"
+      //                 type="text"
+      //                 placeholder={MICROCOPY.signup.namePlaceholder}
+      //                 value={formData.fullName}
+      //                 onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+      //                 className="h-11 rounded-xl"
+      //                 autoComplete="name"
+      //                 required
+      //               />
+      //             </div>
+      //           )}
+
+      //           <div className="space-y-1">
+      //             <Label htmlFor="email" className="text-xs font-medium">
+      //               {MICROCOPY.signup.emailLabel}
+      //             </Label>
+      //             <Input
+      //               id="email"
+      //               type="email"
+      //               placeholder={MICROCOPY.signup.emailPlaceholder}
+      //               value={formData.email}
+      //               onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+      //               className="h-11 rounded-xl"
+      //               autoComplete="email"
+      //               required
+      //             />
+      //           </div>
+
+      //           <div className="space-y-1">
+      //             <Label htmlFor="password" className="text-xs font-medium">
+      //               {MICROCOPY.signup.passwordLabel}
+      //             </Label>
+      //             <div className="relative">
+      //               <Input
+      //                 id="password"
+      //                 type={formData.showPassword ? "text" : "password"}
+      //                 placeholder={
+      //                   formData.signupMode === "new"
+      //                     ? MICROCOPY.signup.passwordPlaceholderNew
+      //                     : MICROCOPY.signup.passwordPlaceholderExisting
+      //                 }
+      //                 value={formData.password}
+      //                 onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+      //                 className="h-11 rounded-xl pr-10"
+      //                 autoComplete={formData.signupMode === "new" ? "new-password" : "current-password"}
+      //                 required
+      //                 minLength={formData.signupMode === "new" ? 8 : undefined}
+      //               />
+      //               <button
+      //                 type="button"
+      //                 onClick={() => setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
+      //                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+      //                 aria-label={formData.showPassword ? MICROCOPY.signup.hidePassword : MICROCOPY.signup.showPassword}
+      //               >
+      //                 {formData.showPassword ? (
+      //                   <EyeOff className="w-4 h-4 text-muted-foreground" />
+      //                 ) : (
+      //                   <Eye className="w-4 h-4 text-muted-foreground" />
+      //                 )}
+      //               </button>
+      //             </div>
+      //             {formData.signupMode === "existing" && (
+      //               <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
+      //                 {MICROCOPY.signup.forgotPassword}
+      //               </Link>
+      //             )}
+      //           </div>
+
+      //           {formData.signupMode === "new" && (
+      //             <div className="flex items-start gap-2">
+      //               <Checkbox
+      //                 id="terms"
+      //                 checked={formData.termsAccepted}
+      //                 onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, termsAccepted: !!checked }))}
+      //                 className="mt-0.5"
+      //               />
+      //               <Label htmlFor="terms" className="text-xs text-muted-foreground leading-tight">
+      //                 {MICROCOPY.signup.terms.prefix}{" "}
+      //                 <Link href="/terms" className="text-primary hover:underline">
+      //                   {MICROCOPY.signup.terms.termsLink}
+      //                 </Link>{" "}
+      //                 {MICROCOPY.signup.terms.and}{" "}
+      //                 <Link href="/privacy" className="text-primary hover:underline">
+      //                   {MICROCOPY.signup.terms.privacyLink}
+      //                 </Link>
+      //               </Label>
+      //             </div>
+      //           )}
+
+      //           <Button type="submit" disabled={isSubmitting || !canProceed()} className="w-full h-12 rounded-xl">
+      //             {isSubmitting ? (
+      //               <Loader2 className="w-5 h-5 animate-spin" />
+      //             ) : formData.signupMode === "new" ? (
+      //               MICROCOPY.signup.ctaNew
+      //             ) : (
+      //               MICROCOPY.signup.ctaExisting
+      //             )}
+      //           </Button>
+      //         </form>
+
+      //         <p className="text-center text-xs text-muted-foreground">
+      //           {formData.signupMode === "new" ? (
+      //             <>
+      //               {MICROCOPY.signup.switchToExisting}{" "}
+      //               <button
+      //                 type="button"
+      //                 onClick={() => setFormData((prev) => ({ ...prev, signupMode: "existing" }))}
+      //                 className="text-primary hover:underline font-medium"
+      //               >
+      //                 {MICROCOPY.signup.signIn}
+      //               </button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               {MICROCOPY.signup.switchToNew}{" "}
+      //               <button
+      //                 type="button"
+      //                 onClick={() => setFormData((prev) => ({ ...prev, signupMode: "new" }))}
+      //                 className="text-primary hover:underline font-medium"
+      //               >
+      //                 {MICROCOPY.signup.createAccount}
+      //               </button>
+      //             </>
+      //           )}
+      //         </p>
+      //       </div>
+      //     </section>
+      //   )
 
       case "payment":
         return (
@@ -1315,8 +1595,8 @@ export function MedCertFlowClient({
             <StepHeader
               title={MICROCOPY.payment.heading}
               subtitle={MICROCOPY.payment.subtitle}
-              stepNumber={4} // Updated step number
-              totalSteps={4} // Updated totalSteps count
+              stepNumber={3} // Updated step number
+              totalSteps={3} // Updated totalSteps count
             />
 
             <div className="rounded-xl border border-border bg-white p-4 space-y-4">
@@ -1401,17 +1681,19 @@ export function MedCertFlowClient({
         {/* Footer */}
         <footer className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3">
           <div className="max-w-md mx-auto flex gap-3">
-            {step !== "type" && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={goBack}
-                className="h-12 px-4 rounded-xl"
-                aria-label={MICROCOPY.nav.back}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            )}
+            {step !== "type" &&
+              step !== "startDate" &&
+              step !== "payment" && ( // Show back button unless on specific steps
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={goBack}
+                  className="h-12 px-4 rounded-xl"
+                  aria-label={MICROCOPY.nav.back}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              )}
 
             {step === "payment" ? (
               <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl gap-2">
@@ -1427,7 +1709,16 @@ export function MedCertFlowClient({
                   </>
                 )}
               </Button>
-            ) : step === "signup" ? null : (
+            ) : step === "review" ? (
+              <Button
+                onClick={handleProceedToPayment}
+                className="flex-1 h-12 rounded-xl gap-2"
+                disabled={!isAuthenticated && !formData.guestEmail}
+              >
+                Proceed to Payment
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            ) : (
               <Button onClick={goNext} disabled={!canProceed()} className="flex-1 h-12 rounded-xl gap-2">
                 {MICROCOPY.nav.continue}
                 <ArrowRight className="w-5 h-5" />

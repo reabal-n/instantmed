@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Search } from "lucide-react"
+import { ArrowRight, Search, Sparkles } from "lucide-react"
 
 interface HeroVariant {
   id: string
@@ -53,61 +53,55 @@ export function HeroTypewriter() {
   }, [])
 
   return (
-    <section className="relative px-4 pt-8 pb-12 sm:pt-12 sm:pb-16 overflow-hidden">
-      {/* Subtle gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-[#00E2B5]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-[#06B6D4]/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative mx-auto max-w-3xl text-center">
-        {/* Online indicator */}
-        <div className="inline-flex items-center gap-2 rounded-full bg-[#0A0F1C] px-3 py-1.5 text-xs font-medium text-white mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E2B5] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E2B5]" />
-          </span>
-          Doctors online now
-        </div>
-
-        {/* Animated headline */}
-        <h1
-          className={`text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl xl:text-5xl transition-all duration-300 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-          }`}
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {currentVariant.headline}
-        </h1>
-
-        {/* Subheadline */}
-        <p
-          className={`mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg transition-all duration-300 delay-100 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-          }`}
-        >
-          {currentVariant.subheadline}
-        </p>
-
-        {/* Search prompt */}
-        <div className="mt-8 mx-auto max-w-md">
-          <Link
-            href="#conditions"
-            className="group flex items-center gap-3 bg-white rounded-full px-5 py-3.5 border border-border/60 hover:border-border hover:shadow-lg hover:shadow-black/5 transition-all"
-          >
-            <Search className="h-5 w-5 text-muted-foreground/60" />
-            <span className="text-muted-foreground text-left flex-1">What do you need help with today?</span>
-            <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-[#00E2B5] group-hover:translate-x-0.5 transition-all" />
-          </Link>
-        </div>
-
-        {/* Trust badges inline */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-          <span>✓ AHPRA-registered doctors</span>
-          <span className="hidden sm:inline">•</span>
-          <span>✓ Usually under 1 hour</span>
-          <span className="hidden sm:inline">•</span>
-          <span>✓ 4.9/5 from 200+ reviews</span>
-        </div>
+    <div className="relative mx-auto max-w-3xl text-center">
+      <div className="inline-flex items-center gap-2 rounded-full backdrop-blur-xl bg-white/60 dark:bg-black/40 border border-white/40 dark:border-white/10 px-4 py-1.5 text-xs font-medium mb-6 animate-fade-in">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E2B5] opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E2B5]" />
+        </span>
+        <span className="text-foreground">Doctors online now</span>
       </div>
-    </section>
+
+      <h1
+        className={`text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl transition-all duration-500 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        }`}
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        <span className="inline-block bg-gradient-to-r from-foreground via-foreground to-[#00e2b5] bg-clip-text text-transparent">
+          {currentVariant.headline}
+        </span>
+      </h1>
+
+      <p
+        className={`mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed transition-all duration-500 delay-75 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        }`}
+      >
+        {currentVariant.subheadline}
+      </p>
+
+      <div className="mt-8 mx-auto max-w-md animate-fade-in-up stagger-2">
+        <Link
+          href="#conditions"
+          className="group flex items-center gap-3 backdrop-blur-xl bg-white/60 dark:bg-black/20 rounded-2xl px-5 py-4 border border-white/40 dark:border-white/10 hover:border-white/60 dark:hover:border-white/20 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(0,226,181,0.15)] transition-all duration-300 hover:-translate-y-1"
+        >
+          <Search className="h-5 w-5 text-muted-foreground/60" />
+          <span className="text-muted-foreground text-left flex-1">What do you need help with today?</span>
+          <ArrowRight className="h-4 w-4 text-[#00E2B5] group-hover:translate-x-1 transition-all" />
+        </Link>
+      </div>
+
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground animate-fade-in-up stagger-3">
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-[#00E2B5]" />
+          AHPRA-registered doctors
+        </span>
+        <span className="hidden sm:inline text-border">•</span>
+        <span>Usually under 1 hour</span>
+        <span className="hidden sm:inline text-border">•</span>
+        <span>4.9/5 from 200+ reviews</span>
+      </div>
+    </div>
   )
 }

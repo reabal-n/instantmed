@@ -10,9 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Eye, Clock, CheckCircle, FileText, Search, Send, Calendar, AlertTriangle } from "lucide-react"
+import { Eye, Clock, CheckCircle, FileText, Search, Send, Calendar, AlertTriangle, FlaskConical } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
 import { toast } from "sonner"
+import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
 
 interface AdminDashboardClientProps {
   allRequests: RequestWithPatient[]
@@ -40,6 +41,7 @@ export function AdminDashboardClient({
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [scriptSentFilter, setScriptSentFilter] = useState<string>("all")
   const [localRequests, setLocalRequests] = useState(allRequests)
+  const [testMode, setTestMode] = useState(getIsTestMode())
 
   // Filter requests
   const filteredRequests = useMemo(() => {
@@ -156,14 +158,34 @@ export function AdminDashboardClient({
     return new Date(r.created_at).toDateString() === today
   }).length
 
+  const handleTestModeToggle = () => {
+    const newValue = !testMode
+    setTestModeOverride(newValue)
+    setTestMode(newValue)
+    toast.success(newValue ? "Test mode enabled" : "Test mode disabled")
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Complete overview of all patient requests and fulfillment status
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Admin Dashboard</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Complete overview of all patient requests and fulfillment status
+            </p>
+          </div>
+          <Button
+            variant={testMode ? "default" : "outline"}
+            size="sm"
+            onClick={handleTestModeToggle}
+            className="rounded-xl gap-2"
+          >
+            <FlaskConical className="h-4 w-4" />
+            {testMode ? "Test Mode ON" : "Test Mode OFF"}
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}

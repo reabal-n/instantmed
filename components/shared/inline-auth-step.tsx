@@ -135,6 +135,8 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     const supabase = createClient()
 
     try {
+      console.log("[v0] Starting signup process")
+
       // Store profile data for later - will be used after email confirmation or immediately
       sessionStorage.setItem("pending_profile_name", fullName)
       sessionStorage.setItem("pending_profile_dob", dateOfBirth)
@@ -156,6 +158,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       })
 
       if (signUpError) {
+        console.error("[v0] Signup error:", signUpError)
         if (signUpError.message.includes("weak") || signUpError.message.includes("password")) {
           throw new Error("Please choose a password with at least 6 characters")
         }
@@ -166,23 +169,33 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         throw new Error("Failed to create account")
       }
 
-      // Check if we have an active session (email confirmation disabled)
+      console.log("[v0] User created successfully, session:", !!authData.session)
+
+      // Check if we have an active session (email confirmation disabled or auto-confirmed)
       if (authData.session) {
-        // User is confirmed and logged in immediately - safe to create profile
+        console.log("[v0] User is auto-confirmed, creating profile")
+
         const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
 
-        if (profileError || !profileId) {
-          throw new Error(profileError || "Failed to create profile")
+        if (profileError) {
+          console.error("[v0] Profile creation error:", profileError)
+          throw new Error(profileError)
         }
 
+        if (!profileId) {
+          throw new Error("Failed to create profile. Please try again or contact support.")
+        }
+
+        console.log("[v0] Profile created successfully, completing flow")
         onAuthComplete(authData.user.id, profileId)
         router.refresh()
       } else {
-        // Email confirmation required - DO NOT create profile yet
         // The user doesn't exist in auth.users until they confirm
+        console.log("[v0] Email confirmation required, showing check-email screen")
         setMode("check-email")
       }
     } catch (err) {
+      console.error("[v0] Signup flow error:", err)
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)

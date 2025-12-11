@@ -8,7 +8,8 @@ import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { SkipToContent } from "@/components/shared/skip-to-content"
-import { TestModeBanner } from "@/components/shared/test-mode-banner"
+import { AnimatedBackground } from "@/components/effects/animated-background"
+import { ThemeProvider } from "next-themes"
 import "./globals.css"
 
 const workSans = Work_Sans({
@@ -147,22 +148,28 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${workSans.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      className={`${workSans.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <JsonLd />
       </head>
       <body className="font-sans antialiased">
-        <TestModeBanner />
-        <SkipToContent />
-        <div id="main-content" className="page-enter pt-[var(--test-banner-height,0px)]">
-          {children}
-        </div>
-        <Toaster position="top-center" richColors />
-        <LiveChatWidget />
-        <SocialProofPopup />
-        <StickyCTABar />
-        <ExitIntentPopup />
-        <Analytics />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <AnimatedBackground />
+          <SkipToContent />
+          <div id="main-content" className="page-enter relative">
+            {children}
+          </div>
+          <Toaster position="top-center" richColors />
+          <LiveChatWidget />
+          <SocialProofPopup />
+          <StickyCTABar />
+          <ExitIntentPopup />
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )

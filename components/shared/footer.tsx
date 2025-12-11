@@ -153,7 +153,17 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} InstantMed. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} InstantMed. All rights reserved.
+            </p>
+            <Link
+              href="/doctor/admin"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Admin
+            </Link>
+          </div>
           <p className="text-xs text-muted-foreground text-center sm:text-right max-w-sm">
             Reviewed by AHPRA-registered Australian doctors. Medicare card required.
           </p>

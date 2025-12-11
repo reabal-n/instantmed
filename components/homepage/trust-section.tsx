@@ -1,6 +1,8 @@
 "use client"
 
 import { CheckCircle2, Shield, Zap, Lock, Heart } from "lucide-react"
+import { GlassCard } from "@/components/effects/glass-card"
+import { SecurityBadges } from "@/components/security/security-badges"
 
 const trustPoints = [
   {
@@ -23,15 +25,16 @@ const trustPoints = [
   },
   {
     icon: Heart,
-    title: "Your secrets are safe",
-    description: "We're not selling your data or spamming you. Bank-level encryption. Pinky promise.",
+    title: "Medical-grade security",
+    description:
+      "Your health data is protected with AES-256 encryption and stored on Australian servers. Full compliance with the Privacy Act 1988.",
     color: "#EC4899",
   },
 ]
 
 export function TrustSection() {
   return (
-    <section className="px-4 py-16 sm:py-20 bg-[#FAFBFC]">
+    <section className="px-4 py-16 sm:py-20">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-12">
           <h2
@@ -47,23 +50,32 @@ export function TrustSection() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          {trustPoints.map((point) => (
-            <div key={point.title} className="flex gap-4 p-5 bg-white rounded-xl border border-border/40">
+          {trustPoints.map((point, i) => (
+            <GlassCard key={point.title} className={`flex gap-4 p-6 hover-lift animate-fade-in-up stagger-${i + 1}`}>
+              {/* Icon with gradient background */}
               <div
-                className="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${point.color}15` }}
+                className="flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl"
+                style={{
+                  background: `linear-gradient(135deg, ${point.color}20, ${point.color}10)`,
+                  border: `1px solid ${point.color}30`,
+                }}
               >
-                <point.icon className="h-5 w-5" style={{ color: point.color }} />
+                <point.icon className="h-6 w-6" style={{ color: point.color }} />
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
                   <h3 className="font-semibold text-foreground">{point.title}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{point.description}</p>
               </div>
-            </div>
+            </GlassCard>
           ))}
+        </div>
+
+        <div className="mt-12 pt-12 border-t border-white/10">
+          <p className="text-center text-sm text-muted-foreground mb-6">Certified and compliant with</p>
+          <SecurityBadges />
         </div>
       </div>
     </section>

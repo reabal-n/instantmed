@@ -1,5 +1,7 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { createBrowserClient as createBrowserClientSSR } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
+
+export { createBrowserClient } from "@supabase/ssr"
 
 let supabaseClient: SupabaseClient | null = null
 
@@ -10,16 +12,9 @@ export function createClient() {
     return supabaseClient
   }
 
-  supabaseClient = createSupabaseClient(
+  supabaseClient = createBrowserClientSSR(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    },
   )
 
   return supabaseClient

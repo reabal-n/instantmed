@@ -33,6 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { DoctorAvailability } from "@/components/shared/doctor-availability"
+import { ThemeToggle } from "@/components/effects/theme-toggle"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -88,6 +89,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -96,6 +98,15 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (variant === "marketing") {
+      const supabase = createClient()
+      supabase.auth.getUser().then(({ data }) => {
+        setUser(data.user)
+      })
+    }
+  }, [variant])
 
   const handleSignOut = async () => {
     setIsLoggingOut(true)
@@ -121,8 +132,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <nav
           className={cn(
-            "mx-auto max-w-5xl rounded-2xl border border-border/40 bg-background/80 backdrop-blur-xl transition-all",
-            scrolled ? "py-2 shadow-sm" : "py-2.5",
+            "mx-auto max-w-5xl rounded-2xl border border-border/40 bg-background/80 backdrop-blur-xl transition-all liquid-glass-nav",
+            scrolled && "scrolled",
           )}
           role="navigation"
           aria-label="Main navigation"
@@ -130,8 +141,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           <div className="flex items-center justify-between px-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group" aria-label="InstantMed home">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Zap className="h-4 w-4 text-primary-foreground" aria-hidden="true" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00e2b5] to-[#06b6d4]">
+                <Zap className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
               <span className="text-base font-semibold text-foreground">InstantMed</span>
             </Link>
@@ -143,12 +154,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   {/* Services Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex items-center gap-1">
+                      <button className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all flex items-center gap-1">
                         Services
                         <ChevronRight className="h-3 w-3 rotate-90" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64">
+                    <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
                       <DropdownMenuLabel className="text-xs text-muted-foreground">Core Services</DropdownMenuLabel>
                       {services.map((service) => (
                         <DropdownMenuItem key={service.href} asChild>
@@ -179,22 +190,39 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <Link
                     href="/how-it-works"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
                   >
                     How it works
                   </Link>
                   <Link
                     href="/blog"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
                   >
                     Blog
                   </Link>
 
                   <div className="ml-3 flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild className="rounded-lg text-sm">
-                      <Link href="/auth/login">Sign in</Link>
-                    </Button>
-                    <Button size="sm" asChild className="rounded-lg text-sm">
+                    <ThemeToggle />
+                    {user ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="rounded-lg text-sm hover:bg-white/40 dark:hover:bg-white/5"
+                      >
+                        <Link href="/patient">Dashboard</Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="rounded-lg text-sm hover:bg-white/40 dark:hover:bg-white/5"
+                      >
+                        <Link href="/auth/login">Sign in</Link>
+                      </Button>
+                    )}
+                    <Button size="sm" asChild className="rounded-lg text-sm btn-premium">
                       <Link href="/start">Get started</Link>
                     </Button>
                   </div>
@@ -362,12 +390,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         {/* Services Dropdown */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all">
                               Services
                               <ChevronRight className="h-3 w-3 rotate-90" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-64">
+                          <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
                             <DropdownMenuLabel className="text-xs text-muted-foreground">
                               Core Services
                             </DropdownMenuLabel>

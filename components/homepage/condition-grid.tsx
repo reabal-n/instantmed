@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { GlassCard } from "@/components/effects/glass-card"
 
 interface Condition {
   id: string
@@ -126,29 +127,29 @@ const conditions: Condition[] = [
 
 export function ConditionGrid() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {conditions.map((condition) => (
-        <Link
-          key={condition.id}
-          href={condition.href}
-          className="group relative bg-white rounded-xl p-4 border border-border/40 hover:border-border hover:shadow-lg hover:shadow-black/5 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
-        >
-          {/* Icon */}
-          <div className="text-2xl mb-2">{condition.icon}</div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {conditions.map((condition, i) => (
+        <Link key={condition.id} href={condition.href} className="group block">
+          <GlassCard className={`p-5 h-full tilt-card animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}>
+            {/* Icon with hover animation */}
+            <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">
+              {condition.icon}
+            </div>
 
-          {/* Name */}
-          <h3 className="font-semibold text-sm text-foreground mb-0.5">{condition.name}</h3>
+            {/* Name */}
+            <h3 className="font-semibold text-sm text-foreground mb-1">{condition.name}</h3>
 
-          {/* Tagline */}
-          <p className="text-xs text-muted-foreground leading-snug mb-3">{condition.tagline}</p>
+            {/* Tagline */}
+            <p className="text-xs text-muted-foreground leading-snug mb-4">{condition.tagline}</p>
 
-          {/* Price + Arrow */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold" style={{ color: condition.color }}>
-              {condition.price}
-            </span>
-            <ArrowRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
-          </div>
+            {/* Price + Arrow with accent color */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold font-mono" style={{ color: condition.color }}>
+                {condition.price}
+              </span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-[#00E2B5] group-hover:translate-x-1 transition-all" />
+            </div>
+          </GlassCard>
         </Link>
       ))}
     </div>

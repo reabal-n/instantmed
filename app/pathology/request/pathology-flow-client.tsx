@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { GoogleIcon } from "@/components/icons/google-icon"
 import {
   ArrowRight,
   ArrowLeft,
@@ -27,6 +28,7 @@ import {
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
+import { createOrGetProfile } from "@/app/actions/create-profile"
 
 type FlowStep = "tests" | "reason" | "medicare" | "signup" | "review"
 
@@ -47,23 +49,27 @@ const TEST_PANELS = [
 ]
 
 interface Props {
-  patientId: string | null
-  isAuthenticated: boolean
-  needsOnboarding: boolean
+  initialPatientId: string | null
+  initialIsAuthenticated: boolean
+  initialNeedsOnboarding: boolean
   userEmail?: string
   userName?: string
 }
 
 export default function PathologyFlowClient({
-  patientId,
-  isAuthenticated,
-  needsOnboarding,
+  initialPatientId,
+  initialIsAuthenticated,
+  initialNeedsOnboarding,
   userEmail,
   userName,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const preselectedPanel = searchParams.get("panel")
+
+  const [patientId, setPatientId] = useState<string | null>(initialPatientId)
+  const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
+  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
 
   // Form state
   const [selectedPanels, setSelectedPanels] = useState<string[]>(preselectedPanel ? [preselectedPanel] : [])
@@ -76,20 +82,44 @@ export default function PathologyFlowClient({
   const [fullName, setFullName] = useState(userName || "")
   const [showPassword, setShowPassword] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   // Flow state
   const [step, setStep] = useState<FlowStep>("tests")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  // Determine steps based on auth state
-  const getSteps = (): FlowStep[] => {
-    if (isAuthenticated && !needsOnboarding) return ["tests", "reason", "review"]
-    if (isAuthenticated && needsOnboarding) return ["tests", "reason", "medicare", "review"]
-    return ["tests", "reason", "medicare", "signup", "review"]
-  }
-  const steps = getSteps()
-  const currentIndex = steps.indexOf(step)
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session?.user && !isAuthenticated) {
+        const pendingName = sessionStorage.getItem("pending_profile_name")
+        const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
+
+        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, "")
+
+        if (profileId) {
+          sessionStorage.removeItem("pending_profile_name")
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get("auth_success") === "true") {
+            window.history.replaceState({}, "", window.location.pathname)
+            if (step === "signup") {
+              goNext()
+            }
+          }
+        }
+      }
+    }
+    checkSession()
+  }, [isAuthenticated, step])
 
   const togglePanel = (id: string) => {
     setSelectedPanels((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
@@ -113,38 +143,61 @@ export default function PathologyFlowClient({
   }
 
   const goNext = () => {
-    const nextIndex = currentIndex + 1
+    const nextIndex = steps.indexOf(step) + 1
     if (nextIndex < steps.length) setStep(steps[nextIndex])
   }
 
   const goBack = () => {
-    const prevIndex = currentIndex - 1
+    const prevIndex = steps.indexOf(step) - 1
     if (prevIndex >= 0) setStep(steps[prevIndex])
   }
 
+  const handleGoogleAuth = async () => {
+    setIsGoogleLoading(true)
+    setError("")
+
+    const supabase = createClient()
+
+    try {
+      sessionStorage.setItem("questionnaire_flow", "true")
+      sessionStorage.setItem("questionnaire_path", window.location.pathname)
+      sessionStorage.setItem("pending_profile_name", fullName)
+
+      const callbackUrl = new URL("/auth/callback", window.location.origin)
+      callbackUrl.searchParams.set("redirect", window.location.pathname)
+      callbackUrl.searchParams.set("flow", "questionnaire")
+      callbackUrl.searchParams.set("auth_success", "true")
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+        },
+      })
+
+      if (error) throw error
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed")
+      setIsGoogleLoading(false)
+    }
+  }
+
   const handleSubmit = async () => {
+    if (!isAuthenticated || !patientId) {
+      setError("Please complete the signup step before submitting.")
+      setStep("signup")
+      return
+    }
+
     setIsSubmitting(true)
     setError("")
 
     try {
       const supabase = createClient()
 
-      // Sign up if needed
-      if (!isAuthenticated) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
-          },
-        })
-        if (signUpError) throw signUpError
-      }
-
       // Build questionnaire data
       const selectedTestNames = selectedPanels.flatMap((id) => TEST_PANELS.find((p) => p.id === id)?.tests || [])
-      const questionnaire = {
+      const answers = {
         panels: selectedPanels,
         tests: [
           ...selectedTestNames,
@@ -154,26 +207,40 @@ export default function PathologyFlowClient({
             .filter(Boolean),
         ],
         reason,
+        medicare_number: medicareNumber,
+        medicare_irn: medicareIrn,
       }
 
       // Create request and checkout
       const result = await createRequestAndCheckoutAction({
         category: "referral",
         subtype: "pathology",
-        questionnaire,
-        medicareNumber: needsOnboarding || !isAuthenticated ? medicareNumber : undefined,
-        medicareIrn: needsOnboarding || !isAuthenticated ? medicareIrn : undefined,
-        fullName: !isAuthenticated ? fullName : undefined,
+        type: "pathology",
+        answers,
       })
 
-      if (result.error) throw new Error(result.error)
-      if (result.url) window.location.href = result.url
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create request")
+      }
+
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong")
     } finally {
       setIsSubmitting(false)
     }
   }
+
+  // Determine steps based on auth state
+  const getSteps = (): FlowStep[] => {
+    if (isAuthenticated && !needsOnboarding) return ["tests", "reason", "review"]
+    if (isAuthenticated && needsOnboarding) return ["tests", "reason", "medicare", "review"]
+    return ["tests", "reason", "medicare", "signup", "review"]
+  }
+  const steps = getSteps()
+  const currentIndex = steps.indexOf(step)
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -324,41 +391,63 @@ export default function PathologyFlowClient({
           <div className="space-y-6">
             <div className="text-center">
               <h1 className="text-xl font-semibold">Create your account</h1>
-              <p className="text-sm text-muted-foreground mt-1">To receive your referral</p>
+              <p className="text-sm text-muted-foreground mt-1">Quick and secure</p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label>Full name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Password</Label>
-                <div className="relative mt-1">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleAuth}
+                disabled={isGoogleLoading}
+                className="w-full h-12 rounded-xl gap-3 bg-transparent"
+              >
+                {isGoogleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon className="w-5 h-5" />}
+                Continue with Google
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-background px-3 text-muted-foreground">or</span>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(c) => setAgreedToTerms(c === true)} />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground leading-tight">
-                  I agree to the terms of service and privacy policy
-                </Label>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Full name</Label>
+                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Password</Label>
+                  <div className="relative mt-1">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(c) => setAgreedToTerms(c === true)} />
+                  <Label htmlFor="terms" className="text-sm text-muted-foreground leading-tight">
+                    I agree to the terms of service and privacy policy
+                  </Label>
+                </div>
               </div>
             </div>
           </div>

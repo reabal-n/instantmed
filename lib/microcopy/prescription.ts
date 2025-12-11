@@ -111,9 +111,9 @@ export const RX_MICROCOPY = {
 
   // Step: Notes
   notes: {
-    heading: "Any additional information?",
-    subtitle: "Optional — helps the doctor assess your request",
-    placeholder: "e.g. previous allergies, recent changes...",
+    heading: "Describe your symptoms",
+    subtitle: "Please describe your symptoms and how long you've had them (required for AHPRA compliance)",
+    placeholder: "e.g. I've had a sore throat for 3 days, difficulty swallowing, mild fever...",
   },
 
   // Step: Safety

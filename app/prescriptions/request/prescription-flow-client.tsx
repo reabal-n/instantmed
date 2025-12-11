@@ -315,7 +315,7 @@ export function PrescriptionFlowClient({
   const supabase = createClient()
 
   // Auth state
-  const [patientId, setPatientId] = useState(initialPatientId)
+  const [patientId, setPatientId] = useState<string | null>(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
   const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
 
@@ -325,6 +325,8 @@ export function PrescriptionFlowClient({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [signupMode, setSignupMode] = useState<"new" | "existing">("new")
 
   // Form state
   const [medication, setMedication] = useState("")
@@ -449,7 +451,7 @@ export function PrescriptionFlowClient({
       case "sideEffects":
         return !!sideEffects
       case "notes":
-        return true
+        return notes.trim().length > 0
       case "safety":
         return Object.keys(safetyAnswers).length === SAFETY_QUESTIONS.length
       case "medicare":
@@ -536,19 +538,112 @@ export function PrescriptionFlowClient({
 
   // Handle Google auth
   const handleGoogleAuth = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/prescriptions/request`,
-      },
-    })
-    if (error) setError(error.message)
+    setIsGoogleLoading(true)
+    setError(null)
+
+    try {
+      sessionStorage.setItem("questionnaire_flow", "true")
+      sessionStorage.setItem("questionnaire_path", window.location.pathname)
+      sessionStorage.setItem("pending_profile_dob", dob)
+
+      const callbackUrl = new URL("/auth/callback", window.location.origin)
+      callbackUrl.searchParams.set("redirect", window.location.pathname)
+      callbackUrl.searchParams.set("flow", "questionnaire")
+      callbackUrl.searchParams.set("auth_success", "true")
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+        },
+      })
+
+      if (error) throw error
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed")
+      setIsGoogleLoading(false)
+    }
+  }
+
+  // Handle email signup
+  const handleEmailSignup = async () => {
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      sessionStorage.setItem("pending_profile_name", fullName)
+      sessionStorage.setItem("pending_profile_dob", dob)
+
+      if (signupMode === "existing") {
+        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError) throw signInError
+        if (!authData.user) throw new Error("Sign in failed")
+
+        const { profileId } = await createOrGetProfile(
+          authData.user.id,
+          authData.user.user_metadata?.full_name || fullName,
+          dob,
+        )
+
+        if (!profileId) throw new Error("Failed to create profile")
+
+        setPatientId(profileId)
+        setIsAuthenticated(true)
+        setNeedsOnboarding(false)
+
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        goNext()
+      } else {
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo:
+              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+              `${window.location.origin}${window.location.pathname}`,
+            data: {
+              full_name: fullName,
+              date_of_birth: dob,
+              role: "patient",
+            },
+          },
+        })
+
+        if (signUpError) throw signUpError
+        if (!authData.user) throw new Error("Sign up failed")
+
+        if (authData.session) {
+          const { profileId } = await createOrGetProfile(authData.user.id, fullName, dob)
+
+          if (!profileId) throw new Error("Failed to create profile")
+
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          goNext()
+        } else {
+          setError("Please check your email to confirm your account, then sign in.")
+          setSignupMode("existing")
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Handle submit
   const handleSubmit = async () => {
-    if (!patientId) {
-      setError("Please sign in to continue")
+    if (!isAuthenticated || !patientId) {
+      setError("Please complete the signup step before submitting.")
+      setStep("signup")
       return
     }
 
@@ -583,6 +678,41 @@ export function PrescriptionFlowClient({
       setIsSubmitting(false)
     }
   }
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session?.user && !isAuthenticated) {
+        const pendingName = sessionStorage.getItem("pending_profile_name")
+        const pendingDob = sessionStorage.getItem("pending_profile_dob")
+        const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
+        const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
+
+        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
+
+        if (profileId) {
+          sessionStorage.removeItem("pending_profile_name")
+          sessionStorage.removeItem("pending_profile_dob")
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get("auth_success") === "true") {
+            window.history.replaceState({}, "", window.location.pathname)
+            // Continue to next step after successful auth
+            if (step === "signup") {
+              goNext()
+            }
+          }
+        }
+      }
+    }
+    checkSession()
+  }, [isAuthenticated, step, goNext])
 
   // If knocked out by safety check
   if (isKnockedOut) {
@@ -775,15 +905,24 @@ export function PrescriptionFlowClient({
           {/* Step: Notes */}
           {step === "notes" && (
             <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.notes.heading} subtitle={RX_MICROCOPY.notes.subtitle} />
+              <StepHeader
+                title="Describe your symptoms"
+                subtitle="Please describe your symptoms and how long you've had them (required)"
+              />
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value.slice(0, 500))}
-                placeholder={RX_MICROCOPY.notes.placeholder}
-                className="min-h-[100px] resize-none"
+                placeholder="e.g. I've had a sore throat for 3 days, difficulty swallowing..."
+                className="min-h-[120px] resize-none"
                 maxLength={500}
+                required
               />
               <p className="text-xs text-right text-muted-foreground">{notes.length}/500</p>
+              {notes.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  This information helps the doctor assess whether this medication is appropriate for you
+                </p>
+              )}
             </div>
           )}
 
@@ -992,7 +1131,7 @@ export function PrescriptionFlowClient({
                     )}
 
                     <Button
-                      onClick={handleAuth}
+                      onClick={handleEmailSignup}
                       disabled={authLoading || (isSignUp ? !agreedToTerms : false)}
                       className="w-full h-11"
                     >
