@@ -1,82 +1,275 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Clock, Shield, Star } from "lucide-react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { SecurityBadgesCompact } from "@/components/security/security-badges"
+import Image from "next/image"
+import { ArrowRight, Star, Sparkles, CheckCircle, Play } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { motion } from "framer-motion"
+
+const heroImages = [
+  {
+    src: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face",
+    alt: "Female doctor smiling",
+    className: "absolute -right-4 top-20 w-24 h-24 md:w-32 md:h-32 rounded-2xl shadow-2xl rotate-6",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face",
+    alt: "Male doctor with stethoscope",
+    className: "absolute -left-4 top-40 w-20 h-20 md:w-28 md:h-28 rounded-2xl shadow-2xl -rotate-6",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop&crop=face",
+    alt: "Female doctor in office",
+    className: "absolute right-10 bottom-20 w-20 h-20 md:w-24 md:h-24 rounded-2xl shadow-2xl rotate-3",
+  },
+]
+
+const floatingAvatars = [
+  { src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face", delay: 0 },
+  { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", delay: 0.1 },
+  { src: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", delay: 0.2 },
+  { src: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face", delay: 0.3 },
+]
 
 export function HeroSection() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
-    <section className="relative pt-32 pb-20 px-4 overflow-hidden">
-      {/* Gradient orbs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-[#00E2B5]/20 rounded-full blur-3xl animate-pulse-slow" />
-      <div className="absolute top-40 right-10 w-96 h-96 bg-[#8B5CF6]/20 rounded-full blur-3xl animate-pulse-slow animation-delay-1000" />
-      <div className="absolute bottom-20 left-1/2 w-80 h-80 bg-[#06B6D4]/20 rounded-full blur-3xl animate-pulse-slow animation-delay-2000" />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+      
+      {/* Animated gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-[#00E2B5]/20 to-[#06B6D4]/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-r from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      </div>
 
-      <div className="container mx-auto max-w-4xl relative z-10">
-        <div className="text-center space-y-8">
-          {/* Badge */}
-          <div className="flex justify-center animate-fade-in-up">
-            <Badge
-              variant="outline"
-              className="px-4 py-2 backdrop-blur-xl bg-white/5 border-white/10 text-foreground hover:bg-white/10 transition-colors"
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
+      <div className="relative z-10 w-full px-4 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
+            <div className="text-center lg:text-left">
+              {/* Live badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-[#00E2B5]/30 px-4 py-2 mb-6 shadow-lg"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E2B5] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00E2B5]" />
+                </span>
+                <span className="text-sm font-medium">12 doctors online now</span>
+                <span className="text-xs text-muted-foreground">• Average wait: 8 min</span>
+              </motion.div>
+
+              {/* Main headline */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                <span className="text-foreground">See a doctor </span>
+                <br className="hidden sm:block" />
+                <SparklesText
+                  text="from your couch"
+                  className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl bg-gradient-to-r from-[#00E2B5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent"
+                  colors={{ first: "#00E2B5", second: "#8B5CF6" }}
+                  sparklesCount={8}
+                />
+              </motion.h1>
+
+              {/* Subheadline */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
+              >
+                Prescriptions, medical certificates & referrals in under an hour. 
+                No video calls. No waiting rooms. Just results.
+              </motion.p>
+
+              {/* CTA buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"
+              >
+                <Button size="lg" asChild className="rounded-full btn-premium px-8 text-base h-14 shadow-lg shadow-[#00E2B5]/25">
+                  <Link href="/start">
+                    Get started — it&apos;s free
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  asChild
+                  className="rounded-full px-8 text-base h-14 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border-2"
+                >
+                  <Link href="/how-it-works" className="flex items-center gap-2">
+                    <Play className="h-4 w-4 fill-current" />
+                    Watch how it works
+                  </Link>
+                </Button>
+              </motion.div>
+
+              {/* Trust indicators */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {floatingAvatars.map((avatar, i) => (
+                      <Image
+                        key={i}
+                        src={avatar.src}
+                        alt="Patient"
+                        width={32}
+                        height={32}
+                        className="rounded-full border-2 border-white shadow-sm"
+                      />
+                    ))}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground">4.9/5 from 2,000+ reviews</span>
+                  </div>
+                </div>
+
+                <div className="h-8 w-px bg-border hidden sm:block" />
+
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle className="h-4 w-4 text-[#00E2B5]" />
+                    AHPRA registered
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle className="h-4 w-4 text-[#00E2B5]" />
+                    Australian doctors
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right side - Hero image composition */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative hidden lg:block"
             >
-              <Shield className="w-3.5 h-3.5 mr-2 text-[#00E2B5]" />
-              AHPRA-registered doctors • Available 24/7
-            </Badge>
-          </div>
+              <div className="relative w-full aspect-square max-w-lg mx-auto">
+                {/* Main doctor image */}
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
+                  <Image
+                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&h=800&fit=crop"
+                    alt="Friendly doctor ready to help"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  
+                  {/* Floating stats card */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                    className="absolute bottom-6 left-6 right-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
+                          <Sparkles className="h-6 w-6 text-[#00E2B5]" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">Request approved</p>
+                          <p className="text-sm text-muted-foreground">Your prescription is ready</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Just now</span>
+                    </div>
+                  </motion.div>
+                </div>
 
-          {/* Main headline */}
-          <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight animate-fade-in-up animation-delay-200"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            See a doctor{" "}
-            <span className="bg-gradient-to-r from-[#00E2B5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent animate-gradient">
-              without the wait
-            </span>
-          </h1>
+                {/* Floating elements */}
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -top-4 -right-4 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-gray-800 rotate-6"
+                >
+                  <Image
+                    src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face"
+                    alt="Doctor"
+                    fill
+                    className="object-cover"
+                  />
+                </motion.div>
 
-          {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400">
-            Medical certificates, prescriptions, and referrals from real Australian GPs. Most requests completed within
-            an hour.
-          </p>
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  className="absolute -bottom-4 -left-4 w-20 h-20 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-gray-800 -rotate-6"
+                >
+                  <Image
+                    src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop&crop=face"
+                    alt="Doctor"
+                    fill
+                    className="object-cover"
+                  />
+                </motion.div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-600">
-            <Button asChild size="lg" className="rounded-full px-8 group">
-              <Link href="/start">
-                Get started
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full px-8 backdrop-blur-xl bg-transparent">
-              <Link href="/how-it-works">How it works</Link>
-            </Button>
-          </div>
-
-          {/* Trust signals */}
-          <div className="flex flex-wrap gap-6 justify-center items-center pt-6 animate-fade-in-up animation-delay-800">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4 text-[#00E2B5]" />
-              <span>~30 min response</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Star className="w-4 h-4 text-[#F59E0B]" />
-              <span>4.9/5 rating</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Shield className="w-4 h-4 text-[#8B5CF6]" />
-              <span>10,000+ Aussies helped</span>
-            </div>
-          </div>
-
-          <div className="pt-8 animate-fade-in-up animation-delay-1000">
-            <SecurityBadgesCompact />
+                {/* Notification pill */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.8 }}
+                  className="absolute top-1/4 -left-8 bg-white dark:bg-gray-800 rounded-full px-4 py-2 shadow-lg flex items-center gap-2"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                  <span className="text-sm font-medium">Dr. Sarah is online</span>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         </div>
+      </div>
+
+      {/* Bottom wave */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+          <path
+            d="M0 120L60 110C120 100 240 80 360 75C480 70 600 80 720 85C840 90 960 90 1080 85C1200 80 1320 70 1380 65L1440 60V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+            className="fill-background"
+          />
+        </svg>
       </div>
     </section>
   )

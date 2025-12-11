@@ -1,151 +1,234 @@
 "use client"
 
 import Link from "next/link"
-import { FileText, Pill, Stethoscope, FlaskConical, ArrowRight, Check, Clock } from "lucide-react"
+import Image from "next/image"
+import { FileText, Pill, Stethoscope, FlaskConical, ArrowRight, Check, Clock, Star, Sparkles, Shield, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { Navbar } from "@/components/shared/navbar"
+import { BlurFade } from "@/components/ui/blur-fade"
+import { SectionPill } from "@/components/ui/section-pill"
+import { motion } from "framer-motion"
 
 const services = [
   {
     id: "medcert",
     title: "Medical Certificate",
-    description: "Work, uni & carer's leave certificates",
+    description: "Work, uni & carer's leave certificates. Legally valid for all Australian employers.",
     icon: FileText,
     href: "/medical-certificate",
-    price: "$19.95",
+    price: "$29",
     estimatedTime: "~45 mins",
     popular: true,
     features: ["Employer-ready format", "Same-day delivery", "Backdating available"],
+    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
+    color: "#00E2B5",
+    gradient: "from-[#00E2B5]/20 to-[#06B6D4]/20",
   },
   {
     id: "prescription",
     title: "Prescription",
-    description: "Repeat scripts & medication reviews",
+    description: "Repeat scripts & medication reviews. Sent directly to your pharmacy.",
     icon: Pill,
     href: "/prescriptions",
-    price: "$24.95",
+    price: "$39",
     estimatedTime: "~1 hour",
     features: ["Sent to your pharmacy", "Repeat prescriptions", "New medications"],
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
+    color: "#06B6D4",
+    gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
   },
   {
     id: "pathology",
     title: "Pathology & Imaging",
-    description: "Blood tests, scans & specialist referrals",
+    description: "Blood tests, scans & diagnostic imaging. Referrals sent to your chosen provider.",
     icon: FlaskConical,
-    href: "/pathology",
-    price: "$29.95",
+    href: "/referrals/pathology-imaging",
+    price: "$49",
     estimatedTime: "~1 hour",
     features: ["Bulk-billed tests", "Specialist referrals", "Results tracking"],
+    image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop",
+    color: "#8B5CF6",
+    gradient: "from-[#8B5CF6]/20 to-[#EC4899]/20",
   },
   {
     id: "referral",
     title: "Specialist Referral",
-    description: "Dermatology, cardiology & more",
+    description: "Dermatology, cardiology & more. Accepted by all Australian specialists.",
     icon: Stethoscope,
     href: "/referrals",
-    price: "$29.95",
+    price: "$49",
     estimatedTime: "~1 hour",
     features: ["Valid for 12 months", "Medicare rebate", "All specialists"],
+    image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=400&h=300&fit=crop",
+    color: "#EC4899",
+    gradient: "from-[#EC4899]/20 to-[#F59E0B]/20",
   },
 ]
 
 export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">What do you need?</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Choose your service to get started</p>
-            </div>
-            {!isAuthenticated && (
-              <Button variant="outline" asChild size="sm">
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-            )}
-          </div>
+      <Navbar variant="marketing" />
+      
+      {/* Hero Header */}
+      <section className="relative pt-28 pb-12 px-4 overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-gradient-to-r from-[#00E2B5]/20 to-[#06B6D4]/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-gradient-to-r from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
-      </div>
+
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          <BlurFade delay={0.1}>
+            <div className="flex justify-center mb-4">
+              <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="Get started" />
+            </div>
+            
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
+              What do you{" "}
+              <span className="bg-gradient-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
+                need today?
+              </span>
+            </h1>
+            
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+              Choose your service below. No phone calls, no video chats. 
+              AHPRA-registered doctors review within 1 hour.
+            </p>
+            
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-[#F59E0B] text-[#F59E0B]" />
+                  ))}
+                </div>
+                <span className="text-muted-foreground">4.9/5 rating</span>
+              </div>
+              <span className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Shield className="h-4 w-4 text-[#00E2B5]" />
+                <span>AHPRA registered</span>
+              </div>
+              <span className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4 text-[#06B6D4]" />
+                <span>45 min average</span>
+              </div>
+            </div>
+          </BlurFade>
+        </div>
+      </section>
 
       {/* Services Grid */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:gap-6">
-          {services.map((service) => (
-            <Card
-              key={service.id}
-              className={cn(
-                "group relative overflow-hidden border-2 transition-all duration-200 hover:border-primary hover:shadow-lg",
-                service.popular && "border-primary/50",
-              )}
-            >
-              {service.popular && (
-                <div className="absolute right-4 top-4 rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
-                  Most popular
-                </div>
-              )}
+      <section className="px-4 pb-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-6 md:grid-cols-2">
+            {services.map((service, i) => (
+              <BlurFade key={service.id} delay={0.1 + i * 0.1}>
+                <Link href={service.href} className="group block h-full">
+                  <div className={`relative h-full rounded-3xl overflow-hidden bg-gradient-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
+                    <div className="h-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                      {/* Image section */}
+                      <div className="relative h-40 overflow-hidden">
+                        <Image
+                          src={service.image}
+                          alt={service.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        
+                        {/* Popular badge */}
+                        {service.popular && (
+                          <div className="absolute top-4 left-4 flex items-center gap-1 bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            <Sparkles className="h-3 w-3" />
+                            Most Popular
+                          </div>
+                        )}
 
-              <Link href={service.href} className="block p-6">
-                <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <service.icon className="h-6 w-6" />
-                  </div>
+                        {/* Price tag */}
+                        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                          <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
+                        </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {service.title}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                        {/* Icon */}
+                        <div
+                          className="absolute bottom-4 left-4 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl shadow-lg"
+                          style={{
+                            background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
+                          }}
+                        >
+                          <service.icon className="h-6 w-6 text-white" />
+                        </div>
+                        
+                        {/* Time badge */}
+                        <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                          <Clock className="h-3 w-3" style={{ color: service.color }} />
+                          <span className="font-medium">{service.estimatedTime}</span>
+                        </div>
+                      </div>
 
-                    {/* Pricing & Time */}
-                    <div className="mt-3 flex items-center gap-4 text-sm">
-                      <span className="font-semibold text-foreground">{service.price}</span>
-                      <span className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        {service.estimatedTime}
-                      </span>
+                      {/* Content */}
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <h2 className="text-xl font-bold text-foreground">{service.title}</h2>
+                          <ArrowRight 
+                            className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" 
+                            style={{ color: service.color }} 
+                          />
+                        </div>
+                        <p className="text-muted-foreground mb-4">{service.description}</p>
+                        
+                        {/* Features */}
+                        <div className="flex flex-wrap gap-2">
+                          {service.features.map((feature) => (
+                            <span 
+                              key={feature} 
+                              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-muted-foreground"
+                            >
+                              <Check className="h-3 w-3" style={{ color: service.color }} />
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Features */}
-                    <ul className="mt-4 space-y-2">
-                      {service.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 shrink-0 text-primary" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA */}
-                    <div className="mt-6 flex items-center gap-2 text-sm font-medium text-primary group-hover:gap-3 transition-all">
-                      <span>Get started</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
                   </div>
-                </div>
-              </Link>
-            </Card>
-          ))}
-        </div>
+                </Link>
+              </BlurFade>
+            ))}
+          </div>
 
-        {/* Help Text */}
-        <div className="mt-8 rounded-lg bg-muted/50 p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            Not sure which service you need?{" "}
-            <Link href="/how-it-works" className="font-medium text-primary hover:underline">
-              Learn how it works
-            </Link>{" "}
-            or{" "}
-            <Link href="/faq" className="font-medium text-primary hover:underline">
-              browse our FAQ
-            </Link>
-          </p>
+          {/* Help Text */}
+          <BlurFade delay={0.5}>
+            <div className="mt-12 relative rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#00E2B5]/10 via-[#06B6D4]/10 to-[#8B5CF6]/10" />
+              <div className="relative z-10 p-8 text-center">
+                <p className="text-muted-foreground mb-4">
+                  Not sure which service you need?
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Button variant="outline" asChild className="rounded-full">
+                    <Link href="/how-it-works">
+                      Learn how it works
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild className="rounded-full">
+                    <Link href="/faq">
+                      Browse our FAQ
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </BlurFade>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

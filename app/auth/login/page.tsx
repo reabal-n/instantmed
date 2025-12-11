@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,19 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect")
+  const errorParam = searchParams.get("error")
+
+  // Handle URL error params (from OAuth callback)
+  useEffect(() => {
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        oauth_failed: "Unable to sign in with Google. Please try again.",
+        profile_creation_failed: "Unable to create your account. Please try again or contact support.",
+        session_expired: "Your session has expired. Please sign in again.",
+      }
+      setError(errorMessages[errorParam] || "An error occurred. Please try again.")
+    }
+  }, [errorParam])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

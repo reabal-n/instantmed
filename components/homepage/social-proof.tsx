@@ -153,7 +153,7 @@ const testimonials: Testimonial[] = [
     service: "Medical Certificate",
     rating: 5,
     verified: true,
-    avatar: "/young-australian-woman-with-blonde-hair-smiling-pr.jpg",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 2,
@@ -163,7 +163,7 @@ const testimonials: Testimonial[] = [
     service: "Prescription",
     rating: 5,
     verified: true,
-    avatar: "/middle-aged-australian-man-with-glasses-friendly-p.jpg",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 3,
@@ -173,7 +173,7 @@ const testimonials: Testimonial[] = [
     service: "Referral",
     rating: 5,
     verified: true,
-    avatar: "/asian-australian-woman-professional-headshot-smili.jpg",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 4,
@@ -183,7 +183,7 @@ const testimonials: Testimonial[] = [
     service: "Medical Certificate",
     rating: 5,
     verified: true,
-    avatar: "/young-australian-man-with-beard-casual-friendly-he.jpg",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 5,
@@ -193,7 +193,7 @@ const testimonials: Testimonial[] = [
     service: "Prescription",
     rating: 5,
     verified: true,
-    avatar: "/indian-australian-woman-professional-headshot-smil.jpg",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 6,
@@ -203,17 +203,18 @@ const testimonials: Testimonial[] = [
     service: "Medical Certificate",
     rating: 5,
     verified: true,
-    avatar: "/young-university-student-male-casual-headshot-frie.jpg",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
   },
 ]
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="flex-shrink-0 w-[280px] sm:w-[320px] mx-2">
-      <div className="glass-card rounded-xl p-4 h-full">
-        <div className="flex items-center justify-between mb-3">
+    <div className="flex-shrink-0 w-[300px] sm:w-[340px] mx-3">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+        {/* Header with service badge and rating */}
+        <div className="flex items-center justify-between mb-4">
           <span
-            className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full"
+            className="inline-block px-3 py-1 text-xs font-semibold rounded-full"
             style={{
               backgroundColor:
                 testimonial.service === "Medical Certificate"
@@ -235,30 +236,36 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`h-3 w-3 ${i < testimonial.rating ? "text-[#F59E0B] fill-[#F59E0B]" : "text-gray-200"}`}
+                className={`h-4 w-4 ${i < testimonial.rating ? "text-[#F59E0B] fill-[#F59E0B]" : "text-gray-200"}`}
               />
             ))}
           </div>
         </div>
 
-        <p className="text-foreground text-sm leading-relaxed mb-4">"{testimonial.quote}"</p>
+        {/* Quote */}
+        <p className="text-foreground text-base leading-relaxed mb-5">&ldquo;{testimonial.quote}&rdquo;</p>
 
-        <div className="flex items-center gap-2">
-          <div className="relative h-8 w-8 rounded-full overflow-hidden ring-2 ring-[#00E2B5]/20">
+        {/* Author */}
+        <div className="flex items-center gap-3">
+          <div className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-[#00E2B5]/30 shadow-sm">
             <Image
-              src={testimonial.avatar || "/placeholder.svg"}
+              src={testimonial.avatar}
               alt={testimonial.name}
               fill
               className="object-cover"
             />
           </div>
           <div>
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">{testimonial.name}</p>
-              {testimonial.verified && <CheckCircle2 className="h-3 w-3 text-[#00E2B5]" />}
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-semibold text-foreground">{testimonial.name}</p>
+              {testimonial.verified && (
+                <div className="w-4 h-4 rounded-full bg-[#00E2B5] flex items-center justify-center">
+                  <CheckCircle2 className="h-3 w-3 text-white" />
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <MapPin className="h-2.5 w-2.5" />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
               {testimonial.location}
             </div>
           </div>
@@ -273,34 +280,21 @@ export function TestimonialCarousel() {
   const doubledTestimonials = [...testimonials, ...testimonials]
 
   return (
-    <section className="px-4 py-12 sm:py-16 bg-mesh overflow-hidden">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <AggregateRating />
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
-            Real patients, real results
-          </h2>
-        </div>
-      </div>
+    <div className="relative overflow-hidden py-4">
+      {/* Gradient edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-      {/* Infinite scroll marquee */}
-      <div className="relative overflow-hidden py-2">
-        <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
-
-        <div
-          className="flex marquee-scroll"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          style={{ animationPlayState: isPaused ? "paused" : "running" }}
-        >
-          {doubledTestimonials.map((testimonial, index) => (
-            <TestimonialCard key={`${testimonial.id}-${index}`} testimonial={testimonial} />
-          ))}
-        </div>
+      <div
+        className="flex marquee-scroll"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        style={{ animationPlayState: isPaused ? "paused" : "running" }}
+      >
+        {doubledTestimonials.map((testimonial, index) => (
+          <TestimonialCard key={`${testimonial.id}-${index}`} testimonial={testimonial} />
+        ))}
       </div>
-    </section>
+    </div>
   )
 }

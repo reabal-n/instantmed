@@ -1,16 +1,15 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, Star, Sparkles, Grid3x3, Heart, HelpCircle, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { HeroTypewriter } from "@/components/homepage/hero-typewriter"
+import { HeroSection } from "@/components/homepage/hero-section"
 import { ConditionGrid } from "@/components/homepage/condition-grid"
 import { TrustSection } from "@/components/homepage/trust-section"
 import { TestimonialCarousel } from "@/components/homepage/social-proof"
 import { DynamicSocialProof, DynamicStatsBar } from "@/components/homepage/dynamic-social-proof"
 import { HolographicCard } from "@/components/effects/holographic-card"
-import LiveVisitorCounter from "@/components/ui/live-visitor"
-import { AuroraBackground } from "@/components/effects/aurora-background"
 import { SectionPill } from "@/components/ui/section-pill"
 import { FeaturesSection } from "@/components/homepage/features-section"
 import { FAQAccordion } from "@/components/homepage/faq-accordion"
@@ -28,65 +27,9 @@ export default function LandingPage() {
       <Navbar variant="marketing" />
       <DynamicSocialProof />
 
-      <main className="flex-1 pt-20">
-        {/* Hero - search/browse focused */}
-        <section className="relative px-4 py-16 sm:py-24 overflow-hidden">
-          <AuroraBackground>
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="hero-orb hero-orb-mint w-[500px] h-[500px] top-10 left-10 opacity-40" />
-              <div
-                className="hero-orb hero-orb-cyan w-[400px] h-[400px] top-40 right-20 opacity-30"
-                style={{ animationDelay: "2s" }}
-              />
-            </div>
-          </AuroraBackground>
-
-          <div className="mx-auto max-w-4xl text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border-white/20 mb-6 animate-fade-in-down">
-              <Sparkles className="h-3.5 w-3.5 text-[#00e2b5]" />
-              <span className="text-sm font-medium">Australia&apos;s fastest online doctor</span>
-            </div>
-
-            <HeroTypewriter />
-
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in-up stagger-2">
-              <Button size="lg" asChild className="rounded-full btn-premium px-8 text-base">
-                <Link href="/start">
-                  Browse treatments
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="rounded-full px-8 text-base backdrop-blur-xl bg-white/40 dark:bg-black/20 hover:bg-white/60 dark:hover:bg-black/30 border-white/40"
-              >
-                <Link href="/how-it-works">How it works</Link>
-              </Button>
-            </div>
-
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground animate-fade-in-up stagger-3">
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#F59E0B] text-[#F59E0B]" />
-                  ))}
-                </div>
-                <span className="font-medium">4.9/5 from 200+ reviews</span>
-              </div>
-              <span className="text-border">•</span>
-              <span>AHPRA-registered GPs</span>
-              <span className="text-border">•</span>
-              <span>Average 45min response</span>
-            </div>
-
-            {/* Live Visitor Counter */}
-            <div className="mt-12 flex justify-center animate-fade-in-up stagger-4">
-              <LiveVisitorCounter />
-            </div>
-          </div>
-        </section>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <HeroSection />
 
         {/* Stats bar */}
         <DynamicStatsBar />
@@ -126,93 +69,137 @@ export default function LandingPage() {
         {/* Trust section - rewritten with personality */}
         <TrustSection />
 
-        {/* How it works - simplified */}
-        <section id="how-it-works" className="px-4 py-12 sm:py-16">
-          <div className="mx-auto max-w-4xl">
+        {/* How it works - with images */}
+        <section id="how-it-works" className="px-4 py-20 sm:py-28 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#00E2B5]/5 via-transparent to-[#8B5CF6]/5" />
+          
+          <div className="mx-auto max-w-7xl relative z-10">
             <BlurFade delay={0.1}>
-              <div className="text-center mb-10">
+              <div className="text-center mb-16">
                 <div className="flex justify-center mb-4">
                   <SectionPill icon={<Sparkles className="h-3.5 w-3.5" />} text="Simple process" />
                 </div>
                 <h2
-                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                  className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  How it works
+                  Three steps.{" "}
+                  <span className="bg-gradient-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
+                    That&apos;s it.
+                  </span>
                 </h2>
-                <p className="text-sm text-muted-foreground">Three steps. No phone calls. No video chats.</p>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  No phone calls. No video chats. No leaving your couch.
+                </p>
               </div>
             </BlurFade>
 
-            <div className="grid gap-6 sm:grid-cols-3">
+            <div className="grid gap-8 lg:grid-cols-3">
               {[
                 {
-                  step: "1",
-                  title: "Pick & fill",
-                  description: "Choose what you need, answer a few quick questions. Takes about 2 minutes.",
+                  step: "01",
+                  title: "Tell us what you need",
+                  description: "Choose your service and answer a few quick questions. Takes about 2 minutes.",
+                  image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
                   color: "#00E2B5",
-                  icon: <FileText className="h-8 w-8 text-[#00E2B5]" />,
                 },
                 {
-                  step: "2",
-                  title: "Doctor reviews",
-                  icon: <Stethoscope className="h-8 w-8 text-[#00E2B5]" />,
-                  description: "A real AHPRA-registered GP reviews your request. They may ask follow-up questions.",
+                  step: "02",
+                  title: "A real doctor reviews",
+                  description: "An AHPRA-registered GP reviews your request and may ask follow-up questions.",
+                  image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=300&fit=crop",
                   color: "#06B6D4",
                 },
                 {
-                  step: "3",
+                  step: "03",
                   title: "Get your document",
-                  description: "If approved, your script/cert/referral is emailed to you. Usually within an hour.",
+                  description: "If approved, your prescription, certificate, or referral is emailed to you.",
+                  image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
                   color: "#8B5CF6",
-                  icon: <Zap className="h-8 w-8 text-[#8B5CF6]" />,
                 },
               ].map((item, i) => (
                 <BlurFade key={item.step} delay={0.1 + i * 0.1}>
-                  <HolographicCard hover intensity="medium" className="p-6">
-                    <div className="flex flex-col items-center text-center gap-4">
-                      <div className="flex-shrink-0">{item.icon}</div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                  <div className="group relative">
+                    {/* Connecting line */}
+                    {i < 2 && (
+                      <div className="hidden lg:block absolute top-1/4 -right-4 w-8 border-t-2 border-dashed border-gray-200 dark:border-gray-700 z-0" />
+                    )}
+                    
+                    <div className="relative bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                      {/* Image */}
+                      <div className="relative h-48 overflow-hidden">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        
+                        {/* Step number */}
+                        <div
+                          className="absolute top-4 left-4 w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                          style={{ background: `linear-gradient(135deg, ${item.color}, ${item.color}cc)` }}
+                        >
+                          {item.step}
+                        </div>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
+                        <p className="text-muted-foreground">{item.description}</p>
                       </div>
                     </div>
-                  </HolographicCard>
+                  </div>
                 </BlurFade>
               ))}
             </div>
 
-            <div className="mt-10 text-center">
-              <Button size="lg" asChild className="rounded-full btn-premium px-8">
-                <Link href="/start">
-                  Get started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+            <BlurFade delay={0.4}>
+              <div className="mt-12 text-center">
+                <Button size="lg" asChild className="rounded-full btn-premium px-8 h-14 text-base shadow-lg shadow-[#00E2B5]/25">
+                  <Link href="/start">
+                    Get started now — it&apos;s free
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
+            </BlurFade>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section id="testimonials" className="px-4 py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <SectionPill icon={<Heart className="h-3.5 w-3.5" />} text="Patient stories" />
+        <section id="testimonials" className="py-20 sm:py-28 relative overflow-hidden">
+          {/* Background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#00E2B5]/5 via-transparent to-[#8B5CF6]/5" />
+          
+          <div className="relative z-10">
+            <BlurFade delay={0.1}>
+              <div className="text-center mb-12 px-4">
+                <div className="flex justify-center mb-4">
+                  <SectionPill icon={<Heart className="h-3.5 w-3.5" />} text="Patient stories" />
+                </div>
+                <div className="flex items-center justify-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-6 w-6 fill-[#F59E0B] text-[#F59E0B]" />
+                  ))}
+                </div>
+                <h2
+                  className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Loved by{" "}
+                  <span className="bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+                    Australians
+                  </span>
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Join 10,000+ patients who&apos;ve made the switch to online healthcare
+                </p>
               </div>
-              <div className="flex items-center justify-center gap-1 mb-2">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-[#F59E0B] text-[#F59E0B]" />
-                ))}
-              </div>
-              <h2
-                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Loved by Australians
-              </h2>
-              <p className="text-sm text-muted-foreground">4.9/5 from 200+ reviews</p>
-            </div>
+            </BlurFade>
+            
             <TestimonialCarousel />
           </div>
         </section>
@@ -252,30 +239,69 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="px-4 py-16 sm:py-20">
-          <div className="mx-auto max-w-2xl">
+        {/* Final CTA - with image */}
+        <section className="px-4 py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl">
             <BlurFade delay={0.1}>
-              <HolographicCard hover intensity="high" className="text-center p-12">
-                <h2
-                  className="text-2xl font-bold tracking-tight sm:text-3xl mb-4"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  <SparklesText
-                    text="Ready to skip the waiting room?"
-                    className="text-2xl sm:text-3xl"
-                    colors={{ first: "#00E2B5", second: "#F59E0B" }}
-                    sparklesCount={15}
+              <div className="relative rounded-3xl overflow-hidden">
+                {/* Background image */}
+                <div className="absolute inset-0">
+                  <Image
+                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1400&h=600&fit=crop"
+                    alt="Healthcare professional"
+                    fill
+                    className="object-cover"
                   />
-                </h2>
-                <p className="text-muted-foreground mb-8">Join 10,000+ Aussies who&apos;ve ditched the GP queue.</p>
-                <RainbowButton asChild className="text-base font-semibold">
-                  <Link href="/start">
-                    Browse treatments
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </RainbowButton>
-              </HolographicCard>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#00E2B5]/90 via-[#06B6D4]/90 to-[#8B5CF6]/90" />
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 px-8 py-16 sm:px-16 sm:py-24 text-center">
+                  <h2
+                    className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4 text-white"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    Ready to skip the waiting room?
+                  </h2>
+                  <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+                    Join 10,000+ Australians who&apos;ve ditched the GP queue. Get started in 2 minutes.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button size="lg" asChild className="rounded-full bg-white text-gray-900 hover:bg-gray-100 px-8 h-14 text-base font-semibold shadow-xl">
+                      <Link href="/start">
+                        Get started for free
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild className="rounded-full border-2 border-white text-white hover:bg-white/10 px-8 h-14 text-base">
+                      <Link href="/how-it-works">
+                        Learn more
+                      </Link>
+                    </Button>
+                  </div>
+                  
+                  {/* Trust badges */}
+                  <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
+                    <div className="flex items-center gap-2 text-white/90">
+                      <Shield className="h-5 w-5" />
+                      <span className="text-sm font-medium">AHPRA Registered</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/90">
+                      <Clock className="h-5 w-5" />
+                      <span className="text-sm font-medium">45 min average</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/90">
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-white text-white" />
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium">4.9/5 rating</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </BlurFade>
           </div>
         </section>
