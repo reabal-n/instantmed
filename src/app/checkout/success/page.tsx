@@ -108,7 +108,7 @@ function SuccessContent() {
   }, [redirectToDashboard])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50/50 to-white">
+    <div className="min-h-screen bg-warm">
       {/* Header - Glassmorphism */}
       <header className="border-b border-slate-200/50 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center">

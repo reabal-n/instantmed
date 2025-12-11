@@ -1,4 +1,4 @@
-export type ServiceType = 'sick_cert' | 'prescription'
+export type ServiceType = 'sick_cert' | 'prescription' | 'pathology' | 'referral'
 
 export type ConsultationStatus = 'pending' | 'approved' | 'declined' | 'needs_follow_up'
 

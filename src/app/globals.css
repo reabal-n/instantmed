@@ -51,30 +51,30 @@
 
 :root {
   --radius: 0.75rem;
-  /* InstantMed brand colors - medical teal/cyan theme */
-  --background: oklch(0.98 0.005 200);
-  --foreground: oklch(0.15 0.02 250);
+  /* InstantMed brand colors - warm, friendly healthcare */
+  --background: oklch(0.99 0.006 90);  /* Warm cream white */
+  --foreground: oklch(0.18 0.02 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 250);
+  --card-foreground: oklch(0.18 0.02 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 250);
-  /* Primary - Medical Teal */
-  --primary: oklch(0.55 0.15 185);
+  --popover-foreground: oklch(0.18 0.02 250);
+  /* Primary - Warm Teal (shifted towards green-cyan) */
+  --primary: oklch(0.52 0.14 175);
   --primary-foreground: oklch(1 0 0);
-  /* Secondary - Soft Blue */
-  --secondary: oklch(0.95 0.02 220);
-  --secondary-foreground: oklch(0.25 0.05 250);
-  --muted: oklch(0.96 0.01 220);
-  --muted-foreground: oklch(0.5 0.02 250);
-  /* Accent - Vibrant Teal */
-  --accent: oklch(0.7 0.12 185);
-  --accent-foreground: oklch(0.15 0.02 250);
+  /* Secondary - Warm Gray with hint of cream */
+  --secondary: oklch(0.96 0.008 85);
+  --secondary-foreground: oklch(0.3 0.02 250);
+  --muted: oklch(0.97 0.006 90);
+  --muted-foreground: oklch(0.5 0.015 250);
+  /* Accent - Warm Amber for highlights */
+  --accent: oklch(0.88 0.1 85);
+  --accent-foreground: oklch(0.25 0.05 85);
   --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.9 0.01 220);
-  --input: oklch(0.92 0.01 220);
-  --ring: oklch(0.55 0.15 185);
+  --border: oklch(0.92 0.008 90);
+  --input: oklch(0.95 0.006 90);
+  --ring: oklch(0.52 0.14 175);
   /* Chart colors */
-  --chart-1: oklch(0.55 0.15 185);
+  --chart-1: oklch(0.52 0.14 175);
   --chart-2: oklch(0.65 0.12 150);
   --chart-3: oklch(0.6 0.1 280);
   --chart-4: oklch(0.75 0.15 85);
@@ -83,8 +83,8 @@
   --success: oklch(0.6 0.18 145);
   --success-foreground: oklch(1 0 0);
   /* Warning color */
-  --warning: oklch(0.75 0.15 85);
-  --warning-foreground: oklch(0.2 0.05 85);
+  --warning: oklch(0.78 0.14 80);
+  --warning-foreground: oklch(0.25 0.08 80);
 }
 
 .dark {
@@ -141,22 +141,43 @@
     @apply bg-destructive/20 text-destructive font-semibold px-1 rounded;
   }
   
-  /* Gradient backgrounds */
+  /* Gradient backgrounds - warm and friendly */
   .gradient-hero {
-    background: linear-gradient(
-      135deg,
-      oklch(0.98 0.005 200) 0%,
-      oklch(0.95 0.02 185) 50%,
-      oklch(0.92 0.03 200) 100%
-    );
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.92 0.06 175 / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 90% 20%, oklch(0.9 0.08 85 / 0.1) 0%, transparent 40%),
+      linear-gradient(
+        180deg,
+        oklch(0.99 0.006 90) 0%,
+        oklch(0.98 0.01 100) 50%,
+        oklch(0.97 0.012 90) 100%
+      );
   }
   
   .gradient-card {
     background: linear-gradient(
       145deg,
       oklch(1 0 0) 0%,
-      oklch(0.98 0.01 185) 100%
+      oklch(0.99 0.008 90) 100%
     );
+  }
+  
+  /* Warm accent gradient for CTAs */
+  .gradient-cta {
+    background: linear-gradient(
+      135deg,
+      oklch(0.52 0.14 175) 0%,
+      oklch(0.48 0.12 170) 100%
+    );
+  }
+  
+  /* Soft warm background for sections */
+  .bg-warm {
+    background-color: oklch(0.99 0.008 85);
+  }
+  
+  .bg-warm-muted {
+    background-color: oklch(0.97 0.01 90);
   }
   
   /* Glassmorphism utilities */
