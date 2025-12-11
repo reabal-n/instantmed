@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import type { FlowConfig, FlowSection, FlowQuestion } from "@/lib/intake/flow-engine"
 import { getVisibleSections, getVisibleQuestions, checkSafetyFlags } from "@/lib/intake/flow-engine"
+import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 
 interface CollapsibleFormProps {
   config: FlowConfig
@@ -138,13 +139,20 @@ function QuestionField({
         <div className="space-y-2">
           <Label className="text-sm font-medium">{question.label}</Label>
           {question.sublabel && <p className="text-xs text-muted-foreground">{question.sublabel}</p>}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <RadioGroup
+            value={value}
+            onValueChange={onChange}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+          >
             {question.options?.map((opt) => (
-              <CardSelector key={opt.id} selected={value === opt.id} onClick={() => onChange(opt.id)} emoji={opt.emoji}>
-                {opt.label}
-              </CardSelector>
+              <RadioCard
+                key={opt.id}
+                value={opt.id}
+                title={opt.label}
+                icon={opt.emoji ? <span className="text-xl">{opt.emoji}</span> : undefined}
+              />
             ))}
-          </div>
+          </RadioGroup>
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
       )

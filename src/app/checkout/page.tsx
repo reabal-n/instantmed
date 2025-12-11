@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { ConfettiButton } from '@/components/ui/confetti'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
@@ -230,11 +231,17 @@ function CheckoutForm({
 
       {/* Submit Button - Sticky on mobile with glassmorphism */}
       <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50 space-y-4">
-        <Button
+        <ConfettiButton
           type="submit"
           size="lg"
           className="w-full h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white font-semibold"
           disabled={!stripe || isProcessing}
+          options={{
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+          }}
         >
           {isProcessing ? (
             <span className="flex items-center gap-2">
@@ -246,7 +253,7 @@ function CheckoutForm({
               Pay ${(totalPrice / 100).toFixed(2)} AUD
             </>
           )}
-        </Button>
+        </ConfettiButton>
         
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">

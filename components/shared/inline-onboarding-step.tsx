@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, MapPin, CreditCard, ArrowLeft, AlertTriangle, HelpCircle } from "lucide-react"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { GlassRadioGroup } from "@/components/ui/glass-radio-group"
 
 const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]
 const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -337,27 +338,22 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="flex gap-2 justify-center flex-wrap">
-            {IRNS.map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => {
-                  setIrn(n)
-                  if (errors.irn) {
-                    setErrors((prev) => ({ ...prev, irn: "" }))
-                  }
-                }}
-                className={`w-11 h-11 rounded-xl text-sm font-semibold transition-all ${
-                  irn === n
-                    ? "bg-primary text-primary-foreground shadow-md scale-105"
-                    : "bg-white/50 text-foreground hover:bg-white/80 border border-white/40 hover:scale-105"
-                }`}
-                aria-pressed={irn === n}
-              >
-                {n}
-              </button>
-            ))}
+          <div className="flex justify-center">
+            <GlassRadioGroup
+              options={IRNS.map((n) => ({
+                id: `irn-${n}`,
+                value: n.toString(),
+                label: n.toString(),
+              }))}
+              value={irn?.toString()}
+              onChange={(value) => {
+                setIrn(parseInt(value))
+                if (errors.irn) {
+                  setErrors((prev) => ({ ...prev, irn: "" }))
+                }
+              }}
+              name="irn"
+            />
           </div>
           {errors.irn && <p className="text-xs text-red-500 text-center">{errors.irn}</p>}
         </div>

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import confetti from "canvas-confetti"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -305,6 +306,14 @@ export function PrescriptionFlowClient({
       setStep("auth")
       return
     }
+
+    // Trigger confetti on submission
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+    })
 
     setIsSubmitting(true)
     setHasSubmitted(true) // Prevent double-click

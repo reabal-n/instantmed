@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import confetti from "canvas-confetti"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -750,6 +751,14 @@ export function MedCertFlowClient({
       setStep("patientDetails") // Redirect to patient details for guests
       return
     }
+
+    // Trigger confetti on submission
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+    })
 
     setIsSubmitting(true)
     setError(null)

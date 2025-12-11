@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import confetti from "canvas-confetti"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
@@ -22,6 +23,7 @@ import {
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
+import { MinimalToggle } from "@/components/ui/toggle"
 
 function Pill({
   children,
@@ -81,15 +83,13 @@ function RedFlagToggle({
   onChange: (val: boolean) => void
 }) {
   return (
-    <label className="flex items-center gap-3 p-3 rounded-xl bg-white/40 hover:bg-white/60 cursor-pointer transition-colors">
-      <input
-        type="checkbox"
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/40 hover:bg-white/60 transition-colors">
+      <MinimalToggle
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
       />
-      <span className="text-sm text-foreground">{label}</span>
-    </label>
+      <span className="text-sm text-foreground cursor-pointer" onClick={() => onChange(!checked)}>{label}</span>
+    </div>
   )
 }
 
@@ -253,6 +253,14 @@ export function ReferralFlowClient({
       setStep("auth")
       return
     }
+
+    // Trigger confetti on submission
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+    })
 
     setError(null)
     setIsSubmitting(true)

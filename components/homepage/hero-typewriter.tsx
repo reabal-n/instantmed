@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, Search, Sparkles } from "lucide-react"
+import { SparklesText } from "@/components/ui/sparkles-text"
 
 interface HeroVariant {
   id: string
@@ -114,10 +115,12 @@ export function HeroTypewriter() {
               <span key={i} className="inline-block">
                 {part.highlight ? (
                   <span className="relative inline-block mr-2">
-                    <span className="relative z-10 bg-gradient-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent">
-                      {part.text}
-                    </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-[#00e2b5]/20 via-[#06B6D4]/20 to-[#8B5CF6]/20 blur-xl -z-10" />
+                    <SparklesText
+                      text={part.text}
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent"
+                      colors={{ first: "#00e2b5", second: "#8B5CF6" }}
+                      sparklesCount={6}
+                    />
                   </span>
                 ) : (
                   <span className="text-foreground mr-2">{part.text}</span>

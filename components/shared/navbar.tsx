@@ -129,19 +129,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       )}
 
       <header
-        className={cn("fixed left-0 right-0 z-50 px-3", variant === "marketing" ? "top-[41px] pt-3" : "top-0 pt-3")}
+        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6", variant === "marketing" ? "top-[41px] pt-4" : "top-0 pt-4")}
       >
         <nav
           className={cn(
-            "mx-auto max-w-5xl rounded-2xl border border-border/40 bg-background/80 backdrop-blur-xl transition-all liquid-glass-nav",
+            "relative mx-auto max-w-6xl rounded-full",
+            "transition-all duration-300 liquid-glass-nav-pill",
             scrolled && "scrolled",
           )}
           role="navigation"
           aria-label="Main navigation"
         >
-          <div className="flex items-center justify-between px-4">
+          <div className="relative z-10 flex items-center justify-between px-6 py-3">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group" aria-label="InstantMed home">
+            <Link href="/" className="relative z-10 flex items-center gap-2 group" aria-label="InstantMed home">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00e2b5] to-[#06b6d4]">
                 <Zap className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
@@ -149,7 +150,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden items-center gap-1 md:flex">
+            <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
                   {/* Services Dropdown */}
@@ -194,6 +195,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
                   >
                     How it works
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
+                  >
+                    About
                   </Link>
                   <Link
                     href="/blog"
@@ -438,6 +445,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
                         >
                           <span className="text-sm font-medium">How it works</span>
+                        </Link>
+                        <Link
+                          href="/about"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
+                        >
+                          <span className="text-sm font-medium">About</span>
                         </Link>
                         <Link
                           href="/blog"

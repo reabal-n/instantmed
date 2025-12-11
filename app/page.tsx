@@ -14,6 +14,12 @@ import { AuroraBackground } from "@/components/effects/aurora-background"
 import { SectionPill } from "@/components/ui/section-pill"
 import { FeaturesSection } from "@/components/homepage/features-section"
 import { FAQAccordion } from "@/components/homepage/faq-accordion"
+import { PricingSection } from "@/components/homepage/pricing-section"
+import { StatsSection } from "@/components/homepage/stats-section"
+import { BenefitsSection } from "@/components/homepage/benefits-section"
+import { RainbowButton } from "@/components/ui/rainbow-button"
+import { SparklesText } from "@/components/ui/sparkles-text"
+import { BlurFade } from "@/components/ui/blur-fade"
 import { FileText, Pill, Stethoscope, Clock, Shield } from "lucide-react"
 
 export default function LandingPage() {
@@ -85,47 +91,37 @@ export default function LandingPage() {
         {/* Stats bar */}
         <DynamicStatsBar />
 
+        {/* Stats Section */}
+        <StatsSection />
+
         {/* Condition Grid - Netflix style browse */}
         <section id="conditions" className="px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <SectionPill icon={<Grid3x3 className="h-3.5 w-3.5" />} text="Browse treatments" />
+            <BlurFade delay={0.1}>
+              <div className="text-center mb-8">
+                <div className="flex justify-center mb-4">
+                  <SectionPill icon={<Grid3x3 className="h-3.5 w-3.5" />} text="Browse treatments" />
+                </div>
+                <h2
+                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Browse treatments
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Click what you need. Fill a quick form. Doctor reviews it. Done.
+                </p>
               </div>
-              <h2
-                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Browse treatments
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Click what you need. Fill a quick form. Doctor reviews it. Done.
-              </p>
-            </div>
+            </BlurFade>
             <ConditionGrid />
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="px-4 py-12 sm:py-16">
-          <div className="mx-auto max-w-6xl">
-            <div className="text-center mb-10">
-              <div className="flex justify-center mb-4">
-                <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="Our services" />
-              </div>
-              <h2
-                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Telehealth services made simple
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                No calls needed. AHPRA registered doctors review and approve (if appropriate) within 1 hour.
-              </p>
-            </div>
-            <FeaturesSection />
-          </div>
-        </section>
+        <FeaturesSection />
+
+        {/* Benefits Section */}
+        <BenefitsSection />
 
         {/* Trust section - rewritten with personality */}
         <TrustSection />
@@ -133,18 +129,20 @@ export default function LandingPage() {
         {/* How it works - simplified */}
         <section id="how-it-works" className="px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-4xl">
-            <div className="text-center mb-10">
-              <div className="flex justify-center mb-4">
-                <SectionPill icon={<Sparkles className="h-3.5 w-3.5" />} text="Simple process" />
+            <BlurFade delay={0.1}>
+              <div className="text-center mb-10">
+                <div className="flex justify-center mb-4">
+                  <SectionPill icon={<Sparkles className="h-3.5 w-3.5" />} text="Simple process" />
+                </div>
+                <h2
+                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  How it works
+                </h2>
+                <p className="text-sm text-muted-foreground">Three steps. No phone calls. No video chats.</p>
               </div>
-              <h2
-                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                How it works
-              </h2>
-              <p className="text-sm text-muted-foreground">Three steps. No phone calls. No video chats.</p>
-            </div>
+            </BlurFade>
 
             <div className="grid gap-6 sm:grid-cols-3">
               {[
@@ -170,15 +168,17 @@ export default function LandingPage() {
                   icon: <Zap className="h-8 w-8 text-[#8B5CF6]" />,
                 },
               ].map((item, i) => (
-                <HolographicCard key={item.step} hover intensity="medium" className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <div className="flex-shrink-0">{item.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                <BlurFade key={item.step} delay={0.1 + i * 0.1}>
+                  <HolographicCard hover intensity="medium" className="p-6">
+                    <div className="flex flex-col items-center text-center gap-4">
+                      <div className="flex-shrink-0">{item.icon}</div>
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                      </div>
                     </div>
-                  </div>
-                </HolographicCard>
+                  </HolographicCard>
+                </BlurFade>
               ))}
             </div>
 
@@ -217,26 +217,33 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Pricing Section */}
+        <PricingSection />
+
         {/* FAQ Section */}
         <section id="faq" className="px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-4xl">
-            <div className="text-center mb-10">
-              <div className="flex justify-center mb-4">
-                <SectionPill icon={<HelpCircle className="h-3.5 w-3.5" />} text="Got questions?" />
+            <BlurFade delay={0.1}>
+              <div className="text-center mb-10">
+                <div className="flex justify-center mb-4">
+                  <SectionPill icon={<HelpCircle className="h-3.5 w-3.5" />} text="Got questions?" />
+                </div>
+                <h2
+                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Frequently asked questions
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Everything you need to know about our telehealth services
+                </p>
               </div>
-              <h2
-                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Frequently asked questions
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Everything you need to know about our telehealth services
-              </p>
-            </div>
-            <HolographicCard hover intensity="low" className="p-8">
-              <FAQAccordion limit={6} />
-            </HolographicCard>
+            </BlurFade>
+            <BlurFade delay={0.1}>
+              <HolographicCard hover intensity="low" className="p-8">
+                <FAQAccordion limit={6} />
+              </HolographicCard>
+            </BlurFade>
             <div className="mt-8 text-center">
               <Button variant="outline" asChild className="rounded-full">
                 <Link href="/faq">View all FAQs</Link>
@@ -248,25 +255,28 @@ export default function LandingPage() {
         {/* Final CTA */}
         <section className="px-4 py-16 sm:py-20">
           <div className="mx-auto max-w-2xl">
-            <HolographicCard hover intensity="high" className="text-center p-12">
-              <h2
-                className="text-2xl font-bold tracking-tight sm:text-3xl mb-4"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Ready to skip the waiting room?
-              </h2>
-              <p className="text-muted-foreground mb-8">Join 10,000+ Aussies who&apos;ve ditched the GP queue.</p>
-              <Button
-                size="lg"
-                asChild
-                className="rounded-full bg-[#0A0F1C] hover:bg-[#0A0F1C]/90 dark:bg-white dark:hover:bg-white/90 dark:text-[#0A0F1C] text-white font-semibold px-8"
-              >
-                <Link href="/start">
-                  Browse treatments
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </HolographicCard>
+            <BlurFade delay={0.1}>
+              <HolographicCard hover intensity="high" className="text-center p-12">
+                <h2
+                  className="text-2xl font-bold tracking-tight sm:text-3xl mb-4"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  <SparklesText
+                    text="Ready to skip the waiting room?"
+                    className="text-2xl sm:text-3xl"
+                    colors={{ first: "#00E2B5", second: "#F59E0B" }}
+                    sparklesCount={15}
+                  />
+                </h2>
+                <p className="text-muted-foreground mb-8">Join 10,000+ Aussies who&apos;ve ditched the GP queue.</p>
+                <RainbowButton asChild className="text-base font-semibold">
+                  <Link href="/start">
+                    Browse treatments
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </RainbowButton>
+              </HolographicCard>
+            </BlurFade>
           </div>
         </section>
       </main>

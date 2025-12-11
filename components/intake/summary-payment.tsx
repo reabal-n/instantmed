@@ -4,7 +4,7 @@ import type * as React from "react"
 import { useState } from "react"
 import { Edit2, Lock, Shield, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { ConfettiButton } from "@/components/ui/confetti"
 import type { FlowConfig } from "@/lib/intake/flow-engine"
 import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
@@ -144,7 +144,17 @@ export function SummaryPayment({
 
       {/* Submit button - sticky on mobile */}
       <div className="sticky bottom-0 bg-background pt-2 pb-4 -mx-4 px-4 border-t mt-6">
-        <Button onClick={onSubmit} disabled={isSubmitting} className="w-full h-12 text-base font-medium">
+        <ConfettiButton
+          onClick={onSubmit}
+          disabled={isSubmitting}
+          className="w-full h-12 text-base font-medium"
+          options={{
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+          }}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -156,7 +166,7 @@ export function SummaryPayment({
               Pay {price} & submit
             </>
           )}
-        </Button>
+        </ConfettiButton>
         <p className="text-xs text-center text-muted-foreground mt-2">Secure payment via Stripe</p>
       </div>
     </div>
