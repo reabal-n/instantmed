@@ -12,10 +12,25 @@ import {
   ArrowRight,
   Stethoscope,
   Lock,
-  Star
+  Star,
+  HelpCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { LiveActivityIndicator } from '@/components/shared/live-activity-indicator'
+import { TestimonialCarousel } from '@/components/homepage/testimonial-carousel'
+import { FAQAccordion } from '@/components/homepage/faq-accordion'
+import { FeatureBento } from '@/components/homepage/feature-bento'
+import { ScrollProgress, ScrollToTop } from '@/components/shared/scroll-progress'
+import { MobileMenu } from '@/components/shared/mobile-menu'
+
+const navLinks = [
+  { href: '#how-it-works', label: 'How It Works' },
+  { href: '#services', label: 'Services' },
+  { href: '#features', label: 'Features' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '/login', label: 'Login' },
+]
 
 // Animation variants for staggered children
 const containerVariants = {
@@ -47,6 +62,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Scroll Progress Indicator */}
+      <ScrollProgress />
+      
       {/* Header - Glassmorphism */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50 dark:bg-slate-900/80 dark:border-slate-700/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -63,18 +81,30 @@ export default function Home() {
             <Link href="#services" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Services
             </Link>
+            <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Features
+            </Link>
+            <Link href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              FAQ
+            </Link>
             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Login
             </Link>
           </nav>
-          <Link href="/start">
-            <Button className="touch-target animate-pulse-cta">
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/start" className="hidden md:block">
+              <Button className="touch-target animate-pulse-cta bg-teal-600 hover:bg-teal-700">
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <MobileMenu links={navLinks} />
+          </div>
         </div>
       </header>
+      
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
 
       {/* Hero Section */}
       <section className="gradient-hero pt-32 pb-20 md:pt-40 md:pb-32">
@@ -109,7 +139,7 @@ export default function Home() {
             {/* Trust indicators */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-teal-600" />
                 <span>10,000+ Patients Served</span>
               </div>
               <div className="flex items-center gap-2">
@@ -117,9 +147,18 @@ export default function Home() {
                 <span>4.9/5 Rating</span>
               </div>
               <div className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-primary" />
+                <Lock className="w-5 h-5 text-teal-600" />
                 <span>Bank-Level Security</span>
               </div>
+            </div>
+            
+            {/* Live Activity Indicator */}
+            <div className="mt-8 flex justify-center">
+              <LiveActivityIndicator 
+                minCount={8} 
+                maxCount={24} 
+                label="people getting certificates right now"
+              />
             </div>
           </div>
         </div>
@@ -339,88 +378,81 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-20 md:py-28 relative">
+      {/* Feature Bento Grid Section */}
+      <section id="features" className="py-20 md:py-28 bg-slate-50 relative">
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+        
         <div className="container mx-auto px-4">
           <motion.div 
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           >
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-              >
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Trusted by Thousands of Australians
-                </h2>
-                <p className="text-muted-foreground text-lg mb-8">
-                  InstantMed is fully compliant with Australian telehealth regulations. 
-                  All consultations are conducted by AHPRA registered medical practitioners.
-                </p>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
-                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                    </div>
-                    <div>
-                      <span className="font-medium">AHPRA Registered Doctors</span>
-                      <p className="text-sm text-muted-foreground">
-                        All our doctors are fully registered with the Australian Health Practitioner Regulation Agency
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
-                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                    </div>
-                    <div>
-                      <span className="font-medium">TGA Compliant</span>
-                      <p className="text-sm text-muted-foreground">
-                        Our prescription service follows all Therapeutic Goods Administration guidelines
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-100">
-                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                    </div>
-                    <div>
-                      <span className="font-medium">Privacy Protected</span>
-                      <p className="text-sm text-muted-foreground">
-                        Your health information is encrypted and stored in compliance with Australian Privacy Principles
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </motion.div>
-              <motion.div 
-                className="relative"
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
-              >
-                <div className="aspect-square rounded-3xl bg-gradient-to-br from-teal-100/50 to-teal-50/50 flex items-center justify-center p-4">
-                  <div className="w-full h-full rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 p-8 flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Clock className="w-5 h-5 text-teal-600" />
-                      <span className="text-sm font-medium text-muted-foreground">Average Response Time</span>
-                    </div>
-                    <div className="text-5xl font-bold text-teal-600 mb-2">{"<"}2 hrs</div>
-                    <p className="text-sm text-muted-foreground">
-                      Most requests approved within 2 hours during business hours
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose InstantMed?</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Built for Australians who value their time, privacy, and health
+            </p>
           </motion.div>
+          
+          <div className="max-w-6xl mx-auto">
+            <FeatureBento />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 md:py-28 bg-white relative">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 text-sm font-medium mb-4">
+              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              4.9/5 from 2,000+ reviews
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Loved by Australians</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Hear from real patients who&apos;ve used InstantMed for their healthcare needs
+            </p>
+          </motion.div>
+          
+          <div className="max-w-3xl mx-auto">
+            <TestimonialCarousel />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 md:py-28 bg-gradient-to-b from-slate-50 to-white relative">
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+        
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-50 text-teal-700 text-sm font-medium mb-4">
+              <HelpCircle className="w-4 h-4" />
+              Got questions?
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Everything you need to know about our telehealth services
+            </p>
+          </motion.div>
+          
+          <div className="max-w-3xl mx-auto">
+            <FAQAccordion limit={6} />
+          </div>
         </div>
       </section>
 

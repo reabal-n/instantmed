@@ -389,6 +389,13 @@
 .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
 .stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
 
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Button inner glow on hover */
 .btn-glow:hover {
   box-shadow: 
