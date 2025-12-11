@@ -226,8 +226,9 @@ export default function PathologyFlowClient({
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
       }
-    } catch (err: any) {
-      setError(err.message || "Something went wrong")
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong"
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -490,7 +491,7 @@ export default function PathologyFlowClient({
               </div>
 
               <p className="text-xs text-muted-foreground text-center">
-                You'll only be charged if the GP approves your referral request.
+                You&apos;ll only be charged if the GP approves your referral request.
               </p>
             </div>
           </div>

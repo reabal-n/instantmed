@@ -30,7 +30,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-4xl text-center relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border-white/20 mb-6 animate-fade-in-down">
               <Sparkles className="h-3.5 w-3.5 text-[#00e2b5]" />
-              <span className="text-sm font-medium">Australia's fastest online doctor</span>
+              <span className="text-sm font-medium">Australia&apos;s fastest online doctor</span>
             </div>
 
             <HeroTypewriter />
@@ -207,7 +207,7 @@ export default function LandingPage() {
               >
                 Ready to skip the waiting room?
               </h2>
-              <p className="text-muted-foreground mb-8">Join 10,000+ Aussies who've ditched the GP queue.</p>
+              <p className="text-muted-foreground mb-8">Join 10,000+ Aussies who&apos;ve ditched the GP queue.</p>
               <Button
                 size="lg"
                 asChild

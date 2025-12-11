@@ -1406,7 +1406,7 @@ export function MedCertFlowClient({
                     className="h-11 rounded-xl"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    We'll send your medical certificate to this email
+                    We&apos;ll send your medical certificate to this email
                   </p>
                 </div>
               )}

@@ -87,7 +87,7 @@ export default function PrescriptionsPage() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Been on this medication before? Easy. We just need to check nothing's changed.
+                    Been on this medication before? Easy. We just need to check nothing&apos;s changed.
                   </p>
                   <div className="flex items-center text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
                     Continue with repeat
@@ -109,7 +109,7 @@ export default function PrescriptionsPage() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Starting a new medication? We'll ask a few more questions so the doctor can assess properly.
+                    Starting a new medication? We&apos;ll ask a few more questions so the doctor can assess properly.
                   </p>
                   <div className="flex items-center text-sm font-medium group-hover:translate-x-1 transition-transform">
                     Request new medication
@@ -151,8 +151,8 @@ export default function PrescriptionsPage() {
               <div className="text-sm text-amber-800">
                 <p className="font-medium">Some medications require an in-person visit</p>
                 <p className="mt-1 text-amber-700">
-                  We can't prescribe Schedule 8 drugs (opioids, stimulants), benzodiazepines, or medications requiring
-                  physical examination online. Not sure? Start a request and we'll let you know.
+                  We can&apos;t prescribe Schedule 8 drugs (opioids, stimulants), benzodiazepines, or medications requiring
+                  physical examination online. Not sure? Start a request and we&apos;ll let you know.
                 </p>
               </div>
             </div>

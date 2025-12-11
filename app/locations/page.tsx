@@ -33,7 +33,7 @@ export default function LocationsPage() {
           <div className="mx-auto max-w-4xl">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
             <p className="text-muted-foreground text-center max-w-xl mx-auto mb-12">
-              InstantMed is available nationwide. No matter where you are, we've got you covered.
+              InstantMed is available nationwide. No matter where you are, we&apos;ve got you covered.
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

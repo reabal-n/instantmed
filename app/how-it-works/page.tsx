@@ -165,7 +165,7 @@ export default function HowItWorksPage() {
                   className="text-2xl md:text-3xl font-bold text-foreground mb-3"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Three steps. That's it.
+                  Three steps. That&apos;s it.
                 </h2>
                 <p className="text-muted-foreground">No hidden steps, no surprises, no catch.</p>
               </div>
@@ -251,7 +251,7 @@ export default function HowItWorksPage() {
                 >
                   Sound familiar?
                 </h2>
-                <p className="text-muted-foreground">Here's how real people use InstantMed</p>
+                <p className="text-muted-foreground">Here&apos;s how real people use InstantMed</p>
               </div>
 
               <div className="space-y-4">
@@ -292,7 +292,7 @@ export default function HowItWorksPage() {
                   Ready to skip the waiting room?
                 </h2>
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  Choose what you need and we'll take care of the rest. Most requests are done within a few hours.
+                  Choose what you need and we&apos;ll take care of the rest. Most requests are done within a few hours.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild size="lg" className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-8">

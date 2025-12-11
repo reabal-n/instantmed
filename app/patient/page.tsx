@@ -108,7 +108,7 @@ export default async function PatientDashboardPage({
       {showOnboardedSuccess && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 flex items-center gap-3" role="alert">
           <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" aria-hidden="true" />
-          <p className="text-sm text-emerald-800">Profile complete. You're ready to submit requests.</p>
+          <p className="text-sm text-emerald-800">Profile complete. You&apos;re ready to submit requests.</p>
         </div>
       )}
 

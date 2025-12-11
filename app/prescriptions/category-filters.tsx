@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { getAllCategories, CATEGORY_LABELS, CATEGORY_ICONS, getMedicationsByCategory } from "@/lib/data/medications"
+import { getAllCategories, CATEGORY_LABELS, CATEGORY_ICONS, getMedicationsByCategory, type MedicationCategory } from "@/lib/data/medications"
 
 export function CategoryFilters() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState<MedicationCategory | null>(null)
   const categories = getAllCategories()
 
   return (
@@ -43,7 +43,7 @@ export function CategoryFilters() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {getMedicationsByCategory(activeCategory as any).map((med) => (
+            {getMedicationsByCategory(activeCategory).map((med) => (
               <Link
                 key={med.slug}
                 href={`/prescriptions/med/${med.slug}`}

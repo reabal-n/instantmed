@@ -27,13 +27,13 @@ export default async function PaymentCancelledPage({
             {/* Title */}
             <h1 className="text-2xl font-bold text-foreground mb-2">Payment not completed</h1>
             <p className="text-muted-foreground mb-6">
-              No worries — your answers are saved. You can complete payment whenever you're ready.
+              No worries — your answers are saved. You can complete payment whenever you&apos;re ready.
             </p>
 
             {/* Info */}
             <div className="bg-muted/50 rounded-2xl p-4 mb-6 text-left">
               <p className="text-sm text-muted-foreground">
-                Your request won't be sent to a doctor until payment is complete. Nothing has been charged to your card.
+                Your request won&apos;t be sent to a doctor until payment is complete. Nothing has been charged to your card.
               </p>
             </div>
 

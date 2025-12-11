@@ -79,7 +79,7 @@ export default function MensHealthPage() {
           <div className="relative mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6">
               <Shield className="h-4 w-4" />
-              Men's Health
+              Men&apos;s Health
             </div>
 
             <h1
@@ -89,7 +89,7 @@ export default function MensHealthPage() {
               No awkward conversations. <span className="text-blue-500">Just solutions.</span>
             </h1>
             <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto mb-8">
-              Get treated for common men's health issues without the uncomfortable GP visit. 100% online. 100% discreet.
+              Get treated for common men&apos;s health issues without the uncomfortable GP visit. 100% online. 100% discreet.
             </p>
 
             {/* Trust badges */}
@@ -166,7 +166,7 @@ export default function MensHealthPage() {
               </h2>
               <p className="text-muted-foreground text-sm">
                 We use bank-level encryption. Your records are stored securely in Australia. We never share your
-                information. Pharmacy packaging is always discreet — no one will know what's inside.
+                information. Pharmacy packaging is always discreet — no one will know what&apos;s inside.
               </p>
             </div>
           </div>

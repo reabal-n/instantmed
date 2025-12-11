@@ -499,7 +499,7 @@ export function RequestDetailClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Decline this request?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will decline the patient's request. They will be notified via email. Make sure you have added
+              This action will decline the patient&apos;s request. They will be notified via email. Make sure you have added
               clinical notes explaining the reason.
             </AlertDialogDescription>
           </AlertDialogHeader>

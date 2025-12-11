@@ -242,7 +242,7 @@ export default async function CityPage({ params }: PageProps) {
                     <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <blockquote className="text-lg mb-4">"{cityData.localTestimonial.quote}"</blockquote>
+                <blockquote className="text-lg mb-4">&quot;{cityData.localTestimonial.quote}&quot;</blockquote>
                 <p className="text-sm text-muted-foreground">
                   — {cityData.localTestimonial.name}, {cityData.name}
                 </p>

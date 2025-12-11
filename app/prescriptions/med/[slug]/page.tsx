@@ -102,7 +102,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
             <div className="p-6 rounded-xl border bg-card">
               <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-600" />
-                What it's used for
+                What it&apos;s used for
               </h2>
               <ul className="space-y-2">
                 {med.uses.map((use) => (

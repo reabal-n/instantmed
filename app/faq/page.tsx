@@ -161,10 +161,10 @@ export default function FAQPage() {
                 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                Got questions? <span className="text-gradient-mint">We've got answers.</span>
+                Got questions? <span className="text-gradient-mint">We&apos;ve got answers.</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Everything you need to know about InstantMed. Can't find your answer?{" "}
+                Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
                 <Link href="/contact" className="text-[#00E2B5] hover:underline">
                   Hit us up
                 </Link>
@@ -219,7 +219,7 @@ export default function FAQPage() {
                 <div className="text-4xl mb-4">🤔</div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">Still scratching your head?</h2>
                 <p className="text-muted-foreground mb-6">
-                  Our support team is here to help. We typically respond within 2 hours (and yes, we're actually
+                  Our support team is here to help. We typically respond within 2 hours (and yes, we&apos;re actually
                   helpful).
                 </p>
                 <Button asChild className="rounded-full btn-premium text-[#0A0F1C]">

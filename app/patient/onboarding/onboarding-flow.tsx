@@ -217,7 +217,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               <MapPin className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground">Hi {firstName}, let's get you set up</h2>
+              <h2 className="text-xl font-semibold text-foreground">Hi {firstName}, let&apos;s get you set up</h2>
               <p className="text-sm text-muted-foreground">We need a few details to complete your profile</p>
             </div>
           </div>
@@ -338,7 +338,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">Medicare details</h2>
-              <p className="text-sm text-muted-foreground">We'll use this for prescriptions and referrals</p>
+              <p className="text-sm text-muted-foreground">We&apos;ll use this for prescriptions and referrals</p>
             </div>
           </div>
 

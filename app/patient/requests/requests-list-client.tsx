@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -25,26 +26,27 @@ interface RequestsListClientProps {
 type FilterStatus = "all" | "pending" | "approved" | "declined" | "needs_follow_up" | "awaiting_payment"
 
 export function RequestsListClient({ requests }: RequestsListClientProps) {
+  const router = useRouter()
   const [filter, setFilter] = useState<FilterStatus>("all")
   const [retryingPayment, setRetryingPayment] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 300)
 
-  const handleRetryPayment = async (requestId: string) => {
+  const handleRetryPayment = useCallback(async (requestId: string) => {
     setRetryingPayment(requestId)
     try {
       const result = await retryPaymentForRequestAction(requestId)
       if (result.success && result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
+        router.push(result.checkoutUrl)
       } else {
         alert(result.error || "Failed to initiate payment. Please try again.")
         setRetryingPayment(null)
       }
-    } catch (error) {
+    } catch {
       alert("An error occurred. Please try again.")
       setRetryingPayment(null)
     }
-  }
+  }, [router])
 
   const filteredRequests = requests
     .filter((r) => {

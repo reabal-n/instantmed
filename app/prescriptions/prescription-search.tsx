@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Pill, ArrowRight, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -10,23 +10,30 @@ import { searchMedications, type Medication, CATEGORY_LABELS } from "@/lib/data/
 
 export function PrescriptionSearch() {
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<Medication[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  useEffect(() => {
+  // Compute results directly from query using useMemo (no effect needed)
+  const results = useMemo(() => {
     if (query.length >= 2) {
-      const found = searchMedications(query)
-      setResults(found)
+      return searchMedications(query)
+    }
+    return []
+  }, [query])
+
+  // Reset selected index when results change
+  const handleQueryChange = useCallback((newQuery: string) => {
+    setQuery(newQuery)
+    setSelectedIndex(0)
+    if (newQuery.length >= 2) {
+      const found = searchMedications(newQuery)
       setIsOpen(found.length > 0)
-      setSelectedIndex(0)
     } else {
-      setResults([])
       setIsOpen(false)
     }
-  }, [query])
+  }, [])
 
   const handleSelect = (med: Medication) => {
     router.push(`/prescriptions/med/${med.slug}`)
@@ -60,7 +67,7 @@ export function PrescriptionSearch() {
           type="text"
           placeholder="Search for a medication (e.g., Lipitor, blood pressure, UTI)"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => query.length >= 2 && results.length > 0 && setIsOpen(true)}
           className="pl-12 pr-10 h-14 text-base rounded-2xl border-2 focus:border-primary"
@@ -68,7 +75,7 @@ export function PrescriptionSearch() {
         {query && (
           <button
             onClick={() => {
-              setQuery("")
+              handleQueryChange("")
               inputRef.current?.focus()
             }}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"

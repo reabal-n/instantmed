@@ -113,7 +113,7 @@ export default function PatientRequestDetailPageClient({ params, searchParams }:
     }
   }
 
-  const statusConfig = getStatusConfig(request.status, (request as any).payment_status)
+  const statusConfig = getStatusConfig(request.status, (request as { payment_status?: string }).payment_status)
   const StatusIcon = statusConfig.icon
 
   const formatDate = (dateString: string) => {
@@ -362,14 +362,14 @@ export default function PatientRequestDetailPageClient({ params, searchParams }:
             <h2 className="text-lg font-semibold text-foreground mb-2">What happens next</h2>
             {isPendingPayment && (
               <p className="text-sm text-muted-foreground">
-                Your request is saved but hasn't been submitted yet. Complete payment above and a registered doctor will
+                Your request is saved but hasn&apos;t been submitted yet. Complete payment above and a registered doctor will
                 review your information — usually within 1 hour (8am–10pm AEST).
               </p>
             )}
             {!isPendingPayment && request.status === "pending" && (
               <p className="text-sm text-muted-foreground">
                 Your request has been securely sent to a registered doctor. Most reviews are completed within 1 hour
-                (8am–10pm AEST). We'll email you as soon as there's an update.
+                (8am–10pm AEST). We&apos;ll email you as soon as there&apos;s an update.
               </p>
             )}
             {request.status === "approved" && (
@@ -380,14 +380,14 @@ export default function PatientRequestDetailPageClient({ params, searchParams }:
             )}
             {request.status === "declined" && (
               <p className="text-sm text-muted-foreground">
-                The doctor wasn't able to approve this request. This can happen when more information is needed or an
-                in-person visit is recommended. Please check your email for the doctor's notes and next steps.
+                The doctor wasn&apos;t able to approve this request. This can happen when more information is needed or an
+                in-person visit is recommended. Please check your email for the doctor&apos;s notes and next steps.
               </p>
             )}
             {request.status === "needs_follow_up" && (
               <p className="text-sm text-muted-foreground">
                 The doctor needs a bit more information before making a decision. Please check your email for details on
-                what's needed — it's usually something quick to provide.
+                what&apos;s needed — it&apos;s usually something quick to provide.
               </p>
             )}
           </div>
@@ -405,7 +405,7 @@ export default function PatientRequestDetailPageClient({ params, searchParams }:
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-foreground">Need help?</h3>
-            <p className="text-sm text-muted-foreground">Questions about your request? We're here to help.</p>
+            <p className="text-sm text-muted-foreground">Questions about your request? We&apos;re here to help.</p>
           </div>
           <Button variant="outline" asChild className="rounded-full shrink-0 bg-transparent">
             <Link href="/contact">Contact Us</Link>
