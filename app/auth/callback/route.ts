@@ -1,83 +1,83 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-// OAuth callback handler - processes Google sign-in redirect
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const redirectTo = searchParams.get("redirect")
   const flow = searchParams.get("flow")
 
+  console.log("[v0] OAuth callback received", { code: !!code, redirectTo, flow })
+
   if (code) {
     const supabase = await createClient()
 
-    // Exchange the code for a session
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    console.log("[v0] Exchanging code for session")
+    const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!exchangeError) {
-      // Get the authenticated user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+    if (exchangeError) {
+      console.error("[v0] Session exchange failed:", exchangeError)
+      return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
+    }
 
-      if (user) {
-        // Check if profile exists
-        const { data: existingProfile } = await supabase
-          .from("profiles")
-          .select("id, role, onboarding_completed")
-          .eq("auth_user_id", user.id)
-          .single()
+    if (!sessionData.user) {
+      console.error("[v0] No user after session exchange")
+      return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
+    }
 
-        if (!existingProfile) {
-          // Create new profile for Google OAuth user
-          // Extract name from Google user metadata
-          const fullName =
-            user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
+    const user = sessionData.user
+    console.log("[v0] Session created for user:", user.id)
 
-          const { error: profileError } = await supabase.from("profiles").insert({
-            auth_user_id: user.id,
-            full_name: fullName,
-            role: "patient",
-            onboarding_completed: false,
-          })
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id, role, onboarding_completed")
+      .eq("auth_user_id", user.id)
+      .single()
 
-          if (profileError) {
-            console.error("Failed to create profile:", profileError)
-            return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
-          }
+    if (!existingProfile) {
+      console.log("[v0] Creating new profile for OAuth user")
 
-          if (flow === "questionnaire" && redirectTo) {
-            return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
-          }
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
 
-          // New user - redirect to onboarding
+      const { error: profileError } = await supabase.from("profiles").insert({
+        auth_user_id: user.id,
+        full_name: fullName,
+        role: "patient",
+        onboarding_completed: false,
+      })
+
+      if (profileError) {
+        console.error("[v0] Failed to create profile:", profileError)
+        return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
+      }
+
+      console.log("[v0] Profile created successfully")
+    }
+
+    if (flow === "questionnaire" && redirectTo) {
+      console.log("[v0] Returning to questionnaire flow:", redirectTo)
+      return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
+    }
+
+    if (existingProfile) {
+      if (existingProfile.role === "patient") {
+        if (!existingProfile.onboarding_completed) {
           const onboardingRedirect = redirectTo || "/patient"
           return NextResponse.redirect(
             `${origin}/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`,
           )
         }
-
-        // Existing user - redirect based on role and onboarding status
-        if (existingProfile.role === "patient") {
-          if (flow === "questionnaire" && redirectTo) {
-            return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
-          }
-
-          if (!existingProfile.onboarding_completed) {
-            const onboardingRedirect = redirectTo || "/patient"
-            return NextResponse.redirect(
-              `${origin}/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`,
-            )
-          }
-          // Onboarding complete - redirect to patient dashboard or custom redirect
-          return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
-        } else if (existingProfile.role === "doctor") {
-          return NextResponse.redirect(`${origin}/doctor`)
-        }
+        return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
+      } else if (existingProfile.role === "doctor") {
+        return NextResponse.redirect(`${origin}/doctor`)
       }
     }
+
+    // New user, redirect to patient dashboard
+    return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
   }
 
-  // OAuth failed or no code - redirect to login with error
+  // No code provided
+  console.error("[v0] No OAuth code in callback")
   return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
 }

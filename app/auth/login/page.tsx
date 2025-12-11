@@ -55,30 +55,36 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log("[v0] Attempting login for:", email)
+
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (signInError) throw signInError
+      if (signInError) {
+        console.error("[v0] Login error:", signInError)
+        throw signInError
+      }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
+      if (!authData.user) {
         throw new Error("Failed to get user after login")
       }
+
+      console.log("[v0] Login successful, checking profile")
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role, onboarding_completed")
-        .eq("auth_user_id", user.id)
+        .eq("auth_user_id", authData.user.id)
         .single()
 
       if (profileError || !profile) {
+        console.error("[v0] Profile not found:", profileError)
         throw new Error("Profile not found. Please contact support.")
       }
+
+      console.log("[v0] Profile found, redirecting based on role:", profile.role)
 
       if (profile.role === "patient") {
         if (!profile.onboarding_completed) {
@@ -97,6 +103,7 @@ export default function LoginPage() {
 
       router.refresh()
     } catch (err) {
+      console.error("[v0] Login failed:", err)
       setError(err instanceof Error ? err.message : "An error occurred during login")
     } finally {
       setIsLoading(false)
@@ -110,20 +117,30 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
+      console.log("[v0] Starting Google OAuth flow")
+
       const callbackUrl = new URL("/auth/callback", window.location.origin)
       if (redirectTo) {
         callbackUrl.searchParams.set("redirect", redirectTo)
       }
 
+      console.log("[v0] OAuth callback URL:", callbackUrl.toString())
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+          redirectTo: callbackUrl.toString(),
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("[v0] OAuth error:", error)
+        throw error
+      }
+
+      // User will be redirected to Google, then back to /auth/callback
     } catch (err) {
+      console.error("[v0] Google OAuth failed:", err)
       setError(err instanceof Error ? err.message : "Failed to sign in with Google")
       setIsGoogleLoading(false)
     }
@@ -217,7 +234,7 @@ export default function LoginPage() {
                   <Label htmlFor="password" className="text-sm font-medium">
                     Password
                   </Label>
-                  <Link href="#" className="text-xs text-[#00E2B5] hover:underline font-medium">
+                  <Link href="/auth/forgot-password" className="text-xs text-[#00E2B5] hover:underline font-medium">
                     Forgot password?
                   </Link>
                 </div>

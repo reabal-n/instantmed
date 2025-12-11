@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Check, Loader2, Sparkles } from "lucide-react"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import confetti from "canvas-confetti"
 
 export function CompleteAccountForm({
@@ -37,11 +37,10 @@ export function CompleteAccountForm({
     setError(null)
 
     try {
-      const supabase = createBrowserClient()
+      const supabase = createClient()
 
       console.log("[v0] Creating account for guest:", email)
 
-      // 1. Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -63,30 +62,12 @@ export function CompleteAccountForm({
 
       console.log("[v0] Account created, user ID:", authData.user.id)
 
-      // 2. Link the request to the new user profile
-      // The profile should have been created by the auth trigger or we need to update it
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
-          auth_user_id: authData.user.id,
-          onboarding_completed: true,
-        })
-        .eq("full_name", email) // Guest profile was created with email as name
-        .is("auth_user_id", null)
-
-      if (updateError) {
-        console.error("[v0] Error linking profile:", updateError)
-        // Continue anyway - the webhook will handle linking
-      }
-
-      // 3. Celebrate!
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       })
 
-      // 4. Redirect to success page or dashboard
       setTimeout(() => {
         router.push(`/patient/requests/success?request_id=${requestId}`)
       }, 1000)

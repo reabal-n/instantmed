@@ -100,6 +100,8 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     const supabase = createClient()
 
     try {
+      console.log("[v0] Starting Google OAuth from questionnaire")
+
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
 
@@ -107,15 +109,23 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       callbackUrl.searchParams.set("redirect", window.location.pathname)
       callbackUrl.searchParams.set("flow", "questionnaire")
 
+      console.log("[v0] OAuth callback URL:", callbackUrl.toString())
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+          redirectTo: callbackUrl.toString(),
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("[v0] OAuth error:", error)
+        throw error
+      }
+
+      // User will be redirected to Google, then back to /auth/callback
     } catch (err) {
+      console.error("[v0] Google OAuth failed:", err)
       setError(err instanceof Error ? err.message : "Failed to sign in with Google")
       setIsGoogleLoading(false)
     }
