@@ -3,6 +3,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Live Visitor Counter Animations */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes popInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(15px) scale(0.5) rotate(5deg);
+  }
+  60% {
+    transform: translateX(-4px) scale(1.1) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0);
+  }
+}
+
 /* Custom fonts */
 @font-face {
   font-family: 'Outfit';

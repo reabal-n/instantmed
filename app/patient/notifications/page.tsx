@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 import { Navbar } from "@/components/shared/navbar"
 import { NotificationsClient } from "./notifications-client"
 
@@ -9,7 +9,7 @@ export const metadata = {
 }
 
 export default async function NotificationsPage() {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const {
     data: { user },

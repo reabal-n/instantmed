@@ -9,6 +9,11 @@ import { TrustSection } from "@/components/homepage/trust-section"
 import { TestimonialCarousel } from "@/components/homepage/social-proof"
 import { DynamicSocialProof, DynamicStatsBar } from "@/components/homepage/dynamic-social-proof"
 import { GlassCard } from "@/components/effects/glass-card"
+import LiveVisitorCounter from "@/components/ui/live-visitor"
+import { GlowingCard } from "@/components/effects/glowing-card"
+import { FeatureHoverCard } from "@/components/effects/feature-hover-card"
+import { AuroraBackground } from "@/components/effects/aurora-background"
+import { FileText, Pill, Stethoscope, Clock, Shield, Zap } from "lucide-react"
 
 export default function LandingPage() {
   return (
@@ -19,13 +24,15 @@ export default function LandingPage() {
       <main className="flex-1 pt-20">
         {/* Hero - search/browse focused */}
         <section className="relative px-4 py-16 sm:py-24 overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="hero-orb hero-orb-mint w-[500px] h-[500px] top-10 left-10 opacity-40" />
-            <div
-              className="hero-orb hero-orb-cyan w-[400px] h-[400px] top-40 right-20 opacity-30"
-              style={{ animationDelay: "2s" }}
-            />
-          </div>
+          <AuroraBackground>
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="hero-orb hero-orb-mint w-[500px] h-[500px] top-10 left-10 opacity-40" />
+              <div
+                className="hero-orb hero-orb-cyan w-[400px] h-[400px] top-40 right-20 opacity-30"
+                style={{ animationDelay: "2s" }}
+              />
+            </div>
+          </AuroraBackground>
 
           <div className="mx-auto max-w-4xl text-center relative z-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border-white/20 mb-6 animate-fade-in-down">
@@ -65,6 +72,11 @@ export default function LandingPage() {
               <span>AHPRA-registered GPs</span>
               <span className="text-border">•</span>
               <span>Average 45min response</span>
+            </div>
+
+            {/* Live Visitor Counter */}
+            <div className="mt-12 flex justify-center animate-fade-in-up stagger-4">
+              <LiveVisitorCounter />
             </div>
           </div>
         </section>
@@ -144,10 +156,12 @@ export default function LandingPage() {
                   title: "Pick & fill",
                   description: "Choose what you need, answer a few quick questions. Takes about 2 minutes.",
                   color: "#00E2B5",
+                  icon: <FileText className="h-8 w-8 text-[#00E2B5]" />,
                 },
                 {
                   step: "2",
                   title: "Doctor reviews",
+                  icon: <Stethoscope className="h-8 w-8 text-[#00E2B5]" />,
                   description: "A real AHPRA-registered GP reviews your request. They may ask follow-up questions.",
                   color: "#06B6D4",
                 },
@@ -156,18 +170,16 @@ export default function LandingPage() {
                   title: "Get your document",
                   description: "If approved, your script/cert/referral is emailed to you. Usually within an hour.",
                   color: "#8B5CF6",
+                  icon: <Zap className="h-8 w-8 text-[#8B5CF6]" />,
                 },
               ].map((item, i) => (
-                <GlassCard key={item.step} className={`text-center p-6 hover-lift animate-fade-in-up stagger-${i + 1}`}>
-                  <div
-                    className="inline-flex h-12 w-12 items-center justify-center rounded-full text-white font-bold text-lg mb-4 glow-soft"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    {item.step}
-                  </div>
-                  <h3 className="font-semibold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </GlassCard>
+                <FeatureHoverCard
+                  key={item.step}
+                  icon={item.icon || <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">{item.step}</div>}
+                  title={item.title}
+                  description={item.description}
+                  delay={i * 0.1}
+                />
               ))}
             </div>
 
@@ -200,7 +212,7 @@ export default function LandingPage() {
         {/* Final CTA */}
         <section className="px-4 py-16 sm:py-20">
           <div className="mx-auto max-w-2xl">
-            <GlassCard className="text-center p-12 glow-mint-subtle">
+            <GlowingCard className="text-center p-12" glowColor="rgba(0, 226, 181, 0.2)" intensity="high">
               <h2
                 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4"
                 style={{ fontFamily: "var(--font-display)" }}
@@ -218,7 +230,7 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </GlassCard>
+            </GlowingCard>
           </div>
         </section>
       </main>
