@@ -29,7 +29,7 @@ const navLinks = [
   { href: '#services', label: 'Services' },
   { href: '#features', label: 'Features' },
   { href: '#faq', label: 'FAQ' },
-  { href: '/login', label: 'Login' },
+  { href: '/auth/login', label: 'Login' },
 ]
 
 // Animation variants for staggered children
@@ -87,7 +87,7 @@ export default function Home() {
             <Link href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               FAQ
             </Link>
-            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/auth/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Login
             </Link>
           </nav>

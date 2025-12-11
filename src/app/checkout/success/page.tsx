@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useState, Suspense, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
@@ -48,8 +48,14 @@ function AnimatedCheckmark() {
 
 function SuccessContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const requestId = searchParams.get('request_id')
   const [countdown, setCountdown] = useState(5)
+
+  // Redirect function
+  const redirectToDashboard = useCallback(() => {
+    router.push('/dashboard')
+  }, [router])
 
   // Trigger confetti on mount
   useEffect(() => {
@@ -80,13 +86,18 @@ function SuccessContent() {
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
       })
     }, 250)
+
+    return () => clearInterval(interval)
   }, [])
 
+  // Countdown and redirect
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
+          // Redirect when countdown reaches 0
+          redirectToDashboard()
           return 0
         }
         return prev - 1
@@ -94,7 +105,7 @@ function SuccessContent() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [redirectToDashboard])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50/50 to-white">
@@ -277,7 +288,7 @@ function SuccessContent() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.1 }}
             >
-              Redirecting to dashboard in {countdown} seconds...
+              Redirecting to dashboard in <span className="font-semibold text-teal-600">{countdown}</span> seconds...
             </motion.p>
           )}
         </div>
@@ -297,4 +308,3 @@ export default function CheckoutSuccessPage() {
     </Suspense>
   )
 }
-

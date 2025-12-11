@@ -5,22 +5,30 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowRight, ArrowLeft, Eye, EyeOff, Mail, Lock, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { GoogleIcon } from '@/components/icons/google-icon'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 import { accountSchema, type AccountForm } from '@/lib/validations'
 
 interface AccountCreationProps {
   onNext: (data: AccountForm) => void
   onBack: () => void
+  onGoogleSignIn?: () => void
   isLoading?: boolean
   error?: string
 }
 
-export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCreationProps) {
+export function AccountCreation({ onNext, onBack, onGoogleSignIn, isLoading, error }: AccountCreationProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const supabase = createClient()
   
   const {
     register,
@@ -50,8 +58,34 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
     onNext(data)
   }
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true)
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/start&google_signup=true`,
+        },
+      })
+
+      if (error) {
+        toast.error(error.message || 'Failed to sign in with Google')
+      }
+      
+      // Call the callback if provided
+      if (onGoogleSignIn) {
+        onGoogleSignIn()
+      }
+    } catch {
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <div className="space-y-6">
       <motion.div 
         className="text-center mb-8"
         initial={{ opacity: 0, y: 20 }}
@@ -72,7 +106,40 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
         </div>
       )}
 
-      <div className="space-y-4">
+      {/* Google Sign In Option */}
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="w-full h-12 min-h-[44px]"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading || isLoading}
+      >
+        {isGoogleLoading ? (
+          <span className="flex items-center gap-2">
+            <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+            Connecting...
+          </span>
+        ) : (
+          <>
+            <GoogleIcon />
+            <span className="ml-2">Continue with Google</span>
+          </>
+        )}
+      </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-slate-50 px-2 text-muted-foreground">
+            or create an account
+          </span>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email Address</Label>
           <div className="relative">
@@ -82,7 +149,7 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
               type="email"
               {...register('email')}
               placeholder="you@example.com"
-              className="pl-10 touch-target"
+              className="pl-10 h-12 min-h-[44px]"
               autoComplete="email"
             />
           </div>
@@ -100,7 +167,7 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
               type={showPassword ? 'text' : 'password'}
               {...register('password')}
               placeholder="Create a strong password"
-              className="pl-10 pr-10 touch-target"
+              className="pl-10 pr-10 h-12 min-h-[44px]"
               autoComplete="new-password"
             />
             <button
@@ -141,7 +208,7 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
               type={showConfirmPassword ? 'text' : 'password'}
               {...register('confirmPassword')}
               placeholder="Confirm your password"
-              className="pl-10 pr-10 touch-target"
+              className="pl-10 pr-10 h-12 min-h-[44px]"
               autoComplete="new-password"
             />
             <button
@@ -156,53 +223,59 @@ export function AccountCreation({ onNext, onBack, isLoading, error }: AccountCre
             <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
           )}
         </div>
-      </div>
 
-      <div className="p-4 rounded-lg bg-muted/50 border border-border">
-        <p className="text-sm text-muted-foreground">
-          By creating an account, you agree to our{' '}
-          <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
-          {' '}and{' '}
-          <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
-        </p>
-      </div>
-
-      {/* Navigation - Glassmorphism footer */}
-      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50">
-        <div className="flex gap-3 max-w-xl mx-auto">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="h-11 md:h-12 min-h-[44px]"
-            onClick={onBack}
-            disabled={isLoading}
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back
-          </Button>
-          
-          <Button
-            type="submit"
-            size="lg"
-            className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating Account...
-              </span>
-            ) : (
-              <>
-                Create Account
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </>
-            )}
-          </Button>
+        <div className="p-4 rounded-lg bg-muted/50 border border-border">
+          <p className="text-sm text-muted-foreground">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-teal-600 hover:underline">Terms of Service</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-teal-600 hover:underline">Privacy Policy</Link>.
+          </p>
         </div>
-      </div>
-    </form>
+
+        <div className="text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/login" className="text-teal-600 hover:underline font-medium">
+            Sign in
+          </Link>
+        </div>
+
+        {/* Navigation - Glassmorphism footer */}
+        <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50">
+          <div className="flex gap-3 max-w-xl mx-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="h-11 md:h-12 min-h-[44px]"
+              onClick={onBack}
+              disabled={isLoading || isGoogleLoading}
+            >
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Back
+            </Button>
+            
+            <Button
+              type="submit"
+              size="lg"
+              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+              disabled={isLoading || isGoogleLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating Account...
+                </span>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
   )
 }
-

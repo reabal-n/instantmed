@@ -15,6 +15,7 @@ import { ScriptIntake } from '@/components/onboarding/steps/ScriptIntake'
 import { AccountCreation } from '@/components/onboarding/steps/AccountCreation'
 import { PatientDetails } from '@/components/onboarding/steps/PatientDetails'
 import { createClient } from '@/lib/supabase/client'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import type { ServiceType } from '@/lib/types'
 import type {
   MedCertIntakeForm,
@@ -23,13 +24,22 @@ import type {
   PatientDetailsForm,
 } from '@/lib/validations'
 
-// Updated step order: Service -> Intake -> Patient Details -> Account -> Checkout
-const STEPS = [
-  { id: 'service', title: 'Service Type' },
-  { id: 'intake', title: 'Medical Info' },
-  { id: 'details', title: 'Patient Details' },
-  { id: 'account', title: 'Account' },
-]
+// Step configuration - Account is conditional based on auth state
+const getSteps = (isLoggedIn: boolean) => {
+  if (isLoggedIn) {
+    return [
+      { id: 'service', title: 'Service Type' },
+      { id: 'intake', title: 'Medical Info' },
+      { id: 'details', title: 'Patient Details' },
+    ]
+  }
+  return [
+    { id: 'service', title: 'Service Type' },
+    { id: 'intake', title: 'Medical Info' },
+    { id: 'details', title: 'Patient Details' },
+    { id: 'account', title: 'Account' },
+  ]
+}
 
 interface FormData {
   serviceType: ServiceType | null
@@ -74,6 +84,9 @@ function OnboardingContent() {
   const [showEmergency, setShowEmergency] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState<string>('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   
   const [formData, setFormData] = useState<FormData>({
     serviceType: null,
@@ -84,34 +97,74 @@ function OnboardingContent() {
     backdatingFee: 0,
   })
 
+  const steps = getSteps(isLoggedIn)
+
   // Check for pre-selected service from URL
   useEffect(() => {
     const service = searchParams.get('service') as ServiceType | null
     if (service && (service === 'sick_cert' || service === 'prescription')) {
       setFormData((prev) => ({ ...prev, serviceType: service }))
-      setCurrentStep(1)
+      // Only auto-advance if we're on step 0
+      if (currentStep === 0 && !isCheckingAuth) {
+        setCurrentStep(1)
+      }
     }
-  }, [searchParams])
+  }, [searchParams, currentStep, isCheckingAuth])
 
-  // Check if user is already logged in
+  // Check authentication status on mount and when returning from OAuth
   useEffect(() => {
     const checkAuth = async () => {
+      setIsCheckingAuth(true)
       try {
         const { data: { user }, error } = await supabase.auth.getUser()
+        
         if (error) {
           console.error('Error checking auth:', error)
-          return
-        }
-        if (user && currentStep === 3) {
-          // Skip account creation if already logged in
-          setCurrentStep(2) // Go to patient details instead
+          setIsLoggedIn(false)
+          setUserId(null)
+        } else if (user) {
+          setIsLoggedIn(true)
+          setUserId(user.id)
+          
+          // If user just came from Google signup during onboarding, show success
+          const googleSignup = searchParams.get('google_signup')
+          if (googleSignup === 'true') {
+            toast.success('Signed in with Google!')
+            // Remove the query param from URL
+            const newUrl = new URL(window.location.href)
+            newUrl.searchParams.delete('google_signup')
+            window.history.replaceState({}, '', newUrl.toString())
+          }
+        } else {
+          setIsLoggedIn(false)
+          setUserId(null)
         }
       } catch (error) {
         console.error('Unexpected error checking auth:', error)
+        setIsLoggedIn(false)
+        setUserId(null)
+      } finally {
+        setIsCheckingAuth(false)
       }
     }
+    
     checkAuth()
-  }, [supabase, currentStep])
+
+    // Listen for auth state changes (e.g., when returning from OAuth)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setIsLoggedIn(true)
+        setUserId(session.user.id)
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false)
+        setUserId(null)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase, searchParams])
 
   const goToStep = (step: number) => {
     setDirection(step > currentStep ? 1 : -1)
@@ -142,7 +195,7 @@ function OnboardingContent() {
       isBackdated,
       backdatingFee,
     }))
-    goToStep(2) // Go to Patient Details (account comes after)
+    goToStep(2) // Go to Patient Details
   }
 
   const handleEmergency = useCallback(() => {
@@ -165,27 +218,17 @@ function OnboardingContent() {
 
   const handlePatientDetailsComplete = async (data: PatientDetailsForm) => {
     setIsLoading(true)
+    setFormData((prev) => ({ ...prev, patientDetails: data }))
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError) {
-        console.error('Error getting user:', userError)
-        toast.error('Authentication error. Please try again.')
+      // If user is logged in, proceed directly to checkout
+      if (isLoggedIn && userId) {
+        await saveAndProceedToCheckout(data, userId)
+      } else {
+        // Go to account creation
+        goToStep(3)
         setIsLoading(false)
-        return
       }
-      
-      // If not logged in, go to account creation
-      if (!user) {
-        setFormData((prev) => ({ ...prev, patientDetails: data }))
-        goToStep(3) // Go to account creation
-        setIsLoading(false)
-        return
-      }
-
-      // User is logged in, proceed to save and checkout
-      await saveAndProceedToCheckout(data, user.id)
     } catch (error) {
       console.error('Error:', error)
       toast.error('An unexpected error occurred')
@@ -216,6 +259,8 @@ function OnboardingContent() {
 
       if (authData?.user) {
         setFormData((prev) => ({ ...prev, accountData: data }))
+        setIsLoggedIn(true)
+        setUserId(authData.user.id)
         toast.success('Account created successfully!')
         
         // Now save patient details and proceed to checkout
@@ -233,13 +278,13 @@ function OnboardingContent() {
     }
   }
 
-  const saveAndProceedToCheckout = async (patientDetails: PatientDetailsForm, userId: string) => {
+  const saveAndProceedToCheckout = async (patientDetails: PatientDetailsForm, authUserId: string) => {
     try {
       // Update or create profile
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          auth_user_id: userId,
+          auth_user_id: authUserId,
           first_name: patientDetails.firstName,
           last_name: patientDetails.lastName,
           full_name: `${patientDetails.firstName} ${patientDetails.lastName}`,
@@ -265,7 +310,7 @@ function OnboardingContent() {
       const { data: profile, error: profileFetchError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('auth_user_id', userId)
+        .eq('auth_user_id', authUserId)
         .single()
 
       if (profileFetchError) {
@@ -354,8 +399,125 @@ function OnboardingContent() {
     }
   }
 
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   if (showEmergency) {
     return <EmergencyAlert onDismiss={handleDismissEmergency} />
+  }
+
+  // Determine which step content to show
+  const getStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <motion.div
+            key="service"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={springTransition}
+          >
+            <ServiceSelection
+              value={formData.serviceType}
+              onChange={handleServiceSelect}
+              onNext={() => formData.serviceType && goToStep(1)}
+            />
+          </motion.div>
+        )
+      case 1:
+        if (formData.serviceType === 'sick_cert') {
+          return (
+            <motion.div
+              key="medcert-intake"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={springTransition}
+            >
+              <MedCertIntake
+                onNext={handleIntakeComplete}
+                onBack={goBack}
+                onEmergency={handleEmergency}
+                defaultValues={formData.intakeData as MedCertIntakeForm | undefined}
+                isBackdated={formData.isBackdated}
+                backdatingFee={formData.backdatingFee}
+              />
+            </motion.div>
+          )
+        }
+        return (
+          <motion.div
+            key="script-intake"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={springTransition}
+          >
+            <ScriptIntake
+              onNext={handleIntakeComplete}
+              onBack={goBack}
+              defaultValues={formData.intakeData as ScriptIntakeForm | undefined}
+            />
+          </motion.div>
+        )
+      case 2:
+        return (
+          <motion.div
+            key="patient-details"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={springTransition}
+          >
+            <PatientDetails
+              onNext={handlePatientDetailsComplete}
+              onBack={goBack}
+              isLoading={isLoading}
+              defaultValues={formData.patientDetails || undefined}
+            />
+          </motion.div>
+        )
+      case 3:
+        // Only show account creation for non-logged-in users
+        if (!isLoggedIn) {
+          return (
+            <motion.div
+              key="account"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={springTransition}
+            >
+              <AccountCreation
+                onNext={handleAccountCreate}
+                onBack={goBack}
+                isLoading={isLoading}
+                error={authError}
+              />
+            </motion.div>
+          )
+        }
+        return null
+      default:
+        return null
+    }
   }
 
   return (
@@ -382,7 +544,7 @@ function OnboardingContent() {
       {/* Progress */}
       <div className="border-b border-border bg-white py-4">
         <div className="container mx-auto px-4">
-          <StepIndicator steps={STEPS} currentStep={currentStep} />
+          <StepIndicator steps={steps} currentStep={currentStep} />
         </div>
       </div>
 
@@ -390,104 +552,7 @@ function OnboardingContent() {
       <main className="container mx-auto px-4 py-8 pb-32 md:pb-8">
         <div className="max-w-xl mx-auto relative overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
-            {/* Step 0: Service Selection */}
-            {currentStep === 0 && (
-              <motion.div
-                key="service"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-              >
-                <ServiceSelection
-                  value={formData.serviceType}
-                  onChange={handleServiceSelect}
-                  onNext={() => {}}
-                />
-              </motion.div>
-            )}
-
-            {/* Step 1: Intake Form */}
-            {currentStep === 1 && formData.serviceType === 'sick_cert' && (
-              <motion.div
-                key="medcert-intake"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-              >
-                <MedCertIntake
-                  onNext={handleIntakeComplete}
-                  onBack={goBack}
-                  onEmergency={handleEmergency}
-                  defaultValues={formData.intakeData as MedCertIntakeForm | undefined}
-                  isBackdated={formData.isBackdated}
-                  backdatingFee={formData.backdatingFee}
-                />
-              </motion.div>
-            )}
-
-            {currentStep === 1 && formData.serviceType === 'prescription' && (
-              <motion.div
-                key="script-intake"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-              >
-                <ScriptIntake
-                  onNext={handleIntakeComplete}
-                  onBack={goBack}
-                  defaultValues={formData.intakeData as ScriptIntakeForm | undefined}
-                />
-              </motion.div>
-            )}
-
-            {/* Step 2: Patient Details (before account) */}
-            {currentStep === 2 && (
-              <motion.div
-                key="patient-details"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-              >
-                <PatientDetails
-                  onNext={handlePatientDetailsComplete}
-                  onBack={goBack}
-                  isLoading={isLoading}
-                  defaultValues={formData.patientDetails || undefined}
-                />
-              </motion.div>
-            )}
-
-            {/* Step 3: Account Creation (last step before checkout) */}
-            {currentStep === 3 && (
-              <motion.div
-                key="account"
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={springTransition}
-              >
-                <AccountCreation
-                  onNext={handleAccountCreate}
-                  onBack={goBack}
-                  isLoading={isLoading}
-                  error={authError}
-                />
-              </motion.div>
-            )}
+            {getStepContent()}
           </AnimatePresence>
         </div>
       </main>
