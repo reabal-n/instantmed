@@ -1,7 +1,4 @@
 'use client'
 
-export function AnimatedBackground() {
-  // Stub component
-  return null
-}
+export { ParticleParallaxBackground as AnimatedBackground } from './particle-parallax-background'
 

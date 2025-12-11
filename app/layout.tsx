@@ -8,7 +8,7 @@ import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { SkipToContent } from "@/components/shared/skip-to-content"
-import { AnimatedBackground } from "@/components/effects/animated-background"
+import { ParticleParallaxBackground } from "@/components/effects/particle-parallax-background"
 import { ThemeProvider } from "next-themes"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import "./globals.css"
@@ -161,7 +161,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AnimatedBackground />
+          <ParticleParallaxBackground intensity="medium" />
           <SkipToContent />
           <div id="main-content" className="page-enter relative">
             {children}
