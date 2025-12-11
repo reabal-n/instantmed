@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InstantMed
 
-## Getting Started
+An asynchronous telehealth platform for medical certificates and prescriptions built for the Australian healthcare market.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Frontend:** Next.js 14+ (App Router), Tailwind CSS, shadcn/ui, Lucide React icons
+- **Backend/Auth:** Supabase (Auth, Postgres Database with RLS)
+- **Forms:** React Hook Form + Zod (strict validation)
+- **Payments:** Stripe (Payment Intents)
+
+## Features
+
+### Patient Flow
+- **Service Selection:** Choose between Medical Certificate or Prescription
+- **Multi-step Intake Form:** 
+  - Smart symptom selection with red flag detection
+  - Date picker with backdating warnings (+$10 fee)
+  - Emergency (000) alert for serious symptoms (chest pain, severe breathlessness)
+- **Account Creation:** Sunk cost flow - collect medical info before account creation
+- **Patient Details:** Medicare number validation with input masking (XXXX XXXXX X format)
+- **Stripe Checkout:** Priority review upsell (+$9.95 for 30-min turnaround)
+
+### Doctor Dashboard (/admin/dashboard)
+- View all pending consultations
+- Priority queue highlighting
+- Patient demographics with Medicare details
+- Intake data review with red flag keyword highlighting
+- Approve/Decline actions with Supabase integration
+
+### Compliance & Security
+- AHPRA-compliant telehealth flow
+- Medicare number validation (Luhn check)
+- Row Level Security (RLS) on all tables
+- Stripe webhook handling for payment status
+
+## Setup
+
+### 1. Environment Variables
+
+Create a `.env.local` file:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Database Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The database schema is already applied via Supabase migrations. Key tables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `profiles` - Patient information linked to auth.users
+- `requests` - Consultation requests (medical certs, prescriptions)
+- `request_answers` - JSONB intake form data
+- `payments` - Stripe payment records
+- `admin_emails` - Whitelist for admin dashboard access
 
-## Learn More
+### 3. Admin Access
 
-To learn more about Next.js, take a look at the following resources:
+Add your email to the `admin_emails` table to access `/admin/dashboard`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sql
+INSERT INTO admin_emails (email) VALUES ('your-email@example.com');
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Stripe Webhooks
 
-## Deploy on Vercel
+Configure your Stripe webhook to point to:
+```
+https://your-domain.com/api/webhooks/stripe
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Events to handle:
+- `payment_intent.succeeded`
+- `payment_intent.payment_failed`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 5. Run Development Server
+
+```bash
+npm install
+npm run dev
+```
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── admin/dashboard/    # Doctor review panel
+│   ├── api/
+│   │   ├── create-payment-intent/
+│   │   └── webhooks/stripe/
+│   ├── auth/callback/      # Supabase auth callback
+│   ├── checkout/           # Stripe checkout
+│   ├── dashboard/          # Patient dashboard
+│   ├── login/              # Authentication
+│   └── start/              # Onboarding wizard
+├── components/
+│   ├── onboarding/         # Multi-step wizard components
+│   │   ├── EmergencyAlert.tsx
+│   │   ├── StepIndicator.tsx
+│   │   └── steps/
+│   └── ui/                 # shadcn/ui components
+└── lib/
+    ├── supabase/           # Supabase client setup
+    ├── types.ts            # TypeScript types
+    ├── utils.ts            # Utility functions
+    └── validations.ts      # Zod schemas
+```
+
+## Pricing
+
+- Medical Certificate: $24.95 AUD
+- Prescription: $29.95 AUD
+- Backdating Fee: +$10.00 AUD
+- Priority Review: +$9.95 AUD
+
+## Mobile Optimization
+
+- All buttons are 44px+ height for touch targets
+- Sticky bottom navigation on mobile
+- Toast notifications via Sonner
+- Responsive design throughout
+
+## License
+
+Private - All rights reserved.
