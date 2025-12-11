@@ -37,6 +37,8 @@ interface MedCertIntakeProps {
   onBack: () => void
   onEmergency: () => void
   defaultValues?: Partial<MedCertIntakeForm>
+  isBackdated?: boolean
+  backdatingFee?: number
 }
 
 const SYMPTOMS = [
@@ -130,9 +132,9 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-slide-in">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
           Tell us about your condition
         </h2>
         <p className="text-muted-foreground">
@@ -151,11 +153,11 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
               <div
                 key={symptom.id}
                 className={cn(
-                  'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
+                  'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all h-12',
                   selectedSymptoms.includes(symptom.id)
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50',
-                  symptom.isRedFlag && 'border-destructive/50 hover:border-destructive'
+                    ? 'border-teal-600 bg-teal-50'
+                    : 'border-gray-200 hover:border-teal-400',
+                  symptom.isRedFlag && 'border-red-300 hover:border-red-400'
                 )}
                 onClick={() => handleSymptomToggle(symptom.id)}
               >
@@ -239,15 +241,14 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             
             {/* Backdating warning */}
             {isBackdated && (
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-warning/10 border border-warning/30">
-                <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border-2 border-amber-200">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-warning-foreground">
-                    Backdating Notice
+                  <p className="font-semibold text-amber-900 tracking-tight">
+                    Backdating requires clinical review (+$10)
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Backdating a medical certificate requires additional clinical review. 
-                    An extra <span className="font-semibold">$10</span> fee will apply.
+                  <p className="text-sm text-amber-700 mt-1">
+                    Certificates for past dates require additional review by a doctor.
                   </p>
                 </div>
               </div>
@@ -289,7 +290,7 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
               id="workType"
               {...register('workType')}
               placeholder="E.g., Office work, Retail, Construction..."
-              className="touch-target"
+              className="h-12 rounded-xl focus:ring-2 focus:ring-teal-600"
             />
             {errors.workType && (
               <p className="text-sm text-destructive">{errors.workType.message}</p>
@@ -314,40 +315,42 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="sticky-bottom-button flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="touch-target"
-          onClick={prevIntakeStep}
-        >
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Back
-        </Button>
-        
-        {step < 3 ? (
+      {/* Navigation - Sticky on mobile */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-gray-200 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="flex gap-3 max-w-xl mx-auto">
           <Button
             type="button"
+            variant="outline"
             size="lg"
-            className="flex-1 touch-target text-base"
-            onClick={nextIntakeStep}
-            disabled={step === 1 && (selectedSymptoms.length === 0 || !watch('symptomDetails'))}
+            className="h-11 md:h-12 min-h-[44px]"
+            onClick={prevIntakeStep}
           >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Back
           </Button>
-        ) : (
-          <Button
-            type="submit"
-            size="lg"
-            className="flex-1 touch-target text-base"
-          >
-            Continue
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        )}
+          
+          {step < 3 ? (
+            <Button
+              type="button"
+              size="lg"
+              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+              onClick={nextIntakeStep}
+              disabled={step === 1 && (selectedSymptoms.length === 0 || !watch('symptomDetails'))}
+            >
+              Continue
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="lg"
+              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Continue
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   )

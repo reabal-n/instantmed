@@ -63,34 +63,42 @@ interface Consultation {
   } | null
 }
 
-// Highlight red flag keywords
+// Highlight red flag keywords with red badges
 function highlightKeywords(text: string): React.ReactNode {
   const lowerText = text.toLowerCase()
-  let highlighted = false
+  const foundKeywords: string[] = []
   
+  // Find all keywords in the text
   for (const keyword of HIGHLIGHT_KEYWORDS) {
-    if (lowerText.includes(keyword)) {
-      highlighted = true
-      break
+    if (lowerText.includes(keyword.toLowerCase())) {
+      foundKeywords.push(keyword)
     }
   }
   
-  if (!highlighted) return text
+  if (foundKeywords.length === 0) return text
   
-  // Create regex pattern from keywords
-  const pattern = new RegExp(`(${HIGHLIGHT_KEYWORDS.join('|')})`, 'gi')
+  // Create regex pattern from keywords (case insensitive)
+  const pattern = new RegExp(`(${HIGHLIGHT_KEYWORDS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi')
   const parts = text.split(pattern)
   
-  return parts.map((part, idx) => {
-    if (HIGHLIGHT_KEYWORDS.some(k => part.toLowerCase() === k)) {
-      return (
-        <span key={idx} className="red-flag">
-          {part}
-        </span>
-      )
-    }
-    return part
-  })
+  return (
+    <span>
+      {parts.map((part, idx) => {
+        const isKeyword = HIGHLIGHT_KEYWORDS.some(k => part.toLowerCase() === k.toLowerCase())
+        if (isKeyword) {
+          return (
+            <Badge 
+              key={idx} 
+              className="bg-red-600 text-white hover:bg-red-700 mx-1 font-semibold"
+            >
+              {part}
+            </Badge>
+          )
+        }
+        return <span key={idx}>{part}</span>
+      })}
+    </span>
+  )
 }
 
 // Calculate age from DOB
@@ -151,7 +159,13 @@ export default function AdminDashboardPage() {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching consultations:', error)
+        toast.error('Failed to load consultations')
+        setLoading(false)
+        setRefreshing(false)
+        return
+      }
 
       // Transform the data - answers comes as an array, we need the first item
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -187,14 +201,23 @@ export default function AdminDashboardPage() {
         .update({ status: 'approved' })
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error approving request:', error)
+        toast.error('Failed to approve request')
+        setActionLoading(false)
+        return
+      }
 
-      toast.success('Request approved successfully')
+      const consultation = consultations.find(c => c.id === id)
+      const patientName = consultation?.patient.full_name || 
+        `${consultation?.patient.first_name} ${consultation?.patient.last_name}` || 'Patient'
+      
+      toast.success(`Script Approved for ${patientName}`)
       setSelectedConsultation(null)
-      fetchConsultations()
+      await fetchConsultations()
     } catch (error) {
-      console.error('Error approving:', error)
-      toast.error('Failed to approve request')
+      console.error('Unexpected error approving:', error)
+      toast.error('An unexpected error occurred')
     } finally {
       setActionLoading(false)
     }
@@ -208,14 +231,19 @@ export default function AdminDashboardPage() {
         .update({ status: 'declined' })
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error declining request:', error)
+        toast.error('Failed to decline request')
+        setActionLoading(false)
+        return
+      }
 
       toast.success('Request declined')
       setSelectedConsultation(null)
-      fetchConsultations()
+      await fetchConsultations()
     } catch (error) {
-      console.error('Error declining:', error)
-      toast.error('Failed to decline request')
+      console.error('Unexpected error declining:', error)
+      toast.error('An unexpected error occurred')
     } finally {
       setActionLoading(false)
     }
@@ -245,15 +273,15 @@ export default function AdminDashboardPage() {
   const priorityCount = consultations.filter(c => c.status === 'pending' && c.priority_review).length
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b border-border">
+    <div className="min-h-screen bg-slate-50">
+      {/* Header - Floating Action Bar */}
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Stethoscope className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
+              <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold">InstantMed</span>
+            <span className="text-lg font-semibold tracking-tight">InstantMed</span>
             <Badge variant="outline" className="ml-2">Admin</Badge>
           </Link>
           <Button
@@ -261,6 +289,7 @@ export default function AdminDashboardPage() {
             size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
+            className="h-9"
           >
             <RefreshCw className={cn('w-4 h-4 mr-2', refreshing && 'animate-spin')} />
             Refresh
@@ -268,11 +297,14 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      {/* Dashboard Content */}
-      <main className="container mx-auto px-4 py-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+      {/* Split-Pane Layout */}
+      <main className="flex h-[calc(100vh-4rem)]">
+        {/* Left Pane - Consultation List */}
+        <div className="w-full md:w-1/2 lg:w-2/5 border-r border-gray-200 overflow-y-auto bg-white">
+          <div className="p-4">
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
@@ -330,56 +362,52 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </div>
+              </Card>
+            </div>
 
-        {/* Filter Tabs */}
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="pending" className="gap-2">
-              <Clock className="w-4 h-4" />
-              Pending
-              {pendingCount > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800">
-                  {pendingCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="declined">Declined</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
+            {/* Filter Tabs */}
+            <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-4">
+              <TabsList className="w-full">
+                <TabsTrigger value="pending" className="gap-2 flex-1">
+                  <Clock className="w-4 h-4" />
+                  Pending
+                  {pendingCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 bg-yellow-100 text-yellow-800 text-xs">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="flex-1">Approved</TabsTrigger>
+                <TabsTrigger value="declined" className="flex-1">Declined</TabsTrigger>
+                <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        {/* Consultations List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Consultation Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-              </div>
-            ) : consultations.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No {filter === 'all' ? '' : filter} consultations found</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {consultations.map((consultation) => (
-                  <div
-                    key={consultation.id}
-                    className={cn(
-                      'flex items-center gap-4 py-4 px-2 -mx-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50',
-                      consultation.priority_review && consultation.status === 'pending' && 'bg-orange-50 hover:bg-orange-100'
-                    )}
-                    onClick={() => setSelectedConsultation(consultation)}
-                  >
+            {/* Consultations List */}
+            <div>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
+                </div>
+              ) : consultations.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No {filter === 'all' ? '' : filter} consultations found</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {consultations.map((consultation) => (
+                    <div
+                      key={consultation.id}
+                      className={cn(
+                        'flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border-2',
+                        selectedConsultation?.id === consultation.id
+                          ? 'border-teal-600 bg-teal-50 shadow-md'
+                          : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/50',
+                        consultation.priority_review && consultation.status === 'pending' && 'border-orange-300 bg-orange-50'
+                      )}
+                      onClick={() => setSelectedConsultation(consultation)}
+                    >
                     {/* Type Icon */}
                     <div className={cn(
                       'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
@@ -424,171 +452,35 @@ export default function AdminDashboardPage() {
                       {getStatusBadge(consultation.status)}
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-
-      {/* Review Panel Dialog */}
-      <Dialog open={!!selectedConsultation} onOpenChange={() => setSelectedConsultation(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          {selectedConsultation && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  Review Consultation
-                  {selectedConsultation.priority_review && (
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800 gap-1">
-                      <Zap className="w-3 h-3" />
-                      Priority
-                    </Badge>
-                  )}
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6">
-                {/* Patient Demographics */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Patient Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Name</p>
-                      <p className="font-medium">
-                        {selectedConsultation.patient.full_name ||
-                          `${selectedConsultation.patient.first_name} ${selectedConsultation.patient.last_name}`}
-                      </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Age</p>
-                      <p className="font-medium">
-                        {calculateAge(selectedConsultation.patient.date_of_birth)} years old
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Date of Birth</p>
-                      <p className="font-medium">
-                        {format(new Date(selectedConsultation.patient.date_of_birth), 'dd MMM yyyy')}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Gender</p>
-                      <p className="font-medium capitalize">
-                        {selectedConsultation.patient.gender || 'Not specified'}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground">Medicare</p>
-                      <p className="font-medium font-mono">
-                        {formatMedicare(
-                          selectedConsultation.patient.medicare_number,
-                          selectedConsultation.patient.medicare_irn
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <Separator />
-
-                {/* Request Details */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Request Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Type</p>
-                      <p className="font-medium capitalize">
-                        {selectedConsultation.type.replace(/_/g, ' ')}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Status</p>
-                      {getStatusBadge(selectedConsultation.status)}
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Submitted</p>
-                      <p className="font-medium">
-                        {format(new Date(selectedConsultation.created_at), 'dd MMM yyyy HH:mm')}
-                      </p>
-                    </div>
-                    {selectedConsultation.start_date && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Certificate Start Date
-                          {selectedConsultation.backdated && (
-                            <Badge variant="secondary" className="ml-2 bg-yellow-100 text-yellow-800 text-xs">
-                              Backdated
-                            </Badge>
-                          )}
-                        </p>
-                        <p className="font-medium">
-                          {format(new Date(selectedConsultation.start_date), 'dd MMM yyyy')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Intake Answers */}
-                {selectedConsultation.answers && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      Clinical Information
-                    </h3>
-                    <div className="p-4 rounded-lg bg-muted/50 space-y-3">
-                      {Object.entries(selectedConsultation.answers.answers).map(([key, value]) => (
-                        <div key={key}>
-                          <p className="text-xs text-muted-foreground capitalize">
-                            {key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')}
-                          </p>
-                          <div className="font-medium">
-                            {Array.isArray(value) ? (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {value.map((v, i) => (
-                                  <Badge key={i} variant="secondary">
-                                    {highlightKeywords(String(v))}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : typeof value === 'boolean' ? (
-                              value ? 'Yes' : 'No'
-                            ) : (
-                              <p className="whitespace-pre-wrap">
-                                {highlightKeywords(String(value))}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                {selectedConsultation.status === 'pending' && (
-                  <div className="flex gap-3 pt-4">
+        {/* Right Pane - Review Panel */}
+        <div className="hidden md:flex md:w-1/2 lg:w-3/5 overflow-y-auto bg-slate-50">
+          {selectedConsultation ? (
+            <div className="w-full p-6">
+              {/* Floating Action Bar */}
+              {selectedConsultation.status === 'pending' && (
+                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 -mx-6 mb-6 shadow-sm">
+                  <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      className="flex-1 touch-target border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                      size="lg"
+                      className="flex-1 h-12 min-h-[44px] border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-400"
                       onClick={() => handleDecline(selectedConsultation.id)}
                       disabled={actionLoading}
                     >
                       <XCircle className="w-5 h-5 mr-2" />
-                      Decline
+                      Reject
                     </Button>
                     <Button
-                      className="flex-1 touch-target bg-green-600 hover:bg-green-700"
+                      size="lg"
+                      className="flex-1 h-12 min-h-[44px] bg-green-600 hover:bg-green-700 text-white"
                       onClick={() => handleApprove(selectedConsultation.id)}
                       disabled={actionLoading}
                     >
@@ -600,12 +492,231 @@ export default function AdminDashboardPage() {
                       Approve
                     </Button>
                   </div>
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {/* Patient Demographics */}
+                <Card className="border-2 border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                      <User className="w-5 h-5 text-teal-600" />
+                      Patient Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="grid grid-cols-2 gap-4">
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Name</dt>
+                        <dd className="font-semibold text-base">
+                          {selectedConsultation.patient.full_name ||
+                            `${selectedConsultation.patient.first_name} ${selectedConsultation.patient.last_name}`}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Age</dt>
+                        <dd className="font-semibold text-base">
+                          {calculateAge(selectedConsultation.patient.date_of_birth)} years old
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Date of Birth</dt>
+                        <dd className="font-semibold text-base">
+                          {format(new Date(selectedConsultation.patient.date_of_birth), 'dd MMM yyyy')}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Gender</dt>
+                        <dd className="font-semibold text-base capitalize">
+                          {selectedConsultation.patient.gender || 'Not specified'}
+                        </dd>
+                      </div>
+                      <div className="col-span-2">
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Medicare</dt>
+                        <dd className="font-semibold text-base font-mono">
+                          {formatMedicare(
+                            selectedConsultation.patient.medicare_number,
+                            selectedConsultation.patient.medicare_irn
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
+
+                {/* Request Details */}
+                <Card className="border-2 border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                      <FileText className="w-5 h-5 text-teal-600" />
+                      Request Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="grid grid-cols-2 gap-4">
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Type</dt>
+                        <dd className="font-semibold text-base capitalize">
+                          {selectedConsultation.type.replace(/_/g, ' ')}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Status</dt>
+                        <dd>{getStatusBadge(selectedConsultation.status)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground font-medium mb-1">Submitted</dt>
+                        <dd className="font-semibold text-base">
+                          {format(new Date(selectedConsultation.created_at), 'dd MMM yyyy HH:mm')}
+                        </dd>
+                      </div>
+                      {selectedConsultation.start_date && (
+                        <div>
+                          <dt className="text-xs text-muted-foreground font-medium mb-1">
+                            Certificate Start Date
+                            {selectedConsultation.backdated && (
+                              <Badge variant="secondary" className="ml-2 bg-yellow-100 text-yellow-800 text-xs">
+                                Backdated
+                              </Badge>
+                            )}
+                          </dt>
+                          <dd className="font-semibold text-base">
+                            {format(new Date(selectedConsultation.start_date), 'dd MMM yyyy')}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  </CardContent>
+                </Card>
+
+                {/* Intake Answers with Red Flag Highlighting */}
+                {selectedConsultation.answers && (
+                  <Card className="border-2 border-gray-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        Clinical Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="space-y-4">
+                        {Object.entries(selectedConsultation.answers.answers).map(([key, value]) => (
+                          <div key={key} className="pb-4 border-b border-gray-100 last:border-0">
+                            <dt className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">
+                              {key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')}
+                            </dt>
+                            <dd className="font-medium text-base">
+                              {Array.isArray(value) ? (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {value.map((v, i) => (
+                                    <div key={i}>
+                                      {highlightKeywords(String(v))}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : typeof value === 'boolean' ? (
+                                <Badge variant={value ? 'default' : 'secondary'}>
+                                  {value ? 'Yes' : 'No'}
+                                </Badge>
+                              ) : (
+                                <div className="mt-2 whitespace-pre-wrap leading-relaxed">
+                                  {highlightKeywords(String(value))}
+                                </div>
+                              )}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
-            </>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+              <div className="text-center">
+                <FileText className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p className="text-lg font-medium">Select a consultation to review</p>
+                <p className="text-sm mt-2">Click on a request from the list to see details</p>
+              </div>
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </main>
+
+      {/* Mobile Review Panel - Show as overlay on mobile */}
+      {selectedConsultation && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50 flex items-end">
+          <div className="bg-white rounded-t-xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold tracking-tight">Review Consultation</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedConsultation(null)}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+
+              {/* Patient Demographics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold tracking-tight">Patient Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-xs text-muted-foreground font-medium mb-1">Name</dt>
+                      <dd className="font-semibold">
+                        {selectedConsultation.patient.full_name ||
+                          `${selectedConsultation.patient.first_name} ${selectedConsultation.patient.last_name}`}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground font-medium mb-1">Age</dt>
+                      <dd className="font-semibold">
+                        {calculateAge(selectedConsultation.patient.date_of_birth)} years old
+                      </dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons for Mobile */}
+              {selectedConsultation.status === 'pending' && (
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 h-12 min-h-[44px] border-red-300 text-red-700 hover:bg-red-50"
+                    onClick={() => handleDecline(selectedConsultation.id)}
+                    disabled={actionLoading}
+                  >
+                    <XCircle className="w-5 h-5 mr-2" />
+                    Reject
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="flex-1 h-12 min-h-[44px] bg-green-600 hover:bg-green-700"
+                    onClick={() => handleApprove(selectedConsultation.id)}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    ) : (
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                    )}
+                    Approve
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

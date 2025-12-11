@@ -92,10 +92,20 @@ function CheckoutForm({
     try {
       // Update the request with priority status
       if (priorityReview) {
-        await supabase
-          .from('requests')
-          .update({ priority_review: true })
-          .eq('id', requestId)
+        try {
+          const { error: updateError } = await supabase
+            .from('requests')
+            .update({ priority_review: true })
+            .eq('id', requestId)
+          
+          if (updateError) {
+            console.error('Error updating priority status:', updateError)
+            // Non-critical, continue with payment
+          }
+        } catch (updateErr) {
+          console.error('Unexpected error updating priority:', updateErr)
+          // Non-critical, continue with payment
+        }
       }
 
       const { error: submitError } = await stripe.confirmPayment({
@@ -123,44 +133,44 @@ function CheckoutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Order Summary */}
-      <Card>
+      <Card className="border-2 border-teal-100">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <pricing.icon className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-xl font-bold tracking-tight">
+            <pricing.icon className="w-5 h-5 text-teal-600" />
             Order Summary
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-between">
-            <span>{pricing.label}</span>
-            <span>${(basePrice / 100).toFixed(2)}</span>
+          <div className="flex justify-between items-center py-2">
+            <span className="font-medium">{pricing.label}</span>
+            <span className="font-semibold">${(basePrice / 100).toFixed(2)}</span>
           </div>
           
           {isBackdated && (
-            <div className="flex justify-between text-muted-foreground">
+            <div className="flex justify-between items-center py-2 text-amber-700">
               <span className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-warning" />
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
                 Backdating Review Fee
               </span>
-              <span>+${(backdatingFee / 100).toFixed(2)}</span>
+              <span className="font-semibold">+${(backdatingFee / 100).toFixed(2)}</span>
             </div>
           )}
           
           {priorityReview && (
-            <div className="flex justify-between text-primary">
+            <div className="flex justify-between items-center py-2 text-teal-700">
               <span className="flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                Priority Review
+                <Zap className="w-4 h-4 text-teal-600" />
+                Priority Review (Under 30 mins)
               </span>
-              <span>+${(priorityFee / 100).toFixed(2)}</span>
+              <span className="font-semibold">+${(priorityFee / 100).toFixed(2)}</span>
             </div>
           )}
           
           <Separator />
           
-          <div className="flex justify-between text-lg font-semibold">
-            <span>Total</span>
-            <span>${(totalPrice / 100).toFixed(2)} AUD</span>
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-lg font-bold tracking-tight">Total</span>
+            <span className="text-2xl font-bold text-teal-600">${(totalPrice / 100).toFixed(2)} AUD</span>
           </div>
         </CardContent>
       </Card>
@@ -218,12 +228,12 @@ function CheckoutForm({
         </div>
       )}
 
-      {/* Submit Button */}
-      <div className="sticky-bottom-button space-y-4">
+      {/* Submit Button - Sticky on mobile */}
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-gray-200 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none space-y-4">
         <Button
           type="submit"
           size="lg"
-          className="w-full touch-target text-base"
+          className="w-full h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white font-semibold"
           disabled={!stripe || isProcessing}
         >
           {isProcessing ? (
@@ -240,12 +250,12 @@ function CheckoutForm({
         
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <Shield className="w-4 h-4" />
-            Secure Payment
+            <Shield className="w-4 h-4 text-teal-600" />
+            <span className="font-medium">AES-256 Encrypted</span>
           </div>
           <div className="flex items-center gap-1">
-            <Lock className="w-4 h-4" />
-            256-bit SSL
+            <Lock className="w-4 h-4 text-teal-600" />
+            <span className="font-medium">Secure Payment</span>
           </div>
         </div>
       </div>

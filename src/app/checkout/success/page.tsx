@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import confetti from 'canvas-confetti'
 import { CheckCircle2, Clock, Mail, FileText, ArrowRight, Stethoscope } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,6 +12,37 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const requestId = searchParams.get('request_id')
   const [countdown, setCountdown] = useState(5)
+
+  // Trigger confetti on mount
+  useEffect(() => {
+    const duration = 3000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min
+    }
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now()
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval)
+      }
+
+      const particleCount = 50 * (timeLeft / duration)
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      })
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      })
+    }, 250)
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -65,44 +97,47 @@ function SuccessContent() {
             </p>
           )}
 
-          {/* What Happens Next */}
-          <Card className="mb-8 text-left">
+          {/* What Happens Next Timeline */}
+          <Card className="mb-8 text-left border-2 border-teal-100">
             <CardContent className="p-6 space-y-6">
-              <h2 className="font-semibold text-lg">What happens next?</h2>
+              <h2 className="font-bold text-xl tracking-tight">What happens next?</h2>
               
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-primary" />
+              <div className="space-y-6 relative">
+                {/* Timeline line */}
+                <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-teal-200" />
+                
+                <div className="flex gap-4 relative">
+                  <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white">
+                    <Clock className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <p className="font-medium">Doctor Review</p>
+                  <div className="flex-1 pb-6">
+                    <p className="font-semibold text-base mb-1">1. Doctor Reviews (Pending)</p>
                     <p className="text-sm text-muted-foreground">
                       A registered doctor will review your request within 2 hours (priority reviews within 30 minutes).
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-primary" />
+                <div className="flex gap-4 relative">
+                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white">
+                    <Mail className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <p className="font-medium">Email Notification</p>
+                  <div className="flex-1 pb-6">
+                    <p className="font-semibold text-base mb-1">2. SMS Sent (Next)</p>
                     <p className="text-sm text-muted-foreground">
-                      You&apos;ll receive an email when your document is ready or if we need more information.
+                      You&apos;ll receive an SMS when your document is ready or if we need more information.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-5 h-5 text-primary" />
+                <div className="flex gap-4 relative">
+                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white">
+                    <FileText className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <p className="font-medium">Document Delivery</p>
+                  <div className="flex-1">
+                    <p className="font-semibold text-base mb-1">3. Download PDF (Final)</p>
                     <p className="text-sm text-muted-foreground">
-                      Once approved, your medical document will be sent directly to your email as a PDF.
+                      Once approved, your medical document will be available for download in your dashboard.
                     </p>
                   </div>
                 </div>
@@ -113,14 +148,14 @@ function SuccessContent() {
           {/* Actions */}
           <div className="space-y-4">
             <Link href="/dashboard">
-              <Button size="lg" className="w-full touch-target">
-                View My Requests
+              <Button size="lg" className="w-full h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white font-semibold">
+                Go to Dashboard
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             
             <Link href="/">
-              <Button variant="outline" size="lg" className="w-full touch-target">
+              <Button variant="outline" size="lg" className="w-full h-12 min-h-[44px]">
                 Return to Home
               </Button>
             </Link>
