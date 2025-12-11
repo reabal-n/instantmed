@@ -1,6 +1,7 @@
 export { ServiceSelection } from './ServiceSelection'
 export { MedCertIntake } from './MedCertIntake'
 export { ScriptIntake } from './ScriptIntake'
+export { PathologyIntake } from './PathologyIntake'
+export { ReferralIntake } from './ReferralIntake'
 export { AccountCreation } from './AccountCreation'
 export { PatientDetails } from './PatientDetails'
-

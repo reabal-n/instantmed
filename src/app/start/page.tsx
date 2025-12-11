@@ -12,6 +12,8 @@ import { EmergencyAlert } from '@/components/onboarding/EmergencyAlert'
 import { ServiceSelection } from '@/components/onboarding/steps/ServiceSelection'
 import { MedCertIntake } from '@/components/onboarding/steps/MedCertIntake'
 import { ScriptIntake } from '@/components/onboarding/steps/ScriptIntake'
+import { PathologyIntake, type PathologyIntakeForm } from '@/components/onboarding/steps/PathologyIntake'
+import { ReferralIntake, type ReferralIntakeForm } from '@/components/onboarding/steps/ReferralIntake'
 import { AccountCreation } from '@/components/onboarding/steps/AccountCreation'
 import { PatientDetails } from '@/components/onboarding/steps/PatientDetails'
 import { createClient } from '@/lib/supabase/client'
@@ -43,7 +45,7 @@ const getSteps = (isLoggedIn: boolean) => {
 
 interface FormData {
   serviceType: ServiceType | null
-  intakeData: MedCertIntakeForm | ScriptIntakeForm | null
+  intakeData: MedCertIntakeForm | ScriptIntakeForm | PathologyIntakeForm | ReferralIntakeForm | null
   accountData: AccountForm | null
   patientDetails: PatientDetailsForm | null
   isBackdated: boolean
@@ -102,7 +104,8 @@ function OnboardingContent() {
   // Check for pre-selected service from URL
   useEffect(() => {
     const service = searchParams.get('service') as ServiceType | null
-    if (service && (service === 'sick_cert' || service === 'prescription')) {
+    const validServices: ServiceType[] = ['sick_cert', 'prescription', 'pathology', 'referral']
+    if (service && validServices.includes(service)) {
       setFormData((prev) => ({ ...prev, serviceType: service }))
       // Only auto-advance if we're on step 0
       if (currentStep === 0 && !isCheckingAuth) {
@@ -456,6 +459,45 @@ function OnboardingContent() {
             </motion.div>
           )
         }
+        if (formData.serviceType === 'pathology') {
+          return (
+            <motion.div
+              key="pathology-intake"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={springTransition}
+            >
+              <PathologyIntake
+                onNext={handleIntakeComplete}
+                onBack={goBack}
+                defaultValues={formData.intakeData as PathologyIntakeForm | undefined}
+              />
+            </motion.div>
+          )
+        }
+        if (formData.serviceType === 'referral') {
+          return (
+            <motion.div
+              key="referral-intake"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={springTransition}
+            >
+              <ReferralIntake
+                onNext={handleIntakeComplete}
+                onBack={goBack}
+                defaultValues={formData.intakeData as ReferralIntakeForm | undefined}
+              />
+            </motion.div>
+          )
+        }
+        // Default to prescription intake
         return (
           <motion.div
             key="script-intake"

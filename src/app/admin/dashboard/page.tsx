@@ -15,7 +15,7 @@ import {
   Calendar,
   User,
   ChevronRight,
-  Filter
+  FlaskConical
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { format, formatDistanceToNow } from 'date-fns'
@@ -263,8 +263,14 @@ export default function AdminDashboardPage() {
   }
 
   const getTypeIcon = (type: string) => {
-    if (type.includes('cert') || type.includes('certificate')) {
+    if (type.includes('cert') || type.includes('certificate') || type === 'sick_cert') {
       return <FileText className="w-4 h-4" />
+    }
+    if (type === 'pathology') {
+      return <FlaskConical className="w-4 h-4" />
+    }
+    if (type === 'referral') {
+      return <Stethoscope className="w-4 h-4" />
     }
     return <Pill className="w-4 h-4" />
   }
@@ -273,23 +279,23 @@ export default function AdminDashboardPage() {
   const priorityCount = consultations.filter(c => c.status === 'pending' && c.priority_review).length
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header - Floating Action Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-warm">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold tracking-tight">InstantMed</span>
-            <Badge variant="outline" className="ml-2">Admin</Badge>
+            <span className="text-lg font-semibold text-slate-900">InstantMed</span>
+            <Badge className="ml-2 bg-slate-900 text-white hover:bg-slate-800">Admin</Badge>
           </Link>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="h-9"
+            className="h-9 rounded-lg border-slate-200"
           >
             <RefreshCw className={cn('w-4 h-4 mr-2', refreshing && 'animate-spin')} />
             Refresh
@@ -300,7 +306,7 @@ export default function AdminDashboardPage() {
       {/* Split-Pane Layout */}
       <main className="flex h-[calc(100vh-4rem)]">
         {/* Left Pane - Consultation List */}
-        <div className="w-full md:w-1/2 lg:w-2/5 border-r border-gray-200 overflow-y-auto bg-white">
+        <div className="w-full md:w-1/2 lg:w-2/5 border-r border-slate-100 overflow-y-auto bg-white">
           <div className="p-4">
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -461,17 +467,17 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right Pane - Review Panel */}
-        <div className="hidden md:flex md:w-1/2 lg:w-3/5 overflow-y-auto bg-slate-50">
+        <div className="hidden md:flex md:w-1/2 lg:w-3/5 overflow-y-auto bg-warm">
           {selectedConsultation ? (
             <div className="w-full p-6">
               {/* Floating Action Bar */}
               {selectedConsultation.status === 'pending' && (
-                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-4 -mx-6 mb-6 shadow-sm">
+                <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-100 p-4 -mx-6 mb-6 rounded-t-xl">
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
                       size="lg"
-                      className="flex-1 h-12 min-h-[44px] border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-400"
+                      className="flex-1 h-12 min-h-[44px] border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl"
                       onClick={() => handleDecline(selectedConsultation.id)}
                       disabled={actionLoading}
                     >
@@ -480,7 +486,7 @@ export default function AdminDashboardPage() {
                     </Button>
                     <Button
                       size="lg"
-                      className="flex-1 h-12 min-h-[44px] bg-green-600 hover:bg-green-700 text-white"
+                      className="flex-1 h-12 min-h-[44px] bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-600/20"
                       onClick={() => handleApprove(selectedConsultation.id)}
                       disabled={actionLoading}
                     >
@@ -497,9 +503,9 @@ export default function AdminDashboardPage() {
 
               <div className="space-y-6">
                 {/* Patient Demographics */}
-                <Card className="border-2 border-gray-200">
+                <Card className="border-2 border-slate-100 rounded-2xl">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
                       <User className="w-5 h-5 text-teal-600" />
                       Patient Information
                     </CardTitle>
@@ -545,9 +551,9 @@ export default function AdminDashboardPage() {
                 </Card>
 
                 {/* Request Details */}
-                <Card className="border-2 border-gray-200">
+                <Card className="border-2 border-slate-100 rounded-2xl">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
+                    <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
                       <FileText className="w-5 h-5 text-teal-600" />
                       Request Details
                     </CardTitle>
@@ -591,10 +597,10 @@ export default function AdminDashboardPage() {
 
                 {/* Intake Answers with Red Flag Highlighting */}
                 {selectedConsultation.answers && (
-                  <Card className="border-2 border-gray-200">
+                  <Card className="border-2 border-slate-100 rounded-2xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900">
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
                         Clinical Information
                       </CardTitle>
                     </CardHeader>

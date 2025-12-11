@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { 
   Stethoscope, 
   FileText, 
@@ -16,13 +16,25 @@ import {
   Plus,
   User,
   LogOut,
-  FlaskConical
+  FlaskConical,
+  Download,
+  Mail,
+  Calendar,
+  Zap,
+  X
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
 
 // Animation variants for staggered children
@@ -57,7 +69,10 @@ interface Request {
   paid: boolean
   payment_status: string
   priority_review: boolean
+  start_date: string | null
+  backdated: boolean
   created_at: string
+  updated_at: string
 }
 
 interface Profile {
@@ -65,6 +80,7 @@ interface Profile {
   full_name: string
   first_name: string | null
   last_name: string | null
+  email?: string
 }
 
 export default function DashboardPage() {
@@ -74,6 +90,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,7 +110,7 @@ export default function DashboardPage() {
         .single()
 
       if (profileData) {
-        setProfile(profileData)
+        setProfile({ ...profileData, email: user.email })
 
         // Fetch requests
         const { data: requestsData } = await supabase
@@ -119,27 +136,57 @@ export default function DashboardPage() {
     router.push('/')
   }
 
-  const getStatusBadge = (status: string, paymentStatus: string) => {
+  const getStatusBadge = (status: string, paymentStatus: string, size: 'sm' | 'md' = 'sm') => {
+    const baseClasses = size === 'md' ? 'text-sm px-3 py-1' : ''
     if (paymentStatus === 'pending_payment') {
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Awaiting Payment</Badge>
+      return <Badge variant="secondary" className={`bg-yellow-100 text-yellow-800 ${baseClasses}`}>Awaiting Payment</Badge>
     }
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Under Review</Badge>
+        return <Badge variant="secondary" className={`bg-blue-100 text-blue-800 ${baseClasses}`}>Under Review</Badge>
       case 'approved':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Approved</Badge>
+        return <Badge variant="secondary" className={`bg-green-100 text-green-800 ${baseClasses}`}>Approved</Badge>
       case 'declined':
-        return <Badge variant="secondary" className="bg-red-100 text-red-800">Declined</Badge>
+        return <Badge variant="secondary" className={`bg-red-100 text-red-800 ${baseClasses}`}>Declined</Badge>
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary" className={baseClasses}>{status}</Badge>
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    if (type.includes('cert') || type.includes('certificate')) {
-      return <FileText className="w-5 h-5" />
+  const getTypeIcon = (type: string, size: 'sm' | 'lg' = 'sm') => {
+    const iconClass = size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'
+    if (type.includes('cert') || type.includes('certificate') || type === 'sick_cert') {
+      return <FileText className={iconClass} />
     }
-    return <Pill className="w-5 h-5" />
+    if (type === 'pathology') {
+      return <FlaskConical className={iconClass} />
+    }
+    if (type === 'referral') {
+      return <Stethoscope className={iconClass} />
+    }
+    return <Pill className={iconClass} />
+  }
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'sick_cert':
+        return 'Medical Certificate'
+      case 'prescription':
+        return 'Prescription'
+      case 'pathology':
+        return 'Pathology Request'
+      case 'referral':
+        return 'Specialist Referral'
+      default:
+        return type.replace(/_/g, ' ')
+    }
+  }
+
+  const getTypeColor = (type: string) => {
+    if (type.includes('cert') || type === 'sick_cert') return 'teal'
+    if (type === 'pathology') return 'rose'
+    if (type === 'referral') return 'amber'
+    return 'purple'
   }
 
   const getStatusIcon = (status: string) => {
@@ -157,7 +204,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-warm">
         <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
       </div>
     )
@@ -325,21 +372,28 @@ export default function DashboardPage() {
                       key={request.id}
                       className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors cursor-pointer"
                       variants={itemVariants}
+                      onClick={() => setSelectedRequest(request)}
                     >
                       <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center border border-slate-200">
                         {getTypeIcon(request.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 capitalize truncate text-sm">
-                          {request.type.replace(/_/g, ' ')}
+                        <p className="font-medium text-slate-900 truncate text-sm">
+                          {getTypeLabel(request.type)}
                         </p>
                         <p className="text-xs text-slate-500">
                           {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {getStatusIcon(request.status)}
+                        {request.priority_review && (
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                            <Zap className="w-3 h-3 mr-1" />
+                            Priority
+                          </Badge>
+                        )}
                         {getStatusBadge(request.status, request.payment_status)}
+                        <ArrowRight className="w-4 h-4 text-slate-400" />
                       </div>
                     </motion.div>
                   ))}
@@ -349,7 +403,159 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
       </main>
+
+      {/* Request Detail Modal */}
+      <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {selectedRequest && (
+                <>
+                  <div className={`w-10 h-10 rounded-xl bg-${getTypeColor(selectedRequest.type)}-50 flex items-center justify-center`}>
+                    {getTypeIcon(selectedRequest.type, 'lg')}
+                  </div>
+                  <div>
+                    <span className="block">{selectedRequest && getTypeLabel(selectedRequest.type)}</span>
+                    <span className="text-sm font-normal text-slate-500">
+                      Request #{selectedRequest?.id.slice(0, 8)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="space-y-6 pt-4">
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-500">Status</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(selectedRequest.status)}
+                  {getStatusBadge(selectedRequest.status, selectedRequest.payment_status, 'md')}
+                </div>
+              </div>
+              
+              <Separator />
+              
+              {/* Details */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-500 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Submitted
+                  </span>
+                  <span className="text-sm font-medium text-slate-900">
+                    {format(new Date(selectedRequest.created_at), 'dd MMM yyyy, h:mm a')}
+                  </span>
+                </div>
+                
+                {selectedRequest.start_date && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Certificate start date
+                    </span>
+                    <span className="text-sm font-medium text-slate-900">
+                      {format(new Date(selectedRequest.start_date), 'dd MMM yyyy')}
+                      {selectedRequest.backdated && (
+                        <Badge variant="secondary" className="ml-2 bg-amber-100 text-amber-700 text-xs">
+                          Backdated
+                        </Badge>
+                      )}
+                    </span>
+                  </div>
+                )}
+                
+                {selectedRequest.priority_review && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-500 flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Priority review
+                    </span>
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                      Yes
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              
+              <Separator />
+              
+              {/* Status-specific content */}
+              {selectedRequest.status === 'pending' && (
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-800 text-sm">Under review</p>
+                      <p className="text-sm text-blue-600 mt-1">
+                        A doctor is reviewing your request. You&apos;ll receive an email once it&apos;s complete.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {selectedRequest.status === 'approved' && (
+                <div className="space-y-3">
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-green-800 text-sm">Approved!</p>
+                        <p className="text-sm text-green-600 mt-1">
+                          Your document has been sent to your email.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1" size="sm">
+                      <Mail className="w-4 h-4 mr-2" />
+                      Resend email
+                    </Button>
+                    <Button className="flex-1 bg-teal-600 hover:bg-teal-700" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download PDF
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {selectedRequest.status === 'declined' && (
+                <div className="space-y-3">
+                  <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-red-800 text-sm">Request declined</p>
+                        <p className="text-sm text-red-600 mt-1">
+                          Unfortunately, we couldn&apos;t approve this request. Please check your email for details.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="w-full" size="sm" onClick={() => {
+                    setSelectedRequest(null)
+                    router.push('/contact')
+                  }}>
+                    Contact support
+                  </Button>
+                </div>
+              )}
+              
+              {/* Help text */}
+              <p className="text-xs text-slate-400 text-center">
+                Need help?{' '}
+                <Link href="/contact" className="text-teal-600 hover:text-teal-700 underline underline-offset-2">
+                  Contact support
+                </Link>
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-
