@@ -46,7 +46,7 @@ export function CategoryFilters() {
             {getMedicationsByCategory(activeCategory as any).map((med) => (
               <Link
                 key={med.slug}
-                href={`/prescriptions/${med.slug}`}
+                href={`/prescriptions/med/${med.slug}`}
                 className="p-3 rounded-lg hover:bg-muted transition-colors text-sm"
               >
                 <div className="font-medium">{med.name}</div>

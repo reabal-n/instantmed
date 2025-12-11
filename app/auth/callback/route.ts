@@ -47,7 +47,7 @@ export async function GET(request: Request) {
           }
 
           if (flow === "questionnaire" && redirectTo) {
-            return NextResponse.redirect(`${origin}${redirectTo}`)
+            return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
           }
 
           // New user - redirect to onboarding
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
         // Existing user - redirect based on role and onboarding status
         if (existingProfile.role === "patient") {
           if (flow === "questionnaire" && redirectTo) {
-            return NextResponse.redirect(`${origin}${redirectTo}`)
+            return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
           }
 
           if (!existingProfile.onboarding_completed) {

@@ -59,25 +59,31 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
   // Check for returning users who confirmed their email
   useEffect(() => {
     const checkSession = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const authSuccess = urlParams.get("auth_success")
+
       const supabase = createClient()
       const {
         data: { session },
       } = await supabase.auth.getSession()
 
-      if (session?.user) {
-        // User is logged in (came back after email confirmation)
+      if (session?.user && authSuccess === "true") {
+        // User just completed Google OAuth and came back
         const pendingName = sessionStorage.getItem("pending_profile_name")
         const pendingDob = sessionStorage.getItem("pending_profile_dob")
 
         const userName = pendingName || session.user.user_metadata?.full_name || ""
         const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
 
-        // Now we can safely create profile - user exists in auth.users
         const { profileId, error: profileError } = await createOrGetProfile(session.user.id, userName, userDob)
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
           sessionStorage.removeItem("pending_profile_dob")
+
+          // Clear the auth_success param from URL
+          window.history.replaceState({}, "", window.location.pathname)
+
           onAuthComplete(session.user.id, profileId)
           router.refresh()
         }

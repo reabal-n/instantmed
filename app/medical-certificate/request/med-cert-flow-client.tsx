@@ -21,7 +21,6 @@ import {
   Heart,
   Eye,
   EyeOff,
-  HelpCircle,
   X,
   AlertCircle,
   Check,
@@ -32,14 +31,14 @@ import {
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
 
 // Flow steps
-type FlowStep = "type" | "duration" | "symptoms" | "notes" | "safety" | "medicare" | "signup" | "review" | "payment"
+type FlowStep = "type" | "duration" | "symptoms" | "notes" | "safety" | "signup" | "review" | "payment"
 
-const STEPS: FlowStep[] = ["type", "duration", "symptoms", "notes", "safety", "medicare", "signup", "review", "payment"]
+const STEPS: FlowStep[] = ["type", "duration", "symptoms", "notes", "safety", "signup", "review", "payment"]
 
 // Certificate types with compliant labels
 const CERT_TYPES = [
@@ -404,15 +403,16 @@ export function MedCertFlowClient({
 
   // Progress calculation
   const getCurrentStepIndex = () => {
-    if (["type", "duration", "symptoms", "notes", "safety"].includes(step)) return 0
-    if (step === "medicare") return 1
-    if (step === "signup") return 2
-    if (step === "review") return 3
-    if (step === "payment") return 4
+    // Adjusted indices to account for the removal of 'medicare'
+    if (step === "type" || step === "duration" || step === "symptoms" || step === "notes" || step === "safety") return 0
+    if (step === "signup") return 1
+    if (step === "review") return 2
+    if (step === "payment") return 3
     return 0
   }
 
-  const progressSteps = ["Details", "Medicare", "Account", "Review", "Pay"] as const
+  // Adjusted progressSteps to reflect the removal of 'medicare'
+  const progressSteps = ["Details", "Account", "Review", "Pay"] as const
   const currentProgressIndex = getCurrentStepIndex()
 
   // Navigation
@@ -421,18 +421,16 @@ export function MedCertFlowClient({
     const currentIndex = STEPS.indexOf(step)
 
     if (step === "safety") {
-      if (isAuthenticated && !needsOnboarding) {
-        setStep("review")
-        return
-      }
-      setStep(isAuthenticated ? "medicare" : "medicare")
+      // Modified logic to skip medicare if it's removed
+      setStep(isAuthenticated ? "signup" : "signup")
       return
     }
 
-    if (step === "medicare") {
-      setStep(isAuthenticated ? "review" : "signup")
-      return
-    }
+    // Removed logic related to medicare step
+    // if (step === "medicare") {
+    //   setStep(isAuthenticated ? "review" : "signup")
+    //   return
+    // }
 
     if (step === "signup") {
       setStep("review")
@@ -459,23 +457,26 @@ export function MedCertFlowClient({
     }
 
     if (step === "review") {
+      // Modified logic to skip medicare if it's removed
       if (isAuthenticated && !needsOnboarding) {
         setStep("safety")
         return
       }
-      setStep(isAuthenticated ? "medicare" : "signup")
+      setStep(isAuthenticated ? "signup" : "signup")
       return
     }
 
     if (step === "signup") {
-      setStep("medicare")
-      return
-    }
-
-    if (step === "medicare") {
+      // Removed logic related to medicare step
       setStep("safety")
       return
     }
+
+    // Removed logic related to medicare step
+    // if (step === "medicare") {
+    //   setStep("safety")
+    //   return
+    // }
 
     if (currentIndex > 0) {
       setStep(STEPS[currentIndex - 1])
@@ -567,8 +568,9 @@ export function MedCertFlowClient({
         return true
       case "safety":
         return hasChestPain !== null && hasSevereSymptoms !== null && isEmergency !== null && !isRedFlag
-      case "medicare":
-        return medicareValid && irn !== null && dateOfBirth
+      // Removed 'medicare' validation
+      // case "medicare":
+      //   return medicareValid && irn !== null && dateOfBirth
       case "signup":
         return signupMode === "existing" ? email && password : fullName && email && password && termsAccepted
       case "review":
@@ -589,6 +591,7 @@ export function MedCertFlowClient({
     try {
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
+      // Preserve dateOfBirth for signup
       sessionStorage.setItem("pending_profile_dob", dateOfBirth)
 
       const callbackUrl = new URL("/auth/callback", window.location.origin)
@@ -634,7 +637,7 @@ export function MedCertFlowClient({
         const { profileId } = await createOrGetProfile(
           authData.user.id,
           authData.user.user_metadata?.full_name || "",
-          dateOfBirth,
+          dateOfBirth, // Pass DOB from form
         )
 
         if (!profileId) throw new Error(MICROCOPY.errors.generic)
@@ -667,14 +670,15 @@ export function MedCertFlowClient({
 
           if (!profileId) throw new Error(MICROCOPY.errors.generic)
 
-          await supabase
-            .from("profiles")
-            .update({
-              medicare_number: medicareNumber.replace(/\s/g, ""),
-              medicare_irn: irn,
-              onboarding_completed: true,
-            })
-            .eq("id", profileId)
+          // Removed medicare number and IRN update from profile creation
+          // await supabase
+          //   .from("profiles")
+          //   .update({
+          //     medicare_number: medicareNumber.replace(/\s/g, ""),
+          //     medicare_irn: irn,
+          //     onboarding_completed: true,
+          //   })
+          //   .eq("id", profileId)
 
           setPatientId(profileId)
           setIsAuthenticated(true)
@@ -774,7 +778,8 @@ export function MedCertFlowClient({
               title={MICROCOPY.type.heading}
               subtitle={MICROCOPY.type.subtitle}
               stepNumber={1}
-              totalSteps={5}
+              // Adjusted totalSteps count
+              totalSteps={4}
             />
 
             <div className="space-y-2" role="radiogroup" aria-label="Certificate type">
@@ -1027,101 +1032,9 @@ export function MedCertFlowClient({
           </section>
         )
 
+      // Removed medicare step rendering
       case "medicare":
-        return (
-          <section aria-labelledby="step-medicare-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.medicare.heading} subtitle={MICROCOPY.medicare.subtitle} />
-
-            <div className="p-4 rounded-xl bg-white border border-border space-y-4">
-              <div className="space-y-1">
-                <Label htmlFor="medicare-number" className="text-xs font-medium">
-                  {MICROCOPY.medicare.numberLabel}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="medicare-number"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder={MICROCOPY.medicare.numberPlaceholder}
-                    value={medicareNumber}
-                    onChange={(e) => handleMedicareChange(e.target.value)}
-                    className={`h-12 rounded-xl text-lg tracking-wider pr-10 font-mono ${
-                      medicareError ? "border-destructive" : medicareValid ? "border-green-500" : ""
-                    }`}
-                    aria-describedby={medicareError ? "medicare-error" : medicareValid ? "medicare-success" : undefined}
-                    aria-invalid={!!medicareError}
-                    autoComplete="off"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {medicareValid && <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />}
-                    {medicareError && medicareNumber.length > 0 && (
-                      <AlertCircle className="w-5 h-5 text-destructive" aria-hidden="true" />
-                    )}
-                  </div>
-                </div>
-                {medicareError && medicareNumber.length > 0 && (
-                  <p id="medicare-error" className="text-xs text-destructive" role="alert">
-                    {medicareError}
-                  </p>
-                )}
-                {medicareValid && (
-                  <p id="medicare-success" className="text-xs text-green-600">
-                    {MICROCOPY.medicare.valid}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <Label className="text-xs font-medium">{MICROCOPY.medicare.irnLabel}</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button type="button" className="p-0.5 rounded-full hover:bg-muted" aria-label="What is IRN?">
-                          <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[200px]">
-                        <p className="text-xs">{MICROCOPY.medicare.irnTooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="flex gap-1.5 flex-wrap" role="radiogroup" aria-label="Individual Reference Number">
-                  {IRNS.map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setIrn(num)}
-                      aria-pressed={irn === num}
-                      className={`
-                        w-10 h-10 rounded-lg text-sm font-medium transition-all
-                        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
-                        ${irn === num ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}
-                      `}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="dob" className="text-xs font-medium">
-                  {MICROCOPY.medicare.dobLabel}
-                </Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="h-12 rounded-xl"
-                  max={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-            </div>
-          </section>
-        )
+        return null
 
       case "signup":
         return (
@@ -1129,6 +1042,8 @@ export function MedCertFlowClient({
             <StepHeader
               title={signupMode === "new" ? MICROCOPY.signup.headingNew : MICROCOPY.signup.headingExisting}
               subtitle={MICROCOPY.signup.subtitle}
+              stepNumber={2} // Updated step number
+              totalSteps={4} // Updated totalSteps count
             />
 
             <div className="space-y-3">
@@ -1297,7 +1212,12 @@ export function MedCertFlowClient({
       case "review":
         return (
           <section aria-labelledby="step-review-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.review.heading} subtitle={MICROCOPY.review.subtitle} />
+            <StepHeader
+              title={MICROCOPY.review.heading}
+              subtitle={MICROCOPY.review.subtitle}
+              stepNumber={3} // Updated step number
+              totalSteps={4} // Updated totalSteps count
+            />
 
             <div className="rounded-xl border border-border bg-white divide-y divide-border">
               {/* Certificate type */}
@@ -1368,7 +1288,8 @@ export function MedCertFlowClient({
               </div>
 
               {/* Medicare */}
-              <div className="flex items-center justify-between p-3">
+              {/* Removed medicare section from review */}
+              {/* <div className="flex items-center justify-between p-3">
                 <div className="space-y-0.5">
                   <p className="text-xs text-muted-foreground">{MICROCOPY.review.medicare}</p>
                   <p className="text-sm font-medium font-mono">
@@ -1383,7 +1304,7 @@ export function MedCertFlowClient({
                 >
                   <Pencil className="w-4 h-4 text-muted-foreground" />
                 </button>
-              </div>
+              </div> */}
             </div>
           </section>
         )
@@ -1391,7 +1312,12 @@ export function MedCertFlowClient({
       case "payment":
         return (
           <section aria-labelledby="step-payment-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.payment.heading} subtitle={MICROCOPY.payment.subtitle} />
+            <StepHeader
+              title={MICROCOPY.payment.heading}
+              subtitle={MICROCOPY.payment.subtitle}
+              stepNumber={4} // Updated step number
+              totalSteps={4} // Updated totalSteps count
+            />
 
             <div className="rounded-xl border border-border bg-white p-4 space-y-4">
               <div className="flex items-center justify-between">
