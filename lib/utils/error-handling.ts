@@ -157,3 +157,50 @@ export async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDe
 
   throw lastError
 }
+
+export const FRIENDLY_ERRORS = {
+  // Medicare
+  medicareInvalid: "Medicare number doesn't look right — should be 10 digits, check your card",
+  medicareIncomplete: (remaining: number) => `${remaining} more digit${remaining === 1 ? "" : "s"} to go`,
+  medicareStartDigit: "Medicare numbers start with 2, 3, 4, 5 or 6",
+  irnInvalid: "IRN should be 1-9 — it's the number next to your name on the card",
+
+  // Auth
+  emailExists: "That email's already got an account — want to sign in instead?",
+  invalidCredentials: "Email or password doesn't match. Try again?",
+  passwordTooShort: "Password needs at least 6 characters",
+  invalidEmail: "That email doesn't look right — mind checking it?",
+
+  // Payment
+  cardDeclined: "Your card was declined. Got another one handy?",
+  paymentFailed: "Payment didn't go through. Try a different card?",
+  paymentCancelled: "No worries — your answers are saved. Complete payment when you're ready.",
+
+  // Network
+  offline: "Looks like you're offline. Check your connection?",
+  timeout: "This is taking longer than usual. Try again?",
+
+  // Generic
+  generic: "Whoops, something went wrong on our end. Try again?",
+  notFound: "We couldn't find what you're looking for",
+  forbidden: "You don't have access to this. Need to sign in?",
+  rateLimited: "Slow down a bit! Try again in a minute.",
+}
+
+export function getFriendlyError(code: string, fallback?: string): string {
+  const errorMap: Record<string, string> = {
+    invalid_credentials: FRIENDLY_ERRORS.invalidCredentials,
+    user_already_exists: FRIENDLY_ERRORS.emailExists,
+    invalid_email: FRIENDLY_ERRORS.invalidEmail,
+    weak_password: FRIENDLY_ERRORS.passwordTooShort,
+    card_declined: FRIENDLY_ERRORS.cardDeclined,
+    payment_failed: FRIENDLY_ERRORS.paymentFailed,
+    network_error: FRIENDLY_ERRORS.offline,
+    timeout: FRIENDLY_ERRORS.timeout,
+    not_found: FRIENDLY_ERRORS.notFound,
+    forbidden: FRIENDLY_ERRORS.forbidden,
+    rate_limited: FRIENDLY_ERRORS.rateLimited,
+  }
+
+  return errorMap[code] || fallback || FRIENDLY_ERRORS.generic
+}

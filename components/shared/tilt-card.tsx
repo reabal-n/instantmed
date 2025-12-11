@@ -40,19 +40,6 @@ export function TiltCard({ children, className, tiltAmount = 10, ...props }: Til
   }
 
   return (
-    <div
-      ref={cardRef}
-      className={cn("tilt-card relative overflow-hidden", className)}
-      style={{
-        transform,
-        ["--mouse-x" as string]: `${mousePosition.x}%`,
-        ["--mouse-y" as string]: `${mousePosition.y}%`,
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      {...props}
-    >
-      {children}
-    </div>
+    null
   )
 }

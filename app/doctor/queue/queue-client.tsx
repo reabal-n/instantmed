@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -43,17 +43,10 @@ import {
   Calendar,
   MapPin,
   RefreshCw,
+  Zap,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, escalateRequestAction, flagForFollowupAction } from "./actions"
-import type { RequestWithPatient } from "@/types/db"
-
-interface QueueClientProps {
-  requests: RequestWithPatient[]
-  doctorId: string
-  doctorName: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
-}
+import type { QueueClientProps } from "./types" // Declare the QueueClientProps type
 
 export function QueueClient({
   requests: initialRequests,
@@ -208,7 +201,18 @@ export function QueueClient({
     })
   }
 
-  const filteredRequests = requests.filter((r) => {
+  // Sort requests: priority first, then by created_at (oldest first)
+  const sortedRequests = useMemo(() => {
+    return [...requests].sort((a, b) => {
+      // Priority requests come first
+      if (a.priority_review && !b.priority_review) return -1
+      if (!a.priority_review && b.priority_review) return 1
+      // Then sort by created_at (oldest first)
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    })
+  }, [requests])
+
+  const filteredRequests = sortedRequests.filter((r) => {
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -291,6 +295,12 @@ export function QueueClient({
                               {request.subtype && (
                                 <Badge variant="secondary" className="text-xs">
                                   {formatSubtype(request.subtype)}
+                                </Badge>
+                              )}
+                              {request.priority_review && (
+                                <Badge className="bg-amber-100 text-amber-700 border-amber-200 ml-2">
+                                  <Zap className="w-3 h-3 mr-1" />
+                                  Priority
                                 </Badge>
                               )}
                             </div>

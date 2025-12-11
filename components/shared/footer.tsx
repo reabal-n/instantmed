@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { FileText, Pill, Stethoscope, Mail, Zap } from "lucide-react"
+import { FileText, Pill, Stethoscope, Mail, Zap, Heart, Shield, Scale } from "lucide-react"
+import { RotatingReviews } from "@/components/homepage/dynamic-social-proof"
 
 export function Footer() {
   return (
     <footer className="border-t bg-muted/30" role="contentinfo">
       <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="space-y-3 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2" aria-label="InstantMed home">
@@ -17,6 +18,9 @@ export function Footer() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Medical certificates, prescriptions & referrals — handled online, no phone call needed.
             </p>
+            <div className="pt-3">
+              <RotatingReviews />
+            </div>
           </div>
 
           {/* Services */}
@@ -53,6 +57,39 @@ export function Footer() {
             </ul>
           </nav>
 
+          <nav className="space-y-3" aria-label="Health Programs">
+            <h3 className="text-sm font-semibold">Health Programs</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/womens-health"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Heart className="h-4 w-4 text-pink-500" aria-hidden="true" />
+                  Women's Health
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/mens-health"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Shield className="h-4 w-4 text-blue-500" aria-hidden="true" />
+                  Men's Health
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/weight-loss"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Scale className="h-4 w-4 text-[#00E2B5]" aria-hidden="true" />
+                  Weight Loss
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
           {/* Company */}
           <nav className="space-y-3" aria-label="Company">
             <h3 className="text-sm font-semibold">Company</h3>
@@ -76,8 +113,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/reviews" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Reviews
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/trust" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Why Trust Us
                 </Link>
               </li>
             </ul>

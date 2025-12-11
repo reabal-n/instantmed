@@ -27,10 +27,46 @@ import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { isTestMode, TEST_DATA } from "@/lib/test-mode"
 import { skipPaymentTestMode } from "@/app/actions/test-actions"
+import { PriorityUpsell } from "@/components/checkout/priority-upsell"
 
 // Types
 type Service = "medcert" | "prescription" | "referral"
 type Step = "service" | "clinical" | "safety" | "medicare" | "account" | "review"
+
+interface FormData {
+  // Service
+  service: Service
+  // Clinical
+  certType: string
+  duration: string
+  startDate: string
+  endDate: string
+  symptoms: string[]
+  notes: string
+  carerPatientName: string
+  carerRelationship: string
+  // Prescription specific
+  medicationName: string
+  isRepeat: boolean
+  lastPrescribedDate: string
+  prescribingDoctor: string
+  // Referral specific
+  testTypes: string[]
+  clinicalReason: string
+  urgency: string
+  // Safety
+  safetyAnswers: Record<string, boolean>
+  // Medicare
+  medicareNumber: string
+  medicareIrn: number
+  // Account
+  email: string
+  password: string
+  fullName: string
+  dob: string
+  phone: string
+  priorityReview: boolean
+}
 
 interface Props {
   initialService?: Service
@@ -285,6 +321,37 @@ export function UnifiedFlowClient({
   const [showPassword, setShowPassword] = useState(false)
   const [agreedTerms, setAgreedTerms] = useState(false)
 
+  // Initialize form state from props and saved draft
+  const initialFormData = {
+    service: initialService || "medcert", // Default to medcert if not provided
+    certType: "work",
+    duration: "2 days",
+    startDate: "",
+    endDate: "",
+    symptoms: [],
+    notes: "",
+    carerPatientName: "",
+    carerRelationship: "",
+    medicationName: "",
+    isRepeat: true,
+    lastPrescribedDate: "",
+    prescribingDoctor: "",
+    testTypes: [],
+    clinicalReason: "",
+    urgency: "",
+    safetyAnswers: { pregnant: false, allergies: false, reactions: false, urgent: false },
+    medicareNumber: savedMedicare || "",
+    medicareIrn: savedIrn || 0,
+    email: userEmail || "",
+    password: "",
+    fullName: userName || "",
+    dob: "",
+    phone: "",
+    priorityReview: false, // Default to false
+  }
+
+  const [form, setForm] = useState<FormData>(initialFormData)
+
   // Controlled substance check
   const isControlled = useMemo(
     () => service === "prescription" && isControlledSubstance(medication),
@@ -343,6 +410,7 @@ export function UnifiedFlowClient({
   // Auto-advance on service selection
   const selectService = (s: Service) => {
     setService(s)
+    setForm({ ...form, service: s })
     setTimeout(() => goTo("clinical"), 200)
   }
 
@@ -356,6 +424,7 @@ export function UnifiedFlowClient({
       formatted += digits[i]
     }
     setMedicare(formatted)
+    setForm({ ...form, medicareNumber: formatted })
 
     if (digits.length === 0) {
       setMedicareError(null)
@@ -400,6 +469,8 @@ export function UnifiedFlowClient({
       notes,
       medicare,
       irn,
+      // Save other form fields as well
+      ...form,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
   }, [
@@ -424,6 +495,7 @@ export function UnifiedFlowClient({
     notes,
     medicare,
     irn,
+    form, // Include form in dependencies
   ])
 
   // Restore draft on mount
@@ -433,30 +505,94 @@ export function UnifiedFlowClient({
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         const draft = JSON.parse(saved)
-        if (draft.service) setService(draft.service)
-        if (draft.certType) setCertType(draft.certType)
-        if (draft.duration) setDuration(draft.duration)
-        if (draft.symptoms) setSymptoms(draft.symptoms)
-        if (draft.otherSymptom) setOtherSymptom(draft.otherSymptom)
-        if (draft.carerName) setCarerName(draft.carerName)
-        if (draft.carerRelation) setCarerRelation(draft.carerRelation)
-        if (draft.rxType) setRxType(draft.rxType)
-        if (draft.medication) setMedication(draft.medication)
-        if (draft.condition) setCondition(draft.condition)
-        if (draft.rxDuration) setRxDuration(draft.rxDuration)
-        if (draft.rxControl) setRxControl(draft.rxControl)
-        if (draft.rxSideEffects) setRxSideEffects(draft.rxSideEffects)
-        if (draft.refType) setRefType(draft.refType)
-        if (draft.selectedTests) setSelectedTests(draft.selectedTests)
-        if (draft.imagingType) setImagingType(draft.imagingType)
-        if (draft.bodyRegion) setBodyRegion(draft.bodyRegion)
-        if (draft.testReason) setTestReason(draft.testReason)
-        if (draft.notes) setNotes(draft.notes)
+        if (draft.service) {
+          setService(draft.service)
+          setForm((prev) => ({ ...prev, service: draft.service }))
+        }
+        if (draft.certType) {
+          setCertType(draft.certType)
+          setForm((prev) => ({ ...prev, certType: draft.certType }))
+        }
+        if (draft.duration) {
+          setDuration(draft.duration)
+          setForm((prev) => ({ ...prev, duration: draft.duration }))
+        }
+        if (draft.symptoms) {
+          setSymptoms(draft.symptoms)
+          setForm((prev) => ({ ...prev, symptoms: draft.symptoms }))
+        }
+        if (draft.otherSymptom) {
+          setOtherSymptom(draft.otherSymptom)
+          setForm((prev) => ({ ...prev, otherSymptom: draft.otherSymptom }))
+        }
+        if (draft.carerName) {
+          setCarerName(draft.carerName)
+          setForm((prev) => ({ ...prev, carerPatientName: draft.carerName })) // Map to form field
+        }
+        if (draft.carerRelation) {
+          setCarerRelation(draft.carerRelation)
+          setForm((prev) => ({ ...prev, carerRelationship: draft.carerRelation })) // Map to form field
+        }
+        if (draft.rxType) {
+          setRxType(draft.rxType)
+          setForm((prev) => ({ ...prev, isRepeat: draft.rxType === "repeat" })) // Map to form field
+        }
+        if (draft.medication) {
+          setMedication(draft.medication)
+          setForm((prev) => ({ ...prev, medicationName: draft.medication })) // Map to form field
+        }
+        if (draft.condition) {
+          setCondition(draft.condition)
+          setForm((prev) => ({ ...prev, clinicalReason: draft.condition })) // Map to form field
+        }
+        if (draft.rxDuration) {
+          setRxDuration(draft.rxDuration)
+          setForm((prev) => ({ ...prev, duration: draft.rxDuration })) // Map to form field, may need adjustment
+        }
+        if (draft.rxControl) {
+          setRxControl(draft.rxControl)
+          setForm((prev) => ({ ...prev, urgency: draft.rxControl })) // Map to form field, may need adjustment
+        }
+        if (draft.rxSideEffects) {
+          setRxSideEffects(draft.rxSideEffects)
+          setForm((prev) => ({ ...prev, notes: draft.rxSideEffects })) // Map to form field, may need adjustment
+        }
+        if (draft.refType) {
+          setRefType(draft.refType)
+          setForm((prev) => ({ ...prev, testTypes: draft.refType === "blood" ? [] : [draft.refType] })) // Map to form field, may need adjustment
+        }
+        if (draft.selectedTests) {
+          setSelectedTests(draft.selectedTests)
+          setForm((prev) => ({ ...prev, testTypes: draft.selectedTests })) // Map to form field
+        }
+        if (draft.imagingType) {
+          setImagingType(draft.imagingType)
+          setForm((prev) => ({ ...prev, testTypes: [draft.imagingType] })) // Map to form field
+        }
+        if (draft.bodyRegion) {
+          setBodyRegion(draft.bodyRegion)
+          setForm((prev) => ({ ...prev, clinicalReason: draft.bodyRegion })) // Map to form field, may need adjustment
+        }
+        if (draft.testReason) {
+          setTestReason(draft.testReason)
+          setForm((prev) => ({ ...prev, clinicalReason: draft.testReason })) // Map to form field
+        }
+        if (draft.notes) {
+          setNotes(draft.notes)
+          setForm((prev) => ({ ...prev, notes: draft.notes }))
+        }
         if (draft.medicare) {
           setMedicare(draft.medicare)
           handleMedicareChange(draft.medicare)
+          setForm((prev) => ({ ...prev, medicareNumber: draft.medicare }))
         }
-        if (draft.irn) setIrn(draft.irn)
+        if (draft.irn) {
+          setIrn(draft.irn)
+          setForm((prev) => ({ ...prev, medicareIrn: draft.irn }))
+        }
+
+        // Load other form fields if they exist in the draft
+        setForm((prev) => ({ ...prev, ...draft }))
       }
     } catch {}
   }, [])
@@ -589,7 +725,7 @@ export function UnifiedFlowClient({
         patientId,
         category,
         subtype,
-        formData: details,
+        formData: { ...details, priorityReview: form.priorityReview }, // Include priorityReview
       })
 
       if (result.error) throw new Error(result.error)
@@ -605,9 +741,12 @@ export function UnifiedFlowClient({
 
   // Get price
   const getPrice = () => {
-    if (service === "medcert") return COPY.global.price.medcert
-    if (service === "prescription") return COPY.global.price.prescription
-    return COPY.global.price.referral
+    let basePrice = 0
+    if (service === "medcert") basePrice = 19.95
+    else if (service === "prescription") basePrice = 24.95
+    else if (service === "referral") basePrice = 29.95
+
+    return (basePrice + (form.priorityReview ? 10 : 0)).toFixed(2)
   }
 
   // Can continue from clinical step?
@@ -741,7 +880,10 @@ export function UnifiedFlowClient({
                 {(["work", "uni", "carer"] as const).map((t) => (
                   <button
                     key={t}
-                    onClick={() => setCertType(t)}
+                    onClick={() => {
+                      setCertType(t)
+                      setForm({ ...form, certType: t })
+                    }}
                     className={`p-3 rounded-xl border-2 text-center transition-all ${certType === t ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
                   >
                     <span className="text-lg">{COPY.medcert.types[t].emoji}</span>
@@ -756,7 +898,14 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.medcert.duration.heading}</Label>
               <div className="flex flex-wrap gap-2">
                 {COPY.medcert.duration.options.map((opt) => (
-                  <Chip key={opt} selected={duration === opt} onClick={() => setDuration(opt)}>
+                  <Chip
+                    key={opt}
+                    selected={duration === opt}
+                    onClick={() => {
+                      setDuration(opt)
+                      setForm({ ...form, duration: opt })
+                    }}
+                  >
                     {opt}
                   </Chip>
                 ))}
@@ -766,12 +915,18 @@ export function UnifiedFlowClient({
                   <Input
                     type="date"
                     value={customDates.from}
-                    onChange={(e) => setCustomDates({ ...customDates, from: e.target.value })}
+                    onChange={(e) => {
+                      setCustomDates({ ...customDates, from: e.target.value })
+                      setForm({ ...form, startDate: e.target.value })
+                    }}
                   />
                   <Input
                     type="date"
                     value={customDates.to}
-                    onChange={(e) => setCustomDates({ ...customDates, to: e.target.value })}
+                    onChange={(e) => {
+                      setCustomDates({ ...customDates, to: e.target.value })
+                      setForm({ ...form, endDate: e.target.value })
+                    }}
                   />
                 </div>
               )}
@@ -784,7 +939,10 @@ export function UnifiedFlowClient({
                   <Label className="text-sm">{COPY.medcert.carer.nameLabel}</Label>
                   <Input
                     value={carerName}
-                    onChange={(e) => setCarerName(e.target.value)}
+                    onChange={(e) => {
+                      setCarerName(e.target.value)
+                      setForm({ ...form, carerPatientName: e.target.value })
+                    }}
                     placeholder={COPY.medcert.carer.namePlaceholder}
                   />
                 </div>
@@ -792,7 +950,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm">{COPY.medcert.carer.relationLabel}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.medcert.carer.relations.map((r) => (
-                      <Chip key={r} selected={carerRelation === r} onClick={() => setCarerRelation(r)}>
+                      <Chip
+                        key={r}
+                        selected={carerRelation === r}
+                        onClick={() => {
+                          setCarerRelation(r)
+                          setForm({ ...form, carerRelationship: r })
+                        }}
+                      >
                         {r}
                       </Chip>
                     ))}
@@ -812,9 +977,13 @@ export function UnifiedFlowClient({
                   <Chip
                     key={s.id}
                     selected={symptoms.includes(s.id)}
-                    onClick={() =>
-                      setSymptoms((prev) => (prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id]))
-                    }
+                    onClick={() => {
+                      const newSymptoms = symptoms.includes(s.id)
+                        ? symptoms.filter((x) => x !== s.id)
+                        : [...symptoms, s.id]
+                      setSymptoms(newSymptoms)
+                      setForm({ ...form, symptoms: newSymptoms })
+                    }}
                   >
                     {s.emoji} {s.label}
                   </Chip>
@@ -824,7 +993,10 @@ export function UnifiedFlowClient({
                 <Input
                   className="mt-2"
                   value={otherSymptom}
-                  onChange={(e) => setOtherSymptom(e.target.value)}
+                  onChange={(e) => {
+                    setOtherSymptom(e.target.value)
+                    setForm({ ...form, symptoms: [...symptoms.filter((s) => s !== "other"), "other"] }) // Ensure 'other' is always present if described
+                  }}
                   placeholder="Describe your symptoms..."
                 />
               )}
@@ -836,7 +1008,10 @@ export function UnifiedFlowClient({
               <p className="text-xs text-muted-foreground">{COPY.notes.subtitle}</p>
               <Textarea
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setNotes(e.target.value)
+                  setForm({ ...form, notes: e.target.value })
+                }}
                 placeholder={COPY.notes.placeholder}
                 rows={3}
                 className="resize-none"
@@ -852,7 +1027,14 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">Prescription type</Label>
               <div className="grid grid-cols-2 gap-2">
                 {(["repeat", "new"] as const).map((t) => (
-                  <SelectCard key={t} selected={rxType === t} onClick={() => setRxType(t)}>
+                  <SelectCard
+                    key={t}
+                    selected={rxType === t}
+                    onClick={() => {
+                      setRxType(t)
+                      setForm({ ...form, isRepeat: t === "repeat" })
+                    }}
+                  >
                     <div className="font-medium">{COPY.prescription.types[t].label}</div>
                     <div className="text-xs text-muted-foreground">{COPY.prescription.types[t].description}</div>
                   </SelectCard>
@@ -865,7 +1047,10 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.prescription.medication.heading}</Label>
               <Input
                 value={medication}
-                onChange={(e) => setMedication(e.target.value)}
+                onChange={(e) => {
+                  setMedication(e.target.value)
+                  setForm({ ...form, medicationName: e.target.value })
+                }}
                 placeholder={COPY.prescription.medication.placeholder}
               />
               {isControlled && (
@@ -881,7 +1066,14 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.prescription.condition.heading}</Label>
               <div className="flex flex-wrap gap-2">
                 {COPY.prescription.condition.options.map((c) => (
-                  <Chip key={c.id} selected={condition === c.id} onClick={() => setCondition(c.id)}>
+                  <Chip
+                    key={c.id}
+                    selected={condition === c.id}
+                    onClick={() => {
+                      setCondition(c.id)
+                      setForm({ ...form, clinicalReason: c.id })
+                    }}
+                  >
                     {c.label}
                   </Chip>
                 ))}
@@ -895,7 +1087,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm font-medium">{COPY.prescription.duration.heading}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.prescription.duration.options.map((d) => (
-                      <Chip key={d.id} selected={rxDuration === d.id} onClick={() => setRxDuration(d.id)}>
+                      <Chip
+                        key={d.id}
+                        selected={rxDuration === d.id}
+                        onClick={() => {
+                          setRxDuration(d.id)
+                          setForm({ ...form, duration: d.id })
+                        }}
+                      >
                         {d.label}
                       </Chip>
                     ))}
@@ -906,7 +1105,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm font-medium">{COPY.prescription.control.heading}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.prescription.control.options.map((c) => (
-                      <Chip key={c.id} selected={rxControl === c.id} onClick={() => setRxControl(c.id)}>
+                      <Chip
+                        key={c.id}
+                        selected={rxControl === c.id}
+                        onClick={() => {
+                          setRxControl(c.id)
+                          setForm({ ...form, urgency: c.id })
+                        }}
+                      >
                         {c.label}
                       </Chip>
                     ))}
@@ -917,7 +1123,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm font-medium">{COPY.prescription.sideEffects.heading}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.prescription.sideEffects.options.map((s) => (
-                      <Chip key={s.id} selected={rxSideEffects === s.id} onClick={() => setRxSideEffects(s.id)}>
+                      <Chip
+                        key={s.id}
+                        selected={rxSideEffects === s.id}
+                        onClick={() => {
+                          setRxSideEffects(s.id)
+                          setForm({ ...form, notes: s.id }) // Mapping side effects to notes for now
+                        }}
+                      >
                         {s.label}
                       </Chip>
                     ))}
@@ -931,7 +1144,10 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.notes.heading}</Label>
               <Textarea
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setNotes(e.target.value)
+                  setForm({ ...form, notes: e.target.value })
+                }}
                 placeholder={COPY.notes.placeholder}
                 rows={3}
                 className="resize-none"
@@ -947,7 +1163,14 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">What do you need?</Label>
               <div className="grid grid-cols-2 gap-2">
                 {(["blood", "imaging"] as const).map((t) => (
-                  <SelectCard key={t} selected={refType === t} onClick={() => setRefType(t)}>
+                  <SelectCard
+                    key={t}
+                    selected={refType === t}
+                    onClick={() => {
+                      setRefType(t)
+                      setForm({ ...form, testTypes: t === "blood" ? [] : [t] }) // Adjust form state
+                    }}
+                  >
                     <span className="text-2xl">{COPY.referral.types[t].emoji}</span>
                     <div className="font-medium mt-1">{COPY.referral.types[t].label}</div>
                   </SelectCard>
@@ -964,11 +1187,13 @@ export function UnifiedFlowClient({
                     <Chip
                       key={t.id}
                       selected={selectedTests.includes(t.id)}
-                      onClick={() =>
-                        setSelectedTests((prev) =>
-                          prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id],
-                        )
-                      }
+                      onClick={() => {
+                        const newSelectedTests = selectedTests.includes(t.id)
+                          ? selectedTests.filter((x) => x !== t.id)
+                          : [...selectedTests, t.id]
+                        setSelectedTests(newSelectedTests)
+                        setForm({ ...form, testTypes: newSelectedTests })
+                      }}
                     >
                       {t.label}
                     </Chip>
@@ -984,7 +1209,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm font-medium">{COPY.referral.imaging.heading}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.referral.imaging.options.map((t) => (
-                      <Chip key={t.id} selected={imagingType === t.id} onClick={() => setImagingType(t.id)}>
+                      <Chip
+                        key={t.id}
+                        selected={imagingType === t.id}
+                        onClick={() => {
+                          setImagingType(t.id)
+                          setForm({ ...form, testTypes: [t.id] })
+                        }}
+                      >
                         {t.label}
                       </Chip>
                     ))}
@@ -994,7 +1226,14 @@ export function UnifiedFlowClient({
                   <Label className="text-sm font-medium">{COPY.referral.imaging.region.heading}</Label>
                   <div className="flex flex-wrap gap-2">
                     {COPY.referral.imaging.region.options.map((r) => (
-                      <Chip key={r.id} selected={bodyRegion === r.id} onClick={() => setBodyRegion(r.id)}>
+                      <Chip
+                        key={r.id}
+                        selected={bodyRegion === r.id}
+                        onClick={() => {
+                          setBodyRegion(r.id)
+                          setForm({ ...form, clinicalReason: r.id })
+                        }}
+                      >
                         {r.label}
                       </Chip>
                     ))}
@@ -1008,7 +1247,10 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.referral.reason.heading}</Label>
               <Textarea
                 value={testReason}
-                onChange={(e) => setTestReason(e.target.value)}
+                onChange={(e) => {
+                  setTestReason(e.target.value)
+                  setForm({ ...form, clinicalReason: e.target.value })
+                }}
                 placeholder={COPY.referral.reason.placeholder}
                 rows={3}
                 className="resize-none"
@@ -1042,13 +1284,19 @@ export function UnifiedFlowClient({
                     <span className="text-sm font-medium pr-4">{label}</span>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [key]: false }))}
+                        onClick={() => {
+                          setSafetyAnswers((prev) => ({ ...prev, [key]: false }))
+                          setForm({ ...form, safetyAnswers: { ...form.safetyAnswers, [key]: false } })
+                        }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!safetyAnswers[key as keyof typeof safetyAnswers] ? "bg-primary text-primary-foreground" : "bg-muted"}`}
                       >
                         {COPY.safety.labels.no}
                       </button>
                       <button
-                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [key]: true }))}
+                        onClick={() => {
+                          setSafetyAnswers((prev) => ({ ...prev, [key]: true }))
+                          setForm({ ...form, safetyAnswers: { ...form.safetyAnswers, [key]: true } })
+                        }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${safetyAnswers[key as keyof typeof safetyAnswers] ? "bg-destructive text-destructive-foreground" : "bg-muted"}`}
                       >
                         {COPY.safety.labels.yes}
@@ -1094,7 +1342,10 @@ export function UnifiedFlowClient({
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                     <button
                       key={n}
-                      onClick={() => setIrn(n)}
+                      onClick={() => {
+                        setIrn(n)
+                        setForm({ ...form, medicareIrn: n })
+                      }}
                       className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${irn === n ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}`}
                     >
                       {n}
@@ -1111,6 +1362,7 @@ export function UnifiedFlowClient({
                 setMedicare(TEST_DATA.medicare.number)
                 handleMedicareChange(TEST_DATA.medicare.number)
                 setIrn(TEST_DATA.medicare.irn)
+                setForm({ ...form, medicareNumber: TEST_DATA.medicare.number, medicareIrn: TEST_DATA.medicare.irn })
               }}
             />
 
@@ -1155,7 +1407,10 @@ export function UnifiedFlowClient({
                   <Label className="text-sm">{COPY.account.name.label}</Label>
                   <Input
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => {
+                      setFullName(e.target.value)
+                      setForm({ ...form, fullName: e.target.value })
+                    }}
                     placeholder={COPY.account.name.placeholder}
                   />
                 </div>
@@ -1165,7 +1420,10 @@ export function UnifiedFlowClient({
                 <Input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setForm({ ...form, email: e.target.value })
+                  }}
                   placeholder={COPY.account.email.placeholder}
                 />
               </div>
@@ -1175,7 +1433,10 @@ export function UnifiedFlowClient({
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setForm({ ...form, password: e.target.value })
+                    }}
                     placeholder={COPY.account.password.placeholder}
                     className="pr-10"
                   />
@@ -1194,7 +1455,10 @@ export function UnifiedFlowClient({
                   <input
                     type="checkbox"
                     checked={agreedTerms}
-                    onChange={(e) => setAgreedTerms(e.target.checked)}
+                    onChange={(e) => {
+                      setAgreedTerms(e.target.checked)
+                      setForm({ ...form, agreedTerms: e.target.checked })
+                    }}
                     className="mt-1"
                   />
                   <span className="text-muted-foreground">
@@ -1302,9 +1566,38 @@ export function UnifiedFlowClient({
                 )}
               </div>
               <hr />
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total</span>
-                <span className="text-2xl font-bold">{getPrice()}</span>
+
+              {/* Add this in the review step, before the payment button */}
+              <div className="pt-4 border-t">
+                <PriorityUpsell
+                  selected={form.priorityReview}
+                  onToggle={(selected) => setForm({ ...form, priorityReview: selected })}
+                  basePrice={service === "medcert" ? 19.95 : service === "prescription" ? 24.95 : 29.95}
+                />
+              </div>
+
+              {/* Price summary */}
+              <div className="p-4 bg-muted/50 rounded-xl space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>
+                    {service === "medcert"
+                      ? "Medical Certificate"
+                      : service === "prescription"
+                        ? "Prescription"
+                        : "Referral"}
+                  </span>
+                  <span>${service === "medcert" ? "19.95" : service === "prescription" ? "24.95" : "29.95"}</span>
+                </div>
+                {form.priorityReview && (
+                  <div className="flex justify-between text-sm text-amber-600">
+                    <span>Priority Review</span>
+                    <span>+$10.00</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold pt-2 border-t">
+                  <span>Total</span>
+                  <span>${getPrice()}</span>
+                </div>
               </div>
             </div>
 
@@ -1318,7 +1611,7 @@ export function UnifiedFlowClient({
                 </>
               ) : (
                 <>
-                  {COPY.payment.cta} · {getPrice()}
+                  {COPY.payment.cta} · ${getPrice()}
                 </>
               )}
             </Button>
