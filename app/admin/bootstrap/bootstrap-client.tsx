@@ -39,7 +39,7 @@ export function BootstrapClient() {
     try {
       const res = await bootstrapAdminUser()
       setResult(res)
-    } catch (err) {
+    } catch {
       setResult({ success: false, message: "An unexpected error occurred" })
     } finally {
       setIsRunning(false)

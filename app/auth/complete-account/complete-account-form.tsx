@@ -15,10 +15,10 @@ import confetti from "canvas-confetti"
 export function CompleteAccountForm({
   requestId,
   email,
-  sessionId,
 }: {
   requestId?: string
   email?: string
+  /** @deprecated sessionId is kept for backwards compatibility but no longer used */
   sessionId?: string
 }) {
   const router = useRouter()

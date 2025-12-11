@@ -2,10 +2,19 @@
 
 import { createClient } from "@/lib/supabase/server"
 
+// Type for draft data - using unknown for type safety
+type DraftData = Record<string, unknown>
+
+// Type for Supabase/Postgres errors
+interface DatabaseError {
+  message: string
+  code?: string
+}
+
 export async function saveDraftToSupabase(
   patientId: string,
   flowType: string,
-  data: Record<string, any>,
+  data: DraftData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
@@ -31,8 +40,9 @@ export async function saveDraftToSupabase(
     } else {
       // Create new draft - we'll use a special "draft" request_id format
       // In production, you might want a separate drafts table
+      // Note: Using type assertion here as draft IDs use a different format than UUIDs
       const { error } = await supabase.from("request_answers").insert({
-        request_id: `draft_${patientId}_${flowType}` as any, // Draft identifier
+        request_id: `draft_${patientId}_${flowType}` as unknown as string,
         answers: data,
       })
 
@@ -40,16 +50,17 @@ export async function saveDraftToSupabase(
     }
 
     return { success: true }
-  } catch (error: any) {
-    console.error("Failed to save draft:", error)
-    return { success: false, error: error.message }
+  } catch (error) {
+    const dbError = error as DatabaseError
+    console.error("Failed to save draft:", dbError)
+    return { success: false, error: dbError.message }
   }
 }
 
 export async function loadDraftFromSupabase(
   patientId: string,
   flowType: string,
-): Promise<{ success: boolean; data?: Record<string, any>; error?: string }> {
+): Promise<{ success: boolean; data?: DraftData; error?: string }> {
   try {
     const supabase = await createClient()
 
@@ -63,11 +74,12 @@ export async function loadDraftFromSupabase(
 
     return {
       success: true,
-      data: data?.answers as Record<string, any> | undefined,
+      data: data?.answers as DraftData | undefined,
     }
-  } catch (error: any) {
-    console.error("Failed to load draft:", error)
-    return { success: false, error: error.message }
+  } catch (error) {
+    const dbError = error as DatabaseError
+    console.error("Failed to load draft:", dbError)
+    return { success: false, error: dbError.message }
   }
 }
 
@@ -80,8 +92,9 @@ export async function deleteDraft(patientId: string, flowType: string): Promise<
     if (error) throw error
 
     return { success: true }
-  } catch (error: any) {
-    console.error("Failed to delete draft:", error)
-    return { success: false, error: error.message }
+  } catch (error) {
+    const dbError = error as DatabaseError
+    console.error("Failed to delete draft:", dbError)
+    return { success: false, error: dbError.message }
   }
 }

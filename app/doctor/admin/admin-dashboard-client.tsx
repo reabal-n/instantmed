@@ -24,7 +24,8 @@ interface AdminDashboardClientProps {
     declined: number
     needs_follow_up: number
   }
-  doctorName: string
+  /** @deprecated doctorName is passed but not used in the current implementation */
+  doctorName?: string
   formatCategory: (category: string | null) => string
   formatSubtype: (subtype: string | null) => string
 }
@@ -32,7 +33,6 @@ interface AdminDashboardClientProps {
 export function AdminDashboardClient({
   allRequests,
   stats,
-  doctorName,
   formatCategory,
   formatSubtype,
 }: AdminDashboardClientProps) {
@@ -138,7 +138,7 @@ export function AdminDashboardClient({
 
       if (!response.ok) throw new Error("Failed to update")
       toast.success(!currentValue ? "Script marked as sent" : "Script marked as not sent")
-    } catch (error) {
+    } catch {
       // Revert on error
       setLocalRequests((prev) =>
         prev.map((r) =>

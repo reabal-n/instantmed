@@ -51,7 +51,6 @@ import type { QueueClientProps } from "./types" // Declare the QueueClientProps 
 export function QueueClient({
   requests: initialRequests,
   doctorId,
-  doctorName,
   formatCategory,
   formatSubtype,
 }: QueueClientProps) {

@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
           router.push("/auth/login")
         }, 2000)
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)

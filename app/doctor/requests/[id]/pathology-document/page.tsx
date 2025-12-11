@@ -35,10 +35,11 @@ export default async function PathologyDocumentPage({ params }: PathologyDocumen
 
   const existingDocument = await getLatestDocumentForRequest(id)
 
-  // Calculate patient age
+  // Calculate patient age - use a stable date for the calculation
   const patientDob = request.patient.date_of_birth
+  const now = new Date()
   const patientAge = patientDob
-    ? Math.floor((Date.now() - new Date(patientDob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    ? Math.floor((now.getTime() - new Date(patientDob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : 0
 
   const formatCategory = (category: string | null) => {

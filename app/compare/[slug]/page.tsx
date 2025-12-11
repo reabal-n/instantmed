@@ -449,7 +449,7 @@ export default async function ComparisonPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to Try InstantMed?</h2>
               <p className="text-muted-foreground mb-6">
-                For quick, simple health needs — we're here when you need us.
+                For quick, simple health needs — we&apos;re here when you need us.
               </p>
               <Link href="/request">
                 <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">

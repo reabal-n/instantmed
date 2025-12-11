@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
       } else {
         setError(result.error || "Failed to send reset link")
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)

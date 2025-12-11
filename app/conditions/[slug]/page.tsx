@@ -850,7 +850,7 @@ export default async function ConditionPage({ params }: PageProps) {
               </h2>
               <div className="p-5 rounded-xl bg-amber-50 border border-amber-200">
                 <p className="text-sm text-amber-800 mb-4">
-                  We're great for straightforward cases, but some situations need in-person assessment:
+                  We&apos;re great for straightforward cases, but some situations need in-person assessment:
                 </p>
                 <ul className="space-y-2">
                   {condition.whenToSeeGP.map((item, i) => (

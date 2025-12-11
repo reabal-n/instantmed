@@ -97,7 +97,6 @@ export function DocumentBuilderClient({
   request,
   draft,
   existingDocument,
-  patientAge,
   formatCategory,
   formatSubtype,
 }: DocumentBuilderClientProps) {

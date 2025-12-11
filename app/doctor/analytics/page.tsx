@@ -16,6 +16,22 @@ import {
   ArrowDownRight,
 } from "lucide-react"
 
+// Move TrendIndicator outside of the component to avoid recreating it on each render
+function TrendIndicator({ value, suffix = "" }: { value: number; suffix?: string }) {
+  if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>
+  const isPositive = value > 0
+  return (
+    <div className={`flex items-center gap-1 text-xs ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
+      {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+      <span>
+        {isPositive ? "+" : ""}
+        {value}
+        {suffix}
+      </span>
+    </div>
+  )
+}
+
 export const metadata = {
   title: "Analytics | InstantMed Doctor Portal",
 }
@@ -166,21 +182,6 @@ export default async function AnalyticsPage() {
   }
 
   const totalCategoryRequests = Object.values(analytics.categoryBreakdown).reduce((a, b) => a + b, 0)
-
-  const TrendIndicator = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
-    if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>
-    const isPositive = value > 0
-    return (
-      <div className={`flex items-center gap-1 text-xs ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
-        {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-        <span>
-          {isPositive ? "+" : ""}
-          {value}
-          {suffix}
-        </span>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-8">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -50,7 +50,7 @@ export function DoctorDashboardClient({
     { value: "referral", label: "Referrals" },
   ]
 
-  const filterRequests = (requests: RequestWithPatient[]) => {
+  const filterRequests = useCallback((requests: RequestWithPatient[]) => {
     let filtered = requests
 
     if (categoryFilter !== "all") {
@@ -65,20 +65,20 @@ export function DoctorDashboardClient({
     }
 
     return filtered
-  }
+  }, [categoryFilter, searchQuery])
 
-  const filteredPending = useMemo(() => filterRequests(pendingRequests), [pendingRequests, categoryFilter, searchQuery])
+  const filteredPending = useMemo(() => filterRequests(pendingRequests), [filterRequests, pendingRequests])
   const filteredApproved = useMemo(
     () => filterRequests(approvedRequests),
-    [approvedRequests, categoryFilter, searchQuery],
+    [filterRequests, approvedRequests],
   )
   const filteredDeclined = useMemo(
     () => filterRequests(declinedRequests),
-    [declinedRequests, categoryFilter, searchQuery],
+    [filterRequests, declinedRequests],
   )
   const filteredAwaitingPayment = useMemo(
     () => filterRequests(awaitingPaymentRequests),
-    [awaitingPaymentRequests, categoryFilter, searchQuery],
+    [filterRequests, awaitingPaymentRequests],
   )
 
   // Calculate age from DOB
@@ -103,12 +103,10 @@ export function DoctorDashboardClient({
 
   const RequestCard = ({
     request,
-    showActions = false,
     index = 0,
     isAwaitingPayment = false,
   }: {
     request: RequestWithPatient
-    showActions?: boolean
     index?: number
     isAwaitingPayment?: boolean
   }) => {

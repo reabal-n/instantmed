@@ -1,7 +1,28 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-export async function GET(request: Request) {
+// Type for the joined request data from Supabase
+interface RequestWithPatient {
+  id: string
+  type: string
+  category: string | null
+  subtype: string | null
+  status: string
+  script_sent: boolean
+  script_sent_at: string | null
+  clinical_note: string | null
+  created_at: string
+  updated_at: string
+  patient: {
+    full_name: string | null
+    date_of_birth: string | null
+    phone: string | null
+    suburb: string | null
+    state: string | null
+  } | null
+}
+
+export async function GET() {
   try {
     const supabase = await createClient()
 
@@ -64,7 +85,8 @@ export async function GET(request: Request) {
       "Created At",
     ]
 
-    const rows = (requests || []).map((r: any) => [
+    const typedRequests = (requests || []) as RequestWithPatient[]
+    const rows = typedRequests.map((r) => [
       r.id,
       r.patient?.full_name || "",
       r.patient?.date_of_birth || "",
@@ -79,9 +101,7 @@ export async function GET(request: Request) {
       r.created_at,
     ])
 
-    const csvContent = [headers.join(","), ...rows.map((row: any[]) => row.map((cell) => `"${cell}"`).join(","))].join(
-      "\n",
-    )
+    const csvContent = [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join("\n")
 
     // Return CSV file
     return new NextResponse(csvContent, {
