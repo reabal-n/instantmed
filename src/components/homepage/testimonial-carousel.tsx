@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -11,7 +12,7 @@ interface Testimonial {
   author: string
   role: string
   rating: number
-  avatar?: string
+  avatar: string
 }
 
 const testimonials: Testimonial[] = [
@@ -21,6 +22,7 @@ const testimonials: Testimonial[] = [
     author: "Sarah M.",
     role: "Marketing Manager, Sydney",
     rating: 5,
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 2,
@@ -28,6 +30,7 @@ const testimonials: Testimonial[] = [
     author: "Michael T.",
     role: "Parent of 3, Melbourne",
     rating: 5,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 3,
@@ -35,6 +38,7 @@ const testimonials: Testimonial[] = [
     author: "Emma L.",
     role: "University Student, Brisbane",
     rating: 5,
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
   },
   {
     id: 4,
@@ -42,6 +46,7 @@ const testimonials: Testimonial[] = [
     author: "David K.",
     role: "Shift Worker, Perth",
     rating: 5,
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
   },
 ]
 
@@ -77,28 +82,23 @@ export function TestimonialCarousel() {
   return (
     <div className="relative">
       {/* Main testimonial card */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-12">
+      <div className="relative overflow-hidden rounded-2xl bg-white border-2 border-slate-100 p-8 md:p-10">
         {/* Quote icon */}
-        <div className="absolute top-6 left-6 w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center">
-          <Quote className="w-6 h-6 text-teal-600" />
+        <div className="absolute top-6 left-6 w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center">
+          <Quote className="w-5 h-5 text-teal-600" />
         </div>
 
-        {/* Large number indicator */}
-        <div className="absolute top-4 right-8 text-8xl font-bold text-slate-100 select-none">
-          0{current + 1}
-        </div>
-
-        <div className="relative pt-12">
+        <div className="relative pt-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               {/* Stars */}
-              <div className="flex gap-1 mb-6">
+              <div className="flex gap-1 mb-5">
                 {[...Array(testimonials[current].rating)].map((_, i) => (
                   <Star
                     key={i}
@@ -108,14 +108,20 @@ export function TestimonialCarousel() {
               </div>
 
               {/* Content */}
-              <blockquote className="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed mb-8">
-                "{testimonials[current].content}"
+              <blockquote className="text-lg md:text-xl font-medium text-slate-700 leading-relaxed mb-6">
+                &ldquo;{testimonials[current].content}&rdquo;
               </blockquote>
 
-              {/* Author */}
+              {/* Author with avatar */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-semibold text-lg">
-                  {testimonials[current].author.charAt(0)}
+                <div className="relative w-12 h-12 rounded-full overflow-hidden bg-slate-100">
+                  <Image
+                    src={testimonials[current].avatar}
+                    alt={testimonials[current].author}
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                  />
                 </div>
                 <div>
                   <div className="font-semibold text-slate-900">
@@ -130,7 +136,7 @@ export function TestimonialCarousel() {
           </AnimatePresence>
         </div>
 
-        {/* Navigation dots */}
+        {/* Navigation dots and controls */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
           <div className="flex gap-2">
             {testimonials.map((_, index) => (
@@ -139,7 +145,7 @@ export function TestimonialCarousel() {
                 onClick={() => goTo(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === current
-                    ? 'w-8 bg-teal-600'
+                    ? 'w-6 bg-teal-500'
                     : 'w-2 bg-slate-200 hover:bg-slate-300'
                 }`}
               />
@@ -147,18 +153,18 @@ export function TestimonialCarousel() {
           </div>
 
           {/* Page indicator */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-500">
-              <span className="font-semibold text-slate-900">{String(current + 1).padStart(2, '0')}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-slate-400">
+              <span className="font-medium text-slate-600">{current + 1}</span>
               {' / '}
-              {String(testimonials.length).padStart(2, '0')}
+              {testimonials.length}
             </span>
 
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 rounded-full"
+                className="h-9 w-9 rounded-full border-slate-200 hover:border-slate-300"
                 onClick={prev}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -166,7 +172,7 @@ export function TestimonialCarousel() {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 rounded-full"
+                className="h-9 w-9 rounded-full border-slate-200 hover:border-slate-300"
                 onClick={next}
               >
                 <ChevronRight className="w-4 h-4" />
@@ -183,11 +189,11 @@ export function TestimonialCarousel() {
 export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <motion.div
-      className="p-6 rounded-xl bg-white border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300"
+      className="p-6 rounded-2xl bg-white border-2 border-slate-100 hover:border-slate-200 hover:shadow-lg transition-all duration-300"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
       <div className="flex gap-1 mb-4">
         {[...Array(testimonial.rating)].map((_, i) => (
@@ -195,11 +201,17 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         ))}
       </div>
 
-      <p className="text-slate-600 mb-4 line-clamp-4">"{testimonial.content}"</p>
+      <p className="text-slate-600 text-sm mb-4 line-clamp-4">&ldquo;{testimonial.content}&rdquo;</p>
 
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-medium">
-          {testimonial.author.charAt(0)}
+        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100">
+          <Image
+            src={testimonial.avatar}
+            alt={testimonial.author}
+            fill
+            className="object-cover"
+            sizes="40px"
+          />
         </div>
         <div>
           <div className="font-medium text-sm text-slate-900">{testimonial.author}</div>

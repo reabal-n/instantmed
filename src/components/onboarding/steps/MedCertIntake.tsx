@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format, isBefore, startOfDay } from 'date-fns'
+import { motion } from 'framer-motion'
 import { 
   ArrowRight, 
   ArrowLeft, 
   AlertTriangle, 
   Calendar as CalendarIcon,
-  Info
+  Info,
+  CheckCircle2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -133,85 +135,130 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
-          Tell us about your condition
+      {/* Header with step indicator */}
+      <motion.div 
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      >
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-50 text-teal-600 text-sm font-medium mb-4">
+          <span>Step {step} of 3</span>
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-slate-900">
+          {step === 1 && "What's bothering you?"}
+          {step === 2 && 'When do you need time off?'}
+          {step === 3 && 'Almost there!'}
         </h2>
-        <p className="text-muted-foreground">
-          {step === 1 && 'Select your symptoms'}
-          {step === 2 && 'When do you need the certificate for?'}
-          {step === 3 && 'A few more details'}
+        <p className="text-slate-500">
+          {step === 1 && "Select all that apply — we'll tailor your certificate"}
+          {step === 2 && 'Pick the dates for your medical certificate'}
+          {step === 3 && 'Just a few more details for the doctor'}
         </p>
-      </div>
+      </motion.div>
 
       {/* Step 1: Symptoms */}
       {step === 1 && (
-        <div className="space-y-4">
-          <Label>What symptoms are you experiencing?</Label>
+        <motion.div 
+          className="space-y-5"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+          <div>
+            <Label className="text-slate-700 font-medium mb-3 block">How are you feeling?</Label>
+            <p className="text-sm text-slate-400 mb-4">Tap all the symptoms that match how you&apos;re feeling</p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {SYMPTOMS.map((symptom) => (
-              <div
-                key={symptom.id}
-                className={cn(
-                  'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all h-12',
-                  selectedSymptoms.includes(symptom.id)
-                    ? 'border-teal-600 bg-teal-50'
-                    : 'border-gray-200 hover:border-teal-400',
-                  symptom.isRedFlag && 'border-red-300 hover:border-red-400'
-                )}
-                onClick={() => handleSymptomToggle(symptom.id)}
-              >
-                <Checkbox
-                  checked={selectedSymptoms.includes(symptom.id)}
-                  onCheckedChange={() => handleSymptomToggle(symptom.id)}
-                  className={cn(symptom.isRedFlag && 'border-destructive')}
-                />
-                <span className={cn(symptom.isRedFlag && 'text-destructive')}>
-                  {symptom.label}
-                </span>
-                {symptom.isRedFlag && (
-                  <AlertTriangle className="w-4 h-4 text-destructive ml-auto" />
-                )}
-              </div>
-            ))}
+            {SYMPTOMS.map((symptom) => {
+              const isSelected = selectedSymptoms.includes(symptom.id)
+              return (
+                <motion.div
+                  key={symptom.id}
+                  className={cn(
+                    'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                    isSelected
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-slate-100 hover:border-teal-200 bg-white',
+                    symptom.isRedFlag && !isSelected && 'border-red-100 hover:border-red-300'
+                  )}
+                  onClick={() => handleSymptomToggle(symptom.id)}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className={cn(
+                    'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+                    isSelected ? 'border-teal-500 bg-teal-500' : 'border-slate-300'
+                  )}>
+                    {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                  </div>
+                  <span className={cn(
+                    'text-sm font-medium',
+                    isSelected ? 'text-teal-700' : 'text-slate-600',
+                    symptom.isRedFlag && !isSelected && 'text-red-600'
+                  )}>
+                    {symptom.label}
+                  </span>
+                  {symptom.isRedFlag && (
+                    <AlertTriangle className="w-4 h-4 text-red-500 ml-auto" />
+                  )}
+                </motion.div>
+              )
+            })}
           </div>
           {errors.symptoms && (
-            <p className="text-sm text-destructive">{errors.symptoms.message}</p>
+            <p className="text-sm text-red-500 flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4" />
+              Please select at least one symptom
+            </p>
           )}
 
           <div className="space-y-2 pt-4">
-            <Label htmlFor="symptomDetails">
-              Please describe your symptoms in detail
+            <Label htmlFor="symptomDetails" className="text-slate-700 font-medium">
+              Tell us a bit more
             </Label>
+            <p className="text-sm text-slate-400 mb-2">
+              This helps the doctor understand your situation better
+            </p>
             <textarea
               id="symptomDetails"
               {...register('symptomDetails')}
-              className="w-full min-h-[120px] p-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="E.g., I woke up with a sore throat and have been experiencing fever and body aches since yesterday..."
+              className="w-full min-h-[120px] p-4 rounded-xl border-2 border-slate-100 bg-white resize-none focus:outline-none focus:ring-0 focus:border-teal-500 transition-colors text-slate-700 placeholder:text-slate-400"
+              placeholder="For example: I woke up yesterday with a sore throat and have been feeling feverish since then..."
             />
             {errors.symptomDetails && (
-              <p className="text-sm text-destructive">{errors.symptomDetails.message}</p>
+              <p className="text-sm text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Please describe your symptoms
+              </p>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Step 2: Dates */}
       {step === 2 && (
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>Certificate Start Date</Label>
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+          <div className="space-y-3">
+            <Label className="text-slate-700 font-medium">When did you start feeling unwell?</Label>
+            <p className="text-sm text-slate-400">
+              This will be the start date on your certificate
+            </p>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    'w-full justify-start text-left font-normal touch-target',
-                    !selectedDate && 'text-muted-foreground'
+                    'w-full justify-start text-left font-normal h-12 rounded-xl border-2 border-slate-100 hover:border-teal-200',
+                    !selectedDate && 'text-slate-400'
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(new Date(selectedDate), 'PPP') : 'Pick a date'}
+                  <CalendarIcon className="mr-3 h-5 w-5 text-slate-400" />
+                  {selectedDate ? format(new Date(selectedDate), 'EEEE, d MMMM yyyy') : 'Choose a date'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -236,32 +283,42 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
               </PopoverContent>
             </Popover>
             {errors.startDate && (
-              <p className="text-sm text-destructive">{errors.startDate.message}</p>
+              <p className="text-sm text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Please select a date
+              </p>
             )}
             
             {/* Backdating warning */}
             {isBackdated && (
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border-2 border-amber-200">
+              <motion.div 
+                className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
                 <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-amber-900 tracking-tight">
-                    Backdating requires clinical review (+$10)
+                  <p className="font-semibold text-amber-800 text-sm">
+                    Backdating adds +$10
                   </p>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Certificates for past dates require additional review by a doctor.
+                  <p className="text-sm text-amber-700 mt-0.5">
+                    Past dates need extra review by a doctor
                   </p>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>How many days do you need?</Label>
+          <div className="space-y-3">
+            <Label className="text-slate-700 font-medium">How long do you need off?</Label>
+            <p className="text-sm text-slate-400">
+              Most employers accept 1-3 days without extra questions
+            </p>
             <Select
               value={selectedDuration}
               onValueChange={(value) => setValue('duration', value as MedCertIntakeForm['duration'], { shouldValidate: true })}
             >
-              <SelectTrigger className="touch-target">
+              <SelectTrigger className="h-12 rounded-xl border-2 border-slate-100 hover:border-teal-200">
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
@@ -273,56 +330,79 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
               </SelectContent>
             </Select>
             {errors.duration && (
-              <p className="text-sm text-destructive">{errors.duration.message}</p>
+              <p className="text-sm text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Please select a duration
+              </p>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Step 3: Additional Details */}
       {step === 3 && (
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="workType">
-              What type of work do you do?
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+          <div className="space-y-3">
+            <Label htmlFor="workType" className="text-slate-700 font-medium">
+              What kind of work do you do?
             </Label>
+            <p className="text-sm text-slate-400">
+              This helps us recommend the right amount of rest
+            </p>
             <Input
               id="workType"
               {...register('workType')}
-              placeholder="E.g., Office work, Retail, Construction..."
-              className="h-12 rounded-xl focus:ring-2 focus:ring-teal-600"
+              placeholder="e.g., Office work, Retail, Construction..."
+              className="h-12 rounded-xl border-2 border-slate-100 focus:border-teal-500 focus:ring-0"
             />
             {errors.workType && (
-              <p className="text-sm text-destructive">{errors.workType.message}</p>
+              <p className="text-sm text-red-500 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                Please enter your work type
+              </p>
             )}
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Info className="w-3 h-3" />
-              This helps the doctor assess if rest is appropriate
-            </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="additionalInfo">
-              Anything else the doctor should know? (Optional)
+          <div className="space-y-3">
+            <Label htmlFor="additionalInfo" className="text-slate-700 font-medium">
+              Anything else we should know?
             </Label>
+            <p className="text-sm text-slate-400">
+              Optional — but helpful if you have allergies, conditions, or relevant history
+            </p>
             <textarea
               id="additionalInfo"
               {...register('additionalInfo')}
-              className="w-full min-h-[100px] p-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Any relevant medical history, allergies, or additional context..."
+              className="w-full min-h-[100px] p-4 rounded-xl border-2 border-slate-100 bg-white resize-none focus:outline-none focus:ring-0 focus:border-teal-500 transition-colors text-slate-700 placeholder:text-slate-400"
+              placeholder="e.g., I have asthma, or I'm currently taking medication for..."
             />
           </div>
-        </div>
+          
+          {/* Reassurance message */}
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-teal-50 border border-teal-100">
+            <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-teal-800">
+                Your information is secure and only shared with your reviewing doctor.
+              </p>
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* Navigation - Sticky on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-gray-200 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none">
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-100 p-4 md:p-0 md:pt-6 md:bg-transparent md:backdrop-blur-none">
         <div className="flex gap-3 max-w-xl mx-auto">
           <Button
             type="button"
             variant="outline"
             size="lg"
-            className="h-11 md:h-12 min-h-[44px]"
+            className="h-12 min-h-[48px] rounded-xl border-2 border-slate-200 hover:border-slate-300 text-slate-600"
             onClick={prevIntakeStep}
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
@@ -333,7 +413,7 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             <Button
               type="button"
               size="lg"
-              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+              className="flex-1 h-12 min-h-[48px] text-base bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-600/20"
               onClick={nextIntakeStep}
               disabled={step === 1 && (selectedSymptoms.length === 0 || !watch('symptomDetails'))}
             >
@@ -344,9 +424,9 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             <Button
               type="submit"
               size="lg"
-              className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+              className="flex-1 h-12 min-h-[48px] text-base bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-600/20"
             >
-              Continue
+              Review & continue
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           )}
