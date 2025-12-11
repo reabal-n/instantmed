@@ -96,7 +96,10 @@ const LiveVisitorCounter = () => {
     )
   }
 
-  const visibleAvatars = AVATARS.slice(0, avatarConfig.displayLimit)
+  // Calculate how many avatars to show (always show up to MAX_AVATARS, keep container size fixed)
+  const displayLimit = Math.min(visitorCount, MAX_AVATARS)
+  const showPlus = visitorCount > MAX_AVATARS
+  const visibleAvatars = AVATARS.slice(0, displayLimit)
 
   return (
     <div className="glass-card rounded-2xl p-5 border border-border/50 bg-card/80 backdrop-blur-sm">
@@ -115,11 +118,12 @@ const LiveVisitorCounter = () => {
           ))}
         </div>
 
-        <div className="flex items-center -space-x-2">
+        {/* Fixed width container to prevent size changes */}
+        <div className="flex items-center -space-x-2 min-w-[120px] justify-end">
           {visibleAvatars.map((url, index) => (
             <div
               key={index}
-              className="relative w-8 h-8 rounded-full border-2 border-background overflow-hidden animate-in fade-in slide-in-from-right"
+              className="relative w-8 h-8 rounded-full border-2 border-background overflow-hidden animate-in fade-in slide-in-from-right transition-all duration-300"
               style={{
                 zIndex: 10 + index,
                 backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
@@ -130,12 +134,12 @@ const LiveVisitorCounter = () => {
               <img src={url} alt={`Visitor ${index}`} className="w-full h-full object-cover" />
             </div>
           ))}
-          {avatarConfig.showPlus && (
+          {showPlus && (
             <div
               className="relative w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground animate-in fade-in slide-in-from-right"
               style={{ zIndex: 20, animationDelay: `${visibleAvatars.length * 120}ms` }}
             >
-              <span>+</span>
+              <span>+{visitorCount - MAX_AVATARS}</span>
             </div>
           )}
         </div>

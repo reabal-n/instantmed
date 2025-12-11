@@ -68,8 +68,63 @@ export function HeroTypewriter() {
         }`}
         style={{ fontFamily: "var(--font-display)" }}
       >
-        <span className="inline-block bg-gradient-to-r from-foreground via-foreground to-[#00e2b5] bg-clip-text text-transparent">
-          {currentVariant.headline}
+        <span className="inline-block">
+          {(() => {
+            const highlightPhrases = ["waiting room", "pants", "doctors", "fast", "easy", "hassle", "couch", "real"]
+            const headline = currentVariant.headline
+            const parts: Array<{ text: string; highlight: boolean }> = []
+            let lastIndex = 0
+
+            // Find all highlight phrases
+            const matches: Array<{ start: number; end: number; phrase: string }> = []
+            highlightPhrases.forEach((phrase) => {
+              const regex = new RegExp(phrase, "gi")
+              let match
+              while ((match = regex.exec(headline)) !== null) {
+                matches.push({ start: match.index, end: match.index + phrase.length, phrase })
+              }
+            })
+
+            // Sort matches by start position
+            matches.sort((a, b) => a.start - b.start)
+
+            // Build parts array
+            matches.forEach((match) => {
+              if (match.start > lastIndex) {
+                parts.push({ text: headline.substring(lastIndex, match.start), highlight: false })
+              }
+              parts.push({ text: headline.substring(match.start, match.end), highlight: true })
+              lastIndex = match.end
+            })
+
+            if (lastIndex < headline.length) {
+              parts.push({ text: headline.substring(lastIndex), highlight: false })
+            }
+
+            // If no matches, split by words
+            if (parts.length === 0) {
+              return headline.split(" ").map((word, i) => (
+                <span key={i} className="inline-block mr-2">
+                  <span className="text-foreground">{word}</span>
+                </span>
+              ))
+            }
+
+            return parts.map((part, i) => (
+              <span key={i} className="inline-block">
+                {part.highlight ? (
+                  <span className="relative inline-block mr-2">
+                    <span className="relative z-10 bg-gradient-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent">
+                      {part.text}
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-[#00e2b5]/20 via-[#06B6D4]/20 to-[#8B5CF6]/20 blur-xl -z-10" />
+                  </span>
+                ) : (
+                  <span className="text-foreground mr-2">{part.text}</span>
+                )}
+              </span>
+            ))
+          })()}
         </span>
       </h1>
 

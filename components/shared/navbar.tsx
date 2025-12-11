@@ -33,7 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { DoctorAvailability } from "@/components/shared/doctor-availability"
-import { ThemeToggle } from "@/components/effects/theme-toggle"
+import CinematicThemeSwitcher from "@/components/ui/cinematic-theme-switcher"
 import { NotificationBell } from "@/components/shared/notification-bell"
 
 interface NavbarProps {
@@ -203,7 +203,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </Link>
 
                   <div className="ml-3 flex items-center gap-2">
-                    <ThemeToggle />
+                    <CinematicThemeSwitcher size="compact" />
                     {user ? (
                       <Button
                         variant="ghost"
@@ -448,6 +448,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         </Link>
 
                         <div className="pt-4 space-y-2">
+                          <div className="flex justify-center pb-2">
+                            <CinematicThemeSwitcher />
+                          </div>
                           <Button variant="outline" asChild className="w-full rounded-lg bg-transparent">
                             <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                               Sign in
@@ -515,7 +518,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           ))}
                         </div>
 
-                        <div className="pt-4 border-t mt-4">
+                        <div className="pt-4 border-t mt-4 space-y-3">
+                          <div className="flex justify-center">
+                            <CinematicThemeSwitcher />
+                          </div>
                           <button
                             onClick={() => {
                               setMobileMenuOpen(false)

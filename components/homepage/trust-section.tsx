@@ -1,8 +1,9 @@
 "use client"
 
 import { CheckCircle2, Shield, Zap, Lock, Heart } from "lucide-react"
-import { GlassCard } from "@/components/effects/glass-card"
+import { HolographicCard } from "@/components/effects/holographic-card"
 import { SecurityBadges } from "@/components/security/security-badges"
+import { SectionPill } from "@/components/ui/section-pill"
 
 const trustPoints = [
   {
@@ -37,6 +38,9 @@ export function TrustSection() {
     <section className="px-4 py-16 sm:py-20">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-12">
+          <div className="flex justify-center mb-4">
+            <SectionPill icon={<Shield className="h-3.5 w-3.5" />} text="Why trust us" />
+          </div>
           <h2
             className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl mb-3"
             style={{ fontFamily: "var(--font-display)" }}
@@ -51,7 +55,7 @@ export function TrustSection() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           {trustPoints.map((point, i) => (
-            <GlassCard key={point.title} className={`flex gap-4 p-6 hover-lift animate-fade-in-up stagger-${i + 1}`}>
+            <HolographicCard key={point.title} hover intensity="medium" className="flex gap-4 p-6">
               {/* Icon with gradient background */}
               <div
                 className="flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl"
