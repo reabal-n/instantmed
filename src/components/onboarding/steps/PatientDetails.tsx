@@ -73,29 +73,34 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       >
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 mb-4 shadow-lg shadow-teal-500/30">
+          <User className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
           Patient Details
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-slate-600">
           We need these details for your medical certificate
         </p>
       </motion.div>
 
       {/* Personal Information */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <User className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+            <User className="w-4 h-4 text-teal-600" />
+          </div>
           Personal Information
         </div>
         
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
+            <Label htmlFor="firstName" className="text-slate-700 font-medium">First Name</Label>
             <Input
               id="firstName"
               {...register('firstName')}
               placeholder="Enter your first name"
-              className="touch-target"
+              className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white"
             />
             {errors.firstName && (
               <p className="text-sm text-destructive">{errors.firstName.message}</p>
@@ -103,12 +108,12 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
+            <Label htmlFor="lastName" className="text-slate-700 font-medium">Last Name</Label>
             <Input
               id="lastName"
               {...register('lastName')}
               placeholder="Enter your last name"
-              className="touch-target"
+              className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white"
             />
             {errors.lastName && (
               <p className="text-sm text-destructive">{errors.lastName.message}</p>
@@ -118,12 +123,12 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
+            <Label htmlFor="dateOfBirth" className="text-slate-700 font-medium">Date of Birth</Label>
             <Input
               id="dateOfBirth"
               type="date"
               {...register('dateOfBirth')}
-              className="touch-target"
+              className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white"
             />
             {errors.dateOfBirth && (
               <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>
@@ -131,12 +136,12 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
           </div>
           
           <div className="space-y-2">
-            <Label>Gender</Label>
+            <Label className="text-slate-700 font-medium">Gender</Label>
             <Select
               value={gender}
               onValueChange={(value) => setValue('gender', value as PatientDetailsForm['gender'], { shouldValidate: true })}
             >
-              <SelectTrigger className="touch-target">
+              <SelectTrigger className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -154,26 +159,28 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
       </div>
 
       {/* Medicare Information */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <CreditCard className="w-4 h-4" />
+      <div className="space-y-4 pt-6 border-t border-slate-200">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
+            <CreditCard className="w-4 h-4 text-cyan-600" />
+          </div>
           Medicare Details
         </div>
         
-        <div className="p-4 rounded-lg bg-muted/50 border border-border">
-          <p className="text-sm text-muted-foreground flex items-start gap-2">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-50 to-teal-50 border border-cyan-200/50">
+          <p className="text-sm text-slate-700 flex items-start gap-2">
+            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-cyan-600" />
             Medicare details help verify your identity and may enable PBS benefits on prescriptions.
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="medicareNumber">Medicare Card Number</Label>
+          <Label htmlFor="medicareNumber" className="text-slate-700 font-medium">Medicare Card Number</Label>
           <Input
             id="medicareNumber"
             {...register('medicareNumber')}
             placeholder="1234 56789 0"
-            className={cn('touch-target medicare-input', errors.medicareNumber && 'border-destructive')}
+            className={cn('touch-target h-12 rounded-xl border-2 bg-white', errors.medicareNumber ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20')}
             onChange={(e) => {
               const formatted = formatMedicareNumber(e.target.value)
               setValue('medicareNumber', formatted, { shouldValidate: true })
@@ -186,29 +193,29 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="medicareIrn">Reference Number (IRN)</Label>
+            <Label htmlFor="medicareIrn" className="text-slate-700 font-medium">Reference Number (IRN)</Label>
             <Input
               id="medicareIrn"
               {...register('medicareIrn')}
               placeholder="1-9"
               maxLength={1}
-              className="touch-target"
+              className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white"
             />
             {errors.medicareIrn && (
               <p className="text-sm text-destructive">{errors.medicareIrn.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               The number next to your name on the card
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="medicareExpiry">Expiry Date</Label>
+            <Label htmlFor="medicareExpiry" className="text-slate-700 font-medium">Expiry Date</Label>
             <Input
               id="medicareExpiry"
               {...register('medicareExpiry')}
               placeholder="MM/YYYY"
-              className="touch-target"
+              className="touch-target h-12 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 bg-white"
               onChange={(e) => {
                 const formatted = formatMedicareExpiry(e.target.value)
                 setValue('medicareExpiry', formatted, { shouldValidate: true })
@@ -221,29 +228,29 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
         </div>
 
         {/* Medicare card visual helper */}
-        <div className="p-4 rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="text-xs opacity-80 mb-2">Medicare Card Preview</div>
-          <div className="font-mono text-lg tracking-wider mb-2">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-600 via-teal-600 to-green-600 text-white shadow-xl shadow-teal-500/30">
+          <div className="text-xs opacity-90 mb-3 font-medium">Medicare Card Preview</div>
+          <div className="font-mono text-xl tracking-wider mb-3 font-semibold">
             {watch('medicareNumber') || 'XXXX XXXXX X'}
           </div>
-          <div className="flex justify-between text-sm">
-            <span>{watch('firstName') || 'FIRST'} {watch('lastName') || 'LAST'}</span>
-            <span>Ref: {watch('medicareIrn') || 'X'}</span>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="font-medium">{watch('firstName') || 'FIRST'} {watch('lastName') || 'LAST'}</span>
+            <span className="font-medium">Ref: {watch('medicareIrn') || 'X'}</span>
           </div>
-          <div className="text-xs mt-2 opacity-80">
+          <div className="text-xs mt-3 opacity-90">
             Valid to: {watch('medicareExpiry') || 'MM/YYYY'}
           </div>
         </div>
       </div>
 
       {/* Navigation - Glassmorphism footer */}
-      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-200/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none dark:bg-slate-900/95 dark:border-slate-700/50">
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto glass border-t md:border-t-0 border-teal-100/50 p-4 md:p-0 md:bg-transparent md:backdrop-blur-none shadow-lg md:shadow-none">
         <div className="flex gap-3 max-w-xl mx-auto">
           <Button
             type="button"
             variant="outline"
             size="lg"
-            className="h-11 md:h-12 min-h-[44px]"
+            className="h-12 min-h-[48px] rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
             onClick={onBack}
             disabled={isLoading}
           >
@@ -254,7 +261,7 @@ export function PatientDetails({ onNext, onBack, isLoading, defaultValues }: Pat
           <Button
             type="submit"
             size="lg"
-            className="flex-1 h-11 md:h-12 min-h-[44px] text-base bg-teal-600 hover:bg-teal-700 text-white"
+            className="flex-1 h-12 min-h-[48px] text-base bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white rounded-xl shadow-lg shadow-teal-500/30 transition-all"
             disabled={isLoading}
           >
             {isLoading ? (

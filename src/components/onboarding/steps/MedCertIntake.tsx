@@ -142,15 +142,15 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-50 text-teal-600 text-sm font-medium mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-700 text-sm font-semibold mb-4 border border-teal-100">
           <span>Step {step} of 3</span>
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 text-slate-900">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
           {step === 1 && "What's bothering you?"}
           {step === 2 && 'When do you need time off?'}
           {step === 3 && 'Almost there!'}
         </h2>
-        <p className="text-slate-500">
+        <p className="text-slate-600">
           {step === 1 && "Select all that apply — we'll tailor your certificate"}
           {step === 2 && 'Pick the dates for your medical certificate'}
           {step === 3 && 'Just a few more details for the doctor'}
@@ -166,8 +166,8 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
           <div>
-            <Label className="text-slate-700 font-medium mb-3 block">How are you feeling?</Label>
-            <p className="text-sm text-slate-400 mb-4">Tap all the symptoms that match how you&apos;re feeling</p>
+            <Label className="text-slate-700 font-semibold mb-3 block text-base">How are you feeling?</Label>
+            <p className="text-sm text-slate-500 mb-5">Tap all the symptoms that match how you&apos;re feeling</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SYMPTOMS.map((symptom) => {
@@ -176,25 +176,26 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
                 <motion.div
                   key={symptom.id}
                   className={cn(
-                    'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                    'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all shadow-sm',
                     isSelected
-                      ? 'border-teal-500 bg-teal-50'
-                      : 'border-slate-100 hover:border-teal-200 bg-white',
-                    symptom.isRedFlag && !isSelected && 'border-red-100 hover:border-red-300'
+                      ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-cyan-50 shadow-md shadow-teal-500/20'
+                      : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50 bg-white',
+                    symptom.isRedFlag && !isSelected && 'border-red-200 hover:border-red-300 bg-red-50/30'
                   )}
                   onClick={() => handleSymptomToggle(symptom.id)}
                   whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.02 }}
                 >
                   <div className={cn(
-                    'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                    isSelected ? 'border-teal-500 bg-teal-500' : 'border-slate-300'
+                    'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                    isSelected ? 'border-teal-500 bg-gradient-to-br from-teal-500 to-cyan-500 shadow-sm' : 'border-slate-300'
                   )}>
-                    {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                    {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
                   </div>
                   <span className={cn(
                     'text-sm font-medium',
-                    isSelected ? 'text-teal-700' : 'text-slate-600',
-                    symptom.isRedFlag && !isSelected && 'text-red-600'
+                    isSelected ? 'text-teal-700' : 'text-slate-700',
+                    symptom.isRedFlag && !isSelected && 'text-red-700'
                   )}>
                     {symptom.label}
                   </span>
@@ -213,16 +214,16 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
           )}
 
           <div className="space-y-2 pt-4">
-            <Label htmlFor="symptomDetails" className="text-slate-700 font-medium">
+            <Label htmlFor="symptomDetails" className="text-slate-700 font-semibold text-base">
               Tell us a bit more
             </Label>
-            <p className="text-sm text-slate-400 mb-2">
+            <p className="text-sm text-slate-500 mb-3">
               This helps the doctor understand your situation better
             </p>
             <textarea
               id="symptomDetails"
               {...register('symptomDetails')}
-              className="w-full min-h-[120px] p-4 rounded-xl border-2 border-slate-100 bg-white resize-none focus:outline-none focus:ring-0 focus:border-teal-500 transition-colors text-slate-700 placeholder:text-slate-400"
+              className="w-full min-h-[120px] p-4 rounded-xl border-2 border-slate-200 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
               placeholder="For example: I woke up yesterday with a sore throat and have been feeling feverish since then..."
             />
             {errors.symptomDetails && (
@@ -292,11 +293,13 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             {/* Backdating warning */}
             {isBackdated && (
               <motion.div 
-                className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200"
+                className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 shadow-sm"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
                 <div>
                   <p className="font-semibold text-amber-800 text-sm">
                     Backdating adds +$10
@@ -384,10 +387,12 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
           </div>
           
           {/* Reassurance message */}
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-teal-50 border border-teal-100">
-            <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-teal-600" />
+            </div>
             <div>
-              <p className="text-sm text-teal-800">
+              <p className="text-sm text-teal-800 font-medium">
                 Your information is secure and only shared with your reviewing doctor.
               </p>
             </div>
@@ -396,13 +401,13 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
       )}
 
       {/* Navigation - Sticky on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto bg-white/95 backdrop-blur-md border-t md:border-t-0 border-slate-100 p-4 md:p-0 md:pt-6 md:bg-transparent md:backdrop-blur-none">
+      <div className="fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto glass border-t md:border-t-0 border-teal-100/50 p-4 md:p-0 md:pt-6 md:bg-transparent md:backdrop-blur-none shadow-lg md:shadow-none">
         <div className="flex gap-3 max-w-xl mx-auto">
           <Button
             type="button"
             variant="outline"
             size="lg"
-            className="h-12 min-h-[48px] rounded-xl border-2 border-slate-200 hover:border-slate-300 text-slate-600"
+            className="h-12 min-h-[48px] rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600"
             onClick={prevIntakeStep}
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
@@ -413,7 +418,7 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             <Button
               type="button"
               size="lg"
-              className="flex-1 h-12 min-h-[48px] text-base bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-600/20"
+              className="flex-1 h-12 min-h-[48px] text-base bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white rounded-xl shadow-lg shadow-teal-500/30 transition-all"
               onClick={nextIntakeStep}
               disabled={step === 1 && (selectedSymptoms.length === 0 || !watch('symptomDetails'))}
             >
@@ -424,7 +429,7 @@ export function MedCertIntake({ onNext, onBack, onEmergency, defaultValues }: Me
             <Button
               type="submit"
               size="lg"
-              className="flex-1 h-12 min-h-[48px] text-base bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-600/20"
+              className="flex-1 h-12 min-h-[48px] text-base bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white rounded-xl shadow-lg shadow-teal-500/30 transition-all"
             >
               Review & continue
               <ArrowRight className="ml-2 h-5 w-5" />

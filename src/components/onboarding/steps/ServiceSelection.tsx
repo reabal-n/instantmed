@@ -111,10 +111,10 @@ export function ServiceSelection({ value, onChange, onNext }: ServiceSelectionPr
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
-        <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight text-slate-900">
+        <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
           What do you need?
         </h2>
-        <p className="text-slate-500 text-base">
+        <p className="text-slate-600 text-base">
           Choose your service to get started
         </p>
       </motion.div>
@@ -138,10 +138,10 @@ export function ServiceSelection({ value, onChange, onNext }: ServiceSelectionPr
             >
               <div
                 className={cn(
-                  'relative h-full rounded-2xl border-2 bg-white p-6 cursor-pointer transition-all duration-200',
+                  'relative h-full rounded-2xl border-2 bg-white p-6 cursor-pointer transition-all duration-200 shadow-sm',
                   isSelected
-                    ? 'border-teal-500 bg-teal-50/30 shadow-lg shadow-teal-500/10'
-                    : 'border-slate-100 hover:border-teal-200 hover:shadow-md'
+                    ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-cyan-50 shadow-xl shadow-teal-500/20 scale-[1.02]'
+                    : 'border-slate-200 hover:border-teal-300 hover:shadow-lg hover:bg-slate-50'
                 )}
                 onClick={() => handleSelect(service.id)}
               >
@@ -156,12 +156,12 @@ export function ServiceSelection({ value, onChange, onNext }: ServiceSelectionPr
 
                 {/* Icon */}
                 <div className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors',
-                  isSelected ? 'bg-teal-100' : 'bg-slate-100'
+                  'w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all shadow-sm',
+                  isSelected ? 'bg-gradient-to-br from-teal-500 to-cyan-500 shadow-md shadow-teal-500/30' : 'bg-slate-100'
                 )}>
                   <Icon className={cn(
                     'w-6 h-6 transition-colors',
-                    isSelected ? 'text-teal-600' : 'text-slate-500'
+                    isSelected ? 'text-white' : 'text-slate-500'
                   )} />
                 </div>
 

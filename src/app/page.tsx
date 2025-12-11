@@ -69,13 +69,13 @@ export default function Home() {
       <ScrollProgress />
       
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-teal-100/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-slate-900">InstantMed</span>
+            <span className="text-lg font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">InstantMed</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link href="#how-it-works" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
@@ -107,10 +107,11 @@ export default function Home() {
       <ScrollToTop />
 
       {/* Hero Section */}
-      <section className="gradient-hero pt-28 pb-16 md:pt-36 md:pb-24 relative overflow-hidden">
+      <section className="gradient-hero pt-28 pb-16 md:pt-36 md:pb-24 relative overflow-hidden pattern-overlay">
         {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-teal-400/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-300/5 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-teal-200/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-200/10 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
@@ -131,13 +132,13 @@ export default function Home() {
             
             {/* Headline */}
             <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1] text-slate-900"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Feel better,{' '}
-              <span className="text-teal-600">faster</span>
+              <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">Feel better,{' '}</span>
+              <span className="bg-gradient-to-r from-teal-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">faster</span>
             </motion.h1>
             
             {/* Subheadline */}
@@ -159,13 +160,13 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Link href="/start">
-                <Button size="lg" className="touch-target w-full sm:w-auto text-base px-8 bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20">
+                <Button size="lg" className="touch-target w-full sm:w-auto text-base px-8 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/30 rounded-xl">
                   Browse treatments
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="#how-it-works">
-                <Button variant="outline" size="lg" className="touch-target w-full sm:w-auto text-base px-8 bg-white/80 backdrop-blur-sm">
+                <Button variant="outline" size="lg" className="touch-target w-full sm:w-auto text-base px-8 glass border-2 border-slate-200 hover:border-teal-300 rounded-xl">
                   How it works
                 </Button>
               </Link>
@@ -203,7 +204,7 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-16 md:py-24 bg-warm-muted relative">
+      <section id="services" className="py-16 md:py-24 bg-gradient-to-br from-teal-50 via-cyan-50 to-amber-50 pattern-overlay relative">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-10"
@@ -250,10 +251,10 @@ export default function Home() {
             {/* Medical Certificate Card */}
             <motion.div variants={itemVariants}>
               <Card 
-                className={`relative h-full overflow-hidden cursor-pointer border-2 transition-all duration-200 ${
+                className={`relative h-full overflow-hidden cursor-pointer border-2 transition-all duration-200 bg-white shadow-sm ${
                   hoveredService === 'cert' 
-                    ? 'border-teal-300 shadow-lg shadow-teal-500/5' 
-                    : 'border-slate-100 hover:border-teal-200 hover:shadow-md'
+                    ? 'border-teal-400 shadow-xl shadow-teal-500/20 scale-[1.02]' 
+                    : 'border-slate-200 hover:border-teal-300 hover:shadow-lg'
                 }`}
                 onMouseEnter={() => setHoveredService('cert')}
                 onMouseLeave={() => setHoveredService(null)}
@@ -265,8 +266,8 @@ export default function Home() {
                 
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-6 h-6 text-teal-600" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-teal-500/30">
+                      <FileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-slate-900">Medical Certificate</h3>
@@ -486,7 +487,7 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 md:py-24 bg-white relative">
+      <section id="how-it-works" className="py-16 md:py-24 bg-white/80 backdrop-blur-sm relative">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-12"
@@ -510,10 +511,10 @@ export default function Home() {
           >
             <motion.div 
               variants={itemVariants} 
-              className="relative bg-slate-50 rounded-2xl p-6 text-center"
+              className="relative bg-gradient-to-br from-slate-50 to-teal-50/30 rounded-2xl p-6 text-center border border-slate-200 shadow-sm"
             >
-              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-teal-600">1</span>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-md shadow-teal-500/30">
+                <span className="text-xl font-bold text-white">1</span>
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Fill a quick form</h3>
               <p className="text-slate-500 text-sm leading-relaxed">
@@ -525,10 +526,10 @@ export default function Home() {
             
             <motion.div 
               variants={itemVariants} 
-              className="relative bg-slate-50 rounded-2xl p-6 text-center"
+              className="relative bg-gradient-to-br from-slate-50 to-teal-50/30 rounded-2xl p-6 text-center border border-slate-200 shadow-sm"
             >
-              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-teal-600">2</span>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-md shadow-teal-500/30">
+                <span className="text-xl font-bold text-white">2</span>
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Doctor reviews</h3>
               <p className="text-slate-500 text-sm leading-relaxed">
@@ -540,10 +541,10 @@ export default function Home() {
             
             <motion.div 
               variants={itemVariants} 
-              className="bg-slate-50 rounded-2xl p-6 text-center"
+              className="bg-gradient-to-br from-slate-50 to-teal-50/30 rounded-2xl p-6 text-center border border-slate-200 shadow-sm"
             >
-              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl font-bold text-teal-600">3</span>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-md shadow-teal-500/30">
+                <span className="text-xl font-bold text-white">3</span>
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Get your document</h3>
               <p className="text-slate-500 text-sm leading-relaxed">
@@ -560,7 +561,7 @@ export default function Home() {
             transition={{ type: 'spring', stiffness: 400, damping: 25, delay: 0.3 }}
           >
             <Link href="/start">
-              <Button size="lg" className="touch-target text-base px-8 bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20">
+              <Button size="lg" className="touch-target text-base px-8 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/30 rounded-xl">
                 Get started now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -570,7 +571,7 @@ export default function Home() {
       </section>
 
       {/* Feature Bento Grid Section */}
-      <section id="features" className="py-16 md:py-24 bg-warm-muted relative">
+      <section id="features" className="py-16 md:py-24 bg-gradient-to-br from-teal-50 via-cyan-50 to-amber-50 pattern-overlay relative">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-10"
@@ -592,7 +593,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 md:py-24 bg-white relative">
+      <section className="py-16 md:py-24 bg-white/80 backdrop-blur-sm relative">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-10"

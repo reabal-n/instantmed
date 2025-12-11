@@ -123,3 +123,54 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Warm gradient backgrounds */
+  .gradient-hero {
+    background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 25%, #f0f9ff 50%, #fef3c7 75%, #fef3c7 100%);
+  }
+  
+  .gradient-warm {
+    background: linear-gradient(135deg, #fef9f3 0%, #fef3c7 25%, #f0fdfa 50%, #f0f9ff 75%, #f5f3ff 100%);
+  }
+  
+  .gradient-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fef9f3 100%);
+  }
+  
+  .bg-warm {
+    background: linear-gradient(135deg, #fef9f3 0%, #f0fdfa 50%, #f0f9ff 100%);
+  }
+  
+  .bg-warm-muted {
+    background: linear-gradient(135deg, #fef9f3 0%, #f0fdfa 100%);
+  }
+  
+  /* Subtle pattern overlay */
+  .pattern-overlay {
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(20, 184, 166, 0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+  
+  /* Glassmorphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Shimmer animation */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+}

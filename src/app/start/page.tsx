@@ -563,19 +563,26 @@ function OnboardingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-warm">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-amber-50 pattern-overlay relative">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-teal-200/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-200/10 rounded-full blur-3xl" />
+      </div>
+      
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-40 glass border-b border-teal-100/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold tracking-tight">InstantMed</span>
+            <span className="text-lg font-semibold tracking-tight bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">InstantMed</span>
           </Link>
           <button
             onClick={() => router.push('/')}
-            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Exit
@@ -584,18 +591,21 @@ function OnboardingContent() {
       </header>
 
       {/* Progress */}
-      <div className="border-b border-border bg-white py-4">
+      <div className="border-b border-teal-100/50 glass py-4 relative z-10">
         <div className="container mx-auto px-4">
           <StepIndicator steps={steps} currentStep={currentStep} />
         </div>
       </div>
 
       {/* Content with Animation */}
-      <main className="container mx-auto px-4 py-8 pb-32 md:pb-8">
-        <div className="max-w-xl mx-auto relative overflow-hidden">
-          <AnimatePresence mode="wait" custom={direction}>
-            {getStepContent()}
-          </AnimatePresence>
+      <main className="container mx-auto px-4 py-8 pb-32 md:pb-12 relative z-10">
+        <div className="max-w-2xl mx-auto relative">
+          {/* Card container with beautiful styling */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl shadow-teal-500/10 border border-white/50 p-6 md:p-10">
+            <AnimatePresence mode="wait" custom={direction}>
+              {getStepContent()}
+            </AnimatePresence>
+          </div>
         </div>
       </main>
     </div>
