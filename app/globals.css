@@ -5,6 +5,9 @@
 
 /* InstantMed Premium Design System - Deep Navy + Mint */
 :root {
+  /* Add test banner height variable */
+  --test-banner-height: 0px;
+
   /* New color palette: deep navy base, mint accent */
   --background: #fafbfc;
   --foreground: #0a0f1c;
@@ -46,6 +49,11 @@
   --navy: #0a0f1c;
   --mint: #00e2b5;
   --mint-light: #ecfdf5;
+}
+
+/* Test mode banner active state */
+:root:has(.test-mode-banner) {
+  --test-banner-height: 32px;
 }
 
 .dark {

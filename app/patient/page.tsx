@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { TestToolsCard } from "@/components/shared/test-tools-card"
+import { ReferralCard } from "@/components/patient/referral-card"
 import {
   Plus,
   FileText,
@@ -155,6 +157,11 @@ export default async function PatientDashboardPage({
           <p className="text-2xl font-semibold">{stats.declined}</p>
         </div>
       </section>
+
+      <ReferralCard patientId={authUser.profile.id} />
+
+      {/* Test Tools Card */}
+      <TestToolsCard patientId={authUser.profile.id} />
 
       {/* Needs Action */}
       {needsAction.length > 0 && (

@@ -396,3 +396,102 @@ export function formatRequestType(type: string | null | undefined): string {
 
   return typeMap[type] || type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
 }
+
+/**
+ * Save private doctor notes for a request
+ */
+export async function saveDoctorNotes(requestId: string, notes: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("requests")
+    .update({
+      doctor_notes: notes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+
+  if (error) {
+    console.error("Error saving doctor notes:", error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Flag a request for follow-up
+ */
+export async function flagForFollowup(requestId: string, reason: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("requests")
+    .update({
+      flagged_for_followup: true,
+      followup_reason: reason,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+
+  if (error) {
+    console.error("Error flagging for followup:", error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Escalate a request
+ */
+export async function escalateRequest(
+  requestId: string,
+  level: "senior_review" | "phone_consult",
+  reason: string,
+  doctorId: string,
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("requests")
+    .update({
+      escalation_level: level,
+      escalation_reason: reason,
+      escalated_at: new Date().toISOString(),
+      escalated_by: doctorId,
+      status: "needs_follow_up",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+
+  if (error) {
+    console.error("Error escalating request:", error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Mark request as reviewed
+ */
+export async function markAsReviewed(requestId: string, doctorId: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("requests")
+    .update({
+      reviewed_by: doctorId,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+
+  if (error) {
+    console.error("Error marking as reviewed:", error)
+    return false
+  }
+
+  return true
+}

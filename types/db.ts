@@ -2,7 +2,16 @@
 
 export type UserRole = "patient" | "doctor"
 
-export type RequestType = "script" | "med_cert" | "referral" | "hair_loss" | "acne" | "ed" | "hsv" | "bv_partner"
+export type RequestType =
+  | "script"
+  | "med_cert"
+  | "referral"
+  | "hair_loss"
+  | "acne"
+  | "ed"
+  | "hsv"
+  | "bv_partner"
+  | "pathology"
 
 export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up"
 
@@ -11,8 +20,14 @@ export type RequestCategory = "medical_certificate" | "prescription" | "referral
 export type MedicalCertificateSubtype = "work" | "uni" | "carer"
 export type PrescriptionSubtype = "repeat" | "chronic_review"
 export type ReferralSubtype = "specialist" | "imaging"
+export type PathologySubtype = "routine" | "urgent" | "asap"
 
-export type RequestSubtype = MedicalCertificateSubtype | PrescriptionSubtype | ReferralSubtype | string
+export type RequestSubtype =
+  | MedicalCertificateSubtype
+  | PrescriptionSubtype
+  | ReferralSubtype
+  | PathologySubtype
+  | string
 
 export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA"
 
@@ -52,6 +67,16 @@ export interface Request {
   category: RequestCategory | null
   subtype: RequestSubtype | null
   clinical_note: string | null
+  // Doctor notes and escalation fields
+  doctor_notes: string | null
+  escalation_level: EscalationLevel
+  escalation_reason: string | null
+  escalated_at: string | null
+  escalated_by: string | null
+  flagged_for_followup: boolean
+  followup_reason: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
   // Script tracking fields
   script_sent: boolean
   script_sent_at: string | null
@@ -62,6 +87,9 @@ export interface Request {
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
 }
+
+// Escalation level type
+export type EscalationLevel = "none" | "senior_review" | "phone_consult"
 
 // Table: request_answers
 export interface RequestAnswers {
@@ -86,7 +114,7 @@ export interface DocumentDraft {
   request_id: string // uuid, FK to requests.id
   type: string // e.g. 'med_cert', 'referral', 'prescription'
   subtype: string // e.g. 'work', 'uni', 'carer'
-  data: MedCertDraftData | Record<string, unknown> // JSONB - editable fields
+  data: MedCertDraftData | PathologyDraftData | PrescriptionDraftData | Record<string, unknown> // JSONB - editable fields
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
 }
@@ -113,6 +141,41 @@ export interface MedCertDraftData {
   doctor_name: string
   provider_number: string
   created_date: string // YYYY-MM-DD
+}
+
+// Pathology draft data structure
+export interface PathologyDraftData {
+  patient_name: string
+  dob: string | null
+  medicare_number: string | null
+  tests_requested: string
+  clinical_indication: string | null
+  symptom_duration: string | null
+  severity: string | null
+  urgency: "Routine" | "Urgent" | "ASAP"
+  previous_tests: string | null
+  imaging_region?: string | null
+  doctor_name: string
+  provider_number: string
+  created_date: string
+}
+
+// Prescription draft data structure
+export interface PrescriptionDraftData {
+  patient_name: string
+  dob: string | null
+  medicare_number: string | null
+  medication_name: string
+  dosage: string | null
+  quantity: string | null
+  repeats: number
+  directions: string | null
+  pbs_listed: boolean
+  authority_required: boolean
+  authority_number?: string | null
+  doctor_name: string
+  provider_number: string
+  created_date: string
 }
 
 // Payment status type
@@ -158,3 +221,18 @@ export type GeneratedDocumentInsert = Omit<GeneratedDocument, "id" | "created_at
 // Update types (all fields optional except id)
 export type ProfileUpdate = Partial<Omit<Profile, "id" | "created_at">>
 export type RequestUpdate = Partial<Omit<Request, "id" | "created_at">>
+
+// Analytics types
+export interface DashboardAnalytics {
+  requests_today: number
+  requests_this_week: number
+  requests_this_month: number
+  avg_review_time_hours: number
+  approval_rate: number
+  revenue_today: number
+  revenue_this_week: number
+  revenue_this_month: number
+  requests_by_type: { type: string; count: number }[]
+  requests_by_hour: { hour: number; count: number }[]
+  requests_by_day: { date: string; count: number }[]
+}

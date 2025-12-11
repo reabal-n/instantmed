@@ -1,23 +1,14 @@
 import Link from "next/link"
 import Image from "next/image"
-import {
-  ArrowRight,
-  CheckCircle2,
-  Star,
-  Clock,
-  Users,
-  Sparkles,
-  MessageCircle,
-  Zap,
-  ShieldCheck,
-  Heart,
-} from "lucide-react"
+import { ArrowRight, CheckCircle2, Star, Clock, Sparkles, MessageCircle, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
-import { TestimonialMarquee } from "@/components/shared/testimonial-marquee"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
+import { HeroTypewriter } from "@/components/homepage/hero-typewriter"
+import { ServiceCards } from "@/components/homepage/service-cards"
+import { StatsBar, TestimonialCarousel } from "@/components/homepage/social-proof"
 
 export default function LandingPage() {
   return (
@@ -33,6 +24,10 @@ export default function LandingPage() {
             className="hero-orb hero-orb-cyan w-[400px] h-[400px] bottom-0 right-1/4 opacity-40"
             style={{ animationDelay: "-2s" }}
           />
+
+          <HeroTypewriter />
+
+          <StatsBar />
 
           <div className="relative mx-auto max-w-4xl text-center">
             <div
@@ -154,27 +149,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="px-4 py-4 sm:px-6 bg-[#0A0F1C] overflow-hidden">
-          <div className="flex items-center justify-center gap-8 sm:gap-16 text-white/90 animate-marquee-slow">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Users className="h-4 w-4 text-[#00E2B5]" />
-              <span className="text-sm font-medium">10,000+ patients helped</span>
-            </div>
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Star className="h-4 w-4 text-[#F59E0B] fill-[#F59E0B]" />
-              <span className="text-sm font-medium">4.9 star rating</span>
-            </div>
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Zap className="h-4 w-4 text-[#06B6D4]" />
-              <span className="text-sm font-medium">Usually within 1 hour</span>
-            </div>
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <ShieldCheck className="h-4 w-4 text-[#8B5CF6]" />
-              <span className="text-sm font-medium">100% secure</span>
-            </div>
-          </div>
-        </section>
-
         {/* Services Section */}
         <section id="services" className="px-4 py-16 sm:px-6 lg:py-24 bg-mesh">
           <div className="mx-auto max-w-6xl">
@@ -194,289 +168,148 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Medical Certificate - Updated copy */}
-              <Link href="/medical-certificate" className="block group">
-                <TiltCard className="glass-card rounded-2xl p-6 h-full hover-lift tap-bounce">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#00E2B5]/20 to-[#00E2B5]/5 group-hover:from-[#00E2B5] group-hover:to-[#00C9A0] transition-all duration-300 overflow-hidden">
-                      <AnimatedIcon type="medCert" size={40} />
-                    </div>
-                    <span className="text-xs font-medium text-[#00E2B5] bg-[#00E2B5]/10 px-2 py-1 rounded-full">
-                      Most popular
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-                    Medical Certificate
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Work, uni, or carer's leave. Fill out a 2-minute form and a doctor reviews your request. Quick and
-                    convenient.
-                  </p>
-                  <div className="pt-4 border-t border-[#0A0F1C]/5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-bold text-[#0A0F1C]">$19.95</span>
-                        <span className="text-xs text-muted-foreground ml-1">AUD</span>
-                      </div>
-                      <span className="flex items-center text-sm font-medium text-[#00E2B5] group-hover:gap-2 transition-all">
-                        Get started{" "}
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </div>
-                </TiltCard>
-              </Link>
-
-              {/* Prescriptions - Updated copy */}
-              <Link href="/prescriptions" className="block group">
-                <TiltCard className="glass-card rounded-2xl p-6 h-full hover-lift tap-bounce">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#06B6D4]/20 to-[#06B6D4]/5 group-hover:from-[#06B6D4] group-hover:to-[#0891B2] transition-all duration-300 overflow-hidden">
-                      <AnimatedIcon type="pill" size={40} />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-                    Prescriptions
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Continuing your regular medication? Tell us about your medical history and a doctor will review if a
-                    repeat script is appropriate.
-                  </p>
-                  <div className="pt-4 border-t border-[#0A0F1C]/5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-bold text-[#0A0F1C]">$24.95</span>
-                        <span className="text-xs text-muted-foreground ml-1">AUD</span>
-                      </div>
-                      <span className="flex items-center text-sm font-medium text-[#06B6D4] group-hover:gap-2 transition-all">
-                        Get started{" "}
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </div>
-                </TiltCard>
-              </Link>
-
-              {/* Referrals - Updated copy */}
-              <Link href="/referrals" className="block group">
-                <TiltCard className="glass-card rounded-2xl p-6 h-full hover-lift tap-bounce">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#8B5CF6]/5 group-hover:from-[#8B5CF6] group-hover:to-[#7C3AED] transition-all duration-300 overflow-hidden">
-                      <AnimatedIcon type="referral" size={40} />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-                    Specialist Referrals
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Need to see a specialist? Tell us what's going on. A doctor reviews your history and prepares a
-                    detailed referral letter.
-                  </p>
-                  <div className="pt-4 border-t border-[#0A0F1C]/5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-bold text-[#0A0F1C]">$29.95</span>
-                        <span className="text-xs text-muted-foreground ml-1">AUD</span>
-                      </div>
-                      <span className="flex items-center text-sm font-medium text-[#8B5CF6] group-hover:gap-2 transition-all">
-                        Get started{" "}
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </div>
-                </TiltCard>
-              </Link>
-
-              {/* Pathology - Updated copy */}
-              <Link href="/referrals/pathology-imaging" className="block group">
-                <TiltCard className="glass-card rounded-2xl p-6 h-full hover-lift tap-bounce">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 group-hover:from-[#F59E0B] group-hover:to-[#D97706] transition-all duration-300 overflow-hidden">
-                      <AnimatedIcon type="pathology" size={40} />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
-                    Pathology & Imaging
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Blood tests, X-rays, or ultrasounds. A doctor reviews your request and sends a pathology form you
-                    can take to any collection centre.
-                  </p>
-                  <div className="pt-4 border-t border-[#0A0F1C]/5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-bold text-[#0A0F1C]">$29.95</span>
-                        <span className="text-xs text-muted-foreground ml-1">AUD</span>
-                      </div>
-                      <span className="flex items-center text-sm font-medium text-[#F59E0B] group-hover:gap-2 transition-all">
-                        Get started{" "}
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </div>
-                </TiltCard>
-              </Link>
-            </div>
-
-            {/* Urgency CTA */}
-            <div className="mt-10 text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Not sure what you need?{" "}
-                <Link href="/contact" className="text-[#00E2B5] hover:underline font-medium">
-                  Get in touch
-                </Link>
-              </p>
-            </div>
+            <ServiceCards />
           </div>
         </section>
 
-        {/* How It Works - Rewritten for AHPRA compliance */}
-        <section className="px-4 py-16 sm:px-6 lg:py-24">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-12">
-              <span className="inline-block text-sm font-medium text-[#06B6D4] mb-3 uppercase tracking-wide">
+        {/* How It Works */}
+        <section className="px-4 py-12 sm:py-16 lg:py-20">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center mb-10">
+              <span className="inline-block text-xs font-medium text-[#06B6D4] mb-2 uppercase tracking-wide">
                 How it works
               </span>
               <h2
-                className="text-3xl font-bold tracking-tight sm:text-4xl"
+                className="text-2xl font-bold tracking-tight sm:text-3xl"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Simple, secure, doctor-reviewed
               </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Submit your request online. A real doctor reviews it and decides the best way to help you.
-              </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               {/* Step 1 */}
-              <TiltCard className="glass-card rounded-2xl p-8 text-center relative overflow-visible">
-                <div className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#00E2B5] text-[#0A0F1C] flex items-center justify-center font-bold text-lg shadow-lg">
+              <TiltCard className="glass-card rounded-xl p-6 text-center relative overflow-visible">
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#00E2B5] text-[#0A0F1C] flex items-center justify-center font-bold text-sm shadow-lg">
                   1
                 </div>
-                <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00E2B5]/20 to-[#00E2B5]/5 flex items-center justify-center">
-                    <MessageCircle className="h-10 w-10 text-[#00E2B5]" />
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00E2B5]/20 to-[#00E2B5]/5 flex items-center justify-center">
+                    <MessageCircle className="h-7 w-7 text-[#00E2B5]" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-                  Fill out a short form
+                <h3 className="text-base font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
+                  Fill out a form
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Takes about 2 minutes. We collect the information a doctor needs to properly assess your request.
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Takes 2 minutes. We collect what a doctor needs to assess your request.
                 </p>
               </TiltCard>
 
               {/* Step 2 */}
-              <TiltCard className="glass-card rounded-2xl p-8 text-center relative overflow-visible">
-                <div className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#06B6D4] text-white flex items-center justify-center font-bold text-lg shadow-lg">
+              <TiltCard className="glass-card rounded-xl p-6 text-center relative overflow-visible">
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#06B6D4] text-white flex items-center justify-center font-bold text-sm shadow-lg">
                   2
                 </div>
-                <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#06B6D4]/20 to-[#06B6D4]/5 flex items-center justify-center overflow-hidden">
-                    <AnimatedIcon type="doctor" size={50} />
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#06B6D4]/20 to-[#06B6D4]/5 flex items-center justify-center overflow-hidden">
+                    <AnimatedIcon type="doctor" size={36} />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-                  A real doctor reviews it
+                <h3 className="text-base font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
+                  A real doctor reviews
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  An AHPRA-registered Australian GP reviews your answers and verifies your Medicare details. This isn't
-                  automated.
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  An AHPRA-registered GP reviews everything. Not automated.
                 </p>
               </TiltCard>
 
               {/* Step 3 */}
-              <TiltCard className="glass-card rounded-2xl p-8 text-center relative overflow-visible">
-                <div className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center font-bold text-lg shadow-lg">
+              <TiltCard className="glass-card rounded-xl p-6 text-center relative overflow-visible">
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center font-bold text-sm shadow-lg">
                   3
                 </div>
-                <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#8B5CF6]/5 flex items-center justify-center">
-                    <Sparkles className="h-10 w-10 text-[#8B5CF6]" />
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#8B5CF6]/20 to-[#8B5CF6]/5 flex items-center justify-center">
+                    <Sparkles className="h-7 w-7 text-[#8B5CF6]" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
+                <h3 className="text-base font-semibold mb-2" style={{ fontFamily: "var(--font-display)" }}>
                   Get your document
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Most requests are completed within 1 hour (8am–10pm). Your certificate, script, or referral is
-                  delivered straight to your inbox.
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Most done within 1 hour (8am–10pm). Delivered to your inbox.
                 </p>
               </TiltCard>
             </div>
 
-            {/* CTA - Updated with compliant messaging */}
-            <div className="mt-12 text-center">
+            <div className="mt-8 text-center">
               <Button
                 size="lg"
                 asChild
-                className="rounded-full btn-premium text-[#0A0F1C] font-semibold text-base h-14 px-10 shadow-lg group"
+                className="rounded-full btn-premium text-[#0A0F1C] font-semibold text-sm h-12 px-8 shadow-lg group"
               >
                 <Link href="/auth/register">
                   Get started
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Medicare card required. Only pay if your request is approved.
-              </p>
+              <p className="mt-3 text-xs text-muted-foreground">Medicare card required. Only pay if approved.</p>
             </div>
           </div>
         </section>
 
-        {/* Why Us - Updated trust section with compliant messaging */}
-        <section className="px-4 py-16 sm:px-6 lg:py-24 bg-[#0A0F1C] text-white">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-12">
+        {/* Why Us */}
+        <section className="px-4 py-12 sm:py-16 bg-[#0A0F1C] text-white">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center mb-8">
               <h2
-                className="text-3xl font-bold tracking-tight sm:text-4xl"
+                className="text-2xl font-bold tracking-tight sm:text-3xl"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Why Aussies trust InstantMed
               </h2>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="text-center p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#00E2B5]/20 flex items-center justify-center">
-                    <AnimatedIcon type="clock" size={36} />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="text-center p-4">
+                <div className="flex justify-center mb-3">
+                  <div className="w-11 h-11 rounded-lg bg-[#00E2B5]/20 flex items-center justify-center">
+                    <AnimatedIcon type="clock" size={28} />
                   </div>
                 </div>
-                <h3 className="font-semibold mb-2">Fast turnaround</h3>
-                <p className="text-white/70 text-sm">Most requests completed within 1 hour (8am–10pm)</p>
+                <h3 className="font-semibold text-sm mb-1">Fast turnaround</h3>
+                <p className="text-white/70 text-xs">Usually within 1 hour</p>
               </div>
 
-              <div className="text-center p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#06B6D4]/20 flex items-center justify-center overflow-hidden">
-                    <AnimatedIcon type="doctor" size={36} />
+              <div className="text-center p-4">
+                <div className="flex justify-center mb-3">
+                  <div className="w-11 h-11 rounded-lg bg-[#06B6D4]/20 flex items-center justify-center overflow-hidden">
+                    <AnimatedIcon type="doctor" size={28} />
                   </div>
                 </div>
-                <h3 className="font-semibold mb-2">Real Australian doctors</h3>
-                <p className="text-white/70 text-sm">Every request is reviewed by an AHPRA-registered GP</p>
+                <h3 className="font-semibold text-sm mb-1">Real doctors</h3>
+                <p className="text-white/70 text-xs">AHPRA-registered GPs</p>
               </div>
 
-              <div className="text-center p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#8B5CF6]/20 flex items-center justify-center overflow-hidden">
-                    <AnimatedIcon type="lock" size={36} />
+              <div className="text-center p-4">
+                <div className="flex justify-center mb-3">
+                  <div className="w-11 h-11 rounded-lg bg-[#8B5CF6]/20 flex items-center justify-center overflow-hidden">
+                    <AnimatedIcon type="lock" size={28} />
                   </div>
                 </div>
-                <h3 className="font-semibold mb-2">Secure & private</h3>
-                <p className="text-white/70 text-sm">Your health information is encrypted and protected</p>
+                <h3 className="font-semibold text-sm mb-1">Secure & private</h3>
+                <p className="text-white/70 text-xs">Encrypted & protected</p>
               </div>
 
-              <div className="text-center p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center">
-                    <Heart className="h-7 w-7 text-[#F59E0B]" />
+              <div className="text-center p-4">
+                <div className="flex justify-center mb-3">
+                  <div className="w-11 h-11 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
+                    <Heart className="h-5 w-5 text-[#F59E0B]" />
                   </div>
                 </div>
-                <h3 className="font-semibold mb-2">No surprises</h3>
-                <p className="text-white/70 text-sm">Clear pricing upfront. Only pay if your request is approved.</p>
+                <h3 className="font-semibold text-sm mb-1">No surprises</h3>
+                <p className="text-white/70 text-xs">Only pay if approved</p>
               </div>
             </div>
           </div>
@@ -498,7 +331,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <TestimonialMarquee />
+          <TestimonialCarousel />
 
           <div className="text-center mt-8">
             <Link href="/reviews" className="text-sm font-medium text-[#00E2B5] hover:underline">
@@ -507,37 +340,34 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Final CTA - Rewritten for AHPRA compliance */}
-        <section className="px-4 py-16 sm:px-6 lg:py-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <TiltCard className="glass-card rounded-3xl p-10 sm:p-14 relative overflow-hidden">
-              {/* Background decoration */}
+        {/* Final CTA */}
+        <section className="px-4 py-12 sm:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <TiltCard className="glass-card rounded-2xl p-8 sm:p-10 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00E2B5]/10 via-transparent to-[#06B6D4]/10 pointer-events-none" />
 
               <div className="relative">
                 <h2
-                  className="text-3xl font-bold tracking-tight sm:text-4xl mb-4"
+                  className="text-2xl font-bold tracking-tight sm:text-3xl mb-3"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Need a certificate, script, or referral?
+                  Ready to get sorted?
                 </h2>
-                <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                  No phone calls. No video consults. Fill out a quick form and a real doctor will review your request —
-                  usually within 1 hour (8am–10pm).
+                <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+                  No phone calls. No video consults. Fill out a form and a real doctor reviews it — usually within an
+                  hour.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button
-                    size="lg"
-                    asChild
-                    className="w-full sm:w-auto rounded-full btn-premium text-[#0A0F1C] font-semibold text-base h-14 px-10 shadow-lg group"
-                  >
-                    <Link href="#services">
-                      Get started
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </Button>
-                </div>
-                <p className="mt-6 text-sm text-muted-foreground">Medicare card required. Only pay if approved.</p>
+                <Button
+                  size="lg"
+                  asChild
+                  className="rounded-full btn-premium text-[#0A0F1C] font-semibold text-sm h-12 px-8 shadow-lg group"
+                >
+                  <Link href="#services">
+                    Get started
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <p className="mt-4 text-xs text-muted-foreground">Medicare card required. Only pay if approved.</p>
               </div>
             </TiltCard>
           </div>

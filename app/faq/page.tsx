@@ -23,20 +23,20 @@ const faqCategories = [
         a: "We're an Australian telehealth service that connects you with registered GPs for medical certificates, prescription renewals, and specialist referrals. You submit your request online, and a doctor reviews it. They may approve it, request more information, or recommend an in-person consultation if needed.",
       },
       {
-        q: "Is this actually legit?",
-        a: "100%. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified GPs who follow the exact same clinical standards as in-person consultations.",
+        q: "Is this service legal and legitimate?",
+        a: "100% legitimate. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified GPs who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 2-4 hours during business hours. We aim to respond within 24 hours. If we can't help you, you get a full refund.",
+        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can't help you, you get a full refund.",
       },
       {
-        q: "Do I need to create an account?",
-        a: "Yes, but it takes 2 minutes. We need to verify your identity and store your medical history for continuity of care. Your data is encrypted and never shared with third parties.",
+        q: "How do I know if I need a GP visit instead?",
+        a: "Our service is best for straightforward requests like sick certificates for minor illness, repeat prescriptions for stable conditions, and routine referrals. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that's the case.",
       },
       {
         q: "Will a doctor call me?",
-        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care.",
+        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care — it's a feature, not a bug.",
       },
     ],
   },
@@ -50,7 +50,11 @@ const faqCategories = [
       },
       {
         q: "Can I get a backdated certificate?",
-        a: "We can issue certificates for recent illness (within the last few days) if clinically appropriate based on your symptoms and history. The doctor makes the final decision on what dates are appropriate.",
+        a: "We can issue certificates for recent illness (within the last few days) if clinically appropriate based on your symptoms and history. The doctor makes the final decision on what dates are appropriate. We cannot backdate certificates for extended periods.",
+      },
+      {
+        q: "What if my request is declined?",
+        a: "If the doctor determines a certificate isn't clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a GP in person for a more thorough assessment.",
       },
       {
         q: "What if I need more than 2 days off?",
@@ -63,20 +67,20 @@ const faqCategories = [
     emoji: "💊",
     faqs: [
       {
-        q: "Can you prescribe any medication?",
-        a: "We can prescribe repeat medications for stable, ongoing conditions where you have an established history. We cannot prescribe controlled substances (Schedule 8), certain antibiotics, or medications requiring physical examination. Every prescription decision is made by the reviewing doctor based on clinical appropriateness.",
+        q: "What medications can you prescribe?",
+        a: "We can prescribe repeat medications for stable, ongoing conditions where you have an established treatment history. This includes common medications like blood pressure tablets, cholesterol medication, contraceptives, and more. We cannot prescribe: Schedule 8 controlled substances (opioids, ADHD meds, benzodiazepines), certain antibiotics, or medications requiring physical examination.",
+      },
+      {
+        q: "What if my prescription request is declined?",
+        a: "If the doctor determines a prescription isn't clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it's a new medication, or there are potential interactions with your other medications.",
       },
       {
         q: "How do I receive my prescription?",
-        a: "We use electronic prescribing (eRx). If approved, you'll receive an SMS with a token that you can present at any pharmacy in Australia.",
+        a: "We use electronic prescribing (eRx). If approved, you'll receive an SMS with a token that you can present at any pharmacy in Australia. No paper script needed.",
       },
       {
         q: "Can you send it to my usual pharmacy?",
         a: "Absolutely. Just nominate your preferred pharmacy and we'll send it directly to them if your prescription is approved.",
-      },
-      {
-        q: "What if my prescription request is declined?",
-        a: "If the doctor determines a prescription isn't clinically appropriate based on the information provided, you'll receive a full refund. They may also recommend alternative options or suggest an in-person consultation.",
       },
     ],
   },
@@ -86,15 +90,15 @@ const faqCategories = [
     faqs: [
       {
         q: "How long is a referral valid?",
-        a: "Standard GP referrals are valid for 12 months from the date of issue. Some specialists may require a new referral after this period, but that's on them, not us.",
+        a: "Standard GP referrals are valid for 12 months from the date of issue. Some specialists may require a new referral after this period.",
       },
       {
         q: "Do referrals include Medicare rebates?",
-        a: "Yes, our referrals are Medicare-compliant. You'll receive the standard Medicare rebate when you see the specialist. No funny business.",
+        a: "Yes, our referrals are Medicare-compliant. You'll receive the standard Medicare rebate when you see the specialist.",
       },
       {
         q: "Can I get a referral for any specialist?",
-        a: "We can refer to most specialists including dermatologists, psychiatrists, cardiologists, and more. Some referrals may require additional clinical information, but we'll guide you through it.",
+        a: "We can refer to most specialists including dermatologists, psychiatrists, cardiologists, gastroenterologists, and more. We also provide pathology and imaging referrals. Some referrals may require additional clinical information.",
       },
     ],
   },
@@ -104,15 +108,15 @@ const faqCategories = [
     faqs: [
       {
         q: "Is my information secure?",
-        a: "Bank-level secure. We use 256-bit SSL encryption for all data transmission and storage. Your medical information is stored in Australia and complies with the Privacy Act 1988. We take this stuff seriously.",
+        a: "Bank-level secure. We use 256-bit SSL encryption for all data transmission and storage. Your medical information is stored in Australia and complies with the Privacy Act 1988 and Australian Privacy Principles.",
       },
       {
         q: "Do you share my data with anyone?",
-        a: "Never. We don't sell or share your data with third parties. Ever. The only exception is when we need to send a prescription to your nominated pharmacy (because, you know, you asked us to).",
+        a: "Never. We don't sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
       },
       {
         q: "Can I delete my account?",
-        a: "Yes, you can request full deletion of your account and data at any time. Note that we're legally required to retain medical records for 7 years (blame the government, not us).",
+        a: "Yes, you can request full deletion of your account and data at any time. Note that we're legally required to retain medical records for 7 years as per Australian healthcare regulations.",
       },
     ],
   },
@@ -129,8 +133,8 @@ const faqCategories = [
         a: "If we're unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
       },
       {
-        q: "Is there a Medicare rebate for the consult?",
-        a: "Our consultation fees aren't covered by Medicare as they're a private telehealth service. However, any prescriptions or referrals you receive are Medicare-eligible. So you save on time, if not on the consult fee.",
+        q: "Is there a Medicare rebate for the consultation?",
+        a: "Our consultation fees aren't covered by Medicare as they're a private telehealth service. However, any prescriptions or referrals you receive are Medicare-eligible.",
       },
     ],
   },

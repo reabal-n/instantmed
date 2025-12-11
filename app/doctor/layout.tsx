@@ -17,7 +17,10 @@ export default async function DoctorLayout({
     redirect("/auth/login")
   }
 
-  if (authUser.profile.role !== "doctor") {
+  const isDoctor = authUser.profile.role === "doctor"
+  const isAdmin = authUser.profile.role === "admin"
+
+  if (!isDoctor && !isAdmin) {
     if (authUser.profile.role === "patient") {
       redirect("/patient")
     }

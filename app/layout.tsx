@@ -8,6 +8,7 @@ import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { SkipToContent } from "@/components/shared/skip-to-content"
+import { TestModeBanner } from "@/components/shared/test-mode-banner"
 import "./globals.css"
 
 const workSans = Work_Sans({
@@ -89,7 +90,7 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-verification-code",
   },
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export const viewport: Viewport = {
@@ -151,8 +152,9 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className="font-sans antialiased">
+        <TestModeBanner />
         <SkipToContent />
-        <div id="main-content" className="page-enter">
+        <div id="main-content" className="page-enter pt-[var(--test-banner-height,0px)]">
           {children}
         </div>
         <Toaster position="top-center" richColors />

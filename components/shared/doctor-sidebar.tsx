@@ -3,11 +3,12 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, FileText, Users, BarChart3, Download } from "lucide-react"
+import { LayoutDashboard, FileText, Users, BarChart3, Download, ListOrdered } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/doctor", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/doctor/queue", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
@@ -31,8 +32,8 @@ export function DoctorSidebar({ pendingCount = 0, scriptsToSend = 0 }: DoctorSid
         {/* Main Nav */}
         <nav className="glass-card rounded-2xl p-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
-            const showBadge = item.href === "/doctor" && pendingCount > 0
+            const isActive = pathname === item.href || (item.href !== "/doctor" && pathname.startsWith(item.href))
+            const showBadge = item.badge && pendingCount > 0
             return (
               <Link
                 key={item.href}
@@ -49,7 +50,12 @@ export function DoctorSidebar({ pendingCount = 0, scriptsToSend = 0 }: DoctorSid
                   {item.label}
                 </span>
                 {showBadge && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-full text-xs font-semibold",
+                      isActive ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700",
+                    )}
+                  >
                     {pendingCount}
                   </span>
                 )}
