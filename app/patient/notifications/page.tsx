@@ -1,0 +1,52 @@
+import { redirect } from "next/navigation"
+import { createServerClient } from "@/lib/supabase/server"
+import { Navbar } from "@/components/shared/navbar"
+import { NotificationsClient } from "./notifications-client"
+
+export const metadata = {
+  title: "Notifications",
+  description: "View your notifications and updates",
+}
+
+export default async function NotificationsPage() {
+  const supabase = await createServerClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect("/auth/login?redirect=/patient/notifications")
+  }
+
+  // Get profile with notification preferences
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, full_name, first_name, notification_preferences")
+    .eq("auth_user_id", user.id)
+    .single()
+
+  if (!profile) {
+    redirect("/patient/onboarding")
+  }
+
+  // Get all notifications
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(100)
+
+  return (
+    <div className="min-h-screen bg-mesh">
+      <Navbar variant="patient" userName={profile.full_name || "Patient"} />
+
+      <main className="pt-24 pb-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <NotificationsClient notifications={notifications || []} />
+        </div>
+      </main>
+    </div>
+  )
+}

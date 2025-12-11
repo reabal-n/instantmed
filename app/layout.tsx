@@ -10,6 +10,7 @@ import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { AnimatedBackground } from "@/components/effects/animated-background"
 import { ThemeProvider } from "next-themes"
+import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import "./globals.css"
 
 const workSans = Work_Sans({
@@ -155,6 +156,8 @@ export default function RootLayout({
     >
       <head>
         <JsonLd />
+        <OrganizationSchema />
+        <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

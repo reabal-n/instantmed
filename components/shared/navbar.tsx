@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { DoctorAvailability } from "@/components/shared/doctor-availability"
 import { ThemeToggle } from "@/components/effects/theme-toggle"
+import { NotificationBell } from "@/components/shared/notification-bell"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -281,10 +282,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
+                  {/* Notifications */}
+                  <NotificationBell />
+
                   {/* User Menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="ml-2 rounded-lg gap-1.5">
+                      <Button variant="ghost" size="sm" className="ml-1 rounded-lg gap-1.5">
                         <User className="h-4 w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">{firstName}</span>
                       </Button>
