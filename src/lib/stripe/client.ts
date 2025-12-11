@@ -10,4 +10,3 @@ function getStripe() {
 }
 
 export const stripe = getStripe()
-
