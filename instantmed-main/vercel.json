@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd instantmed-main && npm run build",
-  "installCommand": "cd instantmed-main && npm install",
-  "framework": "nextjs",
-  "rootDirectory": "instantmed-main"
-}

@@ -1,9 +1,0 @@
-node_modules/
-.next/
-.env
-.env.local
-.DS_Store
-*.log
-pnpm-lock.yaml
-yarn.lock
-bun.lockb
