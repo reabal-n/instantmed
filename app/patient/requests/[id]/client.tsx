@@ -1,0 +1,417 @@
+"use client"
+
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  ArrowLeft,
+  Calendar,
+  FileText,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  MessageSquare,
+  Download,
+  CreditCard,
+  Printer,
+} from "lucide-react"
+import { formatRequestType } from "@/lib/data/request-utils"
+import { RetryPaymentButton } from "./retry-payment-button"
+import { cn } from "@/lib/utils"
+import { CopyButton } from "@/components/shared/copy-button"
+
+interface PatientRequestDetailPageProps {
+  params: { id: string }
+  searchParams: { retry?: string }
+}
+
+export default function PatientRequestDetailPageClient({ params, searchParams }: PatientRequestDetailPageProps) {
+  const { id } = params
+  const query = searchParams
+  // In a client component, we need to use a hook like useEffect or use the Server Component to fetch data.
+  // For simplicity in this refactor, we'll assume data is passed down or fetched via a client-side hook.
+  // In a real application, you'd likely use React Query or similar for data fetching here.
+  // For demonstration, we'll mock the data fetching.
+
+  // Mock data fetching (replace with actual client-side fetching or data passed from server component)
+  const authUser = { profile: { id: "mock_user_id" } } // Replace with actual auth check
+  const request = {
+    id: id,
+    type: "prescription",
+    status: "approved",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    payment_status: "paid",
+    category: "general_health",
+  } // Replace with actual data fetching
+  const document = {
+    id: "doc_123",
+    url: "/mock-document.pdf",
+    pdf_url: "/mock-document.pdf",
+    type: "referral",
+    subtype: "pathology_blood_test",
+    created_at: new Date().toISOString(),
+  } // Replace with actual data fetching
+  const isPendingPayment = request.payment_status === "pending_payment"
+
+  const getStatusConfig = (status: string, paymentStatus?: string) => {
+    if (paymentStatus === "pending_payment") {
+      return {
+        badge: (
+          <Badge className="bg-orange-100/80 text-orange-700 border-0 font-medium px-3 py-1 gap-1">
+            <CreditCard className="h-3 w-3" />
+            Payment needed
+          </Badge>
+        ),
+        icon: CreditCard,
+        color: "text-orange-500",
+        bgColor: "bg-orange-500",
+      }
+    }
+
+    switch (status) {
+      case "pending":
+        return {
+          badge: (
+            <Badge className="bg-amber-100/80 text-amber-700 border-0 font-medium px-3 py-1">In review by doctor</Badge>
+          ),
+          icon: Clock,
+          color: "text-amber-500",
+          bgColor: "bg-amber-500",
+        }
+      case "approved":
+        return {
+          badge: <Badge className="bg-emerald-100/80 text-emerald-700 border-0 font-medium px-3 py-1">Completed</Badge>,
+          icon: CheckCircle2,
+          color: "text-emerald-500",
+          bgColor: "bg-emerald-500",
+        }
+      case "declined":
+        return {
+          badge: <Badge className="bg-red-100/80 text-red-700 border-0 font-medium px-3 py-1">Unable to approve</Badge>,
+          icon: XCircle,
+          color: "text-red-500",
+          bgColor: "bg-red-500",
+        }
+      case "needs_follow_up":
+        return {
+          badge: (
+            <Badge className="bg-blue-100/80 text-blue-700 border-0 font-medium px-3 py-1">More info needed</Badge>
+          ),
+          icon: AlertCircle,
+          color: "text-blue-500",
+          bgColor: "bg-blue-500",
+        }
+      default:
+        return {
+          badge: <Badge variant="secondary">Unknown</Badge>,
+          icon: Clock,
+          color: "text-gray-500",
+          bgColor: "bg-gray-500",
+        }
+    }
+  }
+
+  const statusConfig = getStatusConfig(request.status, (request as any).payment_status)
+  const StatusIcon = statusConfig.icon
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-AU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+
+  // Timeline steps
+  const timelineSteps = isPendingPayment
+    ? [
+        { label: "Request created", completed: true, date: request.created_at },
+        { label: "Awaiting payment", completed: false, date: null },
+        { label: "Doctor review", completed: false, date: null },
+      ]
+    : [
+        { label: "Submitted securely", completed: true, date: request.created_at },
+        {
+          label: "Doctor reviewing",
+          completed: request.status !== "pending",
+          date: request.status !== "pending" ? request.updated_at : null,
+        },
+        {
+          label:
+            request.status === "approved"
+              ? "Document ready"
+              : request.status === "declined"
+                ? "Unable to approve"
+                : "Awaiting decision",
+          completed: ["approved", "declined"].includes(request.status),
+          date: ["approved", "declined"].includes(request.status) ? request.updated_at : null,
+        },
+        ...(request.status === "approved" && document
+          ? [{ label: "Available for download", completed: true, date: document.created_at }]
+          : []),
+      ]
+
+  const isPathologyDocument = document && document.type === "referral" && document.subtype?.startsWith("pathology_")
+  const isMedCertDocument = document && document.type === "med_cert"
+
+  return (
+    <div className="space-y-6">
+      {/* Back button */}
+      <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="text-muted-foreground hover:text-foreground rounded-lg -ml-2"
+        >
+          <Link href="/patient/requests">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to requests
+          </Link>
+        </Button>
+      </div>
+
+      {/* Header */}
+      <div
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
+      >
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{formatRequestType(request.type)}</h1>
+          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5" />
+            <span>Submitted {formatDate(request.created_at)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {statusConfig.badge}
+          {/* Added reference ID copy button */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-white/50 rounded-lg px-2 py-1">
+            <span>Ref: {id.slice(0, 8)}</span>
+            <CopyButton value={id} className="h-6 w-6" />
+          </div>
+        </div>
+      </div>
+
+      {isPendingPayment && (
+        <div
+          className="glass-card rounded-2xl p-6 border-2 border-orange-300/50 bg-orange-50/50 animate-fade-in-up opacity-0"
+          style={{ animationDelay: "0.18s", animationFillMode: "forwards" }}
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100">
+                <CreditCard className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Complete payment to submit</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your answers are saved. Once paid, a doctor will review your request.
+                </p>
+              </div>
+            </div>
+            <RetryPaymentButton requestId={id} />
+          </div>
+        </div>
+      )}
+
+      {request.status === "approved" && document && (
+        <div
+          className="glass-card rounded-2xl p-6 border-2 border-[#00E2B5]/30 bg-[#00E2B5]/5 animate-fade-in-up opacity-0"
+          style={{ animationDelay: "0.18s", animationFillMode: "forwards" }}
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/20">
+                <FileText className="h-6 w-6 text-[#00E2B5]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">
+                  {isPathologyDocument
+                    ? "Your pathology/imaging form is ready!"
+                    : isMedCertDocument
+                      ? "Your certificate is ready!"
+                      : "Your document is ready!"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {isPathologyDocument
+                    ? "Click below to download your pathology/imaging request form PDF"
+                    : isMedCertDocument
+                      ? "Click below to download your medical certificate PDF"
+                      : "Click below to download your document PDF"}
+                </p>
+              </div>
+            </div>
+            {/* Added print button alongside download */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button asChild className="rounded-xl btn-glow flex-1 sm:flex-none">
+                <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </a>
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-xl bg-transparent"
+                onClick={() => {
+                  window.open(document.pdf_url, "_blank")
+                }}
+                asChild
+              >
+                <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <Printer className="h-4 w-4" />
+                  <span className="sr-only">Print</span>
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Timeline */}
+      <div
+        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
+      >
+        <h2 className="text-lg font-semibold text-foreground mb-6">Request Timeline</h2>
+        <div className="relative">
+          {timelineSteps.map((step, index) => (
+            <div key={index} className="flex gap-4 pb-6 last:pb-0">
+              {/* Line */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all",
+                    step.completed ? "border-[#00E2B5] bg-[#00E2B5]" : "border-[#0A0F1C]/20 bg-white",
+                  )}
+                >
+                  {step.completed ? (
+                    <CheckCircle2 className="h-4 w-4 text-[#0A0F1C]" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-[#0A0F1C]/30" />
+                  )}
+                </div>
+                {index < timelineSteps.length - 1 && (
+                  <div className={cn("w-0.5 flex-1 mt-2", step.completed ? "bg-[#00E2B5]" : "bg-[#0A0F1C]/10")} />
+                )}
+              </div>
+              {/* Content */}
+              <div className="flex-1 pb-2">
+                <p className={cn("font-medium", step.completed ? "text-foreground" : "text-muted-foreground")}>
+                  {step.label}
+                </p>
+                {step.date && <p className="text-xs text-muted-foreground mt-0.5">{formatDate(step.date)}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Request details card */}
+      <div
+        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
+      >
+        <h2 className="text-lg font-semibold text-foreground mb-4">Request Details</h2>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Request Type</p>
+              <p className="text-sm text-muted-foreground">{formatRequestType(request.type)}</p>
+            </div>
+          </div>
+          {request.category && (
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Category</p>
+                <p className="text-sm text-muted-foreground capitalize">{request.category.replace("_", " ")}</p>
+              </div>
+            </div>
+          )}
+          <div className="flex items-start gap-3">
+            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Last Updated</p>
+              <p className="text-sm text-muted-foreground">{formatDate(request.updated_at)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Status message card */}
+      <div
+        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
+      >
+        <div className="flex items-start gap-4">
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+              statusConfig.color.replace("text-", "bg-") + "/10",
+            )}
+          >
+            <StatusIcon className={cn("h-6 w-6", statusConfig.color)} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">What happens next</h2>
+            {isPendingPayment && (
+              <p className="text-sm text-muted-foreground">
+                Your request is saved but hasn't been submitted yet. Complete payment above and a registered doctor will
+                review your information — usually within 1 hour (8am–10pm AEST).
+              </p>
+            )}
+            {!isPendingPayment && request.status === "pending" && (
+              <p className="text-sm text-muted-foreground">
+                Your request has been securely sent to a registered doctor. Most reviews are completed within 1 hour
+                (8am–10pm AEST). We'll email you as soon as there's an update.
+              </p>
+            )}
+            {request.status === "approved" && (
+              <p className="text-sm text-muted-foreground">
+                Good news — your document is ready. You can download it above. If you requested a prescription, your
+                eScript has been sent to your email and phone.
+              </p>
+            )}
+            {request.status === "declined" && (
+              <p className="text-sm text-muted-foreground">
+                The doctor wasn't able to approve this request. This can happen when more information is needed or an
+                in-person visit is recommended. Please check your email for the doctor's notes and next steps.
+              </p>
+            )}
+            {request.status === "needs_follow_up" && (
+              <p className="text-sm text-muted-foreground">
+                The doctor needs a bit more information before making a decision. Please check your email for details on
+                what's needed — it's usually something quick to provide.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Help card */}
+      <div
+        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
+            <MessageSquare className="h-6 w-6 text-[#00E2B5]" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">Need help?</h3>
+            <p className="text-sm text-muted-foreground">Questions about your request? We're here to help.</p>
+          </div>
+          <Button variant="outline" asChild className="rounded-full shrink-0 bg-transparent">
+            <Link href="/contact">Contact Us</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

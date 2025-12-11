@@ -1,0 +1,190 @@
+"use server"
+
+import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
+import { createClient } from "@supabase/supabase-js"
+
+interface GuestCheckoutInput {
+  category: ServiceCategory
+  subtype: string
+  type: string
+  answers: Record<string, unknown>
+  guestEmail: string
+  guestName?: string
+}
+
+interface CheckoutResult {
+  success: boolean
+  checkoutUrl?: string
+  error?: string
+}
+
+// Service role client to bypass RLS
+function getServiceClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceKey) {
+    throw new Error("Missing Supabase credentials")
+  }
+
+  return createClient(supabaseUrl, serviceKey)
+}
+
+function getBaseUrl(): string {
+  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+
+  if (!baseUrl && process.env.VERCEL_URL) {
+    baseUrl = `https://${process.env.VERCEL_URL}`
+  }
+
+  if (!baseUrl) {
+    baseUrl = "http://localhost:3000"
+  }
+
+  return baseUrl.replace(/\/$/, "")
+}
+
+/**
+ * Create a guest checkout session without requiring authentication
+ * Creates a minimal guest profile, request, and Stripe checkout
+ */
+export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
+  try {
+    console.log("[v0] Starting guest checkout for:", input.guestEmail)
+
+    const supabase = getServiceClient()
+    const baseUrl = getBaseUrl()
+
+    // 1. Check if a guest profile already exists for this email
+    let guestProfileId: string
+
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id, auth_user_id")
+      .eq("full_name", input.guestEmail) // Temporarily use email as name for guest
+      .is("auth_user_id", null) // Guest profiles have no auth_user_id
+      .single()
+
+    if (existingProfile) {
+      // Reuse existing guest profile
+      guestProfileId = existingProfile.id
+      console.log("[v0] Reusing existing guest profile:", guestProfileId)
+    } else {
+      // Create a new guest profile
+      const { data: newProfile, error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          full_name: input.guestName || input.guestEmail,
+          auth_user_id: null, // Guest profile - no auth yet
+          role: "patient",
+          onboarding_completed: false,
+        })
+        .select()
+        .single()
+
+      if (profileError || !newProfile) {
+        console.error("[v0] Error creating guest profile:", profileError)
+        return { success: false, error: "Failed to create guest profile. Please try again." }
+      }
+
+      guestProfileId = newProfile.id
+      console.log("[v0] Created new guest profile:", guestProfileId)
+    }
+
+    // 2. Create the request with pending_payment status
+    const { data: request, error: requestError } = await supabase
+      .from("requests")
+      .insert({
+        patient_id: guestProfileId,
+        type: input.type,
+        status: "draft", // Draft until paid
+        category: input.category,
+        subtype: input.subtype,
+        paid: false,
+        payment_status: "pending_payment",
+      })
+      .select()
+      .single()
+
+    if (requestError || !request) {
+      console.error("[v0] Error creating request:", requestError)
+      return { success: false, error: "Failed to create your request. Please try again." }
+    }
+
+    console.log("[v0] Created request:", request.id)
+
+    // 3. Insert the answers
+    const { error: answersError } = await supabase.from("request_answers").insert({
+      request_id: request.id,
+      answers: input.answers,
+    })
+
+    if (answersError) {
+      console.error("[v0] Error creating answers:", answersError)
+    }
+
+    // 4. Get the price ID
+    const priceId = getPriceIdForRequest({
+      category: input.category,
+      subtype: input.subtype,
+      answers: input.answers,
+    })
+
+    if (!priceId) {
+      console.error("[v0] No price ID found for:", input.category, input.subtype)
+      await supabase.from("requests").delete().eq("id", request.id)
+      return { success: false, error: "Unable to determine pricing. Please contact support." }
+    }
+
+    // 5. Build success and cancel URLs
+    const successUrl = `${baseUrl}/auth/complete-account?request_id=${request.id}&email=${encodeURIComponent(input.guestEmail)}&session_id={CHECKOUT_SESSION_ID}`
+    const cancelUrl = `${baseUrl}/request-cancelled?request_id=${request.id}`
+
+    // 6. Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      customer_email: input.guestEmail,
+      customer_creation: "always",
+      metadata: {
+        request_id: request.id,
+        patient_id: guestProfileId,
+        category: input.category,
+        subtype: input.subtype,
+        guest_checkout: "true",
+        guest_email: input.guestEmail,
+      },
+    })
+
+    if (!session.url) {
+      await supabase.from("requests").delete().eq("id", request.id)
+      return { success: false, error: "Failed to create checkout session. Please try again." }
+    }
+
+    // 7. Create payment record
+    await supabase.from("payments").insert({
+      request_id: request.id,
+      stripe_session_id: session.id,
+      amount: session.amount_total || 0,
+      currency: session.currency || "aud",
+      status: "created",
+    })
+
+    console.log("[v0] Guest checkout session created:", session.id)
+
+    return { success: true, checkoutUrl: session.url }
+  } catch (error) {
+    console.error("[v0] Error in createGuestCheckoutAction:", error)
+    return {
+      success: false,
+      error: "Something went wrong. Please try again or contact support if the problem persists.",
+    }
+  }
+}
