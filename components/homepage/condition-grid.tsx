@@ -20,7 +20,7 @@ const conditions: Condition[] = [
     name: "Cold & Flu",
     tagline: "Feel like death? Get sorted.",
     price: "$24.95",
-    href: "/request?condition=cold-flu",
+    href: "/prescriptions",
     color: "#06B6D4",
   },
   {
@@ -38,7 +38,7 @@ const conditions: Condition[] = [
     name: "Blood Pressure",
     tagline: "Keep the ticker happy.",
     price: "$24.95",
-    href: "/request?condition=blood-pressure",
+    href: "/prescriptions",
     color: "#EF4444",
   },
   {
@@ -74,7 +74,7 @@ const conditions: Condition[] = [
     name: "Skin Issues",
     tagline: "Rashes, acne, the works.",
     price: "$24.95",
-    href: "/request?condition=skin",
+    href: "/prescriptions",
     color: "#F59E0B",
   },
   {
@@ -83,7 +83,7 @@ const conditions: Condition[] = [
     name: "Sleep",
     tagline: "Actually get some rest.",
     price: "$24.95",
-    href: "/request?condition=sleep",
+    href: "/prescriptions",
     color: "#6366F1",
   },
   {
@@ -101,7 +101,7 @@ const conditions: Condition[] = [
     name: "Acid Reflux",
     tagline: "Tame the burn.",
     price: "$24.95",
-    href: "/request?condition=reflux",
+    href: "/prescriptions",
     color: "#F97316",
   },
   {
@@ -110,7 +110,7 @@ const conditions: Condition[] = [
     name: "Allergies",
     tagline: "Stop the sniffles.",
     price: "$24.95",
-    href: "/request?condition=allergies",
+    href: "/prescriptions",
     color: "#A855F7",
   },
   {

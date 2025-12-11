@@ -195,7 +195,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       <Link href="/auth/login">Sign in</Link>
                     </Button>
                     <Button size="sm" asChild className="rounded-lg text-sm">
-                      <Link href="/medical-certificate/request">Get started</Link>
+                      <Link href="/start">Get started</Link>
                     </Button>
                   </div>
                 </>
@@ -422,7 +422,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                             </Link>
                           </Button>
                           <Button asChild className="w-full rounded-lg">
-                            <Link href="/medical-certificate/request" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/start" onClick={() => setMobileMenuOpen(false)}>
                               Get started
                             </Link>
                           </Button>

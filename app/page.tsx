@@ -125,7 +125,7 @@ export default function LandingPage() {
                 asChild
                 className="rounded-full bg-[#00E2B5] hover:bg-[#00C9A0] text-[#0A0F1C] font-semibold px-8"
               >
-                <Link href="#conditions">
+                <Link href="/start">
                   Get started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -164,7 +164,7 @@ export default function LandingPage() {
               asChild
               className="rounded-full bg-[#0A0F1C] hover:bg-[#0A0F1C]/90 text-white font-semibold px-8"
             >
-              <Link href="#conditions">
+              <Link href="/start">
                 Browse treatments
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

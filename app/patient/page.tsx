@@ -119,7 +119,7 @@ export default async function PatientDashboardPage({
           <p className="text-sm text-muted-foreground">Handled online, no phone call needed</p>
         </div>
         <Button asChild size="sm" className="rounded-lg">
-          <Link href="/patient/requests/new">
+          <Link href="/start">
             <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
             New request
           </Link>
@@ -255,7 +255,7 @@ export default async function PatientDashboardPage({
               <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" aria-hidden="true" />
               <p className="text-sm text-muted-foreground">No requests yet</p>
               <Button asChild size="sm" variant="outline" className="mt-3 rounded-lg bg-transparent">
-                <Link href="/patient/requests/new">
+                <Link href="/start">
                   <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
                   Start a request
                 </Link>

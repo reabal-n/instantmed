@@ -24,7 +24,7 @@ export const isTestMode = process.env.NEXT_PUBLIC_TEST_MODE === "true" || proces
 // Test Medicare data
 export const TEST_DATA = {
   medicare: {
-    number: "2123456789",
+    number: "1111111111",
     irn: 1,
     expiryMonth: "01",
     expiryYear: "30",
