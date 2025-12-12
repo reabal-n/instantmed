@@ -1,13 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
+// Routes that require authentication
+const protectedRoutes = ['/patient', '/admin', '/doctor']
+
+// Routes that require specific roles
+const roleRoutes = {
+  '/admin': 'admin',
+  '/doctor': 'admin',
+  '/patient': 'patient',
+} as const
+
 export async function middleware(request: NextRequest) {
   try {
-    // Access env vars at runtime
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
-    // If env vars not set, just pass through
     if (!url || !key) {
       return NextResponse.next({ request })
     }
@@ -33,32 +41,59 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Protect admin routes
-    if (request.nextUrl.pathname.startsWith('/admin')) {
+    const pathname = request.nextUrl.pathname
+
+    // Check if route requires authentication
+    const isProtectedRoute = protectedRoutes.some((route) =>
+      pathname.startsWith(route)
+    )
+
+    if (isProtectedRoute) {
       if (!user) {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/login'
-        redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+        redirectUrl.searchParams.set('redirect', pathname)
         return NextResponse.redirect(redirectUrl)
       }
-      
-      // Check if user is admin
-      const { data: adminEmail } = await supabase
-        .from('admin_emails')
-        .select('email')
-        .eq('email', user.email)
+
+      // Check role-based access
+      const roleEntry = Object.entries(roleRoutes).find(([route]) =>
+        pathname.startsWith(route)
+      )
+
+      if (roleEntry) {
+        const [, requiredRole] = roleEntry
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('auth_user_id', user.id)
+          .single()
+
+        if (!profile || profile.role !== requiredRole) {
+          // Redirect to appropriate dashboard based on role
+          const redirectUrl = request.nextUrl.clone()
+          redirectUrl.pathname = profile?.role === 'admin' ? '/admin' : '/patient'
+          return NextResponse.redirect(redirectUrl)
+        }
+      }
+    }
+
+    // Redirect authenticated users away from auth pages
+    if (user && (pathname === '/login' || pathname === '/auth/register')) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('auth_user_id', user.id)
         .single()
-      
-      if (!adminEmail) {
-        const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = '/'
-        return NextResponse.redirect(redirectUrl)
-      }
+
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = profile?.role === 'admin' ? '/admin' : '/patient'
+      return NextResponse.redirect(redirectUrl)
     }
 
     return supabaseResponse
   } catch (error) {
-    // Fallback if middleware fails
     console.error('Middleware error:', error)
     return NextResponse.next({ request })
   }
