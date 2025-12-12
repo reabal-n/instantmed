@@ -73,7 +73,7 @@ export function TrustSection() {
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{point.description}</p>
               </div>
-            </GlassCard>
+            </HolographicCard>
           ))}
         </div>
 

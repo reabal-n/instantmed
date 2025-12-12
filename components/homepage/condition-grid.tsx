@@ -1,8 +1,10 @@
 "use client"
 
+import { useRef } from "react"
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
-import { BlurFade } from "@/components/ui/blur-fade"
+import { motion, useInView } from "framer-motion"
+import { MagneticGlow } from "@/components/effects/magnetic-button"
 
 interface Condition {
   id: string
@@ -128,64 +130,135 @@ const conditions: Condition[] = [
   },
 ]
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.4, 0.25, 1],
+    },
+  },
+}
+
 export function ConditionGrid() {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-      {conditions.map((condition, i) => (
-        <BlurFade key={condition.id} delay={0.05 + i * 0.03}>
+    <motion.div
+      ref={ref}
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+      {conditions.map((condition) => (
+        <motion.div key={condition.id} variants={itemVariants}>
           <Link href={condition.href} className="group block h-full">
-            <div 
-              className="relative bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 overflow-hidden"
-            >
-              {/* Popular badge */}
-              {condition.popular && (
-                <div className="absolute top-2 right-2">
-                  <div className="flex items-center gap-1 bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    Popular
-                  </div>
-                </div>
-              )}
-              
-              {/* Gradient accent */}
-              <div 
-                className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: `linear-gradient(90deg, ${condition.color}, ${condition.color}80)` }}
-              />
-              
-              {/* Icon with color background */}
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-2xl group-hover:scale-110 transition-transform duration-300"
-                style={{ background: `linear-gradient(135deg, ${condition.color}20, ${condition.color}10)` }}
+            <MagneticGlow glowColor={`${condition.color}30`}>
+              <motion.div 
+                className="relative bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                whileHover={{ 
+                  y: -4,
+                  boxShadow: `0 20px 40px ${condition.color}20`,
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                {condition.icon}
-              </div>
-
-              {/* Name */}
-              <h3 className="font-bold text-sm text-foreground mb-1">{condition.name}</h3>
-
-              {/* Tagline */}
-              <p className="text-xs text-muted-foreground leading-snug mb-4">{condition.tagline}</p>
-
-              {/* Price + Arrow */}
-              <div className="flex items-center justify-between">
-                <span 
-                  className="text-sm font-bold"
-                  style={{ color: condition.color }}
+                {/* Popular badge */}
+                {condition.popular && (
+                  <motion.div
+                    className="absolute top-2 right-2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring" }}
+                  >
+                    <div className="flex items-center gap-1 bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <Sparkles className="h-2.5 w-2.5" />
+                      Popular
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Gradient accent line */}
+                <motion.div 
+                  className="absolute top-0 left-0 right-0 h-1"
+                  style={{ background: `linear-gradient(90deg, ${condition.color}, ${condition.color}80)` }}
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                
+                {/* Icon with color background */}
+                <motion.div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-2xl"
+                  style={{ background: `linear-gradient(135deg, ${condition.color}20, ${condition.color}10)` }}
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  From {condition.price}
-                </span>
-                <div 
-                  className="w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
-                  style={{ background: `${condition.color}20` }}
-                >
-                  <ArrowRight className="h-3 w-3" style={{ color: condition.color }} />
+                  {condition.icon}
+                </motion.div>
+
+                {/* Name */}
+                <h3 className="font-bold text-sm text-foreground mb-1">{condition.name}</h3>
+
+                {/* Tagline */}
+                <p className="text-xs text-muted-foreground leading-snug mb-4">{condition.tagline}</p>
+
+                {/* Price + Arrow */}
+                <div className="flex items-center justify-between">
+                  <span 
+                    className="text-sm font-bold"
+                    style={{ color: condition.color }}
+                  >
+                    From {condition.price}
+                  </span>
+                  <motion.div 
+                    className="w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: `${condition.color}20` }}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileHover={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <motion.div
+                      animate={{ x: [0, 3, 0] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    >
+                      <ArrowRight className="h-3 w-3" style={{ color: condition.color }} />
+                    </motion.div>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
+
+                {/* Hover background glow */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: `radial-gradient(circle at 50% 100%, ${condition.color}10, transparent 70%)`,
+                  }}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.div>
+            </MagneticGlow>
           </Link>
-        </BlurFade>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 }
