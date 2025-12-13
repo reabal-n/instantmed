@@ -1,625 +1,275 @@
 'use client'
 
-import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Stethoscope, ArrowLeft } from 'lucide-react'
-import { toast } from 'sonner'
+import { AlertTriangle } from 'lucide-react'
 
-import { StepIndicator } from '@/components/onboarding/StepIndicator'
-import { EmergencyAlert } from '@/components/onboarding/EmergencyAlert'
-import { ServiceSelection } from '@/components/onboarding/steps/ServiceSelection'
-import { MedCertIntake } from '@/components/onboarding/steps/MedCertIntake'
-import { ScriptIntake } from '@/components/onboarding/steps/ScriptIntake'
-import { PathologyIntake, type PathologyIntakeForm } from '@/components/onboarding/steps/PathologyIntake'
-import { ReferralIntake, type ReferralIntakeForm } from '@/components/onboarding/steps/ReferralIntake'
-import { AccountCreation } from '@/components/onboarding/steps/AccountCreation'
-import { PatientDetails } from '@/components/onboarding/steps/PatientDetails'
-import { createClient } from '@/lib/supabase/client'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
-import type { ServiceType } from '@/lib/types'
-import type {
-  MedCertIntakeForm,
-  ScriptIntakeForm,
-  AccountForm,
-  PatientDetailsForm,
-} from '@/lib/validations'
+import {
+  FlowShell,
+  FlowContent,
+  ServiceStep,
+  QuestionnaireStep,
+  DetailsStep,
+  PrescriptionDetailsStep,
+  SafetyCheckStep,
+  AuthStep,
+} from '@/components/flow'
+import { Button } from '@/components/ui/button'
+import {
+  useFlowStore,
+  useFlowStep,
+  useFlowService,
+  getFlowConfig,
+  medCertConfig,
+  getFlowSession,
+} from '@/lib/flow'
+import type { FlowConfig, FlowStepId } from '@/lib/flow'
 
-// Step configuration - Account is conditional based on auth state
-const getSteps = (isLoggedIn: boolean) => {
-  if (isLoggedIn) {
-    return [
-      { id: 'service', title: 'Service Type' },
-      { id: 'intake', title: 'Medical Info' },
-      { id: 'details', title: 'Patient Details' },
-    ]
-  }
-  return [
-    { id: 'service', title: 'Service Type' },
-    { id: 'intake', title: 'Medical Info' },
-    { id: 'details', title: 'Patient Details' },
-    { id: 'account', title: 'Account' },
-  ]
-}
-
-interface FormData {
-  serviceType: ServiceType | null
-  intakeData: MedCertIntakeForm | ScriptIntakeForm | PathologyIntakeForm | ReferralIntakeForm | null
-  accountData: AccountForm | null
-  patientDetails: PatientDetailsForm | null
-  isBackdated: boolean
-  backdatingFee: number
-}
-
-const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-    y: 10,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    y: 0,
-  },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -300 : 300,
-    opacity: 0,
-    y: 10,
-  }),
-}
-
-const springTransition = {
-  type: 'spring' as const,
-  stiffness: 260,
-  damping: 20,
-}
-
-function OnboardingContent() {
+function StartPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  const currentStepId = useFlowStep()
+  const serviceSlug = useFlowService()
+  const { setServiceSlug, goToStep, nextStep, reset } = useFlowStore()
 
-  const [currentStep, setCurrentStep] = useState(0)
-  const [direction, setDirection] = useState(0)
-  const [showEmergency, setShowEmergency] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [authError, setAuthError] = useState<string>('')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
+  // Get config based on service (default to medCert for now)
+  const [config, setConfig] = useState<FlowConfig>(medCertConfig)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  
-  const [formData, setFormData] = useState<FormData>({
-    serviceType: null,
-    intakeData: null,
-    accountData: null,
-    patientDetails: null,
-    isBackdated: false,
-    backdatingFee: 0,
-  })
 
-  const steps = getSteps(isLoggedIn)
-
-  // Check for pre-selected service from URL
-  useEffect(() => {
-    const service = searchParams.get('service') as ServiceType | null
-    const validServices: ServiceType[] = ['sick_cert', 'prescription', 'pathology', 'referral']
-    if (service && validServices.includes(service)) {
-      setFormData((prev) => ({ ...prev, serviceType: service }))
-      // Only auto-advance if we're on step 0
-      if (currentStep === 0 && !isCheckingAuth) {
-        setCurrentStep(1)
-      }
-    }
-  }, [searchParams, currentStep, isCheckingAuth])
-
-  // Check authentication status on mount and when returning from OAuth
+  // Check auth on mount and potentially skip auth step
   useEffect(() => {
     const checkAuth = async () => {
-      setIsCheckingAuth(true)
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser()
-        
-        if (error) {
-          console.error('Error checking auth:', error)
-          setIsLoggedIn(false)
-          setUserId(null)
-        } else if (user) {
-          setIsLoggedIn(true)
-          setUserId(user.id)
-          
-          // If user just came from Google signup during onboarding, show success
-          const googleSignup = searchParams.get('google_signup')
-          if (googleSignup === 'true') {
-            toast.success('Signed in with Google!')
-            // Remove the query param from URL
-            const newUrl = new URL(window.location.href)
-            newUrl.searchParams.delete('google_signup')
-            window.history.replaceState({}, '', newUrl.toString())
-          }
-        } else {
-          setIsLoggedIn(false)
-          setUserId(null)
-        }
-      } catch (error) {
-        console.error('Unexpected error checking auth:', error)
-        setIsLoggedIn(false)
-        setUserId(null)
-      } finally {
-        setIsCheckingAuth(false)
+      const session = await getFlowSession()
+      setIsCheckingAuth(false)
+
+      // If user is authenticated and on auth step, skip to next
+      if (session.isAuthenticated && currentStepId === 'account') {
+        nextStep()
       }
     }
-    
+
     checkAuth()
+  }, [currentStepId, nextStep])
 
-    // Listen for auth state changes (e.g., when returning from OAuth)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setIsLoggedIn(true)
-        setUserId(session.user.id)
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false)
-        setUserId(null)
+  // Handle URL params on mount
+  useEffect(() => {
+    const serviceParam = searchParams.get('service')
+    const stepParam = searchParams.get('step')
+
+    // Set service from URL if provided
+    if (serviceParam && !serviceSlug) {
+      const serviceConfig = getFlowConfig(serviceParam)
+      if (serviceConfig) {
+        setServiceSlug(serviceParam)
+        setConfig(serviceConfig)
+        // Skip service selection if service is pre-selected
+        goToStep('questionnaire')
       }
-    })
-
-    return () => {
-      subscription.unsubscribe()
     }
-  }, [supabase, searchParams])
 
-  const goToStep = (step: number) => {
-    setDirection(step > currentStep ? 1 : -1)
-    setCurrentStep(step)
-  }
-
-  const handleServiceSelect = (service: ServiceType) => {
-    setFormData((prev) => ({ ...prev, serviceType: service }))
-    goToStep(1)
-  }
-
-  const handleIntakeComplete = (data: MedCertIntakeForm | ScriptIntakeForm) => {
-    // Check for backdating if it's a med cert
-    let isBackdated = false
-    let backdatingFee = 0
-    
-    if ('startDate' in data && formData.serviceType === 'sick_cert') {
-      const selectedDate = new Date(data.startDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      isBackdated = selectedDate < today
-      backdatingFee = isBackdated ? 1000 : 0 // $10.00 in cents
+    // Resume at step if specified
+    if (stepParam) {
+      const validSteps: FlowStepId[] = ['service', 'questionnaire', 'safety', 'account', 'details', 'checkout']
+      if (validSteps.includes(stepParam as FlowStepId)) {
+        goToStep(stepParam as FlowStepId)
+      }
     }
-    
-    setFormData((prev) => ({ 
-      ...prev, 
-      intakeData: data,
-      isBackdated,
-      backdatingFee,
-    }))
-    goToStep(2) // Go to Patient Details
-  }
+  }, [searchParams, serviceSlug, setServiceSlug, goToStep])
 
-  const handleEmergency = useCallback(() => {
-    setShowEmergency(true)
-  }, [])
+  // Update config when service changes
+  useEffect(() => {
+    if (serviceSlug) {
+      const newConfig = getFlowConfig(serviceSlug)
+      if (newConfig) {
+        setConfig(newConfig)
+      }
+    }
+  }, [serviceSlug])
 
-  const handleDismissEmergency = () => {
-    setShowEmergency(false)
-    // Clear the red flag symptoms
-    if (formData.intakeData && 'symptoms' in formData.intakeData) {
-      const clearedSymptoms = formData.intakeData.symptoms.filter(
-        (s) => !['chest_pain', 'severe_breathlessness'].includes(s)
-      )
-      setFormData((prev) => ({
-        ...prev,
-        intakeData: { ...prev.intakeData as MedCertIntakeForm, symptoms: clearedSymptoms },
-      }))
+  // Handle service selection
+  const handleServiceSelect = (slug: string) => {
+    const newConfig = getFlowConfig(slug)
+    if (newConfig) {
+      setConfig(newConfig)
     }
   }
 
-  const handlePatientDetailsComplete = async (data: PatientDetailsForm) => {
-    setIsLoading(true)
-    setFormData((prev) => ({ ...prev, patientDetails: data }))
+  // Handle eligibility failure (from questionnaire)
+  const [showEligibilityFail, setShowEligibilityFail] = useState(false)
+  const [eligibilityReason, setEligibilityReason] = useState('')
 
-    try {
-      // If user is logged in, proceed directly to checkout
-      if (isLoggedIn && userId) {
-        await saveAndProceedToCheckout(data, userId)
-      } else {
-        // Go to account creation
-        goToStep(3)
-        setIsLoading(false)
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      toast.error('An unexpected error occurred')
-      setIsLoading(false)
-    }
+  const handleEligibilityFail = (reason: string) => {
+    setEligibilityReason(reason)
+    setShowEligibilityFail(true)
   }
 
-  const handleAccountCreate = async (data: AccountForm) => {
-    setIsLoading(true)
-    setAuthError('')
-
-    try {
-      const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        console.error('Account creation error:', error)
-        setAuthError(error.message)
-        toast.error(error.message || 'Failed to create account')
-        setIsLoading(false)
-        return
-      }
-
-      if (authData?.user) {
-        setFormData((prev) => ({ ...prev, accountData: data }))
-        setIsLoggedIn(true)
-        setUserId(authData.user.id)
-        toast.success('Account created successfully!')
-        
-        // Now save patient details and proceed to checkout
-        if (formData.patientDetails) {
-          await saveAndProceedToCheckout(formData.patientDetails, authData.user.id)
-        } else {
-          setIsLoading(false)
-        }
-      }
-    } catch (error) {
-      console.error('Unexpected error creating account:', error)
-      setAuthError('An unexpected error occurred. Please try again.')
-      toast.error('An unexpected error occurred')
-      setIsLoading(false)
-    }
+  // Handle safety decline
+  const handleSafetyDecline = (reason: string) => {
+    setEligibilityReason(reason)
+    setShowEligibilityFail(true)
   }
 
-  const saveAndProceedToCheckout = async (patientDetails: PatientDetailsForm, authUserId: string) => {
-    try {
-      // Update or create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          auth_user_id: authUserId,
-          first_name: patientDetails.firstName,
-          last_name: patientDetails.lastName,
-          full_name: `${patientDetails.firstName} ${patientDetails.lastName}`,
-          date_of_birth: patientDetails.dateOfBirth,
-          gender: patientDetails.gender,
-          medicare_number: patientDetails.medicareNumber.replace(/\s/g, ''),
-          medicare_irn: parseInt(patientDetails.medicareIrn),
-          medicare_expiry: `${patientDetails.medicareExpiry.slice(3)}-${patientDetails.medicareExpiry.slice(0, 2)}-01`,
-          role: 'patient',
-          onboarding_completed: true,
-        }, {
-          onConflict: 'auth_user_id',
-        })
-
-      if (profileError) {
-        console.error('Profile error:', profileError)
-        toast.error('Failed to save patient details')
-        setIsLoading(false)
-        return
-      }
-
-      // Get the profile ID
-      const { data: profile, error: profileFetchError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('auth_user_id', authUserId)
-        .single()
-
-      if (profileFetchError) {
-        console.error('Error fetching profile:', profileFetchError)
-        toast.error('Failed to retrieve profile. Please try again.')
-        setIsLoading(false)
-        return
-      }
-
-      if (!profile) {
-        console.error('Profile not found after creation')
-        toast.error('Failed to retrieve profile')
-        setIsLoading(false)
-        return
-      }
-
-      // Determine start date
-      let startDate = null
-      if (formData.intakeData && 'startDate' in formData.intakeData) {
-        startDate = formData.intakeData.startDate
-      }
-
-      // Create the request/consultation
-      const { data: request, error: requestError } = await supabase
-        .from('requests')
-        .insert({
-          patient_id: profile.id,
-          type: formData.serviceType,
-          category: formData.serviceType === 'sick_cert' ? 'medical_certificate' : 'prescription',
-          status: 'pending',
-          payment_status: 'pending_payment',
-          backdated: formData.isBackdated,
-          start_date: startDate,
-          priority_review: false,
-        })
-        .select()
-        .single()
-
-      if (requestError) {
-        console.error('Request error:', requestError)
-        toast.error('Failed to create consultation request')
-        setIsLoading(false)
-        return
-      }
-
-      // Save the intake answers
-      try {
-        const { error: answersError } = await supabase
-          .from('request_answers')
-          .insert({
-            request_id: request.id,
-            answers: formData.intakeData,
-          })
-
-        if (answersError) {
-          console.error('Answers error:', answersError)
-          // Non-critical, continue to checkout
-        }
-      } catch (answersErr) {
-        console.error('Unexpected error saving answers:', answersErr)
-        // Non-critical, continue to checkout
-      }
-
-      toast.success('Details saved!')
-      
-      // Redirect to checkout with the request ID and backdated status
-      const params = new URLSearchParams({
-        request_id: request.id,
-        service: formData.serviceType || '',
-        ...(formData.isBackdated && { backdated: 'true' }),
-      })
-      
-      router.push(`/checkout?${params.toString()}`)
-    } catch (error) {
-      console.error('Error:', error)
-      toast.error('An unexpected error occurred')
-      setIsLoading(false)
-    }
+  // Handle call request from safety step
+  const handleCallRequest = () => {
+    // The SafetyCheckStep handles this internally
+    // Could also redirect to a dedicated booking page
   }
 
-  const goBack = () => {
-    if (currentStep > 0) {
-      goToStep(currentStep - 1)
-    } else {
-      router.push('/')
-    }
+  // Handle flow completion (move to checkout)
+  const handleFlowComplete = async () => {
+    // Redirect to checkout page
+    router.push(`/checkout?service=${serviceSlug}`)
+  }
+
+  // Handle exit
+  const handleExit = () => {
+    router.push('/')
   }
 
   // Show loading while checking auth
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
       </div>
     )
   }
 
-  if (showEmergency) {
-    return <EmergencyAlert onDismiss={handleDismissEmergency} />
+  // Render eligibility fail screen
+  if (showEligibilityFail) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center"
+        >
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+          </div>
+
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">
+            This service may not be right for you
+          </h1>
+
+          <p className="text-slate-600 mb-6">
+            {eligibilityReason || 'Based on your answers, we recommend you seek care in person.'}
+          </p>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-amber-800">
+              <strong>If this is an emergency:</strong> Call 000 immediately or go to your nearest emergency department.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              onClick={() => {
+                setShowEligibilityFail(false)
+                reset()
+                goToStep('service')
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              Try a different service
+            </Button>
+
+            <Button onClick={handleExit} className="w-full">
+              Return home
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
-  // Determine which step content to show
-  const getStepContent = () => {
-    switch (currentStep) {
-      case 0:
+  // Check if prescription flow
+  const isPrescriptionFlow = serviceSlug === 'prescription'
+
+  // Render current step
+  const renderStep = () => {
+    switch (currentStepId) {
+      case 'service':
+        return <ServiceStep onServiceSelect={handleServiceSelect} />
+
+      case 'questionnaire':
+        // Use specialized prescription step for prescription flow
+        if (isPrescriptionFlow) {
+          return <PrescriptionDetailsStep />
+        }
         return (
-          <motion.div
-            key="service"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={springTransition}
-          >
-            <ServiceSelection
-              value={formData.serviceType}
-              onChange={handleServiceSelect}
-              onNext={() => formData.serviceType && goToStep(1)}
-            />
-          </motion.div>
+          <QuestionnaireStep
+            config={config}
+            onEligibilityFail={handleEligibilityFail}
+          />
         )
-      case 1:
-        if (formData.serviceType === 'sick_cert') {
-          return (
-            <motion.div
-              key="medcert-intake"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={springTransition}
-            >
-              <MedCertIntake
-                onNext={handleIntakeComplete}
-                onBack={goBack}
-                onEmergency={handleEmergency}
-                defaultValues={formData.intakeData as MedCertIntakeForm | undefined}
-                isBackdated={formData.isBackdated}
-                backdatingFee={formData.backdatingFee}
-              />
-            </motion.div>
-          )
-        }
-        if (formData.serviceType === 'pathology') {
-          return (
-            <motion.div
-              key="pathology-intake"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={springTransition}
-            >
-              <PathologyIntake
-                onNext={handleIntakeComplete}
-                onBack={goBack}
-                defaultValues={formData.intakeData as PathologyIntakeForm | undefined}
-              />
-            </motion.div>
-          )
-        }
-        if (formData.serviceType === 'referral') {
-          return (
-            <motion.div
-              key="referral-intake"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={springTransition}
-            >
-              <ReferralIntake
-                onNext={handleIntakeComplete}
-                onBack={goBack}
-                defaultValues={formData.intakeData as ReferralIntakeForm | undefined}
-              />
-            </motion.div>
-          )
-        }
-        // Default to prescription intake
+
+      case 'safety':
         return (
-          <motion.div
-            key="script-intake"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={springTransition}
-          >
-            <ScriptIntake
-              onNext={handleIntakeComplete}
-              onBack={goBack}
-              defaultValues={formData.intakeData as ScriptIntakeForm | undefined}
-            />
-          </motion.div>
+          <SafetyCheckStep
+            onContinue={() => nextStep()}
+            onDecline={handleSafetyDecline}
+            onRequestCall={handleCallRequest}
+          />
         )
-      case 2:
+
+      case 'account':
         return (
-          <motion.div
-            key="patient-details"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={springTransition}
-          >
-            <PatientDetails
-              onNext={handlePatientDetailsComplete}
-              onBack={goBack}
-              isLoading={isLoading}
-              defaultValues={formData.patientDetails || undefined}
-            />
-          </motion.div>
+          <AuthStep
+            onAuthenticated={() => nextStep()}
+            onSkip={() => nextStep()}
+            allowSkip={!config.requirements.requiresAuth}
+          />
         )
-      case 3:
-        // Only show account creation for non-logged-in users
-        if (!isLoggedIn) {
-          return (
-            <motion.div
-              key="account"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={springTransition}
-            >
-              <AccountCreation
-                onNext={handleAccountCreate}
-                onBack={goBack}
-                isLoading={isLoading}
-                error={authError}
-              />
-            </motion.div>
-          )
-        }
-        return null
+
+      case 'details':
+        return <DetailsStep config={config} />
+
+      case 'checkout':
+        // This should redirect to /checkout
+        handleFlowComplete()
+        return (
+          <FlowContent title="Redirecting..." description="">
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
+            </div>
+          </FlowContent>
+        )
+
       default:
-        return null
+        return <ServiceStep onServiceSelect={handleServiceSelect} />
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-amber-50 pattern-overlay relative">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-teal-200/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-200/10 rounded-full blur-3xl" />
-      </div>
-      
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-teal-100/50 shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
-              <Stethoscope className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-semibold tracking-tight bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">InstantMed</span>
-          </Link>
-          <button
-            onClick={() => router.push('/')}
-            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Exit
-          </button>
-        </div>
-      </header>
+    <FlowShell
+      config={config}
+      onComplete={handleFlowComplete}
+      onExit={handleExit}
+      showCTA={false} // Each step handles its own CTA
+    >
+      <AnimatePresence mode="wait">
+        {renderStep()}
+      </AnimatePresence>
+    </FlowShell>
+  )
+}
 
-      {/* Progress */}
-      <div className="border-b border-teal-100/50 glass py-4 relative z-10">
-        <div className="container mx-auto px-4">
-          <StepIndicator steps={steps} currentStep={currentStep} />
-        </div>
-      </div>
-
-      {/* Content with Animation */}
-      <main className="container mx-auto px-4 py-8 pb-32 md:pb-12 relative z-10">
-        <div className="max-w-2xl mx-auto relative">
-          {/* Card container with beautiful styling */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl shadow-teal-500/10 border border-white/50 p-6 md:p-10">
-            <AnimatePresence mode="wait" custom={direction}>
-              {getStepContent()}
-            </AnimatePresence>
-          </div>
-        </div>
-      </main>
+// Loading fallback
+function LoadingState() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
     </div>
   )
 }
 
 export default function StartPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-teal-600/30 border-t-teal-600 rounded-full animate-spin" />
-      </div>
-    }>
-      <OnboardingContent />
+    <Suspense fallback={<LoadingState />}>
+      <StartPageContent />
     </Suspense>
   )
 }
