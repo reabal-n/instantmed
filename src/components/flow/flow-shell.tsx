@@ -24,28 +24,26 @@ interface FlowShellProps {
 
 // Animation variants for step transitions
 const contentVariants = {
-  initial: (direction: number) => ({
-    x: direction > 0 ? 100 : -100,
-    opacity: 0,
-  }),
+  initial: { 
+    opacity: 0, 
+    y: 8,
+  },
   animate: {
-    x: 0,
     opacity: 1,
+    y: 0,
     transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      duration: 0.25,
+      ease: [0.25, 0.1, 0.25, 1],
     },
   },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -100 : 100,
+  exit: {
     opacity: 0,
+    y: -8,
     transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 30,
+      duration: 0.15,
+      ease: [0.25, 0.1, 0.25, 1],
     },
-  }),
+  },
 }
 
 export function FlowShell({
@@ -91,20 +89,17 @@ export function FlowShell({
     }
   }, [stepIndex, prevStep, handleExit])
 
-  // Current step for animation direction
-  const direction = 1 // Forward by default
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex flex-col">
-      {/* Noise texture overlay */}
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white flex flex-col">
+      {/* Subtle noise texture */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-[0.015] z-0"
+        className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
       />
 
-      {/* Top bar */}
+      {/* Top bar - compact */}
       <FlowTopBar
         serviceName={config.serviceName}
         onBack={handleBack}
@@ -114,9 +109,9 @@ export function FlowShell({
         lastSavedAt={lastSavedAt}
       />
 
-      {/* Progress stepper */}
-      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-sm border-b border-slate-100">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+      {/* Progress stepper - sticky, minimal height */}
+      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100/80">
+        <div className="max-w-2xl mx-auto px-4 py-3">
           <FlowStepper
             steps={config.steps}
             currentStepId={currentStepId}
@@ -126,17 +121,24 @@ export function FlowShell({
 
       {/* Main content area */}
       <main className="flex-1 relative z-10">
-        <div className={cn('max-w-2xl mx-auto px-4 py-8 pb-32', className)}>
+        <div className={cn(
+          'max-w-2xl mx-auto px-4 py-5 sm:py-6 pb-28',
+          className
+        )}>
           {/* Animated content wrapper */}
-          <AnimatePresence mode="wait" custom={direction}>
+          <AnimatePresence mode="wait">
             <motion.div
               key={currentStepId}
-              custom={direction}
               variants={contentVariants}
               initial="initial"
               animate="animate"
               exit="exit"
-              className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
+              className={cn(
+                'bg-white rounded-2xl',
+                'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.04)]',
+                'border border-slate-100/80',
+                'overflow-hidden'
+              )}
             >
               {children}
             </motion.div>

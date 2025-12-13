@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
@@ -9,11 +9,9 @@ import {
   FlowShell,
   FlowContent,
   ServiceStep,
-  QuestionnaireStep,
+  UnifiedQuestionsStep,
   DetailsStep,
-  PrescriptionDetailsStep,
-  SafetyCheckStep,
-  AuthStep,
+  ResumePrompt,
 } from '@/components/flow'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +21,9 @@ import {
   getFlowConfig,
   medCertConfig,
   getFlowSession,
+  useDraftPersistence,
+  useDraftResume,
+  claimDraft as claimDraftAuth,
 } from '@/lib/flow'
 import type { FlowConfig, FlowStepId } from '@/lib/flow'
 
@@ -31,31 +32,71 @@ function StartPageContent() {
   const searchParams = useSearchParams()
   const currentStepId = useFlowStep()
   const serviceSlug = useFlowService()
-  const { setServiceSlug, goToStep, nextStep, reset } = useFlowStore()
+  const { setServiceSlug, goToStep, nextStep, reset, restoreFromDraft } = useFlowStore()
+  const draftId = useFlowStore((s) => s.draftId)
+  const sessionId = useFlowStore((s) => s.sessionId)
 
   // Get config based on service (default to medCert for now)
   const [config, setConfig] = useState<FlowConfig>(medCertConfig)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [showResumePrompt, setShowResumePrompt] = useState(false)
 
-  // Check auth on mount and potentially skip auth step
+  // Draft persistence
+  useDraftPersistence({
+    warnOnUnload: true,
+  })
+
+  // Draft resume detection
+  const { 
+    hasDrafts, 
+    drafts, 
+    isLoading: isLoadingDrafts,
+    resumeDraft,
+    deleteDraft,
+    startFresh,
+  } = useDraftResume({
+    checkOnMount: true,
+  })
+
+  // Check auth on mount and claim draft if needed
   useEffect(() => {
     const checkAuth = async () => {
       const session = await getFlowSession()
       setIsCheckingAuth(false)
 
-      // If user is authenticated and on auth step, skip to next
-      if (session.isAuthenticated && currentStepId === 'account') {
-        nextStep()
+      // If user just signed in, claim any anonymous draft
+      if (session.isAuthenticated && session.userId && draftId) {
+        try {
+          await claimDraftAuth(draftId, session.userId)
+        } catch (error) {
+          console.error('Failed to claim draft:', error)
+        }
       }
     }
 
     checkAuth()
-  }, [currentStepId, nextStep])
+  }, [draftId])
+
+  // Show resume prompt if there are drafts and no service selected
+  useEffect(() => {
+    const skipResume = searchParams.get('fresh') === 'true'
+    
+    if (!skipResume && hasDrafts && !serviceSlug && !isLoadingDrafts) {
+      setShowResumePrompt(true)
+    }
+  }, [hasDrafts, serviceSlug, isLoadingDrafts, searchParams])
 
   // Handle URL params on mount
   useEffect(() => {
     const serviceParam = searchParams.get('service')
     const stepParam = searchParams.get('step')
+    const draftParam = searchParams.get('draft')
+
+    // Resume specific draft if provided
+    if (draftParam) {
+      resumeDraft(draftParam).catch(console.error)
+      return
+    }
 
     // Set service from URL if provided
     if (serviceParam && !serviceSlug) {
@@ -64,18 +105,19 @@ function StartPageContent() {
         setServiceSlug(serviceParam)
         setConfig(serviceConfig)
         // Skip service selection if service is pre-selected
-        goToStep('questionnaire')
+        goToStep('questions')
+        setShowResumePrompt(false)
       }
     }
 
     // Resume at step if specified
     if (stepParam) {
-      const validSteps: FlowStepId[] = ['service', 'questionnaire', 'safety', 'account', 'details', 'checkout']
+      const validSteps: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
       if (validSteps.includes(stepParam as FlowStepId)) {
         goToStep(stepParam as FlowStepId)
       }
     }
-  }, [searchParams, serviceSlug, setServiceSlug, goToStep])
+  }, [searchParams, serviceSlug, setServiceSlug, goToStep, resumeDraft])
 
   // Update config when service changes
   useEffect(() => {
@@ -86,6 +128,41 @@ function StartPageContent() {
       }
     }
   }, [serviceSlug])
+
+  // Handle resume draft
+  const handleResumeDraft = useCallback(async (id: string) => {
+    try {
+      await resumeDraft(id)
+      setShowResumePrompt(false)
+      
+      // Update config based on resumed service
+      const state = useFlowStore.getState()
+      if (state.serviceSlug) {
+        const newConfig = getFlowConfig(state.serviceSlug)
+        if (newConfig) {
+          setConfig(newConfig)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to resume draft:', error)
+    }
+  }, [resumeDraft])
+
+  // Handle start fresh
+  const handleStartFresh = useCallback(() => {
+    startFresh()
+    setShowResumePrompt(false)
+  }, [startFresh])
+
+  // Handle delete draft
+  const handleDeleteDraft = useCallback(async (id: string) => {
+    await deleteDraft(id)
+    
+    // If no more drafts, hide the prompt
+    if (drafts.length <= 1) {
+      setShowResumePrompt(false)
+    }
+  }, [deleteDraft, drafts.length])
 
   // Handle service selection
   const handleServiceSelect = (slug: string) => {
@@ -104,18 +181,6 @@ function StartPageContent() {
     setShowEligibilityFail(true)
   }
 
-  // Handle safety decline
-  const handleSafetyDecline = (reason: string) => {
-    setEligibilityReason(reason)
-    setShowEligibilityFail(true)
-  }
-
-  // Handle call request from safety step
-  const handleCallRequest = () => {
-    // The SafetyCheckStep handles this internally
-    // Could also redirect to a dedicated booking page
-  }
-
   // Handle flow completion (move to checkout)
   const handleFlowComplete = async () => {
     // Redirect to checkout page
@@ -127,11 +192,36 @@ function StartPageContent() {
     router.push('/')
   }
 
-  // Show loading while checking auth
-  if (isCheckingAuth) {
+  // Show loading while checking auth or drafts
+  if (isCheckingAuth || isLoadingDrafts) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
+      </div>
+    )
+  }
+
+  // Show resume prompt if applicable
+  if (showResumePrompt && drafts.length > 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
+        {/* Noise texture overlay */}
+        <div
+          className="fixed inset-0 pointer-events-none opacity-[0.015] z-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
+        
+        <div className="w-full max-w-md relative z-10">
+          <ResumePrompt
+            drafts={drafts}
+            onResume={handleResumeDraft}
+            onStartFresh={handleStartFresh}
+            onDelete={handleDeleteDraft}
+            isLoading={isLoadingDrafts}
+          />
+        </div>
       </div>
     )
   }
@@ -185,42 +275,17 @@ function StartPageContent() {
     )
   }
 
-  // Check if prescription flow
-  const isPrescriptionFlow = serviceSlug === 'prescription'
-
-  // Render current step
+  // Render current step (simplified 3-step flow)
   const renderStep = () => {
     switch (currentStepId) {
       case 'service':
         return <ServiceStep onServiceSelect={handleServiceSelect} />
 
-      case 'questionnaire':
-        // Use specialized prescription step for prescription flow
-        if (isPrescriptionFlow) {
-          return <PrescriptionDetailsStep />
-        }
+      case 'questions':
         return (
-          <QuestionnaireStep
+          <UnifiedQuestionsStep
             config={config}
             onEligibilityFail={handleEligibilityFail}
-          />
-        )
-
-      case 'safety':
-        return (
-          <SafetyCheckStep
-            onContinue={() => nextStep()}
-            onDecline={handleSafetyDecline}
-            onRequestCall={handleCallRequest}
-          />
-        )
-
-      case 'account':
-        return (
-          <AuthStep
-            onAuthenticated={() => nextStep()}
-            onSkip={() => nextStep()}
-            allowSkip={!config.requirements.requiresAuth}
           />
         )
 

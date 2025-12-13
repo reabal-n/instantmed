@@ -57,7 +57,7 @@ export function subscribeToFlowAuth(
   const supabase = createClient()
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (event, session) => {
+    async (_event: string, session: Session | null) => {
       if (session?.user) {
         callback({
           user: session.user,
@@ -276,7 +276,7 @@ export async function getUserDrafts(
     if (error) throw error
 
     return {
-      drafts: (data || []).map((d) => ({
+      drafts: (data || []).map((d: { id: string; service_slug: string; created_at: string; last_accessed_at: string }) => ({
         id: d.id,
         serviceSlug: d.service_slug,
         createdAt: d.created_at,

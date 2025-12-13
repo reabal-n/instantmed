@@ -8,10 +8,13 @@ export {
   getFlowConfig, 
   getAllServiceSlugs,
   flowConfigs,
+  serviceCategories,
   medCertConfig,
+  commonScriptsConfig,
   prescriptionConfig,
   referralConfig,
   weightConfig,
+  mensHealthConfig,
 } from './configs'
 
 // Store
@@ -24,10 +27,18 @@ export {
   useFlowEligibility,
   useFlowProgress,
   useFlowUI,
+  useFlowSync,
+  useFlowDraft,
 } from './store'
 
 // Safety Engine
 export * from './safety'
+
+// Draft System
+export * from './draft'
+
+// Hooks
+export { useDraftPersistence, useDraftResume } from './hooks'
 
 // Auth Helpers
 export {

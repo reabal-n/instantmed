@@ -2,7 +2,23 @@
 // FLOW ENGINE TYPES
 // ============================================
 
-export type FlowStepId = 'service' | 'questionnaire' | 'safety' | 'account' | 'details' | 'checkout'
+// Simplified 3-4 step model
+export type FlowStepId = 
+  | 'service'       // Select service (skipped if pre-selected)
+  | 'questions'     // All health questions (grouped, progressive disclosure)
+  | 'details'       // Identity + auth (combined)
+  | 'checkout'      // Payment & confirmation
+
+// Service categories
+export type ServiceCategory = 
+  | 'medical-certificate'
+  | 'prescription'
+  | 'referral'
+  | 'weight-management'
+  | 'mens-health'
+  | 'womens-health'
+  | 'mental-health'
+  | 'common-scripts'
 
 export interface FlowStep {
   id: FlowStepId
@@ -14,10 +30,17 @@ export interface FlowConfig {
   id: string
   serviceSlug: string
   serviceName: string
+  serviceDescription: string
+  category: ServiceCategory
+  icon?: string
   steps: FlowStep[]
   questionnaire: QuestionnaireConfig
   pricing: PricingConfig
   requirements: RequirementsConfig
+  // UI customization
+  accentColor?: string
+  estimatedTime?: string
+  features?: string[]
 }
 
 export interface PricingConfig {

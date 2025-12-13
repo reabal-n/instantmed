@@ -27,13 +27,8 @@ CREATE TABLE IF NOT EXISTS public.medications (
   requires_authority BOOLEAN DEFAULT false, -- Requires authority prescription
   is_controlled BOOLEAN DEFAULT false,     -- S8 or controlled substance
   
-  -- Search optimization
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(brand_names, ' '), '')), 'B') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(synonyms, ' '), '')), 'C') ||
-    setweight(to_tsvector('english', coalesce(category_label, '')), 'D')
-  ) STORED,
+  -- Search optimization (populated by trigger)
+  search_vector tsvector,
   
   -- Display
   display_order INTEGER DEFAULT 100,
@@ -44,6 +39,27 @@ CREATE TABLE IF NOT EXISTS public.medications (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================
+-- TRIGGER FOR SEARCH VECTOR
+-- ============================================
+
+CREATE OR REPLACE FUNCTION medications_search_vector_update()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(NEW.brand_names, ' '), '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(NEW.synonyms, ' '), '')), 'C') ||
+    setweight(to_tsvector('english', coalesce(NEW.category_label, '')), 'D');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER medications_search_vector_trigger
+  BEFORE INSERT OR UPDATE ON public.medications
+  FOR EACH ROW
+  EXECUTE FUNCTION medications_search_vector_update();
 
 -- Indexes for search
 CREATE INDEX IF NOT EXISTS idx_medications_search ON public.medications USING GIN (search_vector);

@@ -3,14 +3,30 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { FlowState, FlowActions, FlowStepId, IdentityData, ConsentRecord } from './types'
+import type { SyncStatus } from './draft/types'
+import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
 
-// Generate a unique session ID
+// Generate a unique session ID (with persistence)
 function generateSessionId(): string {
-  return `flow_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+  if (typeof window === 'undefined') {
+    return `server_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+  }
+  return getSessionId()
+}
+
+// Extended state with sync tracking
+interface ExtendedFlowState extends FlowState {
+  // Sync state
+  syncStatus: SyncStatus
+  localVersion: number
+  serverVersion: number
+  pendingChanges: boolean
+  lastSyncError: string | null
+  retryCount: number
 }
 
 // Initial state factory
-function createInitialState(): FlowState {
+function createInitialState(): ExtendedFlowState {
   return {
     currentStepId: 'service',
     currentGroupIndex: 0,
@@ -28,13 +44,41 @@ function createInitialState(): FlowState {
     isLoading: false,
     isSaving: false,
     error: null,
+    // Sync state
+    syncStatus: 'idle',
+    localVersion: 0,
+    serverVersion: 0,
+    pendingChanges: false,
+    lastSyncError: null,
+    retryCount: 0,
   }
 }
 
-// Step order for navigation
-const STEP_ORDER: FlowStepId[] = ['service', 'questionnaire', 'safety', 'account', 'details', 'checkout']
+// Simplified step order for navigation (3-4 steps max)
+const STEP_ORDER: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
 
-interface FlowStore extends FlowState, FlowActions {}
+// Debounce timer
+let saveTimer: NodeJS.Timeout | null = null
+const SAVE_DEBOUNCE_MS = 1500
+const MAX_RETRY_COUNT = 3
+
+// Extended actions for sync
+interface ExtendedFlowActions extends FlowActions {
+  // Sync actions
+  setSyncStatus: (status: SyncStatus) => void
+  markPendingChanges: () => void
+  syncToServer: () => Promise<void>
+  forceSave: () => Promise<void>
+  restoreFromDraft: (draftData: {
+    draftId: string
+    serviceSlug: string
+    currentStep: string
+    currentGroupIndex: number
+    data: Record<string, unknown>
+  }) => void
+}
+
+interface FlowStore extends ExtendedFlowState, ExtendedFlowActions {}
 
 export const useFlowStore = create<FlowStore>()(
   persist(
@@ -50,7 +94,9 @@ export const useFlowStore = create<FlowStore>()(
           currentStepId: stepId,
           currentGroupIndex: 0,
           error: null,
+          pendingChanges: true,
         })
+        get().markPendingChanges()
       },
 
       nextStep: () => {
@@ -62,7 +108,9 @@ export const useFlowStore = create<FlowStore>()(
             currentStepId: STEP_ORDER[currentIndex + 1],
             currentGroupIndex: 0,
             error: null,
+            pendingChanges: true,
           })
+          get().markPendingChanges()
         }
       },
 
@@ -75,20 +123,26 @@ export const useFlowStore = create<FlowStore>()(
             currentStepId: STEP_ORDER[currentIndex - 1],
             currentGroupIndex: 0,
             error: null,
+            pendingChanges: true,
           })
+          get().markPendingChanges()
         }
       },
 
       nextGroup: () => {
         set((state) => ({
           currentGroupIndex: state.currentGroupIndex + 1,
+          pendingChanges: true,
         }))
+        get().markPendingChanges()
       },
 
       prevGroup: () => {
         set((state) => ({
           currentGroupIndex: Math.max(0, state.currentGroupIndex - 1),
+          pendingChanges: true,
         }))
+        get().markPendingChanges()
       },
 
       // ============================================
@@ -103,7 +157,10 @@ export const useFlowStore = create<FlowStore>()(
           isEligible: null,
           eligibilityFailReason: null,
           currentGroupIndex: 0,
+          pendingChanges: true,
         })
+        // Immediately trigger draft creation for new service
+        get().forceSave()
       },
 
       updateAnswer: (fieldId, value) => {
@@ -112,21 +169,28 @@ export const useFlowStore = create<FlowStore>()(
             ...state.answers,
             [fieldId]: value,
           },
+          pendingChanges: true,
         }))
+        // Debounced save
+        get().markPendingChanges()
       },
 
       setAnswers: (answers) => {
-        set({ answers })
+        set({ answers, pendingChanges: true })
+        get().markPendingChanges()
       },
 
       setIdentityData: (data) => {
-        set({ identityData: data })
+        set({ identityData: data, pendingChanges: true })
+        get().markPendingChanges()
       },
 
       addConsent: (consent) => {
         set((state) => ({
           consentsGiven: [...state.consentsGiven, consent],
+          pendingChanges: true,
         }))
+        get().markPendingChanges()
       },
 
       // ============================================
@@ -165,39 +229,188 @@ export const useFlowStore = create<FlowStore>()(
       },
 
       // ============================================
+      // SYNC STATE
+      // ============================================
+
+      setSyncStatus: (status) => {
+        set({ syncStatus: status })
+      },
+
+      markPendingChanges: () => {
+        // Clear existing timer
+        if (saveTimer) {
+          clearTimeout(saveTimer)
+        }
+
+        set({ pendingChanges: true, syncStatus: 'pending' })
+
+        // Set debounced save
+        saveTimer = setTimeout(() => {
+          get().saveDraft()
+        }, SAVE_DEBOUNCE_MS)
+      },
+
+      // ============================================
       // PERSISTENCE
       // ============================================
 
       saveDraft: async () => {
         const state = get()
-        set({ isSaving: true })
+        
+        // Don't save if no service selected
+        if (!state.serviceSlug) return
+
+        set({ isSaving: true, syncStatus: 'saving' })
 
         try {
-          // Save to localStorage is handled by zustand persist
-          // Here we would also save to Supabase for logged-in users
+          // 1. Always save to localStorage first (fast, reliable)
+          const localDraft = {
+            id: state.draftId,
+            sessionId: state.sessionId,
+            serviceSlug: state.serviceSlug,
+            serviceName: state.serviceSlug, // Will be resolved by storage
+            currentStep: state.currentStepId,
+            currentGroupIndex: state.currentGroupIndex,
+            data: state.answers,
+            identityData: state.identityData as Record<string, unknown> | null,
+            createdAt: state.startedAt,
+            updatedAt: new Date().toISOString(),
+            syncedAt: state.lastSavedAt,
+            version: state.localVersion,
+            progress: 0, // Will be calculated by storage
+          }
+          saveLocalDraft(localDraft)
+
+          // 2. Sync to server if we have a draftId
+          if (state.draftId) {
+            await get().syncToServer()
+          } else {
+            // Create draft on server if first save
+            await get().syncToServer()
+          }
+
           set({
             lastSavedAt: new Date().toISOString(),
             isSaving: false,
+            pendingChanges: false,
+            syncStatus: 'saved',
+            localVersion: state.localVersion + 1,
+            retryCount: 0,
+            lastSyncError: null,
           })
         } catch (error) {
           console.error('Failed to save draft:', error)
           set({
             isSaving: false,
-            error: 'Failed to save draft',
+            syncStatus: 'error',
+            lastSyncError: error instanceof Error ? error.message : 'Unknown error',
+            retryCount: state.retryCount + 1,
           })
+
+          // Retry if under limit
+          if (state.retryCount < MAX_RETRY_COUNT) {
+            setTimeout(() => {
+              get().saveDraft()
+            }, 2000 * (state.retryCount + 1)) // Exponential backoff
+          }
         }
+      },
+
+      syncToServer: async () => {
+        const state = get()
+
+        if (!state.serviceSlug) return
+
+        try {
+          if (!state.draftId) {
+            // Create new draft
+            const response = await fetch('/api/flow/drafts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId: state.sessionId,
+                serviceSlug: state.serviceSlug,
+                initialData: state.answers,
+              }),
+            })
+
+            if (!response.ok) throw new Error('Failed to create draft')
+
+            const { draftId } = await response.json()
+            set({ draftId })
+          } else {
+            // Update existing draft
+            const response = await fetch(`/api/flow/drafts/${state.draftId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId: state.sessionId,
+                currentStep: state.currentStepId,
+                currentGroupIndex: state.currentGroupIndex,
+                data: state.answers,
+              }),
+            })
+
+            if (!response.ok) throw new Error('Failed to update draft')
+
+            const { serverVersion } = await response.json()
+            set({ serverVersion })
+          }
+        } catch (error) {
+          // Server sync failed, but localStorage is saved
+          console.error('Server sync failed:', error)
+          throw error
+        }
+      },
+
+      forceSave: async () => {
+        // Clear debounce timer
+        if (saveTimer) {
+          clearTimeout(saveTimer)
+          saveTimer = null
+        }
+
+        await get().saveDraft()
       },
 
       loadDraft: async (draftId) => {
         set({ isLoading: true })
 
         try {
-          // In a real implementation, fetch from Supabase
-          // For now, the localStorage persist handles this
-          set({
-            draftId,
-            isLoading: false,
-          })
+          const state = get()
+          
+          // Try to load from server
+          const response = await fetch(`/api/flow/drafts/${draftId}?sessionId=${state.sessionId}`)
+          
+          if (response.ok) {
+            const data = await response.json()
+            
+            set({
+              draftId: data.id,
+              serviceSlug: data.serviceSlug,
+              currentStepId: data.currentStep as FlowStepId,
+              currentGroupIndex: data.currentGroupIndex || 0,
+              answers: data.data || {},
+              isLoading: false,
+              syncStatus: 'saved',
+            })
+          } else {
+            // Fallback to localStorage
+            const localDraft = loadLocalDraft(state.sessionId)
+            if (localDraft) {
+              set({
+                draftId: localDraft.id,
+                serviceSlug: localDraft.serviceSlug,
+                currentStepId: localDraft.currentStep as FlowStepId,
+                currentGroupIndex: localDraft.currentGroupIndex,
+                answers: localDraft.data,
+                isLoading: false,
+                syncStatus: 'pending',
+              })
+            } else {
+              throw new Error('Draft not found')
+            }
+          }
         } catch (error) {
           console.error('Failed to load draft:', error)
           set({
@@ -207,10 +420,26 @@ export const useFlowStore = create<FlowStore>()(
         }
       },
 
+      restoreFromDraft: (draftData) => {
+        set({
+          draftId: draftData.draftId,
+          serviceSlug: draftData.serviceSlug,
+          currentStepId: draftData.currentStep as FlowStepId,
+          currentGroupIndex: draftData.currentGroupIndex,
+          answers: draftData.data,
+          pendingChanges: false,
+          syncStatus: 'saved',
+        })
+      },
+
       clearDraft: () => {
         // Clear localStorage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('instantmed-flow')
+          const state = get()
+          if (state.sessionId) {
+            localStorage.removeItem(`instantmed-draft-${state.sessionId}`)
+          }
         }
       },
 
@@ -219,6 +448,10 @@ export const useFlowStore = create<FlowStore>()(
       // ============================================
 
       reset: () => {
+        if (saveTimer) {
+          clearTimeout(saveTimer)
+          saveTimer = null
+        }
         set(createInitialState())
       },
     }),
@@ -237,6 +470,7 @@ export const useFlowStore = create<FlowStore>()(
         sessionId: state.sessionId,
         startedAt: state.startedAt,
         lastSavedAt: state.lastSavedAt,
+        localVersion: state.localVersion,
       }),
     }
   )
@@ -268,4 +502,18 @@ export const useFlowUI = () =>
     isSaving: s.isSaving,
     error: s.error,
     lastSavedAt: s.lastSavedAt,
+  }))
+export const useFlowSync = () =>
+  useFlowStore((s) => ({
+    syncStatus: s.syncStatus,
+    pendingChanges: s.pendingChanges,
+    lastSyncError: s.lastSyncError,
+    localVersion: s.localVersion,
+    serverVersion: s.serverVersion,
+  }))
+export const useFlowDraft = () =>
+  useFlowStore((s) => ({
+    draftId: s.draftId,
+    sessionId: s.sessionId,
+    startedAt: s.startedAt,
   }))

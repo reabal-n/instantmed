@@ -13,22 +13,23 @@ interface FlowStepperProps {
 
 export function FlowStepper({ steps, currentStepId, className }: FlowStepperProps) {
   const currentIndex = steps.findIndex((s) => s.id === currentStepId)
-  const progressPercent = (currentIndex / (steps.length - 1)) * 100
+  const progressPercent = Math.max(0, (currentIndex / Math.max(1, steps.length - 1)) * 100)
 
   return (
     <div className={cn('w-full', className)}>
-      {/* Desktop: Numbered pills */}
+      {/* Desktop: Horizontal stepper */}
       <div className="hidden sm:block">
         <div className="relative flex items-center justify-between">
           {/* Background track */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 -translate-y-1/2 bg-slate-200" />
+          <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-200" />
 
-          {/* Progress track */}
+          {/* Progress track (animated) */}
           <motion.div
-            className="absolute top-1/2 left-0 h-0.5 -translate-y-1/2 bg-emerald-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
+            className="absolute top-4 left-0 h-0.5 bg-emerald-500 origin-left"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: progressPercent / 100 }}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+            style={{ width: '100%' }}
           />
 
           {/* Step indicators */}
@@ -42,64 +43,76 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
                 {/* Circle */}
                 <motion.div
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
+                    'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold',
+                    'transition-colors duration-200',
                     isCompleted && 'bg-emerald-500 text-white',
-                    isCurrent && 'bg-emerald-500 text-white ring-4 ring-emerald-100',
+                    isCurrent && 'bg-emerald-500 text-white ring-[3px] ring-emerald-100',
                     isPending && 'bg-white border-2 border-slate-200 text-slate-400'
                   )}
+                  initial={false}
                   animate={{
-                    scale: isCurrent ? 1.1 : 1,
+                    scale: isCurrent ? 1.05 : 1,
                   }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
                   {isCompleted ? (
-                    <Check className="h-4 w-4" />
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                    >
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                    </motion.div>
                   ) : (
                     <span>{index + 1}</span>
                   )}
                 </motion.div>
 
                 {/* Label */}
-                <span
+                <motion.span
                   className={cn(
-                    'mt-2 text-xs font-medium whitespace-nowrap',
+                    'mt-2 text-[11px] font-medium whitespace-nowrap',
                     isCurrent && 'text-emerald-600',
                     isCompleted && 'text-slate-600',
                     isPending && 'text-slate-400'
                   )}
+                  animate={{ opacity: isCurrent ? 1 : 0.7 }}
                 >
                   {step.shortLabel || step.label}
-                </span>
+                </motion.span>
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* Mobile: Compact progress bar */}
+      {/* Mobile: Compact pill */}
       <div className="sm:hidden">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          {/* Step indicator pill */}
+          <div className="flex items-center gap-1.5 bg-emerald-50 rounded-full px-3 py-1.5">
+            <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">
               {currentIndex + 1}
-            </span>
-            <span className="text-sm font-medium text-slate-900">
-              {steps[currentIndex]?.label}
+            </div>
+            <span className="text-xs font-semibold text-emerald-700">
+              {steps[currentIndex]?.shortLabel || steps[currentIndex]?.label}
             </span>
           </div>
-          <span className="text-xs text-slate-400">
-            {currentIndex + 1} of {steps.length}
+          
+          {/* Progress indicator */}
+          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-emerald-500 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }}
+              transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+            />
+          </div>
+          
+          {/* Step count */}
+          <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">
+            {currentIndex + 1}/{steps.length}
           </span>
-        </div>
-
-        {/* Progress bar */}
-        <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-emerald-500 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentIndex + 1) / steps.length) * 100}%` }}
-            transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-          />
         </div>
       </div>
     </div>

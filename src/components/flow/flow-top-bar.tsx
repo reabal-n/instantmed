@@ -1,7 +1,7 @@
 'use client'
 
-import { ArrowLeft, X, Cloud, CloudOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, X, Cloud, CloudOff, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface FlowTopBarProps {
@@ -38,60 +38,61 @@ export function FlowTopBar({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-sm border-b border-slate-100',
+        'sticky top-0 z-40 h-14 bg-white/95 backdrop-blur-md border-b border-slate-100/80',
         className
       )}
     >
-      <div className="max-w-3xl mx-auto h-full px-4 flex items-center justify-between">
+      <div className="max-w-2xl mx-auto h-full px-4 flex items-center justify-between">
         {/* Left: Back button */}
-        <div className="w-20">
+        <div className="w-16">
           {showBack && onBack && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <motion.button
               onClick={onBack}
-              className="text-slate-600 hover:text-slate-900 -ml-2"
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm font-medium -ml-1 py-1"
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </motion.button>
           )}
         </div>
 
         {/* Center: Service name + save status */}
         <div className="flex-1 text-center">
-          <h1 className="text-sm font-semibold text-slate-900">{serviceName}</h1>
-          <div className="flex items-center justify-center gap-1 text-xs text-slate-400">
+          <h1 className="text-sm font-semibold text-slate-900 truncate">{serviceName}</h1>
+          
+          {/* Save status - subtle */}
+          <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 h-4">
             {isSaving ? (
-              <>
-                <Cloud className="h-3 w-3 animate-pulse" />
-                <span>Saving...</span>
-              </>
+              <motion.div 
+                className="flex items-center gap-1"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                <span>Saving</span>
+              </motion.div>
             ) : lastSavedAt ? (
-              <>
-                <Cloud className="h-3 w-3 text-emerald-500" />
+              <div className="flex items-center gap-1">
+                <Cloud className="h-2.5 w-2.5 text-emerald-500" />
                 <span>Saved {formatSavedTime(lastSavedAt)}</span>
-              </>
-            ) : (
-              <>
-                <CloudOff className="h-3 w-3" />
-                <span>Not saved</span>
-              </>
-            )}
+              </div>
+            ) : null}
           </div>
         </div>
 
         {/* Right: Close button */}
-        <div className="w-20 flex justify-end">
+        <div className="w-16 flex justify-end">
           {onClose && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
+            <motion.button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <X className="h-5 w-5" />
-            </Button>
+            </motion.button>
           )}
         </div>
       </div>
