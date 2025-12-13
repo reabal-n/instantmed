@@ -19,12 +19,17 @@ import {
   useFlowService,
   getFlowConfig,
   medCertConfig,
+  useHydrateFlowStore,
 } from '@/lib/flow'
 import type { FlowConfig, FlowStepId } from '@/lib/flow'
 
 function StartFlowContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  
+  // Hydrate the store from localStorage before rendering
+  const isHydrated = useHydrateFlowStore()
+  
   const currentStepId = useFlowStep()
   const serviceSlug = useFlowService()
   const { setServiceSlug, goToStep, nextStep, reset } = useFlowStore()
@@ -100,8 +105,8 @@ function StartFlowContent() {
     router.push('/')
   }
 
-  // Show loading while initializing
-  if (!isInitialized) {
+  // Show loading while hydrating store or initializing
+  if (!isHydrated || !isInitialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />

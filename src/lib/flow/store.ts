@@ -1,17 +1,30 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { FlowState, FlowActions, FlowStepId, IdentityData, ConsentRecord } from './types'
 import type { SyncStatus } from './draft/types'
 import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
 
-// Generate a unique session ID (with persistence)
+// Placeholder values for SSR - will be replaced on client hydration
+const SSR_SESSION_ID = 'ssr_placeholder'
+const SSR_TIMESTAMP = '1970-01-01T00:00:00.000Z'
+
+// Generate a unique session ID (with persistence) - only call on client
 function generateSessionId(): string {
   if (typeof window === 'undefined') {
-    return `server_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+    return SSR_SESSION_ID
   }
   return getSessionId()
+}
+
+// Get current timestamp - only meaningful on client
+function getTimestamp(): string {
+  if (typeof window === 'undefined') {
+    return SSR_TIMESTAMP
+  }
+  return new Date().toISOString()
 }
 
 // Extended state with sync tracking
@@ -25,7 +38,7 @@ interface ExtendedFlowState extends FlowState {
   retryCount: number
 }
 
-// Initial state factory
+// Initial state factory - uses SSR-safe values
 function createInitialState(): ExtendedFlowState {
   return {
     currentStepId: 'service',
@@ -38,8 +51,8 @@ function createInitialState(): ExtendedFlowState {
     eligibilityFailReason: null,
     draftId: null,
     intakeId: null,
-    sessionId: generateSessionId(),
-    startedAt: new Date().toISOString(),
+    sessionId: SSR_SESSION_ID, // Will be replaced on client hydration
+    startedAt: SSR_TIMESTAMP, // Will be replaced on client hydration
     lastSavedAt: null,
     isLoading: false,
     isSaving: false,
@@ -443,12 +456,17 @@ export const useFlowStore = create<FlowStore>()(
           clearTimeout(saveTimer)
           saveTimer = null
         }
-        set(createInitialState())
+        // Create initial state with proper client values
+        const newState = createInitialState()
+        newState.sessionId = generateSessionId()
+        newState.startedAt = getTimestamp()
+        set(newState)
       },
     }),
     {
       name: 'instantmed-flow',
       storage: createJSONStorage(() => localStorage),
+      skipHydration: true, // Prevent hydration mismatch - we'll hydrate manually
       partialize: (state) => ({
         // Only persist these fields
         serviceSlug: state.serviceSlug,
@@ -463,6 +481,17 @@ export const useFlowStore = create<FlowStore>()(
         lastSavedAt: state.lastSavedAt,
         localVersion: state.localVersion,
       }),
+      onRehydrateStorage: () => (state) => {
+        // After rehydration, ensure we have valid sessionId and startedAt
+        if (state) {
+          if (!state.sessionId || state.sessionId === SSR_SESSION_ID) {
+            state.sessionId = generateSessionId()
+          }
+          if (!state.startedAt || state.startedAt === SSR_TIMESTAMP) {
+            state.startedAt = getTimestamp()
+          }
+        }
+      },
     }
   )
 )
@@ -508,3 +537,33 @@ export const useFlowDraft = () =>
     sessionId: s.sessionId,
     startedAt: s.startedAt,
   }))
+
+// ============================================
+// HYDRATION
+// ============================================
+
+/**
+ * Hook to hydrate the store on client mount
+ * Call this in your app root or on pages that use the flow store
+ */
+export function useHydrateFlowStore() {
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    // Trigger Zustand's rehydration from localStorage
+    useFlowStore.persist.rehydrate()
+    
+    // Ensure we have valid session ID and timestamp after hydration
+    const state = useFlowStore.getState()
+    if (state.sessionId === SSR_SESSION_ID) {
+      useFlowStore.setState({ sessionId: generateSessionId() })
+    }
+    if (state.startedAt === SSR_TIMESTAMP) {
+      useFlowStore.setState({ startedAt: getTimestamp() })
+    }
+    
+    setHydrated(true)
+  }, [])
+
+  return hydrated
+}

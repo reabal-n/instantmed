@@ -29,6 +29,7 @@ export {
   useFlowUI,
   useFlowSync,
   useFlowDraft,
+  useHydrateFlowStore,
 } from './store'
 
 // Safety Engine
