@@ -4,7 +4,7 @@
 export { FlowShell } from './flow-shell'
 export { FlowTopBar } from './flow-top-bar'
 export { FlowStepper } from './flow-stepper'
-export { FlowCTA } from './flow-cta'
+export { FlowCTA, InlineFlowCTA } from './flow-cta'
 export { FlowContent, FlowSection } from './flow-content'
 
 // Field Rendering

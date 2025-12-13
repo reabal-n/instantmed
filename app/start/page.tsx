@@ -1,16 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
-import { ServiceSelector } from "./service-selector"
+import { UnifiedFlowClient } from "./unified-flow-client"
 
 export const metadata = {
   title: "Get Started | InstantMed",
-  description: "Select the service you need from InstantMed",
+  description: "Start your telehealth consultation with InstantMed. Medical certificates, prescriptions, and referrals from AHPRA-registered doctors.",
 }
 
-export default async function StartPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  return <ServiceSelector isAuthenticated={!!user} />
+export default function StartPage() {
+  return <UnifiedFlowClient />
 }

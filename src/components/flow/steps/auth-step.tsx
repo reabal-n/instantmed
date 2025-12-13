@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Mail,
   ArrowRight,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import { createClient } from '@/lib/supabase/client'
+import { GoogleIcon } from '@/components/icons/google-icon'
 import { cn } from '@/lib/utils'
 
 // ============================================
@@ -279,6 +280,36 @@ export function AuthStep({
     nextStep()
   }
 
+  // Handle Google OAuth
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    setError('')
+
+    try {
+      // Store current path for redirect after auth
+      const redirectPath = window.location.pathname + window.location.search
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}&flow=questionnaire`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) throw error
+      
+      // OAuth will redirect, no need to handle success here
+    } catch (err) {
+      console.error('Error with Google sign in:', err)
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google')
+      setIsLoading(false)
+    }
+  }
+
   // ============================================
   // CHECKING STATE
   // ============================================
@@ -416,14 +447,35 @@ export function AuthStep({
   // ============================================
   return (
     <FlowContent
-      title="Save your progress"
-      description="Enter your email to save your draft and receive updates"
+      title="Create your account"
+      description="Sign in to save your progress and receive your documents"
     >
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
+        {/* Google OAuth Button */}
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          variant="outline"
+          className="w-full h-12 text-base rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+        >
+          <GoogleIcon />
+          <span className="ml-3">Continue with Google</span>
+        </Button>
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-3 text-slate-400">or continue with email</span>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -436,7 +488,7 @@ export function AuthStep({
               }}
               placeholder="your@email.com"
               className={cn(
-                'h-14 pl-12 text-base rounded-xl border-2',
+                'h-12 pl-12 text-base rounded-xl border-2',
                 error
                   ? 'border-red-300 focus:border-red-500'
                   : 'border-slate-200 focus:border-emerald-500'
