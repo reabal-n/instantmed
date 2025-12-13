@@ -11,7 +11,6 @@ import {
   ServiceStep,
   UnifiedQuestionsStep,
   DetailsStep,
-  ResumePrompt,
 } from '@/components/flow'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,10 +19,6 @@ import {
   useFlowService,
   getFlowConfig,
   medCertConfig,
-  getFlowSession,
-  useDraftPersistence,
-  useDraftResume,
-  claimDraft as claimDraftAuth,
 } from '@/lib/flow'
 import type { FlowConfig, FlowStepId } from '@/lib/flow'
 
@@ -32,81 +27,27 @@ function StartFlowContent() {
   const searchParams = useSearchParams()
   const currentStepId = useFlowStep()
   const serviceSlug = useFlowService()
-  const { setServiceSlug, goToStep, nextStep, reset, restoreFromDraft } = useFlowStore()
-  const draftId = useFlowStore((s) => s.draftId)
-  const sessionId = useFlowStore((s) => s.sessionId)
+  const { setServiceSlug, goToStep, nextStep, reset } = useFlowStore()
 
   // Get config based on service (default to medCert for now)
   const [config, setConfig] = useState<FlowConfig>(medCertConfig)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [showResumePrompt, setShowResumePrompt] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Draft persistence
-  useDraftPersistence({
-    warnOnUnload: true,
-  })
-
-  // Draft resume detection
-  const { 
-    hasDrafts, 
-    drafts, 
-    isLoading: isLoadingDrafts,
-    resumeDraft,
-    deleteDraft,
-    startFresh,
-  } = useDraftResume({
-    checkOnMount: true,
-  })
-
-  // Check auth on mount and claim draft if needed
-  useEffect(() => {
-    const checkAuth = async () => {
-      const session = await getFlowSession()
-      setIsCheckingAuth(false)
-
-      // If user just signed in, claim any anonymous draft
-      if (session.isAuthenticated && session.userId && draftId) {
-        try {
-          await claimDraftAuth(draftId, session.userId)
-        } catch (error) {
-          console.error('Failed to claim draft:', error)
-        }
-      }
-    }
-
-    checkAuth()
-  }, [draftId])
-
-  // Show resume prompt if there are drafts and no service selected
-  useEffect(() => {
-    const skipResume = searchParams.get('fresh') === 'true'
-    
-    if (!skipResume && hasDrafts && !serviceSlug && !isLoadingDrafts) {
-      setShowResumePrompt(true)
-    }
-  }, [hasDrafts, serviceSlug, isLoadingDrafts, searchParams])
-
-  // Handle URL params on mount
+  // Initialize on mount
   useEffect(() => {
     const serviceParam = searchParams.get('service')
     const stepParam = searchParams.get('step')
-    const draftParam = searchParams.get('draft')
-
-    // Resume specific draft if provided
-    if (draftParam) {
-      resumeDraft(draftParam).catch(console.error)
-      return
-    }
 
     // Set service from URL if provided
-    if (serviceParam && !serviceSlug) {
+    if (serviceParam) {
       const serviceConfig = getFlowConfig(serviceParam)
       if (serviceConfig) {
         setServiceSlug(serviceParam)
         setConfig(serviceConfig)
         // Skip service selection if service is pre-selected
-        goToStep('questions')
-        setShowResumePrompt(false)
+        if (!stepParam) {
+          goToStep('questions')
+        }
       }
     }
 
@@ -117,7 +58,9 @@ function StartFlowContent() {
         goToStep(stepParam as FlowStepId)
       }
     }
-  }, [searchParams, serviceSlug, setServiceSlug, goToStep, resumeDraft])
+
+    setIsInitialized(true)
+  }, [searchParams, setServiceSlug, goToStep])
 
   // Update config when service changes
   useEffect(() => {
@@ -128,41 +71,6 @@ function StartFlowContent() {
       }
     }
   }, [serviceSlug])
-
-  // Handle resume draft
-  const handleResumeDraft = useCallback(async (id: string) => {
-    try {
-      await resumeDraft(id)
-      setShowResumePrompt(false)
-      
-      // Update config based on resumed service
-      const state = useFlowStore.getState()
-      if (state.serviceSlug) {
-        const newConfig = getFlowConfig(state.serviceSlug)
-        if (newConfig) {
-          setConfig(newConfig)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to resume draft:', error)
-    }
-  }, [resumeDraft])
-
-  // Handle start fresh
-  const handleStartFresh = useCallback(() => {
-    startFresh()
-    setShowResumePrompt(false)
-  }, [startFresh])
-
-  // Handle delete draft
-  const handleDeleteDraft = useCallback(async (id: string) => {
-    await deleteDraft(id)
-    
-    // If no more drafts, hide the prompt
-    if (drafts.length <= 1) {
-      setShowResumePrompt(false)
-    }
-  }, [deleteDraft, drafts.length])
 
   // Handle service selection
   const handleServiceSelect = (slug: string) => {
@@ -192,36 +100,11 @@ function StartFlowContent() {
     router.push('/')
   }
 
-  // Show loading while checking auth or drafts
-  if (isCheckingAuth || isLoadingDrafts) {
+  // Show loading while initializing
+  if (!isInitialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
-      </div>
-    )
-  }
-
-  // Show resume prompt if applicable
-  if (showResumePrompt && drafts.length > 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
-        {/* Noise texture overlay */}
-        <div
-          className="fixed inset-0 pointer-events-none opacity-[0.015] z-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-        
-        <div className="w-full max-w-md relative z-10">
-          <ResumePrompt
-            drafts={drafts}
-            onResume={handleResumeDraft}
-            onStartFresh={handleStartFresh}
-            onDelete={handleDeleteDraft}
-            isLoading={isLoadingDrafts}
-          />
-        </div>
       </div>
     )
   }

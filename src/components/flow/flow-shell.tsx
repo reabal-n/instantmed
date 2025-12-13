@@ -62,10 +62,17 @@ export function FlowShell({
   const { isLoading, isSaving, lastSavedAt } = useFlowUI()
   const { prevStep, saveDraft } = useFlowStore()
 
-  // Autosave on answer changes (debounced)
+  // Autosave on answer changes (debounced) - non-blocking
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveDraft()
+      try {
+        saveDraft().catch((err) => {
+          // Silently handle save errors - draft will be in localStorage
+          console.warn('Auto-save failed:', err)
+        })
+      } catch {
+        // Ignore errors
+      }
     }, 2000)
 
     return () => clearTimeout(timer)

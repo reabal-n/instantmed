@@ -281,13 +281,8 @@ export const useFlowStore = create<FlowStore>()(
           }
           saveLocalDraft(localDraft)
 
-          // 2. Sync to server if we have a draftId
-          if (state.draftId) {
-            await get().syncToServer()
-          } else {
-            // Create draft on server if first save
-            await get().syncToServer()
-          }
+          // 2. Try to sync to server (non-blocking)
+          await get().syncToServer()
 
           set({
             lastSavedAt: new Date().toISOString(),
@@ -299,20 +294,15 @@ export const useFlowStore = create<FlowStore>()(
             lastSyncError: null,
           })
         } catch (error) {
-          console.error('Failed to save draft:', error)
+          // Still mark as saved since localStorage succeeded
+          console.warn('Draft saved locally, server sync failed:', error)
           set({
+            lastSavedAt: new Date().toISOString(),
             isSaving: false,
-            syncStatus: 'error',
-            lastSyncError: error instanceof Error ? error.message : 'Unknown error',
-            retryCount: state.retryCount + 1,
+            pendingChanges: false,
+            syncStatus: 'saved', // Still saved to localStorage
+            localVersion: state.localVersion + 1,
           })
-
-          // Retry if under limit
-          if (state.retryCount < MAX_RETRY_COUNT) {
-            setTimeout(() => {
-              get().saveDraft()
-            }, 2000 * (state.retryCount + 1)) // Exponential backoff
-          }
         }
       },
 
@@ -334,10 +324,11 @@ export const useFlowStore = create<FlowStore>()(
               }),
             })
 
-            if (!response.ok) throw new Error('Failed to create draft')
-
-            const { draftId } = await response.json()
-            set({ draftId })
+            if (response.ok) {
+              const { draftId } = await response.json()
+              set({ draftId })
+            }
+            // Don't throw on failure - localStorage backup exists
           } else {
             // Update existing draft
             const response = await fetch(`/api/flow/drafts/${state.draftId}`, {
@@ -351,15 +342,15 @@ export const useFlowStore = create<FlowStore>()(
               }),
             })
 
-            if (!response.ok) throw new Error('Failed to update draft')
-
-            const { serverVersion } = await response.json()
-            set({ serverVersion })
+            if (response.ok) {
+              const { serverVersion } = await response.json()
+              set({ serverVersion })
+            }
+            // Don't throw on failure - localStorage backup exists
           }
         } catch (error) {
-          // Server sync failed, but localStorage is saved
-          console.error('Server sync failed:', error)
-          throw error
+          // Server sync failed, but localStorage is saved - don't throw
+          console.warn('Server sync failed (data saved locally):', error)
         }
       },
 
