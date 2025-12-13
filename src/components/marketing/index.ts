@@ -1,0 +1,13 @@
+// Marketing components barrel export
+export { RotatingText } from './rotating-text'
+export { MarketingNavbar } from './navbar'
+export { Hero } from './hero'
+export { ServicePicker } from './service-picker'
+export { ProofStrip } from './proof-strip'
+export { HowItWorks } from './how-it-works'
+export { ServicesSection } from './services-section'
+export { OneHourPromise } from './one-hour-promise'
+export { PricingSection } from './pricing-section'
+export { FAQSection } from './faq-section'
+export { CTASection } from './cta-section'
+export { MarketingFooter } from './footer'
