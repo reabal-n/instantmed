@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile, AustralianState } from "@/types/db"
 
 /**
@@ -118,4 +119,51 @@ export async function completeOnboarding(profileId: string, data: OnboardingData
   }
 
   return profile as Profile
+}
+
+/**
+ * Get the email address for a patient associated with a request.
+ * Looks up the request → profile → auth.users to get the email.
+ * Uses service role client for auth.admin access.
+ */
+export async function getPatientEmailFromRequest(requestId: string): Promise<string | null> {
+  const supabase = await createClient()
+
+  // Get the request with patient profile
+  const { data: request, error: requestError } = await supabase
+    .from("requests")
+    .select(`
+      patient_id,
+      patient:profiles!patient_id (
+        auth_user_id
+      )
+    `)
+    .eq("id", requestId)
+    .single()
+
+  if (requestError || !request || !request.patient) {
+    console.error("Error fetching request for email lookup:", requestError)
+    return null
+  }
+
+  const authUserId = (request.patient as { auth_user_id: string | null }).auth_user_id
+
+  // For guest profiles (no auth_user_id), we can't get email this way
+  // In that case, email should be stored elsewhere (e.g., checkout metadata)
+  if (!authUserId) {
+    console.log("[Email] Guest profile - no auth_user_id available")
+    return null
+  }
+
+  // Get user email from auth.users via admin API
+  // Must use service role client for auth.admin access
+  const serviceClient = createServiceRoleClient()
+  const { data: authUser, error: authError } = await serviceClient.auth.admin.getUserById(authUserId)
+
+  if (authError || !authUser?.user?.email) {
+    console.error("Error fetching auth user email:", authError)
+    return null
+  }
+
+  return authUser.user.email
 }

@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
 import { updateMedCertDraftData, getDraftById, createGeneratedDocument } from "@/lib/data/documents"
-import { updateRequestStatus } from "@/lib/data/requests"
+import { updateRequestStatus, getRequestWithDetails } from "@/lib/data/requests"
 import { generateMedCertPdfFromDraft, testApiTemplateConnection } from "@/lib/documents/apitemplate"
+import { sendMedCertReadyEmail } from "@/lib/email/resend"
+import { getPatientEmailFromRequest } from "@/lib/data/profiles"
 import type { MedCertDraftData } from "@/types/db"
 
 export async function saveMedCertDraftAction(
@@ -78,6 +80,11 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: "PDF generated but failed to update request status" }
     }
 
+    // Send email notification to patient (fire and forget - don't block on email)
+    sendPatientNotificationEmail(draft.request_id, pdfUrl, draft.subtype).catch((error) => {
+      console.error("Failed to send med cert ready email:", error)
+    })
+
     // Revalidate paths
     revalidatePath(`/doctor/requests/${draft.request_id}`)
     revalidatePath(`/doctor/requests/${draft.request_id}/document`)
@@ -126,5 +133,48 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
   } catch (error) {
     console.error("Error approving request:", error)
     return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+/**
+ * Helper function to send email notification to patient after approval
+ * This is fire-and-forget to not block the approval flow
+ */
+async function sendPatientNotificationEmail(
+  requestId: string,
+  pdfUrl: string,
+  subtype: string | null
+): Promise<void> {
+  try {
+    // Get request with patient details
+    const request = await getRequestWithDetails(requestId)
+    if (!request || !request.patient) {
+      console.error("[Email] Could not find request or patient for email")
+      return
+    }
+
+    // Get patient email
+    const patientEmail = await getPatientEmailFromRequest(requestId)
+    if (!patientEmail) {
+      console.error("[Email] Could not find patient email")
+      return
+    }
+
+    // Send the email
+    const result = await sendMedCertReadyEmail({
+      to: patientEmail,
+      patientName: request.patient.full_name || "there",
+      pdfUrl,
+      requestId,
+      certType: subtype || "work",
+    })
+
+    if (!result.success) {
+      console.error("[Email] Failed to send med cert ready email:", result.error)
+    } else {
+      console.log(`[Email] Med cert ready email sent to ${patientEmail}, id: ${result.id}`)
+    }
+  } catch (error) {
+    console.error("[Email] Error sending notification:", error)
   }
 }
