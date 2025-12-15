@@ -19,20 +19,50 @@ export async function completeOnboardingAction(
   profileId: string,
   data: OnboardingInput,
 ): Promise<{ success: boolean; error?: string }> {
+  const startTime = Date.now()
+  
+  console.log("[completeOnboardingAction] Starting:", { profileId })
+  
   const supabase = await createClient()
 
   // Verify the user owns this profile
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser()
 
+  if (authError) {
+    console.error("[completeOnboardingAction] Auth error:", {
+      profileId,
+      error: authError.message,
+    })
+  }
+
   if (!user) {
+    console.warn("[completeOnboardingAction] Unauthenticated access attempt:", { profileId })
     return { success: false, error: "Not authenticated" }
   }
 
-  const { data: profile } = await supabase.from("profiles").select("auth_user_id").eq("id", profileId).single()
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("auth_user_id")
+    .eq("id", profileId)
+    .single()
+
+  if (profileError) {
+    console.error("[completeOnboardingAction] Profile fetch error:", {
+      profileId,
+      userId: user.id,
+      error: profileError.message,
+    })
+  }
 
   if (!profile || profile.auth_user_id !== user.id) {
+    console.warn("[completeOnboardingAction] Unauthorized access:", {
+      profileId,
+      userId: user.id,
+      profileAuthUserId: profile?.auth_user_id,
+    })
     return { success: false, error: "Unauthorized" }
   }
 
@@ -55,9 +85,21 @@ export async function completeOnboardingAction(
     .eq("id", profileId)
 
   if (error) {
-    console.error("Error completing onboarding:", error)
+    console.error("[completeOnboardingAction] Update failed:", {
+      profileId,
+      userId: user.id,
+      error: error.message,
+      code: error.code,
+      duration: Date.now() - startTime,
+    })
     return { success: false, error: "Failed to save your details. Please try again." }
   }
+
+  console.log("[completeOnboardingAction] Success:", {
+    profileId,
+    userId: user.id,
+    duration: Date.now() - startTime,
+  })
 
   return { success: true }
 }

@@ -1,6 +1,6 @@
 "use server"
 
-import { env } from "@/lib/env"
+import { env } from "../env"
 
 /**
  * Email delivery service using Resend

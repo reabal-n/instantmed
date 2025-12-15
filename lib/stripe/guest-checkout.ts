@@ -50,32 +50,42 @@ function getBaseUrl(): string {
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
-    console.log("[v0] Starting guest checkout for:", input.guestEmail)
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(input.guestEmail)) {
+      console.error("[Guest Checkout] Invalid email format:", input.guestEmail)
+      return { success: false, error: "Please provide a valid email address." }
+    }
+
+    console.log("[Guest Checkout] Starting checkout for:", input.guestEmail)
 
     const supabase = getServiceClient()
     const baseUrl = getBaseUrl()
 
     // 1. Check if a guest profile already exists for this email
+    // Use email field for reliable lookup (not full_name which could collide)
     let guestProfileId: string
 
     const { data: existingProfile } = await supabase
       .from("profiles")
       .select("id, auth_user_id")
-      .eq("full_name", input.guestEmail) // Temporarily use email as name for guest
-      .is("auth_user_id", null) // Guest profiles have no auth_user_id
+      .eq("email", input.guestEmail.toLowerCase().trim())
+      .is("auth_user_id", null) // Guest profiles have no auth yet
       .single()
 
     if (existingProfile) {
       // Reuse existing guest profile
       guestProfileId = existingProfile.id
-      console.log("[v0] Reusing existing guest profile:", guestProfileId)
+      console.log("[Guest Checkout] Reusing existing guest profile:", guestProfileId)
     } else {
-      // Create a new guest profile
+      // Create a new guest profile with email stored properly
+      const normalizedEmail = input.guestEmail.toLowerCase().trim()
       const { data: newProfile, error: profileError } = await supabase
         .from("profiles")
         .insert({
-          full_name: input.guestName || input.guestEmail,
-          auth_user_id: null, // Guest profile - no auth yet
+          email: normalizedEmail,
+          full_name: input.guestName || normalizedEmail.split("@")[0],
+          auth_user_id: null, // Guest profile - will be linked after account creation
           role: "patient",
           onboarding_completed: false,
         })
@@ -83,12 +93,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         .single()
 
       if (profileError || !newProfile) {
-        console.error("[v0] Error creating guest profile:", profileError)
+        console.error("[Guest Checkout] Error creating guest profile:", {
+          error: profileError,
+          email: normalizedEmail,
+        })
         return { success: false, error: "Failed to create guest profile. Please try again." }
       }
 
       guestProfileId = newProfile.id
-      console.log("[v0] Created new guest profile:", guestProfileId)
+      console.log("[Guest Checkout] Created new guest profile:", guestProfileId)
     }
 
     // 2. Create the request with pending_payment status
@@ -169,7 +182,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     // 7. Create payment record
-    await supabase.from("payments").insert({
+    const { error: paymentError } = await supabase.from("payments").insert({
       request_id: request.id,
       stripe_session_id: session.id,
       amount: session.amount_total || 0,
@@ -177,7 +190,22 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       status: "created",
     })
 
-    console.log("[v0] Guest checkout session created:", session.id)
+    if (paymentError) {
+      console.error("[Guest Checkout] Error creating payment record:", paymentError)
+      // Don't fail - Stripe is the source of truth
+    }
+
+    // 8. Track the active checkout session on the request
+    await supabase
+      .from("requests")
+      .update({ active_checkout_session_id: session.id })
+      .eq("id", request.id)
+
+    console.log("[Guest Checkout] Session created:", {
+      requestId: request.id,
+      sessionId: session.id,
+      email: input.guestEmail,
+    })
 
     return { success: true, checkoutUrl: session.url }
   } catch (error) {

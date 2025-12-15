@@ -5,10 +5,18 @@ import type {
   RequestWithPatient,
   RequestWithDetails,
   RequestStatus,
+  PaymentStatus,
   RequestInsert,
   RequestCategory,
   RequestSubtype,
 } from "@/types/db"
+import {
+  validateStatusTransition,
+  logTransitionAttempt,
+  logTransitionSuccess,
+  logTransitionFailure,
+  RequestLifecycleError,
+} from "./request-lifecycle"
 
 /**
  * Fetch all requests for a given patient.
@@ -214,21 +222,93 @@ export async function createRequest(
 
 /**
  * Update request status (for doctor actions).
+ * Enforces strict lifecycle validation - will reject invalid transitions.
+ * Optionally tracks the reviewing doctor for audit purposes.
+ * 
+ * @throws RequestLifecycleError if transition is invalid
  */
-export async function updateRequestStatus(requestId: string, status: RequestStatus): Promise<Request | null> {
+export async function updateRequestStatus(
+  requestId: string,
+  status: RequestStatus,
+  reviewedBy?: string
+): Promise<Request | null> {
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(requestId)) {
+    console.error("[updateRequestStatus] Invalid requestId format:", requestId)
+    return null
+  }
+
   const supabase = await createClient()
+
+  // STEP 1: Fetch current request state for lifecycle validation
+  const { data: currentRequest, error: fetchError } = await supabase
+    .from("requests")
+    .select("status, payment_status")
+    .eq("id", requestId)
+    .single()
+
+  if (fetchError || !currentRequest) {
+    console.error("[updateRequestStatus] Failed to fetch current state:", { requestId, error: fetchError })
+    return null
+  }
+
+  const currentStatus = currentRequest.status as RequestStatus
+  const paymentStatus = currentRequest.payment_status as PaymentStatus
+
+  // STEP 2: Log the transition attempt
+  logTransitionAttempt(
+    requestId,
+    currentStatus,
+    status,
+    paymentStatus,
+    reviewedBy || "unknown",
+    reviewedBy ? "doctor" : "system"
+  )
+
+  // STEP 3: Validate the transition
+  const validation = validateStatusTransition(currentStatus, status, paymentStatus)
+
+  if (!validation.valid) {
+    logTransitionFailure(requestId, currentStatus, status, validation.error || "Unknown error", reviewedBy || "unknown")
+    
+    throw new RequestLifecycleError(
+      validation.error || "Invalid status transition",
+      validation.code,
+      {
+        currentStatus,
+        attemptedStatus: status,
+        paymentStatus,
+      }
+    )
+  }
+
+  // STEP 4: Perform the update
+  const updateData: Record<string, unknown> = {
+    status,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Add audit fields if doctor ID provided
+  if (reviewedBy) {
+    updateData.reviewed_by = reviewedBy
+    updateData.reviewed_at = new Date().toISOString()
+  }
 
   const { data, error } = await supabase
     .from("requests")
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq("id", requestId)
     .select()
     .single()
 
   if (error || !data) {
-    console.error("Error updating request status:", error)
+    console.error("[updateRequestStatus] Database error:", { requestId, status, error })
     return null
   }
+
+  // STEP 5: Log success
+  logTransitionSuccess(requestId, currentStatus, status, reviewedBy || "system")
 
   return data as Request
 }
@@ -443,7 +523,8 @@ export async function flagForFollowup(requestId: string, reason: string): Promis
 }
 
 /**
- * Escalate a request
+ * Escalate a request.
+ * Enforces lifecycle - request must be paid and in pending status.
  */
 export async function escalateRequest(
   requestId: string,
@@ -452,6 +533,30 @@ export async function escalateRequest(
   doctorId: string,
 ): Promise<boolean> {
   const supabase = await createClient()
+
+  // Fetch current state for validation
+  const { data: currentRequest, error: fetchError } = await supabase
+    .from("requests")
+    .select("status, payment_status")
+    .eq("id", requestId)
+    .single()
+
+  if (fetchError || !currentRequest) {
+    console.error("[escalateRequest] Failed to fetch request:", { requestId, error: fetchError })
+    return false
+  }
+
+  const currentStatus = currentRequest.status as RequestStatus
+  const paymentStatus = currentRequest.payment_status as PaymentStatus
+
+  // Validate transition to needs_follow_up
+  const validation = validateStatusTransition(currentStatus, "needs_follow_up", paymentStatus)
+
+  if (!validation.valid) {
+    logTransitionFailure(requestId, currentStatus, "needs_follow_up", validation.error || "Unknown error", doctorId)
+    console.error("[escalateRequest] Invalid transition:", validation.error)
+    return false
+  }
 
   const { error } = await supabase
     .from("requests")
@@ -466,10 +571,11 @@ export async function escalateRequest(
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error escalating request:", error)
+    console.error("[escalateRequest] Database error:", error)
     return false
   }
 
+  logTransitionSuccess(requestId, currentStatus, "needs_follow_up", doctorId)
   return true
 }
 

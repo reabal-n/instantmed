@@ -1,8 +1,12 @@
 import type { MedCertDraftData } from "@/types/db"
 import type { PathologyDraftData } from "@/types/db"
+import { uploadDocumentFromUrl, isPermanentStorageUrl } from "../storage/documents"
 
 /**
  * APITemplate.io integration for PDF generation
+ * 
+ * IMPORTANT: APITemplate returns TEMPORARY URLs that expire in ~60 minutes.
+ * We MUST download the PDF and upload to Supabase Storage for permanent access.
  */
 
 interface APITemplateResponse {
@@ -51,13 +55,19 @@ function validateMedCertSubtype(subtype: string | null | undefined): ValidMedCer
 }
 
 /**
- * Generate a medical certificate PDF from draft data using APITemplate.io
+ * Generate a medical certificate PDF from draft data using APITemplate.io.
+ * The PDF is generated via APITemplate, then uploaded to Supabase Storage
+ * for permanent access (APITemplate URLs expire in ~60 minutes).
+ * 
  * @param data - The certificate draft data
  * @param subtype - The certificate subtype: 'work' | 'uni' | 'carer'
+ * @param requestId - The request ID (required for storage path)
+ * @returns Permanent Supabase Storage URL
  */
 export async function generateMedCertPdfFromDraft(
   data: MedCertDraftData,
   subtype: string | null | undefined,
+  requestId?: string,
 ): Promise<string> {
   const apiKey = process.env.APITEMPLATE_API_KEY
 
@@ -138,7 +148,9 @@ export async function generateMedCertPdfFromDraft(
   }
 
   try {
-    // APITemplate.io API call
+    // Step 1: Generate PDF via APITemplate (returns TEMPORARY URL)
+    console.log("[APITemplate] Generating med cert PDF:", { subtype: validatedSubtype, requestId })
+    
     const response = await fetch("https://rest.apitemplate.io/v2/create-pdf", {
       method: "POST",
       headers: {
@@ -148,7 +160,7 @@ export async function generateMedCertPdfFromDraft(
       body: JSON.stringify({
         template_id: templateId,
         export_type: "json",
-        expiration: 60,
+        expiration: 60, // This URL expires in 60 minutes!
         data: templateData,
       }),
     })
@@ -169,7 +181,35 @@ export async function generateMedCertPdfFromDraft(
       throw new Error(result.message || result.error || "Failed to generate PDF - no download URL returned")
     }
 
-    return result.download_url
+    const temporaryUrl = result.download_url
+    console.log("[APITemplate] Generated temporary URL (expires in 60 min)")
+
+    // Step 2: Upload to permanent storage (if requestId provided)
+    if (requestId) {
+      console.log("[APITemplate] Uploading to permanent storage...")
+      
+      const uploadResult = await uploadDocumentFromUrl(
+        temporaryUrl,
+        requestId,
+        "med_cert",
+        validatedSubtype
+      )
+
+      if (!uploadResult.success || !uploadResult.permanentUrl) {
+        console.error("[APITemplate] Failed to upload to storage:", uploadResult.error)
+        // Fall back to temporary URL with warning
+        console.warn("[APITemplate] WARNING: Returning temporary URL - patient access will expire in 60 minutes!")
+        return temporaryUrl
+      }
+
+      console.log("[APITemplate] Stored permanently:", uploadResult.permanentUrl)
+      return uploadResult.permanentUrl
+    }
+
+    // No requestId - return temporary URL (legacy behavior, will break after 60 min)
+    console.warn("[APITemplate] No requestId provided - returning temporary URL!")
+    return temporaryUrl
+
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`PDF generation failed: ${error.message}`)
@@ -262,13 +302,19 @@ export function validatePathologySubtype(subtype: string | null | undefined): Pa
 }
 
 /**
- * Generate a pathology/imaging referral PDF from draft data using APITemplate.io
+ * Generate a pathology/imaging referral PDF from draft data using APITemplate.io.
+ * The PDF is generated via APITemplate, then uploaded to Supabase Storage
+ * for permanent access (APITemplate URLs expire in ~60 minutes).
+ * 
  * @param subtype - The referral subtype: 'pathology_bloods' | 'pathology_imaging'
  * @param data - The referral draft data
+ * @param requestId - The request ID (required for storage path)
+ * @returns Permanent Supabase Storage URL
  */
 export async function generatePathologyReferralPdfFromDraft(
   subtype: PathologySubtype,
   data: PathologyDraftData,
+  requestId?: string,
 ): Promise<string> {
   const apiKey = process.env.APITEMPLATE_API_KEY
 
@@ -336,6 +382,9 @@ export async function generatePathologyReferralPdfFromDraft(
   }
 
   try {
+    // Step 1: Generate PDF via APITemplate (returns TEMPORARY URL)
+    console.log("[APITemplate] Generating pathology PDF:", { subtype: validatedSubtype, requestId })
+    
     const response = await fetch("https://rest.apitemplate.io/v2/create-pdf", {
       method: "POST",
       headers: {
@@ -345,7 +394,7 @@ export async function generatePathologyReferralPdfFromDraft(
       body: JSON.stringify({
         template_id: templateId,
         export_type: "json",
-        expiration: 60,
+        expiration: 60, // This URL expires in 60 minutes!
         data: templateData,
       }),
     })
@@ -366,7 +415,34 @@ export async function generatePathologyReferralPdfFromDraft(
       throw new Error(result.message || result.error || "Failed to generate PDF - no download URL returned")
     }
 
-    return result.download_url
+    const temporaryUrl = result.download_url
+    console.log("[APITemplate] Generated temporary URL (expires in 60 min)")
+
+    // Step 2: Upload to permanent storage (if requestId provided)
+    if (requestId) {
+      console.log("[APITemplate] Uploading pathology PDF to permanent storage...")
+      
+      const uploadResult = await uploadDocumentFromUrl(
+        temporaryUrl,
+        requestId,
+        "referral",
+        validatedSubtype
+      )
+
+      if (!uploadResult.success || !uploadResult.permanentUrl) {
+        console.error("[APITemplate] Failed to upload pathology PDF to storage:", uploadResult.error)
+        console.warn("[APITemplate] WARNING: Returning temporary URL - patient access will expire in 60 minutes!")
+        return temporaryUrl
+      }
+
+      console.log("[APITemplate] Stored permanently:", uploadResult.permanentUrl)
+      return uploadResult.permanentUrl
+    }
+
+    // No requestId - return temporary URL (legacy behavior)
+    console.warn("[APITemplate] No requestId provided - returning temporary URL!")
+    return temporaryUrl
+
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`PDF generation failed: ${error.message}`)

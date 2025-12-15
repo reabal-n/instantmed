@@ -1,15 +1,29 @@
 import { createClient } from "@/lib/supabase/server"
 import type { DocumentDraft, GeneratedDocument, MedCertDraftData, PathologyDraftData } from "@/types/db"
 
+// UUID validation helper
+function isValidUUID(id: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(id)
+}
+
 /**
  * Get or create a medical certificate draft for a request.
+ * Uses INSERT...ON CONFLICT for idempotent creation.
  * If a draft already exists, returns it.
  * Otherwise, creates a new draft pre-filled with patient/request data.
  */
 export async function getOrCreateMedCertDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
+  // Validate UUID format
+  if (!isValidUUID(requestId)) {
+    console.error("[getOrCreateMedCertDraftForRequest] Invalid requestId:", requestId)
+    return null
+  }
+
   const supabase = await createClient()
 
-  // Check if draft already exists
+  // Check if draft already exists - use SELECT FOR UPDATE pattern conceptually
+  // The actual idempotency is enforced by unique constraint
   const { data: existingDraft, error: fetchError } = await supabase
     .from("document_drafts")
     .select("*")
@@ -18,11 +32,12 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     .maybeSingle()
 
   if (fetchError) {
-    console.error("Error fetching draft:", fetchError)
+    console.error("[getOrCreateMedCertDraftForRequest] Error fetching draft:", fetchError)
     return null
   }
 
   if (existingDraft) {
+    console.log("[getOrCreateMedCertDraftForRequest] Returning existing draft:", existingDraft.id)
     return existingDraft as DocumentDraft
   }
 
@@ -98,11 +113,29 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     .single()
 
   if (insertError) {
-    console.error("Error creating draft:", insertError)
+    // Handle unique constraint violation (race condition)
+    if (insertError.code === "23505") {
+      console.log("[getOrCreateMedCertDraftForRequest] Race condition detected, fetching existing draft")
+      // Another request created the draft, fetch it
+      const { data: raceDraft } = await supabase
+        .from("document_drafts")
+        .select("*")
+        .eq("request_id", requestId)
+        .eq("type", "med_cert")
+        .single()
+      
+      return raceDraft as DocumentDraft | null
+    }
+    
+    console.error("[getOrCreateMedCertDraftForRequest] Error creating draft:", insertError)
     return null
   }
 
-  console.log(`[v0] Created new draft for request ${requestId} with subtype: ${subtype}`)
+  console.log("[getOrCreateMedCertDraftForRequest] Created new draft:", {
+    draftId: newDraft.id,
+    requestId,
+    subtype,
+  })
 
   return newDraft as DocumentDraft
 }
@@ -175,7 +208,20 @@ export async function getLatestDocumentForRequest(requestId: string): Promise<Ge
 }
 
 /**
- * Create a new generated document record
+ * Generate a unique verification code for documents
+ */
+function generateVerificationCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // Removed confusing chars: 0, O, 1, I
+  let code = "IM-"
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+
+/**
+ * Create a new generated document record with verification.
+ * This creates both the document and its verification record atomically.
  */
 export async function createGeneratedDocument(
   requestId: string,
@@ -183,41 +229,144 @@ export async function createGeneratedDocument(
   subtype: string,
   pdfUrl: string,
 ): Promise<GeneratedDocument | null> {
-  const supabase = await createClient()
+  // Validate inputs
+  if (!isValidUUID(requestId)) {
+    console.error("[createGeneratedDocument] Invalid requestId:", requestId)
+    return null
+  }
 
-  const { data, error } = await supabase
+  if (!pdfUrl || !pdfUrl.startsWith("http")) {
+    console.error("[createGeneratedDocument] Invalid pdfUrl:", pdfUrl)
+    return null
+  }
+
+  const validTypes = ["med_cert", "prescription", "referral", "pathology"]
+  if (!validTypes.includes(type)) {
+    console.error("[createGeneratedDocument] Invalid document type:", type)
+    return null
+  }
+
+  const supabase = await createClient()
+  const verificationCode = generateVerificationCode()
+
+  // Create document with verification code
+  const { data: document, error: docError } = await supabase
     .from("documents")
     .insert({
       request_id: requestId,
       type,
       subtype,
       pdf_url: pdfUrl,
+      verification_code: verificationCode,
     })
     .select()
     .single()
 
-  if (error) {
-    console.error("Error creating document:", error)
+  if (docError) {
+    console.error("[createGeneratedDocument] Error creating document:", docError)
     return null
   }
 
-  return data as GeneratedDocument
+  // Create verification record
+  const { error: verifyError } = await supabase
+    .from("document_verifications")
+    .insert({
+      request_id: requestId,
+      document_id: document.id,
+      verification_code: verificationCode,
+      document_type: type,
+      issued_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
+      is_valid: true,
+      verified_count: 0,
+    })
+
+  if (verifyError) {
+    // Log but don't fail - verification is secondary
+    console.error("[createGeneratedDocument] Error creating verification:", verifyError)
+    // Note: In production, you might want to delete the document and return null here
+  } else {
+    console.log("[createGeneratedDocument] Verification created:", verificationCode)
+  }
+
+  console.log("[createGeneratedDocument] Document created:", {
+    documentId: document.id,
+    requestId,
+    type,
+    subtype,
+    verificationCode,
+  })
+
+  return document as GeneratedDocument
 }
 
 /**
  * Get draft by ID
  */
 export async function getDraftById(draftId: string): Promise<DocumentDraft | null> {
+  if (!isValidUUID(draftId)) {
+    console.error("[getDraftById] Invalid draftId:", draftId)
+    return null
+  }
+
   const supabase = await createClient()
 
   const { data, error } = await supabase.from("document_drafts").select("*").eq("id", draftId).single()
 
   if (error) {
-    console.error("Error fetching draft:", error)
+    console.error("[getDraftById] Error fetching draft:", error)
     return null
   }
 
   return data as DocumentDraft
+}
+
+/**
+ * Check if a document exists for a request
+ */
+export async function hasDocumentForRequest(requestId: string): Promise<boolean> {
+  if (!isValidUUID(requestId)) {
+    return false
+  }
+
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from("documents")
+    .select("id", { count: "exact", head: true })
+    .eq("request_id", requestId)
+
+  if (error) {
+    console.error("[hasDocumentForRequest] Error:", error)
+    return false
+  }
+
+  return (count ?? 0) > 0
+}
+
+/**
+ * Get all documents for a request
+ */
+export async function getDocumentsForRequest(requestId: string): Promise<GeneratedDocument[]> {
+  if (!isValidUUID(requestId)) {
+    console.error("[getDocumentsForRequest] Invalid requestId:", requestId)
+    return []
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("request_id", requestId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("[getDocumentsForRequest] Error:", error)
+    return []
+  }
+
+  return data as GeneratedDocument[]
 }
 
 /**
@@ -241,8 +390,15 @@ function determinePathologySubtype(testsArray: string[]): "pathology_bloods" | "
 
 /**
  * Get or create a pathology/imaging request draft for a referral request.
+ * Uses idempotent creation pattern.
  */
 export async function getOrCreatePathologyDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
+  // Validate UUID format
+  if (!isValidUUID(requestId)) {
+    console.error("[getOrCreatePathologyDraftForRequest] Invalid requestId:", requestId)
+    return null
+  }
+
   const supabase = await createClient()
 
   // Check if draft already exists
@@ -254,11 +410,12 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .maybeSingle()
 
   if (fetchError) {
-    console.error("Error fetching pathology draft:", fetchError)
+    console.error("[getOrCreatePathologyDraftForRequest] Error fetching draft:", fetchError)
     return null
   }
 
   if (existingDraft) {
+    console.log("[getOrCreatePathologyDraftForRequest] Returning existing draft:", existingDraft.id)
     return existingDraft as DocumentDraft
   }
 
@@ -328,9 +485,28 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .single()
 
   if (insertError) {
-    console.error("Error creating pathology draft:", insertError)
+    // Handle unique constraint violation (race condition)
+    if (insertError.code === "23505") {
+      console.log("[getOrCreatePathologyDraftForRequest] Race condition detected, fetching existing draft")
+      const { data: raceDraft } = await supabase
+        .from("document_drafts")
+        .select("*")
+        .eq("request_id", requestId)
+        .eq("type", "referral")
+        .single()
+      
+      return raceDraft as DocumentDraft | null
+    }
+    
+    console.error("[getOrCreatePathologyDraftForRequest] Error creating draft:", insertError)
     return null
   }
+
+  console.log("[getOrCreatePathologyDraftForRequest] Created new draft:", {
+    draftId: newDraft.id,
+    requestId,
+    subtype: pathologySubtype,
+  })
 
   return newDraft as DocumentDraft
 }

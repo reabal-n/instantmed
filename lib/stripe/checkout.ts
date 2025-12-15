@@ -184,9 +184,22 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     })
 
     if (paymentError) {
-      console.error("Error creating payment record:", paymentError)
+      console.error("[Checkout] Error creating payment record:", paymentError)
       // Don't fail - the payment record is for tracking, Stripe is the source of truth
     }
+
+    // 10. Track the active checkout session on the request
+    await supabase
+      .from("requests")
+      .update({ active_checkout_session_id: session.id })
+      .eq("id", request.id)
+
+    console.log("[Checkout] Session created:", {
+      requestId: request.id,
+      sessionId: session.id,
+      category: input.category,
+      subtype: input.subtype,
+    })
 
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
@@ -280,8 +293,11 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     try {
       session = await stripe.checkout.sessions.create(sessionParams)
     } catch (stripeError: unknown) {
-      console.error("Stripe error:", stripeError)
-      await supabase.from("requests").delete().eq("id", request.id)
+      // IMPORTANT: Do NOT delete the request on retry - user's data must be preserved
+      console.error("[Stripe Retry] Checkout session creation failed:", {
+        requestId: request.id,
+        error: stripeError instanceof Error ? stripeError.message : "Unknown error",
+      })
 
       if (stripeError instanceof Error) {
         if (stripeError.message.includes("Invalid URL")) {
@@ -295,29 +311,41 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     }
 
     if (!session.url) {
-      // Clean up
-      await supabase.from("requests").delete().eq("id", request.id)
+      // Do NOT delete request - it's a retry, the original data must be preserved
+      console.error("[Stripe Retry] No checkout URL returned for request:", request.id)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // 9. Update or insert payment record for this new session
-    const { error: paymentError } = await supabase.from("payments").upsert(
-      {
-        request_id: request.id,
-        stripe_session_id: session.id,
-        amount: session.amount_total || 0,
-        currency: session.currency || "aud",
-        status: "created",
-      },
-      {
-        onConflict: "request_id",
-      },
-    )
+    // 9. Create a new payment record for the retry session
+    // Don't use upsert - each session should have its own payment record
+    // The old payment record stays as 'expired' for audit trail
+    const { error: paymentError } = await supabase.from("payments").insert({
+      request_id: request.id,
+      stripe_session_id: session.id,
+      amount: session.amount_total || 0,
+      currency: session.currency || "aud",
+      status: "created",
+    })
 
     if (paymentError) {
-      console.error("Error updating payment record:", paymentError)
+      // If unique constraint violation on stripe_session_id, that's expected (shouldn't happen)
+      if (paymentError.code !== "23505") {
+        console.error("[Checkout Retry] Error creating payment record:", paymentError)
+      }
       // Don't fail - the payment record is for tracking, Stripe is the source of truth
     }
+
+    // 10. Track the active checkout session on the request
+    await supabase
+      .from("requests")
+      .update({ active_checkout_session_id: session.id })
+      .eq("id", request.id)
+
+    console.log("[Checkout Retry] New session created:", {
+      requestId: request.id,
+      sessionId: session.id,
+      isRetry: true,
+    })
 
     return { success: true, checkoutUrl: session.url }
   } catch (error) {

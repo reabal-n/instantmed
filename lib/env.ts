@@ -1,4 +1,4 @@
-"use server"
+import "server-only"
 
 /**
  * Environment variable validation and access

@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import type { Profile, AustralianState } from "@/types/db"
+import { createClient } from "../supabase/server"
+import { createServiceRoleClient } from "../supabase/service-role"
+import type { Profile, AustralianState } from "../../types/db"
 
 /**
  * Fetch the profile for the currently logged-in user.
