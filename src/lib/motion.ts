@@ -1,0 +1,559 @@
+/**
+ * InstantMed Motion System
+ * Framer Motion presets with reduced-motion support
+ *
+ * Usage:
+ * import { fadeIn, fadeUp, pageIn, stagger, hoverLift, press } from '@/lib/motion'
+ *
+ * <motion.div variants={fadeIn} initial="initial" animate="animate" />
+ * <motion.button {...hoverLift} {...press} />
+ */
+
+import type { Transition, Variants, TargetAndTransition } from 'framer-motion'
+
+// =============================================================================
+// GLOBAL TIMING CONSTANTS
+// =============================================================================
+
+export const duration = {
+  instant: 0.075,
+  fast: 0.15,
+  normal: 0.25,
+  slow: 0.4,
+  slower: 0.6,
+  page: 0.5,
+} as const
+
+export const staggerDelay = {
+  fast: 0.03,
+  normal: 0.05,
+  slow: 0.08,
+} as const
+
+// =============================================================================
+// GLOBAL EASING PRESETS
+// =============================================================================
+
+export const easing = {
+  // Standard easings
+  default: [0.4, 0, 0.2, 1] as const,
+  in: [0.4, 0, 1, 1] as const,
+  out: [0, 0, 0.2, 1] as const,
+  inOut: [0.4, 0, 0.2, 1] as const,
+  
+  // Expressive easings
+  bounce: [0.34, 1.56, 0.64, 1] as const,
+  spring: [0.175, 0.885, 0.32, 1.1] as const,
+  smooth: [0.23, 1, 0.32, 1] as const,
+  
+  // CSS-compatible strings
+  css: {
+    default: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    bounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.1)',
+  },
+} as const
+
+// =============================================================================
+// SPRING PRESETS
+// =============================================================================
+
+export const spring = {
+  snappy: { type: 'spring', stiffness: 400, damping: 30 } as Transition,
+  smooth: { type: 'spring', stiffness: 200, damping: 25 } as Transition,
+  bouncy: { type: 'spring', stiffness: 300, damping: 20 } as Transition,
+  gentle: { type: 'spring', stiffness: 150, damping: 20 } as Transition,
+}
+
+// =============================================================================
+// TRANSITION PRESETS
+// =============================================================================
+
+export const transition = {
+  fast: { duration: duration.fast, ease: easing.default } as Transition,
+  normal: { duration: duration.normal, ease: easing.default } as Transition,
+  slow: { duration: duration.slow, ease: easing.default } as Transition,
+  page: { duration: duration.page, ease: easing.out } as Transition,
+}
+
+// =============================================================================
+// REDUCED MOTION SUPPORT
+// =============================================================================
+
+/**
+ * Check if user prefers reduced motion
+ * Safe for SSR - returns false on server
+ */
+export function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
+ * Get duration based on reduced motion preference
+ */
+export function getReducedDuration(normalDuration: number): number {
+  return prefersReducedMotion() ? Math.min(normalDuration * 0.1, 0.01) : normalDuration
+}
+
+/**
+ * Create reduced-motion-safe variants
+ * Disables transforms and reduces duration when user prefers reduced motion
+ */
+export function withReducedMotion<T extends Variants>(variants: T): T {
+  if (typeof window === 'undefined') return variants
+  if (!prefersReducedMotion()) return variants
+
+  const reduced: Record<string, unknown> = {}
+  
+  for (const [key, value] of Object.entries(variants)) {
+    if (typeof value === 'object' && value !== null) {
+      const { x, y, scale, rotate, ...rest } = value as Record<string, unknown>
+      reduced[key] = {
+        ...rest,
+        // Keep opacity for reduced motion, remove transforms
+        transition: {
+          duration: 0.01,
+        },
+      }
+    } else {
+      reduced[key] = value
+    }
+  }
+  
+  return reduced as T
+}
+
+// =============================================================================
+// ANIMATION VARIANTS
+// =============================================================================
+
+/**
+ * Page entrance animation
+ * Slide up with fade for page-level content
+ */
+export const pageIn: Variants = {
+  initial: {
+    opacity: 0,
+    y: 20,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: duration.page,
+      ease: easing.out,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: {
+      duration: duration.fast,
+      ease: easing.in,
+    },
+  },
+}
+
+/**
+ * Fade up animation
+ * Slide up with fade - most common entrance
+ */
+export const fadeUp: Variants = {
+  initial: {
+    opacity: 0,
+    y: 16,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: spring.smooth,
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: transition.fast,
+  },
+}
+
+/**
+ * Simple fade animation
+ */
+export const fadeIn: Variants = {
+  initial: {
+    opacity: 0,
+  },
+  animate: {
+    opacity: 1,
+    transition: transition.normal,
+  },
+  exit: {
+    opacity: 0,
+    transition: transition.fast,
+  },
+}
+
+/**
+ * Fade in with blur (premium reveal)
+ */
+export const fadeInBlur: Variants = {
+  initial: {
+    opacity: 0,
+    filter: 'blur(4px)',
+  },
+  animate: {
+    opacity: 1,
+    filter: 'blur(0px)',
+    transition: transition.slow,
+  },
+  exit: {
+    opacity: 0,
+    filter: 'blur(4px)',
+    transition: transition.fast,
+  },
+}
+
+/**
+ * Scale in animation
+ */
+export const scaleIn: Variants = {
+  initial: {
+    opacity: 0,
+    scale: 0.96,
+  },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: spring.snappy,
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    transition: transition.fast,
+  },
+}
+
+/**
+ * Slide from left
+ */
+export const slideLeft: Variants = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0, transition: spring.smooth },
+  exit: { opacity: 0, x: 20, transition: transition.fast },
+}
+
+/**
+ * Slide from right
+ */
+export const slideRight: Variants = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0, transition: spring.smooth },
+  exit: { opacity: 0, x: -20, transition: transition.fast },
+}
+
+/**
+ * Pop in with bounce (celebratory)
+ */
+export const popIn: Variants = {
+  initial: { opacity: 0, scale: 0.5 },
+  animate: { opacity: 1, scale: 1, transition: spring.bouncy },
+  exit: { opacity: 0, scale: 0.8, transition: transition.fast },
+}
+
+// =============================================================================
+// STAGGER SYSTEM
+// =============================================================================
+
+/**
+ * Stagger container and item variants
+ * 
+ * Usage:
+ * <motion.div variants={stagger.container} initial="initial" animate="animate">
+ *   <motion.div variants={stagger.item}>Child 1</motion.div>
+ *   <motion.div variants={stagger.item}>Child 2</motion.div>
+ * </motion.div>
+ */
+export const stagger = {
+  /** Default stagger container */
+  container: {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: staggerDelay.normal,
+        delayChildren: 0.1,
+      },
+    },
+    exit: {
+      transition: {
+        staggerChildren: staggerDelay.fast,
+        staggerDirection: -1,
+      },
+    },
+  } as Variants,
+
+  /** Fast stagger for lists */
+  containerFast: {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: staggerDelay.fast,
+        delayChildren: 0.05,
+      },
+    },
+    exit: {
+      transition: {
+        staggerChildren: 0.02,
+        staggerDirection: -1,
+      },
+    },
+  } as Variants,
+
+  /** Slow stagger for hero sections */
+  containerSlow: {
+    initial: {},
+    animate: {
+      transition: {
+        staggerChildren: staggerDelay.slow,
+        delayChildren: 0.15,
+      },
+    },
+  } as Variants,
+
+  /** Default stagger item (fade up) */
+  item: fadeUp,
+
+  /** Fade-only stagger item */
+  itemFade: fadeIn,
+
+  /** Scale stagger item */
+  itemScale: scaleIn,
+}
+
+// =============================================================================
+// HOVER ANIMATIONS
+// =============================================================================
+
+/**
+ * Lift effect on hover
+ * Usage: <motion.div whileHover={hoverLift.hover} whileTap={hoverLift.tap} />
+ * Or:    <motion.div {...hoverLift} />
+ */
+export const hoverLift = {
+  whileHover: {
+    y: -2,
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.98,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Scale effect on hover
+ */
+export const hoverScale = {
+  whileHover: {
+    scale: 1.02,
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    scale: 0.98,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Subtle scale for buttons
+ */
+export const hoverScaleSubtle = {
+  whileHover: {
+    scale: 1.01,
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    scale: 0.99,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Glow effect on hover (via boxShadow)
+ * Note: Requires element to have position: relative and proper background
+ */
+export const glowHover = {
+  whileHover: {
+    boxShadow: '0 0 20px rgba(101, 163, 185, 0.3), 0 0 40px rgba(101, 163, 185, 0.15)',
+    transition: { duration: duration.normal, ease: easing.default },
+  } as TargetAndTransition,
+  whileTap: {
+    boxShadow: '0 0 10px rgba(101, 163, 185, 0.2), 0 0 20px rgba(101, 163, 185, 0.1)',
+    scale: 0.98,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Combined lift + glow
+ */
+export const hoverLiftGlow = {
+  whileHover: {
+    y: -2,
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(101, 163, 185, 0.1)',
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.98,
+    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+// =============================================================================
+// PRESS / TAP ANIMATIONS
+// =============================================================================
+
+/**
+ * Press/tap scale effect
+ * Usage: <motion.button {...press} />
+ */
+export const press = {
+  whileTap: {
+    scale: 0.98,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Deeper press for larger buttons
+ */
+export const pressDeep = {
+  whileTap: {
+    scale: 0.96,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Press with opacity change
+ */
+export const pressOpacity = {
+  whileTap: {
+    scale: 0.98,
+    opacity: 0.9,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+/**
+ * Create custom stagger configuration
+ */
+export function createStagger(delay = staggerDelay.normal, initialDelay = 0.1) {
+  return {
+    container: {
+      initial: {},
+      animate: {
+        transition: {
+          staggerChildren: delay,
+          delayChildren: initialDelay,
+        },
+      },
+    } as Variants,
+    item: fadeUp,
+  }
+}
+
+/**
+ * Create variants with custom delay
+ */
+export function withDelay<T extends Variants>(variants: T, delay: number): T {
+  const result = { ...variants }
+  if (result.animate && typeof result.animate === 'object') {
+    result.animate = {
+      ...result.animate,
+      transition: {
+        ...(result.animate.transition as object || {}),
+        delay,
+      },
+    }
+  }
+  return result
+}
+
+/**
+ * Create fade up with custom distance
+ */
+export function createFadeUp(distance = 16): Variants {
+  return {
+    initial: { opacity: 0, y: distance },
+    animate: { opacity: 1, y: 0, transition: spring.smooth },
+    exit: { opacity: 0, y: -distance / 2, transition: transition.fast },
+  }
+}
+
+// =============================================================================
+// ANIMATION PROPS SHORTCUTS
+// =============================================================================
+
+/**
+ * Standard animation props for common patterns
+ * Usage: <motion.div {...animateProps.fadeIn} />
+ */
+export const animateProps = {
+  fadeIn: {
+    initial: 'initial',
+    animate: 'animate',
+    exit: 'exit',
+    variants: fadeIn,
+  },
+  fadeUp: {
+    initial: 'initial',
+    animate: 'animate',
+    exit: 'exit',
+    variants: fadeUp,
+  },
+  pageIn: {
+    initial: 'initial',
+    animate: 'animate',
+    exit: 'exit',
+    variants: pageIn,
+  },
+  scaleIn: {
+    initial: 'initial',
+    animate: 'animate',
+    exit: 'exit',
+    variants: scaleIn,
+  },
+} as const
+
+// =============================================================================
+// REDUCED MOTION VARIANTS
+// =============================================================================
+
+/**
+ * Reduced motion safe variants
+ * These only use opacity, no transforms
+ */
+export const reduced = {
+  fadeIn: {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.15 } },
+    exit: { opacity: 0, transition: { duration: 0.1 } },
+  } as Variants,
+  
+  // No-op for hover/tap when reduced motion is preferred
+  hover: {} as const,
+  tap: {} as const,
+}
+
+// =============================================================================
+// TYPE EXPORTS
+// =============================================================================
+
+export type { Variants, Transition, TargetAndTransition }
