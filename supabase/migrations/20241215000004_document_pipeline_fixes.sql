@@ -48,20 +48,17 @@ BEGIN
 END $$;
 
 -- ============================================
--- 2. CREATE DOCUMENTS TABLE IF NOT EXISTS
+-- 2. DOCUMENTS TABLE - Ensure verification_code and updated_at columns exist
 -- ============================================
--- The documents table stores generated PDFs and must exist
+-- Table may have been created in earlier migration without these columns
 
-CREATE TABLE IF NOT EXISTS public.documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  request_id UUID NOT NULL REFERENCES public.requests(id) ON DELETE CASCADE,
-  type TEXT NOT NULL,
-  subtype TEXT,
-  pdf_url TEXT NOT NULL,
-  verification_code TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- Add verification_code column if missing
+ALTER TABLE public.documents 
+ADD COLUMN IF NOT EXISTS verification_code TEXT;
+
+-- Add updated_at column if missing
+ALTER TABLE public.documents 
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Add indexes
 CREATE INDEX IF NOT EXISTS idx_documents_request_id ON public.documents(request_id);
@@ -96,13 +93,24 @@ END $$;
 -- ============================================
 -- 3. DOCUMENT_VERIFICATIONS - Add document_id reference
 -- ============================================
--- Link verifications to specific documents, not just requests
+-- Link verifications to specific documents (table already created in migration 1)
 
+-- Add document_id column to link verifications to specific documents
 ALTER TABLE public.document_verifications
 ADD COLUMN IF NOT EXISTS document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS idx_document_verifications_document_id 
 ON public.document_verifications(document_id) WHERE document_id IS NOT NULL;
+
+-- RLS Policies for document_verifications (if not already created)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Doctors can insert verifications' AND tablename = 'document_verifications') THEN
+    CREATE POLICY "Doctors can insert verifications"
+    ON public.document_verifications FOR INSERT
+    WITH CHECK (is_doctor());
+  END IF;
+END $$;
 
 -- ============================================
 -- 4. CREATE FUNCTION FOR ATOMIC DOCUMENT APPROVAL

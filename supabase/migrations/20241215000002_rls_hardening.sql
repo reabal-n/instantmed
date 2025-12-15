@@ -37,26 +37,31 @@ WITH CHECK (
 -- Issue: Patients cannot update answers when doctor requests more info
 -- Fix: Allow update only when the associated request is in 'needs_follow_up' status
 
-DROP POLICY IF EXISTS "patients_update_own_answers" ON public.request_answers;
+DO $$
+BEGIN
+  IF to_regclass('public.request_answers') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "patients_update_own_answers" ON public.request_answers;
 
-CREATE POLICY "patients_update_own_answers"
-ON public.request_answers FOR UPDATE
-USING (
-  request_id IN (
-    SELECT r.id FROM requests r
-    JOIN profiles p ON r.patient_id = p.id
-    WHERE p.auth_user_id = auth.uid()
-  )
-)
-WITH CHECK (
-  -- Can only update if request needs follow up info
-  request_id IN (
-    SELECT r.id FROM requests r
-    JOIN profiles p ON r.patient_id = p.id
-    WHERE p.auth_user_id = auth.uid()
-    AND r.status = 'needs_follow_up'
-  )
-);
+    CREATE POLICY "patients_update_own_answers"
+    ON public.request_answers FOR UPDATE
+    USING (
+      request_id IN (
+        SELECT r.id FROM requests r
+        JOIN profiles p ON r.patient_id = p.id
+        WHERE p.auth_user_id = auth.uid()
+      )
+    )
+    WITH CHECK (
+      -- Can only update if request needs follow up info
+      request_id IN (
+        SELECT r.id FROM requests r
+        JOIN profiles p ON r.patient_id = p.id
+        WHERE p.auth_user_id = auth.uid()
+        AND r.status = 'needs_follow_up'
+      )
+    );
+  END IF;
+END $$;
 
 -- ============================================
 -- 3. DOCUMENT_DRAFTS TABLE - Add patient read access
@@ -64,17 +69,22 @@ WITH CHECK (
 -- Issue: Patients cannot view their own document drafts
 -- Fix: Allow patients to SELECT their own drafts (read-only, no write)
 
-DROP POLICY IF EXISTS "patients_view_own_drafts" ON public.document_drafts;
+DO $$
+BEGIN
+  IF to_regclass('public.document_drafts') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "patients_view_own_drafts" ON public.document_drafts;
 
-CREATE POLICY "patients_view_own_drafts"
-ON public.document_drafts FOR SELECT
-USING (
-  request_id IN (
-    SELECT r.id FROM requests r
-    JOIN profiles p ON r.patient_id = p.id
-    WHERE p.auth_user_id = auth.uid()
-  )
-);
+    CREATE POLICY "patients_view_own_drafts"
+    ON public.document_drafts FOR SELECT
+    USING (
+      request_id IN (
+        SELECT r.id FROM requests r
+        JOIN profiles p ON r.patient_id = p.id
+        WHERE p.auth_user_id = auth.uid()
+      )
+    );
+  END IF;
+END $$;
 
 -- ============================================
 -- 4. DOCUMENT_VERIFICATIONS TABLE - Restrict public access
@@ -85,17 +95,35 @@ USING (
 --      Allow patients to see their own verifications
 --      Allow doctors to see all
 
-DROP POLICY IF EXISTS "Documents can be verified publicly" ON public.document_verifications;
+DO $$
+BEGIN
+  IF to_regclass('public.document_verifications') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "Documents can be verified publicly" ON public.document_verifications;
 
--- Public verification lookup (by code only - for employers)
-CREATE POLICY "Public verification by code"
-ON public.document_verifications FOR SELECT
-USING (
-  -- Only allow if searching by verification_code (handled at app level)
-  -- This is permissive but necessary for the public verification feature
-  -- The verification_code is the secret - knowing it means you're authorized
-  true
-);
+    -- Public verification lookup (by code only - for employers)
+    CREATE POLICY "Public verification by code"
+    ON public.document_verifications FOR SELECT
+    USING (
+      -- Only allow if searching by verification_code (handled at app level)
+      -- This is permissive but necessary for the public verification feature
+      -- The verification_code is the secret - knowing it means you're authorized
+      true
+    );
+
+    -- Add patient-specific policy for dashboard view
+    DROP POLICY IF EXISTS "patients_view_own_verifications" ON public.document_verifications;
+
+    CREATE POLICY "patients_view_own_verifications"
+    ON public.document_verifications FOR SELECT
+    USING (
+      request_id IN (
+        SELECT r.id FROM requests r
+        JOIN profiles p ON r.patient_id = p.id
+        WHERE p.auth_user_id = auth.uid()
+      )
+    );
+  END IF;
+END $$;
 
 -- Note: The above policy remains permissive because the verification_code 
 -- IS the access control mechanism. Employers need to verify certificates.
@@ -104,30 +132,22 @@ USING (
 -- 2. No sensitive medical data is in this table
 -- 3. It only confirms validity of a code, not expose medical records
 
--- Add patient-specific policy for dashboard view
-DROP POLICY IF EXISTS "patients_view_own_verifications" ON public.document_verifications;
-
-CREATE POLICY "patients_view_own_verifications"
-ON public.document_verifications FOR SELECT
-USING (
-  request_id IN (
-    SELECT r.id FROM requests r
-    JOIN profiles p ON r.patient_id = p.id
-    WHERE p.auth_user_id = auth.uid()
-  )
-);
-
 -- ============================================
 -- 5. PAYMENTS TABLE - Ensure no INSERT/UPDATE/DELETE for users
 -- ============================================
 -- Current state: Only SELECT policy exists, which is correct
 -- Verify no accidental write policies exist
 
-DROP POLICY IF EXISTS "patients_insert_payments" ON public.payments;
-DROP POLICY IF EXISTS "patients_update_payments" ON public.payments;
-DROP POLICY IF EXISTS "patients_delete_payments" ON public.payments;
-DROP POLICY IF EXISTS "doctors_insert_payments" ON public.payments;
-DROP POLICY IF EXISTS "doctors_update_payments" ON public.payments;
+DO $$
+BEGIN
+  IF to_regclass('public.payments') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "patients_insert_payments" ON public.payments;
+    DROP POLICY IF EXISTS "patients_update_payments" ON public.payments;
+    DROP POLICY IF EXISTS "patients_delete_payments" ON public.payments;
+    DROP POLICY IF EXISTS "doctors_insert_payments" ON public.payments;
+    DROP POLICY IF EXISTS "doctors_update_payments" ON public.payments;
+  END IF;
+END $$;
 
 -- Payments should ONLY be modified by service role (webhooks)
 -- No additional policies needed - the absence of INSERT/UPDATE/DELETE 
@@ -140,13 +160,18 @@ DROP POLICY IF EXISTS "doctors_update_payments" ON public.payments;
 -- This is correct - only service role should access
 
 -- Add explicit anon denial for extra safety
-DROP POLICY IF EXISTS "deny_all_for_anon" ON public.stripe_webhook_events;
+DO $$
+BEGIN
+  IF to_regclass('public.stripe_webhook_events') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "deny_all_for_anon" ON public.stripe_webhook_events;
 
-CREATE POLICY "deny_all_for_anon"
-ON public.stripe_webhook_events FOR ALL
-TO anon
-USING (false)
-WITH CHECK (false);
+    CREATE POLICY "deny_all_for_anon"
+    ON public.stripe_webhook_events FOR ALL
+    TO anon
+    USING (false)
+    WITH CHECK (false);
+  END IF;
+END $$;
 
 -- ============================================
 -- 7. PROFILES TABLE - Prevent role escalation
@@ -250,14 +275,44 @@ WITH CHECK (
   -- Cannot set doctor-only fields
   AND reviewed_by IS NULL
   AND reviewed_at IS NULL
-  AND escalation_level IS NULL OR escalation_level = 'none'
+  AND (escalation_level IS NULL OR escalation_level = 'none')
 );
 
 -- ============================================
--- 12. ADMIN_EMAILS - Restrict to actual admins
+-- 12. DOCUMENTS TABLE - RLS policies
 -- ============================================
--- Current policy allows anyone in admin_emails to view admin_emails
--- This is circular but acceptable - it's just a whitelist
+
+DO $$
+BEGIN
+  IF to_regclass('public.documents') IS NOT NULL THEN
+    -- Patients can view their own documents
+    DROP POLICY IF EXISTS "patients_view_own_documents" ON public.documents;
+    
+    CREATE POLICY "patients_view_own_documents"
+    ON public.documents FOR SELECT
+    USING (
+      request_id IN (
+        SELECT r.id FROM requests r
+        JOIN profiles p ON r.patient_id = p.id
+        WHERE p.auth_user_id = auth.uid()
+      )
+    );
+
+    -- Doctors can view all documents
+    DROP POLICY IF EXISTS "doctors_view_all_documents" ON public.documents;
+    
+    CREATE POLICY "doctors_view_all_documents"
+    ON public.documents FOR SELECT
+    USING (is_doctor());
+
+    -- Doctors can insert documents
+    DROP POLICY IF EXISTS "doctors_insert_documents" ON public.documents;
+    
+    CREATE POLICY "doctors_insert_documents"
+    ON public.documents FOR INSERT
+    WITH CHECK (is_doctor());
+  END IF;
+END $$;
 
 -- ============================================
 -- AUDIT SUMMARY
@@ -270,6 +325,7 @@ WITH CHECK (
 -- 4. profiles: Prevented role escalation in UPDATE
 -- 5. stripe_webhook_events: Added anon denial
 -- 6. requests: Tightened INSERT to prevent doctor-field spoofing
+-- 7. documents: Added patient/doctor policies
 --
 -- VERIFIED SECURE:
 -- - payments: No write policies (service role only) ✓

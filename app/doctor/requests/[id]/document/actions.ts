@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache"
 import { requireAuth } from "../../../../../lib/auth"
 import { updateMedCertDraftData, getDraftById, createGeneratedDocument, hasDocumentForRequest } from "../../../../../lib/data/documents"
 import { updateRequestStatus, getRequestWithDetails } from "../../../../../lib/data/requests"
-import { RequestLifecycleError, canDoctorApprove } from "../../../../../lib/data/request-lifecycle"
+import { RequestLifecycleError } from "../../../../../lib/data/request-lifecycle"
 import { generateMedCertPdfFromDraft, testApiTemplateConnection } from "../../../../../lib/documents/apitemplate"
 import { sendMedCertReadyEmail } from "../../../../../lib/email/resend"
 import { getPatientEmailFromRequest } from "../../../../../lib/data/profiles"
-import { createClient } from "../../../../../lib/supabase/server"
-import type { MedCertDraftData, RequestStatus, PaymentStatus } from "../../../../../types/db"
+import { assertApprovalInvariants, ApprovalInvariantError, verifyDocumentUrlIsPermanent } from "../../../../../lib/approval/invariants"
+import { isPermanentStorageUrl } from "../../../../../lib/storage/documents"
+import type { MedCertDraftData } from "../../../../../types/db"
 
 // UUID validation helper
 function isValidUUID(id: string): boolean {
@@ -17,31 +18,6 @@ function isValidUUID(id: string): boolean {
   return uuidRegex.test(id)
 }
 
-// Helper to check if doctor can approve this request
-async function verifyCanApprove(requestId: string): Promise<{ canApprove: boolean; error?: string }> {
-  const supabase = await createClient()
-  
-  const { data: request, error } = await supabase
-    .from("requests")
-    .select("status, payment_status")
-    .eq("id", requestId)
-    .single()
-
-  if (error || !request) {
-    return { canApprove: false, error: "Request not found" }
-  }
-
-  const validation = canDoctorApprove(
-    request.status as RequestStatus,
-    request.payment_status as PaymentStatus
-  )
-
-  if (!validation.valid) {
-    return { canApprove: false, error: validation.error }
-  }
-
-  return { canApprove: true }
-}
 
 export async function saveMedCertDraftAction(
   draftId: string,
@@ -103,18 +79,23 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: "Draft not found" }
     }
 
-    // LIFECYCLE CHECK: Verify request can be approved BEFORE generating PDF
-    const approvalCheck = await verifyCanApprove(draft.request_id)
-    if (!approvalCheck.canApprove) {
-      console.error("[generateMedCertPdfAndApproveAction] Approval blocked:", {
-        requestId: draft.request_id,
-        reason: approvalCheck.error,
-      })
-      return { 
-        success: false, 
-        error: approvalCheck.error || "Cannot approve this request",
-        code: "LIFECYCLE_ERROR" 
+    // INVARIANT CHECK: Verify all approval prerequisites BEFORE generating PDF
+    try {
+      await assertApprovalInvariants(draft.request_id)
+    } catch (invariantError) {
+      if (invariantError instanceof ApprovalInvariantError) {
+        console.error("[generateMedCertPdfAndApproveAction] Invariant check failed:", {
+          requestId: draft.request_id,
+          code: invariantError.code,
+          errors: invariantError.details,
+        })
+        return { 
+          success: false, 
+          error: invariantError.message,
+          code: invariantError.code 
+        }
       }
+      throw invariantError
     }
 
     // Generate PDF using APITemplate and upload to permanent storage
@@ -122,14 +103,28 @@ export async function generateMedCertPdfAndApproveAction(
     try {
       // Pass requestId for permanent storage upload
       pdfUrl = await generateMedCertPdfFromDraft(data, draft.subtype, draft.request_id)
-      console.log("[generateMedCertPdfAndApproveAction] PDF generated and stored:", { 
+      console.log("[generateMedCertPdfAndApproveAction] PDF generated:", { 
         requestId: draft.request_id,
-        isPermanent: pdfUrl.includes('/storage/v1/object/public/'),
+        isPermanent: isPermanentStorageUrl(pdfUrl),
+        url: pdfUrl.substring(0, 60) + "...",
       })
     } catch (pdfError) {
       console.error("[generateMedCertPdfAndApproveAction] PDF generation error:", pdfError)
       const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
       return { success: false, error: errorMessage }
+    }
+
+    // INVARIANT CHECK: PDF URL must be permanent (Supabase Storage)
+    if (!isPermanentStorageUrl(pdfUrl)) {
+      console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: PDF URL is not permanent storage", {
+        requestId: draft.request_id,
+        url: pdfUrl.substring(0, 80),
+      })
+      return { 
+        success: false, 
+        error: "PDF storage failed - document URL is not permanent. Please try again.",
+        code: "TEMPORARY_URL"
+      }
     }
 
     // Create document record with correct subtype
@@ -138,14 +133,24 @@ export async function generateMedCertPdfAndApproveAction(
 
     if (!document) {
       console.error("[generateMedCertPdfAndApproveAction] Failed to save document record")
-      return { success: false, error: "PDF generated but failed to save document record" }
+      return { success: false, error: "PDF generated but failed to save document record", code: "DOCUMENT_MISSING" }
     }
 
     // INVARIANT CHECK: Verify document was actually persisted before approving
     const documentExists = await hasDocumentForRequest(draft.request_id)
     if (!documentExists) {
       console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: Document not found after creation")
-      return { success: false, error: "Document verification failed - please try again" }
+      return { success: false, error: "Document verification failed - please try again", code: "DOCUMENT_MISSING" }
+    }
+
+    // INVARIANT CHECK: Verify stored URL is permanent
+    const urlCheck = await verifyDocumentUrlIsPermanent(draft.request_id)
+    if (!urlCheck.valid) {
+      console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: Stored URL is not permanent", {
+        requestId: draft.request_id,
+        error: urlCheck.error,
+      })
+      return { success: false, error: urlCheck.error || "Document URL verification failed", code: "TEMPORARY_URL" }
     }
 
     // Update request status to approved - pass doctor ID for audit trail
@@ -221,18 +226,23 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
       return { success: false, error: "Unauthorized" }
     }
 
-    // LIFECYCLE CHECK: Verify request can be approved
-    const approvalCheck = await verifyCanApprove(requestId)
-    if (!approvalCheck.canApprove) {
-      console.error("[approveWithoutPdfAction] Approval blocked:", {
-        requestId,
-        reason: approvalCheck.error,
-      })
-      return { 
-        success: false, 
-        error: approvalCheck.error || "Cannot approve this request",
-        code: "LIFECYCLE_ERROR" 
+    // INVARIANT CHECK: Verify all approval prerequisites
+    try {
+      await assertApprovalInvariants(requestId)
+    } catch (invariantError) {
+      if (invariantError instanceof ApprovalInvariantError) {
+        console.error("[approveWithoutPdfAction] Invariant check failed:", {
+          requestId,
+          code: invariantError.code,
+          errors: invariantError.details,
+        })
+        return { 
+          success: false, 
+          error: invariantError.message,
+          code: invariantError.code 
+        }
       }
+      throw invariantError
     }
 
     // Pass doctor ID for audit trail

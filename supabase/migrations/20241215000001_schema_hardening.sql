@@ -208,16 +208,46 @@ BEGIN
 END $$;
 
 -- ============================================
--- 5. ADD MISSING INDEXES FOR PERFORMANCE
+-- 5. CREATE DOCUMENT_VERIFICATIONS TABLE
 -- ============================================
+-- This table stores verification records for generated documents
+-- Needed before RLS hardening migration
 
--- Index for document_verifications lookup by request
+CREATE TABLE IF NOT EXISTS public.document_verifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID NOT NULL REFERENCES public.requests(id) ON DELETE CASCADE,
+  verification_code TEXT NOT NULL UNIQUE,
+  document_type TEXT NOT NULL,
+  issued_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '1 year'),
+  is_valid BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.document_verifications ENABLE ROW LEVEL SECURITY;
+
+-- Create indexes
 CREATE INDEX IF NOT EXISTS idx_document_verifications_request_id 
 ON public.document_verifications(request_id);
 
--- Index for payments status lookup
-CREATE INDEX IF NOT EXISTS idx_payments_status 
-ON public.payments(status);
+CREATE INDEX IF NOT EXISTS idx_document_verifications_code 
+ON public.document_verifications(verification_code);
+
+-- ============================================
+-- 6. ADD MISSING INDEXES FOR PERFORMANCE
+-- ============================================
+
+-- Index for payments status lookup (if table exists)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables 
+    WHERE table_schema = 'public' AND table_name = 'payments'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments(status);
+  END IF;
+END $$;
 
 -- ============================================
 -- 6. ENSURE stripe_webhook_events HAS UNIQUE CONSTRAINT
