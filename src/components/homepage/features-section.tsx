@@ -1,44 +1,44 @@
 "use client"
 
 import { HolographicCard } from "@/components/effects/holographic-card"
-import { Pill, FileText, FlaskConical, Stethoscope, Clock, Shield, Zap, CheckCircle2 } from "lucide-react"
+import { Pill, FileText, Clock, Shield, Zap, CheckCircle2, Smartphone, CreditCard } from "lucide-react"
 import { SectionPill } from "@/components/ui/section-pill"
 
 const features = [
   {
-    icon: Pill,
-    title: "Prescriptions",
-    description: "Keep your regular meds coming without the GP waitlist. eScript sent straight to your pharmacy.",
+    icon: FileText,
+    title: "Medical Certificates",
+    description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     color: "#00E2B5",
   },
   {
-    icon: FileText,
-    title: "Medical Certificates",
-    description: "Employer-ready certs for work, uni, or carer's leave. In your inbox same-day.",
+    icon: Pill,
+    title: "Prescriptions",
+    description: "Need your regular meds? We'll send a script to your pharmacy.",
     color: "#06B6D4",
   },
   {
-    icon: FlaskConical,
-    title: "Pathology & Imaging",
-    description: "Blood tests, scans, and diagnostics. Referral sent direct to your chosen provider.",
+    icon: Clock,
+    title: "About an hour",
+    description: "Most requests are reviewed and done within 60 minutes.",
     color: "#8B5CF6",
   },
   {
-    icon: Stethoscope,
-    title: "Specialist Referrals",
-    description: "Need to see someone specific? Get referred without the runaround.",
-    color: "#EC4899",
-  },
-  {
-    icon: Clock,
-    title: "~1 Hour Turnaround",
-    description: "Most requests reviewed and done within an hour. Because your time matters.",
+    icon: Shield,
+    title: "Real doctors",
+    description: "Actual Australian GPs review every single request. Not AI.",
     color: "#F59E0B",
   },
   {
-    icon: Shield,
-    title: "Real Australian GPs",
-    description: "Every doctor is AHPRA-registered and actively practicing. No shortcuts.",
+    icon: Smartphone,
+    title: "No video calls",
+    description: "Just fill out a form. No awkward webcam consultations.",
+    color: "#EC4899",
+  },
+  {
+    icon: CreditCard,
+    title: "Pay if approved",
+    description: "You only pay if a doctor can actually help you. Otherwise, full refund.",
     color: "#10B981",
   },
 ]
@@ -55,10 +55,10 @@ export function FeaturesSection() {
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Everything you need, nothing you don't 🎯
+            What you get
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Real Australian GPs reviewing your request — usually done in about an hour. No phone calls required.
+            Two things, done well. Med certs and prescriptions — reviewed by real doctors, usually in about an hour.
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

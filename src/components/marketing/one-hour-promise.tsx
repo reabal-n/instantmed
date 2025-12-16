@@ -23,7 +23,7 @@ export function OneHourPromise() {
           <div className="text-white">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-sm font-medium mb-6">
               <Clock className="h-4 w-4" />
-              ⏱️ Our promise
+              Our promise
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">

@@ -11,7 +11,7 @@ interface ServiceCard {
   description: string
   price: string
   time: string
-  icon: "medCert" | "pill" | "referral" | "pathology"
+  icon: "medCert" | "pill"
   color: string
   colorLight: string
   badge?: "popular" | "new" | "fast"
@@ -21,9 +21,9 @@ const services: ServiceCard[] = [
   {
     href: "/medical-certificate",
     title: "Medical Certificate",
-    description: "Work, uni, or carer's leave. 2-minute form.",
-    price: "$19.95",
-    time: "~45 min",
+    description: "Sick? Need proof for work or uni?",
+    price: "$29",
+    time: "~1 hour",
     icon: "medCert",
     color: "#00E2B5",
     colorLight: "rgba(0, 226, 181, 0.1)",
@@ -31,35 +31,13 @@ const services: ServiceCard[] = [
   },
   {
     href: "/prescriptions",
-    title: "Prescriptions",
-    description: "Repeat scripts for regular medications.",
-    price: "$24.95",
+    title: "Prescription",
+    description: "Need your regular meds?",
+    price: "$39",
     time: "~1 hour",
     icon: "pill",
     color: "#06B6D4",
     colorLight: "rgba(6, 182, 212, 0.1)",
-  },
-  {
-    href: "/referrals",
-    title: "Specialist Referrals",
-    description: "Detailed referral letters for specialists.",
-    price: "$29.95",
-    time: "~1 hour",
-    icon: "referral",
-    color: "#8B5CF6",
-    colorLight: "rgba(139, 92, 246, 0.1)",
-    badge: "new",
-  },
-  {
-    href: "/referrals/pathology-imaging",
-    title: "Pathology & Imaging",
-    description: "Blood tests, X-rays, ultrasounds.",
-    price: "$29.95",
-    time: "~1 hour",
-    icon: "pathology",
-    color: "#F59E0B",
-    colorLight: "rgba(245, 158, 11, 0.1)",
-    badge: "fast",
   },
 ]
 
@@ -97,14 +75,14 @@ export function ServiceCards() {
             className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            What can we help with?
+            Med cert or prescription?
           </h2>
           <p className="mt-3 text-sm text-muted-foreground max-w-lg mx-auto">
-            Fill out a form. A real doctor reviews it. Get your document — usually within an hour.
+            Pick what you need. Fill a quick form. A real GP reviews it — usually within an hour.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
           {services.map((service) => (
             <Link key={service.href} href={service.href} className="block group">
               <TiltCard className="glass-card rounded-xl p-5 h-full hover-lift tap-bounce relative overflow-hidden">

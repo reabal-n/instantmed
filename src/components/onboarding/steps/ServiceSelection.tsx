@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FileText, Pill, FlaskConical, Stethoscope, ArrowRight, Clock, CheckCircle2 } from 'lucide-react'
+import { FileText, Pill, ArrowRight, Clock, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ServiceType } from '@/lib/types'
@@ -16,57 +16,29 @@ const services = [
   {
     id: 'sick_cert' as ServiceType,
     title: 'Medical Certificate',
-    subtitle: 'Work, uni & carer\'s leave certificates',
-    price: '$19.95',
-    time: '~45 mins',
+    subtitle: 'Proof of illness for work or uni',
+    price: '$29',
+    time: '~1 hour',
     icon: FileText,
     popular: true,
     features: [
-      'Employer-ready format',
-      'Same-day delivery',
-      'Backdating available',
+      'Valid for all employers',
+      'Emailed same-day',
+      'Backdating if needed',
     ],
   },
   {
     id: 'prescription' as ServiceType,
     title: 'Prescription',
-    subtitle: 'Repeat scripts & medication reviews',
-    price: '$24.95',
+    subtitle: 'Your regular medications',
+    price: '$39',
     time: '~1 hour',
     icon: Pill,
     popular: false,
     features: [
       'Sent to your pharmacy',
-      'Repeat prescriptions',
-      'New medications',
-    ],
-  },
-  {
-    id: 'pathology' as ServiceType,
-    title: 'Pathology & Imaging',
-    subtitle: 'Blood tests, scans & specialist referrals',
-    price: '$29.95',
-    time: '~1 hour',
-    icon: FlaskConical,
-    popular: false,
-    features: [
-      'Bulk-billed tests',
-      'Specialist referrals',
-      'Results tracking',
-    ],
-  },
-  {
-    id: 'referral' as ServiceType,
-    title: 'Specialist Referral',
-    subtitle: 'Dermatology, cardiology & more',
-    price: '$29.95',
-    time: '~1 hour',
-    icon: Stethoscope,
-    popular: false,
-    features: [
-      'Valid for 12 months',
-      'Medicare rebate',
-      'All specialists',
+      'Repeats included',
+      'Common medications',
     ],
   },
 ]
@@ -112,10 +84,10 @@ export function ServiceSelection({ value, onChange, onNext }: ServiceSelectionPr
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
         <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-          What do you need?
+          Med cert or script?
         </h2>
         <p className="text-slate-600 text-base">
-          Choose your service to get started
+          Pick what you need — takes under 3 minutes
         </p>
       </motion.div>
 

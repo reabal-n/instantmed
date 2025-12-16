@@ -10,13 +10,13 @@ export function ServicesSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">
-            🩺 What we do
+            What we do
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Healthcare that respects your time
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Certificates, scripts, referrals — all reviewed by real Australian GPs. Pick what you need below.
+            Medical certificates and prescriptions — reviewed by real Australian GPs, delivered same-day.
           </p>
         </div>
 
@@ -67,14 +67,11 @@ export function ServicesSection() {
           ))}
         </div>
 
-        {/* See all services link */}
+        {/* Simple CTA */}
         <div className="text-center">
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link href="/services">
-              See all services
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <p className="text-slate-500 text-sm">
+            Questions? Check out our <Link href="/faq" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">FAQ</Link> or <Link href="/how-it-works" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">see how it works</Link>.
+          </p>
         </div>
       </div>
     </section>

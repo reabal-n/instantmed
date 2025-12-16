@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { FileText, Pill, Stethoscope, FlaskConical, ArrowRight, Check, Clock, Star, Sparkles, Shield, Zap } from "lucide-react"
+import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
@@ -13,13 +13,13 @@ const services = [
   {
     id: "medcert",
     title: "Medical Certificate",
-    description: "Work, uni & carer's leave certificates. Legally valid for all Australian employers.",
+    description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     icon: FileText,
     href: "/medical-certificate",
     price: "$29",
-    estimatedTime: "~45 mins",
+    estimatedTime: "~1 hour",
     popular: true,
-    features: ["Employer-ready format", "Same-day delivery", "Backdating available"],
+    features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     color: "#00E2B5",
     gradient: "from-[#00E2B5]/20 to-[#06B6D4]/20",
@@ -27,41 +27,16 @@ const services = [
   {
     id: "prescription",
     title: "Prescription",
-    description: "Repeat scripts & medication reviews. Sent directly to your pharmacy.",
+    description: "Need your regular medications? We'll send a script to your pharmacy.",
     icon: Pill,
     href: "/prescriptions",
     price: "$39",
     estimatedTime: "~1 hour",
-    features: ["Sent to your pharmacy", "Repeat prescriptions", "New medications"],
+    popular: false,
+    features: ["Works with any chemist", "Repeat scripts", "Common medications"],
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
     color: "#06B6D4",
     gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
-  },
-  {
-    id: "pathology",
-    title: "Pathology & Imaging",
-    description: "Blood tests, scans & diagnostic imaging. Referrals sent to your chosen provider.",
-    icon: FlaskConical,
-    href: "/referrals/pathology-imaging",
-    price: "$49",
-    estimatedTime: "~1 hour",
-    features: ["Bulk-billed tests", "Specialist referrals", "Results tracking"],
-    image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop",
-    color: "#8B5CF6",
-    gradient: "from-[#8B5CF6]/20 to-[#EC4899]/20",
-  },
-  {
-    id: "referral",
-    title: "Specialist Referral",
-    description: "Dermatology, cardiology & more. Accepted by all Australian specialists.",
-    icon: Stethoscope,
-    href: "/referrals",
-    price: "$49",
-    estimatedTime: "~1 hour",
-    features: ["Valid for 12 months", "Medicare rebate", "All specialists"],
-    image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=400&h=300&fit=crop",
-    color: "#EC4899",
-    gradient: "from-[#EC4899]/20 to-[#F59E0B]/20",
   },
 ]
 
@@ -90,13 +65,12 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
               <span className="bg-gradient-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
-                need today?
+                need?
               </span>
             </h1>
             
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-              Choose your service below. No phone calls, no video chats. 
-              AHPRA-registered doctors review within 1 hour.
+              Pick what you need. A real doctor reviews it — usually done in about an hour.
             </p>
             
             {/* Trust badges */}

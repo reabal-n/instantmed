@@ -11,41 +11,28 @@ const pricingPlans = [
   {
     name: "Medical Certificate",
     price: "$29",
-    description: "Legally valid medical certificate",
+    description: "Sick? Need proof for work?",
     features: [
-      "Accepted by all employers",
-      "Usually approved within 1 hour",
-      "Valid for work, uni & carer's leave",
-      "No video calls required",
+      "Reviewed in about an hour",
+      "Valid for all employers",
+      "Emailed as a PDF",
+      "Backdating if appropriate",
     ],
-    popular: false,
+    popular: true,
     href: "/medical-certificate",
   },
   {
     name: "Prescription",
     price: "$39",
-    description: "Repeat prescriptions & medication reviews",
+    description: "Need your regular meds?",
     features: [
-      "Most PBS medications",
-      "eScript token delivery",
-      "AHPRA-registered GP review",
-      "Same-day approval",
-    ],
-    popular: true,
-    href: "/prescriptions",
-  },
-  {
-    name: "Referral",
-    price: "$49",
-    description: "Specialist & pathology referrals",
-    features: [
-      "Specialist referrals",
-      "Pathology & imaging",
-      "Direct to your provider",
-      "Fast turnaround",
+      "Sent to your pharmacy",
+      "Repeats when suitable",
+      "Works with any chemist",
+      "eScript or paper",
     ],
     popular: false,
-    href: "/referrals",
+    href: "/prescriptions",
   },
 ]
 
@@ -61,14 +48,14 @@ export function PricingSection() {
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            What you see is what you pay 💳
+            Simple, upfront pricing
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Flat fees, no hidden costs, no Medicare paperwork headaches. Simple.
+            No hidden fees. You only pay if a doctor can help. Full refund otherwise.
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
           {pricingPlans.map((plan) => (
             <HolographicCard
               key={plan.name}

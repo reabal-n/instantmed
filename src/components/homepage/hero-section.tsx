@@ -179,8 +179,8 @@ export function HeroSection() {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0"
                   >
-                    Certificates, scripts, and referrals — reviewed by real Australian GPs. 
-                    No appointments. No phone queues. Just healthcare that works.
+                    Med certs and scripts — usually done in about an hour. 
+                    No appointments needed. A real doctor reviews everything.
                   </motion.p>
                 </div>
 
@@ -274,11 +274,11 @@ export function HeroSection() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5">
                         <CheckCircle className="h-4 w-4 text-[#00E2B5]" />
-                        AHPRA registered
+                        Real doctors, not AI
                       </span>
                       <span className="flex items-center gap-1.5">
                         <CheckCircle className="h-4 w-4 text-[#00E2B5]" />
-                        Australian doctors
+                        Done in ~1 hour
                       </span>
                     </div>
                   </motion.div>

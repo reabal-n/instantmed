@@ -9,11 +9,11 @@ const recentActivity = [
   { name: "Sarah", location: "Sydney", service: "med cert", timeAgo: "2 min" },
   { name: "James", location: "Melbourne", service: "prescription", timeAgo: "5 min" },
   { name: "Emma", location: "Brisbane", service: "med cert", timeAgo: "8 min" },
-  { name: "David", location: "Perth", service: "referral", timeAgo: "12 min" },
+  { name: "David", location: "Perth", service: "prescription", timeAgo: "12 min" },
   { name: "Priya", location: "Adelaide", service: "med cert", timeAgo: "15 min" },
   { name: "Tom", location: "Gold Coast", service: "prescription", timeAgo: "18 min" },
-  { name: "Lisa", location: "Canberra", service: "pathology", timeAgo: "22 min" },
-  { name: "Chris", location: "Hobart", service: "med cert", timeAgo: "25 min" },
+  { name: "Lisa", location: "Canberra", service: "med cert", timeAgo: "22 min" },
+  { name: "Chris", location: "Hobart", service: "prescription", timeAgo: "25 min" },
 ]
 
 interface LiveToast {
@@ -167,10 +167,10 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 3,
-    quote: "The referral was thorough. My cardiologist said it had everything they needed.",
+    quote: "Finally got my contraception sorted without taking time off work. Game changer.",
     name: "Michelle T.",
     location: "Paddington, QLD",
-    service: "Referral",
+    service: "Prescription",
     rating: 5,
     verified: true,
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",

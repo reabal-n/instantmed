@@ -8,10 +8,8 @@ import {
   Shield, 
   Clock, 
   ArrowRight,
-  Stethoscope,
   Star,
   HelpCircle,
-  FlaskConical,
   Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -57,23 +55,16 @@ const heroDisplayCards: DisplayCard[] = [
   {
     id: 'cert',
     title: 'Medical Certificate',
-    description: 'Employer-ready certificates delivered in under an hour',
+    description: 'Valid proof of illness for work or uni',
     icon: <FileText className="w-5 h-5" />,
     accentColor: 'oklch(0.65 0.15 185)',
   },
   {
     id: 'script',
     title: 'Prescription',
-    description: 'Sent directly to your local pharmacy',
+    description: 'Your regular meds, sent to any pharmacy',
     icon: <Pill className="w-5 h-5" />,
     accentColor: 'oklch(0.6 0.15 280)',
-  },
-  {
-    id: 'referral',
-    title: 'Specialist Referral',
-    description: 'Valid for 12 months with Medicare rebate',
-    icon: <Stethoscope className="w-5 h-5" />,
-    accentColor: 'oklch(0.7 0.15 80)',
   },
 ]
 
@@ -81,9 +72,9 @@ const heroDisplayCards: DisplayCard[] = [
 const services: ServiceCardProps[] = [
   {
     title: 'Medical Certificate',
-    description: "Work, uni & carer's leave — employer-ready format",
-    price: '$19.95',
-    time: '~45 mins',
+    description: "Sick? Need proof for work or uni?",
+    price: '$29',
+    time: '~1 hour',
     icon: FileText,
     iconVariant: 'gradient',
     href: '/start?service=sick_cert',
@@ -91,30 +82,12 @@ const services: ServiceCardProps[] = [
   },
   {
     title: 'Prescription',
-    description: 'Repeat scripts sent directly to your pharmacy',
-    price: '$24.95',
+    description: 'Need your regular medications?',
+    price: '$39',
     time: '~1 hour',
     icon: Pill,
     iconVariant: 'secondary',
     href: '/start?service=prescription',
-  },
-  {
-    title: 'Pathology & Imaging',
-    description: 'Blood tests & scans with bulk-billing available',
-    price: '$29.95',
-    time: '~1 hour',
-    icon: FlaskConical,
-    iconVariant: 'destructive',
-    href: '/start?service=pathology',
-  },
-  {
-    title: 'Specialist Referral',
-    description: 'Dermatology, cardiology & more — Medicare rebates',
-    price: '$29.95',
-    time: '~1 hour',
-    icon: Stethoscope,
-    iconVariant: 'warning',
-    href: '/start?service=referral',
   },
 ]
 
@@ -122,18 +95,18 @@ const services: ServiceCardProps[] = [
 const steps = [
   {
     step: 1,
-    title: 'Tell us what you need',
-    description: 'Pick a service, answer a few quick questions. Under 3 minutes.',
+    title: 'Answer a few questions',
+    description: 'Quick form, takes about 2 minutes. No account needed.',
   },
   {
     step: 2,
-    title: 'A GP reviews it',
-    description: 'A real Australian doctor looks at your request — usually within an hour.',
+    title: 'A doctor reviews it',
+    description: 'A real GP looks at your request. Usually done within an hour.',
   },
   {
     step: 3,
-    title: 'You're sorted',
-    description: 'Certificate to your inbox, script to your pharmacy. Done.',
+    title: 'Done',
+    description: 'Certificate in your inbox. Script sent to your pharmacy.',
   },
 ]
 
@@ -375,9 +348,9 @@ export default function Home() {
         
         <div className="container mx-auto px-4 relative z-10">
           <SectionHeaderMotion
-            subtitle="🩺 Services"
+            subtitle="Services"
             title="What can we help with?"
-            description="Pick what you need. Answer a few questions. A GP reviews it. Done."
+            description="Pick what you need. A real doctor reviews it — usually done in about an hour."
             align="center"
           />
           
@@ -477,7 +450,7 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <SectionHeaderMotion
             title="Why InstantMed?"
-            description="Built for Australians who value their time, privacy, and sanity 💡"
+            description="GP waitlists are weeks long. You shouldn't need to take time off for a simple med cert or script."
             align="center"
           />
           
@@ -504,7 +477,7 @@ export default function Home() {
               <span className="ml-2 text-foreground font-medium">4.9/5 from 200+ reviews</span>
             </motion.div>
             <motion.h2 variants={stagger.item} className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
-              People seem to like us 💬
+              What people say
             </motion.h2>
             <motion.p variants={stagger.item} className="text-muted-foreground text-lg max-w-lg mx-auto">
               Real feedback from real patients
@@ -551,10 +524,10 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-primary-foreground">
-            Ready when you are 👋
+            That's basically it
           </h2>
           <p className="text-primary-foreground/80 text-lg mb-8 max-w-md mx-auto">
-            Join thousands of Australians getting healthcare without the hassle.
+            Need a med cert or script? We can probably help. Takes a couple of minutes to find out.
           </p>
           <Link href="/start">
             <motion.div {...hoverLift}>
@@ -563,7 +536,7 @@ export default function Home() {
                 variant="secondary"
                 className="text-base px-8 bg-white text-primary hover:bg-white/95"
               >
-                Get started now
+                Get started
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>

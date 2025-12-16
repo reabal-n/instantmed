@@ -17,7 +17,7 @@ const heroVariants: HeroVariant[] = [
     id: "pants",
     headline: "Skip the waiting room. Keep your pants on.",
     subheadline:
-      "Prescriptions, certs & referrals — no phone calls, no video. Just fill a form, real doctor reviews it.",
+      "Prescriptions & med certs — no phone calls, no video. Just fill a form, real doctor reviews it.",
     cta: "Get started",
   },
   {
@@ -29,7 +29,7 @@ const heroVariants: HeroVariant[] = [
   {
     id: "couch",
     headline: "Medical stuff, minus the hassle.",
-    subheadline: "Prescriptions, med certs & referrals from your couch. Most done in under an hour.",
+    subheadline: "Prescriptions & med certs from your couch. Most done in under an hour.",
     cta: "Get sorted",
   },
 ]

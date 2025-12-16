@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Pill, FileText, FlaskConical, Stethoscope, ArrowRight, CheckCircle2, Zap } from "lucide-react"
+import { Pill, FileText, ArrowRight, CheckCircle2, Zap } from "lucide-react"
 import { motion, useInView } from "framer-motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { SparklesText } from "@/components/ui/sparkles-text"
@@ -15,44 +15,24 @@ import { TextRevealLine } from "@/components/effects/text-reveal"
 
 const services = [
   {
-    icon: Pill,
-    title: "Prescriptions",
-    description: "Get your regular medications renewed quickly. Contraception, mental health, chronic conditions & more.",
+    icon: FileText,
+    title: "Medical Certificate",
+    description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     color: "#00E2B5",
     gradient: "from-[#00E2B5]/20 to-[#06B6D4]/20",
-    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
-    href: "/prescriptions",
-    price: "$39",
-  },
-  {
-    icon: FileText,
-    title: "Medical Certificates",
-    description: "Legally valid certificates for work, uni, or carers. Accepted by all Australian employers.",
-    color: "#06B6D4",
-    gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     href: "/medical-certificate",
     price: "$29",
   },
   {
-    icon: FlaskConical,
-    title: "Pathology & Imaging",
-    description: "Request blood tests, scans, and diagnostic tests. Referrals sent to your chosen provider.",
-    color: "#8B5CF6",
-    gradient: "from-[#8B5CF6]/20 to-[#EC4899]/20",
-    image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop",
-    href: "/referrals/pathology-imaging",
-    price: "$49",
-  },
-  {
-    icon: Stethoscope,
-    title: "Specialist Referrals",
-    description: "Get referred to dermatologists, cardiologists, and other specialists. Fast & professional.",
-    color: "#EC4899",
-    gradient: "from-[#EC4899]/20 to-[#F59E0B]/20",
-    image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=400&h=300&fit=crop",
-    href: "/referrals/specialist",
-    price: "$49",
+    icon: Pill,
+    title: "Prescription",
+    description: "Need your regular medications? We'll send a script to your pharmacy.",
+    color: "#06B6D4",
+    gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
+    image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
+    href: "/prescriptions",
+    price: "$39",
   },
 ]
 
@@ -101,10 +81,10 @@ export function FeaturesSection() {
           >
             <TextRevealLine delay={0.1}>
               <SparklesText
-                text="Everything you need, online"
+                text="What you get"
                 className="text-3xl sm:text-4xl lg:text-5xl"
                 colors={{ first: "#00E2B5", second: "#8B5CF6" }}
-                sparklesCount={12}
+                sparklesCount={8}
               />
             </TextRevealLine>
           </h2>
@@ -114,7 +94,7 @@ export function FeaturesSection() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="text-lg text-muted-foreground max-w-2xl mx-auto"
           >
-            Skip the GP queue. Our AHPRA-registered doctors review and approve requests within 1 hour.
+            Two things, done well. Reviewed by real doctors, usually in about an hour.
           </motion.p>
         </motion.div>
 

@@ -32,7 +32,7 @@ const locations = [
   "Hobart",
   "Darwin",
 ]
-const services = ["med cert", "prescription", "referral", "blood test"]
+const services = ["med cert", "prescription"]
 
 export function DynamicSocialProof() {
   const [todayCount, setTodayCount] = useState(127)
@@ -182,8 +182,8 @@ const reviews = [
   { text: "Had my cert in 40 mins. Lifesaver!", author: "Sarah M." },
   { text: "So much easier than waiting at the GP.", author: "James K." },
   { text: "Quick, professional, no fuss.", author: "Michelle T." },
-  { text: "The referral had everything my specialist needed.", author: "David L." },
   { text: "Perfect for busy shift workers like me.", author: "Priya N." },
+  { text: "Got my script renewed without the 3-week wait.", author: "David L." },
 ]
 
 export function RotatingReviews() {

@@ -7,38 +7,38 @@ import { CheckCircle2, Clock, PhoneOff, Shield, Zap, Heart } from "lucide-react"
 const benefits = [
   {
     icon: Clock,
-    title: "Done in ~1 hour",
-    description: "Most requests reviewed same-day. No more waiting weeks for an appointment.",
+    title: "Usually done in an hour",
+    description: "No waiting weeks for an appointment. Most requests are sorted same-day.",
     color: "#00E2B5",
   },
   {
     icon: PhoneOff,
-    title: "No phone calls",
-    description: "Fill out a form, get reviewed. That's it. No video chats, no hold music.",
+    title: "No awkward video calls",
+    description: "Just fill out a form. No webcam required, no phone trees.",
     color: "#06B6D4",
   },
   {
     icon: Shield,
-    title: "Real GPs only",
-    description: "Every doctor is AHPRA-registered and actively practicing in Australia.",
+    title: "Actual doctors",
+    description: "Real Australian GPs review every request. Not AI, not nurses.",
     color: "#8B5CF6",
   },
   {
     icon: Zap,
-    title: "Submit anytime",
-    description: "Put in your request whenever. Doctors review 8am–10pm AEST daily.",
+    title: "Do it from bed",
+    description: "Submit from anywhere. Doctors review 8am–10pm AEST, every day.",
     color: "#F59E0B",
   },
   {
     icon: Heart,
-    title: "Your data, protected",
-    description: "Bank-level encryption keeps your health info private. Full stop.",
+    title: "Private",
+    description: "Your info stays between you and the doctor. We don't share it.",
     color: "#EC4899",
   },
   {
     icon: CheckCircle2,
-    title: "Accepted everywhere",
-    description: "All documents are legally valid for employers, unis, and institutions.",
+    title: "It actually works",
+    description: "Employers, unis, pharmacies — they all accept what we send.",
     color: "#10B981",
   },
 ]
@@ -55,10 +55,10 @@ export function BenefitsSection() {
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Built for how you actually live 💡
+            Why people use this
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            GP waitlists are ridiculous. You shouldn't need to take a half-day off work for a script renewal. So we fixed that.
+            GP waitlists are weeks long. You shouldn't need to take time off work for a simple med cert or script.
           </p>
         </div>
 
