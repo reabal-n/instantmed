@@ -47,7 +47,13 @@ function getServiceClient() {
 }
 
 function getBaseUrl(): string {
-  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+
+  // Only use if it's actually a valid URL
+  if (baseUrl && !isValidUrl(baseUrl)) {
+    console.warn("[Guest Checkout] NEXT_PUBLIC_SITE_URL is invalid:", baseUrl)
+    baseUrl = undefined
+  }
 
   if (!baseUrl && process.env.VERCEL_URL) {
     baseUrl = `https://${process.env.VERCEL_URL}`
@@ -58,6 +64,15 @@ function getBaseUrl(): string {
   }
 
   return baseUrl.replace(/\/$/, "")
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -96,7 +111,7 @@ function getPriceIdForRequest(category: ServiceCategory): string {
  * Creates a minimal guest profile, request, and Stripe checkout
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
-  const BUILD_ID = "BUILD_20241216_2110" // Unique identifier to verify deployment
+  const BUILD_ID = "BUILD_20241216_2150" // Unique identifier to verify deployment
   
   try {
     // Validate email format
@@ -116,6 +131,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const stripe = getStripe()
     const supabase = getServiceClient()
     const baseUrl = getBaseUrl()
+
+    console.log("[Guest Checkout] Base URL:", baseUrl)
+
+    // Validate base URL
+    if (!baseUrl || !isValidUrl(baseUrl)) {
+      console.error("[Guest Checkout] Invalid base URL:", baseUrl)
+      return { success: false, error: `[${BUILD_ID}] Invalid site URL: "${baseUrl}"` }
+    }
 
     // 1. Check if a profile already exists for this email
     const normalizedEmail = input.guestEmail.toLowerCase().trim()
@@ -190,7 +213,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         // Return detailed error with build ID
         return { 
           success: false, 
-          error: `[BUILD_20241216_2110] DB Error ${errorCode}: ${errorMessage}` 
+          error: `[${BUILD_ID}] DB Error ${errorCode}: ${errorMessage}` 
         }
       }
 
@@ -238,27 +261,44 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const cancelUrl = `${baseUrl}/request-cancelled?request_id=${request.id}`
 
     // 6. Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
+    let session
+    try {
+      session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        customer_email: input.guestEmail,
+        customer_creation: "always",
+        metadata: {
+          request_id: request.id,
+          patient_id: guestProfileId,
+          category: input.category,
+          subtype: input.subtype,
+          guest_checkout: "true",
+          guest_email: input.guestEmail,
         },
-      ],
-      mode: "payment",
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      customer_email: input.guestEmail,
-      customer_creation: "always",
-      metadata: {
-        request_id: request.id,
-        patient_id: guestProfileId,
-        category: input.category,
-        subtype: input.subtype,
-        guest_checkout: "true",
-        guest_email: input.guestEmail,
-      },
-    })
+      })
+    } catch (stripeError: unknown) {
+      console.error("[Guest Checkout] Stripe error:", stripeError)
+      await supabase.from("requests").delete().eq("id", request.id)
+      
+      const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      
+      // Check for URL-related errors (various phrasings)
+      if (errorMessage.toLowerCase().includes("url") || errorMessage.includes("Invalid") || errorMessage.includes("valid")) {
+        return { success: false, error: `[${BUILD_ID}] URL error: ${errorMessage}. Base: ${baseUrl}, Success: ${successUrl}` }
+      }
+      if (errorMessage.includes("No such price")) {
+        return { success: false, error: "This service is temporarily unavailable. Please try again later." }
+      }
+      return { success: false, error: `[${BUILD_ID}] Stripe error: ${errorMessage}` }
+    }
 
     if (!session.url) {
       await supabase.from("requests").delete().eq("id", request.id)
@@ -293,9 +333,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error("[Guest Checkout] Unexpected error:", error)
     return {
       success: false,
-      error: `[BUILD_20241216_2110] Error: ${errorMsg}`,
+      error: `[BUILD_20241216_2150] Error: ${errorMsg}`,
     }
   }
 }

@@ -177,15 +177,17 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       console.error("Stripe error:", stripeError)
       await supabase.from("requests").delete().eq("id", request.id)
 
-      if (stripeError instanceof Error) {
-        if (stripeError.message.includes("Invalid URL")) {
-          return { success: false, error: "Server configuration error. Please contact support." }
-        }
-        if (stripeError.message.includes("No such price")) {
-          return { success: false, error: "This service is temporarily unavailable. Please try again later." }
-        }
+      const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      console.error("[Checkout] Stripe error details:", { message: errorMessage, baseUrl, successUrl, cancelUrl })
+
+      // Check for URL-related errors
+      if (errorMessage.toLowerCase().includes("url") || errorMessage.includes("Invalid") || errorMessage.includes("valid")) {
+        return { success: false, error: `Server configuration error: ${errorMessage}` }
       }
-      return { success: false, error: "Payment system error. Please try again." }
+      if (errorMessage.includes("No such price")) {
+        return { success: false, error: "This service is temporarily unavailable. Please try again later." }
+      }
+      return { success: false, error: `Payment system error: ${errorMessage}` }
     }
 
     if (!session.url) {
