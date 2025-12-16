@@ -78,20 +78,38 @@ export default function RegisterPage() {
         throw new Error("Failed to create user account")
       }
 
-      const { error: profileError } = await supabase.from("profiles").insert({
-        auth_user_id: authData.user.id,
-        full_name: fullName,
-        date_of_birth: dateOfBirth,
-        role: "patient",
-      })
+      // Profile creation MUST happen server-side only
+      if (authData.session) {
+        // User is auto-confirmed - create profile server-side
+        const { ensureProfile } = await import("@/app/actions/ensure-profile")
+        let profileId: string
+        try {
+          const result = await ensureProfile(
+            authData.user.id,
+            authData.user.email || "",
+            {
+              fullName,
+              dateOfBirth,
+            }
+          )
+          
+          if (result.error || !result.profileId) {
+            throw new Error(result.error || "Profile creation returned no profileId")
+          }
+          
+          profileId = result.profileId
+        } catch (profileError) {
+          console.error("[Register] Profile creation failed:", profileError)
+          throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
+        }
 
-      if (profileError) {
-        throw new Error("Failed to create profile. Please try again.")
+        const onboardingRedirect = redirectTo || "/patient"
+        router.push(`/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`)
+        router.refresh()
+      } else {
+        // Email confirmation required - profile will be created after confirmation
+        router.push("/auth/check-email")
       }
-
-      const onboardingRedirect = redirectTo || "/patient"
-      router.push(`/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`)
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred during registration")
     } finally {

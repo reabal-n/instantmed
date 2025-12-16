@@ -4,14 +4,17 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Ensures a profile exists for an authenticated user.
- * This is the single source of truth for profile creation after auth.
+ * This is the ONLY place where profiles are created - server-side only using service role.
  * 
  * Flow:
  * 1. Check if profile exists (by auth_user_id)
- * 2. If not found, insert with auth_user_id = user.id and email = user.email
- * 3. If found, update email if missing
+ * 2. If found: do nothing, return existing profile ID
+ * 3. If not found: create profile server-side using service role client
  * 
- * This function uses service role to bypass RLS, ensuring it works reliably.
+ * IMPORTANT:
+ * - This is a server action ("use server") - can ONLY be called from server
+ * - Uses service role client to bypass RLS
+ * - Never create profiles on the client - always use this function
  */
 export async function ensureProfile(
   userId: string,
@@ -50,27 +53,9 @@ export async function ensureProfile(
       return { profileId: null, error: `Database error: ${selectError.message}` }
     }
 
-    // Step 2: If profile exists, update email if missing and return
+    // Step 2: If profile exists, do nothing and return
     if (existingProfile) {
-      console.log("[EnsureProfile] Profile found:", existingProfile.id)
-      
-      // Update email if missing
-      if (!existingProfile.email && userEmail) {
-        console.log("[EnsureProfile] Updating missing email")
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ email: userEmail })
-          .eq("id", existingProfile.id)
-
-        if (updateError) {
-          console.error("[EnsureProfile] Error updating email:", {
-            code: updateError.code,
-            message: updateError.message,
-          })
-          // Don't fail - email update is not critical
-        }
-      }
-
+      console.log("[EnsureProfile] Profile exists, doing nothing:", existingProfile.id)
       return { profileId: existingProfile.id, error: null }
     }
 
