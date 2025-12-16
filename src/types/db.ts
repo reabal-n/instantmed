@@ -1,29 +1,9 @@
-export type RequestStatus = 'pending' | 'approved' | 'declined' | 'needs_follow_up'
-export type AustralianState = 'ACT' | 'NSW' | 'NT' | 'QLD' | 'SA' | 'TAS' | 'VIC' | 'WA'
-export type RequestType = 'sick_cert' | 'prescription' | 'referral' | string
+/**
+ * Database types - Re-exports from types/db.ts
+ * 
+ * This file re-exports the database types from the root types/db.ts
+ * to work with the @/ alias that points to src/
+ */
 
-export interface RequestWithPatient {
-  id: string
-  patient_id: string
-  status: RequestStatus
-  [key: string]: unknown
-}
-
-export interface MedCertDraftData {
-  [key: string]: unknown
-}
-
-export interface Profile {
-  id: string
-  auth_user_id: string
-  full_name: string
-  first_name: string | null
-  last_name: string | null
-  date_of_birth: string
-  gender: string | null
-  medicare_number: string | null
-  medicare_irn: number | null
-  medicare_expiry: string | null
-  role: 'patient' | 'doctor'
-  [key: string]: unknown
-}
+// Re-export everything from the root types/db.ts
+export * from '../../types/db'

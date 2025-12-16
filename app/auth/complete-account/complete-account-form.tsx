@@ -65,7 +65,7 @@ export function CompleteAccountForm({
       confetti({
         particleCount: 100,
         spread: 70,
-        origin: { y: 0.6 },
+        origin: { x: 0.5, y: 0.6 },
       })
 
       setTimeout(() => {

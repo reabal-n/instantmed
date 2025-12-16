@@ -40,6 +40,25 @@ export function TiltCard({ children, className, tiltAmount = 10, ...props }: Til
   }
 
   return (
-    null
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "relative rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl overflow-hidden transition-transform duration-200 ease-out",
+        className
+      )}
+      style={{ transform }}
+      {...props}
+    >
+      {/* Hover highlight effect */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(0, 226, 181, 0.15), transparent 50%)`,
+        }}
+      />
+      {children}
+    </div>
   )
 }
