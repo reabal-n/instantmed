@@ -16,29 +16,20 @@ SET email = u.email
 FROM auth.users u 
 WHERE p.auth_user_id = u.id AND p.email IS NULL;
 
--- 4. Drop the UNIQUE constraint on auth_user_id (required before allowing NULLs)
--- This constraint prevents multiple NULL values which we need for guest profiles
-ALTER TABLE public.profiles 
-DROP CONSTRAINT IF EXISTS profiles_auth_user_id_key;
-
--- 5. Drop any regular index on auth_user_id (cleanup)
-DROP INDEX IF EXISTS profiles_auth_user_id_idx;
-
--- 6. Drop the NOT NULL constraint on auth_user_id to allow guest profiles
+-- 4. Drop the NOT NULL constraint on auth_user_id to allow guest profiles
 ALTER TABLE public.profiles 
 ALTER COLUMN auth_user_id DROP NOT NULL;
 
--- 7. Re-add uniqueness as a partial index (only for non-null values)
--- This allows multiple NULLs while keeping authenticated users unique
+-- 5. Re-add uniqueness as a partial index (only for non-null values)
 CREATE UNIQUE INDEX IF NOT EXISTS profiles_auth_user_id_unique 
 ON public.profiles(auth_user_id) 
 WHERE auth_user_id IS NOT NULL;
 
--- 8. Add index on email for all profiles
+-- 6. Add index on email for all profiles
 CREATE INDEX IF NOT EXISTS idx_profiles_email 
 ON public.profiles(email);
 
--- 9. Add an index to find guest profiles by email efficiently
+-- 7. Add an index to find guest profiles by email efficiently
 CREATE INDEX IF NOT EXISTS idx_profiles_guest_email 
 ON public.profiles(email) 
 WHERE auth_user_id IS NULL;
