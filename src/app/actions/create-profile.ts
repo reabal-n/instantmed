@@ -1,10 +1,8 @@
-'use server'
+/**
+ * Create Profile Action - Re-exports from app/actions/create-profile.ts
+ * 
+ * This file re-exports the action from the root app/actions/create-profile.ts
+ * to work with the @/ alias that points to src/
+ */
 
-import { createClient } from '@/lib/supabase/server'
-
-export async function createOrGetProfile(userId: string) {
-  const supabase = await createClient()
-  // Stub implementation
-  return { id: userId, profile: null }
-}
-
+export { createOrGetProfile } from '../../../app/actions/create-profile'

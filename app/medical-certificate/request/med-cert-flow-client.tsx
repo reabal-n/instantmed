@@ -344,18 +344,8 @@ export function MedCertFlowClient({
     otherSymptom: "",
     carerPatientName: "",
     carerRelationship: null as string | null,
-    hasChestPain: null as boolean | null,
-    hasSevereSymptoms: null as boolean | null,
-    isEmergency: null as boolean | null,
-    // medicareNumber: "", // Removed
-    // irn: null as number | null, // Removed
-    // dateOfBirth: "", // Moved to patientDetails
-    // fullName: userName || "", // Moved to patientDetails
-    // email: userEmail || "", // Moved to patientDetails
-    // password: "", // Removed
-    // showPassword: false, // Removed
-    // termsAccepted: false, // Removed
-    // signupMode: "new" as "new" | "existing", // Removed
+    additionalNotes: "", // Notes for the doctor
+    fullName: userName || "", // Patient full name
     guestEmail: "", // For guest checkout email collection
     email: userEmail || "", // Moved from auth to patientDetails
     dateOfBirth: "", // Moved from auth to patientDetails
@@ -380,7 +370,9 @@ export function MedCertFlowClient({
 
   const isCarer = formData.certType === "carer"
   const isRedFlag =
-    formData.hasChestPain === true || formData.hasSevereSymptoms === true || formData.isEmergency === true
+    formData.safetyAnswers.chestPain === true || 
+    formData.safetyAnswers.severeSymptoms === true || 
+    formData.safetyAnswers.emergency === true
 
   // Focus management on step change
   useEffect(() => {
@@ -469,7 +461,7 @@ export function MedCertFlowClient({
     }
 
     if (step === "review") {
-      setStep("safety")
+      setStep("patientDetails")
       return
     }
 
@@ -704,25 +696,34 @@ export function MedCertFlowClient({
     setIsSubmitting(true)
     setError(null)
 
+    const dates = getDateRange()
+
     try {
       const result = await createGuestCheckoutAction({
-        email: formData.guestEmail,
-        certificateType: formData.certType!,
-        duration: formData.duration!,
-        startDate: formData.startDate,
-        symptoms: formData.selectedSymptoms,
-        otherSymptom: formData.selectedSymptoms.includes("Other") ? formData.otherSymptom : null,
-        notes: formData.additionalNotes,
-        carerName: isCarer ? formData.carerPatientName : null,
-        carerRelationship: isCarer ? formData.carerRelationship : null,
-        safetyAnswers: formData.safetyAnswers,
-        // Patient details for guest checkout
-        patientDetails: {
-          email: formData.email,
-          dateOfBirth: formData.dateOfBirth,
-          medicareNumber: formData.medicareNumber,
-          medicareIrn: formData.medicareIrn,
-          addressLine1: formData.addressLine1,
+        category: "medical_certificate",
+        subtype: formData.certType || "work",
+        type: "med_cert",
+        guestEmail: formData.guestEmail || formData.email,
+        guestName: formData.fullName || undefined,
+        answers: {
+          certificate_type: formData.certType,
+          duration: formData.duration,
+          date_from: dates.from,
+          date_to: dates.to,
+          symptoms: formData.selectedSymptoms,
+          other_symptom: formData.selectedSymptoms.includes("Other") ? formData.otherSymptom : null,
+          additional_notes: formData.additionalNotes || null,
+          carer_patient_name: isCarer ? formData.carerPatientName : null,
+          carer_relationship: isCarer ? formData.carerRelationship : null,
+          safety_chest_pain: formData.safetyAnswers.chestPain ?? null,
+          safety_severe_symptoms: formData.safetyAnswers.severeSymptoms ?? null,
+          safety_emergency: formData.safetyAnswers.emergency ?? null,
+          // Patient details
+          patient_email: formData.email,
+          patient_dob: formData.dateOfBirth,
+          medicare_number: formData.medicareNumber,
+          medicare_irn: formData.medicareIrn,
+          address_line1: formData.addressLine1,
           suburb: formData.suburb,
           state: formData.state,
           postcode: formData.postcode,
@@ -775,9 +776,18 @@ export function MedCertFlowClient({
       additional_notes: formData.additionalNotes || null,
       carer_patient_name: isCarer ? formData.carerPatientName : null,
       carer_relationship: isCarer ? formData.carerRelationship : null,
-      safety_chest_pain: formData.hasChestPain,
-      safety_severe_symptoms: formData.hasSevereSymptoms,
-      safety_emergency: formData.isEmergency,
+      safety_chest_pain: formData.safetyAnswers.chestPain ?? null,
+      safety_severe_symptoms: formData.safetyAnswers.severeSymptoms ?? null,
+      safety_emergency: formData.safetyAnswers.emergency ?? null,
+      // Patient details
+      patient_email: formData.email,
+      patient_dob: formData.dateOfBirth,
+      medicare_number: formData.medicareNumber,
+      medicare_irn: formData.medicareIrn,
+      address_line1: formData.addressLine1,
+      suburb: formData.suburb,
+      state: formData.state,
+      postcode: formData.postcode,
     }
 
     try {

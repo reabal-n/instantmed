@@ -1,19 +1,11 @@
-'use server'
+/**
+ * Stripe Checkout Actions - Re-exports from lib/stripe/checkout.ts
+ * 
+ * This file re-exports the checkout actions from the root lib/stripe/checkout.ts
+ * to work with the @/ alias that points to src/
+ */
 
-import { createClient } from '@/lib/supabase/server'
-import { stripe } from './client'
-
-export async function createRequestAndCheckoutAction(data: {
-  requestId: string
-  amount: number
-  metadata?: Record<string, string>
-}) {
-  // Stub implementation - implement as needed
-  return { url: '', sessionId: '' }
-}
-
-export async function retryPaymentForRequestAction(requestId: string) {
-  // Stub implementation - implement as needed
-  return { success: false }
-}
-
+export {
+  createRequestAndCheckoutAction,
+  retryPaymentForRequestAction,
+} from '../../../lib/stripe/checkout'
