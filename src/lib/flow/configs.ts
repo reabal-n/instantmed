@@ -691,117 +691,6 @@ export const mensHealthConfig: FlowConfig = {
 }
 
 // ============================================
-// REFERRAL CONFIG
-// ============================================
-
-const referralQuestionnaire: QuestionnaireConfig = {
-  id: 'referral_v3',
-  version: '3.0',
-  eligibilityFields: [emergencyScreening],
-  groups: [
-    {
-      id: 'specialist',
-      title: 'Referral details',
-      fields: [
-        {
-          id: 'specialist_type',
-          type: 'select',
-          label: 'Type of specialist',
-          options: [
-            { value: 'dermatologist', label: 'Dermatologist (skin)' },
-            { value: 'cardiologist', label: 'Cardiologist (heart)' },
-            { value: 'gastro', label: 'Gastroenterologist (digestive)' },
-            { value: 'neurologist', label: 'Neurologist (brain/nerves)' },
-            { value: 'orthopaedic', label: 'Orthopaedic (bones/joints)' },
-            { value: 'psychiatrist', label: 'Psychiatrist' },
-            { value: 'psychologist', label: 'Psychologist' },
-            { value: 'ophthalmologist', label: 'Ophthalmologist (eyes)' },
-            { value: 'ent', label: 'ENT (ear/nose/throat)' },
-            { value: 'urologist', label: 'Urologist' },
-            { value: 'gynaecologist', label: 'Gynaecologist' },
-            { value: 'pathology', label: 'Pathology (blood tests)' },
-            { value: 'radiology', label: 'Radiology (imaging)' },
-            { value: 'other', label: 'Other' },
-          ],
-          validation: { required: true },
-        },
-        {
-          id: 'other_specialist',
-          type: 'text',
-          label: 'Specify specialist',
-          showIf: { fieldId: 'specialist_type', operator: 'equals', value: 'other' },
-          validation: { required: true },
-        },
-        {
-          id: 'specific_doctor',
-          type: 'text',
-          label: 'Specific doctor name (optional)',
-          placeholder: 'Leave blank if no preference',
-        },
-        {
-          id: 'reason',
-          type: 'textarea',
-          label: 'Why do you need this referral?',
-          placeholder: 'Describe your symptoms or concerns',
-          validation: { required: true, minLength: 20 },
-        },
-      ],
-    },
-    {
-      id: 'background',
-      title: 'Background',
-      fields: [
-        {
-          id: 'previous_treatment',
-          type: 'textarea',
-          label: 'Previous treatment for this?',
-          placeholder: 'GP visits, medications tried, etc.',
-        },
-        {
-          id: 'recent_tests',
-          type: 'textarea',
-          label: 'Recent test results (if any)',
-          placeholder: 'Blood tests, scans, etc.',
-        },
-        {
-          id: 'urgency',
-          type: 'radio',
-          label: 'How urgent is this?',
-          options: [
-            { value: 'routine', label: 'Routine - within weeks' },
-            { value: 'soon', label: 'Soon - within 1-2 weeks' },
-            { value: 'urgent', label: 'Urgent - within days' },
-          ],
-          validation: { required: true },
-        },
-      ],
-    },
-  ],
-}
-
-export const referralConfig: FlowConfig = {
-  id: 'referral',
-  serviceSlug: 'referral',
-  serviceName: 'Specialist Referral',
-  serviceDescription: 'Referrals to specialists, imaging, or pathology',
-  category: 'referral',
-  icon: 'Stethoscope',
-  steps: simplifiedSteps,
-  questionnaire: referralQuestionnaire,
-  pricing: {
-    basePriceCents: 3495,
-    priorityFeeCents: 1500,
-  },
-  requirements: {
-    requiresAuth: false,
-    requiresMedicare: false,
-    requiresIdVerification: false,
-  },
-  estimatedTime: '~1 hour',
-  features: ['All specialties', 'Valid 12 months', 'Medicare eligible'],
-}
-
-// ============================================
 // CONFIG REGISTRY
 // ============================================
 
@@ -813,7 +702,6 @@ export const flowConfigs: Record<string, FlowConfig> = {
   'weight-management': weightConfig,
   'weight': weightConfig,
   'mens-health': mensHealthConfig,
-  'referral': referralConfig,
 }
 
 export function getFlowConfig(serviceSlug: string): FlowConfig | null {
@@ -821,7 +709,7 @@ export function getFlowConfig(serviceSlug: string): FlowConfig | null {
 }
 
 export function getAllServiceSlugs(): string[] {
-  return ['medical-certificate', 'common-scripts', 'weight-management', 'mens-health', 'referral']
+  return ['medical-certificate', 'common-scripts', 'weight-management', 'mens-health']
 }
 
 // Service categories for display
@@ -862,14 +750,5 @@ export const serviceCategories = [
     time: '~1 hour',
     icon: 'User',
     features: ['Discreet delivery', 'Ongoing support', 'Doctor chat'],
-  },
-  {
-    slug: 'referral',
-    name: 'Specialist Referral',
-    description: 'Referrals to specialists, imaging, or pathology',
-    price: '$34.95',
-    time: '~1 hour',
-    icon: 'Stethoscope',
-    features: ['All specialties', 'Valid 12 months', 'Medicare eligible'],
   },
 ]

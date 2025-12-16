@@ -1,4 +1,8 @@
-export type ServiceType = 'sick_cert' | 'prescription' | 'pathology' | 'referral'
+export type ServiceType = 'sick_cert' | 'prescription'
+
+// Deprecated service types - kept for backwards compatibility with existing DB records
+export type DeprecatedServiceType = 'pathology' | 'referral'
+export type AllServiceTypes = ServiceType | DeprecatedServiceType
 
 export type ConsultationStatus = 'pending' | 'approved' | 'declined' | 'needs_follow_up'
 

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { FileText, Pill, Stethoscope, Mail, Zap, Heart, Shield, Scale } from "lucide-react"
+import { FileText, Pill, Mail, Zap, Heart, Shield, Scale } from "lucide-react"
 import { RotatingReviews } from "@/components/homepage/dynamic-social-proof"
 
 export function Footer() {
@@ -16,7 +16,7 @@ export function Footer() {
               <span className="text-base font-semibold">InstantMed</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Medical certificates, prescriptions & referrals — handled online, no phone call needed.
+              Medical certificates & prescriptions — handled online, no phone call needed.
             </p>
             <div className="pt-3">
               <RotatingReviews />
@@ -43,15 +43,6 @@ export function Footer() {
                 >
                   <Pill className="h-4 w-4" aria-hidden="true" />
                   Prescriptions
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/referrals/pathology-imaging/request"
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Stethoscope className="h-4 w-4" aria-hidden="true" />
-                  Pathology & Imaging
                 </Link>
               </li>
             </ul>

@@ -17,6 +17,12 @@ const colorMap = {
     icon: 'text-emerald-600 bg-emerald-100',
     text: 'text-emerald-700',
   },
+  cyan: {
+    bg: 'bg-cyan-50 hover:bg-cyan-100/80',
+    border: 'border-cyan-200/60 hover:border-cyan-300',
+    icon: 'text-cyan-600 bg-cyan-100',
+    text: 'text-cyan-700',
+  },
   violet: {
     bg: 'bg-violet-50 hover:bg-violet-100/80',
     border: 'border-violet-200/60 hover:border-violet-300',

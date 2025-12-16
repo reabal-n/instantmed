@@ -12,7 +12,6 @@ export {
   medCertConfig,
   commonScriptsConfig,
   prescriptionConfig,
-  referralConfig,
   weightConfig,
   mensHealthConfig,
 } from './configs'

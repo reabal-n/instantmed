@@ -33,8 +33,8 @@ export default function HomePage() {
               <span className="text-primary"> Within 1 hour.</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Skip the waiting room. Get prescriptions, medical certificates, and specialist 
-              referrals from Australian-registered doctors — all online, all within an hour.
+              Skip the waiting room. Get prescriptions and medical certificates from 
+              Australian-registered doctors — all online, all within an hour.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>

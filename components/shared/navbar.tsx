@@ -54,12 +54,6 @@ const services = [
     description: "Repeat scripts & reviews",
     icon: Pill,
   },
-  {
-    title: "Pathology & Imaging",
-    href: "/referrals/pathology-imaging/request",
-    description: "Blood tests & scans",
-    icon: Stethoscope,
-  },
 ]
 
 const healthVerticals = [

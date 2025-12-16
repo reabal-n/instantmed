@@ -62,8 +62,6 @@ Your information will be used to:
 4. DISCLOSURE
 We may disclose your information to:
 - Pharmacies (for prescriptions)
-- Pathology and imaging providers
-- Specialists (for referrals)
 - Medicare and PBS systems
 - As required by law
 
@@ -93,15 +91,13 @@ The fee for this consultation is displayed before checkout. This is a private co
 2. WHAT'S INCLUDED
 Your fee includes:
 - Review of your request by an Australian-registered doctor
-- Any required documentation (certificate, prescription, referral)
+- Any required documentation (certificate, prescription)
 - Secure delivery of documents via email and patient portal
 - Follow-up messaging if the doctor needs clarification
 
 3. NOT INCLUDED
 Additional costs you may incur:
 - Prescription medications (payable at pharmacy)
-- Pathology or imaging tests
-- Specialist consultation fees
 - Any required follow-up consultations
 
 4. REFUND POLICY

@@ -32,7 +32,6 @@ import {
   MessageSquare,
   Download,
   FileEdit,
-  FlaskConical,
 } from "lucide-react"
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument } from "@/types/db"
@@ -160,26 +159,12 @@ export function RequestDetailClient({
 
   const isMedCert = request.category === "medical_certificate"
   const isPrescription = request.category === "prescription"
+  
+  // Deprecated services - no longer offered
   const isReferral = request.category === "referral"
-  const isSpecialistReferral = isReferral && request.subtype === "specialist"
-  const isPathologyReferral = isReferral && request.subtype === "pathology-imaging"
+  const isPathology = request.category === "pathology"
+  const isDeprecatedService = isReferral || isPathology
 
-  const referralAnswers = {
-    // Specialist fields
-    specialistType: answers.specialist_type_label || answers.specialist_type,
-    diagnosisStatus: answers.diagnosis_status_label || answers.diagnosis_status,
-    duration: answers.duration_label || answers.duration,
-    impact: answers.impact_label || answers.impact,
-    reasonForReferral: answers.reason_for_referral,
-    existingSpecialist: answers.existing_specialist,
-    // Pathology/imaging fields
-    testTypes: answers.test_types_labels || answers.test_types,
-    recommendation: answers.recommendation_label || answers.recommendation,
-    symptomDuration: answers.symptom_duration_label || answers.symptom_duration,
-    severity: answers.severity_label || answers.severity,
-    symptomsConcern: answers.symptoms_concern,
-    previousTests: answers.previous_tests,
-  }
 
   // Medical cert / prescription grouped answers
   const groupedAnswersForPrescriptionAndMedCert = {
@@ -250,6 +235,26 @@ export function RequestDetailClient({
           <div className="flex items-center gap-2">
             {actionMessage.type === "success" ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
             <span>{actionMessage.text}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Deprecated Service Warning */}
+      {isDeprecatedService && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-800">Service No Longer Offered</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                {isReferral 
+                  ? "Referral services have been discontinued. Please decline this request with an explanation to the patient."
+                  : "Pathology & imaging referral services have been discontinued. Please decline this request with an explanation to the patient."}
+              </p>
+              <p className="text-sm text-amber-600 mt-2">
+                Suggested decline message: &quot;We apologize, but this service is no longer available through InstantMed. Please visit your local GP for this request.&quot;
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -433,12 +438,13 @@ export function RequestDetailClient({
               Build Certificate
             </Link>
           </Button>
-        ) : isPathologyReferral ? (
-          <Button asChild disabled={isPending || request.status !== "pending"} className="rounded-xl btn-glow">
-            <Link href={`/doctor/requests/${request.id}/pathology-document`}>
-              <FlaskConical className="mr-2 h-4 w-4" />
-              Build Pathology Request
-            </Link>
+        ) : isDeprecatedService ? (
+          <Button
+            disabled
+            className="rounded-xl opacity-50 cursor-not-allowed"
+          >
+            <XCircle className="mr-2 h-4 w-4" />
+            Service Discontinued
           </Button>
         ) : (
           <Button
@@ -472,12 +478,13 @@ export function RequestDetailClient({
                   Build Cert
                 </Link>
               </Button>
-            ) : isPathologyReferral ? (
-              <Button asChild disabled={isPending} className="flex-1 rounded-xl btn-glow">
-                <Link href={`/doctor/requests/${request.id}/pathology-document`}>
-                  <FlaskConical className="mr-2 h-4 w-4" />
-                  Build Request
-                </Link>
+            ) : isDeprecatedService ? (
+              <Button
+                disabled
+                className="flex-1 rounded-xl opacity-50 cursor-not-allowed"
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Discontinued
               </Button>
             ) : (
               <Button

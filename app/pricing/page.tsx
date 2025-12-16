@@ -33,16 +33,6 @@ const services = [
     iconType: "pill" as const,
     color: "#06B6D4",
   },
-  {
-    name: "Referral",
-    price: 29.95,
-    description: "Specialist & pathology referrals",
-    features: ["Valid for 12 months", "All specialist types", "Pathology & imaging", "Medicare eligible"],
-    popular: false,
-    href: "/referrals",
-    iconType: "referral" as const,
-    color: "#8B5CF6",
-  },
 ]
 
 const faqs = [
@@ -60,7 +50,7 @@ const faqs = [
   },
   {
     q: "Is this covered by Medicare?",
-    a: "Our service fee isn't Medicare rebateable, but any referrals we provide are valid for Medicare rebates with specialists.",
+    a: "Our service fee isn't Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
   },
 ]
 
@@ -94,7 +84,7 @@ export default function PricingPage() {
         {/* Pricing Cards */}
         <section className="px-4 py-12 sm:px-6 bg-mesh">
           <div className="mx-auto max-w-5xl">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {services.map((service, index) => (
                 <TiltCard
                   key={service.name}

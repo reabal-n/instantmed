@@ -80,66 +80,6 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       },
     ],
   },
-  "pathology-referrals": {
-    title: "Online Pathology Referral Australia | Blood Test Referral | InstantMed",
-    description:
-      "Request pathology referrals online for blood tests and lab work. Same-day referrals from AHPRA-registered Australian doctors. No phone call needed.",
-    keywords: [
-      "online pathology referral",
-      "blood test referral online",
-      "pathology request online",
-      "online blood test order",
-      "telehealth pathology referral",
-      "lab test referral australia",
-    ],
-    faqSchema: [
-      {
-        question: "Can I get a blood test referral online?",
-        answer:
-          "Yes. You can request a pathology referral online and an AHPRA-registered doctor will review your request. If appropriate, they'll issue a referral you can take to any pathology collection centre.",
-      },
-      {
-        question: "Which pathology tests can be requested?",
-        answer:
-          "Common tests include full blood count, liver function, kidney function, thyroid, cholesterol, iron studies, diabetes screening, and STI tests. The doctor will assess whether the requested tests are appropriate.",
-      },
-      {
-        question: "Where can I get my blood test done?",
-        answer:
-          "You can take your referral to any pathology collection centre in Australia, including Laverty, Douglass Hanly Moir, QML, and others.",
-      },
-    ],
-  },
-  "imaging-referrals": {
-    title: "Online Imaging Referral Australia | X-Ray & Ultrasound | InstantMed",
-    description:
-      "Request imaging referrals online for X-rays, ultrasounds, CT and MRI scans. Reviewed by AHPRA-registered Australian doctors. Same-day service.",
-    keywords: [
-      "online imaging referral",
-      "x-ray referral online",
-      "ultrasound referral online",
-      "CT scan referral",
-      "MRI referral online",
-      "radiology referral australia",
-    ],
-    faqSchema: [
-      {
-        question: "Can I get an X-ray referral online?",
-        answer:
-          "Yes. You can request imaging referrals online for X-rays, ultrasounds, CT scans, and MRIs. An AHPRA-registered doctor will review your request and determine if a referral is appropriate.",
-      },
-      {
-        question: "Do I need to see a doctor in person for imaging?",
-        answer:
-          "For many imaging requests, an in-person consultation is not required. However, the doctor may contact you if they need more information, or recommend an in-person assessment for complex cases.",
-      },
-      {
-        question: "Where can I get my imaging done?",
-        answer:
-          "You can take your referral to any radiology clinic in Australia. The referral will specify what imaging is required.",
-      },
-    ],
-  },
 }
 
 export function generateServiceMetadata(service: keyof typeof serviceSEO): Metadata {
@@ -206,25 +146,17 @@ export function generateMedicalServiceSchema(service: string, name: string, desc
 // Internal linking structure for SEO
 export const internalLinks = {
   "medical-certificate": {
-    related: ["/prescriptions", "/referrals/pathology-imaging", "/how-it-works", "/pricing"],
+    related: ["/prescriptions", "/how-it-works", "/pricing"],
     breadcrumb: [
       { name: "Home", href: "/" },
       { name: "Medical Certificates", href: "/medical-certificate" },
     ],
   },
   prescriptions: {
-    related: ["/medical-certificate", "/referrals/pathology-imaging", "/how-it-works", "/pricing"],
+    related: ["/medical-certificate", "/how-it-works", "/pricing"],
     breadcrumb: [
       { name: "Home", href: "/" },
       { name: "Prescriptions", href: "/prescriptions" },
-    ],
-  },
-  "pathology-imaging": {
-    related: ["/medical-certificate", "/prescriptions", "/how-it-works", "/pricing"],
-    breadcrumb: [
-      { name: "Home", href: "/" },
-      { name: "Referrals", href: "/referrals" },
-      { name: "Pathology & Imaging", href: "/referrals/pathology-imaging" },
     ],
   },
 }

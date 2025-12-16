@@ -7,7 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/medical-certificate",
     "/prescriptions",
-    "/referrals",
     "/pricing",
     "/how-it-works",
     "/faq",
