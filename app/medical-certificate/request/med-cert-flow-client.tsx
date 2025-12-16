@@ -705,6 +705,7 @@ export function MedCertFlowClient({
         type: "med_cert",
         guestEmail: formData.guestEmail || formData.email,
         guestName: formData.fullName || undefined,
+        guestDateOfBirth: formData.dateOfBirth || undefined,
         answers: {
           certificate_type: formData.certType,
           duration: formData.duration,

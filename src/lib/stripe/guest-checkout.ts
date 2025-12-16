@@ -21,6 +21,7 @@ interface GuestCheckoutInput {
   answers: Record<string, unknown>
   guestEmail: string
   guestName?: string
+  guestDateOfBirth?: string
 }
 
 interface CheckoutResult {
@@ -156,6 +157,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         .insert({
           email: normalizedEmail,
           full_name: input.guestName || normalizedEmail.split("@")[0],
+          date_of_birth: input.guestDateOfBirth || null,
           auth_user_id: null, // Guest profile - will be linked after account creation
           role: "patient",
         })

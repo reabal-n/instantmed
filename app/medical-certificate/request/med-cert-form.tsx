@@ -974,6 +974,7 @@ export function MedCertForm({
             type: "med_cert",
             guestEmail: formData.email,
             guestName: formData.fullName || undefined,
+            guestDateOfBirth: formData.dateOfBirth || undefined,
             answers,
           })
         }
