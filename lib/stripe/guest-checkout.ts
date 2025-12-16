@@ -104,7 +104,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           full_name: input.guestName || normalizedEmail.split("@")[0],
           auth_user_id: null, // Guest profile - will be linked after account creation
           role: "patient",
-          onboarding_completed: false,
         })
         .select()
         .single()

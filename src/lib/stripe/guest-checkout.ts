@@ -147,7 +147,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           full_name: input.guestName || normalizedEmail.split("@")[0],
           auth_user_id: null, // Guest profile - will be linked after account creation
           role: "patient",
-          onboarding_completed: false,
         })
         .select()
         .single()
@@ -157,6 +156,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           error: profileError,
           code: (profileError as any)?.code,
           message: (profileError as any)?.message,
+          details: (profileError as any)?.details,
+          hint: (profileError as any)?.hint,
           email: normalizedEmail,
         })
         
@@ -165,6 +166,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           return { 
             success: false, 
             error: "An account already exists with this email. Please sign in to continue." 
+          }
+        }
+        
+        // Check for NOT NULL violation on auth_user_id (migration not applied)
+        if ((profileError as any)?.code === '23502') {
+          console.error("[Guest Checkout] NOT NULL constraint violation - migration may not be applied")
+          return { 
+            success: false, 
+            error: "System configuration error. Please try signing in with Google instead." 
           }
         }
         
