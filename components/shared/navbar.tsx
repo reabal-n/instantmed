@@ -10,7 +10,6 @@ import {
   User,
   FileText,
   Pill,
-  Stethoscope,
   ChevronRight,
   LayoutDashboard,
   ClipboardList,

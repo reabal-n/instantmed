@@ -1,10 +1,10 @@
 import Link from "next/link"
-import { FileText, Pill, Stethoscope, TestTube } from "lucide-react"
+import { FileText, Pill } from "lucide-react"
 
 export const metadata = {
   title: "Get Started | InstantMed",
   description:
-    "Start your telehealth consultation with InstantMed. Medical certificates, prescriptions, and referrals from AHPRA-registered doctors.",
+    "Start your telehealth consultation with InstantMed. Medical certificates and prescriptions from AHPRA-registered doctors.",
 }
 
 const services = [
@@ -21,20 +21,6 @@ const services = [
     href: "/prescriptions",
     icon: Pill,
     color: "bg-blue-500",
-  },
-  {
-    title: "Specialist Referral",
-    description: "Referrals to specialists and allied health",
-    href: "/referrals",
-    icon: Stethoscope,
-    color: "bg-purple-500",
-  },
-  {
-    title: "Pathology & Imaging",
-    description: "Blood tests, x-rays, and diagnostic imaging",
-    href: "/referrals/pathology-imaging",
-    icon: TestTube,
-    color: "bg-amber-500",
   },
 ]
 

@@ -90,7 +90,6 @@ const seoPages: Record<
     ],
     relatedLinks: [
       { href: "/prescriptions", text: "All Prescriptions" },
-      { href: "/referrals/pathology-imaging", text: "Blood Tests" },
     ],
   },
   "uti-treatment-online": {
@@ -113,30 +112,6 @@ const seoPages: Record<
     ],
     relatedLinks: [
       { href: "/womens-health", text: "Women's Health" },
-      { href: "/referrals/pathology-imaging", text: "Urine Test Referral" },
-    ],
-  },
-  "referral-to-dermatologist": {
-    title: "Dermatologist Referral Online | InstantMed",
-    h1: "Get a Referral to a Dermatologist Online",
-    description:
-      "Need to see a dermatologist? Get a detailed referral letter online without visiting a GP first. Includes your history and concerns.",
-    keywords: ["dermatologist referral online", "skin specialist referral", "online referral to dermatologist"],
-    ctaHref: "/referrals/request?specialist=dermatologist",
-    ctaText: "Request Dermatologist Referral",
-    faqs: [
-      {
-        q: "Do I need a referral to see a dermatologist?",
-        a: "Yes, in Australia you need a GP referral to claim Medicare rebates for specialist consultations.",
-      },
-      {
-        q: "Can I choose which dermatologist to see?",
-        a: "Absolutely. We can address the referral to a specific dermatologist or leave it open for any dermatologist.",
-      },
-    ],
-    relatedLinks: [
-      { href: "/referrals", text: "All Referrals" },
-      { href: "/referrals/pathology-imaging", text: "Skin Biopsy Referral" },
     ],
   },
 }

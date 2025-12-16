@@ -15,7 +15,6 @@ const navItems = [
 const quickLinks = [
   { href: "/medical-certificate", label: "Med Certificate" },
   { href: "/prescriptions", label: "Prescription" },
-  { href: "/referrals", label: "Referral" },
 ]
 
 export function PatientSidebar() {

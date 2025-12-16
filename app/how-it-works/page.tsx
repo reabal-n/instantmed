@@ -21,7 +21,7 @@ import {
 export const metadata = {
   title: "How It Works | InstantMed",
   description:
-    "Get a medical certificate, prescription, or referral reviewed by an Australian doctor. Submit online, receive a response usually within hours.",
+    "Get a medical certificate or prescription reviewed by an Australian doctor. Submit online, receive a response usually within hours.",
 }
 
 const steps = [
@@ -50,7 +50,7 @@ const steps = [
     title: "Get your document",
     subtitle: "Delivered digitally",
     description:
-      "If approved: Med cert emailed as PDF. Script sent as e-prescription to any pharmacy. Referral sent to your specialist. If not approved, you get a full refund.",
+      "If approved: Med cert emailed as PDF. Script sent as e-prescription to any pharmacy. If not approved, you get a full refund.",
     icon: FileCheck,
     color: "from-emerald-500 to-teal-500",
     emoji: "✅",
@@ -98,13 +98,6 @@ const useCases = [
       "Already on a stable medication? A doctor reviews your history and can send a repeat script to your pharmacy if appropriate.",
     time: "Same day",
     emoji: "💊",
-  },
-  {
-    title: "GP said I need a specialist",
-    description:
-      "Request a referral online. A doctor reviews your situation and prepares a referral letter valid for Medicare.",
-    time: "24 hours",
-    emoji: "🏥",
   },
 ]
 
@@ -303,9 +296,6 @@ export default function HowItWorksPage() {
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent">
                     <Link href="/prescriptions">Get Script</Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent">
-                    <Link href="/referrals">Get Referral</Link>
                   </Button>
                 </div>
               </TiltCard>

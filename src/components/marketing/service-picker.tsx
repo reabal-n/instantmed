@@ -56,7 +56,7 @@ export function ServicePicker() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid sm:grid-cols-2 gap-4 lg:gap-6 max-w-2xl mx-auto">
           {serviceCategories.map((service) => {
             const Icon = iconMap[service.icon as keyof typeof iconMap]
             const colors = colorMap[service.color as keyof typeof colorMap]

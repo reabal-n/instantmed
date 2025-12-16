@@ -63,15 +63,6 @@ const services = [
     href: "/prescriptions/request?condition=menopause&vertical=womens-health",
     color: "#06B6D4",
   },
-  {
-    id: "pcos",
-    title: "PCOS Blood Tests",
-    description: "Hormone panel, glucose, and other relevant pathology.",
-    price: "$29.95",
-    time: "~1 hour",
-    href: "/referrals/pathology-imaging/request?condition=pcos&vertical=womens-health",
-    color: "#00E2B5",
-  },
 ]
 
 export default function WomensHealthPage() {

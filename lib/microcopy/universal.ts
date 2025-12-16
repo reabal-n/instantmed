@@ -15,7 +15,6 @@ export const COPY = {
     price: {
       medcert: "$19.99",
       prescription: "$19.99",
-      referral: "$29.99",
     },
   },
 
@@ -33,11 +32,6 @@ export const COPY = {
         label: "Prescription",
         description: "Refills and new scripts.",
         icon: "Pill",
-      },
-      referral: {
-        label: "Referral",
-        description: "Blood tests & imaging.",
-        icon: "ClipboardList",
       },
     },
   },

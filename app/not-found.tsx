@@ -64,7 +64,6 @@ export default function NotFound() {
             {[
               { href: "/medical-certificate", label: "Med Cert" },
               { href: "/prescriptions", label: "Prescriptions" },
-              { href: "/referrals", label: "Referrals" },
               { href: "/faq", label: "FAQ" },
             ].map((link) => (
               <Link

@@ -104,8 +104,6 @@ const cities: Record<
 const services = [
   { name: "Medical Certificates", href: "/medical-certificate", price: "From $19.95" },
   { name: "Prescriptions", href: "/prescriptions", price: "From $24.95" },
-  { name: "Specialist Referrals", href: "/referrals", price: "From $29.95" },
-  { name: "Pathology Referrals", href: "/pathology", price: "From $24.95" },
 ]
 
 interface PageProps {
@@ -119,7 +117,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state} | InstantMed`,
-    description: `Get online doctor consultations in ${cityData.name}. Medical certificates, prescriptions, and referrals from AHPRA-registered doctors. Serving all of ${cityData.state}.`,
+    description: `Get online doctor consultations in ${cityData.name}. Medical certificates and prescriptions from AHPRA-registered doctors. Serving all of ${cityData.state}.`,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,
       `telehealth ${cityData.name.toLowerCase()}`,
@@ -183,7 +181,7 @@ export default async function CityPage({ params }: PageProps) {
                 Online Doctor in {cityData.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get medical certificates, prescriptions, and referrals online — reviewed by
+                Skip the waiting room. Get medical certificates and prescriptions online — reviewed by
                 Australian doctors, delivered to your phone.
               </p>
 
