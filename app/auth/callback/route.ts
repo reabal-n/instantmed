@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createServiceClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
@@ -7,95 +7,111 @@ export async function GET(request: Request) {
   const redirectTo = searchParams.get("redirect")
   const flow = searchParams.get("flow")
 
-  console.log("[v0] OAuth callback received", { code: !!code, redirectTo, flow })
+  console.log("[Auth Callback] OAuth callback received", { code: !!code, redirectTo, flow })
 
   if (code) {
+    // Use regular client for auth (needs cookies)
     const supabase = await createClient()
+    
+    // Use service client for profile operations (bypasses RLS)
+    const serviceClient = createServiceClient()
 
-    console.log("[v0] Exchanging code for session")
+    console.log("[Auth Callback] Exchanging code for session")
     const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error("[v0] Session exchange failed:", exchangeError)
+      console.error("[Auth Callback] Session exchange failed:", exchangeError)
       return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
     }
 
     if (!sessionData.user) {
-      console.error("[v0] No user after session exchange")
+      console.error("[Auth Callback] No user after session exchange")
       return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
     }
 
     const user = sessionData.user
-    console.log("[v0] Session created for user:", user.id)
+    console.log("[Auth Callback] Session created for user:", user.id, user.email)
 
-    const { data: existingProfile } = await supabase
+    // Use service client for all profile operations
+    const { data: existingProfile, error: profileQueryError } = await serviceClient
       .from("profiles")
       .select("id, role, onboarding_completed")
       .eq("auth_user_id", user.id)
       .single()
 
+    if (profileQueryError && profileQueryError.code !== 'PGRST116') {
+      console.error("[Auth Callback] Error querying profile:", profileQueryError)
+    }
+
+    let finalProfile = existingProfile
+
     if (!existingProfile) {
-      console.log("[v0] No existing profile for auth user, checking for guest profile")
+      console.log("[Auth Callback] No existing profile for auth user, checking for guest profile")
 
       // Check if there's a guest profile with this email that we should link
-      const { data: guestProfile } = await supabase
+      const { data: guestProfile } = await serviceClient
         .from("profiles")
-        .select("id")
+        .select("id, onboarding_completed")
         .eq("email", user.email)
         .is("auth_user_id", null)
         .single()
 
       if (guestProfile) {
         // Link the guest profile to this auth user
-        console.log("[v0] Linking guest profile to auth user:", guestProfile.id)
-        const { error: linkError } = await supabase
+        console.log("[Auth Callback] Linking guest profile to auth user:", guestProfile.id)
+        const { error: linkError } = await serviceClient
           .from("profiles")
           .update({ 
             auth_user_id: user.id,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User",
           })
           .eq("id", guestProfile.id)
 
         if (linkError) {
-          console.error("[v0] Failed to link guest profile:", linkError)
+          console.error("[Auth Callback] Failed to link guest profile:", linkError)
         } else {
-          console.log("[v0] Guest profile linked successfully")
+          console.log("[Auth Callback] Guest profile linked successfully")
+          finalProfile = { id: guestProfile.id, role: "patient", onboarding_completed: guestProfile.onboarding_completed }
         }
       } else {
-        // Create new profile
-        console.log("[v0] Creating new profile for OAuth user")
+        // Create new profile using service client
+        console.log("[Auth Callback] Creating new profile for OAuth user")
         const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
 
-        const { error: profileError } = await supabase.from("profiles").insert({
-          auth_user_id: user.id,
-          email: user.email,
-          full_name: fullName,
-          role: "patient",
-          onboarding_completed: false,
-        })
+        const { data: newProfile, error: profileError } = await serviceClient
+          .from("profiles")
+          .insert({
+            auth_user_id: user.id,
+            email: user.email,
+            full_name: fullName,
+            role: "patient",
+          })
+          .select("id, role, onboarding_completed")
+          .single()
 
         if (profileError) {
-          console.error("[v0] Failed to create profile:", profileError)
+          console.error("[Auth Callback] Failed to create profile:", profileError)
           return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
         }
 
-        console.log("[v0] Profile created successfully")
+        console.log("[Auth Callback] Profile created successfully:", newProfile?.id)
+        finalProfile = newProfile
       }
     }
 
     // Always return to questionnaire flow if that's where we came from
     if (flow === "questionnaire" && redirectTo) {
-      console.log("[v0] Returning to questionnaire flow:", redirectTo)
+      console.log("[Auth Callback] Returning to questionnaire flow:", redirectTo)
       return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
     }
 
-    if (existingProfile) {
-      if (existingProfile.role === "patient") {
-        if (!existingProfile.onboarding_completed && !redirectTo) {
+    if (finalProfile) {
+      if (finalProfile.role === "patient") {
+        if (!finalProfile.onboarding_completed && !redirectTo) {
           return NextResponse.redirect(`${origin}/patient/onboarding`)
         }
         return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
-      } else if (existingProfile.role === "doctor") {
+      } else if (finalProfile.role === "doctor") {
         return NextResponse.redirect(`${origin}/doctor`)
       }
     }
@@ -105,6 +121,6 @@ export async function GET(request: Request) {
   }
 
   // No code provided
-  console.error("[v0] No OAuth code in callback")
+  console.error("[Auth Callback] No OAuth code in callback")
   return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
 }
