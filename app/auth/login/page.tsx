@@ -89,7 +89,10 @@ export default function LoginPage() {
         throw new Error("Failed to get user after login")
       }
 
-      console.log("[v0] Login successful, checking profile")
+      console.log("[Login Page] Login successful, checking profile", {
+        userId: authData.user.id,
+        email: authData.user.email,
+      })
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -97,10 +100,25 @@ export default function LoginPage() {
         .eq("auth_user_id", authData.user.id)
         .single()
 
-      if (profileError || !profile) {
-        console.error("[v0] Profile not found:", profileError)
+      if (profileError) {
+        console.error("[Login Page] Profile query error:", {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+        })
         throw new Error("Profile not found. Please contact support.")
       }
+
+      if (!profile) {
+        console.error("[Login Page] Profile not found for user:", authData.user.id)
+        throw new Error("Profile not found. Please contact support.")
+      }
+
+      console.log("[Login Page] Profile found", {
+        role: profile.role,
+        onboardingCompleted: profile.onboarding_completed,
+      })
 
       console.log("[v0] Profile found, redirecting based on role:", profile.role)
 

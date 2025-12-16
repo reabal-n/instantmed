@@ -145,7 +145,11 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     const supabase = createClient()
 
     try {
-      console.log("[v0] Starting signup process")
+      console.log("[Inline Auth] Starting signup process", {
+        email,
+        hasFullName: !!fullName,
+        hasDateOfBirth: !!dateOfBirth,
+      })
 
       // Store profile data for later - will be used after email confirmation or immediately
       sessionStorage.setItem("pending_profile_name", fullName)
@@ -153,12 +157,14 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
 
+      const emailRedirectTo = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}${window.location.pathname}`
+      console.log("[Inline Auth] Signing up with redirect:", emailRedirectTo)
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}${window.location.pathname}`,
+          emailRedirectTo,
           data: {
             full_name: fullName,
             date_of_birth: dateOfBirth,
@@ -168,7 +174,11 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       })
 
       if (signUpError) {
-        console.error("[v0] Signup error:", signUpError)
+        console.error("[Inline Auth] Signup error:", {
+          message: signUpError.message,
+          status: signUpError.status,
+          code: signUpError.code,
+        })
         if (signUpError.message.includes("weak") || signUpError.message.includes("password")) {
           throw new Error("Please choose a password with at least 6 characters")
         }
@@ -176,36 +186,43 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       }
 
       if (!authData.user) {
+        console.error("[Inline Auth] No user returned from signup")
         throw new Error("Failed to create account")
       }
 
-      console.log("[v0] User created successfully, session:", !!authData.session)
+      console.log("[Inline Auth] User created successfully", {
+        userId: authData.user.id,
+        email: authData.user.email,
+        hasSession: !!authData.session,
+        emailConfirmed: authData.user.email_confirmed_at ? true : false,
+      })
 
       // Check if we have an active session (email confirmation disabled or auto-confirmed)
       if (authData.session) {
-        console.log("[v0] User is auto-confirmed, creating profile")
+        console.log("[Inline Auth] User is auto-confirmed, creating profile")
 
         const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
 
         if (profileError) {
-          console.error("[v0] Profile creation error:", profileError)
+          console.error("[Inline Auth] Profile creation error:", profileError)
           throw new Error(profileError)
         }
 
         if (!profileId) {
+          console.error("[Inline Auth] Profile creation returned no profileId")
           throw new Error("Failed to create profile. Please try again or contact support.")
         }
 
-        console.log("[v0] Profile created successfully, completing flow")
+        console.log("[Inline Auth] Profile created successfully, completing flow", { profileId })
         onAuthComplete(authData.user.id, profileId)
         router.refresh()
       } else {
         // The user doesn't exist in auth.users until they confirm
-        console.log("[v0] Email confirmation required, showing check-email screen")
+        console.log("[Inline Auth] Email confirmation required, showing check-email screen")
         setMode("check-email")
       }
     } catch (err) {
-      console.error("[v0] Signup flow error:", err)
+      console.error("[Inline Auth] Signup flow error:", err)
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
@@ -221,16 +238,32 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     const supabase = createClient()
 
     try {
+      console.log("[Inline Auth] Starting signin process", { email })
+
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (signInError) throw signInError
+      if (signInError) {
+        console.error("[Inline Auth] Signin error:", {
+          message: signInError.message,
+          status: signInError.status,
+          code: signInError.code,
+        })
+        throw signInError
+      }
 
       if (!authData.user) {
+        console.error("[Inline Auth] No user returned from signin")
         throw new Error("Failed to sign in")
       }
+
+      console.log("[Inline Auth] Signin successful", {
+        userId: authData.user.id,
+        email: authData.user.email,
+        emailConfirmed: authData.user.email_confirmed_at ? true : false,
+      })
 
       // Get or create profile - user is confirmed so this will work
       const pendingName = sessionStorage.getItem("pending_profile_name")
@@ -238,11 +271,19 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       const userName = pendingName || authData.user.user_metadata?.full_name || ""
       const userDob = pendingDob || authData.user.user_metadata?.date_of_birth || ""
 
+      console.log("[Inline Auth] Getting or creating profile", {
+        userName,
+        hasDob: !!userDob,
+      })
+
       const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, userName, userDob)
 
       if (profileError || !profileId) {
+        console.error("[Inline Auth] Profile error:", { profileError, profileId })
         throw new Error(profileError || "Failed to create profile")
       }
+
+      console.log("[Inline Auth] Profile ready", { profileId })
 
       // Clear pending data
       sessionStorage.removeItem("pending_profile_name")
@@ -251,6 +292,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       onAuthComplete(authData.user.id, profileId)
       router.refresh()
     } catch (err) {
+      console.error("[Inline Auth] Signin flow error:", err)
       setError(err instanceof Error ? err.message : "Invalid email or password")
     } finally {
       setIsLoading(false)
