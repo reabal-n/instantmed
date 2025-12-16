@@ -743,13 +743,12 @@ export function MedCertFlowClient({
     }
   }
 
-  // Submit and pay
+  // Submit and pay (authenticated users only)
   const handleSubmit = async () => {
-    // Removed authentication check and direct payment submission
-    // If not authenticated and no guest email, redirect to patient details or signup
-    if (!isAuthenticated && !formData.guestEmail) {
-      setError("Please provide your details or log in to proceed.")
-      setStep("patientDetails") // Redirect to patient details for guests
+    // This function requires authentication - guests should use handleGuestCheckout() instead
+    if (!isAuthenticated) {
+      setError("Please log in to proceed, or use guest checkout.")
+      setStep("patientDetails")
       return
     }
 
@@ -791,7 +790,7 @@ export function MedCertFlowClient({
     }
 
     try {
-      // Use createGuestCheckoutAction if not authenticated
+      // Create request and redirect to Stripe checkout (authenticated users only)
       const result = await createRequestAndCheckoutAction({
         category: "medical_certificate",
         subtype: formData.certType || "work",

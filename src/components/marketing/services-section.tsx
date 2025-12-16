@@ -10,13 +10,13 @@ export function ServicesSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">
-            Our services
+            🩺 What we do
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Healthcare that fits your life
+            Healthcare that respects your time
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            From quick certificates to ongoing treatment plans. All reviewed by Australian doctors.
+            Certificates, scripts, referrals — all reviewed by real Australian GPs. Pick what you need below.
           </p>
         </div>
 

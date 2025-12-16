@@ -8,37 +8,37 @@ const features = [
   {
     icon: Pill,
     title: "Prescriptions",
-    description: "Get your regular medications renewed quickly. No need to visit a GP for repeat prescriptions.",
+    description: "Keep your regular meds coming without the GP waitlist. eScript sent straight to your pharmacy.",
     color: "#00E2B5",
   },
   {
     icon: FileText,
     title: "Medical Certificates",
-    description: "Legally valid certificates accepted by employers and institutions. Usually approved within 1 hour.",
+    description: "Employer-ready certs for work, uni, or carer's leave. In your inbox same-day.",
     color: "#06B6D4",
   },
   {
     icon: FlaskConical,
     title: "Pathology & Imaging",
-    description: "Request blood tests, scans, and other diagnostic tests. Referrals sent directly to your chosen provider.",
+    description: "Blood tests, scans, and diagnostics. Referral sent direct to your chosen provider.",
     color: "#8B5CF6",
   },
   {
     icon: Stethoscope,
     title: "Specialist Referrals",
-    description: "Get referred to specialists when needed. Fast, professional, and accepted by all Australian specialists.",
+    description: "Need to see someone specific? Get referred without the runaround.",
     color: "#EC4899",
   },
   {
     icon: Clock,
-    title: "1 Hour Approval",
-    description: "AHPRA-registered doctors review and approve (if appropriate) within 1 hour. No calls needed.",
+    title: "~1 Hour Turnaround",
+    description: "Most requests reviewed and done within an hour. Because your time matters.",
     color: "#F59E0B",
   },
   {
     icon: Shield,
-    title: "AHPRA Registered",
-    description: "All doctors are fully registered with AHPRA and hold valid medical licenses to practice in Australia.",
+    title: "Real Australian GPs",
+    description: "Every doctor is AHPRA-registered and actively practicing. No shortcuts.",
     color: "#10B981",
   },
 ]
@@ -49,16 +49,16 @@ export function FeaturesSection() {
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4">
-            <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="Our services" />
+            <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="What we offer" />
           </div>
           <h2
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Telehealth services made simple
+            Everything you need, nothing you don't 🎯
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            No calls needed. AHPRA registered doctors review and approve (if appropriate) within 1 hour.
+            Real Australian GPs reviewing your request — usually done in about an hour. No phone calls required.
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -14,13 +14,13 @@ export function HowItWorks() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">
-            How it works
+            ✨ How it works
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Three simple steps
+            From request to done in three steps
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            No phone queues. No video calls required. Just straightforward online healthcare.
+            No phone trees. No video calls. No leaving your couch. Just healthcare that works.
           </p>
         </div>
 

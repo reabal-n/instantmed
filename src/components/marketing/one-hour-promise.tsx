@@ -23,16 +23,16 @@ export function OneHourPromise() {
           <div className="text-white">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-sm font-medium mb-6">
               <Clock className="h-4 w-4" />
-              Our commitment
+              ⏱️ Our promise
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              The 1-hour promise
+              Done in about an hour
             </h2>
             
             <p className="text-xl text-emerald-100 mb-8 leading-relaxed">
-              Most requests reviewed within {slaPolicy.standardTurnaround}. 
-              That's our commitment to you.
+              Most requests are reviewed within {slaPolicy.standardTurnaround}. 
+              We respect your time — that's the whole point.
             </p>
 
             <div className="space-y-4 mb-8">

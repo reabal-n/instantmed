@@ -145,8 +145,8 @@ export function HeroSection() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E2B5] opacity-75" />
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00E2B5]" />
                     </span>
-                    <span className="text-sm font-medium">12 doctors online now</span>
-                    <span className="text-xs text-muted-foreground">• Average wait: 8 min</span>
+                    <span className="text-sm font-medium">⚡ Doctors reviewing now</span>
+                    <span className="text-xs text-muted-foreground">• ~1 hour turnaround</span>
                   </motion.div>
                 </div>
 
@@ -179,8 +179,8 @@ export function HeroSection() {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0"
                   >
-                    Prescriptions, medical certificates & referrals in under an hour. 
-                    No video calls. No waiting rooms. Just results.
+                    Certificates, scripts, and referrals — reviewed by real Australian GPs. 
+                    No appointments. No phone queues. Just healthcare that works.
                   </motion.p>
                 </div>
 
@@ -196,7 +196,7 @@ export function HeroSection() {
                       <Button size="lg" asChild className="rounded-full btn-premium px-8 text-base h-14 shadow-lg shadow-[#00E2B5]/25 relative overflow-hidden group">
                         <Link href="/start">
                           <span className="relative z-10 flex items-center">
-                            Get started — it&apos;s free
+                            Get started — takes 3 min
                             <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                           </span>
                           {/* Shimmer effect */}
@@ -265,7 +265,7 @@ export function HeroSection() {
                             </motion.div>
                           ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">4.9/5 from 2,000+ reviews</span>
+                        <span className="text-xs text-muted-foreground">4.9/5 · 2,000+ happy patients</span>
                       </div>
                     </div>
 

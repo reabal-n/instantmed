@@ -55,16 +55,16 @@ export function PricingSection() {
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <SectionPill icon={<DollarSign className="h-3.5 w-3.5" />} text="Simple pricing" />
+            <SectionPill icon={<DollarSign className="h-3.5 w-3.5" />} text="Pricing" />
           </div>
           <h2
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Transparent pricing, no surprises
+            What you see is what you pay 💳
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Flat fees. No hidden costs. No Medicare rebate paperwork. You know exactly what you're paying upfront.
+            Flat fees, no hidden costs, no Medicare paperwork headaches. Simple.
           </p>
         </div>
 

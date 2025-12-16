@@ -7,38 +7,38 @@ import { CheckCircle2, Clock, PhoneOff, Shield, Zap, Heart } from "lucide-react"
 const benefits = [
   {
     icon: Clock,
-    title: "Fast turnaround",
-    description: "Most requests approved within 1 hour. No waiting weeks for appointments.",
+    title: "Done in ~1 hour",
+    description: "Most requests reviewed same-day. No more waiting weeks for an appointment.",
     color: "#00E2B5",
   },
   {
     icon: PhoneOff,
-    title: "No calls needed",
-    description: "Fill a form, get reviewed. No phone calls, no video chats, no hassle.",
+    title: "No phone calls",
+    description: "Fill out a form, get reviewed. That's it. No video chats, no hold music.",
     color: "#06B6D4",
   },
   {
     icon: Shield,
-    title: "AHPRA registered",
-    description: "All doctors are fully registered with AHPRA and licensed in Australia.",
+    title: "Real GPs only",
+    description: "Every doctor is AHPRA-registered and actively practicing in Australia.",
     color: "#8B5CF6",
   },
   {
     icon: Zap,
-    title: "Available 24/7",
-    description: "Submit requests anytime. Doctors review during business hours (8am-10pm AEST).",
+    title: "Submit anytime",
+    description: "Put in your request whenever. Doctors review 8am–10pm AEST daily.",
     color: "#F59E0B",
   },
   {
     icon: Heart,
-    title: "Privacy first",
-    description: "Bank-level encryption. Your health data stays private and secure.",
+    title: "Your data, protected",
+    description: "Bank-level encryption keeps your health info private. Full stop.",
     color: "#EC4899",
   },
   {
     icon: CheckCircle2,
-    title: "Legally valid",
-    description: "All documents are legally valid and accepted by employers, universities, and institutions.",
+    title: "Accepted everywhere",
+    description: "All documents are legally valid for employers, unis, and institutions.",
     color: "#10B981",
   },
 ]
@@ -49,17 +49,16 @@ export function BenefitsSection() {
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <SectionPill icon={<CheckCircle2 className="h-3.5 w-3.5" />} text="Why choose us" />
+            <SectionPill icon={<CheckCircle2 className="h-3.5 w-3.5" />} text="Why InstantMed" />
           </div>
           <h2
             className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Skip the waiting room, keep your life moving
+            Built for how you actually live 💡
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            We built InstantMed because GP waitlists are ridiculous and you shouldn't need to take a half-day off work
-            for a script renewal.
+            GP waitlists are ridiculous. You shouldn't need to take a half-day off work for a script renewal. So we fixed that.
           </p>
         </div>
 

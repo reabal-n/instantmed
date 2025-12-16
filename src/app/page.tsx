@@ -122,18 +122,18 @@ const services: ServiceCardProps[] = [
 const steps = [
   {
     step: 1,
-    title: 'Fill a quick form',
-    description: 'Answer a few questions about your symptoms. Takes under 3 minutes.',
+    title: 'Tell us what you need',
+    description: 'Pick a service, answer a few quick questions. Under 3 minutes.',
   },
   {
     step: 2,
-    title: 'Doctor reviews',
-    description: 'An AHPRA-registered GP reviews your request within 45 minutes.',
+    title: 'A GP reviews it',
+    description: 'A real Australian doctor looks at your request — usually within an hour.',
   },
   {
     step: 3,
-    title: 'Get your document',
-    description: 'Download your certificate or get your script sent to any pharmacy.',
+    title: 'You're sorted',
+    description: 'Certificate to your inbox, script to your pharmacy. Done.',
   },
 ]
 
@@ -259,7 +259,7 @@ export default function Home() {
                   className="mb-6 px-4 py-2 text-sm font-medium glass border-border/50"
                 >
                   <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                  Australia&apos;s fastest online doctor
+                  ⚡ Healthcare that doesn't make you wait
                 </Badge>
               </motion.div>
               
@@ -375,9 +375,9 @@ export default function Home() {
         
         <div className="container mx-auto px-4 relative z-10">
           <SectionHeaderMotion
-            subtitle="Services"
-            title="What do you need today?"
-            description="Click what you need. Fill a quick form. Doctor reviews it. Done."
+            subtitle="🩺 Services"
+            title="What can we help with?"
+            description="Pick what you need. Answer a few questions. A GP reviews it. Done."
             align="center"
           />
           
@@ -411,8 +411,8 @@ export default function Home() {
       <Section id="how-it-works" spacing="lg" background="surface">
         <div className="container mx-auto px-4">
           <SectionHeaderMotion
-            title="How it works"
-            description="Three steps. No phone calls. No video chats."
+            title="How it works ✨"
+            description="Three steps. No phone trees. No video calls. Just results."
             align="center"
           />
           
@@ -476,8 +476,8 @@ export default function Home() {
         
         <div className="container mx-auto px-4 relative z-10">
           <SectionHeaderMotion
-            title="Why choose us?"
-            description="Built for Australians who value their time, privacy, and health"
+            title="Why InstantMed?"
+            description="Built for Australians who value their time, privacy, and sanity 💡"
             align="center"
           />
           
@@ -504,10 +504,10 @@ export default function Home() {
               <span className="ml-2 text-foreground font-medium">4.9/5 from 200+ reviews</span>
             </motion.div>
             <motion.h2 variants={stagger.item} className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
-              Loved by Australians
+              People seem to like us 💬
             </motion.h2>
             <motion.p variants={stagger.item} className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Real stories from real patients
+              Real feedback from real patients
             </motion.p>
           </motion.div>
           
@@ -523,11 +523,11 @@ export default function Home() {
           <SectionHeaderMotion align="center">
             <Badge variant="secondary" className="mb-4 glass">
               <HelpCircle className="w-4 h-4 mr-1.5" />
-              Got questions?
+              Questions?
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">Frequently asked questions</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">We get asked this a lot 🤔</h2>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Everything you need to know about our services
+              The quick answers to the most common questions
             </p>
           </SectionHeaderMotion>
           
@@ -551,10 +551,10 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-primary-foreground">
-            Ready to feel better?
+            Ready when you are 👋
           </h2>
           <p className="text-primary-foreground/80 text-lg mb-8 max-w-md mx-auto">
-            Join thousands of Australians getting healthcare on their terms.
+            Join thousands of Australians getting healthcare without the hassle.
           </p>
           <Link href="/start">
             <motion.div {...hoverLift}>

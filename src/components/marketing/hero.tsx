@@ -37,23 +37,23 @@ export function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              Australian online doctor
+              ⚡ Australia's fastest online GP
             </div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6">
-              Get your{' '}
+              Your{' '}
               <span className="text-emerald-600">
                 <RotatingText texts={heroRotatingTexts} className="inline" />
               </span>
               <br className="hidden sm:block" />
-              {' '}in under an hour.
+              {' '}— sorted in under an hour.
             </h1>
 
             {/* Subtext */}
             <p className="text-lg sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
-              Complete a quick questionnaire, pay, and a doctor reviews your request. 
-              If we need more info, we'll message you — or move you to a call.
+              Tell us what you need, a real GP reviews it, and you're done. 
+              No appointments. No waiting rooms. No phone queues.
             </p>
 
             {/* CTAs */}

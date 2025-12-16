@@ -7,10 +7,10 @@ export function CTASection() {
     <section className="py-20 lg:py-28 bg-white">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-          Ready to get started?
+          Ready when you are 👋
         </h2>
         <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-          Skip the waiting room. Get the care you need from the comfort of your home.
+          Get the care you need without rearranging your whole day. Takes about 3 minutes to start.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 

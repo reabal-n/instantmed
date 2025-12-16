@@ -3,7 +3,7 @@
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Australian online doctor",
+  tagline: "Healthcare that doesn't make you wait",
   operatingHours: {
     weekdays: "7am – 10pm AEST",
     weekends: "8am – 8pm AEST",
@@ -30,23 +30,23 @@ export const heroRotatingTexts = [
 export const trustSignals = [
   {
     icon: "Shield",
-    text: "AHPRA-registered",
-    description: "All doctors are verified Australian practitioners",
+    text: "Real Australian GPs",
+    description: "Every doctor is AHPRA-registered and practicing",
   },
   {
     icon: "Lock",
-    text: "Secure & private",
-    description: "Bank-level encryption for your data",
+    text: "Your data stays yours",
+    description: "Bank-level encryption, full stop",
   },
   {
     icon: "DollarSign",
-    text: "Transparent pricing",
-    description: "No hidden fees, ever",
+    text: "No surprise fees",
+    description: "What you see is what you pay",
   },
   {
     icon: "Clock",
-    text: "Fast turnaround",
-    description: "Most requests reviewed in under an hour",
+    text: "Done in ~1 hour",
+    description: "Most requests reviewed and delivered same-day",
   },
 ]
 
@@ -96,22 +96,22 @@ export const serviceCategories = [
 export const proofMetrics = [
   {
     label: "Typical turnaround",
-    value: "< 1 hour",
+    value: "~1 hour",
     icon: "Zap",
   },
   {
-    label: "Secure messaging",
-    value: "Async chat",
+    label: "No video calls",
+    value: "Async only",
     icon: "MessageSquare",
   },
   {
-    label: "Eligibility",
-    value: "Clear rules",
+    label: "Clear eligibility",
+    value: "Know upfront",
     icon: "CheckCircle",
   },
   {
-    label: "Pricing",
-    value: "Transparent",
+    label: "Flat pricing",
+    value: "No surprises",
     icon: "CreditCard",
   },
 ]
@@ -119,20 +119,20 @@ export const proofMetrics = [
 export const howItWorks = [
   {
     step: 1,
-    title: "Choose a service",
-    description: "Select what you need and answer a few quick health questions. Takes about 2 minutes.",
+    title: "Tell us what you need",
+    description: "Pick a service, answer a few quick questions. Under 3 minutes, from your couch.",
     icon: "ClipboardList",
   },
   {
     step: 2,
-    title: "Doctor reviews",
-    description: "An AHPRA-registered GP reviews your request. They may message you for more info or suggest a quick call.",
+    title: "A GP reviews it",
+    description: "A real Australian doctor looks at your request. They might message you if they need more info.",
     icon: "Stethoscope",
   },
   {
     step: 3,
-    title: "Get your document",
-    description: "If approved, your certificate, script, or referral is sent securely to your email or pharmacy.",
+    title: "You're sorted",
+    description: "Certificate to your inbox, script to your pharmacy. Done.",
     icon: "FileCheck",
   },
 ]
@@ -140,28 +140,28 @@ export const howItWorks = [
 export const featuredServices = [
   {
     title: "Medical Certificates",
-    description: "For work, uni, or Centrelink. Same-day certificates for genuine illness.",
+    description: "Work, uni, or carer's leave. Employer-ready and in your inbox same-day.",
     priceFrom: 24.95,
     href: "/start?service=medical-certificate",
     features: ["Sick leave", "Carer's leave", "Fitness to work"],
   },
   {
-    title: "Prescription Renewals",
-    description: "Continue your regular medication without the GP wait.",
+    title: "Prescriptions",
+    description: "Keep your regular meds coming without the GP waitlist.",
     priceFrom: 19.95,
     href: "/start?service=prescription",
     features: ["Contraception", "Blood pressure", "Cholesterol"],
   },
   {
     title: "Specialist Referrals",
-    description: "Get referred to the specialist you need, faster.",
+    description: "Skip the middleman. Get referred to the specialist you actually need.",
     priceFrom: 34.95,
     href: "/start?service=referral",
     features: ["All specialties", "Mental health plans", "Imaging requests"],
   },
   {
     title: "Weight Management",
-    description: "Clinician-supervised programs tailored to your goals.",
+    description: "Doctor-guided programs that actually fit your life.",
     priceFrom: 49.95,
     href: "/start?service=weight-management",
     features: ["Initial assessment", "Ongoing support", "Medication if suitable"],
@@ -172,26 +172,26 @@ export const pricingTiers = [
   {
     name: "Medical Certificate",
     price: 24.95,
-    description: "For work, uni, or official purposes",
+    description: "Employer-ready, same-day",
     features: [
-      "Same-day processing",
-      "Valid for employers & institutions",
-      "Secure PDF delivery",
-      "Doctor's details included",
+      "Usually done in ~1 hour",
+      "Accepted everywhere",
+      "PDF straight to your inbox",
+      "Doctor details included",
     ],
     cta: "Get certificate",
     href: "/start?service=medical-certificate",
     popular: false,
   },
   {
-    name: "Prescription Renewal",
+    name: "Prescription",
     price: 19.95,
-    description: "Continue your regular medication",
+    description: "Your regular meds, minus the wait",
     features: [
       "Sent to your pharmacy",
-      "Repeats included where appropriate",
-      "E-script or paper script",
-      "Medication review",
+      "Repeats included if appropriate",
+      "eScript or paper",
+      "Quick medication review",
     ],
     cta: "Get script",
     href: "/start?service=prescription",
@@ -200,12 +200,12 @@ export const pricingTiers = [
   {
     name: "Specialist Referral",
     price: 34.95,
-    description: "For specialists, scans, or tests",
+    description: "See who you need to see",
     features: [
-      "All specialties covered",
-      "Includes clinical summary",
-      "Valid nationally",
-      "Priority processing available",
+      "Any specialty covered",
+      "Clinical summary included",
+      "Valid Australia-wide",
+      "Priority option available",
     ],
     cta: "Get referral",
     href: "/start?service=referral",

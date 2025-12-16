@@ -58,10 +58,10 @@ export function FeatureBento() {
             <Shield className="w-6 h-6" />
           </div>
           
-          <h3 className="text-xl font-bold mb-2">AHPRA Registered Doctors</h3>
+          <h3 className="text-xl font-bold mb-2">Real Australian GPs 🇦🇺</h3>
           <p className="text-white/80 text-sm leading-relaxed max-w-md mb-6">
-            Every consultation is handled by fully registered Australian GPs. 
-            Your health is in qualified, professional hands.
+            Every consultation is reviewed by an AHPRA-registered doctor actively practicing in Australia. 
+            You're in good hands.
           </p>
           
           <div className="flex items-center gap-8">
@@ -90,9 +90,9 @@ export function FeatureBento() {
           <Clock className="w-5 h-5 text-amber-600" />
         </div>
         
-        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Fast response</h3>
+        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Fast when you need it</h3>
         <p className="text-slate-500 text-sm leading-relaxed mb-4">
-          Get your certificate or script within 2 hours. Priority available for urgent needs.
+          Most requests done in ~1 hour. Need it faster? Priority option gets you to the front.
         </p>
         
         <div className="text-xl font-bold text-teal-600">&lt;2 hrs</div>
@@ -108,9 +108,9 @@ export function FeatureBento() {
           <FileText className="w-5 h-5 text-blue-600" />
         </div>
         
-        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Instant delivery</h3>
+        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Straight to your inbox</h3>
         <p className="text-slate-500 text-sm leading-relaxed mb-4">
-          Your medical certificate is sent directly to your email as a professional PDF.
+          Certificates arrive as a clean PDF. Print it, forward it, done.
         </p>
         
         <div className="flex gap-2">
@@ -129,9 +129,9 @@ export function FeatureBento() {
           <Smartphone className="w-5 h-5 text-purple-600" />
         </div>
         
-        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Works anywhere</h3>
+        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Use any device</h3>
         <p className="text-slate-500 text-sm leading-relaxed mb-4">
-          Complete your consultation from any device. No app download required.
+          Phone, tablet, laptop — whatever you've got. No app to download.
         </p>
         
         <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -151,9 +151,9 @@ export function FeatureBento() {
           </div>
           
           <div className="flex-1">
-            <h3 className="text-base font-semibold mb-1.5">Bank-level security</h3>
+            <h3 className="text-base font-semibold mb-1.5">Your data stays locked 🔒</h3>
             <p className="text-white/60 text-sm leading-relaxed">
-              Your health information is protected with AES-256 encryption and stored in compliance with Australian Privacy Principles.
+              AES-256 encryption, Australian Privacy Principles compliant. Your health info isn't going anywhere.
             </p>
           </div>
           
@@ -183,9 +183,9 @@ export function FeatureBento() {
           <Zap className="w-5 h-5 text-amber-600" />
         </div>
         
-        <h3 className="text-base font-semibold text-slate-900 mb-1.5">Priority review</h3>
+        <h3 className="text-base font-semibold text-slate-900 mb-1.5">In a rush?</h3>
         <p className="text-slate-600 text-sm leading-relaxed mb-4">
-          Need it urgently? Skip the queue and get reviewed within 30 minutes.
+          Priority gets you reviewed in ~30 minutes. For when you really can't wait.
         </p>
         
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-xs font-semibold text-amber-800">
