@@ -38,8 +38,8 @@ function getServiceClient() {
   console.log("[Guest Checkout v2] Service key exists:", !!serviceKey)
 
   if (!supabaseUrl || !serviceKey) {
-    console.error("[Guest Checkout v2] Missing credentials - URL:", !!supabaseUrl, "Key:", !!serviceKey)
-    throw new Error("Missing Supabase credentials - contact support")
+    console.error("[Guest Checkout v3] Missing credentials - URL:", !!supabaseUrl, "Key:", !!serviceKey)
+    throw new Error(`ENV ERROR: URL=${!!supabaseUrl} KEY=${!!serviceKey}`)
   }
 
   return createClient(supabaseUrl, serviceKey)
@@ -181,15 +181,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         
         // Check for NOT NULL violation (should not happen if migration applied correctly)
         if (errorCode === '23502') {
-          console.error("[Guest Checkout] NOT NULL constraint violation:", errorMessage)
+          console.error("[Guest Checkout v3] NOT NULL constraint violation:", errorMessage)
           return { 
             success: false, 
-            error: `Database error: ${errorMessage}. Please try signing in with Google instead.` 
+            error: `NOT NULL error: ${errorMessage}` 
           }
         }
         
         // Return actual error message for debugging
-        return { success: false, error: `Failed to create guest profile: ${errorMessage}` }
+        return { success: false, error: `Profile error (${errorCode}): ${errorMessage}` }
       }
 
       guestProfileId = newProfile.id
@@ -290,10 +290,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
-    console.error("[Guest Checkout] Error in createGuestCheckoutAction:", error)
+    console.error("[Guest Checkout v3] Error in createGuestCheckoutAction:", error)
+    const errorMsg = error instanceof Error ? error.message : String(error)
     return {
       success: false,
-      error: "Something went wrong. Please try again or contact support if the problem persists.",
+      error: `Checkout error: ${errorMsg}`,
     }
   }
 }
