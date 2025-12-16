@@ -51,14 +51,19 @@ export default function LoginPage() {
   // Handle URL error params (from OAuth callback)
   useEffect(() => {
     if (errorParam) {
-      const errorMessages: Record<string, string> = {
-        oauth_failed: "Unable to sign in with Google. Please try again.",
-        profile_creation_failed: "Unable to create your account. Please try again or contact support.",
-        session_expired: "Your session has expired. Please sign in again.",
+      const details = searchParams.get("details")
+      if (errorParam === "profile_creation_failed" && details) {
+        setError(`Profile error: ${details}`)
+      } else {
+        const errorMessages: Record<string, string> = {
+          oauth_failed: "Unable to sign in with Google. Please try again.",
+          profile_creation_failed: "Unable to create your account. Please try again or contact support.",
+          session_expired: "Your session has expired. Please sign in again.",
+        }
+        setError(errorMessages[errorParam] || "An error occurred. Please try again.")
       }
-      setError(errorMessages[errorParam] || "An error occurred. Please try again.")
     }
-  }, [errorParam])
+  }, [errorParam, searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

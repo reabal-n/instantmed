@@ -90,8 +90,10 @@ export async function GET(request: Request) {
           .single()
 
         if (profileError) {
+          const errCode = (profileError as any)?.code
+          const errMsg = (profileError as any)?.message
           console.error("[Auth Callback] Failed to create profile:", profileError)
-          return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
+          return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent(`${errCode}: ${errMsg}`)}`)
         }
 
         console.log("[Auth Callback] Profile created successfully:", newProfile?.id)
