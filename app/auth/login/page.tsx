@@ -94,24 +94,52 @@ export default function LoginPage() {
         email: authData.user.email,
       })
 
-      const { data: profile, error: profileError } = await supabase
+      // Check if profile exists, create if missing
+      let profile = null
+      const { data: existingProfile, error: profileError } = await supabase
         .from("profiles")
         .select("role, onboarding_completed")
         .eq("auth_user_id", authData.user.id)
         .single()
 
-      if (profileError) {
-        console.error("[Login Page] Profile query error:", {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint,
+      if (profileError || !existingProfile) {
+        console.log("[Login Page] Profile not found, ensuring it exists")
+        const { ensureProfile } = await import("@/app/actions/ensure-profile")
+        const { profileId, error: ensureError } = await ensureProfile(
+          authData.user.id,
+          authData.user.email || ""
+        )
+
+        if (ensureError || !profileId) {
+          console.error("[Login Page] Failed to ensure profile:", {
+            error: ensureError,
+            profileId,
+          })
+          throw new Error(ensureError || "Profile not found. Please contact support.")
+        }
+
+        // Fetch the newly created profile
+        const { data: newProfile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("role, onboarding_completed")
+          .eq("auth_user_id", authData.user.id)
+          .single()
+
+        if (fetchError || !newProfile) {
+          console.error("[Login Page] Failed to fetch profile after creation:", fetchError)
+          throw new Error("Profile created but could not be retrieved. Please try again.")
+        }
+
+        profile = newProfile
+        console.log("[Login Page] Profile created and ready", {
+          role: profile.role,
+          onboardingCompleted: profile.onboarding_completed,
         })
-        throw new Error("Profile not found. Please contact support.")
+      } else {
+        profile = existingProfile
       }
 
       if (!profile) {
-        console.error("[Login Page] Profile not found for user:", authData.user.id)
         throw new Error("Profile not found. Please contact support.")
       }
 

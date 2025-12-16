@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { createOrGetProfile } from "@/app/actions/create-profile"
+import { ensureProfile } from "@/app/actions/ensure-profile"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -199,21 +199,30 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
       // Check if we have an active session (email confirmation disabled or auto-confirmed)
       if (authData.session) {
-        console.log("[Inline Auth] User is auto-confirmed, creating profile")
-
-        const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, fullName, dateOfBirth)
-
-        if (profileError) {
-          console.error("[Inline Auth] Profile creation error:", profileError)
-          throw new Error(profileError)
+        console.log("[Inline Auth] User is auto-confirmed, ensuring profile exists server-side")
+        
+        let profileId: string
+        try {
+          const result = await ensureProfile(
+            authData.user.id,
+            authData.user.email || "",
+            {
+              fullName,
+              dateOfBirth,
+            }
+          )
+          
+          if (result.error || !result.profileId) {
+            throw new Error(result.error || "Profile creation returned no profileId")
+          }
+          
+          profileId = result.profileId
+          console.log("[Inline Auth] Profile ready, completing flow", { profileId })
+        } catch (profileError) {
+          console.error("[Inline Auth] Profile creation failed (hard error):", profileError)
+          throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
         }
 
-        if (!profileId) {
-          console.error("[Inline Auth] Profile creation returned no profileId")
-          throw new Error("Failed to create profile. Please try again or contact support.")
-        }
-
-        console.log("[Inline Auth] Profile created successfully, completing flow", { profileId })
         onAuthComplete(authData.user.id, profileId)
         router.refresh()
       } else {
@@ -265,22 +274,36 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         emailConfirmed: authData.user.email_confirmed_at ? true : false,
       })
 
-      // Get or create profile - user is confirmed so this will work
+      // Ensure profile exists - user is confirmed so this will work
       const pendingName = sessionStorage.getItem("pending_profile_name")
       const pendingDob = sessionStorage.getItem("pending_profile_dob")
       const userName = pendingName || authData.user.user_metadata?.full_name || ""
       const userDob = pendingDob || authData.user.user_metadata?.date_of_birth || ""
 
-      console.log("[Inline Auth] Getting or creating profile", {
+      console.log("[Inline Auth] Ensuring profile exists server-side", {
         userName,
         hasDob: !!userDob,
       })
 
-      const { profileId, error: profileError } = await createOrGetProfile(authData.user.id, userName, userDob)
-
-      if (profileError || !profileId) {
-        console.error("[Inline Auth] Profile error:", { profileError, profileId })
-        throw new Error(profileError || "Failed to create profile")
+      let profileId: string
+      try {
+        const result = await ensureProfile(
+          authData.user.id,
+          authData.user.email || "",
+          {
+            fullName: userName,
+            dateOfBirth: userDob,
+          }
+        )
+        
+        if (result.error || !result.profileId) {
+          throw new Error(result.error || "Profile creation returned no profileId")
+        }
+        
+        profileId = result.profileId
+      } catch (profileError) {
+        console.error("[Inline Auth] Profile creation failed (hard error):", profileError)
+        throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
       }
 
       console.log("[Inline Auth] Profile ready", { profileId })

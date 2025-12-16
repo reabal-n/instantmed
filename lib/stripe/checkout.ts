@@ -55,18 +55,10 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     let patientEmail: string | undefined
     let stripeCustomerId: string | undefined
 
-    // 1. Try to get authenticated user, or use provided patientId
+    // 1. Get authenticated user
     const authUser = await getAuthenticatedUserWithProfile()
     
-    if (authUser) {
-      patientId = authUser.profile.id
-      patientEmail = authUser.user.email || undefined
-      stripeCustomerId = authUser.profile.stripe_customer_id || undefined
-    } else if (input.patientId) {
-      // Client provided patientId (they verified auth on their end)
-      patientId = input.patientId
-      patientEmail = input.patientEmail
-    } else {
+    if (!authUser) {
       return { success: false, error: "You must be logged in to submit a request" }
     }
 
@@ -82,13 +74,38 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const { createClient: createServiceClient } = await import("@supabase/supabase-js")
     const supabase = createServiceClient(supabaseUrl, serviceKey)
 
+    // 3. Assert profile exists - create if missing (server-side)
+    let patientId: string
+    if (authUser.profile?.id) {
+      patientId = authUser.profile.id
+      console.log("[Checkout] Profile exists:", patientId)
+    } else {
+      console.log("[Checkout] Profile missing, creating server-side")
+      const { ensureProfile } = await import("@/app/actions/ensure-profile")
+      const { profileId, error: profileError } = await ensureProfile(
+        authUser.user.id,
+        authUser.user.email || ""
+      )
+      
+      if (profileError || !profileId) {
+        console.error("[Checkout] Failed to create profile:", profileError)
+        return { success: false, error: `Profile creation failed: ${profileError || "Unknown error"}` }
+      }
+      
+      patientId = profileId
+      console.log("[Checkout] Profile created:", patientId)
+    }
+
+    const patientEmail = authUser.user.email || undefined
+    const stripeCustomerId = authUser.profile?.stripe_customer_id || undefined
+
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
       console.error("Invalid base URL configuration:", baseUrl)
       return { success: false, error: "Server configuration error. Please contact support." }
     }
 
-    // 3. Create the request with pending_payment status
+    // 4. Create the request with pending_payment status
     const { data: request, error: requestError } = await supabase
       .from("requests")
       .insert({
@@ -114,7 +131,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       return { success: false, error: "Failed to create your request. Please try again." }
     }
 
-    // 4. Insert the answers
+    // 5. Insert the answers
     const { error: answersError } = await supabase.from("request_answers").insert({
       request_id: request.id,
       answers: input.answers,
@@ -125,7 +142,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       // Don't fail the whole request, answers are supplementary
     }
 
-    // 5. Get the price ID
+    // 6. Get the price ID
     const priceId = getPriceIdForRequest({
       category: input.category,
       subtype: input.subtype,
@@ -139,11 +156,11 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
-    // 6. Build success and cancel URLs with validation
+    // 7. Build success and cancel URLs with validation
     const successUrl = `${baseUrl}/patient/requests/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`
     const cancelUrl = `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`
 
-    // 7. Build checkout session params
+    // 8. Build checkout session params
     const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       line_items: [
         {
@@ -169,7 +186,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       sessionParams.customer_creation = "always" // Always create a customer for new users
     }
 
-    // 8. Create Stripe checkout session
+    // 9. Create Stripe checkout session
     let session
     try {
       session = await stripe.checkout.sessions.create(sessionParams)
@@ -196,7 +213,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // 9. Create payment record
+    // 10. Create payment record
     const { error: paymentError } = await supabase.from("payments").insert({
       request_id: request.id,
       stripe_session_id: session.id,
