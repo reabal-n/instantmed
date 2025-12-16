@@ -34,8 +34,12 @@ function getServiceClient() {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+  console.log("[Guest Checkout v2] Supabase URL exists:", !!supabaseUrl)
+  console.log("[Guest Checkout v2] Service key exists:", !!serviceKey)
+
   if (!supabaseUrl || !serviceKey) {
-    throw new Error("Missing Supabase credentials")
+    console.error("[Guest Checkout v2] Missing credentials - URL:", !!supabaseUrl, "Key:", !!serviceKey)
+    throw new Error("Missing Supabase credentials - contact support")
   }
 
   return createClient(supabaseUrl, serviceKey)
@@ -95,11 +99,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {
-      console.error("[Guest Checkout] Invalid email format:", input.guestEmail)
+      console.error("[Guest Checkout v2] Invalid email format:", input.guestEmail)
       return { success: false, error: "Please provide a valid email address." }
     }
 
-    console.log("[Guest Checkout] Starting checkout for:", input.guestEmail)
+    console.log("[Guest Checkout v2] Starting checkout for:", input.guestEmail)
+    console.log("[Guest Checkout v2] Service role key exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY)
 
     const stripe = getStripe()
     const supabase = getServiceClient()
