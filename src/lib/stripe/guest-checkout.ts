@@ -95,16 +95,22 @@ function getPriceIdForRequest(category: ServiceCategory): string {
  * Creates a minimal guest profile, request, and Stripe checkout
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
+  const BUILD_ID = "BUILD_20241216_2110" // Unique identifier to verify deployment
+  
   try {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {
-      console.error("[Guest Checkout v2] Invalid email format:", input.guestEmail)
-      return { success: false, error: "Please provide a valid email address." }
+      return { success: false, error: `[${BUILD_ID}] Invalid email format` }
     }
 
-    console.log("[Guest Checkout v2] Starting checkout for:", input.guestEmail)
-    console.log("[Guest Checkout v2] Service role key exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    // Check environment variables
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    const hasUrl = !!(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)
+    
+    if (!hasServiceKey || !hasUrl) {
+      return { success: false, error: `[${BUILD_ID}] Missing env: URL=${hasUrl} KEY=${hasServiceKey}` }
+    }
 
     const stripe = getStripe()
     const supabase = getServiceClient()
@@ -179,17 +185,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           }
         }
         
-        // Check for NOT NULL violation (should not happen if migration applied correctly)
-        if (errorCode === '23502') {
-          console.error("[Guest Checkout v3] NOT NULL constraint violation:", errorMessage)
-          return { 
-            success: false, 
-            error: `NOT NULL error: ${errorMessage}` 
-          }
+        // Return detailed error with build ID
+        return { 
+          success: false, 
+          error: `[BUILD_20241216_2110] DB Error ${errorCode}: ${errorMessage}` 
         }
-        
-        // Return actual error message for debugging
-        return { success: false, error: `Profile error (${errorCode}): ${errorMessage}` }
       }
 
       guestProfileId = newProfile.id
@@ -290,11 +290,10 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
-    console.error("[Guest Checkout v3] Error in createGuestCheckoutAction:", error)
     const errorMsg = error instanceof Error ? error.message : String(error)
     return {
       success: false,
-      error: `Checkout error: ${errorMsg}`,
+      error: `[BUILD_20241216_2110] Error: ${errorMsg}`,
     }
   }
 }
