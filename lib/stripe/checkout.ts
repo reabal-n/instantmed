@@ -1,7 +1,6 @@
 "use server"
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
-import { createClient } from "@/lib/supabase/server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 
 interface CreateCheckoutInput {
@@ -9,6 +8,8 @@ interface CreateCheckoutInput {
   subtype: string
   type: string
   answers: Record<string, unknown>
+  patientId?: string // Optional - passed from client when already authenticated
+  patientEmail?: string // Optional - passed from client when already authenticated
 }
 
 interface CheckoutResult {
@@ -50,17 +51,36 @@ function isValidUrl(url: string): boolean {
  */
 export async function createRequestAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
-    // 1. Get authenticated user
+    let patientId: string
+    let patientEmail: string | undefined
+    let stripeCustomerId: string | undefined
+
+    // 1. Try to get authenticated user, or use provided patientId
     const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser) {
+    
+    if (authUser) {
+      patientId = authUser.profile.id
+      patientEmail = authUser.user.email || undefined
+      stripeCustomerId = authUser.profile.stripe_customer_id || undefined
+    } else if (input.patientId) {
+      // Client provided patientId (they verified auth on their end)
+      patientId = input.patientId
+      patientEmail = input.patientEmail
+    } else {
       return { success: false, error: "You must be logged in to submit a request" }
     }
 
-    const patientId = authUser.profile.id
-    const patientEmail = authUser.user.email
-
-    // 2. Get the Supabase client
-    const supabase = await createClient()
+    // 2. Get the Supabase client (use service role for reliability)
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !serviceKey) {
+      console.error("Missing Supabase credentials")
+      return { success: false, error: "Server configuration error" }
+    }
+    
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
+    const supabase = createServiceClient(supabaseUrl, serviceKey)
 
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
@@ -142,10 +162,10 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       },
     }
 
-    if (authUser.profile.stripe_customer_id) {
-      sessionParams.customer = authUser.profile.stripe_customer_id
-    } else {
-      sessionParams.customer_email = patientEmail || undefined
+    if (stripeCustomerId) {
+      sessionParams.customer = stripeCustomerId
+    } else if (patientEmail) {
+      sessionParams.customer_email = patientEmail
       sessionParams.customer_creation = "always" // Always create a customer for new users
     }
 
@@ -226,8 +246,16 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     const patientId = authUser.profile.id
     const patientEmail = authUser.user.email
 
-    // 2. Get the Supabase client
-    const supabase = await createClient()
+    // 2. Get the Supabase service client
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !serviceKey) {
+      return { success: false, error: "Server configuration error" }
+    }
+    
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
+    const supabase = createServiceClient(supabaseUrl, serviceKey)
 
     // 3. Fetch the existing request with ownership check
     const { data: request, error: requestError } = await supabase

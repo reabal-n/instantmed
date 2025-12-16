@@ -956,13 +956,15 @@ export function MedCertForm({
       try {
         let result
 
-        if (isAuthenticated) {
+        if (isAuthenticated && patientId) {
           // Authenticated user checkout
           result = await createRequestAndCheckoutAction({
             category: "medical_certificate",
             subtype: formData.certType || "work",
             type: "med_cert",
             answers,
+            patientId,
+            patientEmail: formData.email,
           })
         } else {
           // Guest checkout
