@@ -448,6 +448,295 @@ export const pressOpacity = {
 }
 
 // =============================================================================
+// BUTTON INTERACTIONS (Complete System)
+// =============================================================================
+
+/**
+ * Standard button interaction
+ * Includes: press scale (0.98), hover lift, soft shadow
+ * Usage: <motion.button {...buttonInteraction} />
+ */
+export const buttonInteraction = {
+  whileHover: {
+    y: -1,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+    transition: { duration: duration.fast, ease: easing.default },
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.98,
+    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Primary button interaction (more pronounced)
+ */
+export const buttonPrimary = {
+  whileHover: {
+    y: -2,
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06)',
+    transition: { duration: duration.fast, ease: easing.default },
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.98,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Ghost/outline button interaction
+ */
+export const buttonGhost = {
+  whileHover: {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    transition: { duration: duration.fast },
+  } as TargetAndTransition,
+  whileTap: {
+    scale: 0.98,
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Icon button interaction (smaller scale)
+ */
+export const buttonIcon = {
+  whileHover: {
+    scale: 1.05,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    transition: { duration: duration.fast },
+  } as TargetAndTransition,
+  whileTap: {
+    scale: 0.95,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+// =============================================================================
+// CARD INTERACTIONS (Desktop-focused)
+// =============================================================================
+
+/**
+ * Card hover with subtle glow (desktop only via CSS media query)
+ * Usage: <motion.div {...cardHover} className="@media(hover:hover)" />
+ */
+export const cardHover = {
+  whileHover: {
+    y: -2,
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+    transition: { duration: duration.normal, ease: easing.default },
+  } as TargetAndTransition,
+}
+
+/**
+ * Card with border brighten on hover
+ */
+export const cardBorderHover = {
+  whileHover: {
+    borderColor: 'rgba(101, 163, 185, 0.3)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+    transition: { duration: duration.normal, ease: easing.default },
+  } as TargetAndTransition,
+}
+
+/**
+ * Interactive card (clickable)
+ */
+export const cardInteractive = {
+  whileHover: {
+    y: -2,
+    borderColor: 'rgba(101, 163, 185, 0.4)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(101, 163, 185, 0.1)',
+    transition: { duration: duration.normal, ease: easing.default },
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.99,
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Selected card state animation
+ */
+export const cardSelected: Variants = {
+  initial: {
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+  },
+  selected: {
+    borderColor: 'var(--primary)',
+    backgroundColor: 'rgba(101, 163, 185, 0.05)',
+    transition: { duration: duration.fast },
+  },
+}
+
+// =============================================================================
+// PAGE TRANSITIONS (Fast fade/slide)
+// =============================================================================
+
+/**
+ * Fast page transition for flows
+ * Optimized for perceived speed
+ */
+export const pageTransitionFast: Variants = {
+  initial: {
+    opacity: 0,
+    x: 8,
+  },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.2,
+      ease: easing.out,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -8,
+    transition: {
+      duration: 0.15,
+      ease: easing.in,
+    },
+  },
+}
+
+/**
+ * Directional page transition (for step flows)
+ * Use with custom={direction} where direction is 1 (forward) or -1 (back)
+ */
+export const pageTransitionDirectional = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 20 : -20,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: easing.out,
+    },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 20 : -20,
+    opacity: 0,
+    transition: {
+      duration: 0.15,
+      ease: easing.in,
+    },
+  }),
+}
+
+/**
+ * Fade only transition (minimal, fast)
+ */
+export const fadeTransition: Variants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
+}
+
+// =============================================================================
+// FORM ELEMENT ANIMATIONS
+// =============================================================================
+
+/**
+ * Input focus animation
+ */
+export const inputFocus = {
+  whileFocus: {
+    boxShadow: '0 0 0 3px rgba(101, 163, 185, 0.15)',
+    borderColor: 'var(--primary)',
+    transition: { duration: duration.fast },
+  } as TargetAndTransition,
+}
+
+/**
+ * Form field entrance (staggered)
+ */
+export const formFieldEntrance: Variants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.2, ease: easing.out },
+  },
+}
+
+/**
+ * Validation message animation
+ */
+export const validationMessage: Variants = {
+  initial: { opacity: 0, y: -4, height: 0 },
+  animate: { 
+    opacity: 1, 
+    y: 0, 
+    height: 'auto',
+    transition: { duration: 0.15, ease: easing.out },
+  },
+  exit: { 
+    opacity: 0, 
+    y: -4, 
+    height: 0,
+    transition: { duration: 0.1 },
+  },
+}
+
+// =============================================================================
+// LOADING ANIMATIONS
+// =============================================================================
+
+/**
+ * Spinner rotation (use with animate prop directly)
+ */
+export const spinnerRotation = {
+  animate: {
+    rotate: 360,
+  },
+  transition: {
+    duration: 1,
+    repeat: Infinity,
+    ease: 'linear',
+  },
+}
+
+/**
+ * Pulse animation for loading states
+ */
+export const loadingPulse: Variants = {
+  initial: { opacity: 0.5 },
+  animate: {
+    opacity: [0.5, 1, 0.5],
+    transition: {
+      duration: 1.5,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    },
+  },
+}
+
+/**
+ * Skeleton shimmer direction
+ */
+export const skeletonShimmer = {
+  animate: {
+    backgroundPosition: ['200% 0', '-200% 0'],
+    transition: {
+      duration: 1.5,
+      repeat: Infinity,
+      ease: 'linear',
+    },
+  },
+}
+
+// =============================================================================
 // UTILITY FUNCTIONS
 // =============================================================================
 

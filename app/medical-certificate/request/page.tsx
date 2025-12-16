@@ -1,4 +1,4 @@
-import { MedCertFlowClient } from "./med-cert-flow-client"
+import { MedCertForm } from "./med-cert-form"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import type { Metadata } from "next"
 import Script from "next/script"
@@ -121,7 +121,7 @@ export default async function MedCertRequestPage() {
   return (
     <>
       <MedCertJsonLd />
-      <MedCertFlowClient
+      <MedCertForm
         patientId={authUser?.profile?.id || null}
         isAuthenticated={!!authUser}
         needsOnboarding={authUser?.profile ? !authUser.profile.onboarding_completed : true}

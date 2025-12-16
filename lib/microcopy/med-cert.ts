@@ -31,17 +31,14 @@ export const MICROCOPY = {
     },
   },
 
-  // Step: Duration
+  // Step: Duration (max 3 days only)
   duration: {
     heading: "How long do you need off?",
-    subtitle: undefined,
+    subtitle: "Maximum 3 days available",
     options: {
       "1": "1 day",
       "2": "2 days",
       "3": "3 days",
-      "4-7": "4–7 days",
-      "1-2weeks": "1–2 weeks",
-      specific: "Other dates",
     },
     dateFrom: "Start date",
     dateTo: "End date",

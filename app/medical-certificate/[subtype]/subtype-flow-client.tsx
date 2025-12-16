@@ -35,12 +35,11 @@ interface SubtypeFlowClientProps {
   userName?: string
 }
 
+// Max 3 days duration only
 const PERIODS = [
   { value: "1", label: "1 day" },
   { value: "2", label: "2 days" },
   { value: "3", label: "3 days" },
-  { value: "4-7", label: "4-7 days" },
-  { value: "1-2weeks", label: "1-2 weeks" },
 ]
 
 const SYMPTOMS = [

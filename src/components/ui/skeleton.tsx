@@ -11,15 +11,90 @@ function Skeleton({
   return (
     <div
       className={cn(
-        'animate-pulse rounded-lg bg-surface-elevated',
+        'animate-pulse rounded-lg bg-muted',
         // Premium shimmer effect
         'relative overflow-hidden',
         'after:absolute after:inset-0',
-        'after:bg-gradient-to-r after:from-transparent after:via-white/5 after:to-transparent',
+        'after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent',
         'after:animate-shimmer',
         className
       )}
       {...props}
+    />
+  )
+}
+
+// =============================================================================
+// MODERN SPINNER
+// =============================================================================
+
+interface SpinnerProps {
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}
+
+function Spinner({ size = 'md', className }: SpinnerProps) {
+  const sizeClasses = {
+    sm: 'w-4 h-4 border-2',
+    md: 'w-6 h-6 border-2',
+    lg: 'w-8 h-8 border-3',
+  }
+
+  return (
+    <div
+      className={cn(
+        'animate-spin rounded-full',
+        'border-primary/30 border-t-primary',
+        sizeClasses[size],
+        className
+      )}
+      role="status"
+      aria-label="Loading"
+    >
+      <span className="sr-only">Loading...</span>
+    </div>
+  )
+}
+
+/** Spinner with text */
+function SpinnerWithText({ 
+  text = 'Loading...', 
+  size = 'md',
+  className,
+}: SpinnerProps & { text?: string }) {
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <Spinner size={size} />
+      <span className="text-sm text-muted-foreground animate-pulse">{text}</span>
+    </div>
+  )
+}
+
+/** Full-page loading spinner */
+function LoadingOverlay({ text }: { text?: string }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3">
+        <Spinner size="lg" />
+        {text && (
+          <p className="text-sm text-muted-foreground animate-pulse">{text}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Inline loading state for buttons */
+function ButtonSpinner({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'w-4 h-4 animate-spin rounded-full',
+        'border-2 border-current/30 border-t-current',
+        className
+      )}
+      role="status"
+      aria-label="Loading"
     />
   )
 }
@@ -209,4 +284,9 @@ export {
   SkeletonOnboarding,
   SkeletonInput,
   SkeletonPillSelector,
+  // Spinners
+  Spinner,
+  SpinnerWithText,
+  LoadingOverlay,
+  ButtonSpinner,
 }
