@@ -35,25 +35,55 @@ export async function GET(request: Request) {
       .single()
 
     if (!existingProfile) {
-      console.log("[v0] Creating new profile for OAuth user")
+      console.log("[v0] No existing profile for auth user, checking for guest profile")
 
-      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
+      // Check if there's a guest profile with this email that we should link
+      const { data: guestProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", user.email)
+        .is("auth_user_id", null)
+        .single()
 
-      const { error: profileError } = await supabase.from("profiles").insert({
-        auth_user_id: user.id,
-        full_name: fullName,
-        role: "patient",
-        onboarding_completed: false,
-      })
+      if (guestProfile) {
+        // Link the guest profile to this auth user
+        console.log("[v0] Linking guest profile to auth user:", guestProfile.id)
+        const { error: linkError } = await supabase
+          .from("profiles")
+          .update({ 
+            auth_user_id: user.id,
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
+          })
+          .eq("id", guestProfile.id)
 
-      if (profileError) {
-        console.error("[v0] Failed to create profile:", profileError)
-        return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
+        if (linkError) {
+          console.error("[v0] Failed to link guest profile:", linkError)
+        } else {
+          console.log("[v0] Guest profile linked successfully")
+        }
+      } else {
+        // Create new profile
+        console.log("[v0] Creating new profile for OAuth user")
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
+
+        const { error: profileError } = await supabase.from("profiles").insert({
+          auth_user_id: user.id,
+          email: user.email,
+          full_name: fullName,
+          role: "patient",
+          onboarding_completed: false,
+        })
+
+        if (profileError) {
+          console.error("[v0] Failed to create profile:", profileError)
+          return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
+        }
+
+        console.log("[v0] Profile created successfully")
       }
-
-      console.log("[v0] Profile created successfully")
     }
 
+    // Always return to questionnaire flow if that's where we came from
     if (flow === "questionnaire" && redirectTo) {
       console.log("[v0] Returning to questionnaire flow:", redirectTo)
       return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
@@ -61,11 +91,8 @@ export async function GET(request: Request) {
 
     if (existingProfile) {
       if (existingProfile.role === "patient") {
-        if (!existingProfile.onboarding_completed) {
-          const onboardingRedirect = redirectTo || "/patient"
-          return NextResponse.redirect(
-            `${origin}/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`,
-          )
+        if (!existingProfile.onboarding_completed && !redirectTo) {
+          return NextResponse.redirect(`${origin}/patient/onboarding`)
         }
         return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
       } else if (existingProfile.role === "doctor") {
@@ -73,7 +100,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // New user, redirect to patient dashboard
+    // New user with redirect, go there; otherwise patient dashboard
     return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
   }
 

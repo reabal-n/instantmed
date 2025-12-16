@@ -693,11 +693,30 @@ export function MedCertForm({
     }
   }, [step])
 
-  // Check for returning users after OAuth
+  // Check for returning users after OAuth and restore form state
   useEffect(() => {
     const checkSession = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
+
+      // Check if we're returning from OAuth with saved form data
+      const savedFormData = sessionStorage.getItem("med_cert_form_data")
+      const savedStep = sessionStorage.getItem("med_cert_form_step") as FlowStep | null
+      
+      if (savedFormData) {
+        try {
+          const parsed = JSON.parse(savedFormData)
+          setFormData((prev) => ({ ...prev, ...parsed }))
+          sessionStorage.removeItem("med_cert_form_data")
+        } catch (e) {
+          console.error("Failed to restore form data:", e)
+        }
+      }
+      
+      if (savedStep && STEPS.includes(savedStep)) {
+        setStep(savedStep)
+        sessionStorage.removeItem("med_cert_form_step")
+      }
 
       if (session?.user && !isAuthenticated) {
         const { profileId } = await createOrGetProfile(
@@ -711,16 +730,16 @@ export function MedCertForm({
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
           
-          // Prefill form data from user profile
+          // Prefill form data from user profile (merge with restored data)
           const { data: profile } = await supabase
             .from("profiles")
-            .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode")
+            .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode, email")
             .eq("id", profileId)
             .single()
 
           setFormData((prev) => ({
             ...prev,
-            email: session.user.email || prev.email,
+            email: session.user.email || profile?.email || prev.email,
             fullName: profile?.full_name || session.user.user_metadata?.full_name || prev.fullName,
             dateOfBirth: profile?.date_of_birth || prev.dateOfBirth,
             medicareNumber: profile?.medicare_number || prev.medicareNumber,
@@ -730,6 +749,11 @@ export function MedCertForm({
             state: profile?.state || prev.state,
             postcode: profile?.postcode || prev.postcode,
           }))
+          
+          // If we restored form data and are now authenticated, go to review
+          if (savedFormData) {
+            setStep("review")
+          }
         }
       }
     }
@@ -844,8 +868,6 @@ export function MedCertForm({
         return (
           !!formData.email &&
           !!formData.dateOfBirth &&
-          formData.medicareNumber.length === 10 &&
-          !!formData.medicareIrn &&
           !!formData.addressLine1 &&
           !!formData.suburb &&
           !!formData.state &&
@@ -877,17 +899,19 @@ export function MedCertForm({
     const supabase = createClient()
 
     try {
-      sessionStorage.setItem("questionnaire_flow", "true")
-      sessionStorage.setItem("questionnaire_path", window.location.pathname)
-      sessionStorage.setItem("pending_profile_dob", formData.dateOfBirth)
-      sessionStorage.setItem("pending_profile_name", formData.fullName || "")
+      // Store form data in sessionStorage to restore after OAuth
+      sessionStorage.setItem("med_cert_form_data", JSON.stringify(formData))
+      sessionStorage.setItem("med_cert_form_step", step)
+      
+      // Build callback URL with flow params
+      const currentPath = window.location.pathname
+      const baseUrl = window.location.origin
+      const callbackUrl = `${baseUrl}/auth/callback?flow=questionnaire&redirect=${encodeURIComponent(currentPath)}`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: process.env.NEXT_PUBLIC_VERCEL_URL
-            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-            : "http://localhost:3000/auth/callback",
+          redirectTo: callbackUrl,
         },
       })
 
@@ -921,8 +945,6 @@ export function MedCertForm({
       safety_emergency: formData.safetyAnswers.emergency ?? null,
       patient_email: formData.email,
       patient_dob: formData.dateOfBirth,
-      medicare_number: formData.medicareNumber,
-      medicare_irn: formData.medicareIrn,
       address_line1: formData.addressLine1,
       suburb: formData.suburb,
       state: formData.state,
@@ -1367,53 +1389,6 @@ export function MedCertForm({
                 />
               </div>
 
-              {/* Medicare */}
-              <motion.div 
-                className="grid grid-cols-3 gap-3"
-                variants={formFieldEntrance}
-                initial="initial"
-                animate="animate"
-                transition={{ delay: 0.1 }}
-              >
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="medicare">Medicare number</Label>
-                  <Input
-                    id="medicare"
-                    type="text"
-                    value={formData.medicareNumber}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 10)
-                      setFormData((prev) => ({ ...prev, medicareNumber: value }))
-                    }}
-                    placeholder="10 digits"
-                    className={cn(
-                      "h-11 rounded-xl font-mono transition-all duration-150",
-                      formData.medicareNumber.length === 10 && "border-emerald-500 focus:ring-emerald-500/20"
-                    )}
-                    maxLength={10}
-                  />
-                  <ValidationHint validation={validators.medicareNumber(formData.medicareNumber)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="irn">IRN</Label>
-                  <Input
-                    id="irn"
-                    type="text"
-                    value={formData.medicareIrn}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 1)
-                      setFormData((prev) => ({ ...prev, medicareIrn: value }))
-                    }}
-                    placeholder="1-9"
-                    className={cn(
-                      "h-11 rounded-xl font-mono text-center transition-all duration-150",
-                      formData.medicareIrn && "border-emerald-500 focus:ring-emerald-500/20"
-                    )}
-                    maxLength={1}
-                  />
-                </div>
-              </motion.div>
-
               {/* Address */}
               <div className="space-y-2">
                 <Label htmlFor="address">Street address</Label>
@@ -1587,20 +1562,42 @@ export function MedCertForm({
               </div>
             </div>
 
-            {/* Sign-in prompt for guests */}
+            {/* Sign-in options for guests */}
             {!isAuthenticated && (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border">
+              <div className="rounded-xl border border-border bg-gradient-to-br from-muted/30 to-muted/50 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Continuing as guest</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSignInDialog(true)}
-                  className="text-sm text-primary hover:underline font-medium"
-                >
-                  Sign in instead
-                </button>
+                
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogleAuth}
+                    disabled={isGoogleLoading}
+                    className="w-full h-10 rounded-lg gap-2 bg-white hover:bg-gray-50 border-border"
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <GoogleIcon className="w-4 h-4" />
+                    )}
+                    Continue with Google
+                  </Button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setShowSignInDialog(true)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Or sign in with email
+                  </button>
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Sign in to save your certificate to your account and access it anytime.
+                </p>
               </div>
             )}
 
