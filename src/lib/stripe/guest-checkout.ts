@@ -152,33 +152,39 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         .single()
 
       if (profileError || !newProfile) {
+        const errorCode = (profileError as any)?.code
+        const errorMessage = (profileError as any)?.message || "Unknown error"
+        const errorDetails = (profileError as any)?.details
+        const errorHint = (profileError as any)?.hint
+        
         console.error("[Guest Checkout] Error creating guest profile:", {
           error: profileError,
-          code: (profileError as any)?.code,
-          message: (profileError as any)?.message,
-          details: (profileError as any)?.details,
-          hint: (profileError as any)?.hint,
+          code: errorCode,
+          message: errorMessage,
+          details: errorDetails,
+          hint: errorHint,
           email: normalizedEmail,
         })
         
         // Check if it's a constraint violation (email already exists with auth)
-        if ((profileError as any)?.code === '23505') {
+        if (errorCode === '23505') {
           return { 
             success: false, 
             error: "An account already exists with this email. Please sign in to continue." 
           }
         }
         
-        // Check for NOT NULL violation on auth_user_id (migration not applied)
-        if ((profileError as any)?.code === '23502') {
-          console.error("[Guest Checkout] NOT NULL constraint violation - migration may not be applied")
+        // Check for NOT NULL violation (should not happen if migration applied correctly)
+        if (errorCode === '23502') {
+          console.error("[Guest Checkout] NOT NULL constraint violation:", errorMessage)
           return { 
             success: false, 
-            error: "System configuration error. Please try signing in with Google instead." 
+            error: `Database error: ${errorMessage}. Please try signing in with Google instead.` 
           }
         }
         
-        return { success: false, error: "Failed to create guest profile. Please try again." }
+        // Return actual error message for debugging
+        return { success: false, error: `Failed to create guest profile: ${errorMessage}` }
       }
 
       guestProfileId = newProfile.id
