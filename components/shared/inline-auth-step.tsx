@@ -5,7 +5,6 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { ensureProfile } from "@/app/actions/ensure-profile"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -203,6 +202,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         
         let profileId: string
         try {
+          const { ensureProfile } = await import("@/app/actions/ensure-profile")
           const result = await ensureProfile(
             authData.user.id,
             authData.user.email || "",
@@ -287,6 +287,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
       let profileId: string
       try {
+        const { ensureProfile } = await import("@/app/actions/ensure-profile")
         const result = await ensureProfile(
           authData.user.id,
           authData.user.email || "",

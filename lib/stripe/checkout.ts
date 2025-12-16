@@ -51,10 +51,6 @@ function isValidUrl(url: string): boolean {
  */
 export async function createRequestAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
-    let patientId: string
-    let patientEmail: string | undefined
-    let stripeCustomerId: string | undefined
-
     // 1. Get authenticated user
     const authUser = await getAuthenticatedUserWithProfile()
     
