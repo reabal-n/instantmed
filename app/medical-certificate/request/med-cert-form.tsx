@@ -979,18 +979,8 @@ export function MedCertForm({
         }
 
         if (!result.success) {
-          // Check if account already exists - prompt to sign in
-          if (result.error?.toLowerCase().includes("account already exists") ||
-              result.error?.toLowerCase().includes("please sign in")) {
-            setErrorType("guest_profile")
-            throw new Error("An account with this email already exists. Please sign in to continue.")
-          }
-          // Check for other guest profile errors
-          if (result.error?.toLowerCase().includes("guest profile") ||
-              result.error?.toLowerCase().includes("profile")) {
-            setErrorType("guest_profile")
-            throw new Error("We couldn't create your profile. Please try again or sign in with an existing account.")
-          }
+          // Show the actual error from the server for debugging
+          setErrorType("guest_profile")
           throw new Error(result.error || "Payment could not be processed. Please try again.")
         }
 
