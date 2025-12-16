@@ -62,24 +62,41 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const supabase = getServiceClient()
     const baseUrl = getBaseUrl()
 
-    // 1. Check if a guest profile already exists for this email
-    // Use email field for reliable lookup (not full_name which could collide)
+    // 1. Check if a profile already exists for this email
+    const normalizedEmail = input.guestEmail.toLowerCase().trim()
     let guestProfileId: string
 
-    const { data: existingProfile } = await supabase
+    // First check if an authenticated profile exists (user already has account)
+    const { data: existingAuthProfile } = await supabase
       .from("profiles")
       .select("id, auth_user_id")
-      .eq("email", input.guestEmail.toLowerCase().trim())
-      .is("auth_user_id", null) // Guest profiles have no auth yet
+      .eq("email", normalizedEmail)
+      .not("auth_user_id", "is", null)
       .single()
 
-    if (existingProfile) {
+    if (existingAuthProfile) {
+      // User already has an account - they should sign in instead
+      console.log("[Guest Checkout] Email already has authenticated account:", normalizedEmail)
+      return { 
+        success: false, 
+        error: "An account already exists with this email. Please sign in to continue." 
+      }
+    }
+
+    // Check for existing guest profile
+    const { data: existingGuestProfile } = await supabase
+      .from("profiles")
+      .select("id, auth_user_id")
+      .eq("email", normalizedEmail)
+      .is("auth_user_id", null)
+      .single()
+
+    if (existingGuestProfile) {
       // Reuse existing guest profile
-      guestProfileId = existingProfile.id
+      guestProfileId = existingGuestProfile.id
       console.log("[Guest Checkout] Reusing existing guest profile:", guestProfileId)
     } else {
-      // Create a new guest profile with email stored properly
-      const normalizedEmail = input.guestEmail.toLowerCase().trim()
+      // Create a new guest profile
       const { data: newProfile, error: profileError } = await supabase
         .from("profiles")
         .insert({
@@ -95,8 +112,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (profileError || !newProfile) {
         console.error("[Guest Checkout] Error creating guest profile:", {
           error: profileError,
+          code: (profileError as any)?.code,
+          message: (profileError as any)?.message,
           email: normalizedEmail,
         })
+        
+        // Check if it's a constraint violation (email already exists with auth)
+        if ((profileError as any)?.code === '23505') {
+          return { 
+            success: false, 
+            error: "An account already exists with this email. Please sign in to continue." 
+          }
+        }
+        
         return { success: false, error: "Failed to create guest profile. Please try again." }
       }
 
