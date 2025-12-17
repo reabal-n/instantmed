@@ -14,7 +14,7 @@ export default async function DoctorLayout({
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/auth/login?redirect=/doctor")
   }
 
   const isDoctor = authUser.profile.role === "doctor"
