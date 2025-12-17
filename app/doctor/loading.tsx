@@ -1,48 +1,74 @@
-import { Skeleton } from "@/components/ui/skeleton"
-
 export default function DoctorLoading() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar skeleton */}
-      <div className="fixed inset-y-0 left-0 w-64 border-r bg-card hidden lg:block">
-        <div className="p-6">
-          <Skeleton className="h-8 w-32 mb-8" />
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-10 w-full rounded-lg" />
-            ))}
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="container max-w-6xl py-8 px-4">
+        {/* Header skeleton */}
+        <div className="mb-8 animate-pulse">
+          <div className="h-8 w-64 bg-muted/60 rounded-lg mb-2" />
+          <div className="h-4 w-48 bg-muted/40 rounded-lg" />
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        <div className="container py-8">
-          {/* Stats row */}
-          <div className="grid gap-4 md:grid-cols-4 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="rounded-xl border bg-card p-6">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-8 w-12" />
+        {/* Stats cards with stagger animation */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div 
+              key={i} 
+              className="glass-card rounded-2xl p-5 animate-pulse"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-4 w-24 bg-muted/60 rounded" />
+                <div className="h-4 w-4 bg-muted/40 rounded" />
               </div>
-            ))}
-          </div>
-
-          {/* Queue table */}
-          <div className="rounded-xl border bg-card">
-            <div className="p-6 border-b">
-              <Skeleton className="h-6 w-32" />
+              <div className="h-9 w-14 bg-muted/60 rounded" />
             </div>
-            <div className="divide-y">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="p-4 flex items-center gap-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
+          ))}
+        </div>
+
+        {/* Queue skeleton */}
+        <div className="glass-card rounded-2xl overflow-hidden animate-pulse" style={{ animationDelay: '0.5s' }}>
+          <div className="p-6 pb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="h-6 w-40 bg-muted/60 rounded mb-2" />
+                <div className="h-4 w-56 bg-muted/40 rounded" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-8 w-20 bg-muted/40 rounded-lg" />
+                <div className="h-8 w-20 bg-muted/40 rounded-lg" />
+              </div>
+            </div>
+            {/* Tabs skeleton */}
+            <div className="flex gap-2 mb-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-9 w-24 bg-muted/40 rounded-lg" />
+              ))}
+            </div>
+          </div>
+          
+          {/* Request rows */}
+          <div className="px-6 pb-6">
+            <div className="divide-y divide-white/10">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div 
+                  key={i} 
+                  className="flex items-center gap-4 py-5"
+                  style={{ animationDelay: `${0.6 + i * 0.1}s` }}
+                >
+                  <div className="h-10 w-10 bg-muted/60 rounded-full" />
                   <div className="flex-1">
-                    <Skeleton className="h-5 w-32 mb-1" />
-                    <Skeleton className="h-4 w-48" />
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-4 w-32 bg-muted/60 rounded" />
+                      <div className="h-4 w-8 bg-muted/40 rounded" />
+                      <div className="h-5 w-16 bg-indigo-100/50 rounded-full" />
+                    </div>
+                    <div className="h-3 w-24 bg-muted/40 rounded" />
                   </div>
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                  <Skeleton className="h-9 w-24 rounded-lg" />
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 bg-muted/40 rounded-xl" />
+                    <div className="h-8 w-8 bg-indigo-100/50 rounded-xl" />
+                    <div className="h-8 w-8 bg-muted/40 rounded-xl" />
+                  </div>
                 </div>
               ))}
             </div>

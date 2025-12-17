@@ -1056,3 +1056,238 @@
     opacity: 1;
   }
 }
+
+/* Slow bounce animation for empty states */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* Success pulse animation */
+@keyframes success-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-success-pulse {
+  animation: success-pulse 1.5s ease-out;
+}
+
+/* Staggered card entrance */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.15s; }
+.stagger-3 { animation-delay: 0.2s; }
+.stagger-4 { animation-delay: 0.25s; }
+.stagger-5 { animation-delay: 0.3s; }
+
+/* Button press effect */
+.btn-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* Hover lift effect */
+.hover-lift-sm {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Focus ring for accessibility */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+}
+
+/* Smooth number counter animation */
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-count-up {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+/* Toast slide in */
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+/* Shake animation for validation errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Scale in animation */
+@keyframes scale-in-check {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in-check 0.3s ease-out forwards;
+}
+
+/* Shimmer effect for skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 25%,
+    rgba(0, 0, 0, 0.12) 50%,
+    rgba(0, 0, 0, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Step enter animation for questionnaire */
+@keyframes step-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes step-enter-reverse {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-step-enter {
+  animation: step-enter 0.3s ease-out forwards;
+}
+
+.animate-step-enter-reverse {
+  animation: step-enter-reverse 0.3s ease-out forwards;
+}
+
+/* Gentle bounce for emojis */
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+/* Single bounce on selection */
+@keyframes bounce-once {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 0.3s ease-out;
+}
+
+/* Option hover lift */
+.option-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.option-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 0.5s ease-out forwards;
+}

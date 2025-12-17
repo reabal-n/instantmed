@@ -174,72 +174,84 @@ function Progress({ stages, currentIndex }: { stages: readonly string[]; current
   )
 }
 
-// Step header
-function StepHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+// Step header with emoji support
+function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) {
   return (
-    <header className="text-center space-y-0.5">
-      <h1 className="text-lg font-semibold">{title}</h1>
-      {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+    <header className="text-center space-y-1">
+      {emoji && <div className="text-4xl mb-2 animate-bounce-gentle">{emoji}</div>}
+      <h1 className="text-xl font-semibold">{title}</h1>
+      {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </header>
   )
 }
 
-// Option tile
+// Option tile with emoji support
 function OptionTile({
   selected,
   onClick,
   label,
   description,
   icon: Icon,
+  emoji,
 }: {
   selected: boolean
   onClick: () => void
   label: string
   description?: string
   icon?: React.ElementType
+  emoji?: string
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-3 rounded-xl border text-left transition-all active:scale-[0.98] ${
+      className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
         selected
-          ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "border-border/60 bg-background hover:border-border"
+          ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+          : "border-border/60 bg-white/50 hover:border-primary/40 hover:bg-white/80"
       }`}
     >
       <div className="flex items-center gap-3">
-        {Icon && (
+        {emoji && (
+          <span className={`text-2xl ${selected ? "animate-bounce-once" : ""}`}>{emoji}</span>
+        )}
+        {Icon && !emoji && (
           <div
-            className={`w-9 h-9 rounded-lg flex items-center justify-center ${selected ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-5 h-5" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium ${selected ? "text-primary" : ""}`}>{label}</p>
-          {description && <p className="text-xs text-muted-foreground truncate">{description}</p>}
+          <p className={`font-medium transition-colors ${selected ? "text-primary" : "text-foreground"}`}>{label}</p>
+          {description && <p className="text-sm text-muted-foreground mt-0.5">{description}</p>}
         </div>
-        {selected && <Check className="w-4 h-4 text-primary shrink-0" />}
+        {selected && (
+          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center animate-scale-in">
+            <Check className="w-4 h-4 text-primary-foreground" />
+          </div>
+        )}
       </div>
     </button>
   )
 }
 
-// Pill button
+// Pill button with animation
 function PillButton({
   selected,
   onClick,
   children,
-}: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  emoji,
+}: { selected: boolean; onClick: () => void; children: React.ReactNode; emoji?: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-        selected ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+        selected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted hover:bg-muted/80 border border-border/40"
       }`}
     >
+      {emoji && <span className="mr-1.5">{emoji}</span>}
       {children}
     </button>
   )
@@ -775,9 +787,9 @@ export function PrescriptionFlowClient({
         >
           {/* Step: Type */}
           {step === "type" && (
-            <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
-              <div className="space-y-2">
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="💊" title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
+              <div className="space-y-3">
                 {RX_TYPES.map((type) => (
                   <OptionTile
                     key={type.id}
@@ -795,8 +807,9 @@ export function PrescriptionFlowClient({
 
           {/* Step: Medication */}
           {step === "medication" && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-step-enter">
               <StepHeader
+                emoji="🔍"
                 title={RX_MICROCOPY.medication.headingRepeat}
                 subtitle="Search and select your medication from the list"
               />
@@ -818,8 +831,9 @@ export function PrescriptionFlowClient({
 
           {/* Step: Gating Questions */}
           {step === "gating" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-step-enter">
               <StepHeader
+                emoji="📋"
                 title="A few quick questions"
                 subtitle="To ensure this service is right for you"
               />
@@ -925,8 +939,9 @@ export function PrescriptionFlowClient({
 
           {/* Step: Condition */}
           {step === "condition" && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-step-enter">
               <StepHeader
+                emoji="🩺"
                 title={rxType === "new" ? RX_MICROCOPY.condition.headingNew : RX_MICROCOPY.condition.heading}
                 subtitle={RX_MICROCOPY.condition.subtitle}
               />
@@ -959,8 +974,8 @@ export function PrescriptionFlowClient({
 
           {/* Step: Duration (repeat only) */}
           {step === "duration" && (
-            <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.duration.heading} />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="⏰" title={RX_MICROCOPY.duration.heading} />
               <div className="flex flex-wrap gap-2 justify-center">
                 {DURATIONS.map((d) => (
                   <PillButton
@@ -980,8 +995,8 @@ export function PrescriptionFlowClient({
 
           {/* Step: Control (repeat only) */}
           {step === "control" && (
-            <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.control.heading} />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="📊" title={RX_MICROCOPY.control.heading} />
               <div className="flex flex-wrap gap-2 justify-center">
                 {CONTROL_OPTIONS.map((c) => (
                   <PillButton
@@ -1001,8 +1016,8 @@ export function PrescriptionFlowClient({
 
           {/* Step: Side Effects (repeat only) */}
           {step === "sideEffects" && (
-            <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.sideEffects.heading} />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="⚠️" title={RX_MICROCOPY.sideEffects.heading} />
               <div className="flex flex-wrap gap-2 justify-center">
                 {SIDE_EFFECTS.map((s) => (
                   <PillButton
@@ -1022,10 +1037,11 @@ export function PrescriptionFlowClient({
 
           {/* Step: Notes */}
           {step === "notes" && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-step-enter">
               <StepHeader
-                title="Describe your symptoms"
-                subtitle="Please describe your symptoms and how long you've had them (required)"
+                emoji="✍️"
+                title="Tell us more"
+                subtitle="Describe your symptoms so the doctor can help you"
               />
               <Textarea
                 value={notes}
@@ -1046,8 +1062,8 @@ export function PrescriptionFlowClient({
 
           {/* Step: Safety */}
           {step === "safety" && (
-            <div className="space-y-4">
-              <StepHeader title={RX_MICROCOPY.safety.heading} subtitle={RX_MICROCOPY.safety.subtitle} />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="🛡️" title={RX_MICROCOPY.safety.heading} subtitle={RX_MICROCOPY.safety.subtitle} />
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
                   <div key={q.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60">

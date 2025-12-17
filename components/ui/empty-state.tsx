@@ -71,12 +71,21 @@ export function EmptyState({
 // Pre-built empty states
 export function EmptyRequests() {
   return (
-    <EmptyState
-      icon={FileText}
-      title="No requests yet"
-      description="Start a new consultation to get help from our doctors."
-      action={{ label: 'New Request', href: '/start' }}
-    />
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6">
+        <FileText className="w-10 h-10 text-indigo-500" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No requests yet</h3>
+      <p className="text-sm text-muted-foreground max-w-sm mb-6">
+        Get started with your first consultation. Our doctors are ready to help.
+      </p>
+      <Button asChild className="rounded-xl btn-premium">
+        <a href="/start">
+          <Plus className="w-4 h-4 mr-2" />
+          Start your first request
+        </a>
+      </Button>
+    </div>
   )
 }
 
@@ -102,11 +111,15 @@ export function EmptySearch() {
 
 export function EmptyQueue() {
   return (
-    <EmptyState
-      icon={Inbox}
-      title="Queue is empty"
-      description="No requests are waiting for review."
-    />
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center mb-6 animate-bounce-slow">
+        <span className="text-4xl">🎉</span>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">All caught up!</h3>
+      <p className="text-sm text-muted-foreground max-w-sm">
+        No requests waiting for review. Take a well-deserved break.
+      </p>
+    </div>
   )
 }
 

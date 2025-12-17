@@ -1,48 +1,70 @@
-import { Skeleton } from "@/components/ui/skeleton"
-
 export default function PatientLoading() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header skeleton */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center gap-4">
-          <Skeleton className="h-8 w-32" />
-          <div className="flex-1" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-      </div>
-
-      <div className="container py-8">
-        {/* Page title */}
-        <div className="mb-8">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="container max-w-5xl py-8 px-4">
+        {/* Header skeleton */}
+        <div className="mb-8 animate-pulse">
+          <div className="h-8 w-56 bg-muted/60 rounded-lg mb-2" />
+          <div className="h-4 w-72 bg-muted/40 rounded-lg" />
         </div>
 
-        {/* Stats cards */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-xl border bg-card p-6">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-8 w-16" />
+        {/* Stats cards with stagger animation */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div 
+              key={i} 
+              className="glass-card rounded-2xl p-5 animate-pulse"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-4 w-20 bg-muted/60 rounded" />
+                <div className="h-4 w-4 bg-muted/40 rounded" />
+              </div>
+              <div className="h-8 w-12 bg-muted/60 rounded" />
             </div>
           ))}
         </div>
 
-        {/* Content cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="rounded-xl border bg-card p-6">
-              <div className="flex items-start gap-4">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <div className="flex-1">
-                  <Skeleton className="h-5 w-32 mb-2" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4 mt-1" />
+        {/* Quick actions skeleton */}
+        <div className="mb-8">
+          <div className="h-5 w-32 bg-muted/60 rounded mb-4 animate-pulse" />
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i} 
+                className="glass-card rounded-2xl p-5 animate-pulse"
+                style={{ animationDelay: `${0.4 + i * 0.1}s` }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-muted/60 rounded-xl" />
+                  <div className="flex-1">
+                    <div className="h-4 w-24 bg-muted/60 rounded mb-1" />
+                    <div className="h-3 w-32 bg-muted/40 rounded" />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Recent requests skeleton */}
+        <div className="glass-card rounded-2xl p-6 animate-pulse" style={{ animationDelay: '0.7s' }}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="h-5 w-36 bg-muted/60 rounded" />
+            <div className="h-8 w-20 bg-muted/40 rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 py-3 border-b border-white/10 last:border-0">
+                <div className="h-10 w-10 bg-muted/60 rounded-full" />
+                <div className="flex-1">
+                  <div className="h-4 w-40 bg-muted/60 rounded mb-1" />
+                  <div className="h-3 w-24 bg-muted/40 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-muted/40 rounded-full" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

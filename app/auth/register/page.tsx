@@ -9,6 +9,7 @@ import { Button, Input, Checkbox } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
+import { PasswordStrength } from "@/components/ui/password-strength"
 import { Loader2, Shield, Clock, CheckCircle } from "lucide-react"
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -253,20 +254,23 @@ export default function RegisterPage() {
                   inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
                 }}
               />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="••••••••"
-                isRequired
-                value={password}
-                onValueChange={setPassword}
-                isDisabled={isLoading || isGoogleLoading}
-                variant="bordered"
-                radius="lg"
-                classNames={{
-                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                }}
-              />
+              <div className="space-y-3">
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="••••••••"
+                  isRequired
+                  value={password}
+                  onValueChange={setPassword}
+                  isDisabled={isLoading || isGoogleLoading}
+                  variant="bordered"
+                  radius="lg"
+                  classNames={{
+                    inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  }}
+                />
+                <PasswordStrength password={password} />
+              </div>
               <Checkbox
                 isSelected={termsAccepted}
                 onValueChange={setTermsAccepted}

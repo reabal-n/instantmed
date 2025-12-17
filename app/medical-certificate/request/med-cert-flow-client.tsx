@@ -162,27 +162,30 @@ function ProgressIndicator({
   )
 }
 
-// Accessible step header
+// Accessible step header with emoji support
 function StepHeader({
   title,
   subtitle,
   stepNumber,
   totalSteps,
+  emoji,
 }: {
   title: string
   subtitle?: string
   stepNumber?: number
   totalSteps?: number
+  emoji?: string
 }) {
   return (
     <header className="text-center space-y-1">
+      {emoji && <div className="text-4xl mb-2 animate-bounce-gentle">{emoji}</div>}
       {stepNumber && totalSteps && (
         <p className="sr-only">
           Step {stepNumber} of {totalSteps}
         </p>
       )}
       <h1 className="text-xl font-semibold text-foreground leading-tight">{title}</h1>
-      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </header>
   )
 }
@@ -220,13 +223,14 @@ function ErrorMessage({
   )
 }
 
-// Tile button component
+// Tile button component with emoji support
 function TileButton({
   selected,
   onClick,
   icon: Icon,
   label,
   description,
+  emoji,
   className = "",
 }: {
   selected: boolean
@@ -234,6 +238,7 @@ function TileButton({
   icon?: React.ComponentType<{ className?: string }>
   label: string
   description?: string
+  emoji?: string
   className?: string
 }) {
   return (
@@ -242,8 +247,9 @@ function TileButton({
       onClick={onClick}
       aria-pressed={selected}
       className={`
-        w-full min-h-[48px] p-3 rounded-xl border-2 transition-all
+        w-full min-h-[48px] p-4 rounded-2xl border-2 transition-all duration-200
         flex items-center gap-3 text-left
+        hover:scale-[1.02] active:scale-[0.98]
         focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
         ${
           selected
@@ -253,9 +259,12 @@ function TileButton({
         ${className}
       `}
     >
-      {Icon && (
+      {emoji && (
+        <span className={`text-2xl ${selected ? "animate-bounce-once" : ""}`}>{emoji}</span>
+      )}
+      {Icon && !emoji && (
         <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
             selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
           }`}
           aria-hidden="true"
@@ -857,12 +866,13 @@ export function MedCertFlowClient({
     switch (step) {
       case "type":
         return (
-          <section aria-labelledby="step-type-heading" className="space-y-4">
+          <section aria-labelledby="step-type-heading" className="space-y-4 animate-step-enter">
             <StepHeader
+              emoji="📄"
               title={MICROCOPY.type.heading}
               subtitle={MICROCOPY.type.subtitle}
               stepNumber={1}
-              totalSteps={3} // Updated totalSteps count
+              totalSteps={3}
             />
 
             <div className="space-y-2" role="radiogroup" aria-label="Certificate type">
@@ -882,8 +892,8 @@ export function MedCertFlowClient({
 
       case "duration":
         return (
-          <section aria-labelledby="step-duration-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.duration.heading} />
+          <section aria-labelledby="step-duration-heading" className="space-y-4 animate-step-enter">
+            <StepHeader emoji="📅" title={MICROCOPY.duration.heading} />
 
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Duration">
               {DURATION_OPTIONS.map((option) => (
@@ -945,13 +955,14 @@ export function MedCertFlowClient({
       // New Step: Start Date
       case "startDate":
         return (
-          <section aria-labelledby="step-start-date-heading" className="space-y-4">
-            <div>
-              <h2 id="step-start-date-heading" className="text-xl font-semibold mb-1">
+          <section aria-labelledby="step-start-date-heading" className="space-y-4 animate-step-enter">
+            <header className="text-center space-y-1">
+              <div className="text-4xl mb-2 animate-bounce-gentle">🗓️</div>
+              <h2 id="step-start-date-heading" className="text-xl font-semibold">
                 When does your leave start?
               </h2>
               <p className="text-sm text-muted-foreground">We cannot backdate medical certificates</p>
-            </div>
+            </header>
 
             <div className="space-y-2">
               <Label htmlFor="start-date" className="text-sm font-medium">
@@ -977,8 +988,9 @@ export function MedCertFlowClient({
 
       case "symptoms":
         return (
-          <section aria-labelledby="step-symptoms-heading" className="space-y-4">
+          <section aria-labelledby="step-symptoms-heading" className="space-y-4 animate-step-enter">
             <StepHeader
+              emoji={isCarer ? "🧑‍⚕️" : "🪒"}
               title={isCarer ? MICROCOPY.symptoms.headingCarer : MICROCOPY.symptoms.heading}
               subtitle={MICROCOPY.symptoms.subtitle}
             />
@@ -1045,9 +1057,10 @@ export function MedCertFlowClient({
 
       case "notes":
         return (
-          <section aria-labelledby="step-notes-heading" className="space-y-4">
-            <div>
-              <h2 id="step-notes-heading" className="text-xl font-semibold mb-1">
+          <section aria-labelledby="step-notes-heading" className="space-y-4 animate-step-enter">
+            <header className="text-center space-y-1">
+              <div className="text-4xl mb-2 animate-bounce-gentle">✍️</div>
+              <h2 id="step-notes-heading" className="text-xl font-semibold">
                 {MICROCOPY.notes.heading}
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -1057,7 +1070,7 @@ export function MedCertFlowClient({
                   ? "Please describe why you need extended leave (required for certificates over 2 days)"
                   : MICROCOPY.notes.subtitle}
               </p>
-            </div>
+            </header>
 
             <div className="space-y-2">
               <Textarea
@@ -1078,8 +1091,8 @@ export function MedCertFlowClient({
 
       case "safety":
         return (
-          <section aria-labelledby="step-safety-heading" className="space-y-4">
-            <StepHeader title={MICROCOPY.safety.heading} subtitle={MICROCOPY.safety.subtitle} />
+          <section aria-labelledby="step-safety-heading" className="space-y-4 animate-step-enter">
+            <StepHeader emoji="🛡️" title={MICROCOPY.safety.heading} subtitle={MICROCOPY.safety.subtitle} />
 
             <fieldset className="space-y-3">
               <legend className="sr-only">Safety screening questions</legend>

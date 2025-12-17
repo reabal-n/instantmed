@@ -108,11 +108,12 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-// Step header component
-function StepHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+// Step header component with emoji support
+function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) {
   return (
-    <div className="text-center mb-2">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <div className="text-center mb-4">
+      {emoji && <div className="text-4xl mb-2 animate-bounce-gentle">{emoji}</div>}
+      <h2 className="text-xl font-semibold">{title}</h2>
       {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </div>
   )
@@ -468,8 +469,9 @@ export function ConsultFlowClient({
         >
           {/* Step: Reason */}
           {step === "reason" && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-step-enter">
               <StepHeader
+                emoji="🩺"
                 title="What brings you in today?"
                 subtitle="Select the main reason for your consultation"
               />
@@ -496,8 +498,9 @@ export function ConsultFlowClient({
 
           {/* Step: Details */}
           {step === "details" && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-step-enter">
               <StepHeader
+                emoji="✍️"
                 title="Tell us more"
                 subtitle="Please provide details about your concern"
               />
@@ -533,8 +536,8 @@ export function ConsultFlowClient({
 
           {/* Step: Safety */}
           {step === "safety" && (
-            <div className="space-y-4">
-              <StepHeader title="Safety screening" subtitle="Please answer honestly" />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="🛡️" title="Safety screening" subtitle="Please answer honestly" />
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
                   <div key={q.id} className="p-4 rounded-xl border border-border/60 space-y-3">
@@ -574,8 +577,8 @@ export function ConsultFlowClient({
 
           {/* Step: Medicare */}
           {step === "medicare" && (
-            <div className="space-y-4">
-              <StepHeader title="Medicare details" subtitle="For your records" />
+            <div className="space-y-4 animate-step-enter">
+              <StepHeader emoji="💳" title="Medicare details" subtitle="For your records" />
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Medicare number</label>
