@@ -15,7 +15,6 @@ import {
   ArrowRight,
   FileText,
   ClipboardList,
-  FileCheck,
   Sparkles,
   Pill,
   Activity,
@@ -47,12 +46,6 @@ const requestTypes: RequestTypeOption[] = [
     title: "Medical Certificate",
     description: "Quick certificate for work or study",
     icon: ClipboardList,
-  },
-  {
-    id: "referral",
-    title: "Referral",
-    description: "Get a specialist referral letter",
-    icon: FileCheck,
   },
   {
     id: "hair_loss",
@@ -276,7 +269,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
               className="glass-card rounded-2xl p-5 text-left cursor-pointer group hover-lift animate-fade-in-up opacity-0 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50"
               style={{ animationDelay: `${0.2 + index * 0.05}s`, animationFillMode: "forwards" }}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 transition-transform duration-200 group-hover:scale-110">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 transition-transform duration-200 group-hover:scale-110">
                 <type.icon className="h-5 w-5 text-primary-foreground" />
               </div>
               <h3 className="mt-4 text-sm font-semibold text-foreground">{type.title}</h3>
@@ -300,7 +293,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
               style={{ animationFillMode: "forwards" }}
             >
               <div className="flex gap-3">
-                <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
                 <div>
                   <h3 className="text-base font-semibold text-red-800">Immediate attention required</h3>
                   <p className="mt-1 text-sm text-red-700 leading-relaxed">
@@ -451,7 +444,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                     id={flag.id}
                     checked={redFlagValues[flag.id]}
                     onCheckedChange={(checked) => handleRedFlagChange(flag.id, checked)}
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   />
                 </div>
               ))}
@@ -481,7 +474,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || hasRedFlags || !formData.main_concern.trim()}
-              className="flex-1 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

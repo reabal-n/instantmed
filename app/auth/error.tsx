@@ -17,7 +17,7 @@ export default function AuthError({
   }, [error])
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-linear-to-b from-background to-muted/30">
       <div className="text-center max-w-md">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 mb-6">
           <AlertTriangle className="h-8 w-8 text-amber-500" />

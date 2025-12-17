@@ -105,10 +105,12 @@ export function DoctorDashboardClient({
     request,
     index = 0,
     isAwaitingPayment = false,
+    showActions = false,
   }: {
     request: RequestWithPatient
     index?: number
     isAwaitingPayment?: boolean
+    showActions?: boolean
   }) => {
     const patientAge = calculateAge(request.patient.date_of_birth)
     const notePreview = request.clinical_note
@@ -122,7 +124,7 @@ export function DoctorDashboardClient({
       >
         <div className="flex items-start gap-3 min-w-0">
           <Avatar className="h-10 w-10 shrink-0 border-2 border-white/50 shadow-md">
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
+            <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs font-medium">
               {getInitials(request.patient.full_name)}
             </AvatarFallback>
           </Avatar>

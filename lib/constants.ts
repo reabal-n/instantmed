@@ -5,7 +5,7 @@
 
 export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
-  "Get medical certificates, prescriptions, and referrals online from AHPRA-registered Australian GPs."
+  "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs."
 
 // Contact info
 export const CONTACT_EMAIL = "support@instantmed.com.au"
@@ -16,8 +16,6 @@ export const CONTACT_PHONE_NUMBER = "1800467826"
 export const PRICING = {
   MEDICAL_CERTIFICATE: 2900, // $29.00
   PRESCRIPTION: 2900, // $29.00
-  REFERRAL_SPECIALIST: 2900, // $29.00
-  REFERRAL_PATHOLOGY: 2900, // $29.00
 } as const
 
 // Response time guarantees
@@ -30,7 +28,6 @@ export const RESPONSE_TIMES = {
 export const REQUEST_TYPES = {
   MEDICAL_CERTIFICATE: "medical_certificate",
   PRESCRIPTION: "prescription",
-  REFERRAL: "referral",
 } as const
 
 // Medical certificate categories
@@ -38,12 +35,6 @@ export const MEDCERT_CATEGORIES = {
   WORK: "work",
   UNI: "uni",
   CARER: "carer",
-} as const
-
-// Referral categories
-export const REFERRAL_CATEGORIES = {
-  SPECIALIST: "specialist",
-  PATHOLOGY: "pathology",
 } as const
 
 // Australian states

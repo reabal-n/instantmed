@@ -162,5 +162,21 @@ export const logger = {
   }),
 }
 
+/**
+ * Create a named logger with module context
+ */
+export function createLogger(module: string, baseContext?: LogContext) {
+  return {
+    debug: (message: string, context?: LogContext) => 
+      log('debug', `[${module}] ${message}`, { ...baseContext, ...context }),
+    info: (message: string, context?: LogContext) => 
+      log('info', `[${module}] ${message}`, { ...baseContext, ...context }),
+    warn: (message: string, context?: LogContext, error?: unknown) => 
+      log('warn', `[${module}] ${message}`, { ...baseContext, ...context }, error instanceof Error ? error : undefined),
+    error: (message: string, context?: LogContext, error?: unknown) => 
+      log('error', `[${module}] ${message}`, { ...baseContext, ...context }, error instanceof Error ? error : undefined),
+  }
+}
+
 // Re-export for convenience
 export type { LogContext, LogLevel }

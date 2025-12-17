@@ -360,7 +360,7 @@ export default async function AnalyticsPage() {
               <div key={day} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex justify-center">
                   <div
-                    className="w-8 bg-gradient-to-t from-primary to-primary/70 rounded-t-lg transition-all duration-500 hover:from-primary/90 hover:to-primary/60"
+                    className="w-8 bg-linear-to-t from-primary to-primary/70 rounded-t-lg transition-all duration-500 hover:from-primary/90 hover:to-primary/60"
                     style={{ height: `${Math.max(height, 4)}px` }}
                   />
                 </div>

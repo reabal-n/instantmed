@@ -165,7 +165,7 @@ export default function HowItWorksPage() {
 
               <div className="relative">
                 {/* Connection line */}
-                <div className="absolute left-10 md:left-[39px] top-24 bottom-24 w-0.5 bg-gradient-to-b from-[#00E2B5]/50 via-[#00E2B5]/20 to-[#00E2B5]/50 hidden md:block" />
+                <div className="absolute left-10 md:left-[39px] top-24 bottom-24 w-0.5 bg-linear-to-b from-[#00E2B5]/50 via-[#00E2B5]/20 to-[#00E2B5]/50 hidden md:block" />
 
                 <div className="space-y-8 md:space-y-12">
                   {steps.map((step, index) => (
@@ -176,7 +176,7 @@ export default function HowItWorksPage() {
                     >
                       {/* Icon */}
                       <div
-                        className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0 relative`}
+                        className={`w-20 h-20 rounded-2xl bg-linear-to-br ${step.color} flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0 relative`}
                       >
                         <step.icon className="w-8 h-8 text-white" />
                         <span className="absolute -top-2 -right-2 text-2xl">{step.emoji}</span>

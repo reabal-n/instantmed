@@ -43,11 +43,11 @@ export function FeaturesSection() {
   return (
     <section id="features" ref={sectionRef} className="px-4 py-20 sm:py-28 relative overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-[#f0fdf4]/50 dark:via-gray-900/50 to-background" />
+      <div className="absolute inset-0 bg-linear-to-b from-background via-[#f0fdf4]/50 dark:via-gray-900/50 to-background" />
       
       {/* Animated background blobs */}
       <motion.div
-        className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#00E2B5]/10 to-[#06B6D4]/10 rounded-full blur-3xl"
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-linear-to-br from-[#00E2B5]/10 to-[#06B6D4]/10 rounded-full blur-3xl"
         animate={{
           x: [0, 50, 0],
           y: [0, -30, 0],
@@ -56,7 +56,7 @@ export function FeaturesSection() {
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-[#8B5CF6]/10 to-[#EC4899]/10 rounded-full blur-3xl"
+        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-linear-to-br from-[#8B5CF6]/10 to-[#EC4899]/10 rounded-full blur-3xl"
         animate={{
           x: [0, -30, 0],
           y: [0, 50, 0],
@@ -105,7 +105,7 @@ export function FeaturesSection() {
               <Link key={service.title} href={service.href} className="group block">
                 <MagneticGlow glowColor={`${service.color}40`}>
                   <SpotlightCard spotlightColor={`${service.color}30`} className="h-full">
-                    <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${service.gradient} p-1`}>
+                    <div className={`relative rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1`}>
                       <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-[22px] overflow-hidden h-full">
                         {/* Image section */}
                         <div className="relative h-48 overflow-hidden">
@@ -115,7 +115,7 @@ export function FeaturesSection() {
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                           
                           {/* Price tag */}
                           <motion.div
@@ -186,7 +186,7 @@ export function FeaturesSection() {
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                   animate={{ x: ["-100%", "100%"] }}
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
                 />

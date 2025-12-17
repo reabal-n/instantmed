@@ -25,7 +25,7 @@ export function TestModeBanner() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-amber-950 text-center py-1.5 px-4 text-xs font-medium">
+    <div className="fixed top-0 left-0 right-0 z-100 bg-amber-500 text-amber-950 text-center py-1.5 px-4 text-xs font-medium">
       <AlertTriangle className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5" />
       Test mode — using dummy Medicare and payment data. Not for real patients.
     </div>

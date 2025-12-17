@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter, Work_Sans, JetBrains_Mono } from "next/font/google"
+import { Inter, Lora, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { LiveChatWidget } from "@/components/shared/live-chat-widget"
@@ -13,34 +13,37 @@ import { ThemeProvider } from "next-themes"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import "./globals.css"
 
-const workSans = Work_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
-
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 })
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
   title: {
-    default: "InstantMed - Online Doctor Consultations Australia | Med Certs, Scripts & Referrals",
+    default: "InstantMed - Online Doctor Consultations Australia | Med Certs & Scripts",
     template: "%s | InstantMed",
   },
   description:
-    "Get medical certificates, prescriptions, and referrals online from AHPRA-registered Australian GPs. Same-day response, 7 days a week. No waiting rooms, no hold music.",
+    "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs. Same-day response, 7 days a week. No waiting rooms, no hold music.",
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
     "medical certificate online",
     "online prescription",
-    "online referral",
     "GP online",
     "sick certificate",
     "repeat prescription online",
@@ -62,7 +65,7 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed - Online Doctor Consultations Australia",
     description:
-      "Medical certificates, scripts, and referrals — handled in minutes. AHPRA-registered Australian GPs available 7 days.",
+      "Medical certificates and scripts — handled in minutes. AHPRA-registered Australian GPs available 7 days.",
     images: [
       {
         url: "/og-image.png",
@@ -75,7 +78,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "InstantMed - Online Doctor Consultations Australia",
-    description: "Medical certificates, scripts, and referrals — handled in minutes by real Australian GPs.",
+    description: "Medical certificates and scripts — handled in minutes by real Australian GPs.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -124,7 +127,7 @@ function JsonLd() {
       "@type": "Country",
       name: "Australia",
     },
-    serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Prescriptions", "Referrals"],
+    serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Prescriptions"],
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",
@@ -151,7 +154,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>

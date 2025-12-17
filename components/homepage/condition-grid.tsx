@@ -2,9 +2,8 @@
 
 import { useRef } from "react"
 import Link from "next/link"
-import { ArrowRight, Sparkles } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { motion, useInView } from "framer-motion"
-import { MagneticGlow } from "@/components/effects/magnetic-button"
 
 interface Condition {
   id: string
@@ -151,7 +150,7 @@ const itemVariants = {
     scale: 1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.4, 0.25, 1],
+      ease: [0.25, 0.4, 0.25, 1] as const,
     },
   },
 }
@@ -166,96 +165,110 @@ export function ConditionGrid() {
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5"
     >
       {conditions.map((condition) => (
         <motion.div key={condition.id} variants={itemVariants}>
           <Link href={condition.href} className="group block h-full">
-            <MagneticGlow glowColor={`${condition.color}30`}>
-              <motion.div 
-                className="relative bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                whileHover={{ 
-                  y: -4,
-                  boxShadow: `0 20px 40px ${condition.color}20`,
+            <motion.div 
+              className="glass-card relative rounded-2xl p-5 h-full overflow-hidden"
+              whileHover={{ 
+                y: -6,
+                transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
+              }}
+              style={{
+                boxShadow: `0 4px 24px ${condition.color}15`,
+              }}
+            >
+              {/* Outer glow on hover */}
+              <motion.div
+                className="absolute -inset-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{
+                  background: `linear-gradient(135deg, ${condition.color}40, transparent 60%)`,
+                  filter: 'blur(8px)',
                 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                {/* Popular badge */}
-                {condition.popular && (
-                  <motion.div
-                    className="absolute top-2 right-2"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring" }}
-                  >
-                    <div className="flex items-center gap-1 bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      <Sparkles className="h-2.5 w-2.5" />
-                      Popular
-                    </div>
-                  </motion.div>
-                )}
-                
-                {/* Gradient accent line */}
-                <motion.div 
-                  className="absolute top-0 left-0 right-0 h-1"
-                  style={{ background: `linear-gradient(90deg, ${condition.color}, ${condition.color}80)` }}
-                  initial={{ scaleX: 0 }}
-                  whileHover={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-                
-                {/* Icon with color background */}
-                <motion.div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-2xl"
-                  style={{ background: `linear-gradient(135deg, ${condition.color}20, ${condition.color}10)` }}
-                  whileHover={{ scale: 1.15, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  {condition.icon}
-                </motion.div>
-
-                {/* Name */}
-                <h3 className="font-bold text-sm text-foreground mb-1">{condition.name}</h3>
-
-                {/* Tagline */}
-                <p className="text-xs text-muted-foreground leading-snug mb-4">{condition.tagline}</p>
-
-                {/* Price + Arrow */}
-                <div className="flex items-center justify-between">
-                  <span 
-                    className="text-sm font-bold"
-                    style={{ color: condition.color }}
-                  >
-                    From {condition.price}
-                  </span>
-                  <motion.div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ background: `${condition.color}20` }}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileHover={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <motion.div
-                      animate={{ x: [0, 3, 0] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      <ArrowRight className="h-3 w-3" style={{ color: condition.color }} />
-                    </motion.div>
-                  </motion.div>
-                </div>
-
-                {/* Hover background glow */}
+              />
+              
+              {/* Popular badge */}
+              {condition.popular && (
                 <motion.div
-                  className="absolute inset-0 rounded-2xl pointer-events-none"
-                  style={{
-                    background: `radial-gradient(circle at 50% 100%, ${condition.color}10, transparent 70%)`,
-                  }}
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
+                  className="absolute top-3 right-3 z-10"
+                  initial={{ scale: 0, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                >
+                  <div 
+                    className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${condition.color}, ${condition.color}cc)`,
+                      boxShadow: `0 4px 12px ${condition.color}40`,
+                    }}
+                  >
+                    ✨ Popular
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Top accent gradient */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-[2px] opacity-60 group-hover:opacity-100 transition-opacity"
+                style={{ 
+                  background: `linear-gradient(90deg, transparent, ${condition.color}, transparent)`,
+                }}
+              />
+              
+              {/* 3D Emoji icon */}
+              <motion.div 
+                className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-4 text-3xl"
+                style={{ 
+                  background: `linear-gradient(145deg, ${condition.color}20, ${condition.color}08)`,
+                  boxShadow: `inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px ${condition.color}15`,
+                }}
+                whileHover={{ scale: 1.1, rotate: 3 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              >
+                <span className="drop-shadow-sm">{condition.icon}</span>
               </motion.div>
-            </MagneticGlow>
+
+              {/* Name - using heading font */}
+              <h3 className="font-heading font-semibold text-base text-foreground mb-1.5 tracking-tight">
+                {condition.name}
+              </h3>
+
+              {/* Tagline */}
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                {condition.tagline}
+              </p>
+
+              {/* Price + Arrow */}
+              <div className="flex items-center justify-between">
+                <span 
+                  className="text-base font-bold tracking-tight"
+                  style={{ color: condition.color }}
+                >
+                  From {condition.price}
+                </span>
+                <motion.div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${condition.color}30, ${condition.color}15)`,
+                    boxShadow: `0 2px 8px ${condition.color}20`,
+                  }}
+                  initial={{ x: -8 }}
+                  whileHover={{ x: 0 }}
+                >
+                  <ArrowRight className="h-4 w-4" style={{ color: condition.color }} />
+                </motion.div>
+              </div>
+
+              {/* Bottom glow effect */}
+              <div
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{
+                  background: `radial-gradient(ellipse at center bottom, ${condition.color}20, transparent 70%)`,
+                }}
+              />
+            </motion.div>
           </Link>
         </motion.div>
       ))}

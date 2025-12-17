@@ -184,7 +184,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
             <MapPin className="h-7 w-7 text-primary-foreground" />
           </div>
           <h2 className="text-xl font-semibold text-foreground">Hi {firstName}, just a few more details</h2>
@@ -284,7 +284,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
           <CreditCard className="h-7 w-7 text-primary-foreground" />
         </div>
         <h2 className="text-xl font-semibold text-foreground">Medicare details</h2>

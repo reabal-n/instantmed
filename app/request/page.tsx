@@ -28,8 +28,8 @@ export default async function RequestPage({
         needsOnboarding={!!user && !profile}
         userEmail={user?.email}
         userName={profile?.full_name || user?.user_metadata?.full_name}
-        medicareNumber={profile?.medicare_number}
-        medicareIrn={profile?.medicare_irn}
+        medicareNumber={profile?.medicare_number ?? undefined}
+        medicareIrn={profile?.medicare_irn ?? undefined}
       />
     </main>
   )

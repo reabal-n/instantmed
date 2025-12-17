@@ -20,7 +20,7 @@ const faqCategories = [
     faqs: [
       {
         q: "What is InstantMed?",
-        a: "We're an Australian telehealth service that connects you with registered GPs for medical certificates, prescription renewals, and specialist referrals. You submit your request online, and a doctor reviews it. They may approve it, request more information, or recommend an in-person consultation if needed.",
+        a: "We're an Australian telehealth service that connects you with registered GPs for medical certificates and prescription renewals. You submit your request online, and a doctor reviews it. They may approve it, request more information, or recommend an in-person consultation if needed.",
       },
       {
         q: "Is this service legal and legitimate?",
@@ -32,7 +32,7 @@ const faqCategories = [
       },
       {
         q: "How do I know if I need a GP visit instead?",
-        a: "Our service is best for straightforward requests like sick certificates for minor illness, repeat prescriptions for stable conditions, and routine referrals. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that's the case.",
+        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that's the case.",
       },
       {
         q: "Will a doctor call me?",
@@ -85,24 +85,6 @@ const faqCategories = [
     ],
   },
   {
-    title: "Referrals",
-    emoji: "🏥",
-    faqs: [
-      {
-        q: "How long is a referral valid?",
-        a: "Standard GP referrals are valid for 12 months from the date of issue. Some specialists may require a new referral after this period.",
-      },
-      {
-        q: "Do referrals include Medicare rebates?",
-        a: "Yes, our referrals are Medicare-compliant. You'll receive the standard Medicare rebate when you see the specialist.",
-      },
-      {
-        q: "Can I get a referral for any specialist?",
-        a: "We can refer to most specialists including dermatologists, psychiatrists, cardiologists, gastroenterologists, and more. We also provide pathology and imaging referrals. Some referrals may require additional clinical information.",
-      },
-    ],
-  },
-  {
     title: "Privacy & Security",
     emoji: "🔒",
     faqs: [
@@ -134,7 +116,7 @@ const faqCategories = [
       },
       {
         q: "Is there a Medicare rebate for the consultation?",
-        a: "Our consultation fees aren't covered by Medicare as they're a private telehealth service. However, any prescriptions or referrals you receive are Medicare-eligible.",
+        a: "Our consultation fees aren't covered by Medicare as they're a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
       },
     ],
   },

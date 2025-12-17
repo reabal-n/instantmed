@@ -111,15 +111,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         .single()
 
       if (profileError || !newProfile) {
+        const pgError = profileError as { code?: string; message?: string } | null
         console.error("[Guest Checkout] Error creating guest profile:", {
           error: profileError,
-          code: (profileError as any)?.code,
-          message: (profileError as any)?.message,
+          code: pgError?.code,
+          message: pgError?.message,
           email: normalizedEmail,
         })
         
         // Check if it's a constraint violation (email already exists with auth)
-        if ((profileError as any)?.code === '23505') {
+        if (pgError?.code === '23505') {
           return { 
             success: false, 
             error: "An account already exists with this email. Please sign in to continue." 
@@ -180,7 +181,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 5. Build success and cancel URLs
     const successUrl = `${baseUrl}/auth/complete-account?request_id=${request.id}&email=${encodeURIComponent(input.guestEmail)}&session_id={CHECKOUT_SESSION_ID}`
-    const cancelUrl = `${baseUrl}/request-cancelled?request_id=${request.id}`
+    const cancelUrl = `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`
 
     // 6. Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({

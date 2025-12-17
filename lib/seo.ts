@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 const siteConfig = {
   name: "InstantMed",
   description:
-    "Get medical certificates, prescriptions, and referrals online. Reviewed by AHPRA-registered Australian doctors. No appointments needed.",
+    "Get medical certificates and prescriptions online. Reviewed by AHPRA-registered Australian doctors. No appointments needed.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au",
   ogImage: "/og-image.png",
   keywords: [
@@ -11,7 +11,6 @@ const siteConfig = {
     "telehealth Australia",
     "medical certificate online",
     "online prescription",
-    "doctor referral online",
     "sick certificate",
     "AHPRA registered doctor",
     "Australian telehealth",
@@ -110,11 +109,6 @@ export function generateStructuredData(type: "Organization" | "MedicalBusiness" 
         "@type": "MedicalProcedure",
         name: "Prescription",
         description: "Repeat prescriptions for ongoing medications",
-      },
-      {
-        "@type": "MedicalProcedure",
-        name: "Referral",
-        description: "Specialist and pathology referrals",
       },
     ],
   }

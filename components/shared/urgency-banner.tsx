@@ -22,7 +22,7 @@ export function UrgencyBanner() {
   if (!isVisible) return null
 
   return (
-    <div className="bg-gradient-to-r from-[#00E2B5] to-[#00C9A0] text-[#0A0F1C] py-2 px-4 relative">
+    <div className="bg-linear-to-r from-[#00E2B5] to-[#00C9A0] text-[#0A0F1C] py-2 px-4 relative">
       <div className="container mx-auto flex items-center justify-center gap-4 text-sm font-medium">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">

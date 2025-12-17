@@ -108,7 +108,7 @@ function StartFlowContent() {
   // Show loading while hydrating store or initializing
   if (!isHydrated || !isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
       </div>
     )
@@ -117,7 +117,7 @@ function StartFlowContent() {
   // Render eligibility fail screen
   if (showEligibilityFail) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -213,7 +213,7 @@ function StartFlowContent() {
 // Loading fallback
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
       <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
     </div>
   )

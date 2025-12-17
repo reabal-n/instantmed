@@ -1,32 +1,25 @@
 // Database table types mirroring Supabase schema
 
-export type UserRole = "patient" | "doctor"
+export type UserRole = "patient" | "doctor" | "admin"
 
 export type RequestType =
   | "script"
   | "med_cert"
-  | "referral"
   | "hair_loss"
   | "acne"
   | "ed"
   | "hsv"
   | "bv_partner"
-  | "pathology"
 
 export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up"
 
-export type RequestCategory = "medical_certificate" | "prescription" | "referral" | "other"
+export type RequestCategory = "medical_certificate" | "prescription" | "other"
 
 export type MedicalCertificateSubtype = "work" | "uni" | "carer"
 export type PrescriptionSubtype = "repeat" | "chronic_review"
-export type ReferralSubtype = "specialist" | "imaging"
-export type PathologySubtype = "routine" | "urgent" | "asap"
-
 export type RequestSubtype =
   | MedicalCertificateSubtype
   | PrescriptionSubtype
-  | ReferralSubtype
-  | PathologySubtype
   | string
 
 export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA"
@@ -41,6 +34,7 @@ export interface Profile {
   // Contact & address fields
   phone: string | null
   address_line1: string | null
+  street_address: string | null
   suburb: string | null
   state: AustralianState | null
   postcode: string | null
@@ -48,8 +42,11 @@ export interface Profile {
   medicare_number: string | null
   medicare_irn: number | null // 1-5
   medicare_expiry: string | null // ISO date string
+  medicare_expiry_month: string | null
+  medicare_expiry_year: string | null
   // Consent and onboarding
   consent_myhr: boolean
+  my_health_record_consent: boolean
   onboarding_completed: boolean
   // Stripe customer linking
   stripe_customer_id: string | null
@@ -67,6 +64,7 @@ export interface Request {
   category: RequestCategory | null
   subtype: RequestSubtype | null
   clinical_note: string | null
+  priority_review: boolean
   // Doctor notes and escalation fields
   doctor_notes: string | null
   escalation_level: EscalationLevel
@@ -210,9 +208,13 @@ export interface RequestWithDocument extends RequestWithDetails {
   generatedDocument: GeneratedDocument | null
 }
 
-// Insert types (omit auto-generated fields)
+// Insert types (omit auto-generated fields and make fields with defaults optional)
 export type ProfileInsert = Omit<Profile, "id" | "created_at" | "updated_at">
-export type RequestInsert = Omit<Request, "id" | "created_at" | "updated_at">
+export type RequestInsert = Partial<Omit<Request, "id" | "created_at" | "updated_at">> & {
+  patient_id: string
+  type: RequestType
+  status: RequestStatus
+}
 export type RequestAnswersInsert = Omit<RequestAnswers, "id" | "created_at">
 export type DocumentInsert = Omit<Document, "id" | "created_at">
 export type DocumentDraftInsert = Omit<DocumentDraft, "id" | "created_at" | "updated_at">

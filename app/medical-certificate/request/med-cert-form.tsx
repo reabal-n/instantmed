@@ -989,7 +989,7 @@ export function MedCertForm({
         confetti({
           particleCount: 100,
           spread: 70,
-          origin: { y: 0.6 },
+          origin: { x: 0.5, y: 0.6 },
           colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
         })
 
@@ -1282,7 +1282,7 @@ export function MedCertForm({
 
             {/* Sign-in panel for guests */}
             {!isAuthenticated && (
-              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+              <Card className="border-primary/20 bg-linear-to-br from-primary/5 to-primary/10">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1557,7 +1557,7 @@ export function MedCertForm({
 
             {/* Sign-in options for guests */}
             {!isAuthenticated && (
-              <div className="rounded-xl border border-border bg-gradient-to-br from-muted/30 to-muted/50 p-4 space-y-3">
+              <div className="rounded-xl border border-border bg-linear-to-br from-muted/30 to-muted/50 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Continuing as guest</span>
@@ -1665,7 +1665,7 @@ export function MedCertForm({
     <main
       ref={mainRef}
       tabIndex={-1}
-      className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col"
+      className="min-h-screen bg-linear-to-b from-background to-muted/30 flex flex-col"
       aria-label="Medical certificate request"
     >
       {/* Header */}

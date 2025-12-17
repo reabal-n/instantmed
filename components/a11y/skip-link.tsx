@@ -24,7 +24,7 @@ export function SkipLink({
       href={href}
       className={cn(
         "sr-only focus:not-sr-only",
-        "fixed top-4 left-4 z-[100]",
+        "fixed top-4 left-4 z-100",
         "px-4 py-2 rounded-lg",
         "bg-primary text-primary-foreground",
         "font-medium text-sm",

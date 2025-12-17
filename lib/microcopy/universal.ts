@@ -123,56 +123,6 @@ export const COPY = {
     },
   },
 
-  // Referral flow
-  referral: {
-    heading: "Referral",
-    types: {
-      blood: { label: "Blood test", emoji: "🩸" },
-      imaging: { label: "Imaging", emoji: "📷" },
-    },
-    blood: {
-      heading: "Which blood tests?",
-      options: [
-        { id: "general", label: "General check-up" },
-        { id: "thyroid", label: "Thyroid" },
-        { id: "iron", label: "Iron studies" },
-        { id: "diabetes", label: "Diabetes (HbA1c)" },
-        { id: "cholesterol", label: "Cholesterol" },
-        { id: "liver", label: "Liver function" },
-        { id: "kidney", label: "Kidney function" },
-        { id: "vitamin", label: "Vitamin D/B12" },
-        { id: "hormone", label: "Hormones" },
-        { id: "sti", label: "STI screening" },
-        { id: "other", label: "Other" },
-      ],
-    },
-    imaging: {
-      heading: "What type of imaging?",
-      options: [
-        { id: "xray", label: "X-ray" },
-        { id: "ultrasound", label: "Ultrasound" },
-        { id: "ct", label: "CT scan" },
-        { id: "mri", label: "MRI" },
-      ],
-      region: {
-        heading: "Which body area?",
-        options: [
-          { id: "head", label: "Head/Neck" },
-          { id: "chest", label: "Chest" },
-          { id: "abdomen", label: "Abdomen" },
-          { id: "spine", label: "Spine" },
-          { id: "arm", label: "Arm/Shoulder" },
-          { id: "leg", label: "Leg/Hip" },
-          { id: "other", label: "Other" },
-        ],
-      },
-    },
-    reason: {
-      heading: "Brief reason for test",
-      placeholder: "e.g. feeling tired lately, checking cholesterol...",
-    },
-  },
-
   // Safety check (universal, shortened)
   safety: {
     heading: "Quick safety check",

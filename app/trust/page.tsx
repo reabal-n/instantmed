@@ -92,7 +92,7 @@ export default function TrustPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 overflow-hidden bg-gradient-to-b from-background to-muted/30">
+        <section className="relative pt-32 pb-16 overflow-hidden bg-linear-to-b from-background to-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">

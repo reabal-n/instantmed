@@ -11,7 +11,7 @@ export function Skeleton({ className, shimmer = true }: SkeletonProps) {
     <div
       className={cn(
         "rounded-md bg-muted/60",
-        shimmer && "animate-pulse bg-gradient-to-r from-muted/60 via-muted/80 to-muted/60 bg-[length:200%_100%]",
+        shimmer && "animate-pulse bg-linear-to-r from-muted/60 via-muted/80 to-muted/60 bg-[length:200%_100%]",
         className,
       )}
     />

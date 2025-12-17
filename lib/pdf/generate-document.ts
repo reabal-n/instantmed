@@ -1,8 +1,7 @@
 import { generateMedCertHTML, type MedCertTemplateData } from "./med-cert-template"
-import { generateReferralHTML, type ReferralTemplateData } from "./referral-template"
 import { generatePrescriptionHTML, type PrescriptionTemplateData } from "./prescription-template"
 
-export type DocumentType = "med_cert" | "referral" | "prescription"
+export type DocumentType = "med_cert" | "prescription"
 
 /**
  * Generate a unique reference number for documents
@@ -10,7 +9,6 @@ export type DocumentType = "med_cert" | "referral" | "prescription"
 export function generateReferenceNumber(type: DocumentType): string {
   const prefix = {
     med_cert: "MC",
-    referral: "RF",
     prescription: "RX",
   }[type]
 
@@ -25,13 +23,11 @@ export function generateReferenceNumber(type: DocumentType): string {
  */
 export function generateDocumentHTML(
   type: DocumentType,
-  data: MedCertTemplateData | ReferralTemplateData | PrescriptionTemplateData,
+  data: MedCertTemplateData | PrescriptionTemplateData,
 ): string {
   switch (type) {
     case "med_cert":
       return generateMedCertHTML(data as MedCertTemplateData)
-    case "referral":
-      return generateReferralHTML(data as ReferralTemplateData)
     case "prescription":
       return generatePrescriptionHTML(data as PrescriptionTemplateData)
     default:

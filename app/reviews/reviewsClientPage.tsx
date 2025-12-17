@@ -50,10 +50,10 @@ const reviewsData: ReviewItem[] = [
   {
     id: 3,
     quote:
-      "The referral was thorough — my cardiologist mentioned it covered everything they needed. Much easier than trying to get a last-minute GP appointment.",
+      "The process was thorough — the doctor reviewed my history properly and asked relevant follow-up questions. Much easier than trying to get a last-minute GP appointment.",
     name: "Michelle T.",
     location: "Paddington, QLD",
-    service: "Referral",
+    service: "Medical Certificate",
     date: "3 days ago",
     rating: 5,
     verified: true,
@@ -105,7 +105,7 @@ const reviewsData: ReviewItem[] = [
       "Simple process, no phone calls needed. The doctor reviewed everything and I had my document the same day. Would use again.",
     name: "Emma R.",
     location: "Fortitude Valley, QLD",
-    service: "Referral",
+    service: "Medical Certificate",
     date: "2 weeks ago",
     rating: 5,
     verified: true,
@@ -167,10 +167,10 @@ const reviewsData: ReviewItem[] = [
   {
     id: 12,
     quote:
-      "Got a referral for a dermatologist sorted in a day. My skin condition has been bothering me for months but I couldn't get a GP appointment. This was the push I needed.",
+      "Got my prescription sorted in a day. My condition has been bothering me for months but I couldn't get a GP appointment. This was the push I needed.",
     name: "Alex P.",
     location: "St Kilda, VIC",
-    service: "Referral",
+    service: "Prescription",
     date: "1 week ago",
     rating: 5,
     verified: true,
@@ -232,10 +232,10 @@ const reviewsData: ReviewItem[] = [
   {
     id: 17,
     quote:
-      "Needed bloodwork done for a visa application. Got the pathology referral within hours. The whole process that usually takes weeks was done in 2 days.",
+      "Needed a medical certificate for a visa application. Got it sorted within hours. The whole process that usually takes weeks was done in 2 days.",
     name: "Mei L.",
     location: "Chatswood, NSW",
-    service: "Referral",
+    service: "Medical Certificate",
     date: "2 weeks ago",
     rating: 5,
     verified: true,
@@ -297,7 +297,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
           Filter by:
         </div>
         <div className="flex gap-2 flex-wrap">
-          {["All", "Medical Certificate", "Prescription", "Referral"].map((filterOption) => (
+          {["All", "Medical Certificate", "Prescription"].map((filterOption) => (
             <button
               key={filterOption}
               onClick={() => setFilter(filterOption)}

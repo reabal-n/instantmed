@@ -30,9 +30,9 @@ export function CountdownBanner() {
   const pad = (n: number) => n.toString().padStart(2, "0")
 
   return (
-    <div className="bg-gradient-to-r from-[#0A0F1C] to-[#1e293b] text-white py-2.5 px-4 relative overflow-hidden">
+    <div className="bg-linear-to-r from-[#0A0F1C] to-[#1e293b] text-white py-2.5 px-4 relative overflow-hidden">
       {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#00E2B5]/10 via-transparent to-[#00E2B5]/10 animate-gradient-shift" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-transparent to-[#00E2B5]/10 animate-gradient-shift" />
 
       <div className="container mx-auto flex items-center justify-center gap-4 text-sm relative">
         <Zap className="w-4 h-4 text-[#00E2B5] animate-pulse" />

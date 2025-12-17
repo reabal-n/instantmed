@@ -60,7 +60,7 @@ export function QuickActions({
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  const handleAction = async (actionId: string, actionFn: () => Promise<void>) => {
+  const handleAction = async (actionId: string, actionFn: () => void | Promise<void>) => {
     setActionLoading(actionId)
     try {
       await actionFn()
@@ -244,7 +244,7 @@ export function WorkloadStats({ pending, reviewed, priorityCount }: WorkloadStat
       {/* Progress bar */}
       <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
         <div
-          className="h-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-500"
+          className="h-full bg-linear-to-r from-primary to-emerald-500 transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

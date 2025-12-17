@@ -117,7 +117,7 @@ export function HeroTypewriter() {
                   <span className="relative inline-block mr-2">
                     <SparklesText
                       text={part.text}
-                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent"
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-linear-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent"
                       colors={{ first: "#00e2b5", second: "#8B5CF6" }}
                       sparklesCount={6}
                     />

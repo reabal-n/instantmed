@@ -13,7 +13,7 @@ export default async function PaymentSuccessPage({
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-32 pb-20">
+      <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
         <div className="container max-w-lg mx-auto px-4">
           <SuccessCelebration type="request" requestId={requestId} showConfetti />
         </div>

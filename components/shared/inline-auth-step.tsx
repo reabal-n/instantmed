@@ -74,7 +74,8 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         const userName = pendingName || session.user.user_metadata?.full_name || ""
         const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
 
-        const { profileId, error: profileError } = await createOrGetProfile(session.user.id, userName, userDob)
+        const { ensureProfile } = await import("@/app/actions/ensure-profile")
+        const { profileId } = await ensureProfile(session.user.id, session.user.email || "", { fullName: userName, dateOfBirth: userDob })
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -156,7 +157,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
 
-      const emailRedirectTo = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}${window.location.pathname}`
+      const emailRedirectTo = `${window.location.origin}${window.location.pathname}`
       console.log("[Inline Auth] Signing up with redirect:", emailRedirectTo)
 
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -357,7 +358,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
             <Shield className="h-7 w-7 text-primary-foreground" />
           </div>
           <h2 className="text-xl font-semibold text-foreground">Almost there!</h2>

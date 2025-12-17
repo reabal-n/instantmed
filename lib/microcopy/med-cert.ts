@@ -31,15 +31,18 @@ export const MICROCOPY = {
     },
   },
 
-  // Step: Duration (max 3 days only)
+  // Step: Duration
   duration: {
     heading: "How long do you need off?",
-    subtitle: "Maximum 3 days available",
+    subtitle: "Select the duration",
     options: {
       "1": "1 day",
       "2": "2 days",
       "3": "3 days",
-    },
+      "4-7": "4-7 days",
+      "1-2weeks": "1-2 weeks",
+      "specific": "Specific dates",
+    } as Record<string, string>,
     dateFrom: "Start date",
     dateTo: "End date",
   },

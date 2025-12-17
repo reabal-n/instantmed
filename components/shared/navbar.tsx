@@ -136,7 +136,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           <div className="relative z-10 flex items-center justify-between px-6 py-3">
             {/* Logo */}
             <Link href="/" className="relative z-10 flex items-center gap-2 group" aria-label="InstantMed home">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00e2b5] to-[#06b6d4]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#00e2b5] to-[#06b6d4]">
                 <Zap className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
               <span className="text-base font-semibold text-foreground">InstantMed</span>

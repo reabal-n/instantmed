@@ -55,7 +55,7 @@ export function HolographicCard({ children, className, hover = true, intensity =
       className={cn(
         "relative rounded-2xl overflow-hidden",
         "backdrop-blur-xl",
-        "bg-gradient-to-br from-white/20 via-white/10 to-white/5",
+        "bg-linear-to-br from-white/20 via-white/10 to-white/5",
         "dark:from-black/30 dark:via-black/20 dark:to-black/10",
         "border border-white/30 dark:border-white/20",
         "shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]",

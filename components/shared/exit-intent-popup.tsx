@@ -32,7 +32,7 @@ export function ExitIntentPopup() {
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-[#0A0F1C]/60 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
 
@@ -46,7 +46,7 @@ export function ExitIntentPopup() {
         </button>
 
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
+          <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
             <Gift className="w-8 h-8 text-[#0A0F1C]" />
           </div>
 

@@ -150,7 +150,13 @@ export function TextRevealLine({
   delay = 0,
   duration = 0.8,
   once = true,
-}: Omit<TextRevealProps, "staggerDelay">) {
+}: {
+  children: ReactNode
+  className?: string
+  delay?: number
+  duration?: number
+  once?: boolean
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once, margin: "-100px" })
 
@@ -195,7 +201,7 @@ export function TextRevealGradient({
           opacity: { duration: 0.5, delay },
           backgroundPosition: { duration: duration * 2, delay, repeat: Infinity },
         }}
-        className="bg-gradient-to-r from-[#00E2B5] via-[#06B6D4] via-[#8B5CF6] via-[#06B6D4] to-[#00E2B5] bg-[length:200%_auto] bg-clip-text text-transparent"
+        className="bg-linear-to-r from-[#00E2B5] via-[#06B6D4] via-[#8B5CF6] via-[#06B6D4] to-[#00E2B5] bg-size-[200%_auto] bg-clip-text text-transparent"
       >
         {children}
       </motion.span>

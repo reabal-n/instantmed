@@ -210,8 +210,8 @@ export function TestimonialMarquee() {
   return (
     <div className="relative overflow-hidden py-4">
       {/* Gradient masks */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-r from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-l from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-40 bg-linear-to-r from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-40 bg-linear-to-l from-[#FAFBFC] to-transparent z-10 pointer-events-none" />
 
       <div
         ref={scrollRef}

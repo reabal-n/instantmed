@@ -780,7 +780,7 @@ export default async function ConditionPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-gradient-to-b from-[#00E2B5]/5 to-transparent">
+          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#00E2B5]/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">{condition.h1}</h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">{condition.heroSubhead}</p>

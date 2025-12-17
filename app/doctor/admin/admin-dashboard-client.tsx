@@ -338,28 +338,26 @@ export function AdminDashboardClient({
                     >
                       <TableCell>
                         {showScriptCheckbox && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center justify-center">
-                                  <Checkbox
-                                    checked={request.script_sent}
-                                    onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                    className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                                  />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {request.script_sent ? "Script sent via external platform" : "Mark as sent"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center">
+                                <Checkbox
+                                  checked={request.script_sent}
+                                  onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
+                                  className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {request.script_sent ? "Script sent via external platform" : "Mark as sent"}
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 border-2 border-white/50 shadow-sm">
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs">
+                            <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs">
                               {getInitials(request.patient.full_name)}
                             </AvatarFallback>
                           </Avatar>

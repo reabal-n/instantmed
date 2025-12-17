@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef, useCallback, useState } from "react"
 
 interface ConfettiPiece {
   x: number
@@ -32,7 +32,7 @@ export function Confetti({
   onComplete,
 }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
   const piecesRef = useRef<ConfettiPiece[]>([])
 
   const createPiece = useCallback(
@@ -114,5 +114,53 @@ export function Confetti({
 
   if (!trigger) return null
 
-  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[100]" aria-hidden="true" />
+  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-100" aria-hidden="true" />
+}
+
+// ConfettiButton - Button that triggers confetti on click
+interface ConfettiButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  options?: {
+    particleCount?: number
+    spread?: number
+    origin?: { x?: number; y?: number }
+    colors?: string[]
+  }
+  children: React.ReactNode
+}
+
+export function ConfettiButton({
+  onClick,
+  options,
+  children,
+  className,
+  disabled,
+  ...props
+}: ConfettiButtonProps) {
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled) return
+    setShowConfetti(true)
+    onClick?.(e)
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={disabled}
+        className={`inline-flex items-center justify-center rounded-xl bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-[#0A0F1C] font-semibold shadow-lg shadow-[#00E2B5]/20 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
+        {...props}
+      >
+        {children}
+      </button>
+      <Confetti
+        trigger={showConfetti}
+        particleCount={options?.particleCount || 100}
+        colors={options?.colors || ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"]}
+        onComplete={() => setShowConfetti(false)}
+      />
+    </>
+  )
 }

@@ -1,7 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { Navbar } from "@/components/shared/navbar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, Briefcase, Heart, Calendar, Zap, HelpCircle } from "lucide-react"
 import { ContextualSocialProof, ServiceStats } from "@/components/shared/contextual-social-proof"
@@ -83,70 +82,75 @@ const FAQS = [
 
 export default function MedicalCertificatePage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-premium-mesh">
       <Navbar variant="marketing" />
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative px-4 py-16 sm:py-20 overflow-hidden">
-          {/* Subtle background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+        <section className="relative px-4 py-20 sm:py-28 overflow-hidden">
+          {/* Premium gradient orbs */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3" style={{ background: 'radial-gradient(circle, rgba(0,226,181,0.12) 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)' }} />
 
           <div className="relative mx-auto max-w-4xl text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="flex items-center justify-center gap-3 mb-6 animate-slide-up">
               <DoctorsOnline />
-              <Badge className="bg-primary/10 text-primary border-0">
-                <Zap className="w-3 h-3 mr-1" />
-                Usually under 1 hour
-              </Badge>
+              <div className="glass px-4 py-1.5 rounded-full flex items-center gap-2">
+                <Zap className="w-3.5 h-3.5 text-primary" />
+                <span className="text-sm font-medium text-foreground/80">Usually under 1 hour</span>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-              Need a sickie cert? <span className="text-primary">Sorted.</span>
+            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 animate-slide-up-delay-1">
+              Need a sickie cert? <span className="text-gradient">Sorted.</span>
             </h1>
 
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-6 animate-slide-up-delay-2">
               Get a valid medical certificate for work or uni. Reviewed by real Australian GPs. No phone calls, no video
               chats. Just fill in the form and go back to bed.
             </p>
 
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm mb-10 animate-slide-up-delay-2">
               <ServiceStats service="medical-certificate" />
               <span className="text-border">•</span>
               <CompletionTime />
             </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button asChild size="lg" className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-8 h-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-slide-up-delay-3">
+              <Button asChild size="lg" className="btn-liquid px-10 h-14 text-base">
                 <Link href="/medical-certificate/request">
                   Get my certificate
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
               <span className="text-sm text-muted-foreground">From $19.95 · Valid for all employers</span>
             </div>
 
-            <div className="mt-6">
+            <div>
               <ContextualSocialProof service="medical-certificate" variant="inline" />
             </div>
           </div>
         </section>
 
         {/* Certificate Type Cards */}
-        <section className="px-4 pb-16">
+        <section className="px-4 pb-20">
           <div className="mx-auto max-w-4xl">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-3">
               {CERT_TYPES.map((cert) => (
                 <Link
                   key={cert.id}
                   href={cert.href}
-                  className="group relative bg-card border border-border rounded-2xl p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200"
+                  className="group block"
                 >
-                  {cert.popular && (
-                    <span className="absolute -top-2.5 left-4 bg-primary text-primary-foreground text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      Most popular
-                    </span>
-                  )}
+                  <div className="glass-card relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-2" style={{ boxShadow: '0 4px 24px rgba(0,226,181,0.08)' }}>
+                    {/* Top accent */}
+                    <div className="absolute top-0 left-0 right-0 h-1 opacity-60 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(90deg, transparent, #00E2B5, transparent)' }} />
+                    
+                    {cert.popular && (
+                      <span className="absolute -top-3 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg" style={{ boxShadow: '0 4px 12px rgba(0,226,181,0.3)' }}>
+                        ✨ Most popular
+                      </span>
+                    )}
 
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -174,6 +178,7 @@ export default function MedicalCertificatePage() {
 
                   <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                     Get started <ArrowRight className="w-4 h-4" />
+                  </div>
                   </div>
                 </Link>
               ))}

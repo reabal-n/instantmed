@@ -38,7 +38,7 @@ export const australianPostcodeSchema = z
 
 export const australianStateSchema = z.enum(
   ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"],
-  { errorMap: () => ({ message: "Please select a state" }) }
+  { error: "Please select a state" }
 )
 
 export const dateOfBirthSchema = z
@@ -104,7 +104,7 @@ export const registerSchema = z.object({
   password: simplePasswordSchema,
   dateOfBirth: dateOfBirthSchema,
   termsAccepted: z.literal(true, {
-    errorMap: () => ({ message: "You must accept the terms and conditions" }),
+    error: "You must accept the terms and conditions",
   }),
 })
 

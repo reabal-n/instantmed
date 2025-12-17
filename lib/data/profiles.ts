@@ -149,7 +149,8 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     return null
   }
 
-  const authUserId = (request.patient as { auth_user_id: string | null }).auth_user_id
+  const patient = request.patient as unknown as { auth_user_id: string | null }
+  const authUserId = patient.auth_user_id
 
   // For guest profiles (no auth_user_id), we can't get email this way
   // In that case, email should be stored elsewhere (e.g., checkout metadata)

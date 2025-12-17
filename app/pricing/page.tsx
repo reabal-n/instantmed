@@ -190,7 +190,7 @@ export default function PricingPage() {
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <TiltCard className="glass-card rounded-3xl p-10 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00E2B5]/10 via-transparent to-[#06B6D4]/10 pointer-events-none" />
+              <div className="absolute inset-0 bg-linear-to-br from-[#00E2B5]/10 via-transparent to-[#06B6D4]/10 pointer-events-none" />
               <div className="relative">
                 <BadgeCheck className="h-12 w-12 text-[#00E2B5] mx-auto mb-4" />
                 <h2 className="text-2xl font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>

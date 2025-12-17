@@ -54,7 +54,7 @@ export default function ContactPage() {
           <div className="mx-auto max-w-lg text-center">
             <TiltCard className="p-10 animate-scale-in">
               <div
-                className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mb-6 animate-success-bounce"
+                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mb-6 animate-success-bounce"
                 role="img"
                 aria-label="Success"
               >

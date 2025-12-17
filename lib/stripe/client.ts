@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 // Price ID mapping based on category/subtype
-export type ServiceCategory = "medical_certificate" | "prescription" | "referral"
+export type ServiceCategory = "medical_certificate" | "prescription"
 
 interface PriceIdInput {
   category: ServiceCategory
@@ -20,7 +20,7 @@ interface PriceIdInput {
 /**
  * Get the correct Stripe price ID based on request category, subtype, and answers
  */
-export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInput): string {
+export function getPriceIdForRequest({ category }: PriceIdInput): string {
   // Medical certificates - all use the same price
   if (category === "medical_certificate") {
     const priceId = process.env.STRIPE_PRICE_MEDCERT
@@ -39,38 +39,6 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
     return priceId
   }
 
-  // Referrals - different pricing for imaging vs bloods
-  if (category === "referral") {
-    // Check if it's pathology-imaging subtype
-    if (subtype === "pathology-imaging" || subtype === "pathology_imaging") {
-      // Check if any imaging tests are selected
-      const selectedTests = answers?.test_types as string[] | undefined
-      const imagingTests = ["xray", "ultrasound", "ct_mri"]
-      const hasImaging = selectedTests?.some((test) => imagingTests.includes(test))
-
-      if (hasImaging) {
-        const priceId = process.env.STRIPE_PRICE_IMAGING
-        if (!priceId) {
-          throw new Error("Missing STRIPE_PRICE_IMAGING environment variable")
-        }
-        return priceId
-      } else {
-        const priceId = process.env.STRIPE_PRICE_PATHOLOGY_BLOODS
-        if (!priceId) {
-          throw new Error("Missing STRIPE_PRICE_PATHOLOGY_BLOODS environment variable")
-        }
-        return priceId
-      }
-    }
-
-    // Specialist referrals - use bloods price as default
-    const priceId = process.env.STRIPE_PRICE_PATHOLOGY_BLOODS
-    if (!priceId) {
-      throw new Error("Missing STRIPE_PRICE_PATHOLOGY_BLOODS environment variable for specialist referrals")
-    }
-    return priceId
-  }
-
   throw new Error(`Unknown category: ${category}`)
 }
 
@@ -83,8 +51,6 @@ export function getDisplayPriceForCategory(category: ServiceCategory): string {
       return "$19.95"
     case "prescription":
       return "$24.95"
-    case "referral":
-      return "$29.95"
     default:
       return "$19.95"
   }
@@ -103,7 +69,6 @@ export function calculateTotalPrice(
   const basePrices: Record<ServiceCategory, number> = {
     medical_certificate: 1995,
     prescription: 2495,
-    referral: 2995,
   }
 
   let total = basePrices[category] || 1995

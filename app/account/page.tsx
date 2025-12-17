@@ -98,14 +98,14 @@ export default function AccountPage() {
           .limit(5)
 
         if (requestsData) {
-          setRequests(requestsData.map(r => ({
+          setRequests(requestsData.map((r: { id: string; reference_number: string | null; status: string; services: { name: string }[] | null; created_at: string; paid_at: string | null; completed_at: string | null }) => ({
             id: r.id,
             reference_number: r.reference_number || 'Pending',
             status: r.status,
-            service_name: (r.services as { name: string })?.name || 'Unknown',
+            service_name: r.services?.[0]?.name || 'Unknown',
             created_at: r.created_at,
-            paid_at: r.paid_at,
-            completed_at: r.completed_at,
+            paid_at: r.paid_at ?? undefined,
+            completed_at: r.completed_at ?? undefined,
           })))
         }
       } catch (err) {

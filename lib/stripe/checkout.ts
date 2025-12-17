@@ -157,14 +157,14 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const cancelUrl = `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`
 
     // 8. Build checkout session params
-    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionParams = {
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "payment" as const,
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
@@ -173,13 +173,9 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
         category: input.category,
         subtype: input.subtype,
       },
-    }
-
-    if (stripeCustomerId) {
-      sessionParams.customer = stripeCustomerId
-    } else if (patientEmail) {
-      sessionParams.customer_email = patientEmail
-      sessionParams.customer_creation = "always" // Always create a customer for new users
+      customer: stripeCustomerId || undefined,
+      customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
+      customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
     }
 
     // 9. Create Stripe checkout session
@@ -305,14 +301,14 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     }
 
     // 7. Build checkout session params
-    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionParams = {
       line_items: [
         {
           price: priceId,
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "payment" as const,
       success_url: `${baseUrl}/patient/requests/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`,
       metadata: {
@@ -322,13 +318,9 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
         subtype: request.subtype || "",
         is_retry: "true",
       },
-    }
-
-    if (authUser.profile.stripe_customer_id) {
-      sessionParams.customer = authUser.profile.stripe_customer_id
-    } else {
-      sessionParams.customer_email = patientEmail || undefined
-      sessionParams.customer_creation = "always"
+      customer: authUser.profile.stripe_customer_id || undefined,
+      customer_email: !authUser.profile.stripe_customer_id && patientEmail ? patientEmail : undefined,
+      customer_creation: !authUser.profile.stripe_customer_id && patientEmail ? "always" as const : undefined,
     }
 
     // 8. Create new Stripe checkout session for retry

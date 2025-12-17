@@ -49,7 +49,7 @@ export function BenefitsSection() {
   return (
     <section id="benefits" className="px-4 py-20 sm:py-28 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-[#f0fdf4]/30 dark:via-gray-900/30 to-background" />
+      <div className="absolute inset-0 bg-linear-to-b from-background via-[#f0fdf4]/30 dark:via-gray-900/30 to-background" />
       
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -64,7 +64,7 @@ export function BenefitsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Healthcare that{" "}
-                <span className="bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
                   fits your life
                 </span>
               </h2>
@@ -107,7 +107,7 @@ export function BenefitsSection() {
                   {/* Screen */}
                   <div className="relative w-full h-full bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden">
                     {/* Status bar */}
-                    <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-black/10 to-transparent z-10 flex items-center justify-center">
+                    <div className="absolute top-0 left-0 right-0 h-12 bg-linear-to-b from-black/10 to-transparent z-10 flex items-center justify-center">
                       <div className="w-20 h-5 bg-black rounded-full" />
                     </div>
                     

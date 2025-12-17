@@ -184,7 +184,7 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 border-2 border-white/50 shadow-sm">
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs">
+                            <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs">
                               {getInitials(patient.full_name)}
                             </AvatarFallback>
                           </Avatar>

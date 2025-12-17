@@ -13,7 +13,6 @@ import {
   Loader2,
   FileText,
   Pill,
-  ClipboardList,
   Check,
   Eye,
   EyeOff,
@@ -30,7 +29,7 @@ import { skipPaymentTestMode } from "@/app/actions/test-actions"
 import { PriorityUpsell } from "@/components/checkout/priority-upsell"
 
 // Types
-type Service = "medcert" | "prescription" | "referral"
+type Service = "medcert" | "prescription"
 type Step = "service" | "clinical" | "safety" | "medicare" | "account" | "review"
 
 interface FormData {
@@ -66,6 +65,7 @@ interface FormData {
   dob: string
   phone: string
   priorityReview: boolean
+  agreedTerms: boolean
 }
 
 interface Props {
@@ -347,7 +347,8 @@ export function UnifiedFlowClient({
     fullName: userName || "",
     dob: "",
     phone: "",
-    priorityReview: false, // Default to false
+    priorityReview: false,
+    agreedTerms: false,
   }
 
   const [form, setForm] = useState<FormData>(initialFormData)
@@ -448,6 +449,7 @@ export function UnifiedFlowClient({
   useEffect(() => {
     if (typeof window === "undefined") return
     const draft = {
+      ...form,
       service,
       certType,
       duration,
@@ -469,8 +471,6 @@ export function UnifiedFlowClient({
       notes,
       medicare,
       irn,
-      // Save other form fields as well
-      ...form,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
   }, [
@@ -602,8 +602,7 @@ export function UnifiedFlowClient({
     setIsSubmitting(true)
     setError(null)
     try {
-      const redirectUrl =
-        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback?next=/request`
+      const redirectUrl = `${window.location.origin}/auth/callback?next=/request`
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: redirectUrl },
@@ -625,22 +624,18 @@ export function UnifiedFlowClient({
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo:
-              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-              `${window.location.origin}/auth/callback?next=/request`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/request`,
           },
         })
         if (error) throw error
         if (data.session) {
           // Immediate login (no email confirmation)
-          const result = await createOrGetProfile({
-            userId: data.user!.id,
-            email,
+          const result = await createOrGetProfile(
+            data.user!.id,
             fullName,
-            medicareNumber: medicare.replace(/\s/g, ""),
-            medicareIrn: irn || undefined,
-          })
-          if (!result.success) throw new Error(result.error)
+            form.dob || ""
+          )
+          if (result.error) throw new Error(result.error || "Profile creation failed")
           setPatientId(result.profileId!)
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
@@ -652,21 +647,19 @@ export function UnifiedFlowClient({
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        const result = await createOrGetProfile({
-          userId: data.user.id,
-          email,
-          fullName: fullName || data.user.user_metadata?.full_name,
-          medicareNumber: medicare.replace(/\s/g, ""),
-          medicareIrn: irn || undefined,
-        })
-        if (!result.success) throw new Error(result.error)
+        const result = await createOrGetProfile(
+          data.user.id,
+          fullName || data.user.user_metadata?.full_name || "",
+          form.dob || ""
+        )
+        if (result.error) throw new Error(result.error || "Profile creation failed")
         setPatientId(result.profileId!)
         setIsAuthenticated(true)
         setNeedsOnboarding(false)
         goTo("review")
       }
-    } catch (e: any) {
-      setError(e.message || COPY.errors.auth)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : COPY.errors.auth)
     } finally {
       setIsSubmitting(false)
     }
@@ -679,9 +672,9 @@ export function UnifiedFlowClient({
     setError(null)
     try {
       // Build request details
-      let category = ""
+      let category: "medical_certificate" | "prescription" = "medical_certificate"
       let subtype = ""
-      let details: Record<string, any> = {}
+      let details: Record<string, unknown> = {}
 
       if (service === "medcert") {
         category = "medical_certificate"
@@ -696,7 +689,7 @@ export function UnifiedFlowClient({
           notes,
           safetyAnswers,
         }
-      } else if (service === "prescription") {
+      } else {
         category = "prescription"
         subtype = rxType
         details = {
@@ -708,24 +701,14 @@ export function UnifiedFlowClient({
           notes,
           safetyAnswers,
         }
-      } else {
-        category = "referral"
-        subtype = refType === "blood" ? "pathology" : "imaging"
-        details = {
-          testType: refType,
-          tests: refType === "blood" ? selectedTests : [imagingType],
-          bodyRegion: refType === "imaging" ? bodyRegion : null,
-          reason: testReason,
-          notes,
-          safetyAnswers,
-        }
       }
 
       const result = await createRequestAndCheckoutAction({
         patientId,
         category,
         subtype,
-        formData: { ...details, priorityReview: form.priorityReview }, // Include priorityReview
+        type: service,
+        answers: { ...details, priorityReview: form.priorityReview },
       })
 
       if (result.error) throw new Error(result.error)
@@ -741,11 +724,7 @@ export function UnifiedFlowClient({
 
   // Get price
   const getPrice = () => {
-    let basePrice = 0
-    if (service === "medcert") basePrice = 19.95
-    else if (service === "prescription") basePrice = 24.95
-    else if (service === "referral") basePrice = 29.95
-
+    const basePrice = service === "medcert" ? 19.95 : 24.95
     return (basePrice + (form.priorityReview ? 10 : 0)).toFixed(2)
   }
 
@@ -762,10 +741,6 @@ export function UnifiedFlowClient({
     if (service === "prescription") {
       return medication && condition && (rxType === "repeat" || (rxDuration && rxControl && rxSideEffects))
     }
-    if (service === "referral") {
-      if (refType === "blood") return selectedTests.length > 0 && testReason
-      return imagingType && bodyRegion && testReason
-    }
     return false
   }, [
     service,
@@ -780,11 +755,6 @@ export function UnifiedFlowClient({
     rxDuration,
     rxControl,
     rxSideEffects,
-    refType,
-    selectedTests,
-    imagingType,
-    bodyRegion,
-    testReason,
   ])
 
   // Extract the ID for the skip button
@@ -847,9 +817,8 @@ export function UnifiedFlowClient({
             </div>
             <div className="grid gap-3">
               {[
-                { id: "medcert" as Service, icon: FileText, ...COPY.services.options.medcert },
-                { id: "prescription" as Service, icon: Pill, ...COPY.services.options.prescription },
-                { id: "referral" as Service, icon: ClipboardList, ...COPY.services.options.referral },
+                { id: "medcert" as Service, icon: FileText, label: COPY.services.options.medcert.label, description: COPY.services.options.medcert.description },
+                { id: "prescription" as Service, icon: Pill, label: COPY.services.options.prescription.label, description: COPY.services.options.prescription.description },
               ].map((opt) => (
                 <SelectCard
                   key={opt.id}
@@ -1156,108 +1125,6 @@ export function UnifiedFlowClient({
           </div>
         )}
 
-        {step === "clinical" && service === "referral" && (
-          <div className="space-y-6">
-            {/* Type */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">What do you need?</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {(["blood", "imaging"] as const).map((t) => (
-                  <SelectCard
-                    key={t}
-                    selected={refType === t}
-                    onClick={() => {
-                      setRefType(t)
-                      setForm({ ...form, testTypes: t === "blood" ? [] : [t] }) // Adjust form state
-                    }}
-                  >
-                    <span className="text-2xl">{COPY.referral.types[t].emoji}</span>
-                    <div className="font-medium mt-1">{COPY.referral.types[t].label}</div>
-                  </SelectCard>
-                ))}
-              </div>
-            </div>
-
-            {/* Blood tests */}
-            {refType === "blood" && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">{COPY.referral.blood.heading}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {COPY.referral.blood.options.map((t) => (
-                    <Chip
-                      key={t.id}
-                      selected={selectedTests.includes(t.id)}
-                      onClick={() => {
-                        const newSelectedTests = selectedTests.includes(t.id)
-                          ? selectedTests.filter((x) => x !== t.id)
-                          : [...selectedTests, t.id]
-                        setSelectedTests(newSelectedTests)
-                        setForm({ ...form, testTypes: newSelectedTests })
-                      }}
-                    >
-                      {t.label}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Imaging */}
-            {refType === "imaging" && (
-              <>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{COPY.referral.imaging.heading}</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {COPY.referral.imaging.options.map((t) => (
-                      <Chip
-                        key={t.id}
-                        selected={imagingType === t.id}
-                        onClick={() => {
-                          setImagingType(t.id)
-                          setForm({ ...form, testTypes: [t.id] })
-                        }}
-                      >
-                        {t.label}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{COPY.referral.imaging.region.heading}</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {COPY.referral.imaging.region.options.map((r) => (
-                      <Chip
-                        key={r.id}
-                        selected={bodyRegion === r.id}
-                        onClick={() => {
-                          setBodyRegion(r.id)
-                          setForm({ ...form, clinicalReason: r.id })
-                        }}
-                      >
-                        {r.label}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Reason */}
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">{COPY.referral.reason.heading}</Label>
-              <Textarea
-                value={testReason}
-                onChange={(e) => {
-                  setTestReason(e.target.value)
-                  setForm({ ...form, clinicalReason: e.target.value })
-                }}
-                placeholder={COPY.referral.reason.placeholder}
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Safety Check */}
         {step === "safety" && (
@@ -1551,19 +1418,6 @@ export function UnifiedFlowClient({
                     </p>
                   </>
                 )}
-                {service === "referral" && (
-                  <>
-                    <p className="text-sm">
-                      Type: <span className="font-medium">{refType === "blood" ? "Blood test" : "Imaging"}</span>
-                    </p>
-                    <p className="text-sm">
-                      Tests:{" "}
-                      <span className="font-medium">
-                        {refType === "blood" ? selectedTests.join(", ") : `${imagingType} - ${bodyRegion}`}
-                      </span>
-                    </p>
-                  </>
-                )}
               </div>
               <hr />
 
@@ -1572,7 +1426,7 @@ export function UnifiedFlowClient({
                 <PriorityUpsell
                   selected={form.priorityReview}
                   onToggle={(selected) => setForm({ ...form, priorityReview: selected })}
-                  basePrice={service === "medcert" ? 19.95 : service === "prescription" ? 24.95 : 29.95}
+                  basePrice={service === "medcert" ? 19.95 : 24.95}
                 />
               </div>
 
@@ -1580,13 +1434,9 @@ export function UnifiedFlowClient({
               <div className="p-4 bg-muted/50 rounded-xl space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>
-                    {service === "medcert"
-                      ? "Medical Certificate"
-                      : service === "prescription"
-                        ? "Prescription"
-                        : "Referral"}
+                    {service === "medcert" ? "Medical Certificate" : "Prescription"}
                   </span>
-                  <span>${service === "medcert" ? "19.95" : service === "prescription" ? "24.95" : "29.95"}</span>
+                  <span>${service === "medcert" ? "19.95" : "24.95"}</span>
                 </div>
                 {form.priorityReview && (
                   <div className="flex justify-between text-sm text-amber-600">

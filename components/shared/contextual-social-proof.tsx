@@ -15,11 +15,6 @@ const TESTIMONIALS: Record<string, { quote: string; name: string; time: string }
     { quote: "Finally a service that doesn't require booking 2 weeks ahead", name: "Michelle K.", time: "3 hours ago" },
     { quote: "Script was at the pharmacy before I even left my couch", name: "Chris B.", time: "Yesterday" },
   ],
-  referrals: [
-    { quote: "Got my referral to a dermatologist same day", name: "Jessica W.", time: "2 hours ago" },
-    { quote: "Saved me weeks of waiting for a GP appointment", name: "Tom H.", time: "5 hours ago" },
-    { quote: "Blood test results back in 2 days", name: "Sophie L.", time: "Yesterday" },
-  ],
   default: [
     { quote: "Wish I'd found this years ago", name: "Michael K.", time: "1 hour ago" },
     { quote: "Real doctors, real fast. What's not to love?", name: "Anna P.", time: "3 hours ago" },
@@ -28,7 +23,7 @@ const TESTIMONIALS: Record<string, { quote: string; name: string; time: string }
 }
 
 interface ContextualSocialProofProps {
-  service?: "medical-certificate" | "prescriptions" | "referrals"
+  service?: "medical-certificate" | "prescriptions"
   variant?: "mini" | "card" | "inline"
   className?: string
 }

@@ -483,7 +483,7 @@ export function PrescriptionFlowClient({
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
+            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
           },
         })
 
@@ -491,16 +491,13 @@ export function PrescriptionFlowClient({
 
         if (data.session) {
           // Immediate login - create profile
-          const profileResult = await createOrGetProfile({
-            userId: data.user!.id,
-            email,
+          const profileResult = await createOrGetProfile(
+            data.user!.id,
             fullName,
-            dateOfBirth: dob,
-            medicareNumber: medicareNumber.replace(/\s/g, ""),
-            medicareIrn: irn!,
-          })
+            dob
+          )
 
-          if (profileResult.success && profileResult.profileId) {
+          if (!profileResult.error && profileResult.profileId) {
             setPatientId(profileResult.profileId)
             setIsAuthenticated(true)
             setNeedsOnboarding(false)
@@ -514,16 +511,13 @@ export function PrescriptionFlowClient({
         if (signInError) throw signInError
 
         // Check if profile exists
-        const profileResult = await createOrGetProfile({
-          userId: data.user.id,
-          email,
-          fullName: data.user.user_metadata?.full_name || fullName,
-          dateOfBirth: dob,
-          medicareNumber: medicareNumber.replace(/\s/g, ""),
-          medicareIrn: irn!,
-        })
+        const profileResult = await createOrGetProfile(
+          data.user.id,
+          data.user.user_metadata?.full_name || fullName,
+          dob
+        )
 
-        if (profileResult.success && profileResult.profileId) {
+        if (!profileResult.error && profileResult.profileId) {
           setPatientId(profileResult.profileId)
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
@@ -555,7 +549,7 @@ export function PrescriptionFlowClient({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl.toString(),
+          redirectTo: callbackUrl.toString(),
         },
       })
 
@@ -603,9 +597,7 @@ export function PrescriptionFlowClient({
           email,
           password,
           options: {
-            emailRedirectTo:
-              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-              `${window.location.origin}${window.location.pathname}`,
+            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
             data: {
               full_name: fullName,
               date_of_birth: dob,
@@ -652,7 +644,7 @@ export function PrescriptionFlowClient({
     confetti({
       particleCount: 100,
       spread: 70,
-      origin: { y: 0.6 },
+      origin: { x: 0.5, y: 0.6 },
       colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
     })
 
@@ -730,7 +722,7 @@ export function PrescriptionFlowClient({
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
         {showControlledWarning && (
           <ControlledWarning
             onClose={() => {

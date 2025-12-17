@@ -25,7 +25,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /price|cost|fee|how much|pay/i,
       response:
-        "Med certs are $24.95, scripts $19.95, and referrals $29.95. If we can't help you, you get a full refund — no questions asked.",
+        "Med certs are $19.95 and scripts are $24.95. If we can't help you, you get a full refund — no questions asked.",
     },
   ],
   status: [
@@ -47,13 +47,6 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
       match: /med cert|medical certificate|sick|unwell|work/i,
       response:
         "Our med certs are accepted by all employers and universities. A GP reviews your symptoms and issues the certificate if appropriate — usually within a couple of hours.",
-    },
-  ],
-  referral: [
-    {
-      match: /referral|specialist|blood|imaging|x-ray|scan/i,
-      response:
-        "We can provide referrals for blood tests, imaging, and specialists. They're Medicare-compliant and valid for 12 months.",
     },
   ],
   refund: [
@@ -180,7 +173,7 @@ export function LiveChatWidget() {
           setShowProactive(false)
         }}
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl",
+          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl",
           isOpen && "scale-0 opacity-0",
         )}
         aria-label="Open chat"

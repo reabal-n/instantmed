@@ -18,7 +18,7 @@ export default async function CompleteAccountPage({
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-32 pb-20">
+      <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
         <div className="container max-w-md mx-auto px-4">
           <Suspense fallback={<div>Loading...</div>}>
             <CompleteAccountForm requestId={params.request_id} email={params.email} sessionId={params.session_id} />

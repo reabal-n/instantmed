@@ -282,8 +282,8 @@ export function TestimonialCarousel() {
   return (
     <div className="relative overflow-hidden py-4">
       {/* Gradient edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-40 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-40 bg-linear-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-40 bg-linear-to-l from-background to-transparent z-10 pointer-events-none" />
 
       <div
         className="flex marquee-scroll"

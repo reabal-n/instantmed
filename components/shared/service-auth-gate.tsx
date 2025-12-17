@@ -49,9 +49,7 @@ export function ServiceAuthGate({
     setIsGoogleLoading(true)
     try {
       const supabase = createClient()
-      const redirectUrl =
-        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-        `${window.location.origin}/auth/callback?redirect=${redirectParam}`
+      const redirectUrl = `${window.location.origin}/auth/callback?redirect=${redirectParam}`
 
       await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -67,7 +65,7 @@ export function ServiceAuthGate({
 
   return (
     <div className="glass-card rounded-2xl p-8 max-w-md mx-auto text-center animate-scale-in">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 mx-auto shadow-lg shadow-primary/20">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-primary/80 mx-auto shadow-lg shadow-primary/20">
         <LogIn className="h-7 w-7 text-primary-foreground" />
       </div>
 

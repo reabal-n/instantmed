@@ -42,7 +42,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
 
       <main className="flex-1 pt-20">
         {/* Hero */}
-        <section className="px-4 py-12 bg-gradient-to-b from-background to-muted/30">
+        <section className="px-4 py-12 bg-linear-to-b from-background to-muted/30">
           <div className="mx-auto max-w-4xl">
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Main Info */}

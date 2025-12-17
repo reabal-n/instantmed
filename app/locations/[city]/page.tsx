@@ -170,7 +170,7 @@ export default async function CityPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-gradient-to-b from-[#00E2B5]/5 to-transparent">
+          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#00E2B5]/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00E2B5]/10 text-[#00E2B5] text-sm mb-6">
                 <MapPin className="h-4 w-4" />

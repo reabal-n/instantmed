@@ -12,7 +12,7 @@ interface UseSmoothScrollOptions {
 export function useSmoothScroll(options: UseSmoothScrollOptions = {}) {
   const { offset = 100, threshold = 0.1, once = true } = options
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once, margin: `-${offset}px` })
+  const isInView = useInView(ref, { once, margin: `-${offset}px` as `${number}px` })
 
   return { ref, isInView }
 }
@@ -44,7 +44,7 @@ export function useScrollProgress() {
 export function useSmoothMouse(lerp = 0.1) {
   const [smoothPosition, setSmoothPosition] = useState({ x: 0, y: 0 })
   const mousePosition = useRef({ x: 0, y: 0 })
-  const animationFrame = useRef<number>()
+  const animationFrame = useRef<number>(null)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

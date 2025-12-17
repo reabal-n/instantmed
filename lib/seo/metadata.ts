@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 
 const SITE_NAME = "InstantMed"
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-const DEFAULT_DESCRIPTION = "Get medical certificates, prescriptions, and referrals online. Reviewed by AHPRA-registered Australian doctors. Fast, secure, and Medicare-friendly."
+const DEFAULT_DESCRIPTION = "Get medical certificates and prescriptions online. Reviewed by AHPRA-registered Australian doctors. Fast, secure, and Medicare-friendly."
 
 interface PageMetadataOptions {
   title: string
@@ -144,7 +144,6 @@ export const defaultMetadata: Metadata = {
     "telehealth",
     "medical certificate",
     "prescription",
-    "referral",
     "online doctor",
     "Australia",
     "Medicare",

@@ -48,12 +48,12 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
       {/* Hero Header */}
       <section className="relative pt-28 pb-12 px-4 overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
         
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-gradient-to-r from-[#00E2B5]/20 to-[#06B6D4]/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-gradient-to-r from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-[#00E2B5]/20 to-[#06B6D4]/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -64,7 +64,7 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
-              <span className="bg-gradient-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
                 need?
               </span>
             </h1>
@@ -105,7 +105,7 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
             {services.map((service, i) => (
               <BlurFade key={service.id} delay={0.1 + i * 0.1}>
                 <Link href={service.href} className="group block h-full">
-                  <div className={`relative h-full rounded-3xl overflow-hidden bg-gradient-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
+                  <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
                     <div className="h-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
                       {/* Image section */}
                       <div className="relative h-40 overflow-hidden">
@@ -115,11 +115,11 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                         
                         {/* Popular badge */}
                         {service.popular && (
-                          <div className="absolute top-4 left-4 flex items-center gap-1 bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                          <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             <Sparkles className="h-3 w-3" />
                             Most Popular
                           </div>
@@ -181,7 +181,7 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
           {/* Help Text */}
           <BlurFade delay={0.5}>
             <div className="mt-12 relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#00E2B5]/10 via-[#06B6D4]/10 to-[#8B5CF6]/10" />
+              <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-[#06B6D4]/10 to-[#8B5CF6]/10" />
               <div className="relative z-10 p-8 text-center">
                 <p className="text-muted-foreground mb-4">
                   Not sure which service you need?

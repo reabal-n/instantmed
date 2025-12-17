@@ -44,7 +44,7 @@ export function StatsSection() {
   return (
     <section className="px-4 py-16 sm:py-24 relative overflow-hidden">
       {/* Background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#00E2B5]/5 via-transparent to-[#8B5CF6]/5" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/5 via-transparent to-[#8B5CF6]/5" />
       
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -60,7 +60,7 @@ export function StatsSection() {
                   height={400}
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                 
                 {/* Floating testimonial */}
                 <motion.div
@@ -133,7 +133,7 @@ export function StatsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Trusted by{" "}
-                <span className="bg-gradient-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
                   thousands
                 </span>{" "}
                 of Australians
@@ -150,7 +150,7 @@ export function StatsSection() {
                 return (
                   <BlurFade key={stat.label} delay={0.3 + i * 0.1}>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${stat.color}10, transparent)` }} />
+                      <div className="absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${stat.color}10, transparent)` }} />
                       <div className="relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-gray-700/40">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"

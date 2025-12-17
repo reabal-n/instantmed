@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-// Type for the joined request data from Supabase
-interface RequestWithPatient {
+// Type for the raw Supabase response (patient is an array from join)
+interface RequestRow {
   id: string
   type: string
   category: string | null
@@ -19,7 +19,7 @@ interface RequestWithPatient {
     phone: string | null
     suburb: string | null
     state: string | null
-  } | null
+  }[] | null
 }
 
 export async function GET() {
@@ -85,21 +85,24 @@ export async function GET() {
       "Created At",
     ]
 
-    const typedRequests = (requests || []) as RequestWithPatient[]
-    const rows = typedRequests.map((r) => [
-      r.id,
-      r.patient?.full_name || "",
-      r.patient?.date_of_birth || "",
-      r.patient?.phone || "",
-      `${r.patient?.suburb || ""}, ${r.patient?.state || ""}`,
-      r.category || "",
-      r.subtype || "",
-      r.status,
-      r.script_sent ? "Yes" : "No",
-      r.script_sent_at || "",
-      (r.clinical_note || "").replace(/"/g, '""'),
-      r.created_at,
-    ])
+    const typedRequests = (requests || []) as RequestRow[]
+    const rows = typedRequests.map((r) => {
+      const patient = r.patient?.[0] || null
+      return [
+        r.id,
+        patient?.full_name || "",
+        patient?.date_of_birth || "",
+        patient?.phone || "",
+        `${patient?.suburb || ""}, ${patient?.state || ""}`,
+        r.category || "",
+        r.subtype || "",
+        r.status,
+        r.script_sent ? "Yes" : "No",
+        r.script_sent_at || "",
+        (r.clinical_note || "").replace(/"/g, '""'),
+        r.created_at,
+      ]
+    })
 
     const csvContent = [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join("\n")
 
