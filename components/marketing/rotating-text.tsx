@@ -78,23 +78,41 @@ export function RotatingText({
         {longestText}
       </span>
       {/* Actual rotating text positioned absolutely */}
-      <span className="absolute inset-0 flex items-center justify-start overflow-hidden">
+      <span className="absolute inset-0 flex items-center justify-start overflow-hidden perspective-1000">
         <AnimatePresence mode="wait">
           <motion.span
             key={currentIndex}
-            initial={{ y: 40, opacity: 0, rotateX: -90 }}
-            animate={{ y: 0, opacity: 1, rotateX: 0 }}
-            exit={{ y: -40, opacity: 0, rotateX: 90 }}
+            initial={{ 
+              y: 30, 
+              opacity: 0, 
+              rotateX: -45,
+              filter: 'blur(8px)',
+              scale: 0.95
+            }}
+            animate={{ 
+              y: 0, 
+              opacity: 1, 
+              rotateX: 0,
+              filter: 'blur(0px)',
+              scale: 1
+            }}
+            exit={{ 
+              y: -30, 
+              opacity: 0, 
+              rotateX: 45,
+              filter: 'blur(8px)',
+              scale: 0.95
+            }}
             transition={{
-              duration: 0.5,
-              ease: [0.4, 0, 0.2, 1],
+              duration: 0.6,
+              ease: [0.22, 1, 0.36, 1],
             }}
             className={cn(
               "inline-block whitespace-nowrap",
-              gradient && "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent",
+              gradient && "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent animate-gradient-text bg-[length:200%_auto]",
               className
             )}
-            style={{ perspective: '1000px' }}
+            style={{ transformStyle: 'preserve-3d' }}
           >
             {texts[currentIndex]}
           </motion.span>

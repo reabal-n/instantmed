@@ -79,7 +79,7 @@ export function ServicePicker() {
                   <Card 
                     isHoverable
                     isPressable
-                    className="h-full bg-white/90 dark:bg-white/5 border border-slate-200 dark:border-white/10"
+                    className="h-full bg-white/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-500/30 card-glow"
                     shadow="sm"
                   >
                     <CardBody className="flex flex-col items-center text-center p-8 gap-4">

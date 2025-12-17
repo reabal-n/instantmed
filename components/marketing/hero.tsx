@@ -108,10 +108,11 @@ export function Hero() {
                 
                 {/* Floating cards */}
                 {/* Card 1: Request submitted */}
-                <div className="absolute top-8 left-0 glass-card rounded-2xl p-4 shadow-xl animate-float-slow">
+                <div className="absolute top-8 left-0 glass-card rounded-2xl p-4 shadow-xl animate-float-slow hover:scale-105 transition-transform duration-300 cursor-default">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center relative">
                       <FileText className="w-5 h-5 text-indigo-600" />
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-pulse" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">Request submitted</p>
@@ -121,10 +122,10 @@ export function Hero() {
                 </div>
                 
                 {/* Card 2: Doctor reviewing */}
-                <div className="absolute top-1/3 right-0 glass-card rounded-2xl p-4 shadow-xl animate-float-medium">
+                <div className="absolute top-1/3 right-0 glass-card rounded-2xl p-4 shadow-xl animate-float-medium hover:scale-105 transition-transform duration-300 cursor-default">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                      <Stethoscope className="w-5 h-5 text-violet-600" />
+                      <Stethoscope className="w-5 h-5 text-violet-600 animate-pulse" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">GP reviewing</p>
@@ -134,7 +135,7 @@ export function Hero() {
                 </div>
                 
                 {/* Card 3: Approved */}
-                <div className="absolute bottom-12 left-8 glass-card rounded-2xl p-4 shadow-xl animate-float-fast border-2 border-green-200">
+                <div className="absolute bottom-12 left-8 glass-card rounded-2xl p-4 shadow-xl animate-float-fast border-2 border-green-200 hover:scale-105 hover:border-green-300 transition-all duration-300 cursor-default">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
                       <CheckCircle className="w-5 h-5 text-green-600" />
