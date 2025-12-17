@@ -31,7 +31,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
-import { DoctorAvailability } from "@/components/shared/doctor-availability"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
 
@@ -121,14 +120,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
   return (
     <>
-      {variant === "marketing" && (
-        <div className="fixed top-0 left-0 right-0 z-[51]">
-          <DoctorAvailability variant="banner" />
-        </div>
-      )}
-
       <header
-        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6", variant === "marketing" ? "top-[41px] pt-4" : "top-0 pt-4")}
+        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-4")}
       >
         <nav
           className={cn(

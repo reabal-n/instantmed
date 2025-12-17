@@ -5,6 +5,7 @@ import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscop
 import { Button as HeroButton, Chip } from '@heroui/react'
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
+import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 
 const iconMap = {
   Shield,
@@ -16,18 +17,14 @@ const iconMap = {
 export function Hero() {
   return (
     <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-20">
-      {/* Subtle noise texture overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.015] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-      
       {/* Single subtle gradient - cleaner look */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -translate-y-1/4 translate-x-1/4 opacity-60" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:pt-32 lg:pb-24">
+        {/* Doctor Availability Pill - positioned at top */}
+        <div className="mb-8">
+          <DoctorAvailabilityPill />
+        </div>
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">

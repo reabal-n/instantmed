@@ -1,10 +1,11 @@
+'use client'
+
 import Link from "next/link"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, Chip } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { HolographicCard } from "@/components/effects/holographic-card"
-import { SectionPill } from "@/components/ui/section-pill"
 
 export default function AboutPage() {
   return (
@@ -16,7 +17,7 @@ export default function AboutPage() {
         <section className="relative px-4 py-16 sm:py-24 overflow-hidden">
           <div className="mx-auto max-w-4xl text-center relative z-10">
             <div className="flex justify-center mb-4">
-              <SectionPill icon={<Heart className="h-3.5 w-3.5" />} text="About InstantMed" />
+              <Chip color="primary" variant="flat" startContent={<Heart className="h-3.5 w-3.5" />}>About InstantMed</Chip>
             </div>
             <h1
               className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"
@@ -94,7 +95,7 @@ export default function AboutPage() {
                   <HolographicCard key={value.title} hover intensity="medium" className="p-6">
                     <div className="flex flex-col gap-4">
                       <div
-                        className="flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl"
+                        className="shrink-0 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl"
                         style={{
                           background: `linear-gradient(135deg, ${value.color}20, ${value.color}10)`,
                           border: `1px solid ${value.color}30`,
@@ -119,7 +120,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <div className="flex justify-center mb-4">
-                <SectionPill icon={<Users className="h-3.5 w-3.5" />} text="Our team" />
+                <Chip color="primary" variant="flat" startContent={<Users className="h-3.5 w-3.5" />}>Our team</Chip>
               </div>
               <h2
                 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
@@ -190,11 +191,15 @@ export default function AboutPage() {
               <p className="text-muted-foreground mb-8">
                 Join thousands of Australians who have made the switch to InstantMed.
               </p>
-              <Button size="lg" asChild className="rounded-full btn-premium px-8">
-                <Link href="/start">
-                  Get started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button 
+                as={Link}
+                href="/start"
+                color="primary"
+                size="lg"
+                className="px-8"
+                endContent={<ArrowRight className="h-4 w-4" />}
+              >
+                Get started
               </Button>
             </HolographicCard>
           </div>

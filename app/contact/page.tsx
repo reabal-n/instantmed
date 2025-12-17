@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { Chip, Spinner } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
@@ -99,10 +99,9 @@ export default function ContactPage() {
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-4 bg-[#00E2B5]/10 text-[#00E2B5] border-0 px-4 py-1.5">
-                <Sparkles className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
+              <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4">
                 Contact Us
-              </Badge>
+              </Chip>
               <h1
                 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
                 style={{ fontFamily: "var(--font-display)" }}

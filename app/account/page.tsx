@@ -21,7 +21,6 @@ import { Chip, Spinner, Avatar } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { cn } from '@/lib/utils'
 
 interface Profile {
   id: string
@@ -125,22 +124,26 @@ export default function AccountPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusStyles: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-      draft: { bg: 'bg-slate-100', text: 'text-slate-600', icon: <Clock className="h-3.5 w-3.5" /> },
-      pending: { bg: 'bg-amber-100', text: 'text-amber-700', icon: <Clock className="h-3.5 w-3.5" /> },
-      paid: { bg: 'bg-blue-100', text: 'text-blue-700', icon: <CreditCard className="h-3.5 w-3.5" /> },
-      in_review: { bg: 'bg-violet-100', text: 'text-violet-700', icon: <FileText className="h-3.5 w-3.5" /> },
-      completed: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-      declined: { bg: 'bg-red-100', text: 'text-red-700', icon: <AlertCircle className="h-3.5 w-3.5" /> },
+    const statusConfig: Record<string, { color: "default" | "primary" | "secondary" | "success" | "warning" | "danger"; icon: React.ReactNode }> = {
+      draft: { color: 'default', icon: <Clock className="h-3.5 w-3.5" /> },
+      pending: { color: 'warning', icon: <Clock className="h-3.5 w-3.5" /> },
+      paid: { color: 'primary', icon: <CreditCard className="h-3.5 w-3.5" /> },
+      in_review: { color: 'secondary', icon: <FileText className="h-3.5 w-3.5" /> },
+      completed: { color: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+      declined: { color: 'danger', icon: <AlertCircle className="h-3.5 w-3.5" /> },
     }
     
-    const style = statusStyles[status] || statusStyles.pending
+    const config = statusConfig[status] || statusConfig.pending
     
     return (
-      <span className={cn('inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full', style.bg, style.text)}>
-        {style.icon}
+      <Chip 
+        color={config.color} 
+        variant="flat" 
+        size="sm"
+        startContent={config.icon}
+      >
         {status.replace('_', ' ')}
-      </span>
+      </Chip>
     )
   }
 

@@ -10,7 +10,7 @@ const iconMap = {
 
 export function ProofStrip() {
   return (
-    <section className="py-8 bg-slate-100 dark:bg-slate-950">
+    <section className="py-8 bg-white/50 dark:bg-white/5 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {proofMetrics.map((metric) => {
