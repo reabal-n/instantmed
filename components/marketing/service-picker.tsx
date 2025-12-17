@@ -71,7 +71,7 @@ export function ServicePicker() {
             return (
               <motion.div key={service.id} variants={itemVariants}>
                 <Link
-                  href={service.slug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}
+                  href={service.slug === 'medical-certificate' ? '/medical-certificate/new' : '/prescriptions/new'}
                   className="group block"
                 >
                   <motion.div 

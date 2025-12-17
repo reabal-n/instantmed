@@ -15,12 +15,15 @@ export type AuditAction =
   | "payment_completed"
   | "admin_action"
   | "settings_changed"
+  | "state_change"
 
 interface AuditLogEntry {
   action: AuditAction
-  userId?: string
-  targetId?: string
-  targetType?: "request" | "profile" | "document" | "payment"
+  actorId?: string
+  actorType?: "patient" | "doctor" | "admin" | "system"
+  requestId?: string
+  fromState?: string
+  toState?: string
   metadata?: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
@@ -50,9 +53,11 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   try {
     await supabase.from("audit_logs").insert({
       action: entry.action,
-      user_id: entry.userId,
-      target_id: entry.targetId,
-      target_type: entry.targetType,
+      actor_id: entry.actorId,
+      actor_type: entry.actorType,
+      request_id: entry.requestId,
+      from_state: entry.fromState,
+      to_state: entry.toState,
       metadata: entry.metadata,
       ip_address: entry.ipAddress,
       user_agent: entry.userAgent,
@@ -64,10 +69,11 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
 }
 
 // Helper functions for common audit events
-export async function logLogin(userId: string, ipAddress?: string, userAgent?: string) {
+export async function logLogin(actorId: string, ipAddress?: string, userAgent?: string) {
   await logAuditEvent({
     action: "login",
-    userId,
+    actorId,
+    actorType: "patient",
     ipAddress,
     userAgent,
   })
@@ -83,42 +89,44 @@ export async function logLoginFailed(email: string, ipAddress?: string, reason?:
 
 export async function logRequestAction(
   action: "request_created" | "request_approved" | "request_declined" | "request_updated",
-  userId: string,
+  actorId: string,
   requestId: string,
+  actorType: "patient" | "doctor" | "admin" | "system" = "patient",
   metadata?: Record<string, unknown>
 ) {
   await logAuditEvent({
     action,
-    userId,
-    targetId: requestId,
-    targetType: "request",
+    actorId,
+    actorType,
+    requestId,
     metadata,
   })
 }
 
 export async function logDocumentAction(
   action: "document_generated" | "document_downloaded",
-  userId: string,
+  actorId: string,
   documentId: string,
   requestId?: string
 ) {
   await logAuditEvent({
     action,
-    userId,
-    targetId: documentId,
-    targetType: "document",
-    metadata: requestId ? { requestId } : undefined,
+    actorId,
+    actorType: "doctor",
+    requestId,
+    metadata: { documentId },
   })
 }
 
 export async function logAdminAction(
-  userId: string,
+  actorId: string,
   description: string,
   metadata?: Record<string, unknown>
 ) {
   await logAuditEvent({
     action: "admin_action",
-    userId,
+    actorId,
+    actorType: "admin",
     metadata: { description, ...metadata },
   })
 }

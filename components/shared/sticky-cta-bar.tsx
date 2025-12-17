@@ -7,14 +7,14 @@ import { X, Zap } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
-  "/medical-certificate": { name: "Medical Certificate", price: "$19.95", href: "/medical-certificate/request" },
-  "/prescriptions": { name: "Prescription", price: "$24.95", href: "/prescriptions/request" },
-  "/womens-health": { name: "Women's Health", price: "$24.95", href: "/prescriptions/request?category=womens" },
-  "/mens-health": { name: "Men's Health", price: "$24.95", href: "/prescriptions/request?category=mens" },
+  "/medical-certificate": { name: "Medical Certificate", price: "$19.95", href: "/medical-certificate/new" },
+  "/prescriptions": { name: "Prescription", price: "$24.95", href: "/prescriptions/new" },
+  "/womens-health": { name: "Women's Health", price: "$24.95", href: "/prescriptions/new" },
+  "/mens-health": { name: "Men's Health", price: "$24.95", href: "/prescriptions/new" },
   "/weight-loss": { name: "Weight Loss Consult", price: "$49.95", href: "/weight-loss/request" },
 }
 
-const DEFAULT_CONFIG = { name: "cert or script", price: "$19.95", href: "/medical-certificate/request" }
+const DEFAULT_CONFIG = { name: "cert or script", price: "$19.95", href: "/medical-certificate/new" }
 
 export function StickyCTABar() {
   const [isVisible, setIsVisible] = useState(false)
