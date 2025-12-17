@@ -1,10 +1,33 @@
-"use server"
-
 import { NextRequest, NextResponse } from "next/server"
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
 const NCTS_FHIR_BASE = "https://tx.ontoserver.csiro.au/fhir"
 const AMT_VALUE_SET = "http://snomed.info/sct?fhir_vs=ecl/%5E929360071000036103" // AMT Medicinal Product Pack
+
+// Request timeout for NCTS (5 seconds)
+const NCTS_TIMEOUT_MS = 5000
+
+// In-memory cache for AMT results (short TTL for reliability)
+const cache = new Map<string, { data: unknown; timestamp: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+function getCachedResult(key: string): unknown | null {
+  const cached = cache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data
+  }
+  cache.delete(key)
+  return null
+}
+
+function setCachedResult(key: string, data: unknown): void {
+  // Limit cache size to prevent memory issues
+  if (cache.size > 1000) {
+    const oldestKey = cache.keys().next().value
+    if (oldestKey) cache.delete(oldestKey)
+  }
+  cache.set(key, { data, timestamp: Date.now() })
+}
 
 // S8 controlled substances - block these from repeat script flow
 const BLOCKED_S8_TERMS = [
@@ -110,6 +133,13 @@ export async function GET(request: NextRequest) {
     })
   }
 
+  // Check cache first
+  const cacheKey = `amt:${query.toLowerCase()}`
+  const cached = getCachedResult(cacheKey)
+  if (cached) {
+    return NextResponse.json(cached)
+  }
+
   try {
     // Use NCTS FHIR ValueSet $expand operation to search AMT
     const fhirUrl = new URL(`${NCTS_FHIR_BASE}/ValueSet/$expand`)
@@ -118,20 +148,27 @@ export async function GET(request: NextRequest) {
     fhirUrl.searchParams.set("count", "20")
     fhirUrl.searchParams.set("includeDesignations", "true")
 
+    // Add timeout using AbortController
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), NCTS_TIMEOUT_MS)
+
     const response = await fetch(fhirUrl.toString(), {
       headers: {
         Accept: "application/fhir+json",
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      signal: controller.signal,
+      next: { revalidate: 300 }, // Next.js cache for 5 minutes
     })
 
+    clearTimeout(timeoutId)
+
     if (!response.ok) {
-      console.error("[AMT Search] NCTS FHIR error:", response.status, await response.text())
-      // Fallback to local medications if NCTS is unavailable
+      console.error("[AMT Search] NCTS FHIR error:", response.status)
+      // Return graceful error - don't show "no results" for service issues
       return NextResponse.json({
         results: [],
-        error: "Terminology service temporarily unavailable",
-        fallback: true,
+        serviceUnavailable: true,
+        message: "Medication search is temporarily unavailable. Please try again in a moment.",
       })
     }
 
@@ -157,15 +194,31 @@ export async function GET(request: NextRequest) {
       })
       .slice(0, 15) // Limit to 15 results
 
-    return NextResponse.json({
+    const responseData = {
       results,
       total: results.length,
-    })
+    }
+
+    // Cache successful results
+    setCachedResult(cacheKey, responseData)
+
+    return NextResponse.json(responseData)
   } catch (error) {
+    // Handle timeout specifically
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[AMT Search] NCTS timeout after", NCTS_TIMEOUT_MS, "ms")
+      return NextResponse.json({
+        results: [],
+        serviceUnavailable: true,
+        message: "Medication search timed out. Please try again.",
+      })
+    }
+
     console.error("[AMT Search] Error:", error)
     return NextResponse.json({
       results: [],
-      error: "Failed to search medications",
-    }, { status: 500 })
+      serviceUnavailable: true,
+      message: "Medication search is temporarily unavailable. Please try again.",
+    })
   }
 }

@@ -153,6 +153,9 @@ function formatRequestType(category: string | null, subtype: string | null): str
   if (category === "prescription") {
     return "prescription"
   }
+  if (category === "consult") {
+    return "general consultation"
+  }
   if (category === "referral") {
     if (subtype === "imaging") return "imaging referral"
     if (subtype === "pathology") return "pathology referral"

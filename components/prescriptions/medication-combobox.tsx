@@ -79,6 +79,10 @@ export function MedicationCombobox({
         setIsBlocked(true)
         setOptions([])
         setSearchError(data.message)
+      } else if (data.serviceUnavailable) {
+        // Graceful handling of NCTS outage/slowness
+        setSearchError(data.message || "Medication search temporarily unavailable. Please try again.")
+        setOptions([])
       } else if (data.error) {
         setSearchError(data.error)
         setOptions([])
@@ -87,7 +91,7 @@ export function MedicationCombobox({
         setIsOpen((data.results || []).length > 0)
       }
     } catch {
-      setSearchError("Failed to search medications")
+      setSearchError("Connection error. Please check your internet and try again.")
       setOptions([])
     } finally {
       setIsLoading(false)

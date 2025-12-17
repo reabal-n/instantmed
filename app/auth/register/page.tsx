@@ -5,10 +5,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button, Input, Checkbox } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
@@ -192,10 +189,11 @@ export default function RegisterPage() {
 
             <Button
               type="button"
-              variant="outline"
-              onClick={handleGoogleSignUp}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full h-11 rounded-xl bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4"
+              variant="bordered"
+              onPress={handleGoogleSignUp}
+              isDisabled={isGoogleLoading || isLoading}
+              className="w-full h-11 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4"
+              radius="lg"
             >
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -215,100 +213,91 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full-name" className="text-sm font-medium">
-                  Full name
-                </Label>
-                <Input
-                  id="full-name"
-                  placeholder="John Smith"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dob" className="text-sm font-medium">
-                  Date of birth
-                </Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  required
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border-white/40 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
-              </div>
-              <div className="flex items-start gap-2 pt-1">
-                <Checkbox
-                  id="terms"
-                  className="mt-0.5 rounded"
-                  checked={termsAccepted}
-                  onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                  disabled={isLoading || isGoogleLoading}
-                />
-                <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
-                  I agree to the{" "}
-                  <Link href="/terms" className="text-[#00E2B5] hover:underline">
-                    Terms
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" className="text-[#00E2B5] hover:underline">
-                    Privacy Policy
-                  </Link>
-                </label>
-              </div>
+              <Input
+                label="Full name"
+                placeholder="John Smith"
+                isRequired
+                value={fullName}
+                onValueChange={setFullName}
+                isDisabled={isLoading || isGoogleLoading}
+                variant="bordered"
+                radius="lg"
+                classNames={{
+                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                }}
+              />
+              <Input
+                label="Date of birth"
+                type="date"
+                isRequired
+                value={dateOfBirth}
+                onValueChange={setDateOfBirth}
+                isDisabled={isLoading || isGoogleLoading}
+                variant="bordered"
+                radius="lg"
+                classNames={{
+                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                }}
+              />
+              <Input
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                isRequired
+                value={email}
+                onValueChange={setEmail}
+                isDisabled={isLoading || isGoogleLoading}
+                variant="bordered"
+                radius="lg"
+                classNames={{
+                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                }}
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                isRequired
+                value={password}
+                onValueChange={setPassword}
+                isDisabled={isLoading || isGoogleLoading}
+                variant="bordered"
+                radius="lg"
+                classNames={{
+                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                }}
+              />
+              <Checkbox
+                isSelected={termsAccepted}
+                onValueChange={setTermsAccepted}
+                isDisabled={isLoading || isGoogleLoading}
+                size="sm"
+                classNames={{
+                  label: "text-xs text-muted-foreground leading-relaxed",
+                }}
+              >
+                I agree to the{" "}
+                <Link href="/terms" className="text-primary hover:underline">
+                  Terms
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="text-primary hover:underline">
+                  Privacy Policy
+                </Link>
+              </Checkbox>
 
               {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
               <Button
                 type="submit"
-                disabled={isLoading || isGoogleLoading}
-                className="w-full h-11 rounded-xl btn-premium text-[#0A0F1C] font-semibold"
+                isDisabled={isLoading || isGoogleLoading}
+                isLoading={isLoading}
+                color="primary"
+                className="w-full h-11 font-semibold"
+                radius="lg"
+                spinner={<Loader2 className="h-4 w-4 animate-spin" />}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  "Create account"
-                )}
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
             <p className="mt-6 text-center text-sm text-muted-foreground">

@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Pill, ArrowRight } from 'lucide-react'
+import { FileText, Pill, ArrowRight, Stethoscope } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 
 const iconMap = {
   FileText,
   Pill,
+  Stethoscope,
 }
 
 const colorConfig: Record<string, { accent: string; glow: string }> = {
@@ -58,7 +59,7 @@ export function ServicePicker() {
         </motion.div>
 
         <motion.div 
-          className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -71,7 +72,7 @@ export function ServicePicker() {
             return (
               <motion.div key={service.id} variants={itemVariants}>
                 <Link
-                  href={service.slug === 'medical-certificate' ? '/medical-certificate/new' : '/prescriptions/new'}
+                  href={service.href || `/${service.slug}/request`}
                   className="group block"
                 >
                   <motion.div 

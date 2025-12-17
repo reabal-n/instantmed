@@ -9,6 +9,7 @@ import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { ParticleParallaxBackground } from "@/components/effects/particle-parallax-background"
 import { ThemeProvider } from "next-themes"
+import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import "./globals.css"
 
@@ -163,16 +164,18 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <ParticleParallaxBackground intensity="medium" />
-          <SkipToContent />
-          <div id="main-content" className="page-enter relative">
-            {children}
-          </div>
-          <Toaster position="top-center" richColors />
-          <LiveChatWidget />
-          <SocialProofPopup />
-          <StickyCTABar />
-          <Analytics />
+          <HeroUIProviderWrapper>
+            <ParticleParallaxBackground intensity="medium" />
+            <SkipToContent />
+            <div id="main-content" className="page-enter relative">
+              {children}
+            </div>
+            <Toaster position="top-center" richColors />
+            <LiveChatWidget />
+            <SocialProofPopup />
+            <StickyCTABar />
+            <Analytics />
+          </HeroUIProviderWrapper>
         </ThemeProvider>
       </body>
     </html>

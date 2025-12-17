@@ -203,8 +203,45 @@ export function RequestDetailClient({
   }
   const hasStructuredMedication = !!structuredMedication.amt_code && !!structuredMedication.display
 
+  // Compliance Gate: Check if this is a repeat script that should have been a consult
+  const isRepeatScript = request.category === "prescription" && request.subtype === "repeat"
+  const failsGatingCheck = isRepeatScript && (
+    structuredMedication.prescribed_before === false || 
+    structuredMedication.dose_changed === true
+  )
+
   return (
     <div className="space-y-6 pb-32 lg:pb-8">
+      {/* COMPLIANCE GATE: Warning for repeat scripts that should be consults */}
+      {failsGatingCheck && (
+        <div className="bg-red-100 border-2 border-red-500 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shrink-0">
+              <AlertTriangle className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-red-900">⚠️ COMPLIANCE GATE — DO NOT APPROVE AS REPEAT SCRIPT</h2>
+              <p className="text-red-800 mt-2 font-medium">
+                This request requires a General Consult, not a repeat script:
+              </p>
+              <ul className="mt-2 space-y-1 text-red-700">
+                {structuredMedication.prescribed_before === false && (
+                  <li>• Patient has NOT been prescribed this medication before</li>
+                )}
+                {structuredMedication.dose_changed === true && (
+                  <li>• Patient is requesting a dose change</li>
+                )}
+              </ul>
+              <div className="mt-4 p-3 bg-red-200 rounded-lg">
+                <p className="text-sm text-red-900 font-medium">
+                  Action required: Decline this request and advise patient to book a General Consult ($44.95) for proper assessment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

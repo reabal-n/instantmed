@@ -5,10 +5,8 @@ import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Button, Input, Textarea, Progress as HeroProgress } from "@heroui/react"
 import confetti from "canvas-confetti"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   ArrowLeft,
   Loader2,
@@ -271,7 +269,7 @@ function ControlledWarning({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </div>
-        <Button onClick={onClose} className="w-full">
+        <Button onPress={onClose} className="w-full" color="primary" radius="lg">
           I understand
         </Button>
       </div>
@@ -288,11 +286,15 @@ function SafetyKnockout() {
       </div>
       <h1 className="text-xl font-semibold mb-2">{RX_MICROCOPY.safety.knockoutTitle}</h1>
       <p className="text-sm text-muted-foreground max-w-xs mb-6">{RX_MICROCOPY.safety.knockoutBody}</p>
-      <Button asChild variant="outline">
-        <Link href="https://www.healthdirect.gov.au/australian-health-services" target="_blank">
-          {RX_MICROCOPY.safety.knockoutCta}
-          <ExternalLink className="w-4 h-4 ml-2" />
-        </Link>
+      <Button
+        as={Link}
+        href="https://www.healthdirect.gov.au/australian-health-services"
+        target="_blank"
+        variant="bordered"
+        radius="lg"
+      >
+        {RX_MICROCOPY.safety.knockoutCta}
+        <ExternalLink className="w-4 h-4 ml-2" />
       </Button>
     </div>
   )
@@ -909,12 +911,12 @@ export function PrescriptionFlowClient({
                     </div>
                   </div>
                   <Button
-                    asChild
+                    as={Link}
+                    href="/consult"
                     className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                    radius="lg"
                   >
-                    <Link href="/consult">
-                      Continue to General Consult ($44.95)
-                    </Link>
+                    Continue to General Consult ($44.95)
                   </Button>
                 </div>
               )}
@@ -1159,8 +1161,8 @@ export function PrescriptionFlowClient({
                   <h2 className="text-lg font-semibold">Check your email</h2>
                   <p className="text-sm text-muted-foreground">We sent a confirmation link to {email}</p>
                   <Button
-                    variant="outline"
-                    onClick={() => {
+                    variant="bordered"
+                    onPress={() => {
                       setIsSignUp(false)
                       setShowEmailConfirm(false)
                     }}
@@ -1175,7 +1177,7 @@ export function PrescriptionFlowClient({
                     subtitle={RX_MICROCOPY.signup.subtitle}
                   />
 
-                  <Button variant="outline" className="w-full h-11 bg-transparent" onClick={handleGoogleAuth}>
+                  <Button variant="bordered" className="w-full h-11" onPress={handleGoogleAuth}>
                     <GoogleIcon className="w-5 h-5 mr-2" />
                     Continue with Google
                   </Button>
@@ -1361,7 +1363,7 @@ export function PrescriptionFlowClient({
                   )}
                 </Button>
               ) : step === "safety" && checkSafetyKnockout() ? (
-                <Button onClick={() => setIsKnockedOut(true)} variant="outline" className="w-full h-12">
+                <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="w-full h-12">
                   Find a GP near you
                 </Button>
               ) : step !== "signup" ? (

@@ -6,9 +6,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button, Input } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
@@ -255,10 +253,11 @@ export default function LoginPage() {
 
             <Button
               type="button"
-              variant="outline"
-              onClick={handleGoogleLogin}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4 shadow-sm"
+              variant="bordered"
+              onPress={handleGoogleLogin}
+              isDisabled={isGoogleLoading || isLoading}
+              className="w-full h-12 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4 shadow-sm"
+              radius="lg"
             >
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -278,40 +277,40 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
+              <Input
+                label="Email"
+                type="email"
+                placeholder="you@example.com"
+                isRequired
+                value={email}
+                onValueChange={setEmail}
+                isDisabled={isLoading || isGoogleLoading}
+                variant="bordered"
+                radius="lg"
+                classNames={{
+                  inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                }}
+              />
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-12 rounded-xl bg-white/50 backdrop-blur-sm border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                  label="Password"
+                  type="password"
+                  placeholder="Enter your password"
+                  isRequired
+                  value={password}
+                  onValueChange={setPassword}
+                  isDisabled={isLoading || isGoogleLoading}
+                  variant="bordered"
+                  radius="lg"
+                  classNames={{
+                    inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  }}
                 />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
-                  <Link href="/auth/forgot-password" className="text-xs text-[#00E2B5] hover:underline font-medium">
+                <div className="flex justify-end">
+                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline font-medium">
                     Forgot password?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading || isGoogleLoading}
-                  className="h-12 rounded-xl bg-white/50 backdrop-blur-sm border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
-                />
               </div>
 
               {error && (
@@ -320,17 +319,14 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={isLoading || isGoogleLoading}
-                className="w-full h-12 rounded-xl btn-premium text-[#0A0F1C] font-semibold shadow-lg shadow-[#00E2B5]/20"
+                isDisabled={isLoading || isGoogleLoading}
+                isLoading={isLoading}
+                color="primary"
+                className="w-full h-12 font-semibold"
+                radius="lg"
+                spinner={<Loader2 className="h-4 w-4 animate-spin" />}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign in"
-                )}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 

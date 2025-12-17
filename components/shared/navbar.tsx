@@ -48,10 +48,16 @@ const services = [
     icon: FileText,
   },
   {
-    title: "Prescriptions",
+    title: "Repeat Scripts",
     href: "/prescriptions/request",
-    description: "Repeat scripts & reviews",
+    description: "Medications you already take",
     icon: Pill,
+  },
+  {
+    title: "General Consult",
+    href: "/consult/request",
+    description: "New prescriptions & dose changes",
+    icon: Zap,
   },
 ]
 
