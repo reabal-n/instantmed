@@ -42,10 +42,11 @@ export function HowItWorks() {
           <Chip 
             color="primary" 
             variant="flat" 
-            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group"
+            size="lg"
+            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group px-4 py-2"
             startContent={<Zap className="w-4 h-4 group-hover:animate-pulse" />}
           >
-            <span className="group-hover:tracking-wide transition-all duration-300">How it works</span>
+            <span className="group-hover:tracking-wide transition-all duration-300 font-medium">How it works</span>
           </Chip>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             From request to done in three steps

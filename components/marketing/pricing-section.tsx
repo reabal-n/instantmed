@@ -15,10 +15,11 @@ export function PricingSection() {
           <Chip 
             color="secondary" 
             variant="flat" 
-            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-secondary/25 hover:bg-secondary/30 group"
+            size="lg"
+            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-secondary/25 hover:bg-secondary/30 group px-4 py-2"
             startContent={<Sparkles className="w-4 h-4 group-hover:animate-spin" />}
           >
-            <span className="group-hover:tracking-wide transition-all duration-300">Simple pricing</span>
+            <span className="group-hover:tracking-wide transition-all duration-300 font-medium">Simple pricing</span>
           </Chip>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Transparent, upfront pricing

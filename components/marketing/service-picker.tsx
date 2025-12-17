@@ -48,8 +48,8 @@ export function ServicePicker() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <Chip color="primary" variant="flat" className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20">
-            ✨ Get started in minutes
+          <Chip color="primary" variant="flat" size="lg" className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 px-4 py-2">
+            <span className="font-medium">✨ Get started in minutes</span>
           </Chip>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground mb-4">
             What do you need today?

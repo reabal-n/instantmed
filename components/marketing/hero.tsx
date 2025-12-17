@@ -32,15 +32,16 @@ export function Hero() {
             <Chip 
               color="primary" 
               variant="flat" 
-              className="mb-8 animate-slide-up cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group"
+              size="lg"
+              className="mb-8 animate-slide-up cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group px-4 py-2"
               startContent={
-                <span className="relative flex h-2 w-2 mr-1">
+                <span className="relative flex h-2.5 w-2.5 mr-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary group-hover:scale-110 transition-transform" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary group-hover:scale-110 transition-transform" />
                 </span>
               }
             >
-              <span className="group-hover:tracking-wide transition-all duration-300">⚡ Australia&apos;s fastest online GP</span>
+              <span className="group-hover:tracking-wide transition-all duration-300 font-medium">⚡ Australia&apos;s fastest online GP</span>
             </Chip>
 
             {/* Headline - Lora font with stable layout */}
@@ -60,37 +61,37 @@ export function Hero() {
             </p>
 
             {/* CTAs - HeroUI Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12 animate-slide-up-delay-3">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-10 animate-slide-up-delay-3">
               <HeroButton 
                 as={Link}
                 href="/start"
                 color="primary"
                 size="lg"
-                className="px-10 h-14 text-base font-semibold"
-                endContent={<ArrowRight className="h-5 w-5" />}
+                className="px-8 h-12 text-sm font-semibold shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
+                endContent={<ArrowRight className="h-4 w-4" />}
               >
-                Start in 60 seconds
+                Get started free
               </HeroButton>
               <HeroButton 
                 as={Link}
                 href="#how-it-works"
-                variant="bordered"
+                variant="light"
                 size="lg"
-                className="h-14 text-base px-8"
+                className="h-12 text-sm px-6 text-muted-foreground hover:text-foreground"
                 startContent={<Play className="h-4 w-4" />}
               >
-                How it works
+                See how it works
               </HeroButton>
             </div>
 
-            {/* Trust row - glass pills */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+            {/* Trust row - minimal pills */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-2">
               {trustSignals.map((signal) => {
                 const Icon = iconMap[signal.icon as keyof typeof iconMap]
                 return (
-                  <div key={signal.text} className="glass-card flex items-center gap-2 text-sm px-4 py-2 rounded-full">
-                    <Icon className="h-4 w-4 text-primary" />
-                    <span className="text-foreground/80">{signal.text}</span>
+                  <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors">
+                    <Icon className="h-3.5 w-3.5 text-primary/70" />
+                    <span>{signal.text}</span>
                   </div>
                 )
               })}

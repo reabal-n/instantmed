@@ -125,20 +125,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <nav
           className={cn(
-            "relative mx-auto max-w-6xl rounded-full",
+            "relative mx-auto max-w-5xl rounded-full",
             "transition-all duration-300 liquid-glass-nav-pill",
             scrolled && "scrolled",
           )}
           role="navigation"
           aria-label="Main navigation"
         >
-          <div className="relative z-10 flex items-center justify-between px-6 py-3">
+          <div className="relative z-10 flex items-center justify-between px-4 py-2">
             {/* Logo */}
-            <Link href="/" className="relative z-10 flex items-center gap-2 group" aria-label="InstantMed home">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
-                <Zap className="h-4 w-4 text-white" aria-hidden="true" />
+            <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="InstantMed home">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+                <Zap className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               </div>
-              <span className="text-base font-semibold text-foreground">InstantMed</span>
+              <span className="text-sm font-semibold text-foreground">InstantMed</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -148,7 +148,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   {/* Services Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all flex items-center gap-1">
+                      <button className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all flex items-center gap-0.5">
                         Services
                         <ChevronDown className="h-3 w-3" />
                       </button>
@@ -184,25 +184,25 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <Link
                     href="/how-it-works"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
+                    className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
                     How it works
                   </Link>
                   <Link
                     href="/pricing"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
+                    className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
                     Pricing
                   </Link>
 
-                  <div className="ml-3 flex items-center gap-2">
-                    <SkyToggle size={14} />
+                  <div className="ml-2 flex items-center gap-1.5">
+                    <SkyToggle size={12} />
                     {user ? (
                       <Button
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="rounded-lg text-sm hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-md text-xs h-7 px-2 hover:bg-white/40 dark:hover:bg-white/5"
                       >
                         <Link href="/patient">Dashboard</Link>
                       </Button>
@@ -211,12 +211,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="rounded-lg text-sm hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-md text-xs h-7 px-2 hover:bg-white/40 dark:hover:bg-white/5"
                       >
                         <Link href="/auth/login">Sign in</Link>
                       </Button>
                     )}
-                    <Button size="sm" asChild className="rounded-lg text-sm btn-premium">
+                    <Button size="sm" asChild className="rounded-md text-xs h-7 px-3 btn-premium">
                       <Link href="/start">Get started</Link>
                     </Button>
                   </div>
