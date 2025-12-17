@@ -423,13 +423,16 @@ export function PrescriptionFlowClient({
     if (currentIndex < steps.length - 1) {
       // Skip steps based on auth state
       let nextIndex = currentIndex + 1
-      if (steps[nextIndex] === "medicare" && !needsOnboarding && patientId) {
+      if (nextIndex < steps.length && steps[nextIndex] === "medicare" && !needsOnboarding && patientId) {
         nextIndex++
       }
-      if (steps[nextIndex] === "signup" && isAuthenticated && !needsOnboarding) {
+      if (nextIndex < steps.length && steps[nextIndex] === "signup" && isAuthenticated && !needsOnboarding) {
         nextIndex++
       }
-      goTo(steps[nextIndex])
+      // Safety check: ensure we don't go out of bounds
+      if (nextIndex < steps.length) {
+        goTo(steps[nextIndex])
+      }
     }
   }, [step, steps, goTo, isAuthenticated, needsOnboarding, patientId])
 
@@ -552,6 +555,29 @@ export function PrescriptionFlowClient({
     setError(null)
 
     try {
+      // Save form data before OAuth redirect
+      const formState = {
+        rxType,
+        step,
+        selectedMedication,
+        prescribedBefore,
+        doseChanged,
+        condition,
+        otherCondition,
+        duration,
+        control,
+        sideEffects,
+        notes,
+        safetyAnswers,
+        medicareNumber,
+        irn,
+        dob,
+        fullName,
+        email,
+      }
+      sessionStorage.setItem("rx_form_data", JSON.stringify(formState))
+      sessionStorage.setItem("rx_form_step", step)
+      
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
       sessionStorage.setItem("pending_profile_dob", dob)
@@ -706,6 +732,36 @@ export function PrescriptionFlowClient({
 
   useEffect(() => {
     const checkSession = async () => {
+      // Restore form data from sessionStorage if returning from OAuth
+      const savedFormData = sessionStorage.getItem("rx_form_data")
+      const savedStep = sessionStorage.getItem("rx_form_step") as FlowStep | null
+      
+      if (savedFormData) {
+        try {
+          const parsed = JSON.parse(savedFormData)
+          // Restore all form state
+          if (parsed.rxType) setRxType(parsed.rxType)
+          if (parsed.selectedMedication) setSelectedMedication(parsed.selectedMedication)
+          if (parsed.prescribedBefore !== null) setPrescribedBefore(parsed.prescribedBefore)
+          if (parsed.doseChanged !== null) setDoseChanged(parsed.doseChanged)
+          if (parsed.condition) setCondition(parsed.condition)
+          if (parsed.otherCondition) setOtherCondition(parsed.otherCondition)
+          if (parsed.duration) setDuration(parsed.duration)
+          if (parsed.control) setControl(parsed.control)
+          if (parsed.sideEffects) setSideEffects(parsed.sideEffects)
+          if (parsed.notes) setNotes(parsed.notes)
+          if (parsed.safetyAnswers) setSafetyAnswers(parsed.safetyAnswers)
+          if (parsed.medicareNumber) setMedicareNumber(parsed.medicareNumber)
+          if (parsed.irn) setIrn(parsed.irn)
+          if (parsed.dob) setDob(parsed.dob)
+          if (parsed.fullName) setFullName(parsed.fullName)
+          if (parsed.email) setEmail(parsed.email)
+          sessionStorage.removeItem("rx_form_data")
+        } catch (e) {
+          console.error("Failed to restore form data:", e)
+        }
+      }
+      
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -721,6 +777,7 @@ export function PrescriptionFlowClient({
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
           sessionStorage.removeItem("pending_profile_dob")
+          sessionStorage.removeItem("rx_form_step")
           setPatientId(profileId)
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
@@ -728,8 +785,10 @@ export function PrescriptionFlowClient({
           const urlParams = new URLSearchParams(window.location.search)
           if (urlParams.get("auth_success") === "true") {
             window.history.replaceState({}, "", window.location.pathname)
-            // Continue to next step after successful auth
-            if (step === "signup") {
+            // If we restored form data, go to review step
+            if (savedFormData && savedStep) {
+              goTo("review")
+            } else if (step === "signup") {
               goNext()
             }
           }
@@ -737,7 +796,7 @@ export function PrescriptionFlowClient({
       }
     }
     checkSession()
-  }, [isAuthenticated, step, goNext])
+  }, [isAuthenticated, step, goNext, goTo])
 
   // If knocked out by safety check
   if (isKnockedOut) {
