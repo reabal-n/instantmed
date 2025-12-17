@@ -65,6 +65,14 @@ export function RequestsListClient({ requests }: RequestsListClientProps) {
     if (paymentStatus === "pending_payment") {
       return <Badge className="bg-orange-100/80 text-orange-700 border-0 font-medium">Payment needed</Badge>
     }
+    if (paymentStatus === "refunded") {
+      return (
+        <div className="flex gap-1.5">
+          <Badge className="bg-red-100/80 text-red-700 border-0 font-medium">Declined</Badge>
+          <Badge className="bg-purple-100/80 text-purple-700 border-0 font-medium">Refunded</Badge>
+        </div>
+      )
+    }
     switch (status) {
       case "pending":
         return <Badge className="bg-amber-100/80 text-amber-700 border-0 font-medium">In review</Badge>

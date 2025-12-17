@@ -69,13 +69,26 @@ export function RequestDetailClient({
     startTransition(async () => {
       const result = await updateStatusAction(request.id, status)
       if (result.success) {
+        let message = `Request ${status === "approved" ? "approved" : status === "declined" ? "declined" : "marked as needs follow-up"}`
+        
+        // Add refund information for declined requests
+        if (status === "declined" && result.refund) {
+          if (result.refund.refunded) {
+            message += ` • Patient refunded $${((result.refund.amountRefunded || 0) / 100).toFixed(2)}`
+          } else if (result.refund.refundStatus === "not_eligible") {
+            message += ` • No refund (${result.refund.reason})`
+          } else if (result.refund.refundStatus === "failed") {
+            message += ` • Refund failed: ${result.refund.reason}`
+          }
+        }
+        
         setActionMessage({
           type: "success",
-          text: `Request ${status === "approved" ? "approved" : status === "declined" ? "declined" : "marked as needs follow-up"}`,
+          text: message,
         })
         setTimeout(() => {
           router.push("/doctor")
-        }, 1500)
+        }, 2500) // Slightly longer to read refund message
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to update status" })
       }

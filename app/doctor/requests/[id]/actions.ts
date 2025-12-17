@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { updateRequestStatus, updateClinicalNote } from "@/lib/data/requests"
 import { requireAuth } from "@/lib/auth"
 import { RequestLifecycleError } from "../../../../lib/data/request-lifecycle"
+import { refundIfEligible, type RefundResult } from "@/lib/stripe/refunds"
 import type { RequestStatus } from "@/types/db"
 
 // UUID validation helper
@@ -15,7 +16,7 @@ function isValidUUID(id: string): boolean {
 export async function updateStatusAction(
   requestId: string,
   status: RequestStatus,
-): Promise<{ success: boolean; error?: string; code?: string }> {
+): Promise<{ success: boolean; error?: string; code?: string; refund?: RefundResult }> {
   // Validate input
   if (!isValidUUID(requestId)) {
     console.error("[updateStatusAction] Invalid requestId:", requestId)
@@ -44,10 +45,30 @@ export async function updateStatusAction(
       doctorName: profile.full_name,
     })
 
+    // If declined, process refund if eligible
+    let refundResult: RefundResult | undefined
+    if (status === "declined") {
+      console.log("[updateStatusAction] Processing refund eligibility for declined request")
+      try {
+        refundResult = await refundIfEligible(requestId, profile.id)
+        console.log("[updateStatusAction] Refund result:", refundResult)
+      } catch (refundError) {
+        // Log but don't fail the decline - refund is secondary
+        console.error("[updateStatusAction] Refund processing error:", refundError)
+        refundResult = {
+          success: false,
+          refunded: false,
+          refundStatus: "failed",
+          reason: "Unexpected error during refund processing",
+          error: refundError instanceof Error ? refundError.message : "Unknown error",
+        }
+      }
+    }
+
     revalidatePath("/doctor")
     revalidatePath(`/doctor/requests/${requestId}`)
 
-    return { success: true }
+    return { success: true, refund: refundResult }
   } catch (error) {
     // Handle lifecycle errors with specific messages
     if (error instanceof RequestLifecycleError) {

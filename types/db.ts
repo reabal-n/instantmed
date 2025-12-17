@@ -179,6 +179,9 @@ export interface PrescriptionDraftData {
 // Payment status type
 export type PaymentStatus = "pending_payment" | "paid" | "failed" | "refunded"
 
+// Refund status type
+export type RefundStatus = "not_applicable" | "eligible" | "processing" | "refunded" | "failed" | "not_eligible"
+
 // Payment type
 export interface Payment {
   id: string // uuid, PK
@@ -188,6 +191,12 @@ export interface Payment {
   amount: number
   currency: string
   status: "created" | "pending" | "paid" | "failed" | "refunded"
+  // Refund tracking
+  refund_status: RefundStatus
+  refund_reason: string | null
+  stripe_refund_id: string | null
+  refunded_at: string | null // ISO timestamp
+  refund_amount: number | null
   created_at: string // ISO timestamp
   updated_at: string // ISO timestamp
 }

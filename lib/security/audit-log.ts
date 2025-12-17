@@ -16,6 +16,9 @@ export type AuditAction =
   | "admin_action"
   | "settings_changed"
   | "state_change"
+  | "refund_attempted"
+  | "refund_succeeded"
+  | "refund_failed"
 
 interface AuditLogEntry {
   action: AuditAction
@@ -128,5 +131,26 @@ export async function logAdminAction(
     actorId,
     actorType: "admin",
     metadata: { description, ...metadata },
+  })
+}
+
+export async function logRefundAction(
+  action: "refund_attempted" | "refund_succeeded" | "refund_failed",
+  actorId: string,
+  requestId: string,
+  metadata: {
+    category?: string
+    amount?: number
+    stripeRefundId?: string
+    reason?: string
+    error?: string
+  }
+) {
+  await logAuditEvent({
+    action,
+    actorId,
+    actorType: "doctor",
+    requestId,
+    metadata,
   })
 }
