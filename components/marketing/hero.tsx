@@ -28,19 +28,19 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">
-            {/* Badge - HeroUI Chip */}
+            {/* Badge - HeroUI Chip with hover effects */}
             <Chip 
               color="primary" 
               variant="flat" 
-              className="mb-8 animate-slide-up"
+              className="mb-8 animate-slide-up cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group"
               startContent={
                 <span className="relative flex h-2 w-2 mr-1">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary group-hover:scale-110 transition-transform" />
                 </span>
               }
             >
-              ⚡ Australia&apos;s fastest online GP
+              <span className="group-hover:tracking-wide transition-all duration-300">⚡ Australia&apos;s fastest online GP</span>
             </Chip>
 
             {/* Headline - Lora font with stable layout */}

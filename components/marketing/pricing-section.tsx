@@ -15,10 +15,10 @@ export function PricingSection() {
           <Chip 
             color="secondary" 
             variant="flat" 
-            className="mb-4"
-            startContent={<Sparkles className="w-4 h-4" />}
+            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-secondary/25 hover:bg-secondary/30 group"
+            startContent={<Sparkles className="w-4 h-4 group-hover:animate-spin" />}
           >
-            Simple pricing
+            <span className="group-hover:tracking-wide transition-all duration-300">Simple pricing</span>
           </Chip>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Transparent, upfront pricing

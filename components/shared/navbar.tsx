@@ -189,20 +189,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     How it works
                   </Link>
                   <Link
-                    href="/about"
+                    href="/pricing"
                     className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
-                    About
-                  </Link>
-                  <Link
-                    href="/blog"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
-                  >
-                    Blog
+                    Pricing
                   </Link>
 
                   <div className="ml-3 flex items-center gap-2">
-                    <SkyToggle size={16} />
+                    <SkyToggle size={14} />
                     {user ? (
                       <Button
                         variant="ghost"

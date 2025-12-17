@@ -146,9 +146,10 @@ export function TestimonialMarquee() {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium mb-4"
+            whileHover={{ scale: 1.05 }}
+            className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium mb-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/25 hover:bg-indigo-100"
           >
-            Trusted by thousands
+            💬 Trusted by thousands
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
