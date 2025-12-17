@@ -184,19 +184,19 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <Link
                     href="/how-it-works"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
                     How it works
                   </Link>
                   <Link
                     href="/about"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
                     About
                   </Link>
                   <Link
                     href="/blog"
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
                   >
                     Blog
                   </Link>
