@@ -5,11 +5,11 @@ import { requireAuth } from "../../../../../lib/auth"
 import { updateMedCertDraftData, getDraftById, createGeneratedDocument, hasDocumentForRequest } from "../../../../../lib/data/documents"
 import { updateRequestStatus, getRequestWithDetails } from "../../../../../lib/data/requests"
 import { RequestLifecycleError } from "../../../../../lib/data/request-lifecycle"
-import { generateMedCertPdfFromDraft, testApiTemplateConnection } from "../../../../../lib/documents/apitemplate"
+import { generateMedCertPdf } from "../../../../../lib/documents/pdf-generator"
+import { uploadPdfBuffer, isPermanentStorageUrl } from "../../../../../lib/storage/documents"
 import { sendMedCertReadyEmail } from "../../../../../lib/email/resend"
 import { getPatientEmailFromRequest } from "../../../../../lib/data/profiles"
 import { assertApprovalInvariants, ApprovalInvariantError, verifyDocumentUrlIsPermanent } from "../../../../../lib/approval/invariants"
-import { isPermanentStorageUrl } from "../../../../../lib/storage/documents"
 import type { MedCertDraftData } from "../../../../../types/db"
 
 // UUID validation helper
@@ -98,12 +98,22 @@ export async function generateMedCertPdfAndApproveAction(
       throw invariantError
     }
 
-    // Generate PDF using APITemplate and upload to permanent storage
+    // Generate PDF and upload to permanent storage
     let pdfUrl: string
     try {
-      // Pass requestId for permanent storage upload
-      pdfUrl = await generateMedCertPdfFromDraft(data, draft.subtype, draft.request_id)
-      console.log("[generateMedCertPdfAndApproveAction] PDF generated:", { 
+      // Step 1: Generate PDF buffer
+      const pdfBuffer = await generateMedCertPdf(data, draft.subtype, draft.request_id)
+      
+      // Step 2: Upload to Supabase Storage
+      const uploadResult = await uploadPdfBuffer(pdfBuffer, draft.request_id, "med_cert", draft.subtype || "work")
+      
+      if (!uploadResult.success || !uploadResult.permanentUrl) {
+        console.error("[generateMedCertPdfAndApproveAction] Upload failed:", uploadResult.error)
+        return { success: false, error: uploadResult.error || "Failed to upload PDF" }
+      }
+      
+      pdfUrl = uploadResult.permanentUrl
+      console.log("[generateMedCertPdfAndApproveAction] PDF generated and uploaded:", { 
         requestId: draft.request_id,
         isPermanent: isPermanentStorageUrl(pdfUrl),
         url: pdfUrl.substring(0, 60) + "...",
@@ -199,17 +209,37 @@ export async function generateMedCertPdfAndApproveAction(
   }
 }
 
-export async function testApiConnectionAction(): Promise<{ success: boolean; error?: string }> {
+export async function testPdfGenerationAction(): Promise<{ success: boolean; error?: string }> {
   try {
     const { profile } = await requireAuth("doctor")
     if (!profile) {
       return { success: false, error: "Unauthorized" }
     }
 
-    return await testApiTemplateConnection()
+    // Test PDF generation with sample data
+    const testData: MedCertDraftData = {
+      patient_name: "Test Patient",
+      dob: "1990-01-01",
+      date_from: new Date().toISOString(),
+      date_to: new Date().toISOString(),
+      reason: "Test condition",
+      work_capacity: "Unable to work",
+      doctor_name: "Dr Test",
+      provider_number: "1234567X",
+      created_date: new Date().toISOString(),
+      notes: null,
+    }
+
+    const pdfBuffer = await generateMedCertPdf(testData, "work", "test-request-id")
+    
+    if (pdfBuffer && pdfBuffer.length > 0) {
+      return { success: true }
+    }
+    
+    return { success: false, error: "PDF generation returned empty buffer" }
   } catch (error) {
-    console.error("Error testing API connection:", error)
-    return { success: false, error: "Failed to test connection" }
+    console.error("Error testing PDF generation:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Failed to test PDF generation" }
   }
 }
 

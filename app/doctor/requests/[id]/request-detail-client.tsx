@@ -34,7 +34,7 @@ import {
   FileEdit,
 } from "lucide-react"
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
-import type { RequestWithDetails, RequestStatus, GeneratedDocument } from "@/types/db"
+import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
 
 interface RequestDetailClientProps {
   request: RequestWithDetails
@@ -44,6 +44,7 @@ interface RequestDetailClientProps {
   formatSubtype: (subtype: string | null) => string
   formatRequestType: (type: string) => string
   existingDocument?: GeneratedDocument | null
+  previousRequests?: Request[]
 }
 
 export function RequestDetailClient({
@@ -54,6 +55,7 @@ export function RequestDetailClient({
   formatSubtype,
   formatRequestType,
   existingDocument,
+  previousRequests = [],
 }: RequestDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -375,6 +377,52 @@ export function RequestDetailClient({
           ))}
         </div>
       </div>
+
+      {/* Patient History */}
+      {previousRequests.length > 0 && (
+        <div className="glass-card rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-blue-500" />
+            <h2 className="text-lg font-semibold">Patient History</h2>
+            <Badge variant="outline" className="text-xs">{previousRequests.length} previous</Badge>
+          </div>
+          <div className="space-y-2">
+            {previousRequests.map((prevReq) => (
+              <Link
+                key={prevReq.id}
+                href={`/doctor/requests/${prevReq.id}`}
+                className="flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-white/80 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{formatCategory(prevReq.category)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(prevReq.created_at).toLocaleDateString("en-AU", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={
+                    prevReq.status === "approved" 
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                      : prevReq.status === "declined"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                  }
+                >
+                  {prevReq.status === "approved" ? "Approved" : prevReq.status === "declined" ? "Declined" : "Pending"}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Clinical Notes */}
       <div className="glass-card rounded-2xl p-6">

@@ -478,55 +478,58 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           href="/patient"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
                             isActivePath("/patient") && !isActivePath("/patient/requests")
-                              ? "bg-muted"
-                              : "hover:bg-muted",
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-muted active:bg-muted",
                           )}
                         >
-                          <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-sm font-medium">Dashboard</span>
+                          <LayoutDashboard className="h-6 w-6" />
+                          <span className="text-base font-medium">Dashboard</span>
                         </Link>
                         <Link
                           href="/patient/requests"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                            isActivePath("/patient/requests") ? "bg-muted" : "hover:bg-muted",
+                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
+                            isActivePath("/patient/requests") ? "bg-primary/10 text-primary" : "hover:bg-muted active:bg-muted",
                           )}
                         >
-                          <ClipboardList className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-sm font-medium">My Requests</span>
+                          <ClipboardList className="h-6 w-6" />
+                          <span className="text-base font-medium">My Requests</span>
                         </Link>
                         <Link
                           href="/patient/settings"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                            isActivePath("/patient/settings") ? "bg-muted" : "hover:bg-muted",
+                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
+                            isActivePath("/patient/settings") ? "bg-primary/10 text-primary" : "hover:bg-muted active:bg-muted",
                           )}
                         >
-                          <Settings className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-sm font-medium">Settings</span>
+                          <Settings className="h-6 w-6" />
+                          <span className="text-base font-medium">Settings</span>
                         </Link>
 
                         <div className="pt-4 border-t mt-4">
-                          <p className="px-3 text-xs font-medium text-muted-foreground mb-2">New request</p>
+                          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">New request</p>
                           {services.map((service) => (
                             <Link
                               key={service.href}
                               href={service.href}
                               onClick={() => setMobileMenuOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
+                              className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-muted active:bg-muted transition-colors min-h-[56px] active:scale-[0.98]"
                             >
-                              <service.icon className="h-5 w-5 text-muted-foreground" />
-                              <span className="text-sm">{service.title}</span>
+                              <service.icon className="h-6 w-6 text-primary" />
+                              <div>
+                                <span className="text-base font-medium block">{service.title}</span>
+                                <span className="text-xs text-muted-foreground">{service.description}</span>
+                              </div>
                             </Link>
                           ))}
                         </div>
 
                         <div className="pt-4 border-t mt-4 space-y-3">
-                          <div className="flex justify-center">
+                          <div className="flex justify-center py-2">
                             <CinematicThemeSwitcher />
                           </div>
                           <button
@@ -535,10 +538,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                               handleSignOut()
                             }}
                             disabled={isLoggingOut}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-red-600 w-full transition-colors"
+                            className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-red-50 active:bg-red-100 text-red-600 w-full transition-colors min-h-[56px] active:scale-[0.98]"
                           >
-                            <LogOut className="h-5 w-5" />
-                            <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+                            <LogOut className="h-6 w-6" />
+                            <span className="text-base font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
                           </button>
                         </div>
                       </>

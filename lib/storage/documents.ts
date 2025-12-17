@@ -62,13 +62,103 @@ export interface UploadDocumentResult {
 }
 
 /**
- * Download a PDF from a temporary URL and upload to permanent Supabase Storage.
+ * Upload a PDF buffer directly to Supabase Storage.
  * 
- * @param temporaryUrl - The temporary URL from APITemplate (expires in ~60 min)
+ * @param pdfBuffer - The PDF as a Buffer
  * @param requestId - The request ID to organize the document under
  * @param documentType - The type of document (med_cert, referral, etc.)
  * @param subtype - The subtype (work, uni, carer, etc.)
  * @returns The permanent Supabase Storage URL
+ */
+export async function uploadPdfBuffer(
+  pdfBuffer: Buffer,
+  requestId: string,
+  documentType: string,
+  subtype: string
+): Promise<UploadDocumentResult> {
+  console.log("[DocumentStorage] Uploading PDF buffer:", {
+    requestId,
+    documentType,
+    subtype,
+    size: pdfBuffer.length,
+    sizeKB: Math.round(pdfBuffer.length / 1024),
+  })
+
+  try {
+    if (!requestId) {
+      return { success: false, error: "Missing request ID" }
+    }
+
+    // Validate PDF size (max 5MB)
+    if (pdfBuffer.length > 5 * 1024 * 1024) {
+      return { success: false, error: "PDF exceeds maximum size of 5MB" }
+    }
+
+    // Validate it's actually a PDF (check magic bytes)
+    const pdfMagic = pdfBuffer.slice(0, 5).toString()
+    if (pdfMagic !== "%PDF-") {
+      console.error("[DocumentStorage] Buffer is not a valid PDF")
+      return { success: false, error: "Buffer is not a valid PDF" }
+    }
+
+    const storagePath = generateStoragePath(requestId, documentType, subtype)
+    const supabase = getStorageClient()
+
+    console.log("[DocumentStorage] Uploading to Supabase Storage:", { storagePath })
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(storagePath, pdfBuffer, {
+        contentType: "application/pdf",
+        cacheControl: "public, max-age=31536000",
+        upsert: false,
+      })
+
+    if (uploadError) {
+      console.error("[DocumentStorage] Upload failed:", uploadError)
+      
+      if (uploadError.message?.includes("already exists")) {
+        // Retry with new timestamp
+        const retryPath = generateStoragePath(requestId, documentType, subtype)
+        const { error: retryError } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(retryPath, pdfBuffer, {
+            contentType: "application/pdf",
+            cacheControl: "public, max-age=31536000",
+            upsert: false,
+          })
+
+        if (retryError) {
+          return { success: false, error: `Upload failed: ${retryError.message}` }
+        }
+
+        const permanentUrl = getPublicUrl(retryPath)
+        return { success: true, permanentUrl, storagePath: retryPath }
+      }
+
+      return { success: false, error: `Upload failed: ${uploadError.message}` }
+    }
+
+    const permanentUrl = getPublicUrl(storagePath)
+
+    console.log("[DocumentStorage] Upload successful:", {
+      storagePath,
+      permanentUrl,
+      sizeKB: Math.round(pdfBuffer.length / 1024),
+    })
+
+    return { success: true, permanentUrl, storagePath }
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error("[DocumentStorage] Unexpected error:", errorMessage)
+    return { success: false, error: errorMessage }
+  }
+}
+
+/**
+ * Download a PDF from a URL and upload to permanent Supabase Storage.
+ * @deprecated Use uploadPdfBuffer instead for new code
  */
 export async function uploadDocumentFromUrl(
   temporaryUrl: string,

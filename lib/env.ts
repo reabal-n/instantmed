@@ -8,7 +8,6 @@ import "server-only"
  * - SUPABASE_SERVICE_ROLE_KEY
  * - STRIPE_SECRET_KEY
  * - STRIPE_WEBHOOK_SECRET
- * - APITEMPLATE_API_KEY
  * 
  * Public environment variables (safe for client):
  * - NEXT_PUBLIC_APP_URL
@@ -75,17 +74,6 @@ export function getStripeWebhookSecret(): string {
   return key
 }
 
-/**
- * APITemplate.io API key for PDF generation
- */
-export function getApiTemplateKey(): string {
-  const key = process.env.APITEMPLATE_API_KEY
-  if (!key) {
-    console.warn("[env] APITEMPLATE_API_KEY not set - PDF generation disabled")
-    return ""
-  }
-  return key
-}
 
 // ============================================
 // PUBLIC ENVIRONMENT VARIABLES
@@ -166,7 +154,6 @@ export function validateEnv(): EnvValidationResult {
     { key: "RESEND_API_KEY", message: "Email sending disabled" },
     { key: "RESEND_FROM_EMAIL", message: "Using default from address" },
     { key: "STRIPE_SECRET_KEY", message: "Payment processing disabled" },
-    { key: "APITEMPLATE_API_KEY", message: "PDF generation disabled" },
   ]
 
   for (const { key, message } of optional) {
@@ -215,9 +202,6 @@ export const env = {
   },
   get stripeWebhookSecret() {
     return getStripeWebhookSecret()
-  },
-  get apiTemplateKey() {
-    return getApiTemplateKey()
   },
 
   // Public

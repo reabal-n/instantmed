@@ -16,21 +16,20 @@ interface SuccessCelebrationProps {
   showConfetti?: boolean
 }
 
-export function SuccessCelebration({ type = "request", requestId, showConfetti = true }: SuccessCelebrationProps) {
+export function SuccessCelebration({ type = "request", requestId, showConfetti = false }: SuccessCelebrationProps) {
   const [confettiTrigger, setConfettiTrigger] = useState(false)
-  const [showContent, setShowContent] = useState(false)
+  // Initialize showContent based on showConfetti prop
+  const [showContent, setShowContent] = useState(!showConfetti)
   const [expandedFaq, setExpandedFaq] = useState(false)
 
   useEffect(() => {
-    if (showConfetti) {
-      const t1 = setTimeout(() => setConfettiTrigger(true), 100)
-      const t2 = setTimeout(() => setShowContent(true), 500)
-      return () => {
-        clearTimeout(t1)
-        clearTimeout(t2)
-      }
-    } else {
-      setShowContent(true)
+    if (!showConfetti) return
+    
+    const t1 = setTimeout(() => setConfettiTrigger(true), 100)
+    const t2 = setTimeout(() => setShowContent(true), 300)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
     }
   }, [showConfetti])
 
@@ -38,7 +37,7 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
 
   return (
     <>
-      {showConfetti && <Confetti trigger={confettiTrigger} duration={2500} particleCount={80} />}
+      {showConfetti && <Confetti trigger={confettiTrigger} duration={1500} particleCount={30} />}
 
       <div className="max-w-md mx-auto text-center">
         {/* Animated checkmark */}

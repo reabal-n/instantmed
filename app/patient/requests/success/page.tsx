@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
 import { SuccessCelebration } from "@/components/ui/success-celebration"
 
 export default async function PaymentSuccessPage({
@@ -11,14 +9,10 @@ export default async function PaymentSuccessPage({
   const requestId = params.request_id
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
-        <div className="container max-w-lg mx-auto px-4">
-          <SuccessCelebration type="request" requestId={requestId} showConfetti />
-        </div>
-      </main>
-      <Footer />
-    </>
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="max-w-lg mx-auto px-4">
+        <SuccessCelebration type="request" requestId={requestId} showConfetti />
+      </div>
+    </div>
   )
 }

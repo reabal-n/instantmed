@@ -149,8 +149,8 @@ export function Footer() {
               © {new Date().getFullYear()} InstantMed. All rights reserved.
             </p>
             <Link
-              href="/doctor/admin"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              href="/admin"
+              className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
             >
               Admin
             </Link>

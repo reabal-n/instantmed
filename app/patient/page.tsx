@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TestToolsCard } from "@/components/shared/test-tools-card"
 import {
   Plus,
   FileText,
@@ -13,6 +12,7 @@ import {
   CreditCard,
   Download,
   MessageSquare,
+  Pill,
 } from "lucide-react"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getPatientRequests, getPatientRequestStats, formatRequestType, formatCategory } from "@/lib/data/requests"
@@ -36,7 +36,7 @@ export default async function PatientDashboardPage({
   const params = await searchParams
   const showOnboardedSuccess = params.onboarded === "true"
 
-  const firstName = authUser.profile.full_name.split(" ")[0]
+  const firstName = authUser.profile.full_name?.split(" ")[0] || "there"
   const stats = await getPatientRequestStats(authUser.profile.id)
   const recentRequests = await getPatientRequests(authUser.profile.id)
   const displayRequests = recentRequests.slice(0, 5)
@@ -46,7 +46,6 @@ export default async function PatientDashboardPage({
     (r) => r.payment_status === "pending_payment" || r.status === "needs_follow_up",
   )
   const inProgress = displayRequests.filter((r) => r.status === "pending" && r.payment_status !== "pending_payment")
-  const completed = displayRequests.filter((r) => r.status === "approved" || r.status === "declined")
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-AU", {
@@ -157,8 +156,29 @@ export default async function PatientDashboardPage({
         </div>
       </section>
 
-      {/* Test Tools Card */}
-      <TestToolsCard patientId={authUser.profile.id} />
+      {/* Quick Actions */}
+      <section className="grid grid-cols-2 gap-3">
+        <Link
+          href="/medical-certificate/request"
+          className="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-all duration-300 group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+            <FileText className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="font-heading font-semibold text-foreground mb-1">Medical Certificate</h3>
+          <p className="text-xs text-muted-foreground">Work, uni, or carer&apos;s leave</p>
+        </Link>
+        <Link
+          href="/prescriptions/request"
+          className="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-all duration-300 group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors">
+            <Pill className="h-6 w-6 text-blue-500" />
+          </div>
+          <h3 className="font-heading font-semibold text-foreground mb-1">Prescription</h3>
+          <p className="text-xs text-muted-foreground">Repeat scripts & reviews</p>
+        </Link>
+      </section>
 
       {/* Needs Action */}
       {needsAction.length > 0 && (
@@ -248,15 +268,28 @@ export default async function PatientDashboardPage({
         </div>
         <div className="p-4">
           {displayRequests.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" aria-hidden="true" />
-              <p className="text-sm text-muted-foreground">No requests yet</p>
-              <Button asChild size="sm" variant="outline" className="mt-3 rounded-lg bg-transparent">
-                <Link href="/start">
-                  <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                  Start a request
-                </Link>
-              </Button>
+            <div className="text-center py-10">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <FileText className="h-8 w-8 text-primary" aria-hidden="true" />
+              </div>
+              <h3 className="font-heading font-semibold text-foreground mb-1">No requests yet</h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
+                Get a medical certificate or prescription in under an hour — no phone calls needed.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button asChild className="rounded-xl">
+                  <Link href="/medical-certificate/request">
+                    <FileText className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Medical Certificate
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="rounded-xl bg-transparent">
+                  <Link href="/prescriptions/request">
+                    <Pill className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Prescription
+                  </Link>
+                </Button>
+              </div>
             </div>
           ) : (
             <ul className="divide-y">

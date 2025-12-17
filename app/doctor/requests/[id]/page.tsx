@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getRequestWithDetails, formatCategory, formatSubtype, formatRequestType } from "@/lib/data/requests"
+import { getRequestWithDetails, formatCategory, formatSubtype, formatRequestType, getPatientRequests } from "@/lib/data/requests"
 import { getLatestDocumentForRequest } from "@/lib/data/documents"
 import { RequestDetailClient } from "./request-detail-client"
 
@@ -25,6 +25,10 @@ export default async function DoctorRequestDetailPage({
   }
 
   const existingDocument = await getLatestDocumentForRequest(id)
+  
+  // Fetch patient's previous requests for history
+  const patientHistory = await getPatientRequests(request.patient.id)
+  const previousRequests = patientHistory.filter(r => r.id !== id).slice(0, 5)
 
   // Calculate patient age from DOB
   const calculateAge = (dob: string): number => {
@@ -58,6 +62,7 @@ export default async function DoctorRequestDetailPage({
       formatSubtype={formatSubtype}
       formatRequestType={formatRequestType}
       existingDocument={existingDocument}
+      previousRequests={previousRequests}
     />
   )
 }

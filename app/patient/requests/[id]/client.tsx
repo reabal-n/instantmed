@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,20 +16,42 @@ import {
   Download,
   CreditCard,
   Printer,
+  Mail,
+  Loader2,
+  Check,
 } from "lucide-react"
 import { formatRequestType } from "@/lib/data/request-utils"
 import { RetryPaymentButton } from "./retry-payment-button"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/shared/copy-button"
+import { resendCertificateEmailAction } from "@/app/actions/resend-certificate"
 
 interface PatientRequestDetailPageProps {
   params: { id: string }
   searchParams: { retry?: string }
 }
 
-export default function PatientRequestDetailPageClient({ params, searchParams }: PatientRequestDetailPageProps) {
+export default function PatientRequestDetailPageClient({ params }: PatientRequestDetailPageProps) {
   const { id } = params
-  const query = searchParams
+  const [isPending, startTransition] = useTransition()
+  const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error">("idle")
+  const [resendMessage, setResendMessage] = useState<string | null>(null)
+
+  const handleResendEmail = () => {
+    setResendStatus("idle")
+    setResendMessage(null)
+    startTransition(async () => {
+      const result = await resendCertificateEmailAction(id)
+      if (result.success) {
+        setResendStatus("success")
+        setResendMessage(`Email sent! ${result.remainingResends} resends remaining today.`)
+      } else {
+        setResendStatus("error")
+        setResendMessage(result.error || "Failed to send email")
+      }
+    })
+  }
+
   // In a client component, we need to use a hook like useEffect or use the Server Component to fetch data.
   // For simplicity in this refactor, we'll assume data is passed down or fetched via a client-side hook.
   // In a real application, you'd likely use React Query or similar for data fetching here.
@@ -246,27 +269,52 @@ export default function PatientRequestDetailPageClient({ params, searchParams }:
                 </p>
               </div>
             </div>
-            {/* Added print button alongside download */}
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button asChild className="rounded-xl btn-glow flex-1 sm:flex-none">
-                <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-xl bg-transparent"
-                onClick={() => {
-                  window.open(document.pdf_url, "_blank")
-                }}
-                asChild
-              >
-                <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
-                  <Printer className="h-4 w-4" />
-                  <span className="sr-only">Print</span>
-                </a>
-              </Button>
+            {/* Download, Print, and Resend buttons */}
+            <div className="flex flex-col gap-2 w-full sm:w-auto">
+              <div className="flex gap-2">
+                <Button asChild className="rounded-xl btn-glow flex-1 sm:flex-none">
+                  <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-xl bg-transparent"
+                  onClick={() => {
+                    window.open(document.pdf_url, "_blank")
+                  }}
+                  asChild
+                >
+                  <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                    <Printer className="h-4 w-4" />
+                    <span className="sr-only">Print</span>
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-xl bg-transparent"
+                  onClick={handleResendEmail}
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : resendStatus === "success" ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Mail className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Resend to email</span>
+                </Button>
+              </div>
+              {resendMessage && (
+                <p className={cn(
+                  "text-xs text-center",
+                  resendStatus === "success" ? "text-green-600" : "text-red-600"
+                )}>
+                  {resendMessage}
+                </p>
+              )}
             </div>
           </div>
         </div>

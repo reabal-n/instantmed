@@ -41,14 +41,14 @@ export function Hero() {
               <span className="text-foreground/80">⚡ Australia&apos;s fastest online GP</span>
             </div>
 
-            {/* Headline - Lora font */}
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground mb-6 animate-slide-up-delay-1">
-              Your{' '}
+            {/* Headline - Lora font with stable layout */}
+            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-foreground mb-6 animate-slide-up-delay-1">
+              <span className="block sm:inline">Your{' '}</span>
               <span className="text-gradient">
-                <RotatingText texts={heroRotatingTexts} className="inline" />
+                <RotatingText texts={heroRotatingTexts} />
               </span>
-              <br className="hidden sm:block" />
-              <span className="text-foreground/90"> — sorted in under an hour.</span>
+              <br className="hidden lg:block" />
+              <span className="block sm:inline text-foreground/90"> — sorted in under an hour.</span>
             </h1>
 
             {/* Subtext */}

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { Navbar } from "@/components/shared/navbar"
 import { NotificationsClient } from "./notifications-client"
 
 export const metadata = {
@@ -39,14 +38,8 @@ export default async function NotificationsPage() {
     .limit(100)
 
   return (
-    <div className="min-h-screen bg-mesh">
-      <Navbar variant="patient" userName={profile.full_name || "Patient"} />
-
-      <main className="pt-24 pb-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <NotificationsClient notifications={notifications || []} />
-        </div>
-      </main>
+    <div className="max-w-2xl mx-auto">
+      <NotificationsClient notifications={notifications || []} />
     </div>
   )
 }

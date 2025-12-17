@@ -54,14 +54,11 @@ export async function checkApprovalInvariants(
   // INVARIANT 3: If PDF URL provided, it must be permanent (Supabase Storage)
   if (pdfUrl) {
     if (!isPermanentStorageUrl(pdfUrl)) {
-      // Check if it looks like a temporary APITemplate URL
-      if (pdfUrl.includes("apitemplate.io") || pdfUrl.includes("s3.amazonaws.com")) {
-        errors.push(`Document URL is temporary and will expire. URL must be stored in permanent Supabase Storage.`)
-      } else if (!pdfUrl.startsWith("http")) {
+      if (!pdfUrl.startsWith("http")) {
         errors.push(`Invalid document URL format: ${pdfUrl}`)
       } else {
-        // Unknown URL - warn but don't block
-        warnings.push(`Document URL is not in Supabase Storage. It may not be permanently accessible.`)
+        // URL is not in Supabase Storage - block approval
+        errors.push(`Document URL is not in permanent Supabase Storage.`)
       }
     }
   }

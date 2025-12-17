@@ -30,7 +30,7 @@ import type { RequestWithDetails, DocumentDraft, GeneratedDocument, MedCertDraft
 import {
   saveMedCertDraftAction,
   generateMedCertPdfAndApproveAction,
-  testApiConnectionAction,
+  testPdfGenerationAction,
   approveWithoutPdfAction,
 } from "./actions"
 
@@ -130,7 +130,7 @@ export function DocumentBuilderClient({
   useEffect(() => {
     const testConnection = async () => {
       setIsTestingApi(true)
-      const result = await testApiConnectionAction()
+      const result = await testPdfGenerationAction()
       setApiStatus(result.success ? "connected" : "error")
       setIsTestingApi(false)
     }
@@ -207,7 +207,7 @@ export function DocumentBuilderClient({
   const handleRetryApiTest = async () => {
     setIsTestingApi(true)
     setApiStatus("unknown")
-    const result = await testApiConnectionAction()
+    const result = await testPdfGenerationAction()
     setApiStatus(result.success ? "connected" : "error")
     setIsTestingApi(false)
   }

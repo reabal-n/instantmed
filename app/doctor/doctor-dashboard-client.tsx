@@ -171,6 +171,62 @@ export function DoctorDashboardClient({
         <div className="flex gap-2 shrink-0">
           {isAwaitingPayment ? (
             <span className="text-xs text-muted-foreground italic">Waiting for patient to pay</span>
+          ) : showActions ? (
+            <>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all hover:scale-105"
+                    >
+                      <Link href={`/doctor/requests/${request.id}`}>
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">Review</span>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Review details</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      asChild
+                      className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-105"
+                    >
+                      <Link href={`/doctor/requests/${request.id}?action=approve`}>
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="sr-only">Quick Approve</span>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Quick approve</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="rounded-xl bg-white/50 hover:bg-red-50 border-white/40 hover:border-red-200 text-muted-foreground hover:text-red-600 transition-all"
+                    >
+                      <Link href={`/doctor/requests/${request.id}?action=decline`}>
+                        <XCircle className="h-4 w-4" />
+                        <span className="sr-only">Decline</span>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Unable to approve</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
           ) : (
             <Button
               variant="outline"
