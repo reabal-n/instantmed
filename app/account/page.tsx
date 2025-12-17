@@ -11,13 +11,13 @@ import {
   Clock,
   CreditCard,
   ExternalLink,
-  Loader2,
   ChevronRight,
   CheckCircle2,
   AlertCircle,
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { Chip, Spinner, Avatar } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
@@ -149,7 +149,7 @@ export default function AccountPage() {
       <div className="min-h-screen bg-slate-50">
         <Navbar variant="marketing" />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+          <Spinner size="lg" color="primary" />
         </div>
       </div>
     )

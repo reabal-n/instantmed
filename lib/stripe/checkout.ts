@@ -2,6 +2,7 @@
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 interface CreateCheckoutInput {
   category: ServiceCategory
@@ -49,57 +50,15 @@ function isValidUrl(url: string): boolean {
  * Create a request and Stripe checkout session
  * Now links Stripe customer to profile and uses existing customer if available
  */
-// S8 blocked terms for server-side validation
-const BLOCKED_S8_TERMS = [
-  "oxycodone", "oxycontin", "endone", "morphine", "fentanyl", "durogesic",
-  "tramadol", "tapentadol", "palexia", "hydromorphone", "methadone",
-  "buprenorphine", "suboxone", "subutex", "dexamphetamine", "methylphenidate",
-  "ritalin", "concerta", "lisdexamfetamine", "vyvanse", "alprazolam", "xanax",
-  "diazepam", "valium", "clonazepam", "temazepam", "oxazepam", "lorazepam",
-  "nitrazepam", "zolpidem", "stilnox", "zopiclone", "imovane"
-]
-
-function containsBlockedSubstance(text: string): boolean {
-  const lower = text.toLowerCase()
-  return BLOCKED_S8_TERMS.some(term => lower.includes(term))
-}
-
 export async function createRequestAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
-    // Server-side validation for repeat scripts
+    // Server-side validation for repeat scripts using canonical schema
     if (input.category === "prescription" && input.subtype === "repeat") {
-      const answers = input.answers as Record<string, unknown>
-      
-      // Require AMT-backed structured medication selection
-      if (!answers.amt_code || !answers.medication_display) {
-        return { 
-          success: false, 
-          error: "Select a medication from the list. Free-text entries are not accepted for repeat scripts." 
-        }
-      }
-      
-      // Validate gating questions
-      if (answers.prescribed_before === false) {
+      const validation = validateRepeatScriptPayload(input.answers)
+      if (!validation.valid) {
         return {
           success: false,
-          error: "New medications require a General Consult. Please book a consultation."
-        }
-      }
-      
-      if (answers.dose_changed === true) {
-        return {
-          success: false,
-          error: "Dose changes require a General Consult. Please book a consultation."
-        }
-      }
-      
-      // Defense in depth: block S8 terms even if they somehow got through
-      const medDisplay = String(answers.medication_display || "")
-      const medName = String(answers.medication_name || "")
-      if (containsBlockedSubstance(medDisplay) || containsBlockedSubstance(medName)) {
-        return {
-          success: false,
-          error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular GP."
+          error: validation.error || "Invalid repeat script request.",
         }
       }
     }

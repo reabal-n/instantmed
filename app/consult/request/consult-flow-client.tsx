@@ -475,6 +475,15 @@ export function ConsultFlowClient({
                 title="What brings you in today?"
                 subtitle="Select the main reason for your consultation"
               />
+              {/* S8 Disclaimer - shown upfront at consult intake */}
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-xs text-red-800 leading-relaxed font-medium">
+                  <strong className="text-red-900">No Schedule 8 / controlled medications.</strong>
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
+                </p>
+              </div>
               <div className="space-y-2">
                 {CONSULT_REASONS.map((reason) => (
                   <button
@@ -832,6 +841,15 @@ export function ConsultFlowClient({
           {step === "payment" && (
             <div className="space-y-4">
               <StepHeader title="Complete your booking" subtitle="Secure payment via Stripe" />
+              {/* S8 Disclaimer - shown again before payment */}
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-xs text-red-800 leading-relaxed font-medium">
+                  <strong className="text-red-900">Reminder: No Schedule 8 / controlled medications.</strong>
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
+                </p>
+              </div>
               <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>

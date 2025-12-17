@@ -87,10 +87,10 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
       <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500/20 via-violet-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
       
       {/* Card */}
-      <div className="relative h-full rounded-2xl overflow-hidden backdrop-blur-xl bg-white/80 border border-white/50 p-6 shadow-lg shadow-indigo-500/5 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-indigo-500/10 group-hover:-translate-y-1">
+      <div className="relative h-full rounded-2xl overflow-hidden backdrop-blur-xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 p-6 shadow-lg shadow-indigo-500/5 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-indigo-500/10 group-hover:-translate-y-1">
         {/* Quote icon */}
         <div className="absolute top-4 right-4 opacity-10">
-          <Quote className="w-10 h-10 text-indigo-600" />
+          <Quote className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
         </div>
         
         {/* Stars */}
@@ -104,7 +104,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         </div>
         
         {/* Text */}
-        <p className="text-gray-700 text-sm leading-relaxed mb-5 line-clamp-4">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-5 line-clamp-4">
           &ldquo;{testimonial.text}&rdquo;
         </p>
         
@@ -115,8 +115,8 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             {testimonial.name.charAt(0)}
           </div>
           <div>
-            <p className="font-semibold text-gray-900 text-sm">{testimonial.name}</p>
-            <p className="text-xs text-gray-500">{testimonial.location}</p>
+            <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
+            <p className="text-xs text-muted-foreground">{testimonial.location}</p>
           </div>
           {/* Service badge */}
           <div className="ml-auto">
@@ -155,7 +155,7 @@ export function TestimonialMarquee() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+            className="text-3xl md:text-4xl font-bold text-foreground mb-4"
           >
             What our patients say
           </motion.h2>
@@ -164,7 +164,7 @@ export function TestimonialMarquee() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-gray-600 max-w-2xl mx-auto"
+            className="text-muted-foreground max-w-2xl mx-auto"
           >
             Join thousands of Australians who trust InstantMed for their healthcare needs
           </motion.p>
@@ -232,21 +232,21 @@ export function TestimonialMarquee() {
       >
         <div className="grid grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">4.9</div>
+            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">4.9</div>
             <div className="flex justify-center gap-0.5 mb-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <p className="text-sm text-gray-500">Average rating</p>
+            <p className="text-sm text-muted-foreground">Average rating</p>
           </div>
           <div>
-            <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">10k+</div>
-            <p className="text-sm text-gray-500 mt-3">Happy patients</p>
+            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">10k+</div>
+            <p className="text-sm text-muted-foreground mt-3">Happy patients</p>
           </div>
           <div>
-            <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">&lt;30min</div>
-            <p className="text-sm text-gray-500 mt-3">Average response</p>
+            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">&lt;30min</div>
+            <p className="text-sm text-muted-foreground mt-3">Average response</p>
           </div>
         </div>
       </motion.div>

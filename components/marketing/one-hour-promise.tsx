@@ -1,10 +1,9 @@
-import Image from 'next/image'
-import { Clock, MessageCircle, Phone, ShieldCheck } from 'lucide-react'
+import { Clock, MessageCircle, ShieldCheck, Zap, FileCheck, Send } from 'lucide-react'
 import { siteConfig, slaPolicy } from '@/lib/marketing/homepage'
 
 export function OneHourPromise() {
   return (
-    <section id="sla" className="py-20 lg:py-28 bg-emerald-600 relative overflow-hidden scroll-mt-20">
+    <section id="sla" className="py-20 lg:py-28 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 relative overflow-hidden scroll-mt-20">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -30,7 +29,7 @@ export function OneHourPromise() {
               Done in about an hour
             </h2>
             
-            <p className="text-xl text-emerald-100 mb-8 leading-relaxed">
+            <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
               Most requests are reviewed within {slaPolicy.standardTurnaround}. 
               We respect your time — that's the whole point.
             </p>
@@ -42,7 +41,7 @@ export function OneHourPromise() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1">Operating hours</p>
-                  <p className="text-emerald-100 text-sm">
+                  <p className="text-indigo-100 text-sm">
                     Weekdays: {siteConfig.operatingHours.weekdays}<br />
                     Weekends: {siteConfig.operatingHours.weekends}
                   </p>
@@ -55,7 +54,7 @@ export function OneHourPromise() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1">Need more info?</p>
-                  <p className="text-emerald-100 text-sm">
+                  <p className="text-indigo-100 text-sm">
                     {slaPolicy.escalationNote}
                   </p>
                 </div>
@@ -67,7 +66,7 @@ export function OneHourPromise() {
                 </div>
                 <div>
                   <p className="font-semibold mb-1">Fair refund policy</p>
-                  <p className="text-emerald-100 text-sm">
+                  <p className="text-indigo-100 text-sm">
                     {slaPolicy.refundNote}
                   </p>
                 </div>
@@ -76,32 +75,49 @@ export function OneHourPromise() {
 
             {/* Exceptions note */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <p className="text-sm text-emerald-100">
+              <p className="text-sm text-indigo-100">
                 <strong className="text-white">Note:</strong> Complex cases, requests requiring additional information, 
                 or periods of high demand may take longer. We'll always keep you updated.
               </p>
             </div>
           </div>
 
-          {/* Right: Image */}
+          {/* Right: Visual representation */}
           <div className="relative hidden lg:block">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              {/* Image: pharmacist/healthcare professional with medications */}
-              <Image
-                src="/prescription-medication-pharmacy.jpg"
-                alt="Healthcare professional"
-                width={500}
-                height={600}
-                className="w-full h-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-emerald-900/40 via-transparent to-transparent" />
-            </div>
-            
-            {/* Stats card */}
-            <div className="absolute -bottom-6 -right-6 bg-white rounded-xl p-5 shadow-xl">
-              <div className="text-center">
-                <p className="text-4xl font-bold text-emerald-600 mb-1">&lt;1hr</p>
-                <p className="text-sm text-slate-600">typical turnaround</p>
+            <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-3xl font-bold text-white mb-1">&lt;1hr</p>
+                  <p className="text-sm text-indigo-100">typical review</p>
+                </div>
+                
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
+                    <FileCheck className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-3xl font-bold text-white mb-1">98%</p>
+                  <p className="text-sm text-indigo-100">approval rate</p>
+                </div>
+                
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-3xl font-bold text-white mb-1">7 days</p>
+                  <p className="text-sm text-indigo-100">a week</p>
+                </div>
+                
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
+                    <Send className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-3xl font-bold text-white mb-1">Instant</p>
+                  <p className="text-sm text-indigo-100">delivery</p>
+                </div>
               </div>
             </div>
           </div>

@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
+import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
 
 interface RequestDetailClientProps {
   request: RequestWithDetails
@@ -163,9 +164,33 @@ export function RequestDetailClient({
   const isPrescription = request.category === "prescription"
   
   // Deprecated services - no longer offered
-  const isReferral = request.category === "referral"
-  const isPathology = request.category === "pathology"
+  const isReferral = request.category === "referral" as string
+  const isPathology = request.category === "pathology" as string
   const isDeprecatedService = isReferral || isPathology
+
+  // S8 Warning Detection: Check if patient free text contains S8 substance terms
+  const mappedAnswers = mapLegacyAnswers(answers)
+  const structuredMed = extractMedicationFromAnswers(mappedAnswers)
+  
+  // Collect all free text fields to check for S8 mentions
+  const freeTextFields = [
+    answers.notes,
+    answers.consult_details,
+    answers.current_medications,
+    answers.short_description,
+    answers.description,
+    answers.additional_notes,
+    answers.reason,
+    answers.context,
+  ].filter(Boolean).map(String)
+  
+  const hasS8InFreeText = freeTextFields.some(text => containsBlockedSubstance(text))
+  
+  // Show S8 warning for consult or repeat script if:
+  // - prescribed_before=false OR dose_changed=true (existing gating check)
+  // - OR patient free text mentions S8 substances
+  const isConsultOrRepeat = (request.category as string) === "consult" || (request.category === "prescription" && request.subtype === "repeat")
+  const showS8Warning = isConsultOrRepeat && hasS8InFreeText
 
 
   // Medical cert / prescription grouped answers
@@ -237,6 +262,32 @@ export function RequestDetailClient({
                   Action required: Decline this request and advise patient to book a General Consult ($44.95) for proper assessment.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* S8 WARNING: Patient free text mentions controlled substances */}
+      {showS8Warning && (
+        <div className="bg-red-100 border-2 border-red-500 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shrink-0">
+              <AlertTriangle className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-red-900">🚫 NO S8 / CONTROLLED MEDS — DECLINE IF REQUESTED</h2>
+              <p className="text-red-800 mt-2 font-medium">
+                Patient&apos;s free text mentions terms associated with Schedule 8 or controlled substances.
+              </p>
+              <div className="mt-3 p-3 bg-red-200 rounded-lg">
+                <p className="text-xs text-red-900 font-medium mb-1">Examples we do NOT prescribe:</p>
+                <p className="text-xs text-red-800">
+                  {S8_DISCLAIMER_EXAMPLES.join(", ")}
+                </p>
+              </div>
+              <p className="text-sm text-red-700 mt-3">
+                If patient is requesting any S8/controlled medication, decline and advise them to see their regular GP.
+              </p>
             </div>
           </div>
         </div>

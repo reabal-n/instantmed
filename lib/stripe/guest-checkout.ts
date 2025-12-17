@@ -2,6 +2,7 @@
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createClient } from "@supabase/supabase-js"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 interface GuestCheckoutInput {
   category: ServiceCategory
@@ -51,6 +52,17 @@ function getBaseUrl(): string {
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
+    // Server-side validation for repeat scripts using canonical schema
+    if (input.category === "prescription" && input.subtype === "repeat") {
+      const validation = validateRepeatScriptPayload(input.answers)
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid repeat script request.",
+        }
+      }
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {

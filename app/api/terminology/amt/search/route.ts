@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
 const NCTS_FHIR_BASE = "https://tx.ontoserver.csiro.au/fhir"
@@ -7,26 +8,75 @@ const AMT_VALUE_SET = "http://snomed.info/sct?fhir_vs=ecl/%5E929360071000036103"
 // Request timeout for NCTS (5 seconds)
 const NCTS_TIMEOUT_MS = 5000
 
-// In-memory cache for AMT results (short TTL for reliability)
-const cache = new Map<string, { data: unknown; timestamp: number }>()
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+// Cache TTL: 24 hours
+const CACHE_TTL_HOURS = 24
 
-function getCachedResult(key: string): unknown | null {
-  const cached = cache.get(key)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data
+// Initialize Supabase client for cache operations (service role for server-side)
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !serviceKey) {
+    console.error("[AMT Cache] Missing Supabase credentials")
+    return null
   }
-  cache.delete(key)
-  return null
+  
+  return createClient(supabaseUrl, serviceKey)
 }
 
-function setCachedResult(key: string, data: unknown): void {
-  // Limit cache size to prevent memory issues
-  if (cache.size > 1000) {
-    const oldestKey = cache.keys().next().value
-    if (oldestKey) cache.delete(oldestKey)
+// Normalize query for cache key
+function normalizeQuery(query: string): string {
+  return query.toLowerCase().trim()
+}
+
+// Get cached result from Supabase
+async function getCachedResult(queryNorm: string): Promise<{ results: unknown; stale: boolean } | null> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return null
+
+  try {
+    const { data, error } = await supabase
+      .from("amt_search_cache")
+      .select("results, expires_at")
+      .eq("query_norm", queryNorm)
+      .single()
+
+    if (error || !data) return null
+
+    const isExpired = new Date(data.expires_at) < new Date()
+    
+    // Return cached data with stale flag if expired
+    return {
+      results: data.results,
+      stale: isExpired,
+    }
+  } catch {
+    return null
   }
-  cache.set(key, { data, timestamp: Date.now() })
+}
+
+// Set cached result in Supabase (upsert)
+async function setCachedResult(queryNorm: string, results: unknown): Promise<void> {
+  const supabase = getSupabaseClient()
+  if (!supabase) return
+
+  try {
+    const expiresAt = new Date()
+    expiresAt.setHours(expiresAt.getHours() + CACHE_TTL_HOURS)
+
+    await supabase
+      .from("amt_search_cache")
+      .upsert(
+        {
+          query_norm: queryNorm,
+          results,
+          expires_at: expiresAt.toISOString(),
+        },
+        { onConflict: "query_norm" }
+      )
+  } catch (err) {
+    console.error("[AMT Cache] Error setting cache:", err)
+  }
 }
 
 // S8 controlled substances - block these from repeat script flow
@@ -133,11 +183,14 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  // Check cache first
-  const cacheKey = `amt:${query.toLowerCase()}`
-  const cached = getCachedResult(cacheKey)
-  if (cached) {
-    return NextResponse.json(cached)
+  // Normalize query for cache key
+  const queryNorm = normalizeQuery(query)
+
+  // Check Supabase cache first
+  const cached = await getCachedResult(queryNorm)
+  if (cached && !cached.stale) {
+    // Fresh cache hit
+    return NextResponse.json({ ...(cached.results as object), cached: true })
   }
 
   try {
@@ -164,7 +217,10 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       console.error("[AMT Search] NCTS FHIR error:", response.status)
-      // Return graceful error - don't show "no results" for service issues
+      // If we have stale cache, return it as fallback
+      if (cached) {
+        return NextResponse.json({ ...(cached.results as object), stale: true })
+      }
       return NextResponse.json({
         results: [],
         serviceUnavailable: true,
@@ -199,14 +255,18 @@ export async function GET(request: NextRequest) {
       total: results.length,
     }
 
-    // Cache successful results
-    setCachedResult(cacheKey, responseData)
+    // Cache successful results in Supabase (async, don't await)
+    setCachedResult(queryNorm, responseData)
 
     return NextResponse.json(responseData)
   } catch (error) {
     // Handle timeout specifically
     if (error instanceof Error && error.name === "AbortError") {
       console.error("[AMT Search] NCTS timeout after", NCTS_TIMEOUT_MS, "ms")
+      // If we have stale cache, return it as fallback
+      if (cached) {
+        return NextResponse.json({ ...(cached.results as object), stale: true })
+      }
       return NextResponse.json({
         results: [],
         serviceUnavailable: true,
@@ -215,6 +275,10 @@ export async function GET(request: NextRequest) {
     }
 
     console.error("[AMT Search] Error:", error)
+    // If we have stale cache, return it as fallback
+    if (cached) {
+      return NextResponse.json({ ...(cached.results as object), stale: true })
+    }
     return NextResponse.json({
       results: [],
       serviceUnavailable: true,

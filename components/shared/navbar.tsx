@@ -32,7 +32,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { DoctorAvailability } from "@/components/shared/doctor-availability"
-import CinematicThemeSwitcher from "@/components/ui/cinematic-theme-switcher"
+import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
 
 interface NavbarProps {
@@ -209,7 +209,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </Link>
 
                   <div className="ml-3 flex items-center gap-2">
-                    <CinematicThemeSwitcher size="compact" />
+                    <SkyToggle size={16} />
                     {user ? (
                       <Button
                         variant="ghost"
@@ -467,7 +467,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                         <div className="pt-4 space-y-3 border-t border-white/20 mt-4">
                           <div className="flex justify-center py-2">
-                            <CinematicThemeSwitcher />
+                            <SkyToggle size={20} />
                           </div>
                           <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all">
                             <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
@@ -545,7 +545,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                         <div className="pt-4 border-t border-white/20 mt-4 space-y-3">
                           <div className="flex justify-center py-2">
-                            <CinematicThemeSwitcher />
+                            <SkyToggle size={20} />
                           </div>
                           <button
                             onClick={() => {

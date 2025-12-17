@@ -257,11 +257,11 @@ export function MedicationCombobox({
         </div>
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown - z-[60] to be above sticky footer */}
       {isOpen && options.length > 0 && (
         <ul
           ref={listRef}
-          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto rounded-xl border bg-background shadow-lg"
+          className="absolute z-60 w-full mt-1 max-h-60 overflow-auto rounded-xl border bg-background shadow-lg"
           role="listbox"
           id="medication-listbox"
         >
@@ -289,7 +289,7 @@ export function MedicationCombobox({
 
       {/* No results */}
       {isOpen && options.length === 0 && inputValue.length >= 2 && !isLoading && !isBlocked && (
-        <div className="absolute z-50 w-full mt-1 p-4 rounded-xl border bg-background shadow-lg">
+        <div className="absolute z-60 w-full mt-1 p-4 rounded-xl border bg-background shadow-lg">
           <p className="text-sm text-muted-foreground text-center">
             No medications found for &ldquo;{inputValue}&rdquo;
           </p>

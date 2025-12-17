@@ -789,6 +789,19 @@ export function PrescriptionFlowClient({
           {step === "type" && (
             <div className="space-y-4 animate-step-enter">
               <StepHeader emoji="💊" title={RX_MICROCOPY.type.heading} subtitle={RX_MICROCOPY.type.subtitle} />
+              {/* S8 Disclaimer - shown upfront */}
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-xs text-red-800 leading-relaxed font-medium">
+                  <strong className="text-red-900">No Schedule 8 / controlled medications.</strong>
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
+                </p>
+                <p className="text-xs text-red-700 mt-2">
+                  <strong>If you need a new medication or dose change →</strong>{" "}
+                  <Link href="/consult" className="underline hover:no-underline">General Consult</Link> required.
+                </p>
+              </div>
               <div className="space-y-3">
                 {RX_TYPES.map((type) => (
                   <OptionTile

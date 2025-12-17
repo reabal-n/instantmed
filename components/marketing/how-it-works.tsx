@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import { ClipboardList, Stethoscope, FileCheck, Clock } from 'lucide-react'
+import { ClipboardList, Stethoscope, FileCheck, Clock, CheckCircle, Zap } from 'lucide-react'
 import { howItWorks } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
+import { Chip, Progress } from '@heroui/react'
 
 const iconMap = {
   ClipboardList,
@@ -29,9 +29,7 @@ const itemVariants = {
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 lg:py-28 bg-background scroll-mt-20 relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full blur-[100px] opacity-20" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)' }} />
+    <section id="how-it-works" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div 
@@ -41,9 +39,14 @@ export function HowItWorks() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium mb-4">
-            ✨ How it works
-          </span>
+          <Chip 
+            color="primary" 
+            variant="flat" 
+            className="mb-4"
+            startContent={<Zap className="w-4 h-4" />}
+          >
+            How it works
+          </Chip>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             From request to done in three steps
           </h2>
@@ -92,7 +95,7 @@ export function HowItWorks() {
                   
                   {/* Content */}
                   <div className="pt-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-indigo-600 transition-colors">
+                    <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-indigo-500 transition-colors">
                       {step.title}
                     </h3>
                     <p className="text-muted-foreground leading-relaxed">
@@ -104,7 +107,7 @@ export function HowItWorks() {
             })}
           </motion.div>
 
-          {/* Right: Image */}
+          {/* Right: Visual representation */}
           <motion.div 
             className="relative"
             initial={{ opacity: 0, x: 40 }}
@@ -112,40 +115,75 @@ export function HowItWorks() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-indigo-500/10">
-              <Image
-                src="/doctor-video-call-telehealth.jpg"
-                alt="Doctor reviewing patient request"
-                width={600}
-                height={450}
-                className="w-full h-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-transparent to-transparent" />
-            </div>
-            
-            {/* Floating stat card */}
-            <motion.div 
-              className="absolute -bottom-6 -left-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-gray-100"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6 }}
-              whileHover={{ y: -4 }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-indigo-600" />
+            <div className="relative bg-white dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-lg">
+              {/* Timeline visual */}
+              <div className="space-y-6">
+                {/* Step 1 */}
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-white/10 flex items-center justify-center border border-indigo-100 dark:border-white/20">
+                    <ClipboardList className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div className="flex-1 bg-slate-50 dark:bg-white/10 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+                    <p className="font-medium text-foreground">Submit your request</p>
+                    <p className="text-sm text-muted-foreground">2-3 minutes</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">&lt; 1 hr</p>
-                  <p className="text-sm text-muted-foreground">typical review time</p>
+                
+                {/* Connector */}
+                <div className="ml-7 w-0.5 h-4 bg-gradient-to-b from-indigo-300 to-violet-300" />
+                
+                {/* Step 2 */}
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-white/10 flex items-center justify-center border border-indigo-100 dark:border-white/20">
+                    <Stethoscope className="w-7 h-7 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="flex-1 bg-slate-50 dark:bg-white/10 rounded-xl p-4 border border-slate-200 dark:border-white/10">
+                    <p className="font-medium text-foreground">GP reviews</p>
+                    <p className="text-sm text-muted-foreground">~45 minutes</p>
+                  </div>
+                </div>
+                
+                {/* Connector */}
+                <div className="ml-7 w-0.5 h-4 bg-gradient-to-b from-violet-300 to-green-300" />
+                
+                {/* Step 3 */}
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-500/20 flex items-center justify-center border border-green-200 dark:border-green-500/30">
+                    <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1 bg-green-50 dark:bg-green-500/20 rounded-xl p-4 border border-green-200 dark:border-green-500/30">
+                    <p className="font-medium text-green-500 dark:text-green-400">Done! Document ready</p>
+                    <p className="text-sm text-muted-foreground">42 min total</p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-
-            {/* Decorative gradient blob */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-indigo-200 to-violet-200 rounded-3xl -z-10 blur-sm" />
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-gradient-to-br from-violet-100 to-purple-100 rounded-full -z-10 blur-md" />
+              
+              {/* Floating time badge */}
+              <motion.div 
+                className="absolute -top-4 -right-4 bg-white dark:bg-indigo-500/20 backdrop-blur-sm rounded-2xl px-5 py-3 border border-indigo-200 dark:border-indigo-500/30 shadow-lg"
+                whileHover={{ y: -2 }}
+              >
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <span className="font-bold text-indigo-600 dark:text-indigo-300">&lt; 1 hour</span>
+                </div>
+              </motion.div>
+              
+              {/* Progress indicator */}
+              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-foreground">Typical completion</span>
+                  <span className="text-sm text-muted-foreground">42 min</span>
+                </div>
+                <Progress 
+                  value={70} 
+                  color="success"
+                  size="sm"
+                  className="max-w-full"
+                  aria-label="Completion progress"
+                />
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

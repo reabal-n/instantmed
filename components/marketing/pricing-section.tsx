@@ -1,22 +1,25 @@
+'use client'
+
 import Link from 'next/link'
 import { Check, ArrowRight, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, Chip } from '@heroui/react'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-20 lg:py-28 bg-background scroll-mt-20 relative overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="absolute top-1/4 -left-32 w-[400px] h-[400px] rounded-full blur-[100px] opacity-30" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-1/4 -right-32 w-[400px] h-[400px] rounded-full blur-[100px] opacity-30" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)' }} />
+    <section id="pricing" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium mb-4">
-            <Sparkles className="w-4 h-4" />
+          <Chip 
+            color="secondary" 
+            variant="flat" 
+            className="mb-4"
+            startContent={<Sparkles className="w-4 h-4" />}
+          >
             Simple pricing
-          </span>
+          </Chip>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Transparent, upfront pricing
           </h2>
@@ -32,8 +35,8 @@ export function PricingSection() {
               className={cn(
                 "group relative flex flex-col rounded-3xl p-6 lg:p-8 transition-all duration-300 backdrop-blur-sm",
                 tier.popular 
-                  ? "bg-gradient-to-b from-indigo-500/10 to-violet-500/5 border-2 border-indigo-500/30 shadow-xl shadow-indigo-500/10 scale-[1.02]" 
-                  : "bg-white/80 border border-gray-200/50 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-1"
+                  ? "bg-gradient-to-b from-indigo-50 to-violet-50 dark:from-indigo-500/20 dark:to-violet-500/10 border-2 border-indigo-300 dark:border-indigo-500/30 shadow-xl shadow-indigo-500/10 scale-[1.02]" 
+                  : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-lg dark:hover:bg-white/10 hover:-translate-y-1"
               )}
             >
               {/* Glow effect for popular */}
@@ -73,11 +76,11 @@ export function PricingSection() {
                   <li key={feature} className="flex items-start gap-3">
                     <div className={cn(
                       "w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-                      tier.popular ? "bg-indigo-100" : "bg-gray-100"
+                      tier.popular ? "bg-indigo-100 dark:bg-indigo-500/30" : "bg-slate-100 dark:bg-white/10"
                     )}>
                       <Check className={cn(
                         "h-3 w-3",
-                        tier.popular ? "text-indigo-600" : "text-gray-600"
+                        tier.popular ? "text-indigo-600 dark:text-indigo-300" : "text-slate-600 dark:text-white/70"
                       )} />
                     </div>
                     <span className="text-sm text-muted-foreground">{feature}</span>
@@ -86,19 +89,14 @@ export function PricingSection() {
               </ul>
 
               <Button 
-                asChild 
-                className={cn(
-                  "w-full h-12",
-                  tier.popular 
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25" 
-                    : ""
-                )}
-                variant={tier.popular ? "default" : "outline"}
+                as={Link}
+                href={tier.href}
+                color={tier.popular ? "primary" : "default"}
+                variant={tier.popular ? "solid" : "bordered"}
+                className="w-full h-12"
+                endContent={<ArrowRight className="h-4 w-4" />}
               >
-                <Link href={tier.href}>
-                  {tier.cta}
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
+                {tier.cta}
               </Button>
             </div>
           ))}
