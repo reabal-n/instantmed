@@ -112,7 +112,13 @@ export function DoctorDashboardClient({
     isAwaitingPayment?: boolean
     showActions?: boolean
   }) => {
-    const patientAge = calculateAge(request.patient.date_of_birth)
+    // Defensive null check for patient data
+    if (!request.patient) {
+      console.warn("[RequestCard] Missing patient data for request:", request.id)
+      return null
+    }
+    
+    const patientAge = request.patient.date_of_birth ? calculateAge(request.patient.date_of_birth) : null
     const notePreview = request.clinical_note
       ? request.clinical_note.slice(0, 80) + (request.clinical_note.length > 80 ? "..." : "")
       : null
@@ -131,7 +137,7 @@ export function DoctorDashboardClient({
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-foreground">{request.patient.full_name}</span>
-              <span className="text-sm text-muted-foreground">{patientAge}y</span>
+              {patientAge !== null && <span className="text-sm text-muted-foreground">{patientAge}y</span>}
               <Badge variant="outline" className="text-xs font-normal bg-indigo-50 border-indigo-200 text-indigo-700">
                 {formatCategory(request.category)}
               </Badge>

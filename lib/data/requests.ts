@@ -121,7 +121,13 @@ export async function getAllRequestsByStatus(status: RequestStatus): Promise<Req
     return []
   }
 
-  return data as RequestWithPatient[]
+  // Filter out any requests where patient data couldn't be loaded (RLS issue)
+  const validData = (data || []).filter((r) => r.patient !== null)
+  if (validData.length !== data?.length) {
+    console.warn(`[getAllRequestsByStatus] Filtered out ${(data?.length || 0) - validData.length} requests with null patient data`)
+  }
+
+  return validData as RequestWithPatient[]
 }
 
 /**
@@ -145,7 +151,9 @@ export async function getRequestsAwaitingPayment(): Promise<RequestWithPatient[]
     return []
   }
 
-  return data as RequestWithPatient[]
+  // Filter out any requests where patient data couldn't be loaded
+  const validData = (data || []).filter((r) => r.patient !== null)
+  return validData as RequestWithPatient[]
 }
 
 /**
