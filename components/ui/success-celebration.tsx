@@ -123,11 +123,11 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
                 clarification.
               </p>
               <p>
-                <strong>3. Document ready</strong> — Once approved, you'll get an email with your document attached.
+                <strong>3. Document ready</strong> — Once approved, you&apos;ll get an email with your document attached.
                 Download it anytime from your dashboard.
               </p>
               <p>
-                <strong>4. Not approved?</strong> — If the doctor can't approve your request, you'll get a full refund
+                <strong>4. Not approved?</strong> — If the doctor can&apos;t approve your request, you&apos;ll get a full refund
                 and an explanation.
               </p>
             </div>
@@ -137,13 +137,18 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
         {/* CTA */}
         <div
           className={cn(
-            "transition-all duration-500 delay-500",
+            "space-y-3 transition-all duration-500 delay-500",
             showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
           )}
         >
           <Button asChild size="lg" className="w-full">
-            <Link href={requestId ? `/patient/requests/${requestId}` : "/patient"}>{BUTTONS.viewRequest}</Link>
+            <Link href="/patient">Go to Dashboard</Link>
           </Button>
+          {requestId && (
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link href={`/patient/requests/${requestId}`}>{BUTTONS.viewRequest}</Link>
+            </Button>
+          )}
         </div>
       </div>
     </>
