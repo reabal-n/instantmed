@@ -22,39 +22,41 @@ export function CTASection() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="mb-8"
+            className="mb-6"
           >
             <Chip 
               color="primary" 
               variant="flat"
-              startContent={<Sparkles className="w-4 h-4" />}
+              size="lg"
+              className="px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 group"
+              startContent={<Sparkles className="w-4 h-4 group-hover:animate-spin" />}
             >
-              Ready when you are
+              <span className="font-medium">Ready when you are</span>
             </Chip>
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             That&apos;s it. Pretty simple.
           </h2>
-          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            If you need a med cert or a script, we can probably help. Takes a couple of minutes to find out.
+          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+            Need a med cert or script? Takes 2 minutes to find out if we can help.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               as={Link}
               href="/start"
               color="primary"
               size="lg"
-              className="px-10 h-14 text-lg font-semibold"
-              endContent={<ArrowRight className="h-5 w-5" />}
+              className="px-8 h-12 text-sm font-semibold shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
+              endContent={<ArrowRight className="h-4 w-4" />}
             >
-              Get started
+              Get started free
             </Button>
           </div>
           
-          <p className="mt-8 text-sm text-muted-foreground">
-            No account needed. You only pay if a doctor approves your request.
+          <p className="mt-6 text-xs text-muted-foreground">
+            No account needed • Pay only if approved
           </p>
         </motion.div>
       </div>
