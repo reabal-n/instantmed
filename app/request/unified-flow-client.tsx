@@ -608,8 +608,8 @@ export function UnifiedFlowClient({
         options: { redirectTo: redirectUrl },
       })
       if (error) throw error
-    } catch (e: any) {
-      setError(e.message || COPY.errors.auth)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : COPY.errors.auth)
       setIsSubmitting(false)
     }
   }
@@ -716,8 +716,8 @@ export function UnifiedFlowClient({
         localStorage.removeItem(STORAGE_KEY)
         window.location.href = result.checkoutUrl
       }
-    } catch (e: any) {
-      setError(e.message || COPY.errors.payment)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : COPY.errors.payment)
       setIsSubmitting(false)
     }
   }

@@ -542,8 +542,8 @@ export function PrescriptionFlowClient({
           goTo("review")
         }
       }
-    } catch (err: any) {
-      setError(err.message || RX_MICROCOPY.errors.generic)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : RX_MICROCOPY.errors.generic)
     } finally {
       setAuthLoading(false)
     }

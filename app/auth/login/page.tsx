@@ -11,6 +11,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { Loader2, ShieldCheck, Clock, Star } from "lucide-react"
+import { logger } from "@/lib/logger"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -71,7 +72,7 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      console.log("[v0] Attempting login for:", email)
+      logger.debug("Attempting login", { email })
 
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -79,7 +80,7 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        console.error("[v0] Login error:", signInError)
+        logger.error("Login error", { message: signInError.message })
         throw signInError
       }
 
@@ -87,7 +88,7 @@ export default function LoginPage() {
         throw new Error("Failed to get user after login")
       }
 
-      console.log("[Login Page] Login successful, checking profile", {
+      logger.debug("Login successful, checking profile", {
         userId: authData.user.id,
         email: authData.user.email,
       })
@@ -101,7 +102,7 @@ export default function LoginPage() {
         .single()
 
       if (profileError || !existingProfile) {
-        console.log("[Login Page] Profile not found, ensuring it exists")
+        logger.debug("Profile not found, ensuring it exists")
         const { ensureProfile } = await import("@/app/actions/ensure-profile")
         const { profileId, error: ensureError } = await ensureProfile(
           authData.user.id,
@@ -109,7 +110,7 @@ export default function LoginPage() {
         )
 
         if (ensureError || !profileId) {
-          console.error("[Login Page] Failed to ensure profile:", {
+          logger.error("Failed to ensure profile", {
             error: ensureError,
             profileId,
           })
@@ -124,12 +125,12 @@ export default function LoginPage() {
           .single()
 
         if (fetchError || !newProfile) {
-          console.error("[Login Page] Failed to fetch profile after creation:", fetchError)
+          logger.error("Failed to fetch profile after creation", { error: fetchError?.message })
           throw new Error("Profile created but could not be retrieved. Please try again.")
         }
 
         profile = newProfile
-        console.log("[Login Page] Profile created and ready", {
+        logger.debug("Profile created and ready", {
           role: profile.role,
           onboardingCompleted: profile.onboarding_completed,
         })
@@ -141,12 +142,10 @@ export default function LoginPage() {
         throw new Error("Profile not found. Please contact support.")
       }
 
-      console.log("[Login Page] Profile found", {
+      logger.debug("Profile found, redirecting based on role", {
         role: profile.role,
         onboardingCompleted: profile.onboarding_completed,
       })
-
-      console.log("[v0] Profile found, redirecting based on role:", profile.role)
 
       if (profile.role === "patient") {
         if (!profile.onboarding_completed) {
@@ -165,7 +164,7 @@ export default function LoginPage() {
 
       router.refresh()
     } catch (err) {
-      console.error("[v0] Login failed:", err)
+      logger.error("Login failed", { error: err instanceof Error ? err.message : "Unknown error" })
       setError(err instanceof Error ? err.message : "An error occurred during login")
     } finally {
       setIsLoading(false)
@@ -179,14 +178,14 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      console.log("[v0] Starting Google OAuth flow")
+      logger.debug("Starting Google OAuth flow")
 
       const callbackUrl = new URL("/auth/callback", window.location.origin)
       if (redirectTo) {
         callbackUrl.searchParams.set("redirect", redirectTo)
       }
 
-      console.log("[v0] OAuth callback URL:", callbackUrl.toString())
+      logger.debug("OAuth callback URL", { url: callbackUrl.toString() })
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -196,13 +195,13 @@ export default function LoginPage() {
       })
 
       if (error) {
-        console.error("[v0] OAuth error:", error)
+        logger.error("OAuth error", { message: error.message })
         throw error
       }
 
       // User will be redirected to Google, then back to /auth/callback
     } catch (err) {
-      console.error("[v0] Google OAuth failed:", err)
+      logger.error("Google OAuth failed", { error: err instanceof Error ? err.message : "Unknown error" })
       setError(err instanceof Error ? err.message : "Failed to sign in with Google")
       setIsGoogleLoading(false)
     }

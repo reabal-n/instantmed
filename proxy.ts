@@ -2,7 +2,10 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 // Routes that require authentication
-const protectedRoutes = ['/patient', '/admin', '/doctor']
+const protectedRoutes = ['/patient', '/admin', '/doctor', '/account']
+
+// Routes that should redirect authenticated users away
+const authRoutes = ['/auth/login', '/auth/register', '/login']
 
 // Routes that require specific roles
 const roleRoutes = {
@@ -80,21 +83,45 @@ export async function proxy(request: NextRequest) {
     }
 
     // Redirect authenticated users away from auth pages
-    if (user && (pathname === '/login' || pathname === '/auth/register')) {
+    const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
+    
+    if (user && isAuthRoute) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, onboarding_completed')
         .eq('auth_user_id', user.id)
         .single()
 
+      // Check for redirect param first
+      const redirectParam = request.nextUrl.searchParams.get('redirect')
+      if (redirectParam && !redirectParam.startsWith('/auth')) {
+        return NextResponse.redirect(new URL(redirectParam, request.url))
+      }
+
       const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = profile?.role === 'admin' ? '/admin' : '/patient'
+      
+      if (profile?.role === 'doctor') {
+        redirectUrl.pathname = '/doctor'
+      } else if (profile?.role === 'admin') {
+        redirectUrl.pathname = '/admin'
+      } else {
+        // Patient - check onboarding
+        if (!profile?.onboarding_completed) {
+          redirectUrl.pathname = '/patient/onboarding'
+        } else {
+          redirectUrl.pathname = '/patient'
+        }
+      }
+      
       return NextResponse.redirect(redirectUrl)
     }
 
     return supabaseResponse
   } catch (error) {
-    console.error('Proxy error:', error)
+    // Log error but don't block the request
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Proxy error:', error)
+    }
     return NextResponse.next({ request })
   }
 }
