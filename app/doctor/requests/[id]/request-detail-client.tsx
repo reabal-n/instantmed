@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,7 @@ interface RequestDetailClientProps {
   formatRequestType: (type: string) => string
   existingDocument?: GeneratedDocument | null
   previousRequests?: Request[]
+  initialAction?: string
 }
 
 export function RequestDetailClient({
@@ -57,13 +58,25 @@ export function RequestDetailClient({
   formatRequestType,
   existingDocument,
   previousRequests = [],
+  initialAction,
 }: RequestDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [clinicalNote, setClinicalNote] = useState(request.clinical_note || "")
   const [noteSaved, setNoteSaved] = useState(false)
-  const [showDeclineDialog, setShowDeclineDialog] = useState(false)
+  const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  // Handle quick actions from dashboard
+  useEffect(() => {
+    if (initialAction === "approve" && request.status === "pending") {
+      // For med certs, redirect to document builder
+      if (request.category === "medical_certificate") {
+        router.push(`/doctor/requests/${request.id}/document`)
+      }
+      // For other types, we could auto-trigger approve but it's safer to let the doctor review first
+    }
+  }, [initialAction, request.id, request.category, request.status, router])
 
   const handleStatusChange = async (status: RequestStatus) => {
     startTransition(async () => {

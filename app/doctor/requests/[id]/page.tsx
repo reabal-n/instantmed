@@ -6,10 +6,13 @@ import { RequestDetailClient } from "./request-detail-client"
 
 export default async function DoctorRequestDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ action?: string }>
 }) {
   const { id } = await params
+  const { action } = await searchParams
 
   // Ensure user is a doctor
   const { profile } = await requireAuth("doctor")
@@ -63,6 +66,7 @@ export default async function DoctorRequestDetailPage({
       formatRequestType={formatRequestType}
       existingDocument={existingDocument}
       previousRequests={previousRequests}
+      initialAction={action}
     />
   )
 }
