@@ -1048,4 +1048,242 @@
   .stagger-3 { animation-delay: 0.3s; }
   .stagger-4 { animation-delay: 0.4s; }
   .stagger-5 { animation-delay: 0.5s; }
+  
+  /* ============================================
+     LIQUID GLASS PILL STYLES
+     ============================================ */
+  
+  .liquid-glass-pill {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0.8) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .liquid-glass-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.08) 0%,
+      rgba(139, 92, 246, 0.05) 50%,
+      rgba(99, 102, 241, 0.08) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  
+  .liquid-glass-pill:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 
+      0 8px 32px rgba(99, 102, 241, 0.15),
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 0 0 1px rgba(99, 102, 241, 0.1);
+  }
+  
+  .liquid-glass-pill:hover::before {
+    opacity: 1;
+  }
+  
+  .dark .liquid-glass-pill {
+    background: linear-gradient(
+      135deg,
+      rgba(30, 30, 50, 0.8) 0%,
+      rgba(40, 40, 60, 0.6) 50%,
+      rgba(30, 30, 50, 0.7) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  .dark .liquid-glass-pill:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 
+      0 8px 32px rgba(139, 92, 246, 0.2),
+      0 0 40px rgba(99, 102, 241, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  /* ============================================
+     EMOJI GLOW EFFECTS
+     ============================================ */
+  
+  .emoji-glow {
+    display: inline-block;
+    filter: drop-shadow(0 0 8px currentColor);
+    animation: emoji-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes emoji-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.4));
+      transform: scale(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.6));
+      transform: scale(1.05);
+    }
+  }
+  
+  .emoji-glow-yellow {
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
+    animation: emoji-pulse-yellow 2s ease-in-out infinite;
+  }
+  
+  @keyframes emoji-pulse-yellow {
+    0%, 100% {
+      filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.4));
+      transform: scale(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.7));
+      transform: scale(1.08);
+    }
+  }
+  
+  .emoji-glow-sparkle {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+    animation: emoji-sparkle 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes emoji-sparkle {
+    0%, 100% {
+      filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.3));
+      transform: scale(1) rotate(0deg);
+    }
+    25% {
+      filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.6));
+      transform: scale(1.1) rotate(5deg);
+    }
+    50% {
+      filter: drop-shadow(0 0 14px rgba(236, 72, 153, 0.7));
+      transform: scale(1.15) rotate(0deg);
+    }
+    75% {
+      filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.6));
+      transform: scale(1.1) rotate(-5deg);
+    }
+  }
+  
+  /* ============================================
+     ALIVE MICRO-INTERACTIONS
+     ============================================ */
+  
+  /* Breathing effect for elements */
+  .breathe {
+    animation: breathe 4s ease-in-out infinite;
+  }
+  
+  @keyframes breathe {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.02);
+      opacity: 0.95;
+    }
+  }
+  
+  /* Subtle bounce on hover */
+  .hover-bounce {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .hover-bounce:hover {
+    transform: translateY(-4px);
+  }
+  
+  /* Elastic scale */
+  .hover-elastic {
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .hover-elastic:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Wiggle animation */
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+  }
+  
+  .hover-wiggle:hover {
+    animation: wiggle 0.4s ease-in-out;
+  }
+  
+  /* Soft pulse for live indicators */
+  @keyframes soft-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+  }
+  
+  .animate-soft-pulse {
+    animation: soft-pulse 2s ease-in-out infinite;
+  }
+  
+  /* Gradient flow animation */
+  @keyframes gradient-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animate-gradient-flow {
+    background-size: 200% 200%;
+    animation: gradient-flow 3s ease infinite;
+  }
+  
+  /* Interactive lift effect */
+  .lift-on-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .lift-on-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 
+      0 20px 40px -15px rgba(0, 0, 0, 0.15),
+      0 0 20px rgba(99, 102, 241, 0.1);
+  }
+  
+  /* Subtle rotation on hover */
+  .tilt-on-hover {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .tilt-on-hover:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+  }
 }

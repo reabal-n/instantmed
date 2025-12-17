@@ -1,9 +1,9 @@
 'use client'
 
 import { ClipboardList, Stethoscope, FileCheck, Clock, CheckCircle, Zap } from 'lucide-react'
+import { Progress } from '@heroui/react'
 import { howItWorks } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
-import { Chip, Progress } from '@heroui/react'
 
 const iconMap = {
   ClipboardList,
@@ -39,15 +39,10 @@ export function HowItWorks() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <Chip 
-            color="primary" 
-            variant="flat" 
-            size="lg"
-            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group px-4 py-2"
-            startContent={<Zap className="w-4 h-4 group-hover:animate-pulse" />}
-          >
-            <span className="group-hover:tracking-wide transition-all duration-300 font-medium">How it works</span>
-          </Chip>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
+            <Zap className="w-4 h-4 text-primary group-hover:animate-pulse" />
+            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">How it works</span>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             From request to done in three steps
           </h2>

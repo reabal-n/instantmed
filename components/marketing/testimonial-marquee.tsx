@@ -142,15 +142,15 @@ export function TestimonialMarquee() {
     <section className="py-20 overflow-hidden bg-gradient-to-b from-transparent via-indigo-50/30 to-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <div className="text-center">
-          <motion.span
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            whileHover={{ scale: 1.05 }}
-            className="inline-block px-5 py-2 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium mb-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/25 hover:bg-indigo-100"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4"
           >
-            💬 Trusted by thousands
-          </motion.span>
+            <span className="emoji-glow text-base">💬</span>
+            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Trusted by thousands</span>
+          </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

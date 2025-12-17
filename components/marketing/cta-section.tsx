@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
-import { Button, Chip } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { motion } from 'framer-motion'
 
 export function CTASection() {
@@ -24,15 +24,10 @@ export function CTASection() {
             transition={{ delay: 0.2 }}
             className="mb-6"
           >
-            <Chip 
-              color="primary" 
-              variant="flat"
-              size="lg"
-              className="px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 group"
-              startContent={<Sparkles className="w-4 h-4 group-hover:animate-spin" />}
-            >
-              <span className="font-medium">Ready when you are</span>
-            </Chip>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group">
+              <Sparkles className="w-4 h-4 text-primary group-hover:animate-spin" />
+              <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Ready when you are</span>
+            </div>
           </motion.div>
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">

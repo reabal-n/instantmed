@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
-import { Button as HeroButton, Chip } from '@heroui/react'
+import { Button as HeroButton } from "@heroui/react"
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -28,21 +28,17 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">
-            {/* Badge - HeroUI Chip with hover effects */}
-            <Chip 
-              color="primary" 
-              variant="flat" 
-              size="lg"
-              className="mb-8 animate-slide-up cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 group px-4 py-2"
-              startContent={
-                <span className="relative flex h-2.5 w-2.5 mr-1.5">
+            {/* Badge - Liquid Glass Pill */}
+            <div className="mb-8 animate-slide-up">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group">
+                <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary group-hover:scale-110 transition-transform" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
                 </span>
-              }
-            >
-              <span className="group-hover:tracking-wide transition-all duration-300 font-medium">⚡ Australia&apos;s fastest online GP</span>
-            </Chip>
+                <span className="emoji-glow-yellow text-base">⚡</span>
+                <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Australia&apos;s fastest online GP</span>
+              </div>
+            </div>
 
             {/* Headline - Lora font with stable layout */}
             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 animate-slide-up-delay-1">

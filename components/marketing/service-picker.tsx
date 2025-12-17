@@ -48,9 +48,10 @@ export function ServicePicker() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <Chip color="primary" variant="flat" size="lg" className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary/20 px-4 py-2">
-            <span className="font-medium">✨ Get started in minutes</span>
-          </Chip>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
+            <span className="emoji-glow-sparkle text-base">✨</span>
+            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Get started in minutes</span>
+          </div>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground mb-4">
             What do you need today?
           </h2>
@@ -79,7 +80,7 @@ export function ServicePicker() {
                   <Card 
                     isHoverable
                     isPressable
-                    className="h-full bg-white/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-500/30 card-glow"
+                    className="h-full bg-white/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-all duration-500 hover:border-indigo-300 dark:hover:border-indigo-500/30 lift-on-hover tilt-on-hover"
                     shadow="sm"
                   >
                     <CardBody className="flex flex-col items-center text-center p-8 gap-4">

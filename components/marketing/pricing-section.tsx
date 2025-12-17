@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Check, ArrowRight, Sparkles } from 'lucide-react'
-import { Button, Chip } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
 
@@ -12,15 +12,10 @@ export function PricingSection() {
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <Chip 
-            color="secondary" 
-            variant="flat" 
-            size="lg"
-            className="mb-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-secondary/25 hover:bg-secondary/30 group px-4 py-2"
-            startContent={<Sparkles className="w-4 h-4 group-hover:animate-spin" />}
-          >
-            <span className="group-hover:tracking-wide transition-all duration-300 font-medium">Simple pricing</span>
-          </Chip>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
+            <Sparkles className="w-4 h-4 text-violet-500 group-hover:animate-spin" />
+            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Simple pricing</span>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Transparent, upfront pricing
           </h2>
