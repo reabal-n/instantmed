@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
+import { notifyPaymentReceived } from "@/lib/notifications/service"
 
 // Use service role for webhook (bypasses RLS)
 function getServiceClient() {
@@ -295,6 +296,28 @@ export async function POST(request: Request) {
           } else {
             console.log("[Stripe Webhook] Customer ID saved to profile:", { patientId, customerId })
           }
+        }
+      }
+
+      // STEP 6: Send payment notification (non-critical)
+      if (patientId && session.amount_total) {
+        // Get patient info for notification
+        const { data: patientProfile } = await supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("id", patientId)
+          .single()
+
+        if (patientProfile?.email) {
+          notifyPaymentReceived({
+            requestId,
+            patientId,
+            patientEmail: patientProfile.email,
+            patientName: patientProfile.full_name || "Patient",
+            amount: session.amount_total,
+          }).catch((err) => {
+            console.error("[Stripe Webhook] Notification error (non-fatal):", err)
+          })
         }
       }
 

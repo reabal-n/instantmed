@@ -1,0 +1,175 @@
+"use server"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { sendMedCertReadyEmail, sendRequestDeclinedEmail } from "@/lib/email/resend"
+import { logger } from "@/lib/logger"
+
+type NotificationType = "request_update" | "payment" | "document_ready" | "refill_reminder" | "system" | "promotion"
+
+interface CreateNotificationParams {
+  userId: string
+  type: NotificationType
+  title: string
+  message: string
+  actionUrl?: string
+  metadata?: Record<string, unknown>
+}
+
+interface NotifyRequestStatusParams {
+  requestId: string
+  patientId: string
+  patientEmail: string
+  patientName: string
+  requestType: string
+  newStatus: string
+  documentUrl?: string
+  declineReason?: string
+}
+
+/**
+ * Create an in-app notification for a user
+ */
+export async function createNotification(params: CreateNotificationParams): Promise<{ success: boolean; error?: string }> {
+  const { userId, type, title, message, actionUrl, metadata = {} } = params
+
+  try {
+    const supabase = createServiceRoleClient()
+
+    const { error } = await supabase.from("notifications").insert({
+      user_id: userId,
+      type,
+      title,
+      message,
+      action_url: actionUrl,
+      metadata,
+    })
+
+    if (error) {
+      logger.error("Failed to create notification", { error: error.message, userId, type })
+      return { success: false, error: error.message }
+    }
+
+    logger.info("Notification created", { userId, type, title })
+    return { success: true }
+  } catch (err) {
+    logger.error("Notification creation error", { error: err instanceof Error ? err.message : "Unknown" })
+    return { success: false, error: "Failed to create notification" }
+  }
+}
+
+/**
+ * Send notifications (email + in-app) when a request status changes
+ */
+export async function notifyRequestStatusChange(params: NotifyRequestStatusParams): Promise<void> {
+  const {
+    requestId,
+    patientId,
+    patientEmail,
+    patientName,
+    requestType,
+    newStatus,
+    documentUrl,
+    declineReason,
+  } = params
+
+  const actionUrl = `/patient/requests/${requestId}`
+
+  try {
+    switch (newStatus) {
+      case "approved": {
+        // In-app notification
+        await createNotification({
+          userId: patientId,
+          type: "document_ready",
+          title: "Your request has been approved! ✓",
+          message: "Great news! A doctor has approved your request. Your document is ready to download.",
+          actionUrl,
+          metadata: { requestId, requestType, status: newStatus },
+        })
+
+        // Email notification
+        if (documentUrl) {
+          await sendMedCertReadyEmail({
+            to: patientEmail,
+            patientName,
+            pdfUrl: documentUrl,
+            requestId,
+            certType: requestType.includes("uni") ? "uni" : requestType.includes("carer") ? "carer" : "work",
+          })
+          logger.info("Approval email sent", { requestId, patientEmail })
+        }
+        break
+      }
+
+      case "declined": {
+        // In-app notification
+        await createNotification({
+          userId: patientId,
+          type: "request_update",
+          title: "Update on your request",
+          message: "A doctor has reviewed your request. Please check the details for more information.",
+          actionUrl,
+          metadata: { requestId, requestType, status: newStatus, reason: declineReason },
+        })
+
+        // Email notification
+        await sendRequestDeclinedEmail(patientEmail, patientName, requestType, requestId, declineReason)
+        logger.info("Decline email sent", { requestId, patientEmail })
+        break
+      }
+
+      case "needs_follow_up": {
+        // In-app notification only (email handled separately with specific questions)
+        await createNotification({
+          userId: patientId,
+          type: "request_update",
+          title: "Doctor needs more information",
+          message: "The doctor reviewing your request needs some additional information from you.",
+          actionUrl,
+          metadata: { requestId, requestType, status: newStatus },
+        })
+        break
+      }
+
+      default:
+        logger.debug("No notification for status", { newStatus, requestId })
+    }
+  } catch (err) {
+    logger.error("Failed to send status notifications", {
+      error: err instanceof Error ? err.message : "Unknown",
+      requestId,
+      newStatus,
+    })
+  }
+}
+
+/**
+ * Send payment confirmation notification
+ */
+export async function notifyPaymentReceived(params: {
+  requestId: string
+  patientId: string
+  patientEmail: string
+  patientName: string
+  amount: number
+}): Promise<void> {
+  const { requestId, patientId, amount } = params
+
+  try {
+    await createNotification({
+      userId: patientId,
+      type: "payment",
+      title: "Payment received ✓",
+      message: `Your payment of $${(amount / 100).toFixed(2)} has been confirmed. A doctor will review your request shortly.`,
+      actionUrl: `/patient/requests/${requestId}`,
+      metadata: { requestId, amount },
+    })
+
+    logger.info("Payment notification created", { requestId, patientId })
+  } catch (err) {
+    logger.error("Failed to create payment notification", {
+      error: err instanceof Error ? err.message : "Unknown",
+      requestId,
+    })
+  }
+}
