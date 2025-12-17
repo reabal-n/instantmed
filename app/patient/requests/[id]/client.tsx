@@ -131,6 +131,33 @@ export default function PatientRequestDetailPageClient({
     })
   }
 
+  // Calculate estimated time remaining for pending requests
+  const getEstimatedTime = () => {
+    if (request.status !== "pending") return null
+    
+    const created = new Date(request.created_at)
+    const now = new Date()
+    const hoursSinceCreated = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
+    const currentHour = now.getHours()
+    
+    // Operating hours: 8am-10pm AEST
+    const isWithinOperatingHours = currentHour >= 8 && currentHour < 22
+    
+    if (hoursSinceCreated < 1) {
+      return { text: "Usually within 1 hour", urgent: false }
+    } else if (hoursSinceCreated < 2) {
+      return { text: "Should be reviewed soon", urgent: false }
+    } else if (!isWithinOperatingHours) {
+      // Calculate when operating hours resume
+      const hoursUntilOpen = currentHour >= 22 ? (24 - currentHour + 8) : (8 - currentHour)
+      return { text: `Doctors available in ~${hoursUntilOpen} hours (8am AEST)`, urgent: false }
+    } else {
+      return { text: "Being reviewed - check back shortly", urgent: true }
+    }
+  }
+
+  const estimatedTime = getEstimatedTime()
+
   // Timeline steps
   const timelineSteps = isPendingPayment
     ? [
@@ -220,6 +247,27 @@ export default function PatientRequestDetailPageClient({
               </div>
             </div>
             <RetryPaymentButton requestId={request.id} />
+          </div>
+        </div>
+      )}
+
+      {/* Estimated Time for Pending Requests */}
+      {estimatedTime && request.status === "pending" && (
+        <div
+          className="glass-card rounded-2xl p-6 border-2 border-violet-200/50 bg-violet-50/30 animate-fade-in-up opacity-0"
+          style={{ animationDelay: "0.18s", animationFillMode: "forwards" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+              <Clock className={cn("h-6 w-6 text-violet-600", estimatedTime.urgent && "animate-pulse")} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Estimated review time</h3>
+              <p className="text-sm text-muted-foreground">{estimatedTime.text}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Doctors available 8am–10pm AEST, 7 days a week
+              </p>
+            </div>
           </div>
         </div>
       )}

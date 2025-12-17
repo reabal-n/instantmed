@@ -1,15 +1,17 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
-import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search } from "lucide-react"
+import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search, Bell, Wifi, WifiOff, RefreshCw } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
+import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
 
 interface DoctorDashboardClientProps {
   pendingRequests: RequestWithPatient[]
@@ -39,9 +41,33 @@ export function DoctorDashboardClient({
   formatCategory,
   formatSubtype,
 }: DoctorDashboardClientProps) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("pending")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [localPendingRequests, setLocalPendingRequests] = useState(pendingRequests)
+
+  // Real-time updates
+  const { newRequestCount, lastNewRequest, clearNewRequestCount, isConnected } = useRealtimeRequests(
+    pendingRequests,
+    {
+      enableSound: true,
+      onNewRequest: (request) => {
+        setLocalPendingRequests((prev) => [request, ...prev])
+      },
+    }
+  )
+
+  // Sync with server data on prop changes
+  useEffect(() => {
+    setLocalPendingRequests(pendingRequests)
+  }, [pendingRequests])
+
+  // Handle refresh
+  const handleRefresh = () => {
+    clearNewRequestCount()
+    router.refresh()
+  }
 
   const categoryFilters = [
     { value: "all", label: "All" },
@@ -67,7 +93,7 @@ export function DoctorDashboardClient({
     return filtered
   }, [categoryFilter, searchQuery])
 
-  const filteredPending = useMemo(() => filterRequests(pendingRequests), [filterRequests, pendingRequests])
+  const filteredPending = useMemo(() => filterRequests(localPendingRequests), [filterRequests, localPendingRequests])
   const filteredApproved = useMemo(
     () => filterRequests(approvedRequests),
     [filterRequests, approvedRequests],
@@ -253,12 +279,56 @@ export function DoctorDashboardClient({
 
   return (
     <div className="space-y-8">
+      {/* New Request Notification Banner */}
+      {newRequestCount > 0 && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Bell className="h-5 w-5 text-emerald-600 animate-pulse" />
+            </div>
+            <div>
+              <p className="font-medium text-emerald-800">
+                {newRequestCount} new request{newRequestCount > 1 ? "s" : ""} received
+              </p>
+              {lastNewRequest && (
+                <p className="text-sm text-emerald-600">
+                  Latest: {lastNewRequest.patient?.full_name || "Unknown patient"}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleRefresh}
+            className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <RefreshCw className="h-4 w-4 mr-1.5" />
+            Refresh
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Welcome back, Dr. {doctorName.split(" ")[1] || doctorName}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Requests ready for your review</p>
+      <div className="animate-fade-in-up opacity-0 flex items-center justify-between" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Welcome back, Dr. {doctorName.split(" ")[1] || doctorName}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Requests ready for your review</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isConnected ? (
+            <span className="flex items-center gap-1.5 text-xs text-emerald-600">
+              <Wifi className="h-3.5 w-3.5" />
+              Live
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <WifiOff className="h-3.5 w-3.5" />
+              Offline
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}
