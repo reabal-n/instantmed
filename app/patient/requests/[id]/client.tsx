@@ -20,19 +20,25 @@ import {
   Loader2,
   Check,
 } from "lucide-react"
-import { formatRequestType } from "@/lib/data/request-utils"
 import { RetryPaymentButton } from "./retry-payment-button"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/shared/copy-button"
 import { resendCertificateEmailAction } from "@/app/actions/resend-certificate"
+import type { Request, GeneratedDocument } from "@/types/db"
 
 interface PatientRequestDetailPageProps {
-  params: { id: string }
-  searchParams: { retry?: string }
+  request: Request
+  document: GeneratedDocument | null
+  retryPayment?: boolean
+  formatRequestType: (type: string | null | undefined) => string
+  formatCategory: (category: string | null | undefined) => string
 }
 
-export default function PatientRequestDetailPageClient({ params }: PatientRequestDetailPageProps) {
-  const { id } = params
+export default function PatientRequestDetailPageClient({ 
+  request,
+  document,
+  formatRequestType,
+}: PatientRequestDetailPageProps) {
   const [isPending, startTransition] = useTransition()
   const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error">("idle")
   const [resendMessage, setResendMessage] = useState<string | null>(null)
@@ -41,7 +47,7 @@ export default function PatientRequestDetailPageClient({ params }: PatientReques
     setResendStatus("idle")
     setResendMessage(null)
     startTransition(async () => {
-      const result = await resendCertificateEmailAction(id)
+      const result = await resendCertificateEmailAction(request.id)
       if (result.success) {
         setResendStatus("success")
         setResendMessage(`Email sent! ${result.remainingResends} resends remaining today.`)
@@ -52,30 +58,6 @@ export default function PatientRequestDetailPageClient({ params }: PatientReques
     })
   }
 
-  // In a client component, we need to use a hook like useEffect or use the Server Component to fetch data.
-  // For simplicity in this refactor, we'll assume data is passed down or fetched via a client-side hook.
-  // In a real application, you'd likely use React Query or similar for data fetching here.
-  // For demonstration, we'll mock the data fetching.
-
-  // Mock data fetching (replace with actual client-side fetching or data passed from server component)
-  const authUser = { profile: { id: "mock_user_id" } } // Replace with actual auth check
-  const request = {
-    id: id,
-    type: "prescription",
-    status: "approved",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    payment_status: "paid",
-    category: "general_health",
-  } // Replace with actual data fetching
-  const document = {
-    id: "doc_123",
-    url: "/mock-document.pdf",
-    pdf_url: "/mock-document.pdf",
-    type: "referral",
-    subtype: "pathology_blood_test",
-    created_at: new Date().toISOString(),
-  } // Replace with actual data fetching
   const isPendingPayment = request.payment_status === "pending_payment"
 
   const getStatusConfig = (status: string, paymentStatus?: string) => {
@@ -214,8 +196,8 @@ export default function PatientRequestDetailPageClient({ params }: PatientReques
           {statusConfig.badge}
           {/* Added reference ID copy button */}
           <div className="flex items-center gap-1 text-xs text-muted-foreground bg-white/50 rounded-lg px-2 py-1">
-            <span>Ref: {id.slice(0, 8)}</span>
-            <CopyButton value={id} className="h-6 w-6" />
+            <span>Ref: {request.id.slice(0, 8)}</span>
+            <CopyButton value={request.id} className="h-6 w-6" />
           </div>
         </div>
       </div>
@@ -237,7 +219,7 @@ export default function PatientRequestDetailPageClient({ params }: PatientReques
                 </p>
               </div>
             </div>
-            <RetryPaymentButton requestId={id} />
+            <RetryPaymentButton requestId={request.id} />
           </div>
         </div>
       )}
