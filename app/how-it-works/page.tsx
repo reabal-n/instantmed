@@ -52,7 +52,7 @@ const steps = [
     description:
       "If approved: Med cert emailed as PDF. Script sent as e-prescription to any pharmacy. If not approved, you get a full refund.",
     icon: FileCheck,
-    color: "from-emerald-500 to-teal-500",
+    color: "from-indigo-500 to-violet-500",
     emoji: "✅",
   },
 ]
@@ -110,12 +110,12 @@ export default function HowItWorksPage() {
         {/* Hero */}
         <section className="relative pt-32 pb-20 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="absolute top-20 right-1/4 w-72 h-72 bg-[#00E2B5]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-[#00E2B5]/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-4 bg-[#00E2B5]/10 text-[#00E2B5] border-0 px-4 py-1.5">
+              <Badge className="mb-4 bg-indigo-50 text-indigo-600 border-0 px-4 py-1.5">
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                 How It Works
               </Badge>
@@ -133,13 +133,13 @@ export default function HowItWorksPage() {
               {/* Quick stats */}
               <div className="mt-10 flex flex-wrap justify-center gap-8 text-sm">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-[#00E2B5]" />
+                  <Zap className="w-5 h-5 text-indigo-500" />
                   <span className="text-muted-foreground">
                     Average response: <strong className="text-foreground">2.4 hours</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-[#00E2B5]" />
+                  <Heart className="w-5 h-5 text-violet-500" />
                   <span className="text-muted-foreground">
                     Patient satisfaction: <strong className="text-foreground">98%</strong>
                   </span>
@@ -165,7 +165,7 @@ export default function HowItWorksPage() {
 
               <div className="relative">
                 {/* Connection line */}
-                <div className="absolute left-10 md:left-[39px] top-24 bottom-24 w-0.5 bg-linear-to-b from-[#00E2B5]/50 via-[#00E2B5]/20 to-[#00E2B5]/50 hidden md:block" />
+                <div className="absolute left-10 md:left-[39px] top-24 bottom-24 w-0.5 bg-gradient-to-b from-indigo-500/50 via-violet-500/20 to-indigo-500/50 hidden md:block" />
 
                 <div className="space-y-8 md:space-y-12">
                   {steps.map((step, index) => (
@@ -186,7 +186,7 @@ export default function HowItWorksPage() {
                       <TiltCard className="flex-1 w-full">
                         <div className="p-6">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="text-xs font-mono text-[#00E2B5] bg-[#00E2B5]/10 px-2 py-1 rounded">
+                            <span className="text-xs font-mono text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
                               STEP {step.number}
                             </span>
                             <span className="text-xs text-muted-foreground">{step.subtitle}</span>
@@ -260,9 +260,9 @@ export default function HowItWorksPage() {
                         <h3 className="font-semibold text-foreground mb-1">{useCase.title}</h3>
                         <p className="text-sm text-muted-foreground">{useCase.description}</p>
                       </div>
-                      <div className="flex items-center gap-2 text-sm bg-[#00E2B5]/10 rounded-full px-4 py-2">
-                        <Clock className="w-4 h-4 text-[#00E2B5]" />
-                        <span className="text-[#00E2B5] font-medium">{useCase.time}</span>
+                      <div className="flex items-center gap-2 text-sm bg-indigo-50 rounded-full px-4 py-2">
+                        <Clock className="w-4 h-4 text-indigo-600" />
+                        <span className="text-indigo-600 font-medium">{useCase.time}</span>
                       </div>
                     </div>
                   </TiltCard>

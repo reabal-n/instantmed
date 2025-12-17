@@ -191,6 +191,18 @@ export function RequestDetailClient({
     currentControl: answers.control_label || answers.current_control,
   }
 
+  // AMT-backed structured medication data
+  const structuredMedication = {
+    amt_code: answers.amt_code as string | undefined,
+    display: answers.medication_display as string | undefined,
+    medication_name: answers.medication_name as string | undefined,
+    form: answers.medication_form as string | undefined,
+    strength: answers.medication_strength as string | undefined,
+    prescribed_before: answers.prescribed_before as boolean | undefined,
+    dose_changed: answers.dose_changed as boolean | undefined,
+  }
+  const hasStructuredMedication = !!structuredMedication.amt_code && !!structuredMedication.display
+
   return (
     <div className="space-y-6 pb-32 lg:pb-8">
       {/* Header */}
@@ -338,6 +350,50 @@ export function RequestDetailClient({
                 consider whether urgent follow-up is required.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AMT-backed Medication Details (for repeat scripts) */}
+      {hasStructuredMedication && isPrescription && (
+        <div className="glass-card rounded-2xl p-6 border-2 border-violet-200 bg-violet-50/30">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-5 w-5 text-violet-600" />
+            <h2 className="text-lg font-semibold">Requested Medication</h2>
+            <Badge className="bg-violet-100 text-violet-700 border-0 text-xs">AMT Verified</Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-white/80 col-span-2">
+              <p className="text-xs text-muted-foreground mb-1">Medication (AMT Display)</p>
+              <p className="font-semibold">{structuredMedication.display}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/80">
+              <p className="text-xs text-muted-foreground mb-1">Medication Name</p>
+              <p className="font-medium">{structuredMedication.medication_name || "—"}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/80">
+              <p className="text-xs text-muted-foreground mb-1">Strength</p>
+              <p className="font-medium">{structuredMedication.strength || "—"}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/80">
+              <p className="text-xs text-muted-foreground mb-1">Form</p>
+              <p className="font-medium">{structuredMedication.form || "—"}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white/80">
+              <p className="text-xs text-muted-foreground mb-1">Gating</p>
+              <p className="font-medium text-sm">
+                Prescribed before: {structuredMedication.prescribed_before ? "Yes" : "No"} • 
+                Dose changed: {structuredMedication.dose_changed ? "Yes" : "No"}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 p-3 rounded-lg bg-white/60 border border-violet-100">
+            <p className="text-xs text-muted-foreground">
+              <strong>AMT Code (SNOMED CT):</strong>{" "}
+              <code className="bg-violet-100 px-1.5 py-0.5 rounded text-violet-700 font-mono text-xs">
+                {structuredMedication.amt_code}
+              </code>
+            </p>
           </div>
         </div>
       )}

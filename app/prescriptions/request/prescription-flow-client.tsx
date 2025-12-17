@@ -28,12 +28,14 @@ import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { RX_MICROCOPY, isControlledSubstance } from "@/lib/microcopy/prescription"
+import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
+import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 
 // Flow steps
 type FlowStep =
   | "type"
   | "medication"
+  | "gating" // New gating questions step
   | "condition"
   | "duration"
   | "control"
@@ -48,6 +50,7 @@ type FlowStep =
 const REPEAT_STEPS: FlowStep[] = [
   "type",
   "medication",
+  "gating", // Gating questions after medication selection
   "condition",
   "duration",
   "control",
@@ -59,19 +62,10 @@ const REPEAT_STEPS: FlowStep[] = [
   "review",
   "payment",
 ]
-const NEW_STEPS: FlowStep[] = [
-  "type",
-  "medication",
-  "condition",
-  "notes",
-  "safety",
-  "medicare",
-  "signup",
-  "review",
-  "payment",
-]
+// NEW_STEPS removed - new scripts require General Consult
 
-// Prescription types
+// Prescription types - only repeat scripts available
+// New scripts require General Consult ($44.95)
 const RX_TYPES = [
   {
     id: "repeat",
@@ -79,7 +73,6 @@ const RX_TYPES = [
     description: RX_MICROCOPY.type.repeat.description,
     icon: RefreshCw,
   },
-  { id: "new", label: RX_MICROCOPY.type.new.label, description: RX_MICROCOPY.type.new.description, icon: Pill },
 ] as const
 
 // Conditions
@@ -329,8 +322,14 @@ export function PrescriptionFlowClient({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [signupMode, setSignupMode] = useState<"new" | "existing">("new")
 
-  // Form state
-  const [medication, setMedication] = useState("")
+  // Form state - structured medication selection
+  const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
+  
+  // Gating questions state
+  const [prescribedBefore, setPrescribedBefore] = useState<boolean | null>(null)
+  const [doseChanged, setDoseChanged] = useState<boolean | null>(null)
+  const [isGatingBlocked, setIsGatingBlocked] = useState(false)
+  
   const [condition, setCondition] = useState<string | null>(null)
   const [otherCondition, setOtherCondition] = useState("")
   const [duration, setDuration] = useState<string | null>(null)
@@ -358,7 +357,8 @@ export function PrescriptionFlowClient({
   const [showControlledWarning, setShowControlledWarning] = useState(false)
   const [isKnockedOut, setIsKnockedOut] = useState(false)
 
-  const steps = rxType === "repeat" ? REPEAT_STEPS : NEW_STEPS
+  // Only repeat scripts - new scripts require General Consult
+  const steps = REPEAT_STEPS
   const stepIndex = steps.indexOf(step)
 
   // Get progress stage index
@@ -392,12 +392,8 @@ export function PrescriptionFlowClient({
   const medicareValidation = validateMedicare(medicareNumber)
   const medicareDigits = medicareNumber.replace(/\D/g, "").length
 
-  // Check for controlled substance
-  useEffect(() => {
-    if (medication && isControlledSubstance(medication)) {
-      setShowControlledWarning(true)
-    }
-  }, [medication])
+  // Check for controlled substance - now handled by MedicationCombobox
+  // The combobox blocks S8 searches at the API level
 
   // Step transitions
   const goTo = useCallback((nextStep: FlowStep) => {
@@ -442,7 +438,12 @@ export function PrescriptionFlowClient({
       case "type":
         return !!rxType
       case "medication":
-        return medication.trim().length > 0 && !isControlledSubstance(medication)
+        // Must have a structured medication selection (not free text)
+        return selectedMedication !== null
+      case "gating":
+        // Both gating questions must be answered
+        // If blocked (prescribedBefore=No OR doseChanged=Yes), show block UI but don't allow continue
+        return prescribedBefore !== null && doseChanged !== null && !isGatingBlocked
       case "condition":
         return !!condition && (condition !== "other" || otherCondition.trim().length > 0)
       case "duration":
@@ -657,12 +658,21 @@ export function PrescriptionFlowClient({
         subtype: rxType || "repeat",
         type: "script",
         answers: {
-          medication,
+          // AMT-backed structured medication data
+          amt_code: selectedMedication?.amt_code,
+          medication_display: selectedMedication?.display,
+          medication_name: selectedMedication?.medication_name,
+          medication_form: selectedMedication?.form,
+          medication_strength: selectedMedication?.strength,
+          // Gating answers
+          prescribed_before: prescribedBefore,
+          dose_changed: doseChanged,
+          // Clinical details
           condition,
           otherCondition: condition === "other" ? otherCondition : undefined,
-          duration: rxType === "repeat" ? duration : undefined,
-          control: rxType === "repeat" ? control : undefined,
-          sideEffects: rxType === "repeat" ? sideEffects : undefined,
+          duration,
+          control,
+          sideEffects,
           notes,
           safetyAnswers,
         },
@@ -727,7 +737,7 @@ export function PrescriptionFlowClient({
           <ControlledWarning
             onClose={() => {
               setShowControlledWarning(false)
-              setMedication("")
+              setSelectedMedication(null)
             }}
           />
         )}
@@ -785,22 +795,127 @@ export function PrescriptionFlowClient({
           {step === "medication" && (
             <div className="space-y-4">
               <StepHeader
-                title={rxType === "repeat" ? RX_MICROCOPY.medication.headingRepeat : RX_MICROCOPY.medication.heading}
-                subtitle={RX_MICROCOPY.medication.subtitle}
+                title={RX_MICROCOPY.medication.headingRepeat}
+                subtitle="Search and select your medication from the list"
               />
-              <Input
-                value={medication}
-                onChange={(e) => setMedication(e.target.value)}
-                placeholder={
-                  rxType === "repeat" ? RX_MICROCOPY.medication.placeholderRepeat : RX_MICROCOPY.medication.placeholder
-                }
-                className="h-12 text-base"
-                autoFocus
+              {/* S8 Disclaimer */}
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  <strong className="text-amber-900">No Schedule 8 (S8) medications.</strong>{" "}
+                  Common examples we do not provide via repeat script: dexamphetamine, lisdexamfetamine (Vyvanse), 
+                  methylphenidate (Ritalin/Concerta), oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine.
+                </p>
+              </div>
+              <MedicationCombobox
+                value={selectedMedication}
+                onChange={setSelectedMedication}
+                placeholder="Search for your medication (e.g. Atorvastatin 20mg)"
               />
-              {medication && isControlledSubstance(medication) && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-800">{RX_MICROCOPY.errors.controlled}</p>
+            </div>
+          )}
+
+          {/* Step: Gating Questions */}
+          {step === "gating" && (
+            <div className="space-y-6">
+              <StepHeader
+                title="A few quick questions"
+                subtitle="To ensure this service is right for you"
+              />
+              
+              {/* Question 1: Prescribed before? */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Have you been prescribed this medication before by a doctor?</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setPrescribedBefore(true)
+                      if (doseChanged === true) {
+                        setIsGatingBlocked(true)
+                      } else if (doseChanged === false) {
+                        setIsGatingBlocked(false)
+                      }
+                    }}
+                    className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
+                      prescribedBefore === true
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPrescribedBefore(false)
+                      setIsGatingBlocked(true)
+                    }}
+                    className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
+                      prescribedBefore === false
+                        ? "border-amber-500 bg-amber-50 text-amber-700"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+
+              {/* Question 2: Dose changes? */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Any dose changes since your last prescription?</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setDoseChanged(true)
+                      setIsGatingBlocked(true)
+                    }}
+                    className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
+                      doseChanged === true
+                        ? "border-amber-500 bg-amber-50 text-amber-700"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDoseChanged(false)
+                      if (prescribedBefore === true) {
+                        setIsGatingBlocked(false)
+                      }
+                    }}
+                    className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
+                      doseChanged === false
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+
+              {/* Blocking message */}
+              {isGatingBlocked && (
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-900">This request requires a general consultation</p>
+                      <p className="text-sm text-amber-700 mt-1">
+                        {prescribedBefore === false
+                          ? "New medications require a doctor consultation to assess suitability."
+                          : "Dose changes require a doctor consultation to ensure safety."}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    asChild
+                    className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                  >
+                    <Link href="/consult">
+                      Continue to General Consult ($44.95)
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>
@@ -1165,7 +1280,12 @@ export function PrescriptionFlowClient({
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.medication}</p>
-                    <p className="text-sm font-medium">{medication}</p>
+                    <p className="text-sm font-medium">{selectedMedication?.display || "Not selected"}</p>
+                    {selectedMedication && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {selectedMedication.medication_name} • {selectedMedication.strength} {selectedMedication.form}
+                      </p>
+                    )}
                   </div>
                   <button onClick={() => goTo("medication")} className="p-1 hover:bg-muted rounded">
                     <Pencil className="w-3 h-3 text-muted-foreground" />

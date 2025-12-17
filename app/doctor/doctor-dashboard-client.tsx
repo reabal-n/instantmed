@@ -132,7 +132,7 @@ export function DoctorDashboardClient({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-foreground">{request.patient.full_name}</span>
               <span className="text-sm text-muted-foreground">{patientAge}y</span>
-              <Badge variant="outline" className="text-xs font-normal bg-primary/10 border-primary/20 text-primary">
+              <Badge variant="outline" className="text-xs font-normal bg-indigo-50 border-indigo-200 text-indigo-700">
                 {formatCategory(request.category)}
               </Badge>
               {request.subtype && (
@@ -197,7 +197,7 @@ export function DoctorDashboardClient({
                     <Button
                       size="sm"
                       asChild
-                      className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-all hover:scale-105"
+                      className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
                     >
                       <Link href={`/doctor/requests/${request.id}?action=approve`}>
                         <CheckCircle className="h-4 w-4" />
@@ -354,7 +354,7 @@ export function DoctorDashboardClient({
                 className="gap-1.5 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 Ready
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100/80 px-1.5 text-xs font-medium text-amber-700">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-100/80 px-1.5 text-xs font-medium text-violet-700">
                   {filteredPending.length}
                 </span>
               </TabsTrigger>

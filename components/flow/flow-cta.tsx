@@ -129,7 +129,7 @@ export function FlowCTA({
               )}
               {syncStatus === 'saved' && lastSavedAt && (
                 <>
-                  <Cloud className="h-3 w-3 text-emerald-500" />
+                  <Cloud className="h-3 w-3 text-indigo-500" />
                   <span className="text-slate-400">{formatSavedTime(lastSavedAt)}</span>
                 </>
               )}
@@ -163,15 +163,15 @@ export function FlowCTA({
               'transition-all duration-200',
               variant === 'primary' && [
                 state === 'enabled' && [
-                  'bg-emerald-600 hover:bg-emerald-700 text-white',
-                  'shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30',
+                  'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
+                  'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
                 ],
                 state === 'disabled' && [
                   'bg-slate-200 text-slate-400 cursor-not-allowed',
                   'shadow-none',
                 ],
                 state === 'loading' && [
-                  'bg-emerald-600 text-white cursor-wait',
+                  'bg-gradient-to-r from-indigo-600 to-violet-600 text-white cursor-wait',
                 ],
               ],
               variant === 'secondary' && [
@@ -218,7 +218,7 @@ export function FlowCTA({
                 <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
               )}
               {isComplete && state !== 'loading' && (
-                <Check className="h-3.5 w-3.5 text-emerald-500" />
+                <Check className="h-3.5 w-3.5 text-indigo-500" />
               )}
               <span className={cn(
                 'text-xs',
@@ -270,8 +270,8 @@ export function InlineFlowCTA({
           'w-full h-13 sm:h-14 text-base font-semibold rounded-xl',
           'transition-all duration-200',
           !disabled && [
-            'bg-emerald-600 hover:bg-emerald-700 text-white',
-            'shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30',
+            'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
+            'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
           ],
           disabled && [
             'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none',

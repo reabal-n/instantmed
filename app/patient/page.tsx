@@ -64,14 +64,14 @@ export default async function PatientDashboardPage({
     }
     if (status === "needs_follow_up") {
       return {
-        badge: <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">Info requested</Badge>,
+        badge: <Badge className="bg-indigo-100 text-indigo-700 border-0 text-xs">Info requested</Badge>,
         icon: MessageSquare,
         message: "Doctor needs more information",
       }
     }
     if (status === "pending") {
       return {
-        badge: <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">In review</Badge>,
+        badge: <Badge className="bg-violet-100 text-violet-700 border-0 text-xs">In review</Badge>,
         icon: Clock,
         message: "Usually within 1 hour (8am–10pm)",
       }
@@ -104,9 +104,9 @@ export default async function PatientDashboardPage({
   return (
     <main className="space-y-6">
       {showOnboardedSuccess && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 flex items-center gap-3" role="alert">
-          <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" aria-hidden="true" />
-          <p className="text-sm text-emerald-800">Profile complete. You&apos;re ready to submit requests.</p>
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 flex items-center gap-3" role="alert">
+          <CheckCircle className="h-5 w-5 text-indigo-600 shrink-0" aria-hidden="true" />
+          <p className="text-sm text-indigo-800">Profile complete. You&apos;re ready to submit requests.</p>
         </div>
       )}
 
@@ -126,28 +126,28 @@ export default async function PatientDashboardPage({
 
       {/* Quick Stats */}
       <section aria-label="Request summary" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl border bg-card p-4">
+        <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">Total</span>
-            <FileText className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+            <FileText className="h-4 w-4 text-indigo-500" aria-hidden="true" />
           </div>
           <p className="text-2xl font-semibold">{stats.total}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">In review</span>
-            <Clock className="h-4 w-4 text-amber-500" aria-hidden="true" />
+            <Clock className="h-4 w-4 text-violet-500" aria-hidden="true" />
           </div>
           <p className="text-2xl font-semibold">{stats.pending}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">Completed</span>
             <CheckCircle className="h-4 w-4 text-emerald-500" aria-hidden="true" />
           </div>
           <p className="text-2xl font-semibold">{stats.approved}</p>
         </div>
-        <div className="rounded-xl border bg-card p-4">
+        <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">Declined</span>
             <XCircle className="h-4 w-4 text-red-500" aria-hidden="true" />
@@ -162,8 +162,8 @@ export default async function PatientDashboardPage({
           href="/medical-certificate/request"
           className="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-all duration-300 group"
         >
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-            <FileText className="h-6 w-6 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-3 group-hover:bg-indigo-500/20 transition-colors">
+            <FileText className="h-6 w-6 text-indigo-500" />
           </div>
           <h3 className="font-heading font-semibold text-foreground mb-1">Medical Certificate</h3>
           <p className="text-xs text-muted-foreground">Work, uni, or carer&apos;s leave</p>
@@ -172,8 +172,8 @@ export default async function PatientDashboardPage({
           href="/prescriptions/request"
           className="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-all duration-300 group"
         >
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors">
-            <Pill className="h-6 w-6 text-blue-500" />
+          <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-3 group-hover:bg-violet-500/20 transition-colors">
+            <Pill className="h-6 w-6 text-violet-500" />
           </div>
           <h3 className="font-heading font-semibold text-foreground mb-1">Prescription</h3>
           <p className="text-xs text-muted-foreground">Repeat scripts & reviews</p>
@@ -221,7 +221,7 @@ export default async function PatientDashboardPage({
       {inProgress.length > 0 && (
         <section aria-labelledby="in-progress-heading">
           <h2 id="in-progress-heading" className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-amber-500" aria-hidden="true" />
+            <Clock className="h-4 w-4 text-violet-500" aria-hidden="true" />
             Being reviewed
           </h2>
           <ul className="space-y-2">
@@ -234,7 +234,7 @@ export default async function PatientDashboardPage({
                     className="flex items-center justify-between p-3 rounded-xl border bg-card hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <display.icon className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                      <display.icon className="h-5 w-5 text-violet-500" aria-hidden="true" />
                       <div>
                         <p className="text-sm font-medium">
                           {formatCategory(request.category) || formatRequestType(request.type)}

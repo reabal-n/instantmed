@@ -92,7 +92,7 @@ export function AdminDashboardClient({
     switch (status) {
       case "pending":
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
             Pending
           </Badge>
         )
@@ -110,7 +110,7 @@ export function AdminDashboardClient({
         )
       case "needs_follow_up":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
             Follow-up
           </Badge>
         )
@@ -207,7 +207,7 @@ export function AdminDashboardClient({
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Pending Review</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+            <Clock className="h-4 w-4 text-violet-500" />
           </div>
           <div className="mt-2 text-3xl font-semibold text-foreground">{stats.pending}</div>
         </div>
@@ -344,7 +344,7 @@ export function AdminDashboardClient({
                                 <Checkbox
                                   checked={request.script_sent}
                                   onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                  className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                  className="data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
                                 />
                               </div>
                             </TooltipTrigger>
@@ -373,7 +373,7 @@ export function AdminDashboardClient({
                         <div className="flex flex-col gap-1">
                           <Badge
                             variant="outline"
-                            className="w-fit text-xs bg-primary/10 border-primary/20 text-primary"
+                            className="w-fit text-xs bg-indigo-50 border-indigo-200 text-indigo-700"
                           >
                             {formatCategory(request.category)}
                           </Badge>
@@ -389,7 +389,7 @@ export function AdminDashboardClient({
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <Send className="h-3.5 w-3.5 text-emerald-500" />
+                                  <Send className="h-3.5 w-3.5 text-indigo-500" />
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   Sent{" "}

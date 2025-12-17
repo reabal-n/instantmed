@@ -10,7 +10,7 @@ import {
   User,
   FileText,
   Pill,
-  ChevronRight,
+  ChevronDown,
   LayoutDashboard,
   ClipboardList,
   Settings,
@@ -83,7 +83,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string } | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -151,7 +151,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuTrigger asChild>
                       <button className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all flex items-center gap-1">
                         Services
-                        <ChevronRight className="h-3 w-3 rotate-90" />
+                        <ChevronDown className="h-3 w-3" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
@@ -264,7 +264,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className="ml-2 rounded-lg text-sm gap-1">
                         New request
-                        <ChevronRight className="h-3 w-3 rotate-90" aria-hidden="true" />
+                        <ChevronDown className="h-3 w-3" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
@@ -373,18 +373,23 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Open menu">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-9 w-9 rounded-xl hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200" 
+                  aria-label="Open menu"
+                >
                   {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 p-0">
+              <SheetContent side="right" className="w-80 p-0 border-l border-white/20 bg-gradient-to-b from-white/95 to-white/90 dark:from-gray-900/95 dark:to-gray-900/90 backdrop-blur-xl">
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b">
-                    <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                        <Zap className="h-4 w-4 text-primary-foreground" />
+                  <div className="p-5 border-b border-white/20">
+                    <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileMenuOpen(false)}>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+                        <Zap className="h-4.5 w-4.5 text-white" />
                       </div>
-                      <span className="text-base font-semibold">InstantMed</span>
+                      <span className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">InstantMed</span>
                     </Link>
                   </div>
 
@@ -396,7 +401,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           <DropdownMenuTrigger asChild>
                             <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all">
                               Services
-                              <ChevronRight className="h-3 w-3 rotate-90" />
+                              <ChevronDown className="h-3 w-3" />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
@@ -454,16 +459,16 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           <span className="text-sm font-medium">Blog</span>
                         </Link>
 
-                        <div className="pt-4 space-y-2">
-                          <div className="flex justify-center pb-2">
+                        <div className="pt-4 space-y-3 border-t border-white/20 mt-4">
+                          <div className="flex justify-center py-2">
                             <CinematicThemeSwitcher />
                           </div>
-                          <Button variant="outline" asChild className="w-full rounded-lg bg-transparent">
+                          <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all">
                             <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                               Sign in
                             </Link>
                           </Button>
-                          <Button asChild className="w-full rounded-lg">
+                          <Button asChild className="w-full rounded-xl btn-premium">
                             <Link href="/start" onClick={() => setMobileMenuOpen(false)}>
                               Get started
                             </Link>
@@ -478,57 +483,61 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                           href="/patient"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
+                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
                             isActivePath("/patient") && !isActivePath("/patient/requests")
-                              ? "bg-primary/10 text-primary"
-                              : "hover:bg-muted active:bg-muted",
+                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm"
+                              : "hover:bg-white/60 active:bg-white/80",
                           )}
                         >
-                          <LayoutDashboard className="h-6 w-6" />
-                          <span className="text-base font-medium">Dashboard</span>
+                          <LayoutDashboard className="h-5 w-5" />
+                          <span className="text-sm font-medium">Dashboard</span>
                         </Link>
                         <Link
                           href="/patient/requests"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
-                            isActivePath("/patient/requests") ? "bg-primary/10 text-primary" : "hover:bg-muted active:bg-muted",
+                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
+                            isActivePath("/patient/requests") 
+                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm" 
+                              : "hover:bg-white/60 active:bg-white/80",
                           )}
                         >
-                          <ClipboardList className="h-6 w-6" />
-                          <span className="text-base font-medium">My Requests</span>
+                          <ClipboardList className="h-5 w-5" />
+                          <span className="text-sm font-medium">My Requests</span>
                         </Link>
                         <Link
                           href="/patient/settings"
                           onClick={() => setMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-4 px-4 py-4 rounded-xl transition-colors min-h-[56px] active:scale-[0.98]",
-                            isActivePath("/patient/settings") ? "bg-primary/10 text-primary" : "hover:bg-muted active:bg-muted",
+                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
+                            isActivePath("/patient/settings") 
+                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm" 
+                              : "hover:bg-white/60 active:bg-white/80",
                           )}
                         >
-                          <Settings className="h-6 w-6" />
-                          <span className="text-base font-medium">Settings</span>
+                          <Settings className="h-5 w-5" />
+                          <span className="text-sm font-medium">Settings</span>
                         </Link>
 
-                        <div className="pt-4 border-t mt-4">
+                        <div className="pt-4 border-t border-white/20 mt-4">
                           <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">New request</p>
                           {services.map((service) => (
                             <Link
                               key={service.href}
                               href={service.href}
                               onClick={() => setMobileMenuOpen(false)}
-                              className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-muted active:bg-muted transition-colors min-h-[56px] active:scale-[0.98]"
+                              className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/60 active:bg-white/80 transition-all duration-200 min-h-[52px] active:scale-[0.98]"
                             >
-                              <service.icon className="h-6 w-6 text-primary" />
+                              <service.icon className="h-5 w-5 text-indigo-500" />
                               <div>
-                                <span className="text-base font-medium block">{service.title}</span>
+                                <span className="text-sm font-medium block">{service.title}</span>
                                 <span className="text-xs text-muted-foreground">{service.description}</span>
                               </div>
                             </Link>
                           ))}
                         </div>
 
-                        <div className="pt-4 border-t mt-4 space-y-3">
+                        <div className="pt-4 border-t border-white/20 mt-4 space-y-3">
                           <div className="flex justify-center py-2">
                             <CinematicThemeSwitcher />
                           </div>
@@ -538,10 +547,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                               handleSignOut()
                             }}
                             disabled={isLoggingOut}
-                            className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-red-50 active:bg-red-100 text-red-600 w-full transition-colors min-h-[56px] active:scale-[0.98]"
+                            className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-red-50/80 active:bg-red-100 text-red-600 w-full transition-all duration-200 min-h-[52px] active:scale-[0.98]"
                           >
-                            <LogOut className="h-6 w-6" />
-                            <span className="text-base font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+                            <LogOut className="h-5 w-5" />
+                            <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
                           </button>
                         </div>
                       </>

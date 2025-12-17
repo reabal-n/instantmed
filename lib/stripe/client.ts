@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 // Price ID mapping based on category/subtype
-export type ServiceCategory = "medical_certificate" | "prescription"
+export type ServiceCategory = "medical_certificate" | "prescription" | "consult"
 
 interface PriceIdInput {
   category: ServiceCategory
@@ -39,6 +39,15 @@ export function getPriceIdForRequest({ category }: PriceIdInput): string {
     return priceId
   }
 
+  // General Consult - for new prescriptions and complex cases
+  if (category === "consult") {
+    const priceId = process.env.STRIPE_PRICE_CONSULT
+    if (!priceId) {
+      throw new Error("Missing STRIPE_PRICE_CONSULT environment variable")
+    }
+    return priceId
+  }
+
   throw new Error(`Unknown category: ${category}`)
 }
 
@@ -51,6 +60,8 @@ export function getDisplayPriceForCategory(category: ServiceCategory): string {
       return "$19.95"
     case "prescription":
       return "$24.95"
+    case "consult":
+      return "$44.95"
     default:
       return "$19.95"
   }
@@ -69,6 +80,7 @@ export function calculateTotalPrice(
   const basePrices: Record<ServiceCategory, number> = {
     medical_certificate: 1995,
     prescription: 2495,
+    consult: 4495,
   }
 
   let total = basePrices[category] || 1995
