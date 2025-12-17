@@ -1,5 +1,9 @@
 import { getCurrentUser, getUserProfile } from "@/lib/auth"
 import { ConsultFlowClient } from "./consult-flow-client"
+import { getFeatureFlags } from "@/lib/feature-flags"
+import { ServiceDisabledBanner } from "@/components/service-disabled-banner"
+import { Navbar } from "@/components/shared/navbar"
+import { Footer } from "@/components/shared/footer"
 import type { Metadata } from "next"
 import Script from "next/script"
 
@@ -78,6 +82,26 @@ function ConsultJsonLd() {
 export default async function ConsultRequestPage() {
   const user = await getCurrentUser()
   const profile = user ? await getUserProfile(user.id) : null
+  const flags = await getFeatureFlags()
+
+  // Show disabled state if consults are turned off
+  if (flags.disable_consults) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <ServiceDisabledBanner
+            serviceName="Online Consultations"
+            alternativeService={{
+              name: "Medical Certificate",
+              href: "/medical-certificate/request",
+            }}
+          />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <>

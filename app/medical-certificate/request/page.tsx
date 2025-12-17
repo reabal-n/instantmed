@@ -1,5 +1,9 @@
 import { MedCertForm } from "./med-cert-form"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getFeatureFlags } from "@/lib/feature-flags"
+import { ServiceDisabledBanner } from "@/components/service-disabled-banner"
+import { Navbar } from "@/components/shared/navbar"
+import { Footer } from "@/components/shared/footer"
 import type { Metadata } from "next"
 import Script from "next/script"
 
@@ -117,6 +121,26 @@ function MedCertJsonLd() {
 
 export default async function MedCertRequestPage() {
   const authUser = await getAuthenticatedUserWithProfile()
+  const flags = await getFeatureFlags()
+
+  // Show disabled state if medical certificates are turned off
+  if (flags.disable_med_cert) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <ServiceDisabledBanner
+            serviceName="Medical Certificates"
+            alternativeService={{
+              name: "Online Consultation",
+              href: "/consult/request",
+            }}
+          />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <>

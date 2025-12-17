@@ -3,6 +3,7 @@
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 
 interface CreateCheckoutInput {
   category: ServiceCategory
@@ -52,6 +53,27 @@ function isValidUrl(url: string): boolean {
  */
 export async function createRequestAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
+    // KILL SWITCH: Check if service category is disabled
+    const categoryMap: Record<ServiceCategory, "medical_certificate" | "prescription" | "other"> = {
+      medical_certificate: "medical_certificate",
+      prescription: "prescription",
+      consult: "other",
+    }
+    const serviceCategory = categoryMap[input.category] || "other"
+    
+    if (await isServiceDisabled(serviceCategory)) {
+      console.log("[Checkout] Service disabled:", input.category)
+      const errorCode = serviceCategory === "medical_certificate" 
+        ? SERVICE_DISABLED_ERRORS.MED_CERT_DISABLED
+        : serviceCategory === "prescription"
+        ? SERVICE_DISABLED_ERRORS.REPEAT_SCRIPTS_DISABLED
+        : SERVICE_DISABLED_ERRORS.CONSULTS_DISABLED
+      return {
+        success: false,
+        error: `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
+      }
+    }
+
     // Server-side validation for repeat scripts using canonical schema
     if (input.category === "prescription" && input.subtype === "repeat") {
       const validation = validateRepeatScriptPayload(input.answers)
@@ -59,6 +81,32 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
         return {
           success: false,
           error: validation.error || "Invalid repeat script request.",
+        }
+      }
+
+      // KILL SWITCH: Check for blocked medications in repeat scripts
+      const medicationName = input.answers.medication_name as string | undefined
+      const medicationDisplay = input.answers.medication_display as string | undefined
+      const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
+      if (medCheck.blocked) {
+        console.log("[Checkout] Medication blocked:", medCheck.matchedTerm)
+        return {
+          success: false,
+          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+        }
+      }
+    }
+
+    // KILL SWITCH: Check for blocked medications in consults
+    if (input.category === "consult") {
+      const medicationName = input.answers.medication_name as string | undefined
+      const medicationDisplay = input.answers.medication_display as string | undefined
+      const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
+      if (medCheck.blocked) {
+        console.log("[Checkout] Medication blocked in consult:", medCheck.matchedTerm)
+        return {
+          success: false,
+          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
         }
       }
     }
