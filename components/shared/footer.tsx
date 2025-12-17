@@ -4,8 +4,8 @@ import { RotatingReviews } from "@/components/homepage/dynamic-social-proof"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30" role="contentinfo">
-      <div className="mx-auto max-w-5xl px-4 py-10">
+    <footer className="border-t bg-muted/20" role="contentinfo">
+      <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="space-y-3 lg:col-span-1">
@@ -57,7 +57,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Heart className="h-4 w-4 text-pink-500" aria-hidden="true" />
-                  Women's Health
+                  Women&apos;s Health
                 </Link>
               </li>
               <li>
@@ -66,7 +66,7 @@ export function Footer() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Shield className="h-4 w-4 text-blue-500" aria-hidden="true" />
-                  Men's Health
+                  Men&apos;s Health
                 </Link>
               </li>
               <li>
