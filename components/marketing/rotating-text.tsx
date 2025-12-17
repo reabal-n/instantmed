@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface RotatingTextProps {
   texts: string[]
   interval?: number
   className?: string
+  gradient?: boolean
 }
 
 // Check reduced motion preference outside component to avoid effect issues
@@ -17,11 +19,11 @@ function getReducedMotionPreference(): boolean {
 
 export function RotatingText({ 
   texts, 
-  interval = 2500,
-  className 
+  interval = 3000,
+  className,
+  gradient = true
 }: RotatingTextProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(getReducedMotionPreference)
 
   // Find the longest text to reserve space and prevent layout shift
@@ -41,17 +43,8 @@ export function RotatingText({
   }, [])
 
   const rotateText = useCallback(() => {
-    if (prefersReducedMotion) {
-      setCurrentIndex((prev) => (prev + 1) % texts.length)
-      return
-    }
-
-    setIsAnimating(true)
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % texts.length)
-      setIsAnimating(false)
-    }, 300)
-  }, [texts.length, prefersReducedMotion])
+    setCurrentIndex((prev) => (prev + 1) % texts.length)
+  }, [texts.length])
 
   useEffect(() => {
     const timer = setInterval(rotateText, interval)
@@ -66,7 +59,11 @@ export function RotatingText({
           {longestText}
         </span>
         <span className="absolute inset-0 flex items-center justify-start">
-          <span className={cn("whitespace-nowrap", className)}>
+          <span className={cn(
+            "whitespace-nowrap",
+            gradient && "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent",
+            className
+          )}>
             {texts[currentIndex]}
           </span>
         </span>
@@ -81,20 +78,27 @@ export function RotatingText({
         {longestText}
       </span>
       {/* Actual rotating text positioned absolutely */}
-      <span 
-        className="absolute inset-0 flex items-center justify-start overflow-hidden"
-      >
-        <span
-          className={cn(
-            "inline-block transition-all duration-300 ease-out whitespace-nowrap",
-            isAnimating 
-              ? "translate-y-full opacity-0" 
-              : "translate-y-0 opacity-100",
-            className
-          )}
-        >
-          {texts[currentIndex]}
-        </span>
+      <span className="absolute inset-0 flex items-center justify-start overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={currentIndex}
+            initial={{ y: 40, opacity: 0, rotateX: -90 }}
+            animate={{ y: 0, opacity: 1, rotateX: 0 }}
+            exit={{ y: -40, opacity: 0, rotateX: 90 }}
+            transition={{
+              duration: 0.5,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+            className={cn(
+              "inline-block whitespace-nowrap",
+              gradient && "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent",
+              className
+            )}
+            style={{ perspective: '1000px' }}
+          >
+            {texts[currentIndex]}
+          </motion.span>
+        </AnimatePresence>
       </span>
     </span>
   )

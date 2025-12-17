@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/sonner"
 import { LiveChatWidget } from "@/components/shared/live-chat-widget"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
-import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { ParticleParallaxBackground } from "@/components/effects/particle-parallax-background"
 import { ThemeProvider } from "next-themes"
@@ -99,7 +98,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#00E2B5",
+  themeColor: "#6366f1",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -173,7 +172,6 @@ export default function RootLayout({
           <LiveChatWidget />
           <SocialProofPopup />
           <StickyCTABar />
-          <ExitIntentPopup />
           <Analytics />
         </ThemeProvider>
       </body>

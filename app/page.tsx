@@ -11,10 +11,11 @@ import {
   CTASection,
   MarketingFooter,
 } from '@/components/marketing'
+import { TestimonialMarquee } from '@/components/marketing/testimonial-marquee'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <MarketingNavbar />
       
       <main>
@@ -32,6 +33,9 @@ export default function HomePage() {
         
         {/* Featured services */}
         <ServicesSection />
+        
+        {/* Testimonial marquee */}
+        <TestimonialMarquee />
         
         {/* 1-hour promise / SLA */}
         <OneHourPromise />

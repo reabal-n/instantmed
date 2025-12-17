@@ -11,11 +11,11 @@ const iconMap = {
 }
 
 const colorConfig: Record<string, { accent: string; glow: string }> = {
-  emerald: { accent: '#00E2B5', glow: 'rgba(0, 226, 181, 0.15)' },
-  cyan: { accent: '#06B6D4', glow: 'rgba(6, 182, 212, 0.15)' },
+  emerald: { accent: '#6366f1', glow: 'rgba(99, 102, 241, 0.15)' },
+  cyan: { accent: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.15)' },
   violet: { accent: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.15)' },
-  blue: { accent: '#3B82F6', glow: 'rgba(59, 130, 246, 0.15)' },
-  amber: { accent: '#F59E0B', glow: 'rgba(245, 158, 11, 0.15)' },
+  blue: { accent: '#6366f1', glow: 'rgba(99, 102, 241, 0.15)' },
+  amber: { accent: '#a855f7', glow: 'rgba(168, 85, 247, 0.15)' },
 }
 
 const containerVariants = {
@@ -36,9 +36,9 @@ const itemVariants = {
 
 export function ServicePicker() {
   return (
-    <section className="relative py-16 lg:py-24 bg-premium-mesh">
+    <section className="relative py-16 lg:py-24 bg-background">
       {/* Subtle gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] rounded-full blur-[100px] opacity-50" style={{ background: 'radial-gradient(circle, rgba(0,226,181,0.1) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] rounded-full blur-[100px] opacity-50" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)' }} />
       <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full blur-[80px] opacity-50" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)' }} />
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

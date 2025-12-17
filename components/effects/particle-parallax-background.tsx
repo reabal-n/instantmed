@@ -21,10 +21,10 @@ interface ParticleParallaxBackgroundProps {
 }
 
 const COLORS = [
-  "oklch(0.6 0.2 280)", // Purple
-  "oklch(0.65 0.18 175)", // Teal
-  "oklch(0.7 0.15 350)", // Pink
-  "oklch(0.6 0.12 200)", // Cyan
+  "oklch(0.65 0.2 265)", // Indigo
+  "oklch(0.6 0.22 280)", // Violet
+  "oklch(0.7 0.18 290)", // Purple
+  "oklch(0.55 0.15 255)", // Deep indigo
 ]
 
 export function ParticleParallaxBackground({
@@ -237,10 +237,10 @@ export function ParticleParallaxBackground({
         className="absolute inset-0"
         animate={{
           background: [
-            "radial-gradient(ellipse 80% 50% at 20% 20%, oklch(0.92 0.1 280 / 0.3), transparent 50%)",
-            "radial-gradient(ellipse 80% 50% at 80% 30%, oklch(0.9 0.12 175 / 0.3), transparent 50%)",
-            "radial-gradient(ellipse 80% 50% at 50% 70%, oklch(0.88 0.1 350 / 0.3), transparent 50%)",
-            "radial-gradient(ellipse 80% 50% at 20% 20%, oklch(0.92 0.1 280 / 0.3), transparent 50%)",
+            "radial-gradient(ellipse 80% 50% at 20% 20%, oklch(0.92 0.12 265 / 0.3), transparent 50%)",
+            "radial-gradient(ellipse 80% 50% at 80% 30%, oklch(0.9 0.14 280 / 0.3), transparent 50%)",
+            "radial-gradient(ellipse 80% 50% at 50% 70%, oklch(0.88 0.12 290 / 0.3), transparent 50%)",
+            "radial-gradient(ellipse 80% 50% at 20% 20%, oklch(0.92 0.12 265 / 0.3), transparent 50%)",
           ],
         }}
         transition={{
@@ -254,7 +254,7 @@ export function ParticleParallaxBackground({
       <motion.div
         className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl opacity-20"
         style={{
-          background: "radial-gradient(circle, oklch(0.6 0.2 280), transparent)",
+          background: "radial-gradient(circle, oklch(0.65 0.2 265), transparent)",
         }}
         animate={{
           x: [0, 100, -50, 0],
@@ -270,7 +270,7 @@ export function ParticleParallaxBackground({
       <motion.div
         className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
         style={{
-          background: "radial-gradient(circle, oklch(0.65 0.18 175), transparent)",
+          background: "radial-gradient(circle, oklch(0.6 0.22 280), transparent)",
         }}
         animate={{
           x: [0, -80, 60, 0],
@@ -286,7 +286,7 @@ export function ParticleParallaxBackground({
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full blur-3xl opacity-15"
         style={{
-          background: "radial-gradient(circle, oklch(0.7 0.15 350), transparent)",
+          background: "radial-gradient(circle, oklch(0.7 0.18 290), transparent)",
         }}
         animate={{
           x: [0, 60, -40, 0],
