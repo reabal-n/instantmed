@@ -80,12 +80,16 @@ export function Hero() {
               </HeroButton>
             </div>
 
-            {/* Trust row - minimal pills */}
+            {/* Trust row - liquid glass pills */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-2">
-              {trustSignals.map((signal) => {
+              {trustSignals.map((signal, index) => {
                 const Icon = iconMap[signal.icon as keyof typeof iconMap]
                 return (
-                  <div key={signal.text} className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted transition-colors">
+                  <div 
+                    key={signal.text} 
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full liquid-glass-pill hover-bounce"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <Icon className="h-3.5 w-3.5 text-primary/70" />
                     <span>{signal.text}</span>
                   </div>

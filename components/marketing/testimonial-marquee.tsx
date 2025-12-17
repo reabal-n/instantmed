@@ -87,7 +87,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
       <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500/20 via-violet-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
       
       {/* Card */}
-      <div className="relative h-full rounded-2xl overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 p-6 shadow-lg shadow-indigo-500/5 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-indigo-500/15 group-hover:-translate-y-2 group-hover:border-indigo-200 dark:group-hover:border-indigo-500/30">
+      <div className="relative h-full rounded-2xl overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 p-6 shadow-lg shadow-indigo-500/5 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-indigo-500/15 group-hover:-translate-y-3 group-hover:border-indigo-200 dark:group-hover:border-indigo-500/30 group-hover:scale-[1.02]">
         {/* Quote icon */}
         <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
           <Quote className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />

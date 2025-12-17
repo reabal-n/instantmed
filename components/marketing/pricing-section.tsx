@@ -31,8 +31,8 @@ export function PricingSection() {
               className={cn(
                 "group relative flex flex-col rounded-3xl p-6 lg:p-8 transition-all duration-500 backdrop-blur-sm",
                 tier.popular 
-                  ? "bg-gradient-to-b from-indigo-50 to-violet-50 dark:from-indigo-500/20 dark:to-violet-500/10 border-2 border-indigo-300 dark:border-indigo-500/30 shadow-xl shadow-indigo-500/10 scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20" 
-                  : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:shadow-xl dark:hover:bg-white/10 hover:-translate-y-2 card-glow"
+                  ? "bg-gradient-to-b from-indigo-50 to-violet-50 dark:from-indigo-500/20 dark:to-violet-500/10 border-2 border-indigo-300 dark:border-indigo-500/30 shadow-xl shadow-indigo-500/10 scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20 breathe" 
+                  : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/30 lift-on-hover tilt-on-hover"
               )}
             >
               {/* Glow effect for popular */}
