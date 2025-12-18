@@ -41,7 +41,7 @@ const stats = [
 
 export function TrustSection() {
   return (
-    <section className="py-16 lg:py-20 bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm">
+    <section className="py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Trust badges */}
         <motion.div

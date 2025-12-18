@@ -8,17 +8,18 @@ import {
   CTASection,
   TrustSection,
   MarketingFooter,
+  PricingSection,
 } from '@/components/marketing'
 import { TestimonialMarquee } from '@/components/marketing/testimonial-marquee'
 import { ComparisonStats } from '@/components/homepage/comparison-stats'
-import { AnimatedGradientBackground } from '@/components/effects/animated-gradient-bg'
+import { UnifiedBackground } from '@/components/effects/unified-background'
 import { ParallaxSection } from '@/components/effects/parallax-section'
 import { Navbar } from '@/components/shared/navbar'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-transparent overflow-x-hidden">
-      <AnimatedGradientBackground />
+      <UnifiedBackground />
       
       <Navbar variant="marketing" />
       
@@ -47,6 +48,10 @@ export default function HomePage() {
         
         <ParallaxSection speed={0.04}>
           <TrustSection />
+        </ParallaxSection>
+        
+        <ParallaxSection speed={0.05}>
+          <PricingSection />
         </ParallaxSection>
         
         <ParallaxSection speed={0.07}>

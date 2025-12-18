@@ -1,13 +1,12 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter, Lora, JetBrains_Mono } from "next/font/google"
+import { Inter, Lora, JetBrains_Mono, Caveat } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
-import { ParticleParallaxBackground } from "@/components/effects/particle-parallax-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
@@ -30,6 +29,13 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
+})
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-handwritten",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 })
 
 export const metadata: Metadata = {
@@ -157,7 +163,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -168,7 +174,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <HeroUIProviderWrapper>
-            <ParticleParallaxBackground intensity="medium" />
             <SkipToContent />
             <div id="main-content" className="page-enter relative">
               {children}

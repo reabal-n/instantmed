@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { fadeUp, stagger } from '@/lib/motion'
 
@@ -106,122 +106,113 @@ export interface SectionProps
   as?: 'section' | 'div' | 'article' | 'aside'
 }
 
-const Section = React.forwardRef<HTMLDivElement, SectionProps>(
-  (
-    { className, spacing, container, background, as: Component = 'section', ...props },
-    ref
-  ) => {
-    return (
-      <Component
-        ref={ref as React.Ref<HTMLElement>}
-        className={cn(sectionVariants({ spacing, container, background, className }))}
-        {...props}
-      />
-    )
-  }
-)
-Section.displayName = 'Section'
+function Section({
+  className,
+  spacing,
+  container,
+  background,
+  as: Component = 'section',
+  ...props
+}: SectionProps) {
+  return (
+    <Component
+      className={cn(sectionVariants({ spacing, container, background, className }))}
+      {...props}
+    />
+  )
+}
 
 // =============================================================================
 // ANIMATED SECTION
 // =============================================================================
 
 export interface SectionMotionProps
-  extends Omit<HTMLMotionProps<'section'>, 'onAnimationStart' | 'onDrag' | 'onDragEnd' | 'onDragStart'>,
-    VariantProps<typeof sectionVariants> {
+  extends VariantProps<typeof sectionVariants> {
   animateChildren?: boolean
+  className?: string
+  children?: React.ReactNode
 }
 
-const SectionMotion = React.forwardRef<HTMLElement, SectionMotionProps>(
-  (
-    { className, spacing, container, background, animateChildren = false, children, ...props },
-    ref
-  ) => {
-    return (
-      <motion.section
-        ref={ref}
-        className={cn(sectionVariants({ spacing, container, background, className }))}
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, margin: '-100px' }}
-        variants={animateChildren ? stagger.container : fadeUp}
-        {...props}
-      >
-        {animateChildren
-          ? React.Children.map(children, (child) =>
-              React.isValidElement(child) ? (
-                <motion.div variants={stagger.item}>{child}</motion.div>
-              ) : (
-                child
-              )
+function SectionMotion({
+  className,
+  spacing,
+  container,
+  background,
+  animateChildren = false,
+  children,
+}: SectionMotionProps) {
+  return (
+    <motion.section
+      className={cn(sectionVariants({ spacing, container, background, className }))}
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true, margin: '-100px' }}
+      variants={animateChildren ? stagger.container : fadeUp}
+    >
+      {animateChildren
+        ? React.Children.map(children, (child) =>
+            React.isValidElement(child) ? (
+              <motion.div variants={stagger.item}>{child}</motion.div>
+            ) : (
+              child
             )
-          : children}
-      </motion.section>
-    )
-  }
-)
-SectionMotion.displayName = 'SectionMotion'
+          )
+        : children}
+    </motion.section>
+  )
+}
 
 // =============================================================================
 // ANIMATED SECTION HEADER
 // =============================================================================
 
-const SectionHeaderMotion = React.forwardRef<HTMLDivElement, SectionHeaderProps>(
-  (
-    {
-      className,
-      title,
-      subtitle,
-      description,
-      align = 'center',
-      as: Heading = 'h2',
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const alignClass = {
-      left: 'text-left',
-      center: 'text-center mx-auto',
-      right: 'text-right ml-auto',
-    }
-
-    return (
-      <motion.div
-        ref={ref}
-        className={cn('max-w-3xl mb-8 md:mb-12', alignClass[align], className)}
-        variants={stagger.container}
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, margin: '-50px' }}
-        {...props}
-      >
-        {subtitle && (
-          <motion.p
-            variants={stagger.item}
-            className="text-sm font-medium text-primary mb-2 uppercase tracking-wider"
-          >
-            {subtitle}
-          </motion.p>
-        )}
-        {title && (
-          <motion.div variants={stagger.item}>
-            <Heading className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              {title}
-            </Heading>
-          </motion.div>
-        )}
-        {description && (
-          <motion.p variants={stagger.item} className="text-lg text-muted-foreground">
-            {description}
-          </motion.p>
-        )}
-        {children && <motion.div variants={stagger.item}>{children}</motion.div>}
-      </motion.div>
-    )
+function SectionHeaderMotion({
+  className,
+  title,
+  subtitle,
+  description,
+  align = 'center',
+  as: Heading = 'h2',
+  children,
+}: SectionHeaderProps) {
+  const alignClass = {
+    left: 'text-left',
+    center: 'text-center mx-auto',
+    right: 'text-right ml-auto',
   }
-)
-SectionHeaderMotion.displayName = 'SectionHeaderMotion'
+
+  return (
+    <motion.div
+      className={cn('max-w-3xl mb-8 md:mb-12', alignClass[align], className)}
+      variants={stagger.container}
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true, margin: '-50px' }}
+    >
+      {subtitle && (
+        <motion.p
+          variants={stagger.item}
+          className="text-sm font-medium text-primary mb-2 uppercase tracking-wider"
+        >
+          {subtitle}
+        </motion.p>
+      )}
+      {title && (
+        <motion.div variants={stagger.item}>
+          <Heading className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            {title}
+          </Heading>
+        </motion.div>
+      )}
+      {description && (
+        <motion.p variants={stagger.item} className="text-lg text-muted-foreground">
+          {description}
+        </motion.p>
+      )}
+      {children && <motion.div variants={stagger.item}>{children}</motion.div>}
+    </motion.div>
+  )
+}
 
 // =============================================================================
 // EXPORTS

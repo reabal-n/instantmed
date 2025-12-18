@@ -762,17 +762,17 @@ export function createStagger(delay = staggerDelay.normal, initialDelay = 0.1) {
  * Create variants with custom delay
  */
 export function withDelay<T extends Variants>(variants: T, delay: number): T {
-  const result = { ...variants }
+  const result = { ...variants } as T & { animate?: { transition?: object } }
   if (result.animate && typeof result.animate === 'object') {
     result.animate = {
       ...result.animate,
       transition: {
-        ...(result.animate.transition as object || {}),
+        ...(result.animate.transition || {}),
         delay,
       },
     }
   }
-  return result
+  return result as T
 }
 
 /**

@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles, FileText, Pill, Stethoscope } from 'lucide-react'
-import { Button } from '@heroui/react'
+import { Check, FileText, Pill, Stethoscope } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
 
@@ -15,111 +15,172 @@ const iconMap = {
 export function PricingSection() {
   return (
     <section id="pricing" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
-      
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
-            <Sparkles className="w-4 h-4 text-violet-500 group-hover:animate-spin" />
-            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Simple pricing</span>
+      <div className="w-full max-w-6xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center space-y-6 mb-16">
+          <div className="font-handwritten text-xl text-blue-500 rotate-[-1deg]">
+            Simple Pricing
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Transparent, upfront pricing
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            No hidden fees. No subscription required. Pay only when you need care.
+          <div className="relative">
+            <h2 className="text-4xl md:text-5xl font-bold font-handwritten text-zinc-900 dark:text-white rotate-[-1deg]">
+              Pay per consult. No subscriptions.
+              <div className="absolute -right-12 top-0 text-amber-500 rotate-12 hidden md:block">
+                ✨
+              </div>
+              <div className="absolute -left-8 bottom-0 text-blue-500 -rotate-12 hidden md:block">
+                ⭐️
+              </div>
+            </h2>
+            <div
+              className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-44 h-3 bg-blue-500/20 
+              rotate-[-1deg] rounded-full blur-sm"
+            />
+          </div>
+          <p className="font-handwritten text-xl text-zinc-600 dark:text-zinc-400 rotate-[-1deg]">
+            No hidden fees. Only pay when you need care.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {pricingTiers.map((tier) => (
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {pricingTiers.map((tier, index) => (
             <div
               key={tier.name}
               className={cn(
-                "group relative flex flex-col rounded-3xl p-6 lg:p-8 transition-all duration-500 backdrop-blur-sm",
-                tier.popular 
-                  ? "bg-gradient-to-b from-indigo-50 to-violet-50 dark:from-indigo-500/20 dark:to-violet-500/10 border-2 border-indigo-300 dark:border-indigo-500/30 shadow-xl shadow-indigo-500/10 scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20 breathe" 
-                  : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/30 lift-on-hover tilt-on-hover"
+                "relative group",
+                "transition-all duration-300",
+                index === 0 && "rotate-[-1deg]",
+                index === 1 && "rotate-[1deg]",
+                index === 2 && "rotate-[-2deg]"
               )}
             >
-              {/* Glow effect for popular */}
-              {tier.popular && (
-                <div className="absolute -inset-px rounded-3xl bg-gradient-to-b from-indigo-500/20 to-violet-500/20 -z-10 blur-xl opacity-50" />
-              )}
-              
-              {/* Popular badge */}
-              {tier.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30">
-                    <Sparkles className="w-3 h-3" />
-                    Most popular
-                  </span>
-                </div>
-              )}
+              {/* Card background with shadow */}
+              <div
+                className={cn(
+                  "absolute inset-0 bg-white dark:bg-zinc-900",
+                  "border-2 border-zinc-900 dark:border-white",
+                  "rounded-lg shadow-[4px_4px_0px_0px] shadow-zinc-900 dark:shadow-white",
+                  "transition-all duration-300",
+                  "group-hover:shadow-[8px_8px_0px_0px]",
+                  "group-hover:translate-x-[-4px]",
+                  "group-hover:translate-y-[-4px]"
+                )}
+              />
 
-              <div className="text-center mb-6">
-                {/* Icon */}
-                {tier.icon && (
-                  <div className={cn(
-                    "w-14 h-14 mx-auto rounded-2xl mb-4 flex items-center justify-center bg-gradient-to-br",
-                    tier.color || "from-indigo-500 to-violet-500"
-                  )}>
-                    {(() => {
-                      const Icon = iconMap[tier.icon as keyof typeof iconMap]
-                      return Icon ? <Icon className="w-7 h-7 text-white" /> : null
-                    })()}
+              <div className="relative p-6">
+                {/* Popular badge */}
+                {tier.popular && (
+                  <div
+                    className="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 
+                    font-handwritten px-3 py-1 rounded-full rotate-12 text-sm border-2 border-zinc-900"
+                  >
+                    Popular!
                   </div>
                 )}
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {tier.name}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {tier.description}
-                </p>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className={cn(
-                    "text-4xl font-bold",
-                    tier.popular ? "text-gradient-primary" : "text-foreground"
-                  )}>
+
+                <div className="mb-6">
+                  {/* Icon */}
+                  {tier.icon && (
+                    <div
+                      className={cn(
+                        "w-12 h-12 rounded-full mb-4",
+                        "flex items-center justify-center",
+                        "border-2 border-zinc-900 dark:border-white"
+                      )}
+                    >
+                      {(() => {
+                        const Icon = iconMap[tier.icon as keyof typeof iconMap]
+                        return Icon ? <Icon className="w-6 h-6 text-indigo-500" /> : null
+                      })()}
+                    </div>
+                  )}
+                  <h3 className="font-handwritten text-2xl text-zinc-900 dark:text-white">
+                    {tier.name}
+                  </h3>
+                  <p className="font-handwritten text-zinc-600 dark:text-zinc-400">
+                    {tier.description}
+                  </p>
+                </div>
+
+                {/* Price */}
+                <div className="mb-6 font-handwritten">
+                  <span className="text-4xl font-bold text-zinc-900 dark:text-white">
                     ${tier.price.toFixed(2)}
                   </span>
+                  <span className="text-zinc-600 dark:text-zinc-400 ml-1">
+                    AUD
+                  </span>
                 </div>
-              </div>
 
-              <ul className="space-y-3 mb-8 flex-1">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <div className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-                      tier.popular ? "bg-indigo-100 dark:bg-indigo-500/30" : "bg-slate-100 dark:bg-white/10"
-                    )}>
-                      <Check className={cn(
-                        "h-3 w-3",
-                        tier.popular ? "text-indigo-600 dark:text-indigo-300" : "text-slate-600 dark:text-white/70"
-                      )} />
+                {/* Features */}
+                <div className="space-y-3 mb-6">
+                  {tier.features.map((feature) => (
+                    <div
+                      key={feature}
+                      className="flex items-center gap-3"
+                    >
+                      <div
+                        className="w-5 h-5 rounded-full border-2 border-zinc-900 
+                        dark:border-white flex items-center justify-center flex-shrink-0"
+                      >
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span className="font-handwritten text-lg text-zinc-900 dark:text-white">
+                        {feature}
+                      </span>
                     </div>
-                    <span className="text-sm text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </div>
 
-              <Button 
-                as={Link}
-                href={tier.href}
-                color={tier.popular ? "primary" : "default"}
-                variant={tier.popular ? "solid" : "bordered"}
-                className="w-full h-12"
-                endContent={<ArrowRight className="h-4 w-4" />}
-              >
-                {tier.cta}
-              </Button>
+                {/* CTA Button */}
+                <Button
+                  asChild
+                  className={cn(
+                    "w-full h-12 font-handwritten text-lg relative",
+                    "border-2 border-zinc-900 dark:border-white",
+                    "transition-all duration-300",
+                    "shadow-[4px_4px_0px_0px] shadow-zinc-900 dark:shadow-white",
+                    "hover:shadow-[6px_6px_0px_0px]",
+                    "hover:translate-x-[-2px] hover:translate-y-[-2px]",
+                    tier.popular
+                      ? [
+                          "bg-amber-400 text-zinc-900",
+                          "hover:bg-amber-300",
+                          "active:bg-amber-400",
+                          "dark:hover:bg-amber-300",
+                          "dark:active:bg-amber-400",
+                        ]
+                      : [
+                          "bg-zinc-50 dark:bg-zinc-800",
+                          "text-zinc-900 dark:text-white",
+                          "hover:bg-white dark:hover:bg-zinc-700",
+                          "active:bg-zinc-50 dark:active:bg-zinc-800",
+                        ]
+                  )}
+                >
+                  <Link href={tier.href}>
+                    {tier.cta}
+                  </Link>
+                </Button>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Additional note */}
-        <p className="text-center text-sm text-muted-foreground mt-8">
-          All prices include GST. Additional charges may apply for priority processing or complex requests.
+        <p className="text-center font-handwritten text-zinc-600 dark:text-zinc-400 mt-12">
+          All prices include GST. Full refund if we can&apos;t help.
         </p>
+
+        {/* Decorative elements */}
+        <div className="absolute -z-10 inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-40 left-20 text-4xl rotate-12 opacity-20">
+            ✎
+          </div>
+          <div className="absolute bottom-40 right-20 text-4xl -rotate-12 opacity-20">
+            ✏️
+          </div>
+        </div>
       </div>
     </section>
   )

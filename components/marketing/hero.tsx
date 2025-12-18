@@ -21,9 +21,6 @@ const iconMap = {
 export function Hero() {
   return (
     <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-20">
-      {/* Single subtle gradient - cleaner look */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -translate-y-1/4 translate-x-1/4 opacity-60" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
-
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:pt-32 lg:pb-24">
         {/* Top indicators - Doctor availability and live visitors */}
         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8">

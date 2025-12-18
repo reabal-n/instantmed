@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button, Input } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { TiltCard } from "@/components/shared/tilt-card"
+import { motion, useMotionValue, useTransform } from "framer-motion"
 import { Loader2, ShieldCheck, Clock, Star } from "lucide-react"
 import { logger } from "@/lib/logger"
 
@@ -46,6 +46,23 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect")
   const errorParam = searchParams.get("error")
+
+  // 3D card tilt effect
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const rotateX = useTransform(mouseY, [-300, 300], [8, -8])
+  const rotateY = useTransform(mouseX, [-300, 300], [-8, 8])
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    mouseX.set(e.clientX - rect.left - rect.width / 2)
+    mouseY.set(e.clientY - rect.top - rect.height / 2)
+  }
+
+  const handleMouseLeave = () => {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
 
   // Handle URL error params (from OAuth callback)
   useEffect(() => {
@@ -238,103 +255,217 @@ export default function LoginPage() {
             </span>
           </div>
 
-          {/* Glass card login form */}
-          <TiltCard
-            className="glass-card rounded-3xl p-8 animate-scale-in opacity-0"
-            style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
+          {/* 3D Glass card login form */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            style={{ perspective: 1500 }}
           >
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-                Welcome back
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">Sign in to continue to InstantMed</p>
-            </div>
-
-            <Button
-              type="button"
-              variant="bordered"
-              onPress={handleGoogleLogin}
-              isDisabled={isGoogleLoading || isLoading}
-              className="w-full h-12 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4 shadow-sm"
-              radius="lg"
+            <motion.div
+              style={{ rotateX, rotateY }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              whileHover={{ z: 10 }}
+              className="relative group"
             >
-              {isGoogleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <GoogleIcon className="mr-2 h-5 w-5" />
-              )}
-              Continue with Google
-            </Button>
-
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#0A0F1C]/10" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white/80 text-muted-foreground rounded-full">or use email</span>
-              </div>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                type="email"
-                placeholder="Email"
-                isRequired
-                value={email}
-                onValueChange={setEmail}
-                isDisabled={isLoading || isGoogleLoading}
-                variant="bordered"
-                radius="lg"
-                classNames={{
-                  inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                  input: "placeholder:text-default-500",
+              {/* Card glow effect */}
+              <motion.div 
+                className="absolute -inset-[1px] rounded-3xl opacity-0 group-hover:opacity-60 transition-opacity duration-700"
+                animate={{
+                  boxShadow: [
+                    "0 0 15px 3px rgba(0, 226, 181, 0.1)",
+                    "0 0 25px 8px rgba(0, 226, 181, 0.15)",
+                    "0 0 15px 3px rgba(0, 226, 181, 0.1)"
+                  ],
                 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
-              <div className="space-y-2">
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  isRequired
-                  value={password}
-                  onValueChange={setPassword}
-                  isDisabled={isLoading || isGoogleLoading}
-                  variant="bordered"
-                  radius="lg"
-                  classNames={{
-                    inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                    input: "placeholder:text-default-500",
+
+              {/* Traveling light beam border */}
+              <div className="absolute -inset-[1px] rounded-3xl overflow-hidden">
+                {/* Top beam */}
+                <motion.div 
+                  className="absolute top-0 left-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
+                  animate={{ left: ["-40%", "100%"] }}
+                  transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
+                />
+                {/* Right beam */}
+                <motion.div 
+                  className="absolute top-0 right-0 h-[40%] w-[2px] bg-gradient-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
+                  animate={{ top: ["-40%", "100%"] }}
+                  transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 0.75 }}
+                />
+                {/* Bottom beam */}
+                <motion.div 
+                  className="absolute bottom-0 right-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
+                  animate={{ right: ["-40%", "100%"] }}
+                  transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 1.5 }}
+                />
+                {/* Left beam */}
+                <motion.div 
+                  className="absolute bottom-0 left-0 h-[40%] w-[2px] bg-gradient-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
+                  animate={{ bottom: ["-40%", "100%"] }}
+                  transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 2.25 }}
+                />
+
+                {/* Corner glow spots */}
+                <motion.div 
+                  className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#00E2B5]/50 blur-[2px]"
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <motion.div 
+                  className="absolute bottom-0 left-0 h-2 w-2 rounded-full bg-[#06B6D4]/50 blur-[2px]"
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+                />
+              </div>
+
+              {/* Card border glow on hover */}
+              <div className="absolute -inset-[0.5px] rounded-3xl bg-gradient-to-r from-[#00E2B5]/5 via-[#06B6D4]/10 to-[#00E2B5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              {/* Glass card background */}
+              <div className="relative glass-card rounded-3xl p-8 border border-white/20 overflow-hidden">
+                {/* Subtle inner pattern */}
+                <div 
+                  className="absolute inset-0 opacity-[0.02]"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 1px)`,
+                    backgroundSize: '24px 24px'
                   }}
                 />
-                <div className="flex justify-end">
-                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline font-medium">
-                    Forgot password?
-                  </Link>
+
+                <div className="relative z-10">
+                  <div className="text-center mb-6">
+                    <motion.h1 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-2xl font-bold" 
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      Welcome back
+                    </motion.h1>
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="mt-1 text-sm text-muted-foreground"
+                    >
+                      Sign in to continue to InstantMed
+                    </motion.p>
+                  </div>
+
+                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                    <Button
+                      type="button"
+                      variant="bordered"
+                      onPress={handleGoogleLogin}
+                      isDisabled={isGoogleLoading || isLoading}
+                      className="w-full h-12 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium mb-4 shadow-sm"
+                      radius="lg"
+                    >
+                      {isGoogleLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <GoogleIcon className="mr-2 h-5 w-5" />
+                      )}
+                      Continue with Google
+                    </Button>
+                  </motion.div>
+
+                  <div className="relative my-5 flex items-center">
+                    <div className="flex-grow border-t border-foreground/5" />
+                    <motion.span 
+                      className="mx-3 text-xs text-muted-foreground"
+                      animate={{ opacity: [0.6, 0.9, 0.6] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    >
+                      or
+                    </motion.span>
+                    <div className="flex-grow border-t border-foreground/5" />
+                  </div>
+
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      isRequired
+                      value={email}
+                      onValueChange={setEmail}
+                      isDisabled={isLoading || isGoogleLoading}
+                      variant="bordered"
+                      radius="lg"
+                      classNames={{
+                        inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary transition-all duration-300",
+                        input: "placeholder:text-default-500",
+                      }}
+                    />
+                    <div className="space-y-2">
+                      <Input
+                        type="password"
+                        placeholder="Password"
+                        isRequired
+                        value={password}
+                        onValueChange={setPassword}
+                        isDisabled={isLoading || isGoogleLoading}
+                        variant="bordered"
+                        radius="lg"
+                        classNames={{
+                          inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary transition-all duration-300",
+                          input: "placeholder:text-default-500",
+                        }}
+                      />
+                      <div className="flex justify-end">
+                        <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                          Forgot password?
+                        </Link>
+                      </div>
+                    </div>
+
+                    {error && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3 border border-red-100"
+                      >
+                        {error}
+                      </motion.p>
+                    )}
+
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        type="submit"
+                        isDisabled={isLoading || isGoogleLoading}
+                        isLoading={isLoading}
+                        className="w-full h-12 btn-cta"
+                        radius="full"
+                        spinner={<Loader2 className="h-4 w-4 animate-spin" />}
+                      >
+                        {isLoading ? "Signing in..." : "Sign in"}
+                      </Button>
+                    </motion.div>
+                  </form>
+
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-6 text-center text-sm text-muted-foreground"
+                  >
+                    {"New to InstantMed? "}
+                    <Link href={registerLink} className="relative inline-block group/signup">
+                      <span className="font-semibold text-[#00E2B5] group-hover/signup:text-[#00E2B5]/80 transition-colors">
+                        Create an account
+                      </span>
+                      <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-[#00E2B5] group-hover/signup:w-full transition-all duration-300" />
+                    </Link>
+                  </motion.p>
                 </div>
               </div>
-
-              {error && (
-                <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3 border border-red-100">{error}</p>
-              )}
-
-              <Button
-                type="submit"
-                isDisabled={isLoading || isGoogleLoading}
-                isLoading={isLoading}
-                className="w-full h-12 btn-cta"
-                radius="full"
-                spinner={<Loader2 className="h-4 w-4 animate-spin" />}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              {"New to InstantMed? "}
-              <Link href={registerLink} className="font-semibold text-[#00E2B5] hover:underline">
-                Create an account
-              </Link>
-            </p>
-          </TiltCard>
+            </motion.div>
+          </motion.div>
         </div>
       </main>
 

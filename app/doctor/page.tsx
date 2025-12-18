@@ -16,25 +16,14 @@ export default async function DoctorDashboardPage() {
     redirect("/auth/login")
   }
 
-  let pendingRequests, approvedRequests, declinedRequests, awaitingPaymentRequests, stats
-  
-  try {
-    const results = await Promise.all([
-      getAllRequestsByStatus("pending"),
-      getAllRequestsByStatus("approved"),
-      getAllRequestsByStatus("declined"),
-      getRequestsAwaitingPayment(),
-      getDoctorDashboardStats(),
-    ])
-    
-    pendingRequests = results[0]
-    approvedRequests = results[1]
-    declinedRequests = results[2]
-    awaitingPaymentRequests = results[3]
-    stats = results[4]
-  } catch (error) {
-    throw error
-  }
+  // Fetch all data with individual error handling to prevent total failure
+  const [pendingRequests, approvedRequests, declinedRequests, awaitingPaymentRequests, stats] = await Promise.all([
+    getAllRequestsByStatus("pending").catch(() => []),
+    getAllRequestsByStatus("approved").catch(() => []),
+    getAllRequestsByStatus("declined").catch(() => []),
+    getRequestsAwaitingPayment().catch(() => []),
+    getDoctorDashboardStats().catch(() => ({ total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0 })),
+  ])
 
   return (
     <DoctorDashboardClient

@@ -14,6 +14,7 @@ const config = {
         sans: ["var(--font-sans)"],
         heading: ["var(--font-heading)"],
         mono: ["var(--font-mono)"],
+        handwritten: ["var(--font-handwritten)", "Caveat", "cursive"],
       },
     },
   },

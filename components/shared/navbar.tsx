@@ -6,8 +6,6 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 import {
-  Menu,
-  X,
   LogOut,
   User,
   FileText,
@@ -30,7 +28,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import SkyToggle from "@/components/ui/sky-toggle"
@@ -325,14 +323,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     Pricing
                   </NavLink>
 
-                  <div className="ml-2 flex items-center gap-1.5">
+                  <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={12} />
                     {user ? (
                       <Button
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="rounded-md text-xs h-7 px-2 hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-md text-xs h-7 px-2.5 hover:bg-white/40 dark:hover:bg-white/5"
                       >
                         <Link href="/patient">Dashboard</Link>
                       </Button>
@@ -341,12 +339,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="rounded-md text-xs h-7 px-2 hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-md text-xs h-7 px-2.5 hover:bg-white/40 dark:hover:bg-white/5"
                       >
                         <Link href="/auth/login">Sign in</Link>
                       </Button>
                     )}
-                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3">
+                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
                       Get started
                     </ShatterButtonLink>
                   </div>
@@ -475,196 +473,158 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               )}
             </div>
 
-            {/* Mobile Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-9 w-9 rounded-xl hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200" 
-                  aria-label="Open menu"
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80 p-0 border-l border-white/20 bg-gradient-to-b from-white/95 to-white/90 dark:from-gray-900/95 dark:to-gray-900/90 backdrop-blur-xl">
-                <div className="flex flex-col h-full">
-                  <div className="p-5 border-b border-white/20">
-                    <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileMenuOpen(false)}>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
-                        <Zap className="h-4.5 w-4.5 text-white" />
-                      </div>
-                      <span className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">InstantMed</span>
-                    </Link>
-                  </div>
-
-                  <nav className="flex-1 p-4 space-y-1" aria-label="Mobile navigation">
-                    {variant === "marketing" && (
-                      <>
-                        {/* Services Dropdown */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all">
-                              Services
-                              <ChevronDown className="h-3 w-3" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
-                            <DropdownMenuLabel className="text-xs text-muted-foreground">
-                              Core Services
-                            </DropdownMenuLabel>
-                            {services.map((service) => (
-                              <DropdownMenuItem key={service.href} asChild>
-                                <Link href={service.href} className="flex items-center gap-2 cursor-pointer">
-                                  <service.icon className="h-4 w-4 text-muted-foreground" />
-                                  <div>
-                                    <p className="text-sm font-medium">{service.title}</p>
-                                    <p className="text-xs text-muted-foreground">{service.description}</p>
-                                  </div>
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuLabel className="text-xs text-muted-foreground">
-                              Health Programs
-                            </DropdownMenuLabel>
-                            {healthVerticals.map((vertical) => (
-                              <DropdownMenuItem key={vertical.href} asChild>
-                                <Link href={vertical.href} className="flex items-center gap-2 cursor-pointer">
-                                  <vertical.icon className={cn("h-4 w-4", vertical.color)} />
-                                  <div>
-                                    <p className="text-sm font-medium">{vertical.title}</p>
-                                    <p className="text-xs text-muted-foreground">{vertical.description}</p>
-                                  </div>
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <Link
-                          href="/how-it-works"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                        >
-                          <span className="text-sm font-medium">How it works</span>
-                        </Link>
-                        <Link
-                          href="/about"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                        >
-                          <span className="text-sm font-medium">About</span>
-                        </Link>
-                        <Link
-                          href="/blog"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                        >
-                          <span className="text-sm font-medium">Blog</span>
-                        </Link>
-
-                        <div className="pt-4 space-y-3 border-t border-white/20 mt-4">
-                          <div className="flex justify-center py-2">
-                            <SkyToggle size={20} />
-                          </div>
-                          <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all">
-                            <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                              Sign in
-                            </Link>
-                          </Button>
-                          <ShatterButtonLink href="/start" className="w-full rounded-xl">
-                            Get started
-                          </ShatterButtonLink>
-                        </div>
-                      </>
-                    )}
-
-                    {variant === "patient" && (
-                      <>
-                        <Link
-                          href="/patient"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={cn(
-                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
-                            isActivePath("/patient") && !isActivePath("/patient/requests")
-                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm"
-                              : "hover:bg-white/60 active:bg-white/80",
-                          )}
-                        >
-                          <LayoutDashboard className="h-5 w-5" />
-                          <span className="text-sm font-medium">Dashboard</span>
-                        </Link>
-                        <Link
-                          href="/patient/requests"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={cn(
-                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
-                            isActivePath("/patient/requests") 
-                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm" 
-                              : "hover:bg-white/60 active:bg-white/80",
-                          )}
-                        >
-                          <ClipboardList className="h-5 w-5" />
-                          <span className="text-sm font-medium">My Requests</span>
-                        </Link>
-                        <Link
-                          href="/patient/settings"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={cn(
-                            "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 min-h-[52px] active:scale-[0.98]",
-                            isActivePath("/patient/settings") 
-                              ? "bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-600 shadow-sm" 
-                              : "hover:bg-white/60 active:bg-white/80",
-                          )}
-                        >
-                          <Settings className="h-5 w-5" />
-                          <span className="text-sm font-medium">Settings</span>
-                        </Link>
-
-                        <div className="pt-4 border-t border-white/20 mt-4">
-                          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">New request</p>
-                          {services.map((service) => (
-                            <Link
-                              key={service.href}
-                              href={service.href}
-                              onClick={() => setMobileMenuOpen(false)}
-                              className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/60 active:bg-white/80 transition-all duration-200 min-h-[52px] active:scale-[0.98]"
-                            >
-                              <service.icon className="h-5 w-5 text-indigo-500" />
-                              <div>
-                                <span className="text-sm font-medium block">{service.title}</span>
-                                <span className="text-xs text-muted-foreground">{service.description}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-
-                        <div className="pt-4 border-t border-white/20 mt-4 space-y-3">
-                          <div className="flex justify-center py-2">
-                            <SkyToggle size={20} />
-                          </div>
-                          <button
-                            onClick={() => {
-                              setMobileMenuOpen(false)
-                              handleSignOut()
-                            }}
-                            disabled={isLoggingOut}
-                            className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-red-50/80 active:bg-red-100 text-red-600 w-full transition-all duration-200 min-h-[52px] active:scale-[0.98]"
-                          >
-                            <LogOut className="h-5 w-5" />
-                            <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <MenuToggle toggle={() => setMobileMenuOpen(!mobileMenuOpen)} isOpen={mobileMenuOpen} />
+            </div>
           </div>
         </motion.nav>
       </header>
+
+      {/* Animated Mobile Menu */}
+      <AnimatedMobileMenu
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        header={
+          <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileMenuOpen(false)}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+              <Zap className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">InstantMed</span>
+          </Link>
+        }
+        footer={
+          <div className="space-y-3">
+            <div className="flex justify-center py-2">
+              <SkyToggle size={20} />
+            </div>
+            {variant === "marketing" && (
+              <>
+                <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all">
+                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                    Sign in
+                  </Link>
+                </Button>
+                <ShatterButtonLink href="/start" className="w-full rounded-xl">
+                  Get started
+                </ShatterButtonLink>
+              </>
+            )}
+            {variant === "patient" && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  handleSignOut()
+                }}
+                disabled={isLoggingOut}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 transition-all"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+              </button>
+            )}
+          </div>
+        }
+      >
+        {variant === "marketing" && (
+          <>
+            {services.map((service, index) => (
+              <AnimatedMobileMenu.Item
+                key={service.href}
+                item={{
+                  label: service.title,
+                  href: service.href,
+                  description: service.description,
+                  icon: <service.icon className="h-5 w-5" />,
+                }}
+                index={index}
+                onClose={() => setMobileMenuOpen(false)}
+              />
+            ))}
+            <AnimatedMobileMenu.Divider />
+            <AnimatedMobileMenu.Section title="Health Programs" />
+            {healthVerticals.map((vertical, index) => (
+              <AnimatedMobileMenu.Item
+                key={vertical.href}
+                item={{
+                  label: vertical.title,
+                  href: vertical.href,
+                  description: vertical.description,
+                  icon: <vertical.icon className="h-5 w-5" />,
+                }}
+                index={index + services.length}
+                onClose={() => setMobileMenuOpen(false)}
+              />
+            ))}
+            <AnimatedMobileMenu.Divider />
+            <AnimatedMobileMenu.Item
+              item={{ label: "How it works", href: "/how-it-works", icon: <Zap className="h-5 w-5" /> }}
+              index={services.length + healthVerticals.length}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "Pricing", href: "/pricing", icon: <FileText className="h-5 w-5" /> }}
+              index={services.length + healthVerticals.length + 1}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+          </>
+        )}
+
+        {variant === "patient" && (
+          <>
+            <AnimatedMobileMenu.Item
+              item={{ label: "Dashboard", href: "/patient", icon: <LayoutDashboard className="h-5 w-5" /> }}
+              index={0}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "My Requests", href: "/patient/requests", icon: <ClipboardList className="h-5 w-5" /> }}
+              index={1}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "Settings", href: "/patient/settings", icon: <Settings className="h-5 w-5" /> }}
+              index={2}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Divider />
+            <AnimatedMobileMenu.Section title="New Request" />
+            {services.map((service, index) => (
+              <AnimatedMobileMenu.Item
+                key={service.href}
+                item={{
+                  label: service.title,
+                  href: service.href,
+                  description: service.description,
+                  icon: <service.icon className="h-5 w-5" />,
+                }}
+                index={index + 3}
+                onClose={() => setMobileMenuOpen(false)}
+              />
+            ))}
+          </>
+        )}
+
+        {variant === "doctor" && (
+          <>
+            <AnimatedMobileMenu.Item
+              item={{ label: "Queue", href: "/doctor", icon: <LayoutDashboard className="h-5 w-5" /> }}
+              index={0}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "Patients", href: "/doctor/patients", icon: <User className="h-5 w-5" /> }}
+              index={1}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "Admin", href: "/doctor/admin", icon: <Settings className="h-5 w-5" /> }}
+              index={2}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+          </>
+        )}
+      </AnimatedMobileMenu>
     </>
   )
 }

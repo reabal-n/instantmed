@@ -139,7 +139,7 @@ export function TestimonialMarquee() {
   const doubledTestimonials = [...testimonials, ...testimonials]
 
   return (
-    <section className="py-20 overflow-hidden bg-gradient-to-b from-transparent via-indigo-50/30 to-transparent">
+    <section className="py-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <div className="text-center">
           <motion.div
