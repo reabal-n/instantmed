@@ -247,9 +247,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <motion.nav
           className={cn(
-            "relative mx-auto max-w-5xl rounded-full overflow-hidden",
-            "transition-all duration-300 liquid-glass-nav-pill",
-            scrolled && "scrolled",
+            "relative mx-auto max-w-5xl rounded-2xl overflow-hidden",
+            "p-1 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-lg border border-border/40 shadow-lg",
+            scrolled && "shadow-xl border-border/60",
           )}
           role="navigation"
           aria-label="Main navigation"
@@ -259,10 +259,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           {/* Nav glow effect */}
           <motion.div
             className={cn(
-              "absolute -inset-2 rounded-full z-0 pointer-events-none",
+              "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
               isDarkTheme
-                ? "bg-gradient-radial from-transparent via-[#00E2B5]/20 to-transparent"
-                : "bg-gradient-radial from-transparent via-[#00E2B5]/10 to-transparent"
+                ? "bg-gradient-radial from-transparent via-indigo-400/20 to-transparent"
+                : "bg-gradient-radial from-transparent via-indigo-400/10 to-transparent"
             )}
             variants={navGlowVariants}
           />

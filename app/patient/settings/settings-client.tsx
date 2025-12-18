@@ -34,6 +34,7 @@ import {
 import type { Profile } from "@/types/db"
 import { toast } from "sonner"
 import { changePassword, deleteAccount } from "@/app/actions/account"
+import { AvatarPicker } from "@/components/ui/avatar-picker"
 
 interface PatientSettingsClientProps {
   profile: Profile
@@ -167,63 +168,75 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <div className="glass-card rounded-2xl p-6 space-y-6">
-            <div>
-              <h3 className="font-medium text-foreground mb-4">Personal Information</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name</Label>
-                  <Input
-                    id="full_name"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
-                    className="rounded-xl bg-white/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" value={email} disabled className="rounded-xl bg-muted/50" />
-                  <p className="text-xs text-muted-foreground">Contact support to change your email</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                    placeholder="04XX XXX XXX"
-                    className="rounded-xl bg-white/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dob">Date of Birth</Label>
-                  <Input
-                    id="dob"
-                    value={
-                      profile.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString("en-AU") : "Not set"
-                    }
-                    disabled
-                    className="rounded-xl bg-muted/50"
-                  />
-                  <p className="text-xs text-muted-foreground">Contact support to correct your DOB</p>
+          <div className="space-y-6">
+            {/* Avatar Picker */}
+            <AvatarPicker
+              selectedAvatarId={1}
+              userName={formData.full_name || "Me"}
+              onSelect={(avatarId) => {
+                toast.success(`Avatar ${avatarId} selected`)
+              }}
+            />
+
+            {/* Personal Information */}
+            <div className="glass-card rounded-2xl p-6 space-y-6">
+              <div>
+                <h3 className="font-medium text-foreground mb-4">Personal Information</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
+                      className="rounded-xl bg-white/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" value={email} disabled className="rounded-xl bg-muted/50" />
+                    <p className="text-xs text-muted-foreground">Contact support to change your email</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                      placeholder="04XX XXX XXX"
+                      className="rounded-xl bg-white/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Input
+                      id="dob"
+                      value={
+                        profile.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString("en-AU") : "Not set"
+                      }
+                      disabled
+                      className="rounded-xl bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground">Contact support to correct your DOB</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={isSaving} className="rounded-xl">
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
+              <div className="flex justify-end">
+                <Button onClick={handleSave} disabled={isSaving} className="rounded-xl">
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>

@@ -11,6 +11,8 @@ import {
   PricingSection,
 } from '@/components/marketing'
 import { TestimonialMarquee } from '@/components/marketing/testimonial-marquee'
+import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
+import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { ComparisonStats } from '@/components/homepage/comparison-stats'
 import { UnifiedBackground } from '@/components/effects/unified-background'
 import { ParallaxSection } from '@/components/effects/parallax-section'
@@ -25,6 +27,10 @@ export default function HomePage() {
       
       <main>
         <Hero />
+        
+        <TrustpilotReviews />
+        
+        <TrustBadgeSlider />
         
         <ParallaxSection speed={0.05}>
           <ServicePicker />

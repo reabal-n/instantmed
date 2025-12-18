@@ -16,6 +16,15 @@ const config = {
         mono: ["var(--font-mono)"],
         handwritten: ["var(--font-handwritten)", "Caveat", "cursive"],
       },
+      animation: {
+        scroll: "scroll linear infinite",
+      },
+      keyframes: {
+        scroll: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+      },
     },
   },
   darkMode: "class",
