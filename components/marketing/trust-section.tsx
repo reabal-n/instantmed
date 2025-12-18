@@ -2,36 +2,33 @@
 
 import { Shield, Award, Clock, Users, CheckCircle, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Chip, Tooltip } from '@heroui/react'
+import { Chip } from '@heroui/react'
+import { MorphingCardStack, type CardData } from '@/components/ui/morphing-card-stack'
 
-const trustBadges = [
+const trustCards: CardData[] = [
   {
-    icon: Shield,
+    id: 'ahpra',
     title: 'AHPRA Registered',
-    description: 'All doctors are registered with AHPRA',
-    color: 'text-indigo-600 dark:text-indigo-400',
-    bg: 'bg-indigo-100 dark:bg-indigo-500/20',
+    description: 'Every doctor on our platform is fully registered with the Australian Health Practitioner Regulation Agency. Your care is in qualified hands.',
+    icon: <Shield className="w-6 h-6" />,
   },
   {
-    icon: Award,
+    id: 'tga',
     title: 'TGA Compliant',
-    description: 'Prescriptions meet TGA requirements',
-    color: 'text-violet-600 dark:text-violet-400',
-    bg: 'bg-violet-100 dark:bg-violet-500/20',
+    description: 'All prescriptions and treatments meet Therapeutic Goods Administration requirements. Safe, legal, and properly regulated healthcare.',
+    icon: <Award className="w-6 h-6" />,
   },
   {
-    icon: Lock,
+    id: 'security',
     title: 'Bank-Level Security',
-    description: '256-bit encryption for all data',
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-100 dark:bg-emerald-500/20',
+    description: '256-bit encryption protects all your personal and medical data. Your privacy is our priority with enterprise-grade security.',
+    icon: <Lock className="w-6 h-6" />,
   },
   {
-    icon: CheckCircle,
+    id: 'valid',
     title: 'Legally Valid',
-    description: 'Documents accepted Australia-wide',
-    color: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-100 dark:bg-blue-500/20',
+    description: 'Medical certificates and prescriptions are accepted by employers, universities, and pharmacies Australia-wide. Legitimate documents every time.',
+    icon: <CheckCircle className="w-6 h-6" />,
   },
 ]
 
@@ -64,29 +61,20 @@ export function TrustSection() {
           </p>
         </motion.div>
 
-        {/* Badge grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-12">
-          {trustBadges.map((badge, index) => (
-            <motion.div
-              key={badge.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Tooltip content={badge.description} placement="bottom">
-                <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-lg transition-all cursor-default">
-                  <div className={`w-14 h-14 rounded-xl ${badge.bg} flex items-center justify-center mb-4`}>
-                    <badge.icon className={`w-7 h-7 ${badge.color}`} />
-                  </div>
-                  <h3 className="font-semibold text-foreground text-sm">
-                    {badge.title}
-                  </h3>
-                </div>
-              </Tooltip>
-            </motion.div>
-          ))}
-        </div>
+        {/* Morphing Card Stack */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="mb-12"
+        >
+          <MorphingCardStack 
+            cards={trustCards} 
+            defaultLayout="stack"
+            showLayoutToggle={true}
+          />
+        </motion.div>
 
         {/* Stats row */}
         <motion.div
