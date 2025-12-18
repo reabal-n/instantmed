@@ -788,7 +788,7 @@ export function UnifiedFlowClient({
               </button>
             )}
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">{service ? COPY[service].heading : "New Request"}</h1>
+              <h1 className="text-lg font-semibold">{service && service !== "referral" ? COPY[service as "medcert" | "prescription"].heading : "New Request"}</h1>
               <p className="text-xs text-muted-foreground">{COPY.global.turnaround}</p>
             </div>
           </div>
