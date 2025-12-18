@@ -4,7 +4,6 @@ import { Inter, Lora, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
-import { LiveChatWidget } from "@/components/shared/live-chat-widget"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
@@ -175,7 +174,6 @@ export default function RootLayout({
               {children}
             </div>
             <Toaster position="top-center" richColors />
-            <LiveChatWidget />
             <SocialProofPopup />
             <StickyCTABar />
             <Analytics />
