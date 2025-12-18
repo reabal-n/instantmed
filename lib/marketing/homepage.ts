@@ -152,20 +152,6 @@ export const featuredServices = [
 
 export const pricingTiers = [
   {
-    name: "Medical Certificate",
-    price: 24.95,
-    description: "Sick? Need proof for work?",
-    features: [
-      "Reviewed in about an hour",
-      "Valid for all employers",
-      "Emailed as a PDF",
-      "Backdating if appropriate",
-    ],
-    cta: "Get a certificate",
-    href: "/medical-certificate/request",
-    popular: true,
-  },
-  {
     name: "Prescription",
     price: 19.95,
     description: "Need your regular meds?",
@@ -178,6 +164,40 @@ export const pricingTiers = [
     cta: "Get a script",
     href: "/prescriptions/request",
     popular: false,
+    icon: "Pill",
+    color: "from-cyan-500 to-blue-500",
+  },
+  {
+    name: "Medical Certificate",
+    price: 24.95,
+    description: "Sick? Need proof for work?",
+    features: [
+      "Reviewed in about an hour",
+      "Valid for all employers",
+      "Emailed as a PDF",
+      "Backdating if appropriate",
+    ],
+    cta: "Get a certificate",
+    href: "/medical-certificate/request",
+    popular: true,
+    icon: "FileText",
+    color: "from-indigo-500 to-violet-500",
+  },
+  {
+    name: "General Consult",
+    price: 44.95,
+    description: "Complex health concerns?",
+    features: [
+      "New prescriptions available",
+      "Dose adjustments",
+      "Detailed review",
+      "Referrals if needed",
+    ],
+    cta: "Book a consult",
+    href: "/consult/request",
+    popular: false,
+    icon: "Stethoscope",
+    color: "from-violet-500 to-purple-500",
   },
 ]
 

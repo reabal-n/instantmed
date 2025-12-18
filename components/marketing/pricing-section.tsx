@@ -1,10 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, FileText, Pill, Stethoscope } from 'lucide-react'
 import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
+
+const iconMap = {
+  FileText,
+  Pill,
+  Stethoscope,
+}
 
 export function PricingSection() {
   return (
@@ -51,6 +57,18 @@ export function PricingSection() {
               )}
 
               <div className="text-center mb-6">
+                {/* Icon */}
+                {tier.icon && (
+                  <div className={cn(
+                    "w-14 h-14 mx-auto rounded-2xl mb-4 flex items-center justify-center bg-gradient-to-br",
+                    tier.color || "from-indigo-500 to-violet-500"
+                  )}>
+                    {(() => {
+                      const Icon = iconMap[tier.icon as keyof typeof iconMap]
+                      return Icon ? <Icon className="w-7 h-7 text-white" /> : null
+                    })()}
+                  </div>
+                )}
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   {tier.name}
                 </h3>
