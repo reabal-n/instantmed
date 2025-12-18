@@ -5,6 +5,7 @@ import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscop
 import { Button as HeroButton } from "@heroui/react"
 import { ShatterButtonLink } from '@/components/ui/shatter-button'
 import { EstimatedTimeBadge } from '@/components/ui/estimated-time-badge'
+import { LiveVisitorCounter } from '@/components/ui/live-visitor-counter'
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -24,9 +25,10 @@ export function Hero() {
       <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] -translate-y-1/4 translate-x-1/4 opacity-60" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:pt-32 lg:pb-24">
-        {/* Doctor Availability Pill - positioned at top */}
-        <div className="mb-8">
+        {/* Top indicators - Doctor availability and live visitors */}
+        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8">
           <DoctorAvailabilityPill />
+          <LiveVisitorCounter minVisitors={10} maxVisitors={20} />
         </div>
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left content */}
