@@ -3,7 +3,7 @@
 import { HolographicCard } from "@/components/effects/holographic-card"
 import { SectionPill } from "@/components/ui/section-pill"
 import { BlurFade } from "@/components/ui/blur-fade"
-import { Check, DollarSign } from "lucide-react"
+import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"

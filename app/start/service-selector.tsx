@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield, Zap } from "lucide-react"
+import { FileText, Pill, ArrowRight, Check, Clock, Star, Sparkles, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"

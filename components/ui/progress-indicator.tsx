@@ -52,7 +52,7 @@ export function ProgressIndicator({
           animate={{
             width: `${16 + (currentStep - 1) * 24}px`,
           }}
-          className="absolute -left-1 top-1/2 -translate-y-1/2 h-4 bg-primary/20 rounded-full -z-0"
+          className="absolute -left-1 top-1/2 -translate-y-1/2 h-4 bg-primary/20 rounded-full z-0"
           transition={{
             type: "spring",
             stiffness: 300,

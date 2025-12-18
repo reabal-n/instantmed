@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Pill, FileText, ArrowRight, CheckCircle2, Zap } from "lucide-react"
+import { Pill, FileText, ArrowRight, CheckCircle2 } from "lucide-react"
 import { motion, useInView } from "framer-motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { SparklesText } from "@/components/ui/sparkles-text"

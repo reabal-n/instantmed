@@ -29,7 +29,7 @@ import { skipPaymentTestMode } from "@/app/actions/test-actions"
 import { PriorityUpsell } from "@/components/checkout/priority-upsell"
 
 // Types
-type Service = "medcert" | "prescription"
+type Service = "medcert" | "prescription" | "referral"
 type Step = "service" | "clinical" | "safety" | "medicare" | "account" | "review"
 
 interface FormData {

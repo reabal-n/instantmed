@@ -38,7 +38,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-[101] bg-black/80 backdrop-blur-sm',
+        'fixed inset-0 z-101 bg-black/80 backdrop-blur-sm',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
@@ -62,7 +62,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'fixed left-1/2 top-1/2 z-[101] grid w-full -translate-x-1/2 -translate-y-1/2',
+          'fixed left-1/2 top-1/2 z-101 grid w-full -translate-x-1/2 -translate-y-1/2',
           'max-h-[calc(100%-4rem)] max-w-[calc(100%-2rem)] sm:max-w-[400px]',
           'gap-4 overflow-y-auto border bg-background p-6 shadow-lg shadow-black/5',
           'rounded-xl duration-200',
