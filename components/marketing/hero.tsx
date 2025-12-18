@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
 import { Button as HeroButton } from "@heroui/react"
 import { ShatterButtonLink } from '@/components/ui/shatter-button'
+import { EstimatedTimeBadge } from '@/components/ui/estimated-time-badge'
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -84,6 +85,15 @@ export function Hero() {
               >
                 See how it works
               </HeroButton>
+            </div>
+
+            {/* Estimated time badge */}
+            <div className="mb-6 animate-slide-up-delay-3">
+              <EstimatedTimeBadge 
+                estimatedTime="20-60 min"
+                label="Average turnaround"
+                type="certificate"
+              />
             </div>
 
             {/* Trust row - liquid glass pills */}
