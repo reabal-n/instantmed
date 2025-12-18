@@ -215,8 +215,7 @@ export default function RegisterPage() {
 
             <form onSubmit={handleRegister} className="space-y-4">
               <Input
-                label="Full name"
-                placeholder="John Smith"
+                placeholder="Full name"
                 isRequired
                 value={fullName}
                 onValueChange={setFullName}
@@ -225,10 +224,11 @@ export default function RegisterPage() {
                 radius="lg"
                 classNames={{
                   inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  input: "placeholder:text-default-500",
                 }}
               />
               <Input
-                label="Date of birth"
+                placeholder="Date of birth"
                 type="date"
                 isRequired
                 value={dateOfBirth}
@@ -238,12 +238,12 @@ export default function RegisterPage() {
                 radius="lg"
                 classNames={{
                   inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  input: "placeholder:text-default-500",
                 }}
               />
               <Input
-                label="Email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Email"
                 isRequired
                 value={email}
                 onValueChange={setEmail}
@@ -252,13 +252,13 @@ export default function RegisterPage() {
                 radius="lg"
                 classNames={{
                   inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  input: "placeholder:text-default-500",
                 }}
               />
               <div className="space-y-3">
                 <Input
-                  label="Password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Password"
                   isRequired
                   value={password}
                   onValueChange={setPassword}
@@ -267,6 +267,7 @@ export default function RegisterPage() {
                   radius="lg"
                   classNames={{
                     inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                    input: "placeholder:text-default-500",
                   }}
                 />
                 <PasswordStrength password={password} />
@@ -296,9 +297,8 @@ export default function RegisterPage() {
                 type="submit"
                 isDisabled={isLoading || isGoogleLoading}
                 isLoading={isLoading}
-                color="primary"
-                className="w-full h-11 font-semibold"
-                radius="lg"
+                className="w-full h-11 btn-cta"
+                radius="full"
                 spinner={<Loader2 className="h-4 w-4 animate-spin" />}
               >
                 {isLoading ? "Creating account..." : "Create account"}

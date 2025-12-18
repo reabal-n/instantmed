@@ -277,9 +277,8 @@ export default function LoginPage() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <Input
-                label="Email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Email"
                 isRequired
                 value={email}
                 onValueChange={setEmail}
@@ -288,13 +287,13 @@ export default function LoginPage() {
                 radius="lg"
                 classNames={{
                   inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                  input: "placeholder:text-default-500",
                 }}
               />
               <div className="space-y-2">
                 <Input
-                  label="Password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Password"
                   isRequired
                   value={password}
                   onValueChange={setPassword}
@@ -303,6 +302,7 @@ export default function LoginPage() {
                   radius="lg"
                   classNames={{
                     inputWrapper: "h-12 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+                    input: "placeholder:text-default-500",
                   }}
                 />
                 <div className="flex justify-end">
@@ -320,9 +320,8 @@ export default function LoginPage() {
                 type="submit"
                 isDisabled={isLoading || isGoogleLoading}
                 isLoading={isLoading}
-                color="primary"
-                className="w-full h-12 font-semibold"
-                radius="lg"
+                className="w-full h-12 btn-cta"
+                radius="full"
                 spinner={<Loader2 className="h-4 w-4 animate-spin" />}
               >
                 {isLoading ? "Signing in..." : "Sign in"}
