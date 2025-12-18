@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import {
   Menu,
   X,
@@ -83,6 +84,33 @@ const healthVerticals = [
     color: "text-indigo-500",
   },
 ]
+
+function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "relative px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-300",
+        isActive
+          ? "text-primary"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {children}
+      {isActive && (
+        <motion.div
+          layoutId="navbar-tubelight"
+          className="absolute inset-0 rounded-full bg-primary/10 -z-10"
+          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+        >
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full">
+            <div className="absolute w-8 h-4 bg-primary/20 rounded-full blur-md -top-1 -left-1" />
+          </div>
+        </motion.div>
+      )}
+    </Link>
+  )
+}
 
 export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -182,18 +210,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <Link
-                    href="/how-it-works"
-                    className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
-                  >
+                  <NavLink href="/how-it-works" isActive={pathname === "/how-it-works"}>
                     How it works
-                  </Link>
-                  <Link
-                    href="/pricing"
-                    className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 active:scale-95"
-                  >
+                  </NavLink>
+                  <NavLink href="/pricing" isActive={pathname === "/pricing"}>
                     Pricing
-                  </Link>
+                  </NavLink>
 
                   <div className="ml-2 flex items-center gap-1.5">
                     <SkyToggle size={12} />
