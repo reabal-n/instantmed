@@ -55,22 +55,24 @@ export async function getPatientRequestStats(patientId: string): Promise<{
   approved: number
   declined: number
   needs_follow_up: number
+  awaiting_payment: number
 }> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from("requests").select("status").eq("patient_id", patientId)
+  const { data, error } = await supabase.from("requests").select("status, payment_status").eq("patient_id", patientId)
 
   if (error || !data) {
     console.error("Error fetching request stats:", error)
-    return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0 }
+    return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0, awaiting_payment: 0 }
   }
 
   const stats = {
     total: data.length,
-    pending: data.filter((r) => r.status === "pending").length,
+    pending: data.filter((r) => r.status === "pending" && r.payment_status !== "pending_payment").length,
     approved: data.filter((r) => r.status === "approved").length,
     declined: data.filter((r) => r.status === "declined").length,
     needs_follow_up: data.filter((r) => r.status === "needs_follow_up").length,
+    awaiting_payment: data.filter((r) => r.payment_status === "pending_payment").length,
   }
 
   return stats

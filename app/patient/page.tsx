@@ -138,7 +138,7 @@ export default async function PatientDashboardPage({
       </header>
 
       {/* Quick Stats */}
-      <section aria-label="Request summary" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <section aria-label="Request summary" className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">Total</span>
@@ -146,6 +146,15 @@ export default async function PatientDashboardPage({
           </div>
           <p className="text-2xl font-semibold">{stats.total}</p>
         </div>
+        {stats.awaiting_payment > 0 && (
+          <div className="glass-card rounded-xl p-4 border border-orange-200 bg-orange-50/50">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-orange-700">Needs payment</span>
+              <CreditCard className="h-4 w-4 text-orange-500" aria-hidden="true" />
+            </div>
+            <p className="text-2xl font-semibold text-orange-700">{stats.awaiting_payment}</p>
+          </div>
+        )}
         <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">In review</span>
@@ -192,6 +201,28 @@ export default async function PatientDashboardPage({
           <p className="text-xs text-muted-foreground">Repeat scripts & reviews</p>
         </Link>
       </section>
+
+      {/* Quick Repeat - Show for returning patients with previous approved requests */}
+      {stats.approved > 0 && recentRequests.some(r => r.status === "approved") && (
+        <section className="glass-card rounded-2xl p-4 border border-emerald-200/50 bg-emerald-50/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground text-sm">Need another certificate?</h3>
+                <p className="text-xs text-muted-foreground">Quickly request based on your last submission</p>
+              </div>
+            </div>
+            <Button asChild size="sm" variant="outline" className="rounded-lg border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Link href="/medical-certificate/request?repeat=true">
+                Repeat request
+              </Link>
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* Needs Action */}
       {needsAction.length > 0 && (

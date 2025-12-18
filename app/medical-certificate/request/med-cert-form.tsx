@@ -44,6 +44,7 @@ import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { 
   buttonInteraction, 
@@ -699,23 +700,18 @@ export function MedCertForm({
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
 
-      // Check if we're returning from OAuth with saved form data
-      const savedFormData = sessionStorage.getItem("med_cert_form_data")
-      const savedStep = sessionStorage.getItem("med_cert_form_step") as FlowStep | null
+      // Check if we're returning from OAuth with saved form data (with localStorage TTL fallback)
+      const savedFormDataObj = loadFormData<typeof formData>(STORAGE_KEYS.MED_CERT_FORM)
+      const savedStep = loadFormData<FlowStep>(STORAGE_KEYS.MED_CERT_STEP)
       
-      if (savedFormData) {
-        try {
-          const parsed = JSON.parse(savedFormData)
-          setFormData((prev) => ({ ...prev, ...parsed }))
-          sessionStorage.removeItem("med_cert_form_data")
-        } catch (e) {
-          console.error("Failed to restore form data:", e)
-        }
+      if (savedFormDataObj) {
+        setFormData((prev) => ({ ...prev, ...savedFormDataObj }))
+        clearFormData(STORAGE_KEYS.MED_CERT_FORM)
       }
       
       if (savedStep && STEPS.includes(savedStep)) {
         setStep(savedStep)
-        sessionStorage.removeItem("med_cert_form_step")
+        clearFormData(STORAGE_KEYS.MED_CERT_STEP)
       }
 
       if (session?.user && !isAuthenticated) {
@@ -751,7 +747,7 @@ export function MedCertForm({
           }))
           
           // If we restored form data and are now authenticated, go to review
-          if (savedFormData) {
+          if (savedFormDataObj) {
             setStep("review")
           }
         }
@@ -899,9 +895,9 @@ export function MedCertForm({
     const supabase = createClient()
 
     try {
-      // Store form data in sessionStorage to restore after OAuth
-      sessionStorage.setItem("med_cert_form_data", JSON.stringify(formData))
-      sessionStorage.setItem("med_cert_form_step", step)
+      // Store form data with localStorage fallback (24hr TTL) for OAuth redirect
+      saveFormData(STORAGE_KEYS.MED_CERT_FORM, formData)
+      saveFormData(STORAGE_KEYS.MED_CERT_STEP, step)
       
       // Build callback URL with flow params
       const currentPath = window.location.pathname

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -340,7 +339,14 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
               </div>
 
               <p className="text-xs text-muted-foreground mt-4">
-                To update your Medicare details, please contact support.
+                To update your Medicare details, please{" "}
+                <a 
+                  href="mailto:help@instantmed.com.au?subject=Medicare%20Details%20Update" 
+                  className="text-primary hover:underline font-medium"
+                >
+                  contact our support team
+                </a>
+                .
               </p>
             </div>
           </div>
@@ -361,14 +367,6 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
                     <p className="text-sm text-muted-foreground">Receive updates about your requests via email</p>
                   </div>
                   <Switch defaultChecked aria-label="Email notifications" />
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
-                  <div>
-                    <p className="font-medium text-foreground">SMS notifications</p>
-                    <p className="text-sm text-muted-foreground">Receive urgent updates via SMS</p>
-                  </div>
-                  <Switch aria-label="SMS notifications" />
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
@@ -461,21 +459,6 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
                     "Change Password"
                   )}
                 </Button>
-              </div>
-            </div>
-
-            <hr className="border-white/20" />
-
-            <div>
-              <h3 className="font-medium text-foreground mb-4">Two-Factor Authentication</h3>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40 max-w-md">
-                <div>
-                  <p className="font-medium text-foreground">Enable 2FA</p>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
-                </div>
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                  Coming Soon
-                </Badge>
               </div>
             </div>
 

@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation"
 import { PrescriptionIntake, type PrescriptionFormData } from "@/components/intake/prescription-intake"
-import { createClient } from "@/lib/supabase/client"
-import { createOrGetProfile } from "@/app/actions/create-profile"
 import { useConfetti } from "@/components/effects/confetti"
+import { createRequestAction } from "@/app/actions/create-request"
+import { saveFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 
 interface PrescriptionIntakeClientProps {
   isAuthenticated: boolean
@@ -22,62 +22,44 @@ export function PrescriptionIntakeClient({
   profileData,
 }: PrescriptionIntakeClientProps) {
   const router = useRouter()
-  const supabase = createClient()
   const { fire: fireConfetti } = useConfetti()
 
   const handleSubmit = async (data: PrescriptionFormData) => {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new Error("Please sign in to continue")
+    // Save form data for recovery in case of payment failure
+    saveFormData(STORAGE_KEYS.PRESCRIPTION_FORM, data)
+
+    // Use consolidated server action for request creation
+    const result = await createRequestAction({
+      category: "prescription",
+      subtype: data.rxType || "general",
+      type: "prescription",
+      answers: {
+        rxType: data.rxType,
+        medication: data.medication,
+        condition: data.condition,
+        otherCondition: data.otherCondition,
+        duration: data.duration,
+        additionalNotes: data.additionalNotes,
+        safetyAnswers: data.safetyAnswers,
+        fullName: data.fullName,
+        email: data.email,
+        dateOfBirth: data.dateOfBirth,
+      },
+    })
+
+    if (!result.success) {
+      throw new Error(result.error || "Failed to create request. Please try again.")
     }
 
-    // Get or create profile
-    const profileResult = await createOrGetProfile(
-      user.id,
-      data.fullName || user.user_metadata?.full_name || "",
-      data.dateOfBirth || ""
-    )
-
-    if (profileResult.error || !profileResult.profileId) {
-      throw new Error(profileResult.error || "Failed to create profile")
-    }
-
-    // Create the request
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
-      .insert({
-        patient_id: profileResult.profileId,
-        type: "prescription",
-        category: "prescription",
-        subtype: data.rxType,
-        status: "pending",
-        payment_status: "pending_payment",
-        answers: {
-          rxType: data.rxType,
-          medication: data.medication,
-          condition: data.condition,
-          otherCondition: data.otherCondition,
-          duration: data.duration,
-          additionalNotes: data.additionalNotes,
-          safetyAnswers: data.safetyAnswers,
-        },
-      })
-      .select("id")
-      .single()
-
-    if (requestError || !request) {
-      console.error("Failed to create request:", requestError)
-      throw new Error("Failed to create request. Please try again.")
-    }
+    // Clear saved form data on success
+    clearFormData(STORAGE_KEYS.PRESCRIPTION_FORM)
 
     // Fire confetti on success
     fireConfetti()
 
     // Redirect to payment after a brief delay for confetti
     setTimeout(() => {
-      router.push(`/checkout/${request.id}`)
+      router.push(`/checkout/${result.requestId}`)
     }, 500)
   }
 

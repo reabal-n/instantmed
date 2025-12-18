@@ -105,25 +105,35 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
     const errors: Record<string, string> = {}
     const medicareNumber = medicareDigits.join("")
 
-    const medicareValidation = validateMedicareNumber(medicareNumber)
-    if (!medicareValidation.valid) {
-      errors.medicare = medicareValidation.error || "Invalid Medicare number"
-    }
+    // Medicare is optional - only validate if user has started entering data
+    const hasMedicareData = medicareNumber.length > 0 || irn !== null || expiryMonth !== null || expiryYear !== null
+    
+    if (hasMedicareData) {
+      // If user started entering Medicare, validate completely
+      if (medicareNumber.length > 0) {
+        const medicareValidation = validateMedicareNumber(medicareNumber)
+        if (!medicareValidation.valid) {
+          errors.medicare = medicareValidation.error || "Invalid Medicare number"
+        }
+      }
 
-    if (!irn) errors.irn = "Please select your IRN"
+      if (medicareNumber.length >= 10 && !irn) {
+        errors.irn = "Please select your IRN"
+      }
 
-    if (!expiryMonth || !expiryYear) {
-      errors.expiry = "Please select expiry date"
-    } else {
-      const expiryDate = `${expiryYear}-${expiryMonth}-01`
-      const expiryValidation = validateMedicareExpiry(expiryDate)
+      if (medicareNumber.length >= 10 && (!expiryMonth || !expiryYear)) {
+        errors.expiry = "Please select expiry date"
+      } else if (expiryMonth && expiryYear) {
+        const expiryDate = `${expiryYear}-${expiryMonth}-01`
+        const expiryValidation = validateMedicareExpiry(expiryDate)
 
-      if (!expiryValidation.valid) {
-        errors.expiry = expiryValidation.error || "Invalid expiry date"
-      } else if (expiryValidation.isExpiringSoon) {
-        setExpiryWarning("Your Medicare card is expiring soon. Please update it after this visit.")
-      } else {
-        setExpiryWarning(null)
+        if (!expiryValidation.valid) {
+          errors.expiry = expiryValidation.error || "Invalid expiry date"
+        } else if (expiryValidation.isExpiringSoon) {
+          setExpiryWarning("Your Medicare card is expiring soon. Please update it after this visit.")
+        } else {
+          setExpiryWarning(null)
+        }
       }
     }
 
@@ -359,7 +369,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
             <FormSection
               icon={<CreditCard className="w-5 h-5 text-primary" />}
               title="Medicare details"
-              description="We'll use this for prescriptions and referrals"
+              description="Optional for medical certificates. Required for prescriptions and referrals."
               animate
             >
               {/* Global error */}
@@ -389,8 +399,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               <FormGroup
                 label="Medicare number"
                 error={step2Errors.medicare}
-                hint="Enter the 10-digit number from your card"
-                required
+                hint="Enter the 10-digit number from your card (optional for med certs)"
               >
                 <div className="flex gap-2 justify-center">
                   {medicareDigits.map((digit, i) => (

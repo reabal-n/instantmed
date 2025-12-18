@@ -19,6 +19,7 @@ import {
   FileText,
   Shield,
   Sparkles,
+  Info,
 } from "lucide-react"
 
 // Animation variants
@@ -490,6 +491,26 @@ export function StreamlinedIntake({
                   description="To care for an ill family member"
                 />
               </motion.div>
+
+              {formData.certType === "carer" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm"
+                >
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="space-y-2 text-amber-800">
+                      <p className="font-medium">Carer&apos;s Leave Certificate Requirements</p>
+                      <ul className="text-xs space-y-1 text-amber-700">
+                        <li>• You&apos;ll need to provide the name and relationship of the person you&apos;re caring for</li>
+                        <li>• The certificate confirms you need time off to care for an immediate family member or household member</li>
+                        <li>• No medical details about the person being cared for will be included</li>
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
 
             {errors.certType && (

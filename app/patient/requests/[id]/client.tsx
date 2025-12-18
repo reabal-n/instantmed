@@ -337,14 +337,15 @@ export default function PatientRequestDetailPageClient({
                   <span className="sr-only">Resend to email</span>
                 </Button>
               </div>
-              {resendMessage && (
-                <p className={cn(
-                  "text-xs text-center",
-                  resendStatus === "success" ? "text-green-600" : "text-red-600"
-                )}>
-                  {resendMessage}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground text-center">
+                {resendMessage ? (
+                  <span className={resendStatus === "success" ? "text-green-600" : "text-red-600"}>
+                    {resendMessage}
+                  </span>
+                ) : (
+                  "You can resend up to 3 times per day"
+                )}
+              </p>
             </div>
           </div>
         </div>

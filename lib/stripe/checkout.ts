@@ -254,9 +254,15 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
         return { success: false, error: `Server configuration error: ${errorMessage}` }
       }
       if (errorMessage.includes("No such price")) {
-        return { success: false, error: "This service is temporarily unavailable. Please try again later." }
+        return { 
+          success: false, 
+          error: "This service is temporarily unavailable. Please try again later or contact support at help@instantmed.com.au if this continues. [ERR_PRICE_CONFIG]" 
+        }
       }
-      return { success: false, error: `Payment system error: ${errorMessage}` }
+      return { 
+        success: false, 
+        error: `Payment system error. Please try again or contact support at help@instantmed.com.au [ERR_STRIPE: ${errorMessage.substring(0, 50)}]` 
+      }
     }
 
     if (!session.url) {
@@ -295,9 +301,10 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
     console.error("Error in createRequestAndCheckoutAction:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     return {
       success: false,
-      error: "Something went wrong. Please try again or contact support if the problem persists.",
+      error: `Something went wrong. Please try again or contact support at help@instantmed.com.au if this continues. [ERR_CHECKOUT: ${errorMessage.substring(0, 30)}]`,
     }
   }
 }
