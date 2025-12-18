@@ -152,24 +152,43 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-// Progress indicator
+// Progress indicator with animated dots
 function Progress({ stages, currentIndex }: { stages: readonly string[]; currentIndex: number }) {
   return (
     <nav aria-label="Progress" className="w-full">
-      <ol className="flex gap-1">
-        {stages.map((label, i) => (
-          <li key={label} className="flex-1 flex flex-col items-center gap-1">
-            <div
-              className={`h-1 w-full rounded-full transition-colors ${
-                i < currentIndex ? "bg-primary" : i === currentIndex ? "bg-primary/50" : "bg-muted"
-              }`}
-            />
-            <span className={`text-[10px] ${i <= currentIndex ? "text-foreground" : "text-muted-foreground"}`}>
-              {label}
-            </span>
-          </li>
-        ))}
-      </ol>
+      <div className="flex flex-col items-center gap-2">
+        {/* Animated dots */}
+        <div className="flex items-center gap-3 relative">
+          {stages.map((label, i) => {
+            const isComplete = i < currentIndex
+            const isCurrent = i === currentIndex
+            return (
+              <div
+                key={label}
+                className={`w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300 ${
+                  isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-110" : "bg-muted-foreground/30"
+                }`}
+                role="progressbar"
+                aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${label}: ${isComplete ? "Complete" : isCurrent ? "In progress" : "Not started"}`}
+              />
+            )
+          })}
+          {/* Animated progress line */}
+          <div 
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full transition-all duration-500 ease-out"
+            style={{ 
+              width: `${Math.max(10, (currentIndex / (stages.length - 1)) * 100)}%`,
+            }}
+          />
+        </div>
+        {/* Step label */}
+        <p className="text-xs text-muted-foreground">
+          Step {currentIndex + 1} of {stages.length}: <span className="font-medium text-foreground">{stages[currentIndex]}</span>
+        </p>
+      </div>
     </nav>
   )
 }

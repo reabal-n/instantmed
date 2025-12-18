@@ -434,30 +434,43 @@ export function ConsultFlowClient({
         </div>
       </header>
 
-      {/* Progress */}
+      {/* Progress - Animated Dots */}
       <div className="max-w-lg mx-auto px-4 pt-4">
-        <div className="flex items-center justify-between mb-6">
-          {PROGRESS_STAGES.map((stage, i) => (
-            <div key={stage.label} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
-                  i <= getProgressIndex()
-                    ? "bg-violet-600 text-white"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {stage.icon}
-              </div>
-              {i < PROGRESS_STAGES.length - 1 && (
-                <div
-                  className={`w-12 sm:w-16 h-0.5 mx-1 transition-all ${
-                    i < getProgressIndex() ? "bg-violet-600" : "bg-muted"
-                  }`}
-                />
-              )}
+        <nav aria-label="Progress" className="w-full mb-6">
+          <div className="flex flex-col items-center gap-2">
+            {/* Animated dots */}
+            <div className="flex items-center gap-3 relative">
+              {PROGRESS_STAGES.map((stage, i) => {
+                const isComplete = i < getProgressIndex()
+                const isCurrent = i === getProgressIndex()
+                return (
+                  <div
+                    key={stage.label}
+                    className={`w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300 ${
+                      isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-110" : "bg-muted-foreground/30"
+                    }`}
+                    role="progressbar"
+                    aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`${stage.label}: ${isComplete ? "Complete" : isCurrent ? "In progress" : "Not started"}`}
+                  />
+                )
+              })}
+              {/* Animated progress line */}
+              <div 
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full transition-all duration-500 ease-out"
+                style={{ 
+                  width: `${Math.max(10, (getProgressIndex() / (PROGRESS_STAGES.length - 1)) * 100)}%`,
+                }}
+              />
             </div>
-          ))}
-        </div>
+            {/* Step label */}
+            <p className="text-xs text-muted-foreground">
+              Step {getProgressIndex() + 1} of {PROGRESS_STAGES.length}: <span className="font-medium text-foreground">{PROGRESS_STAGES[getProgressIndex()]?.label}</span>
+            </p>
+          </div>
+        </nav>
       </div>
 
       {/* Content */}

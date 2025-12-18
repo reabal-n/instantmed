@@ -117,7 +117,7 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-// Progress indicator component
+// Progress indicator component with animated dots
 function ProgressIndicator({
   steps,
   currentIndex,
@@ -127,19 +127,17 @@ function ProgressIndicator({
 }) {
   return (
     <nav aria-label="Request progress" className="w-full">
-      <ol className="flex items-center justify-between gap-1" role="list">
-        {steps.map((label, i) => {
-          const isComplete = i < currentIndex
-          const isCurrent = i === currentIndex
-          return (
-            <li
-              key={label}
-              className="flex-1 flex flex-col items-center gap-1"
-              aria-current={isCurrent ? "step" : undefined}
-            >
+      <div className="flex flex-col items-center gap-2">
+        {/* Animated dots */}
+        <div className="flex items-center gap-3 relative">
+          {steps.map((label, i) => {
+            const isComplete = i < currentIndex
+            const isCurrent = i === currentIndex
+            return (
               <div
-                className={`h-1.5 w-full rounded-full transition-colors duration-300 ${
-                  isComplete ? "bg-primary" : isCurrent ? "bg-primary/60" : "bg-muted"
+                key={label}
+                className={`w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300 ${
+                  isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-110" : "bg-muted-foreground/30"
                 }`}
                 role="progressbar"
                 aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
@@ -147,17 +145,21 @@ function ProgressIndicator({
                 aria-valuemax={100}
                 aria-label={`${label}: ${isComplete ? "Complete" : isCurrent ? "In progress" : "Not started"}`}
               />
-              <span
-                className={`text-[10px] font-medium transition-colors ${
-                  isComplete || isCurrent ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {label}
-              </span>
-            </li>
-          )
-        })}
-      </ol>
+            )
+          })}
+          {/* Animated progress line */}
+          <div 
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full transition-all duration-500 ease-out"
+            style={{ 
+              width: `${Math.max(10, (currentIndex / (steps.length - 1)) * 100)}%`,
+            }}
+          />
+        </div>
+        {/* Step label */}
+        <p className="text-xs text-muted-foreground">
+          Step {currentIndex + 1} of {steps.length}: <span className="font-medium text-foreground">{steps[currentIndex]}</span>
+        </p>
+      </div>
     </nav>
   )
 }
