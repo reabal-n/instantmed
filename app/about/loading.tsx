@@ -1,8 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import { Loader } from "@/components/ui/loader"
 
 export default function AboutLoading() {
   return (
     <div className="min-h-screen bg-background">
+      {/* Loader */}
+      <div className="flex justify-center pt-8">
+        <Loader size="md" />
+      </div>
       {/* Hero */}
       <div className="container py-24 text-center">
         <Skeleton className="h-6 w-32 mx-auto mb-4 rounded-full" />

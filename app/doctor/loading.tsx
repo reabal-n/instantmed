@@ -1,7 +1,13 @@
+import { Loader } from "@/components/ui/loader"
+
 export default function DoctorLoading() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <div className="container max-w-6xl py-8 px-4">
+        {/* Animated loader */}
+        <div className="flex justify-center mb-8">
+          <Loader size="md" />
+        </div>
         {/* Header skeleton */}
         <div className="mb-8 animate-pulse">
           <div className="h-8 w-64 bg-muted/60 rounded-lg mb-2" />
