@@ -10,6 +10,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { PasswordStrength } from "@/components/ui/password-strength"
+import { PasswordConfirmation } from "@/components/ui/password-confirmation"
 import { Loader2, Shield, Clock, CheckCircle } from "lucide-react"
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -40,6 +41,7 @@ export default function RegisterPage() {
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -53,6 +55,11 @@ export default function RegisterPage() {
 
     if (!termsAccepted) {
       setError("Please accept the terms and conditions")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
       return
     }
 
@@ -271,6 +278,11 @@ export default function RegisterPage() {
                   }}
                 />
                 <PasswordStrength password={password} />
+                <PasswordConfirmation
+                  password={password}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                />
               </div>
               <Checkbox
                 isSelected={termsAccepted}
