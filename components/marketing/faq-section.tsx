@@ -1,16 +1,20 @@
 'use client'
 
-import { Accordion, AccordionItem, Chip, Link } from '@heroui/react'
+import { Accordion, AccordionItem, Link } from '@heroui/react'
 import { faqItems } from '@/lib/marketing/homepage'
+import { SectionPill } from '@/components/ui/section-pill'
 
 export function FAQSection() {
   return (
     <section id="faq" className="py-20 lg:py-28 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <Chip color="primary" variant="flat" className="mb-4">
-            FAQ
-          </Chip>
+          <SectionPill 
+            emoji="❓" 
+            text="FAQ" 
+            hoverText="Get answers fast"
+            className="mb-4"
+          />
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Common questions
           </h2>

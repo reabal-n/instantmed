@@ -2,8 +2,8 @@
 
 import { Shield, Award, Clock, Users, CheckCircle, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Chip } from '@heroui/react'
 import { MorphingCardStack, type CardData } from '@/components/ui/morphing-card-stack'
+import { SectionPill } from '@/components/ui/section-pill'
 
 const trustCards: CardData[] = [
   {
@@ -50,9 +50,12 @@ export function TrustSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <Chip color="success" variant="flat" className="mb-4">
-            Trusted by Australians
-          </Chip>
+          <SectionPill 
+            emoji="🛡️" 
+            text="Trusted by Australians" 
+            hoverText="50,000+ patients served"
+            className="mb-4"
+          />
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
             Healthcare you can trust
           </h2>

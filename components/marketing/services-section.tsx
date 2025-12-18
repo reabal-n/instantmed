@@ -1,23 +1,22 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Check, Shield } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import { Button, Chip } from '@heroui/react'
 import { featuredServices } from '@/lib/marketing/homepage'
+import { SectionPill } from '@/components/ui/section-pill'
 
 export function ServicesSection() {
   return (
     <section id="services" className="py-20 lg:py-28 scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <Chip 
-            color="primary" 
-            variant="flat" 
+          <SectionPill 
+            emoji="🏥" 
+            text="What we do" 
+            hoverText="Same-day healthcare"
             className="mb-4"
-            startContent={<Shield className="w-4 h-4" />}
-          >
-            What we do
-          </Chip>
+          />
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Healthcare that respects your time
           </h2>
