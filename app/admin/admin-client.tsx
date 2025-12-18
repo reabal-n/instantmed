@@ -32,6 +32,7 @@ import type { RequestWithPatient, DashboardAnalytics } from "@/types/db"
 import { toast } from "sonner"
 import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
 import { cn } from "@/lib/utils"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 import {
   LineChart,
   Line,
@@ -57,8 +58,6 @@ interface AdminClientProps {
   }
   analytics: DashboardAnalytics | null
   doctorName: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
 }
 
 type Section = "queue" | "patients" | "analytics" | "settings"
@@ -83,8 +82,6 @@ export function AdminClient({
   stats,
   analytics,
   doctorName,
-  formatCategory,
-  formatSubtype,
 }: AdminClientProps) {
   const [activeSection, setActiveSection] = useState<Section>("queue")
   const [searchQuery, setSearchQuery] = useState("")

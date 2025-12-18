@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { getAllRequestsForAdmin, getDoctorDashboardStats, formatCategory, formatSubtype } from "@/lib/data/requests"
+import { getAllRequestsForAdmin, getDoctorDashboardStats } from "@/lib/data/requests"
 import { getDashboardAnalytics } from "@/lib/data/analytics"
 import { AdminClient } from "./admin-client"
 
@@ -49,8 +49,6 @@ export default async function AdminDashboardPage() {
           stats={stats}
           analytics={analytics}
           doctorName={authUser.profile.full_name}
-          formatCategory={formatCategory}
-          formatSubtype={formatSubtype}
         />
       </main>
 
