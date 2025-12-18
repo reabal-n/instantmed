@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search, Bell, Wifi, WifiOff, RefreshCw } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
 import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
-import { AnalyticsCard } from "@/components/doctor/analytics-card"
 
 interface DoctorDashboardClientProps {
   pendingRequests: RequestWithPatient[]
@@ -379,51 +378,31 @@ export function DoctorDashboardClient({
         </div>
       </div>
 
-      {/* Analytics Card */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AnalyticsCard 
-          data={{
-            totalRequests: stats.total,
-            approvedRequests: stats.approved,
-            pendingRequests: stats.pending,
-            avgResponseTime: "28 min",
-            approvalRate: stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0,
-            todayRequests: localPendingRequests.filter(r => {
-              const today = new Date()
-              const created = new Date(r.created_at)
-              return created.toDateString() === today.toDateString()
-            }).length,
-            weeklyGrowth: 12.5
-          }}
-          className="animate-fade-in-up opacity-0"
-        />
-        
-        {/* Quick Actions Card */}
-        <div 
-          className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
-        >
-          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <Button asChild className="w-full justify-start rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white">
-              <Link href="/doctor/queue">
-                <Clock className="h-4 w-4 mr-2" />
-                Review Queue ({stats.pending} pending)
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start rounded-xl">
-              <Link href="/doctor/analytics">
-                <FileText className="h-4 w-4 mr-2" />
-                View Full Analytics
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start rounded-xl">
-              <Link href="/doctor/patients">
-                <Eye className="h-4 w-4 mr-2" />
-                Patient Directory
-              </Link>
-            </Button>
-          </div>
+      {/* Quick Actions Card */}
+      <div 
+        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
+        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
+      >
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white">
+            <Link href="/doctor/queue">
+              <Clock className="h-4 w-4 mr-2" />
+              Review Queue ({stats.pending} pending)
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link href="/doctor/analytics">
+              <FileText className="h-4 w-4 mr-2" />
+              Full Analytics
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link href="/doctor/patients">
+              <Eye className="h-4 w-4 mr-2" />
+              Patients
+            </Link>
+          </Button>
         </div>
       </div>
 
