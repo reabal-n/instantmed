@@ -209,8 +209,9 @@ const testimonials: Testimonial[] = [
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="flex-shrink-0 w-[300px] sm:w-[340px] mx-3">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
+    <div className="shrink-0 w-[300px] sm:w-[340px] mx-3">
+      <div className="rounded-2xl p-1.5 relative isolate overflow-hidden bg-white/5 dark:bg-black/90 bg-gradient-to-br from-black/5 to-black/[0.02] dark:from-white/5 dark:to-white/[0.02] backdrop-blur-xl backdrop-saturate-[180%] border border-black/10 dark:border-white/10 shadow-[0_8px_16px_rgb(0_0_0_/_0.08)] dark:shadow-[0_8px_16px_rgb(0_0_0_/_0.25)]">
+        <div className="rounded-xl p-5 h-full relative bg-gradient-to-br from-black/[0.03] to-transparent dark:from-white/[0.08] dark:to-transparent backdrop-blur-md border border-black/[0.05] dark:border-white/[0.08] transition-all duration-300 hover:from-black/[0.05] dark:hover:from-white/[0.12]">
         {/* Header with service badge and rating */}
         <div className="flex items-center justify-between mb-4">
           <span
@@ -269,6 +270,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
               {testimonial.location}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
