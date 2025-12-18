@@ -66,11 +66,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(input.guestEmail)) {
-      console.error("[Guest Checkout] Invalid email format:", input.guestEmail)
       return { success: false, error: "Please provide a valid email address." }
     }
-
-    console.log("[Guest Checkout] Starting checkout for:", input.guestEmail)
 
     const supabase = getServiceClient()
     const baseUrl = getBaseUrl()
@@ -89,7 +86,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (existingAuthProfile) {
       // User already has an account - they should sign in instead
-      console.log("[Guest Checkout] Email already has authenticated account:", normalizedEmail)
       return { 
         success: false, 
         error: "An account already exists with this email. Please sign in to continue." 
@@ -107,7 +103,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     if (existingGuestProfile) {
       // Reuse existing guest profile
       guestProfileId = existingGuestProfile.id
-      console.log("[Guest Checkout] Reusing existing guest profile:", guestProfileId)
     } else {
       // Create a new guest profile
       const { data: newProfile, error: profileError } = await supabase
@@ -124,12 +119,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
       if (profileError || !newProfile) {
         const pgError = profileError as { code?: string; message?: string } | null
-        console.error("[Guest Checkout] Error creating guest profile:", {
-          error: profileError,
-          code: pgError?.code,
-          message: pgError?.message,
-          email: normalizedEmail,
-        })
         
         // Check if it's a constraint violation (email already exists with auth)
         if (pgError?.code === '23505') {
@@ -143,7 +132,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
 
       guestProfileId = newProfile.id
-      console.log("[Guest Checkout] Created new guest profile:", guestProfileId)
     }
 
     // 2. Create the request with pending_payment status
@@ -162,11 +150,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .single()
 
     if (requestError || !request) {
-      console.error("[v0] Error creating request:", requestError)
       return { success: false, error: "Failed to create your request. Please try again." }
     }
-
-    console.log("[v0] Created request:", request.id)
 
     // 3. Insert the answers
     const { error: answersError } = await supabase.from("request_answers").insert({
@@ -175,7 +160,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     })
 
     if (answersError) {
-      console.error("[v0] Error creating answers:", answersError)
+      // Don't fail - answers are supplementary
     }
 
     // 4. Get the price ID
@@ -186,7 +171,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     })
 
     if (!priceId) {
-      console.error("[v0] No price ID found for:", input.category, input.subtype)
       await supabase.from("requests").delete().eq("id", request.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
@@ -233,7 +217,6 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     })
 
     if (paymentError) {
-      console.error("[Guest Checkout] Error creating payment record:", paymentError)
       // Don't fail - Stripe is the source of truth
     }
 
@@ -243,15 +226,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .update({ active_checkout_session_id: session.id })
       .eq("id", request.id)
 
-    console.log("[Guest Checkout] Session created:", {
-      requestId: request.id,
-      sessionId: session.id,
-      email: input.guestEmail,
-    })
-
     return { success: true, checkoutUrl: session.url }
-  } catch (error) {
-    console.error("[v0] Error in createGuestCheckoutAction:", error)
+  } catch {
     return {
       success: false,
       error: "Something went wrong. Please try again or contact support if the problem persists.",

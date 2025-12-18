@@ -39,8 +39,6 @@ export function CompleteAccountForm({
     try {
       const supabase = createClient()
 
-      console.log("[v0] Creating account for guest:", email)
-
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -50,7 +48,6 @@ export function CompleteAccountForm({
       })
 
       if (authError) {
-        console.error("[v0] Auth error:", authError)
         setError(authError.message)
         return
       }
@@ -59,8 +56,6 @@ export function CompleteAccountForm({
         setError("Failed to create account")
         return
       }
-
-      console.log("[v0] Account created, user ID:", authData.user.id)
 
       confetti({
         particleCount: 100,
@@ -71,8 +66,7 @@ export function CompleteAccountForm({
       setTimeout(() => {
         router.push(`/patient/requests/success?request_id=${requestId}`)
       }, 1000)
-    } catch (err) {
-      console.error("[v0] Error completing account:", err)
+    } catch {
       setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)

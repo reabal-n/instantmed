@@ -57,8 +57,6 @@ export async function refundIfEligible(
   const supabase = getServiceClient()
   const timestamp = new Date().toISOString()
 
-  console.log("[Refund] Processing refund eligibility:", { requestId, actorId })
-
   try {
     // STEP 1: Fetch request with category and payment info
     const { data: request, error: requestError } = await supabase
@@ -68,7 +66,6 @@ export async function refundIfEligible(
       .single()
 
     if (requestError || !request) {
-      console.error("[Refund] Request not found:", requestError)
       return {
         success: false,
         refunded: false,
@@ -80,7 +77,6 @@ export async function refundIfEligible(
 
     // STEP 2: Verify request is declined
     if (request.status !== "declined") {
-      console.log("[Refund] Request not declined, skipping:", request.status)
       return {
         success: true,
         refunded: false,
@@ -95,8 +91,6 @@ export async function refundIfEligible(
       const reason = category 
         ? `Category '${category}' is not eligible for auto-refund`
         : "No category specified"
-      
-      console.log("[Refund] Not eligible:", reason)
       
       // Update payment record to reflect ineligibility
       await supabase
@@ -126,7 +120,6 @@ export async function refundIfEligible(
       .single()
 
     if (paymentError || !payment) {
-      console.error("[Refund] No paid payment found:", paymentError)
       return {
         success: false,
         refunded: false,
@@ -138,7 +131,6 @@ export async function refundIfEligible(
 
     // STEP 5: IDEMPOTENCY CHECK - Already refunded?
     if (payment.stripe_refund_id || payment.refund_status === "refunded") {
-      console.log("[Refund] Already refunded:", payment.stripe_refund_id)
       return {
         success: true,
         refunded: true,
@@ -151,7 +143,6 @@ export async function refundIfEligible(
 
     // STEP 6: Check for Stripe payment intent
     if (!payment.stripe_payment_intent_id) {
-      console.error("[Refund] No payment intent ID found")
       
       await supabase
         .from("payments")
@@ -181,7 +172,6 @@ export async function refundIfEligible(
       .eq("refund_status", payment.refund_status) // Optimistic lock
 
     if (lockError) {
-      console.error("[Refund] Failed to acquire lock:", lockError)
       return {
         success: false,
         refunded: false,
@@ -192,11 +182,6 @@ export async function refundIfEligible(
     }
 
     // STEP 8: Process Stripe refund
-    console.log("[Refund] Creating Stripe refund:", {
-      paymentIntentId: payment.stripe_payment_intent_id,
-      amount: payment.amount,
-    })
-
     // Log refund attempt
     await logRefundAction("refund_attempted", actorId, requestId, {
       category: category || undefined,
@@ -218,7 +203,6 @@ export async function refundIfEligible(
       })
     } catch (stripeError) {
       const errorMessage = stripeError instanceof Error ? stripeError.message : "Unknown Stripe error"
-      console.error("[Refund] Stripe API error:", errorMessage)
 
       // Log refund failure
       await logRefundAction("refund_failed", actorId, requestId, {
@@ -264,8 +248,7 @@ export async function refundIfEligible(
       .eq("id", payment.id)
 
     if (updateError) {
-      console.error("[Refund] Failed to update payment record:", updateError)
-      // Refund succeeded in Stripe, but DB update failed - log but don't fail
+      // Refund succeeded in Stripe, but DB update failed - don't fail
     }
 
     // STEP 10: Update request payment_status
@@ -285,12 +268,6 @@ export async function refundIfEligible(
       reason: refundReason,
     })
 
-    console.log("[Refund] Refund successful:", {
-      requestId,
-      stripeRefundId: stripeRefund.id,
-      amount: stripeRefund.amount,
-    })
-
     return {
       success: true,
       refunded: true,
@@ -302,8 +279,6 @@ export async function refundIfEligible(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    console.error("[Refund] Unexpected error:", errorMessage)
-
     return {
       success: false,
       refunded: false,

@@ -29,7 +29,6 @@ export async function POST(request: Request) {
       actionUrl, 
       metadata,
       sendEmail = true,
-      emailTemplate 
     } = body
 
     if (!userId || !type || !title || !message) {
@@ -56,7 +55,6 @@ export async function POST(request: Request) {
       .single()
 
     if (notificationError) {
-      console.error("Error creating notification:", notificationError)
       return NextResponse.json(
         { error: "Failed to create notification" },
         { status: 500 }
@@ -88,7 +86,7 @@ export async function POST(request: Request) {
               to: email,
               subject: title,
               html: generateEmailHtml(title, message, actionUrl),
-            }).catch(err => console.error("Email send error:", err))
+            }).catch(() => { /* fire and forget */ })
           }
         }
       }
@@ -98,8 +96,7 @@ export async function POST(request: Request) {
       success: true,
       notification,
     })
-  } catch (error) {
-    console.error("Notification API error:", error)
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -26,7 +26,6 @@ export async function saveMedCertDraftAction(
   try {
     // Validate input
     if (!isValidUUID(draftId)) {
-      console.error("[saveMedCertDraftAction] Invalid draftId:", draftId)
       return { success: false, error: "Invalid draft ID" }
     }
 
@@ -41,10 +40,8 @@ export async function saveMedCertDraftAction(
       return { success: false, error: "Failed to save draft" }
     }
 
-    console.log("[saveMedCertDraftAction] Draft saved:", { draftId, doctorId: profile.id })
     return { success: true }
-  } catch (error) {
-    console.error("[saveMedCertDraftAction] Error:", error)
+  } catch {
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -56,7 +53,6 @@ export async function generateMedCertPdfAndApproveAction(
   try {
     // Validate input
     if (!isValidUUID(draftId)) {
-      console.error("[generateMedCertPdfAndApproveAction] Invalid draftId:", draftId)
       return { success: false, error: "Invalid draft ID" }
     }
 
@@ -64,8 +60,6 @@ export async function generateMedCertPdfAndApproveAction(
     if (!profile) {
       return { success: false, error: "Unauthorized" }
     }
-
-    console.log("[generateMedCertPdfAndApproveAction] Starting:", { draftId, doctorId: profile.id })
 
     // First save the latest data
     const savedDraft = await updateMedCertDraftData(draftId, data)
@@ -84,11 +78,6 @@ export async function generateMedCertPdfAndApproveAction(
       await assertApprovalInvariants(draft.request_id)
     } catch (invariantError) {
       if (invariantError instanceof ApprovalInvariantError) {
-        console.error("[generateMedCertPdfAndApproveAction] Invariant check failed:", {
-          requestId: draft.request_id,
-          code: invariantError.code,
-          errors: invariantError.details,
-        })
         return { 
           success: false, 
           error: invariantError.message,
@@ -108,28 +97,17 @@ export async function generateMedCertPdfAndApproveAction(
       const uploadResult = await uploadPdfBuffer(pdfBuffer, draft.request_id, "med_cert", draft.subtype || "work")
       
       if (!uploadResult.success || !uploadResult.permanentUrl) {
-        console.error("[generateMedCertPdfAndApproveAction] Upload failed:", uploadResult.error)
         return { success: false, error: uploadResult.error || "Failed to upload PDF" }
       }
       
       pdfUrl = uploadResult.permanentUrl
-      console.log("[generateMedCertPdfAndApproveAction] PDF generated and uploaded:", { 
-        requestId: draft.request_id,
-        isPermanent: isPermanentStorageUrl(pdfUrl),
-        url: pdfUrl.substring(0, 60) + "...",
-      })
     } catch (pdfError) {
-      console.error("[generateMedCertPdfAndApproveAction] PDF generation error:", pdfError)
       const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
       return { success: false, error: errorMessage }
     }
 
     // INVARIANT CHECK: PDF URL must be permanent (Supabase Storage)
     if (!isPermanentStorageUrl(pdfUrl)) {
-      console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: PDF URL is not permanent storage", {
-        requestId: draft.request_id,
-        url: pdfUrl.substring(0, 80),
-      })
       return { 
         success: false, 
         error: "PDF storage failed - document URL is not permanent. Please try again.",
@@ -142,24 +120,18 @@ export async function generateMedCertPdfAndApproveAction(
     const document = await createGeneratedDocument(draft.request_id, draft.type, draft.subtype || "work", pdfUrl)
 
     if (!document) {
-      console.error("[generateMedCertPdfAndApproveAction] Failed to save document record")
       return { success: false, error: "PDF generated but failed to save document record", code: "DOCUMENT_MISSING" }
     }
 
     // INVARIANT CHECK: Verify document was actually persisted before approving
     const documentExists = await hasDocumentForRequest(draft.request_id)
     if (!documentExists) {
-      console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: Document not found after creation")
       return { success: false, error: "Document verification failed - please try again", code: "DOCUMENT_MISSING" }
     }
 
     // INVARIANT CHECK: Verify stored URL is permanent
     const urlCheck = await verifyDocumentUrlIsPermanent(draft.request_id)
     if (!urlCheck.valid) {
-      console.error("[generateMedCertPdfAndApproveAction] INVARIANT VIOLATION: Stored URL is not permanent", {
-        requestId: draft.request_id,
-        error: urlCheck.error,
-      })
       return { success: false, error: urlCheck.error || "Document URL verification failed", code: "TEMPORARY_URL" }
     }
 
@@ -170,7 +142,6 @@ export async function generateMedCertPdfAndApproveAction(
       updatedRequest = await updateRequestStatus(draft.request_id, "approved", profile.id)
     } catch (lifecycleError) {
       if (lifecycleError instanceof RequestLifecycleError) {
-        console.error("[generateMedCertPdfAndApproveAction] Lifecycle error on status update:", lifecycleError.message)
         return { 
           success: false, 
           error: lifecycleError.message,
@@ -181,19 +152,12 @@ export async function generateMedCertPdfAndApproveAction(
     }
 
     if (!updatedRequest) {
-      console.error("[generateMedCertPdfAndApproveAction] Failed to update request status")
       return { success: false, error: "PDF generated but failed to update request status" }
     }
 
-    console.log("[generateMedCertPdfAndApproveAction] Request approved:", {
-      requestId: draft.request_id,
-      doctorId: profile.id,
-      doctorName: profile.full_name,
-    })
-
     // Send email notification to patient (fire and forget - don't block on email)
-    sendPatientNotificationEmail(draft.request_id, pdfUrl, draft.subtype).catch((error) => {
-      console.error("[generateMedCertPdfAndApproveAction] Email send failed:", error)
+    sendPatientNotificationEmail(draft.request_id, pdfUrl, draft.subtype).catch(() => {
+      // Email failures are logged in sendPatientNotificationEmail
     })
 
     // Revalidate paths
@@ -203,8 +167,7 @@ export async function generateMedCertPdfAndApproveAction(
     revalidatePath("/doctor/admin")
 
     return { success: true, pdfUrl }
-  } catch (error) {
-    console.error("[generateMedCertPdfAndApproveAction] Unexpected error:", error)
+  } catch {
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -238,7 +201,6 @@ export async function testPdfGenerationAction(): Promise<{ success: boolean; err
     
     return { success: false, error: "PDF generation returned empty buffer" }
   } catch (error) {
-    console.error("Error testing PDF generation:", error)
     return { success: false, error: error instanceof Error ? error.message : "Failed to test PDF generation" }
   }
 }
@@ -247,7 +209,6 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
   try {
     // Validate input
     if (!isValidUUID(requestId)) {
-      console.error("[approveWithoutPdfAction] Invalid requestId:", requestId)
       return { success: false, error: "Invalid request ID" }
     }
 
@@ -261,11 +222,6 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
       await assertApprovalInvariants(requestId)
     } catch (invariantError) {
       if (invariantError instanceof ApprovalInvariantError) {
-        console.error("[approveWithoutPdfAction] Invariant check failed:", {
-          requestId,
-          code: invariantError.code,
-          errors: invariantError.details,
-        })
         return { 
           success: false, 
           error: invariantError.message,
@@ -294,19 +250,12 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
       return { success: false, error: "Failed to update request status" }
     }
 
-    console.log("[approveWithoutPdfAction] Request approved:", {
-      requestId,
-      doctorId: profile.id,
-      doctorName: profile.full_name,
-    })
-
     revalidatePath(`/doctor/requests/${requestId}`)
     revalidatePath("/doctor")
     revalidatePath("/doctor/admin")
 
     return { success: true }
-  } catch (error) {
-    console.error("[approveWithoutPdfAction] Unexpected error:", error)
+  } catch {
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -324,32 +273,24 @@ async function sendPatientNotificationEmail(
     // Get request with patient details
     const request = await getRequestWithDetails(requestId)
     if (!request || !request.patient) {
-      console.error("[Email] Could not find request or patient for email")
       return
     }
 
     // Get patient email
     const patientEmail = await getPatientEmailFromRequest(requestId)
     if (!patientEmail) {
-      console.error("[Email] Could not find patient email")
       return
     }
 
     // Send the email
-    const result = await sendMedCertReadyEmail({
+    await sendMedCertReadyEmail({
       to: patientEmail,
       patientName: request.patient.full_name || "there",
       pdfUrl,
       requestId,
       certType: subtype || "work",
     })
-
-    if (!result.success) {
-      console.error("[Email] Failed to send med cert ready email:", result.error)
-    } else {
-      console.log(`[Email] Med cert ready email sent to ${patientEmail}, id: ${result.id}`)
-    }
-  } catch (error) {
-    console.error("[Email] Error sending notification:", error)
+  } catch {
+    // Silently fail - email is fire-and-forget
   }
 }

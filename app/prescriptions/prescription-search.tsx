@@ -121,8 +121,8 @@ export function PrescriptionSearch() {
               <Search className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <div className="font-medium">Can't find it? Request "{query}"</div>
-              <div className="text-xs text-muted-foreground">We'll help you find the right medication</div>
+              <div className="font-medium">Can&apos;t find it? Request &quot;{query}&quot;</div>
+              <div className="text-xs text-muted-foreground">We&apos;ll help you find the right medication</div>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </button>

@@ -26,6 +26,9 @@ import {
   Shield,
   Pencil,
   Calendar,
+  CalendarDays,
+  CalendarRange,
+  CalendarClock,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
@@ -34,7 +37,8 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
-import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout" // Added createGuestCheckoutAction
+import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { AnimatedSelect } from "@/components/ui/animated-select"
 
 // Flow steps
 type FlowStep =
@@ -68,14 +72,14 @@ const CERT_TYPES = [
   { id: "carer", label: MICROCOPY.type.carer.label, icon: Heart, description: MICROCOPY.type.carer.description },
 ] as const
 
-// Duration options with compliant labels
+// Duration options with icons for AnimatedSelect
 const DURATION_OPTIONS = [
-  { value: "1", label: MICROCOPY.duration.options["1"] },
-  { value: "2", label: MICROCOPY.duration.options["2"] },
-  { value: "3", label: MICROCOPY.duration.options["3"] },
-  { value: "4-7", label: MICROCOPY.duration.options["4-7"] },
-  { value: "1-2weeks", label: MICROCOPY.duration.options["1-2weeks"] },
-  { value: "specific", label: MICROCOPY.duration.options["specific"] },
+  { value: "1", label: MICROCOPY.duration.options["1"], icon: CalendarDays, color: "#10B981" },
+  { value: "2", label: MICROCOPY.duration.options["2"], icon: CalendarDays, color: "#06B6D4" },
+  { value: "3", label: MICROCOPY.duration.options["3"], icon: CalendarDays, color: "#3B82F6" },
+  { value: "4-7", label: MICROCOPY.duration.options["4-7"], icon: CalendarRange, color: "#8B5CF6" },
+  { value: "1-2weeks", label: MICROCOPY.duration.options["1-2weeks"], icon: CalendarRange, color: "#EC4899" },
+  { value: "specific", label: MICROCOPY.duration.options["specific"], icon: CalendarClock, color: "#F59E0B" },
 ] as const
 
 // Symptoms
@@ -898,27 +902,17 @@ export function MedCertFlowClient({
           <section aria-labelledby="step-duration-heading" className="space-y-4 animate-step-enter">
             <StepHeader emoji="📅" title={MICROCOPY.duration.heading} />
 
-            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Duration">
-              {DURATION_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, duration: option.value }))}
-                  aria-pressed={formData.duration === option.value}
-                  className={`
-                    min-h-[48px] p-3 rounded-xl border-2 font-medium text-sm transition-all
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
-                    ${
-                      formData.duration === option.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-white hover:border-primary/40"
-                    }
-                  `}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <AnimatedSelect
+              options={DURATION_OPTIONS.map((opt) => ({
+                id: opt.value,
+                label: opt.label,
+                icon: opt.icon,
+                color: opt.color,
+              }))}
+              value={formData.duration || undefined}
+              onChange={(value) => setFormData((prev) => ({ ...prev, duration: value }))}
+              placeholder="Select duration..."
+            />
 
             {formData.duration === "specific" && (
               <fieldset className="space-y-3 p-3 rounded-xl bg-muted/50">

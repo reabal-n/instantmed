@@ -62,7 +62,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const serviceCategory = categoryMap[input.category] || "other"
     
     if (await isServiceDisabled(serviceCategory)) {
-      console.log("[Checkout] Service disabled:", input.category)
       const errorCode = serviceCategory === "medical_certificate" 
         ? SERVICE_DISABLED_ERRORS.MED_CERT_DISABLED
         : serviceCategory === "prescription"
@@ -89,7 +88,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       const medicationDisplay = input.answers.medication_display as string | undefined
       const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
       if (medCheck.blocked) {
-        console.log("[Checkout] Medication blocked:", medCheck.matchedTerm)
         return {
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
@@ -103,7 +101,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       const medicationDisplay = input.answers.medication_display as string | undefined
       const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
       if (medCheck.blocked) {
-        console.log("[Checkout] Medication blocked in consult:", medCheck.matchedTerm)
         return {
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
@@ -123,7 +120,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
     if (!supabaseUrl || !serviceKey) {
-      console.error("Missing Supabase credentials")
       return { success: false, error: "Server configuration error" }
     }
     
@@ -134,9 +130,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     let patientId: string
     if (authUser.profile?.id) {
       patientId = authUser.profile.id
-      console.log("[Checkout] Profile exists:", patientId)
     } else {
-      console.log("[Checkout] Profile missing, creating server-side")
       const { ensureProfile } = await import("@/app/actions/ensure-profile")
       const { profileId, error: profileError } = await ensureProfile(
         authUser.user.id,
@@ -144,12 +138,10 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       )
       
       if (profileError || !profileId) {
-        console.error("[Checkout] Failed to create profile:", profileError)
         return { success: false, error: `Profile creation failed: ${profileError || "Unknown error"}` }
       }
       
       patientId = profileId
-      console.log("[Checkout] Profile created:", patientId)
     }
 
     const patientEmail = authUser.user.email || undefined
@@ -157,7 +149,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
 
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
-      console.error("Invalid base URL configuration:", baseUrl)
       return { success: false, error: "Server configuration error. Please contact support." }
     }
 
@@ -177,7 +168,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       .single()
 
     if (requestError || !request) {
-      console.error("Error creating request:", requestError)
       if (requestError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
       }
@@ -194,7 +184,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     })
 
     if (answersError) {
-      console.error("Error creating answers:", answersError)
       // Don't fail the whole request, answers are supplementary
     }
 
@@ -206,7 +195,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     })
 
     if (!priceId) {
-      console.error("No price ID found for:", input.category, input.subtype)
       // Clean up the created request
       await supabase.from("requests").delete().eq("id", request.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
@@ -243,11 +231,8 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     try {
       session = await stripe.checkout.sessions.create(sessionParams)
     } catch (stripeError: unknown) {
-      console.error("Stripe error:", stripeError)
       await supabase.from("requests").delete().eq("id", request.id)
-
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
-      console.error("[Checkout] Stripe error details:", { message: errorMessage, baseUrl, successUrl, cancelUrl })
 
       // Check for URL-related errors
       if (errorMessage.toLowerCase().includes("url") || errorMessage.includes("Invalid") || errorMessage.includes("valid")) {
@@ -281,7 +266,6 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     })
 
     if (paymentError) {
-      console.error("[Checkout] Error creating payment record:", paymentError)
       // Don't fail - the payment record is for tracking, Stripe is the source of truth
     }
 
@@ -291,16 +275,8 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       .update({ active_checkout_session_id: session.id })
       .eq("id", request.id)
 
-    console.log("[Checkout] Session created:", {
-      requestId: request.id,
-      sessionId: session.id,
-      category: input.category,
-      subtype: input.subtype,
-    })
-
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
-    console.error("Error in createRequestAndCheckoutAction:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
     return {
       success: false,
@@ -344,7 +320,6 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
       .single()
 
     if (requestError || !request) {
-      console.error("Error fetching request for retry:", requestError)
       return { success: false, error: "Request not found" }
     }
 
@@ -363,7 +338,6 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     // 6. Get base URL for redirects
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
-      console.error("Invalid base URL configuration:", baseUrl)
       return { success: false, error: "Server configuration error. Please contact support." }
     }
 
@@ -396,11 +370,6 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
       session = await stripe.checkout.sessions.create(sessionParams)
     } catch (stripeError: unknown) {
       // IMPORTANT: Do NOT delete the request on retry - user's data must be preserved
-      console.error("[Stripe Retry] Checkout session creation failed:", {
-        requestId: request.id,
-        error: stripeError instanceof Error ? stripeError.message : "Unknown error",
-      })
-
       if (stripeError instanceof Error) {
         if (stripeError.message.includes("Invalid URL")) {
           return { success: false, error: "Server configuration error. Please contact support." }
@@ -414,7 +383,6 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
 
     if (!session.url) {
       // Do NOT delete request - it's a retry, the original data must be preserved
-      console.error("[Stripe Retry] No checkout URL returned for request:", request.id)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
@@ -430,10 +398,6 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     })
 
     if (paymentError) {
-      // If unique constraint violation on stripe_session_id, that's expected (shouldn't happen)
-      if (paymentError.code !== "23505") {
-        console.error("[Checkout Retry] Error creating payment record:", paymentError)
-      }
       // Don't fail - the payment record is for tracking, Stripe is the source of truth
     }
 
@@ -443,15 +407,8 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
       .update({ active_checkout_session_id: session.id })
       .eq("id", request.id)
 
-    console.log("[Checkout Retry] New session created:", {
-      requestId: request.id,
-      sessionId: session.id,
-      isRetry: true,
-    })
-
     return { success: true, checkoutUrl: session.url }
-  } catch (error) {
-    console.error("Error in retryPaymentForRequestAction:", error)
+  } catch {
     return {
       success: false,
       error: "Something went wrong. Please try again or contact support if the problem persists.",

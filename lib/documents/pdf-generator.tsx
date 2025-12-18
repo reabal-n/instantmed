@@ -233,25 +233,13 @@ export async function generateMedCertPdf(
   const validatedSubtype = (subtype || "work").toLowerCase()
   const certId = `MC-${requestId.substring(0, 8).toUpperCase()}`
 
-  console.log("[PDFGenerator] Generating med cert PDF:", {
-    subtype: validatedSubtype,
-    requestId,
-    certId,
-  })
-
   try {
     const pdfBuffer = await renderToBuffer(
       <MedCertDocument data={data} subtype={validatedSubtype} certId={certId} />
     )
 
-    console.log("[PDFGenerator] PDF generated successfully:", {
-      size: pdfBuffer.length,
-      sizeKB: Math.round(pdfBuffer.length / 1024),
-    })
-
     return Buffer.from(pdfBuffer)
   } catch (error) {
-    console.error("[PDFGenerator] Error generating PDF:", error)
     throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }

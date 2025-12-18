@@ -25,7 +25,6 @@ export async function updateStatusAction(
 ): Promise<{ success: boolean; error?: string; code?: string }> {
   // Validate input
   if (!isValidUUID(requestId)) {
-    console.error("[queue/updateStatusAction] Invalid requestId:", requestId)
     return { success: false, error: "Invalid request ID" }
   }
 
@@ -44,12 +43,6 @@ export async function updateStatusAction(
     // Mark as reviewed
     await markAsReviewed(requestId, doctorId)
 
-    console.log("[queue/updateStatusAction] Status updated:", {
-      requestId,
-      status,
-      doctorId: profile.id,
-    })
-
     revalidatePath("/doctor")
     revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/requests/${requestId}`)
@@ -57,13 +50,6 @@ export async function updateStatusAction(
     return { success: true }
   } catch (error) {
     if (error instanceof RequestLifecycleError) {
-      console.error("[queue/updateStatusAction] Lifecycle error:", {
-        requestId,
-        attemptedStatus: status,
-        code: error.code,
-        message: error.message,
-      })
-
       switch (error.code) {
         case "PAYMENT_REQUIRED":
           return {

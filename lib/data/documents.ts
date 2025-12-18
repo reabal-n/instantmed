@@ -16,7 +16,6 @@ function isValidUUID(id: string): boolean {
 export async function getOrCreateMedCertDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
   // Validate UUID format
   if (!isValidUUID(requestId)) {
-    console.error("[getOrCreateMedCertDraftForRequest] Invalid requestId:", requestId)
     return null
   }
 
@@ -32,12 +31,10 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     .maybeSingle()
 
   if (fetchError) {
-    console.error("[getOrCreateMedCertDraftForRequest] Error fetching draft:", fetchError)
     return null
   }
 
   if (existingDraft) {
-    console.log("[getOrCreateMedCertDraftForRequest] Returning existing draft:", existingDraft.id)
     return existingDraft as DocumentDraft
   }
 
@@ -53,7 +50,6 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     .single()
 
   if (requestError || !request) {
-    console.error("Error fetching request:", requestError)
     return null
   }
 
@@ -115,7 +111,6 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
   if (insertError) {
     // Handle unique constraint violation (race condition)
     if (insertError.code === "23505") {
-      console.log("[getOrCreateMedCertDraftForRequest] Race condition detected, fetching existing draft")
       // Another request created the draft, fetch it
       const { data: raceDraft } = await supabase
         .from("document_drafts")
@@ -127,15 +122,8 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
       return raceDraft as DocumentDraft | null
     }
     
-    console.error("[getOrCreateMedCertDraftForRequest] Error creating draft:", insertError)
     return null
   }
-
-  console.log("[getOrCreateMedCertDraftForRequest] Created new draft:", {
-    draftId: newDraft.id,
-    requestId,
-    subtype,
-  })
 
   return newDraft as DocumentDraft
 }
@@ -157,7 +145,6 @@ export async function updateMedCertDraftData(
     .single()
 
   if (fetchError || !currentDraft) {
-    console.error("Error fetching current draft:", fetchError)
     return null
   }
 
@@ -178,7 +165,6 @@ export async function updateMedCertDraftData(
     .single()
 
   if (updateError) {
-    console.error("Error updating draft:", updateError)
     return null
   }
 
@@ -200,7 +186,6 @@ export async function getLatestDocumentForRequest(requestId: string): Promise<Ge
     .maybeSingle()
 
   if (error) {
-    console.error("Error fetching document:", error)
     return null
   }
 
@@ -231,18 +216,15 @@ export async function createGeneratedDocument(
 ): Promise<GeneratedDocument | null> {
   // Validate inputs
   if (!isValidUUID(requestId)) {
-    console.error("[createGeneratedDocument] Invalid requestId:", requestId)
     return null
   }
 
   if (!pdfUrl || !pdfUrl.startsWith("http")) {
-    console.error("[createGeneratedDocument] Invalid pdfUrl:", pdfUrl)
     return null
   }
 
   const validTypes = ["med_cert", "prescription", "referral", "pathology"]
   if (!validTypes.includes(type)) {
-    console.error("[createGeneratedDocument] Invalid document type:", type)
     return null
   }
 
@@ -263,7 +245,6 @@ export async function createGeneratedDocument(
     .single()
 
   if (docError) {
-    console.error("[createGeneratedDocument] Error creating document:", docError)
     return null
   }
 
@@ -282,20 +263,8 @@ export async function createGeneratedDocument(
     })
 
   if (verifyError) {
-    // Log but don't fail - verification is secondary
-    console.error("[createGeneratedDocument] Error creating verification:", verifyError)
-    // Note: In production, you might want to delete the document and return null here
-  } else {
-    console.log("[createGeneratedDocument] Verification created:", verificationCode)
+    // Verification is secondary - don't fail
   }
-
-  console.log("[createGeneratedDocument] Document created:", {
-    documentId: document.id,
-    requestId,
-    type,
-    subtype,
-    verificationCode,
-  })
 
   return document as GeneratedDocument
 }
@@ -305,7 +274,6 @@ export async function createGeneratedDocument(
  */
 export async function getDraftById(draftId: string): Promise<DocumentDraft | null> {
   if (!isValidUUID(draftId)) {
-    console.error("[getDraftById] Invalid draftId:", draftId)
     return null
   }
 
@@ -314,7 +282,6 @@ export async function getDraftById(draftId: string): Promise<DocumentDraft | nul
   const { data, error } = await supabase.from("document_drafts").select("*").eq("id", draftId).single()
 
   if (error) {
-    console.error("[getDraftById] Error fetching draft:", error)
     return null
   }
 
@@ -337,7 +304,6 @@ export async function hasDocumentForRequest(requestId: string): Promise<boolean>
     .eq("request_id", requestId)
 
   if (error) {
-    console.error("[hasDocumentForRequest] Error:", error)
     return false
   }
 
@@ -349,7 +315,6 @@ export async function hasDocumentForRequest(requestId: string): Promise<boolean>
  */
 export async function getDocumentsForRequest(requestId: string): Promise<GeneratedDocument[]> {
   if (!isValidUUID(requestId)) {
-    console.error("[getDocumentsForRequest] Invalid requestId:", requestId)
     return []
   }
 
@@ -362,7 +327,6 @@ export async function getDocumentsForRequest(requestId: string): Promise<Generat
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("[getDocumentsForRequest] Error:", error)
     return []
   }
 
@@ -395,7 +359,6 @@ function determinePathologySubtype(testsArray: string[]): "pathology_bloods" | "
 export async function getOrCreatePathologyDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
   // Validate UUID format
   if (!isValidUUID(requestId)) {
-    console.error("[getOrCreatePathologyDraftForRequest] Invalid requestId:", requestId)
     return null
   }
 
@@ -410,12 +373,10 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .maybeSingle()
 
   if (fetchError) {
-    console.error("[getOrCreatePathologyDraftForRequest] Error fetching draft:", fetchError)
     return null
   }
 
   if (existingDraft) {
-    console.log("[getOrCreatePathologyDraftForRequest] Returning existing draft:", existingDraft.id)
     return existingDraft as DocumentDraft
   }
 
@@ -433,15 +394,11 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .single()
 
   if (requestError || !request) {
-    console.error("Error fetching request for pathology draft:", requestError)
     return null
   }
 
   // Verify this is a pathology-imaging referral
   if (request.category !== "referral" || request.subtype !== "pathology-imaging") {
-    console.error(
-      `Request ${requestId} is not a pathology referral. Category: ${request.category}, Subtype: ${request.subtype}`,
-    )
     return null
   }
 
@@ -487,7 +444,6 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
   if (insertError) {
     // Handle unique constraint violation (race condition)
     if (insertError.code === "23505") {
-      console.log("[getOrCreatePathologyDraftForRequest] Race condition detected, fetching existing draft")
       const { data: raceDraft } = await supabase
         .from("document_drafts")
         .select("*")
@@ -498,15 +454,8 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
       return raceDraft as DocumentDraft | null
     }
     
-    console.error("[getOrCreatePathologyDraftForRequest] Error creating draft:", insertError)
     return null
   }
-
-  console.log("[getOrCreatePathologyDraftForRequest] Created new draft:", {
-    draftId: newDraft.id,
-    requestId,
-    subtype: pathologySubtype,
-  })
 
   return newDraft as DocumentDraft
 }
@@ -529,7 +478,6 @@ export async function updatePathologyDraftData(
     .single()
 
   if (fetchError || !currentDraft) {
-    console.error("Error fetching current pathology draft:", fetchError)
     return null
   }
 
@@ -557,11 +505,8 @@ export async function updatePathologyDraftData(
     .single()
 
   if (updateError) {
-    console.error("Error updating pathology draft:", updateError)
     return null
   }
-
-  console.log(`[v0] Updated pathology draft ${draftId}, subtype: ${updatedDraft.subtype}`)
 
   return updatedDraft as DocumentDraft
 }

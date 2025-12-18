@@ -19,7 +19,6 @@ export async function updateStatusAction(
 ): Promise<{ success: boolean; error?: string; code?: string; refund?: RefundResult }> {
   // Validate input
   if (!isValidUUID(requestId)) {
-    console.error("[updateStatusAction] Invalid requestId:", requestId)
     return { success: false, error: "Invalid request ID" }
   }
 
@@ -38,23 +37,13 @@ export async function updateStatusAction(
       return { success: false, error: "Failed to update status" }
     }
 
-    console.log("[updateStatusAction] Status updated:", {
-      requestId,
-      status,
-      doctorId: profile.id,
-      doctorName: profile.full_name,
-    })
-
     // If declined, process refund if eligible
     let refundResult: RefundResult | undefined
     if (status === "declined") {
-      console.log("[updateStatusAction] Processing refund eligibility for declined request")
       try {
         refundResult = await refundIfEligible(requestId, profile.id)
-        console.log("[updateStatusAction] Refund result:", refundResult)
       } catch (refundError) {
-        // Log but don't fail the decline - refund is secondary
-        console.error("[updateStatusAction] Refund processing error:", refundError)
+        // Don't fail the decline - refund is secondary
         refundResult = {
           success: false,
           refunded: false,
@@ -72,13 +61,6 @@ export async function updateStatusAction(
   } catch (error) {
     // Handle lifecycle errors with specific messages
     if (error instanceof RequestLifecycleError) {
-      console.error("[updateStatusAction] Lifecycle error:", {
-        requestId,
-        attemptedStatus: status,
-        code: error.code,
-        message: error.message,
-      })
-
       // Return user-friendly error messages
       switch (error.code) {
         case "PAYMENT_REQUIRED":
@@ -119,7 +101,6 @@ export async function saveClinicalNoteAction(
 ): Promise<{ success: boolean; error?: string }> {
   // Validate input
   if (!isValidUUID(requestId)) {
-    console.error("[saveClinicalNoteAction] Invalid requestId:", requestId)
     return { success: false, error: "Invalid request ID" }
   }
 
@@ -134,12 +115,6 @@ export async function saveClinicalNoteAction(
   if (!success) {
     return { success: false, error: "Failed to save note" }
   }
-
-  console.log("[saveClinicalNoteAction] Note saved:", {
-    requestId,
-    doctorId: profile.id,
-    noteLength: note.length,
-  })
 
   revalidatePath(`/doctor/requests/${requestId}`)
 

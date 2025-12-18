@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidateTag } from "next/cache"
 import { requireAuth } from "@/lib/auth"
 import { 
   updateFeatureFlag, 
@@ -31,15 +30,6 @@ export async function updateFeatureFlagAction(
   }
 
   const result = await updateFeatureFlag(key, value, user.id)
-
-  if (result.success) {
-    // Revalidate the feature flags cache
-    try {
-      revalidateTag("feature-flags")
-    } catch {
-      // Cache revalidation is best-effort
-    }
-  }
 
   return result
 }

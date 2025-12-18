@@ -21,6 +21,14 @@ import {
   Check,
   Pencil,
   ExternalLink,
+  Brain,
+  Heart,
+  Droplets,
+  Wind,
+  Shield,
+  Bug,
+  Sparkles,
+  MoreHorizontal,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
@@ -28,6 +36,7 @@ import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
+import { AnimatedSelect } from "@/components/ui/animated-select"
 
 // Flow steps
 type FlowStep =
@@ -73,16 +82,16 @@ const RX_TYPES = [
   },
 ] as const
 
-// Conditions
+// Conditions with icons for AnimatedSelect
 const CONDITIONS = [
-  { id: "mental_health", label: "Mental health" },
-  { id: "cardiovascular", label: "Blood pressure / heart" },
-  { id: "diabetes", label: "Diabetes" },
-  { id: "respiratory", label: "Asthma / respiratory" },
-  { id: "contraceptive", label: "Contraception" },
-  { id: "infection", label: "Infection" },
-  { id: "skin", label: "Skin condition" },
-  { id: "other", label: "Other" },
+  { id: "mental_health", label: "Mental health", icon: Brain, color: "#8B5CF6" },
+  { id: "cardiovascular", label: "Blood pressure / heart", icon: Heart, color: "#EF4444" },
+  { id: "diabetes", label: "Diabetes", icon: Droplets, color: "#3B82F6" },
+  { id: "respiratory", label: "Asthma / respiratory", icon: Wind, color: "#06B6D4" },
+  { id: "contraceptive", label: "Contraception", icon: Shield, color: "#EC4899" },
+  { id: "infection", label: "Infection", icon: Bug, color: "#F59E0B" },
+  { id: "skin", label: "Skin condition", icon: Sparkles, color: "#10B981" },
+  { id: "other", label: "Other", icon: MoreHorizontal, color: "#6B7280" },
 ] as const
 
 // Duration options
@@ -1036,21 +1045,17 @@ export function PrescriptionFlowClient({
                 title={rxType === "new" ? RX_MICROCOPY.condition.headingNew : RX_MICROCOPY.condition.heading}
                 subtitle={RX_MICROCOPY.condition.subtitle}
               />
-              <div className="grid grid-cols-2 gap-2">
-                {CONDITIONS.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCondition(c.id)}
-                    className={`p-3 rounded-xl border text-sm text-left transition-all ${
-                      condition === c.id
-                        ? "border-primary bg-primary/5 font-medium"
-                        : "border-border/60 hover:border-border"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
+              <AnimatedSelect
+                options={CONDITIONS.map((c) => ({
+                  id: c.id,
+                  label: c.label,
+                  icon: c.icon,
+                  color: c.color,
+                }))}
+                value={condition || undefined}
+                onChange={(value) => setCondition(value)}
+                placeholder="Select your condition..."
+              />
               {condition === "other" && (
                 <Input
                   value={otherCondition}
