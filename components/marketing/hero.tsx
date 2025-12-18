@@ -6,6 +6,7 @@ import { Button as HeroButton } from "@heroui/react"
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { HighlightText } from '@/components/ui/highlight-text'
 
 const iconMap = {
   Shield,
@@ -47,7 +48,15 @@ export function Hero() {
                 <RotatingText texts={heroRotatingTexts} />
               </span>
               <br className="hidden lg:block" />
-              <span className="block sm:inline text-foreground/90"> — sorted in under an hour.</span>
+              <span className="block sm:inline text-foreground/90"> — sorted in </span>
+              <HighlightText 
+                text="under an hour" 
+                highlightColor="hsl(var(--primary) / 0.15)"
+                duration={1.2}
+                delay={0.8}
+                className="font-bold"
+              />
+              <span className="text-foreground/90">.</span>
             </h1>
 
             {/* Subtext */}
