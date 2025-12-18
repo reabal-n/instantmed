@@ -2,7 +2,7 @@ import type React from "react"
 import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { Navbar } from "@/components/shared/navbar"
-import { DoctorSidebar } from "@/components/shared/doctor-sidebar"
+import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { DoctorDock } from "@/components/shared/doctor-dock"
 import { getDoctorDashboardStats } from "@/lib/data/requests"
 
@@ -35,7 +35,12 @@ export default async function DoctorLayout({
       <div className="flex-1 pb-24">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex gap-8">
-            <DoctorSidebar pendingCount={stats.pending} scriptsToSend={stats.pending} />
+            <DashboardSidebar 
+              variant="doctor" 
+              userName={authUser.profile.full_name}
+              userRole={isAdmin ? "Admin" : "Doctor"}
+              pendingCount={stats.pending}
+            />
             <main className="flex-1 min-w-0">{children}</main>
           </div>
         </div>
