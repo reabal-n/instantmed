@@ -6,32 +6,13 @@ import { cn } from "@/lib/utils"
 
 const css = `
 .candy-bg {
-  background-color: hsl(var(--muted) / 0.3);
-  background-image: linear-gradient(
-    135deg,
-    hsl(var(--muted)) 25%,
-    transparent 25.5%,
-    transparent 50%,
-    hsl(var(--muted)) 50.5%,
-    hsl(var(--muted)) 75%,
-    transparent 75.5%,
-    transparent
-  );
-  background-size: 10px 10px;
+  background-color: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border) / 0.5);
 }
 
 .dark .candy-bg {
-  background-color: hsl(var(--muted) / 0.2);
-  background-image: linear-gradient(
-    135deg,
-    hsl(var(--muted) / 0.5) 25%,
-    transparent 25.5%,
-    transparent 50%,
-    hsl(var(--muted) / 0.5) 50.5%,
-    hsl(var(--muted) / 0.5) 75%,
-    transparent 75.5%,
-    transparent
-  );
+  background-color: hsl(var(--muted) / 0.3);
+  border: 1px solid hsl(var(--border) / 0.3);
 }`
 
 const ComparisonStats = () => {

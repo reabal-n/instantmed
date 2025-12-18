@@ -30,7 +30,7 @@ export function ShatterButton({
   children,
   className = "",
   shardCount = 20,
-  shatterColor = "#00E2B5",
+  shatterColor = "#7C3AED",
   onClick,
   disabled = false,
   type = "button",
@@ -167,7 +167,7 @@ export function ShatterButtonLink({
   href,
   className = "",
   shardCount = 20,
-  shatterColor = "#00E2B5",
+  shatterColor = "#7C3AED",
 }: {
   children: ReactNode
   href: string
