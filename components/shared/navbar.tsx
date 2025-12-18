@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
+import { ShatterButtonLink } from "@/components/ui/shatter-button"
 
 interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
@@ -345,9 +346,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         <Link href="/auth/login">Sign in</Link>
                       </Button>
                     )}
-                    <Button size="sm" asChild className="rounded-md text-xs h-7 px-3 btn-premium">
-                      <Link href="/start">Get started</Link>
-                    </Button>
+                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3">
+                      Get started
+                    </ShatterButtonLink>
                   </div>
                 </>
               )}
@@ -572,11 +573,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                               Sign in
                             </Link>
                           </Button>
-                          <Button asChild className="w-full rounded-xl btn-premium">
-                            <Link href="/start" onClick={() => setMobileMenuOpen(false)}>
-                              Get started
-                            </Link>
-                          </Button>
+                          <ShatterButtonLink href="/start" className="w-full rounded-xl">
+                            Get started
+                          </ShatterButtonLink>
                         </div>
                       </>
                     )}

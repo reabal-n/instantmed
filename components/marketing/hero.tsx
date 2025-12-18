@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
 import { Button as HeroButton } from "@heroui/react"
+import { ShatterButtonLink } from '@/components/ui/shatter-button'
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
@@ -65,18 +66,14 @@ export function Hero() {
               No appointments. No waiting rooms. No phone queues.
             </p>
 
-            {/* CTAs - HeroUI Buttons */}
+            {/* CTAs - ShatterButton + HeroUI Button */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-10 animate-slide-up-delay-3">
-              <HeroButton 
-                as={Link}
+              <ShatterButtonLink 
                 href="/start"
-                color="primary"
-                size="lg"
-                className="px-8 h-12 text-sm font-semibold shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
-                endContent={<ArrowRight className="h-4 w-4" />}
+                className="px-8 h-12 text-sm font-semibold"
               >
-                Get started free
-              </HeroButton>
+                Get started free <ArrowRight className="h-4 w-4 ml-2 inline" />
+              </ShatterButtonLink>
               <HeroButton 
                 as={Link}
                 href="#how-it-works"
