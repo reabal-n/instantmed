@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
+import { useTheme } from "next-themes"
 import {
   Menu,
   X,
@@ -85,22 +86,106 @@ const healthVerticals = [
   },
 ]
 
-function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
+// Animation variants for 3D flip effect
+const itemVariants = {
+  initial: { rotateX: 0, opacity: 1 },
+  hover: { rotateX: -90, opacity: 0 },
+}
+
+const backVariants = {
+  initial: { rotateX: 90, opacity: 0 },
+  hover: { rotateX: 0, opacity: 1 },
+}
+
+const glowVariants = {
+  initial: { opacity: 0, scale: 0.8 },
+  hover: {
+    opacity: 1,
+    scale: 2,
+    transition: {
+      opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+      scale: { duration: 0.5, type: "spring", stiffness: 300, damping: 25 },
+    },
+  },
+}
+
+const navGlowVariants = {
+  initial: { opacity: 0 },
+  hover: {
+    opacity: 1,
+    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+  },
+}
+
+const sharedTransition = {
+  type: "spring",
+  stiffness: 100,
+  damping: 20,
+  duration: 0.5,
+}
+
+interface AnimatedNavLinkProps {
+  href: string
+  children: React.ReactNode
+  gradient?: string
+  icon?: React.ReactNode
+  isActive?: boolean
+}
+
+function AnimatedNavLink({ href, children, gradient, icon, isActive }: AnimatedNavLinkProps) {
+  const defaultGradient = "radial-gradient(circle, rgba(0,226,181,0.15) 0%, rgba(0,226,181,0.06) 50%, rgba(0,226,181,0) 100%)"
+  
   return (
-    <Link
-      href={href}
-      className={cn(
-        "relative px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-300",
-        isActive
-          ? "text-primary"
-          : "text-muted-foreground hover:text-foreground"
-      )}
+    <motion.div
+      className="relative"
+      style={{ perspective: "600px" }}
+      whileHover="hover"
+      initial="initial"
     >
-      {children}
+      <motion.div
+        className="absolute inset-0 z-0 pointer-events-none rounded-lg"
+        variants={glowVariants}
+        style={{
+          background: gradient || defaultGradient,
+          opacity: 0,
+        }}
+      />
+      <motion.div
+        variants={itemVariants}
+        transition={sharedTransition}
+        style={{ transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
+      >
+        <Link
+          href={href}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",
+            isActive
+              ? "text-foreground"
+              : "text-muted-foreground"
+          )}
+        >
+          {icon}
+          {children}
+        </Link>
+      </motion.div>
+      <motion.div
+        className="absolute inset-0 z-10"
+        variants={backVariants}
+        transition={sharedTransition}
+        style={{ transformStyle: "preserve-3d", transformOrigin: "center top", rotateX: 90 }}
+      >
+        <Link
+          href={href}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-foreground"
+        >
+          {icon}
+          {children}
+        </Link>
+      </motion.div>
       {isActive && (
         <motion.div
           layoutId="navbar-tubelight"
-          className="absolute inset-0 rounded-full bg-primary/10 -z-10"
+          className="absolute inset-0 rounded-lg bg-primary/10 -z-10"
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         >
           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full">
@@ -108,7 +193,15 @@ function NavLink({ href, isActive, children }: { href: string; isActive: boolean
           </div>
         </motion.div>
       )}
-    </Link>
+    </motion.div>
+  )
+}
+
+function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
+  return (
+    <AnimatedNavLink href={href} isActive={isActive}>
+      {children}
+    </AnimatedNavLink>
   )
 }
 
@@ -119,6 +212,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [user, setUser] = useState<{ id: string } | null>(null)
   const router = useRouter()
   const pathname = usePathname()
+  const { theme } = useTheme()
+  const isDarkTheme = theme === "dark"
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -151,15 +246,27 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       <header
         className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-4")}
       >
-        <nav
+        <motion.nav
           className={cn(
-            "relative mx-auto max-w-5xl rounded-full",
+            "relative mx-auto max-w-5xl rounded-full overflow-hidden",
             "transition-all duration-300 liquid-glass-nav-pill",
             scrolled && "scrolled",
           )}
           role="navigation"
           aria-label="Main navigation"
+          initial="initial"
+          whileHover="hover"
         >
+          {/* Nav glow effect */}
+          <motion.div
+            className={cn(
+              "absolute -inset-2 rounded-full z-0 pointer-events-none",
+              isDarkTheme
+                ? "bg-gradient-radial from-transparent via-[#00E2B5]/20 to-transparent"
+                : "bg-gradient-radial from-transparent via-[#00E2B5]/10 to-transparent"
+            )}
+            variants={navGlowVariants}
+          />
           <div className="relative z-10 flex items-center justify-between px-4 py-2">
             {/* Logo */}
             <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="InstantMed home">
@@ -247,32 +354,22 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
               {variant === "patient" && (
                 <>
-                  <Link
+                  <AnimatedNavLink
                     href="/patient"
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
-                      isActivePath("/patient") &&
-                        !isActivePath("/patient/requests") &&
-                        !isActivePath("/patient/settings")
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                    )}
+                    icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
+                    isActive={isActivePath("/patient") && !isActivePath("/patient/requests") && !isActivePath("/patient/settings")}
+                    gradient="radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.06) 50%, rgba(99,102,241,0) 100%)"
                   >
-                    <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                     Dashboard
-                  </Link>
-                  <Link
+                  </AnimatedNavLink>
+                  <AnimatedNavLink
                     href="/patient/requests"
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
-                      isActivePath("/patient/requests")
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                    )}
+                    icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
+                    isActive={isActivePath("/patient/requests")}
+                    gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
                   >
-                    <ClipboardList className="h-4 w-4" aria-hidden="true" />
                     My Requests
-                  </Link>
+                  </AnimatedNavLink>
 
                   {/* New Request Dropdown */}
                   <DropdownMenu>
@@ -331,30 +428,22 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
               {variant === "doctor" && (
                 <>
-                  <Link
+                  <AnimatedNavLink
                     href="/doctor"
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
-                      pathname === "/doctor"
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                    )}
+                    icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
+                    isActive={pathname === "/doctor"}
+                    gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
                   >
-                    <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                     Queue
-                  </Link>
-                  <Link
+                  </AnimatedNavLink>
+                  <AnimatedNavLink
                     href="/doctor/patients"
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors",
-                      isActivePath("/doctor/patients")
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                    )}
+                    icon={<User className="h-4 w-4" aria-hidden="true" />}
+                    isActive={isActivePath("/doctor/patients")}
+                    gradient="radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0.06) 50%, rgba(168,85,247,0) 100%)"
                   >
-                    <User className="h-4 w-4" aria-hidden="true" />
                     Patients
-                  </Link>
+                  </AnimatedNavLink>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -575,7 +664,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               </SheetContent>
             </Sheet>
           </div>
-        </nav>
+        </motion.nav>
       </header>
     </>
   )
