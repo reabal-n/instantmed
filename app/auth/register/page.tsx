@@ -5,13 +5,24 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button, Input, Checkbox } from "@heroui/react"
+import { Button, Checkbox } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { PasswordStrength } from "@/components/ui/password-strength"
-import { PasswordConfirmation } from "@/components/ui/password-confirmation"
-import { Loader2, Shield, Clock, CheckCircle } from "lucide-react"
+import { GlassInput } from "@/components/ui/glass-input"
+import { GlassButton } from "@/components/ui/glass-button"
+import { BlurFade } from "@/components/ui/blur-fade"
+import { Loader2, Shield, Clock, CheckCircle, Mail, User, Calendar, Lock, Eye, EyeOff, PartyPopper, AlertCircle, X } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import confetti from "canvas-confetti"
+
+const loadingSteps = [
+  { message: "Creating your account...", icon: <Loader2 className="w-10 h-10 text-primary animate-spin" /> },
+  { message: "Setting up your profile...", icon: <Loader2 className="w-10 h-10 text-primary animate-spin" /> },
+  { message: "Almost there...", icon: <Loader2 className="w-10 h-10 text-primary animate-spin" /> },
+  { message: "Welcome to InstantMed!", icon: <PartyPopper className="w-10 h-10 text-[#00E2B5]" /> },
+]
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -42,13 +53,23 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [modalStatus, setModalStatus] = useState<'closed' | 'loading' | 'success' | 'error'>('closed')
+  const [loadingStep, setLoadingStep] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect")
+
+  const fireConfetti = () => {
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 }
+    confetti({ ...defaults, particleCount: 50, origin: { x: 0.2, y: 0.8 }, angle: 60 })
+    confetti({ ...defaults, particleCount: 50, origin: { x: 0.8, y: 0.8 }, angle: 120 })
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,9 +85,16 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true)
+    setModalStatus('loading')
+    setLoadingStep(0)
     setError(null)
 
     const supabase = createClient()
+
+    // Animate through loading steps
+    const stepInterval = setInterval(() => {
+      setLoadingStep(prev => Math.min(prev + 1, loadingSteps.length - 2))
+    }, 1500)
 
     try {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -87,7 +115,6 @@ export default function RegisterPage() {
       if (authData.session) {
         // User is auto-confirmed - create profile server-side
         const { ensureProfile } = await import("@/app/actions/ensure-profile")
-        let profileId: string
         try {
           const result = await ensureProfile(
             authData.user.id,
@@ -101,21 +128,30 @@ export default function RegisterPage() {
           if (result.error || !result.profileId) {
             throw new Error(result.error || "Profile creation returned no profileId")
           }
-          
-          profileId = result.profileId
         } catch (profileError) {
           console.error("[Register] Profile creation failed:", profileError)
           throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
         }
 
-        const onboardingRedirect = redirectTo || "/patient"
-        router.push(`/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`)
-        router.refresh()
+        clearInterval(stepInterval)
+        setLoadingStep(loadingSteps.length - 1)
+        setModalStatus('success')
+        fireConfetti()
+        
+        // Wait for confetti then redirect
+        setTimeout(() => {
+          const onboardingRedirect = redirectTo || "/patient"
+          router.push(`/patient/onboarding?redirect=${encodeURIComponent(onboardingRedirect)}`)
+          router.refresh()
+        }, 2000)
       } else {
-        // Email confirmation required - profile will be created after confirmation
+        clearInterval(stepInterval)
+        setModalStatus('closed')
         router.push("/auth/check-email")
       }
     } catch (err) {
+      clearInterval(stepInterval)
+      setModalStatus('error')
       setError(err instanceof Error ? err.message : "An error occurred during registration")
     } finally {
       setIsLoading(false)
@@ -150,9 +186,69 @@ export default function RegisterPage() {
 
   const loginLink = redirectTo ? `/auth/login?redirect=${encodeURIComponent(redirectTo)}` : "/auth/login"
 
+  const LoadingModal = () => (
+    <AnimatePresence>
+      {modalStatus !== 'closed' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative bg-card/95 dark:bg-card/95 border border-border rounded-2xl p-8 w-full max-w-sm flex flex-col items-center gap-4 mx-4 shadow-2xl"
+          >
+            {modalStatus === 'error' && (
+              <button
+                onClick={() => setModalStatus('closed')}
+                className="absolute top-3 right-3 p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            
+            {modalStatus === 'loading' && (
+              <div className="flex flex-col items-center gap-4">
+                {loadingSteps[loadingStep]?.icon}
+                <p className="text-lg font-medium text-foreground text-center">
+                  {loadingSteps[loadingStep]?.message}
+                </p>
+              </div>
+            )}
+            
+            {modalStatus === 'success' && (
+              <div className="flex flex-col items-center gap-4">
+                {loadingSteps[loadingSteps.length - 1].icon}
+                <p className="text-lg font-medium text-foreground text-center">
+                  {loadingSteps[loadingSteps.length - 1].message}
+                </p>
+                <p className="text-sm text-muted-foreground">Redirecting you now...</p>
+              </div>
+            )}
+            
+            {modalStatus === 'error' && (
+              <div className="flex flex-col items-center gap-4">
+                <AlertCircle className="w-10 h-10 text-destructive" />
+                <p className="text-lg font-medium text-foreground text-center">Something went wrong</p>
+                <p className="text-sm text-muted-foreground text-center">{error}</p>
+                <GlassButton onClick={() => setModalStatus('closed')} size="sm">
+                  Try Again
+                </GlassButton>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
+      <LoadingModal />
 
       <main className="flex flex-1 items-center justify-center px-4 py-16 bg-gradient-hero relative overflow-hidden">
         {/* Decorative orbs */}
@@ -221,69 +317,93 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleRegister} className="space-y-4">
-              <Input
-                placeholder="Full name"
-                isRequired
-                value={fullName}
-                onValueChange={setFullName}
-                isDisabled={isLoading || isGoogleLoading}
-                variant="bordered"
-                radius="lg"
-                classNames={{
-                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                  input: "placeholder:text-default-500",
-                }}
-              />
-              <Input
-                placeholder="Date of birth"
-                type="date"
-                isRequired
-                value={dateOfBirth}
-                onValueChange={setDateOfBirth}
-                isDisabled={isLoading || isGoogleLoading}
-                variant="bordered"
-                radius="lg"
-                classNames={{
-                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                  input: "placeholder:text-default-500",
-                }}
-              />
-              <Input
-                type="email"
-                placeholder="Email"
-                isRequired
-                value={email}
-                onValueChange={setEmail}
-                isDisabled={isLoading || isGoogleLoading}
-                variant="bordered"
-                radius="lg"
-                classNames={{
-                  inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                  input: "placeholder:text-default-500",
-                }}
-              />
-              <div className="space-y-3">
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  isRequired
-                  value={password}
-                  onValueChange={setPassword}
-                  isDisabled={isLoading || isGoogleLoading}
-                  variant="bordered"
-                  radius="lg"
-                  classNames={{
-                    inputWrapper: "h-11 bg-white/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
-                    input: "placeholder:text-default-500",
-                  }}
+              <BlurFade delay={0.1}>
+                <GlassInput
+                  placeholder="Full name"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isLoading || isGoogleLoading}
+                  icon={<User className="h-5 w-5" />}
                 />
-                <PasswordStrength password={password} />
-                <PasswordConfirmation
-                  password={password}
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
+              </BlurFade>
+              <BlurFade delay={0.15}>
+                <GlassInput
+                  placeholder="Date of birth"
+                  type="date"
+                  required
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  disabled={isLoading || isGoogleLoading}
+                  icon={<Calendar className="h-5 w-5" />}
                 />
-              </div>
+              </BlurFade>
+              <BlurFade delay={0.2}>
+                <GlassInput
+                  type="email"
+                  placeholder="Email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading || isGoogleLoading}
+                  icon={<Mail className="h-5 w-5" />}
+                />
+              </BlurFade>
+              <BlurFade delay={0.25}>
+                <div className="space-y-3">
+                  <GlassInput
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    icon={<Lock className="h-5 w-5" />}
+                    endContent={
+                      password.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-foreground/60" /> : <Eye className="h-4 w-4 text-foreground/60" />}
+                        </button>
+                      )
+                    }
+                  />
+                  <PasswordStrength password={password} />
+                  <GlassInput
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                    icon={<Lock className="h-5 w-5" />}
+                    endContent={
+                      confirmPassword.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="p-1.5 rounded-full hover:bg-foreground/10 transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4 text-foreground/60" /> : <Eye className="h-4 w-4 text-foreground/60" />}
+                        </button>
+                      )
+                    }
+                  />
+                  {password && confirmPassword && password !== confirmPassword && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> Passwords don&apos;t match
+                    </p>
+                  )}
+                  {password && confirmPassword && password === confirmPassword && (
+                    <p className="text-xs text-[#00E2B5] flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" /> Passwords match
+                    </p>
+                  )}
+                </div>
+              </BlurFade>
               <Checkbox
                 isSelected={termsAccepted}
                 onValueChange={setTermsAccepted}
