@@ -73,7 +73,7 @@ export function FeaturesSection() {
           className="text-center mb-16"
         >
           <div className="flex justify-center mb-4">
-            <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="Our services" />
+            <SectionPill emoji="⚡" text="Our services" hoverText="What we offer" />
           </div>
           <h2
             className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"

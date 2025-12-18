@@ -65,7 +65,7 @@ export function TrustSection() {
           transition={{ duration: 0.6 }}
         >
           <div className="flex justify-center mb-4">
-            <SectionPill icon={<Shield className="h-3.5 w-3.5" />} text="Why trust us" />
+            <SectionPill emoji="🛡️" text="Why trust us" hoverText="Your safety first" />
           </div>
           <h2
             className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl mb-3 text-foreground"

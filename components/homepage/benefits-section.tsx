@@ -57,7 +57,7 @@ export function BenefitsSection() {
           <div>
             <BlurFade delay={0.1}>
               <div className="mb-6">
-                <SectionPill icon={<CheckCircle2 className="h-3.5 w-3.5" />} text="Why choose us" />
+                <SectionPill emoji="✅" text="Why choose us" hoverText="Benefits at a glance" />
               </div>
               <h2
                 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-6"

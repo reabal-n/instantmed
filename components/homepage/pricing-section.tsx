@@ -44,7 +44,7 @@ export function PricingSection() {
         <BlurFade delay={0.1}>
           <div className="text-center mb-12">
             <div className="flex justify-center mb-4">
-              <SectionPill icon={<DollarSign className="h-3.5 w-3.5" />} text="Simple pricing" />
+              <SectionPill emoji="💰" text="Simple pricing" hoverText="No hidden fees" />
             </div>
             <h2
               className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"

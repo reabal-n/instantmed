@@ -59,7 +59,7 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <BlurFade delay={0.1}>
             <div className="flex justify-center mb-4">
-              <SectionPill icon={<Zap className="h-3.5 w-3.5" />} text="Get started" />
+              <SectionPill emoji="⚡" text="Get started" hoverText="Choose your service" />
             </div>
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>

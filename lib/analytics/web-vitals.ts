@@ -82,7 +82,7 @@ export function initWebVitals(config: WebVitalsConfig = defaultConfig) {
   if (typeof window === "undefined") return
 
   // Dynamic import to reduce initial bundle size
-  import("web-vitals").then(({ onCLS, onFCP, onFID, onINP, onLCP, onTTFB }) => {
+  import("web-vitals").then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
     const handleMetric = (metric: { name: string; value: number; id: string; delta: number; navigationType: string }) => {
       const webVitalMetric: WebVitalMetric = {
         ...metric,
@@ -94,8 +94,7 @@ export function initWebVitals(config: WebVitalsConfig = defaultConfig) {
 
     onCLS(handleMetric)
     onFCP(handleMetric)
-    onFID(handleMetric)
-    onINP(handleMetric)
+    onINP(handleMetric) // INP replaces FID in web-vitals v4+
     onLCP(handleMetric)
     onTTFB(handleMetric)
   }).catch(() => {
