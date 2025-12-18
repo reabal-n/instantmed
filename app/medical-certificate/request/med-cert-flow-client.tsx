@@ -33,6 +33,7 @@ import { createOrGetProfile } from "@/app/actions/create-profile"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
+import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout" // Added createGuestCheckoutAction
 
 // Flow steps
@@ -1029,16 +1030,12 @@ export function MedCertFlowClient({
               </fieldset>
             )}
 
-            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Symptoms">
-              {SYMPTOMS.map((symptom) => (
-                <ChipButton
-                  key={symptom}
-                  selected={formData.selectedSymptoms.includes(symptom)}
-                  onClick={() => toggleSymptom(symptom)}
-                  label={symptom}
-                />
-              ))}
-            </div>
+            <TagsSelector
+              tags={SYMPTOMS.map((s) => ({ id: s, label: s }))}
+              value={formData.selectedSymptoms.map((s) => ({ id: s, label: s }))}
+              onChange={(tags) => setFormData((prev) => ({ ...prev, selectedSymptoms: tags.map((t) => t.label) }))}
+              placeholder="Tap to select symptoms..."
+            />
 
             {formData.selectedSymptoms.includes("Other") && (
               <div className="space-y-1">
