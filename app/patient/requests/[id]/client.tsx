@@ -24,6 +24,8 @@ import { RetryPaymentButton } from "./retry-payment-button"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/shared/copy-button"
 import { resendCertificateEmailAction } from "@/app/actions/resend-certificate"
+import { PDFPreviewInline } from "@/components/ui/pdf-preview"
+import { AmendmentForm } from "@/components/patient/amendment-form"
 import type { Request, GeneratedDocument } from "@/types/db"
 
 interface PatientRequestDetailPageProps {
@@ -348,6 +350,20 @@ export default function PatientRequestDetailPageClient({
               </p>
             </div>
           </div>
+          {/* Inline PDF Preview */}
+          <div className="mt-4">
+            <PDFPreviewInline url={document.pdf_url} className="max-w-sm mx-auto" />
+          </div>
+        </div>
+      )}
+
+      {/* Amendment Form - only for pending requests */}
+      {request.status === "pending" && request.payment_status !== "pending_payment" && (
+        <div
+          className="animate-fade-in-up opacity-0"
+          style={{ animationDelay: "0.19s", animationFillMode: "forwards" }}
+        >
+          <AmendmentForm requestId={request.id} canAmend={true} />
         </div>
       )}
 

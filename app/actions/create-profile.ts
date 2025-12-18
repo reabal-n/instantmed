@@ -8,19 +8,9 @@ export async function createOrGetProfile(
   dateOfBirth: string,
 ): Promise<{ profileId: string | null; error: string | null }> {
   try {
-    console.log("[Profile Action] createOrGetProfile called", {
-      authUserId,
-      fullName,
-      dateOfBirth,
-      hasSupabaseUrl: !!process.env.SUPABASE_URL,
-      hasPublicSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    })
-
     let supabase
     try {
       supabase = createServiceRoleClient()
-      console.log("[Profile Action] Service role client created successfully")
     } catch (clientError) {
       console.error("[Profile Action] Failed to create service role client:", clientError)
       return { profileId: null, error: "Server configuration error. Please contact support." }
@@ -43,15 +33,12 @@ export async function createOrGetProfile(
     }
 
     if (existingProfile) {
-      console.log("[v0] Found existing profile:", existingProfile.id)
-
       const needsUpdate =
         (fullName && fullName !== existingProfile.full_name) ||
         (dateOfBirth && dateOfBirth !== existingProfile.date_of_birth)
 
       if (needsUpdate) {
-        console.log("[v0] Updating existing profile with new data")
-        const { error: updateError } = await supabase
+        await supabase
           .from("profiles")
           .update({
             ...(fullName && { full_name: fullName }),
@@ -59,41 +46,22 @@ export async function createOrGetProfile(
           })
           .eq("id", existingProfile.id)
 
-        if (updateError) {
-          console.error("[v0] Error updating profile:", updateError)
-        }
+        // Silently ignore update errors - profile exists and that's what matters
       }
 
       return { profileId: existingProfile.id, error: null }
     }
 
-    console.log("[Profile Action] Verifying auth user exists")
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(authUserId)
-
-    if (authError) {
-      console.warn("[Profile Action] Could not verify auth user:", {
-        message: authError.message,
-        status: authError.status,
-        code: authError.code,
-      })
-      // Don't return error here - user might be pending email confirmation
-    }
+    const { data: authUser } = await supabase.auth.admin.getUserById(authUserId)
+    // Don't return error - user might be pending email confirmation
 
     if (!authUser?.user) {
-      console.warn("[Profile Action] Auth user not found - might be pending email confirmation")
       return {
         profileId: null,
         error: "Please confirm your email before continuing. Check your inbox for a confirmation link.",
       }
     }
 
-    console.log("[Profile Action] Auth user verified:", {
-      userId: authUser.user.id,
-      email: authUser.user.email,
-      emailConfirmed: authUser.user.email_confirmed_at ? true : false,
-    })
-
-    console.log("[Profile Action] Creating new profile for confirmed user")
     // Note: A database trigger may auto-create profiles, so we check again before inserting
     // and handle race conditions gracefully
 
@@ -105,7 +73,6 @@ export async function createOrGetProfile(
       .maybeSingle()
 
     if (doubleCheckProfile) {
-      console.log("[Profile Action] Profile found on double-check (likely created by trigger):", doubleCheckProfile.id)
       return { profileId: doubleCheckProfile.id, error: null }
     }
 
@@ -117,8 +84,6 @@ export async function createOrGetProfile(
       onboarding_completed: false,
     }
 
-    console.log("[Profile Action] Inserting profile with data:", { ...profileData, auth_user_id: "***" })
-
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
       .insert(profileData)
@@ -126,16 +91,8 @@ export async function createOrGetProfile(
       .single()
 
     if (insertError) {
-      console.error("[Profile Action] Profile insert error:", {
-        code: insertError.code,
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint,
-        fullError: insertError,
-      })
-
+      // Handle duplicate key (profile created by trigger)
       if (insertError.code === "23505") {
-        console.log("[Profile Action] Duplicate profile detected (unique constraint violation) - fetching existing")
         // Try to fetch the existing profile (trigger likely created it)
         const { data: existing } = await supabase
           .from("profiles")
@@ -143,7 +100,6 @@ export async function createOrGetProfile(
           .eq("auth_user_id", authUserId)
           .single()
         if (existing) {
-          console.log("[Profile Action] Found existing profile after duplicate error:", existing.id)
           return { profileId: existing.id, error: null }
         }
         return { profileId: null, error: "A profile already exists for this account. Please try signing in instead." }
@@ -161,7 +117,6 @@ export async function createOrGetProfile(
         .maybeSingle()
       
       if (lastChance) {
-        console.log("[Profile Action] Found profile on last attempt:", lastChance.id)
         return { profileId: lastChance.id, error: null }
       }
 
@@ -172,14 +127,11 @@ export async function createOrGetProfile(
     }
 
     if (!newProfile) {
-      console.error("[Profile Action] Profile was not returned after insert")
       return { profileId: null, error: "Profile created but could not be retrieved. Please try signing in." }
     }
 
-    console.log("[Profile Action] Successfully created profile:", newProfile.id)
     return { profileId: newProfile.id, error: null }
   } catch (err) {
-    console.error("[Profile Action] Unexpected error in createOrGetProfile:", err)
     return {
       profileId: null,
       error: err instanceof Error ? err.message : "An unexpected error occurred. Please try again.",

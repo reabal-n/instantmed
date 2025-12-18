@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -21,12 +20,11 @@ import {
 import { completeOnboardingAction } from "./actions"
 import type { AustralianState } from "@/types/db"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
-import { PageShell, PageHeader } from "@/components/ui/page-shell"
+import { PageShell } from "@/components/ui/page-shell"
 import { FormStepper, type Step } from "@/components/ui/form-stepper"
-import { FormSection, FormGroup, FormRow, FormActions } from "@/components/ui/form-section"
-import { SkeletonOnboarding } from "@/components/ui/skeleton"
+import { FormSection, FormGroup, FormActions } from "@/components/ui/form-section"
 import { cn } from "@/lib/utils"
-import { spring, fadeUp, stagger } from "@/lib/motion"
+import { spring } from "@/lib/motion"
 
 interface OnboardingFlowProps {
   profileId: string
@@ -65,7 +63,6 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
   const router = useRouter()
   const [step, setStep] = useState(0) // 0-indexed for stepper
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expiryWarning, setExpiryWarning] = useState<string | null>(null)
 
@@ -201,15 +198,6 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
       const destination = redirectTo || "/patient?onboarded=true"
       router.push(destination.includes("?") ? `${destination}&onboarded=true` : `${destination}?onboarded=true`)
     }
-  }
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <PageShell maxWidth="md" centerVertically>
-        <SkeletonOnboarding />
-      </PageShell>
-    )
   }
 
   return (
@@ -390,7 +378,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
                 >
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{expiryWarning}</span>
                 </motion.div>
               )}
@@ -480,7 +468,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         type="button"
                         onClick={() => setExpiryYear(y)}
                         className={cn(
-                          "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0",
+                          "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0",
                           expiryYear === y
                             ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
                             : "bg-surface-elevated text-foreground hover:bg-surface border border-border/50"
@@ -497,7 +485,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
             {/* Consent Card */}
             <FormSection animate index={1}>
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   <Shield className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1">
@@ -510,7 +498,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   type="button"
                   onClick={() => setConsentMyhr(!consentMyhr)}
                   className={cn(
-                    "relative w-14 h-8 rounded-full transition-all duration-300 flex-shrink-0",
+                    "relative w-14 h-8 rounded-full transition-all duration-300 shrink-0",
                     consentMyhr ? "bg-primary shadow-md shadow-primary/30" : "bg-surface-elevated border border-border"
                   )}
                 >
