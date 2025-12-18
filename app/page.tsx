@@ -10,6 +10,7 @@ import {
   MarketingFooter,
 } from '@/components/marketing'
 import { TestimonialMarquee } from '@/components/marketing/testimonial-marquee'
+import { ComparisonStats } from '@/components/homepage/comparison-stats'
 import { AnimatedGradientBackground } from '@/components/effects/animated-gradient-bg'
 import { ParallaxSection } from '@/components/effects/parallax-section'
 import { Navbar } from '@/components/shared/navbar'
@@ -30,6 +31,10 @@ export default function HomePage() {
         
         <ParallaxSection speed={0.08}>
           <ProofStrip />
+        </ParallaxSection>
+        
+        <ParallaxSection speed={0.06}>
+          <ComparisonStats />
         </ParallaxSection>
         
         <ParallaxSection speed={0.04}>
