@@ -42,3 +42,19 @@ export function formatSubtype(subtype: string | null | undefined): string {
 
   return subtypeMap[subtype] || subtype.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
 }
+
+/**
+ * Format a request type for display (legacy support)
+ */
+export function formatRequestType(type: string | null | undefined): string {
+  if (!type) return "Request"
+
+  const typeMap: Record<string, string> = {
+    medical_certificate: "Medical Certificate",
+    prescription: "Prescription",
+    referral: "Referral",
+    pathology: "Pathology Request",
+  }
+
+  return typeMap[type] || type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+}

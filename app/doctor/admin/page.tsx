@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getAllRequestsForAdmin, getDoctorDashboardStats, formatCategory, formatSubtype } from "@/lib/data/requests"
+import { getAllRequestsForAdmin, getDoctorDashboardStats } from "@/lib/data/requests"
 import { AdminDashboardClient } from "./admin-dashboard-client"
 
 export default async function AdminDashboardPage() {
@@ -16,8 +16,6 @@ export default async function AdminDashboardPage() {
       allRequests={allRequests}
       stats={stats}
       doctorName={profile.full_name}
-      formatCategory={formatCategory}
-      formatSubtype={formatSubtype}
     />
   )
 }

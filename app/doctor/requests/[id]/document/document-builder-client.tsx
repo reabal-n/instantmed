@@ -33,14 +33,13 @@ import {
   testPdfGenerationAction,
   approveWithoutPdfAction,
 } from "./actions"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 interface DocumentBuilderClientProps {
   request: RequestWithDetails
   draft: DocumentDraft
   existingDocument: GeneratedDocument | null
   patientAge: number
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
 }
 
 function getSubtypeIcon(subtype: string | null) {
@@ -97,8 +96,6 @@ export function DocumentBuilderClient({
   request,
   draft,
   existingDocument,
-  formatCategory,
-  formatSubtype,
 }: DocumentBuilderClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()

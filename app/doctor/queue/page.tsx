@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getAllRequestsByStatus, formatCategory, formatSubtype } from "@/lib/data/requests"
+import { getAllRequestsByStatus } from "@/lib/data/requests"
 import { QueueClient } from "./queue-client"
 
 export default async function DoctorQueuePage() {
@@ -21,8 +21,6 @@ export default async function DoctorQueuePage() {
       requests={sortedRequests}
       doctorId={profile.id}
       doctorName={profile.full_name}
-      formatCategory={formatCategory}
-      formatSubtype={formatSubtype}
     />
   )
 }

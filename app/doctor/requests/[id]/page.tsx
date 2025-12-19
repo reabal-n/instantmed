@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getRequestWithDetails, formatCategory, formatSubtype, formatRequestType, getPatientRequests } from "@/lib/data/requests"
+import { getRequestWithDetails, getPatientRequests } from "@/lib/data/requests"
 import { getLatestDocumentForRequest } from "@/lib/data/documents"
 import { RequestDetailClient } from "./request-detail-client"
 
@@ -61,9 +61,6 @@ export default async function DoctorRequestDetailPage({
       request={request}
       patientAge={patientAge}
       maskedMedicare={maskedMedicare}
-      formatCategory={formatCategory}
-      formatSubtype={formatSubtype}
-      formatRequestType={formatRequestType}
       existingDocument={existingDocument}
       previousRequests={previousRequests}
       initialAction={action}

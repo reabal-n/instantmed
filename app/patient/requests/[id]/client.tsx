@@ -27,19 +27,17 @@ import { resendCertificateEmailAction } from "@/app/actions/resend-certificate"
 import { PDFPreviewInline } from "@/components/ui/pdf-preview"
 import { AmendmentForm } from "@/components/patient/amendment-form"
 import type { Request, GeneratedDocument } from "@/types/db"
+import { formatRequestType, formatCategory } from "@/lib/format-utils"
 
 interface PatientRequestDetailPageProps {
   request: Request
   document: GeneratedDocument | null
   retryPayment?: boolean
-  formatRequestType: (type: string | null | undefined) => string
-  formatCategory: (category: string | null | undefined) => string
 }
 
 export default function PatientRequestDetailPageClient({ 
   request,
   document,
-  formatRequestType,
 }: PatientRequestDetailPageProps) {
   const [isPending, startTransition] = useTransition()
   const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error">("idle")

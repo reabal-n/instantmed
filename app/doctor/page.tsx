@@ -3,8 +3,6 @@ import { requireAuth } from "@/lib/auth"
 import {
   getAllRequestsByStatus,
   getDoctorDashboardStats,
-  formatCategory,
-  formatSubtype,
   getRequestsAwaitingPayment,
 } from "@/lib/data/requests"
 import { DoctorDashboardClient } from "./doctor-dashboard-client"
@@ -36,8 +34,6 @@ export default async function DoctorDashboardPage() {
         awaiting_payment: awaitingPaymentRequests.length,
       }}
       doctorName={profile.full_name}
-      formatCategory={formatCategory}
-      formatSubtype={formatSubtype}
     />
   )
 }

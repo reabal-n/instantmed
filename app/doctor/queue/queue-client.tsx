@@ -46,13 +46,12 @@ import {
   Zap,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, escalateRequestAction, flagForFollowupAction } from "./actions"
-import type { QueueClientProps } from "./types" // Declare the QueueClientProps type
+import type { QueueClientProps } from "./types"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 export function QueueClient({
   requests: initialRequests,
   doctorId,
-  formatCategory,
-  formatSubtype,
 }: QueueClientProps) {
   const router = useRouter()
   const [requests, setRequests] = useState(initialRequests)

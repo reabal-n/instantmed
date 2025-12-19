@@ -14,6 +14,7 @@ import { Eye, Clock, CheckCircle, FileText, Search, Send, Calendar, AlertTriangl
 import type { RequestWithPatient } from "@/types/db"
 import { toast } from "sonner"
 import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 interface AdminDashboardClientProps {
   allRequests: RequestWithPatient[]
@@ -26,15 +27,11 @@ interface AdminDashboardClientProps {
   }
   /** @deprecated doctorName is passed but not used in the current implementation */
   doctorName?: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
 }
 
 export function AdminDashboardClient({
   allRequests,
   stats,
-  formatCategory,
-  formatSubtype,
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")

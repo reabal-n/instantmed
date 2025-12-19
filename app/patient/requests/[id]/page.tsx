@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { getRequestForPatient, formatRequestType, formatCategory } from "@/lib/data/requests"
+import { getRequestForPatient } from "@/lib/data/requests"
 import { getLatestDocumentForRequest } from "@/lib/data/documents"
 import PatientRequestDetailPageClient from "./client"
 import type { Metadata } from "next"
@@ -44,8 +44,6 @@ export default async function PatientRequestDetailPage({
       request={request}
       document={document}
       retryPayment={retry === "true"}
-      formatRequestType={formatRequestType}
-      formatCategory={formatCategory}
     />
   )
 }

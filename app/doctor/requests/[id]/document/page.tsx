@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getRequestWithDetails, formatCategory, formatSubtype } from "@/lib/data/requests"
+import { getRequestWithDetails } from "@/lib/data/requests"
 import { getOrCreateMedCertDraftForRequest, getLatestDocumentForRequest } from "@/lib/data/documents"
 import { DocumentBuilderClient } from "./document-builder-client"
 
@@ -60,8 +60,6 @@ export default async function DocumentBuilderPage({
       draft={draft}
       existingDocument={existingDocument}
       patientAge={patientAge}
-      formatCategory={formatCategory}
-      formatSubtype={formatSubtype}
     />
   )
 }

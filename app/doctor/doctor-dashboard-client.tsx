@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search, Bell, Wifi, WifiOff, RefreshCw } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
 import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 interface DoctorDashboardClientProps {
   pendingRequests: RequestWithPatient[]
@@ -27,8 +28,6 @@ interface DoctorDashboardClientProps {
     awaiting_payment?: number
   }
   doctorName: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
 }
 
 export function DoctorDashboardClient({
@@ -38,8 +37,6 @@ export function DoctorDashboardClient({
   awaitingPaymentRequests = [],
   stats,
   doctorName,
-  formatCategory,
-  formatSubtype,
 }: DoctorDashboardClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("pending")

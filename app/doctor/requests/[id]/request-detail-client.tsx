@@ -36,14 +36,12 @@ import {
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
 import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
+import { formatCategory, formatSubtype, formatRequestType } from "@/lib/format-utils"
 
 interface RequestDetailClientProps {
   request: RequestWithDetails
   patientAge: number
   maskedMedicare: string
-  formatCategory: (category: string | null) => string
-  formatSubtype: (subtype: string | null) => string
-  formatRequestType: (type: string) => string
   existingDocument?: GeneratedDocument | null
   previousRequests?: Request[]
   initialAction?: string
@@ -53,9 +51,6 @@ export function RequestDetailClient({
   request,
   patientAge,
   maskedMedicare,
-  formatCategory,
-  formatSubtype,
-  formatRequestType,
   existingDocument,
   previousRequests = [],
   initialAction,
