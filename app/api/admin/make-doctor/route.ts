@@ -1,16 +1,46 @@
 import { NextResponse } from "next/server"
-import { createServiceClient } from "@/lib/supabase/server"
+import { createServiceClient, createClient } from "@/lib/supabase/server"
 
 // Hardcoded admin emails that can be upgraded
 const ALLOWED_EMAILS = ["me@reabal.ai", "admin@instantmed.com.au"]
 
+// Only allow in development/preview
+const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
+
 export async function GET(request: Request) {
+  // Block in production
+  if (!IS_DEV) {
+    return NextResponse.json(
+      { error: "This endpoint is only available in development" },
+      { status: 403 }
+    )
+  }
+
+  // Require authentication - caller must be logged in
+  const supabaseAuth = await createClient()
+  const { data: { user } } = await supabaseAuth.auth.getUser()
+  
+  if (!user) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const email = searchParams.get("email")?.toLowerCase()
 
   if (!email || !ALLOWED_EMAILS.includes(email)) {
     return NextResponse.json(
       { error: "Unauthorized email" },
+      { status: 403 }
+    )
+  }
+  
+  // Additional check: only allow self-upgrade
+  if (user.email?.toLowerCase() !== email) {
+    return NextResponse.json(
+      { error: "Can only upgrade your own account" },
       { status: 403 }
     )
   }

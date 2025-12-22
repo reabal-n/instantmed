@@ -202,7 +202,7 @@ function TestPaymentHint() {
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-4">
       <p className="text-xs font-medium text-amber-800 mb-1">Testing payments?</p>
       <p className="text-xs text-amber-700">
-        Use Stripe's test card: <code className="bg-amber-100 px-1 rounded">4242 4242 4242 4242</code>, any future
+        Use Stripe&apos;s test card: <code className="bg-amber-100 px-1 rounded">4242 4242 4242 4242</code>, any future
         expiry, any CVC, any postcode.
       </p>
     </div>

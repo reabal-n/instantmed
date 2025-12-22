@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground leading-relaxed">
-                InstantMed ("we", "our", or "us") is committed to protecting your privacy and complying with the Privacy
+                InstantMed (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy and complying with the Privacy
                 Act 1988 (Cth) and the Australian Privacy Principles (APPs). This policy explains how we collect, use,
                 disclose, and protect your personal and health information.
               </p>
