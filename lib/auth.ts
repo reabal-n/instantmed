@@ -51,11 +51,14 @@ export async function requireAuth(
     redirect("/auth/login")
   }
 
-  if (authUser.profile.role !== requiredRole) {
+  // Admin role has access to doctor pages
+  const effectiveRole = authUser.profile.role === "admin" ? "doctor" : authUser.profile.role
+  
+  if (effectiveRole !== requiredRole) {
     // Redirect to the correct dashboard based on role
     if (authUser.profile.role === "patient") {
       redirect("/patient")
-    } else if (authUser.profile.role === "doctor") {
+    } else if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
       redirect("/doctor")
     } else {
       redirect("/auth/login")
