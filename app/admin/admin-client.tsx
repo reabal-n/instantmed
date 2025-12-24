@@ -377,12 +377,13 @@ export function AdminClient({
                               </span>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button variant="outline" size="sm" asChild className="rounded-xl bg-white/50 hover:bg-white/80 border-white/40">
-                                <Link href={`/doctor/requests/${request.id}`}>
-                                  <Eye className="mr-1.5 h-3.5 w-3.5" />
-                                  Review
-                                </Link>
-                              </Button>
+                              <Link 
+                                href={`/doctor/requests/${request.id}`}
+                                className="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium border-2 bg-white/50 hover:bg-white/80 border-white/40 transition-all"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                Review
+                              </Link>
                             </TableCell>
                           </TableRow>
                         )

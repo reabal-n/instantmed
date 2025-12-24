@@ -335,20 +335,22 @@ export function AdminDashboardClient({
                     >
                       <TableCell>
                         {showScriptCheckbox && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-center">
-                                <Checkbox
-                                  checked={request.script_sent}
-                                  onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                  className="data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
-                                />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {request.script_sent ? "Script sent via external platform" : "Mark as sent"}
-                            </TooltipContent>
-                          </Tooltip>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-center">
+                                  <Checkbox
+                                    checked={request.script_sent}
+                                    onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
+                                    className="data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {request.script_sent ? "Script sent via external platform" : "Mark as sent"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </TableCell>
                       <TableCell>
@@ -413,17 +415,13 @@ export function AdminDashboardClient({
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="rounded-xl bg-white/50 hover:bg-white/80 border-white/40"
+                        <Link 
+                          href={`/doctor/requests/${request.id}`}
+                          className="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium border-2 bg-white/50 hover:bg-white/80 border-white/40 transition-all"
                         >
-                          <Link href={`/doctor/requests/${request.id}`}>
-                            <Eye className="mr-1.5 h-3.5 w-3.5" />
-                            View
-                          </Link>
-                        </Button>
+                          <Eye className="h-3.5 w-3.5" />
+                          View
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )

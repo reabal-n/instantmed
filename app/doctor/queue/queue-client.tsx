@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -377,12 +378,13 @@ export function QueueClient({
                               No questionnaire responses available. View full details to see answers.
                             </p>
                           )}
-                          <Button variant="link" size="sm" className="px-0 h-auto" asChild>
-                            <a href={`/doctor/requests/${request.id}`}>
-                              <FileText className="h-3.5 w-3.5 mr-1" />
-                              View full details
-                            </a>
-                          </Button>
+                          <Link 
+                            href={`/doctor/requests/${request.id}`}
+                            className="inline-flex items-center text-sm text-primary hover:underline"
+                          >
+                            <FileText className="h-3.5 w-3.5 mr-1" />
+                            View full details
+                          </Link>
                         </div>
                       </div>
 
