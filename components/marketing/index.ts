@@ -13,3 +13,12 @@ export { CTASection } from './cta-section'
 export { TrustSection } from './trust-section'
 export { MarketingFooter } from './footer'
 export { ServiceLandingPage } from './service-landing-page'
+export { HealthCategories } from './health-categories'
+export { Stats } from '@/components/ui/statistics-card'
+export { PlatformStats } from './platform-stats'
+export { 
+  HeroValueProp, 
+  ServiceTypeCards, 
+  SpeedBadge, 
+  HowItWorksSection 
+} from './value-proposition'

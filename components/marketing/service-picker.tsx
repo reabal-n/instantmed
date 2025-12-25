@@ -1,75 +1,113 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Pill, ArrowRight, Stethoscope } from 'lucide-react'
+import { ArrowRight, Clock, Phone, PhoneOff } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
-import { Card, CardBody, CardFooter, Chip } from '@heroui/react'
+import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
+import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
+import { GlowingBorder } from '@/components/ui/glowing-effect'
 
 const iconMap = {
-  FileText,
-  Pill,
-  Stethoscope,
+  FileText: DocumentPremium,
+  Pill: PillPremium,
+  Stethoscope: StethoscopePremium,
 }
 
-const colorConfig: Record<string, { accent: string; glow: string; chipColor: "primary" | "secondary" | "success" | "warning" | "danger" }> = {
-  emerald: { accent: '#6366f1', glow: 'rgba(99, 102, 241, 0.15)', chipColor: 'primary' },
-  cyan: { accent: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.15)', chipColor: 'secondary' },
-  violet: { accent: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.15)', chipColor: 'secondary' },
-  blue: { accent: '#6366f1', glow: 'rgba(99, 102, 241, 0.15)', chipColor: 'primary' },
-  amber: { accent: '#a855f7', glow: 'rgba(168, 85, 247, 0.15)', chipColor: 'warning' },
+const colorConfig: Record<string, { 
+  gradient: string
+  accent: string
+  light: string
+  chipColor: "primary" | "secondary" | "success" | "warning" | "danger" 
+}> = {
+  emerald: { 
+    gradient: 'from-emerald-500 to-teal-600',
+    accent: '#10b981', 
+    light: 'rgba(16, 185, 129, 0.1)', 
+    chipColor: 'success' 
+  },
+  cyan: { 
+    gradient: 'from-cyan-500 to-blue-600',
+    accent: '#06b6d4', 
+    light: 'rgba(6, 182, 212, 0.1)', 
+    chipColor: 'primary' 
+  },
+  violet: { 
+    gradient: 'from-violet-500 to-purple-600',
+    accent: '#8b5cf6', 
+    light: 'rgba(139, 92, 246, 0.1)', 
+    chipColor: 'secondary' 
+  },
+}
+
+// Service metadata for additional info
+const serviceMetadata: Record<string, { time: string; needsCall: boolean }> = {
+  'med-cert': { time: '~15 min', needsCall: false },
+  'scripts': { time: '~15 min', needsCall: false },
+  'consult': { time: '~30 min', needsCall: true },
 }
 
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.12 },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const },
+    scale: 1,
+    transition: { 
+      duration: 0.5, 
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
   },
 }
 
 export function ServicePicker() {
   return (
-    <section className="relative py-16 lg:py-24">
-      
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="relative py-20 lg:py-28">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-14"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
-            <span className="emoji-glow-sparkle text-base">✨</span>
-            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Get started in minutes</span>
-          </div>
-          <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <motion.div 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            <SparklesPremium className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground/80">Get started in minutes</span>
+          </motion.div>
+          
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
             What do you need today?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Select a service to get started. Most requests are reviewed within an hour.
+            Select a service to get started. Most requests reviewed within an hour.
           </p>
         </motion.div>
 
+        {/* Service Cards Grid */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
           {serviceCategories.map((service) => {
-            const Icon = iconMap[service.icon as keyof typeof iconMap] || FileText
+            const Icon = iconMap[service.icon as keyof typeof iconMap] || DocumentPremium
             const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
+            const meta = serviceMetadata[service.id] || { time: '~15 min', needsCall: false }
             
             return (
               <motion.div key={service.id} variants={itemVariants}>
@@ -77,53 +115,95 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
-                  <Card 
-                    isHoverable
-                    isPressable
-                    className="h-full bg-white/90 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-all duration-500 hover:border-indigo-300 dark:hover:border-indigo-500/30 lift-on-hover tilt-on-hover"
-                    shadow="sm"
+                  <GlowingBorder 
+                    colors={[colors.accent, colors.accent + '80', colors.accent + '40']}
+                    borderRadius="1rem"
+                    className="h-full"
                   >
-                    <CardBody className="flex flex-col items-center text-center p-8 gap-4">
-                      {/* Icon */}
-                      <motion.div 
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                        style={{ 
-                          background: `linear-gradient(145deg, ${colors.accent}25, ${colors.accent}10)`,
-                          boxShadow: `inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px ${colors.accent}15`,
-                        }}
-                        whileHover={{ scale: 1.1, rotate: 3 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      >
-                        <Icon className="h-8 w-8" style={{ color: colors.accent }} />
-                      </motion.div>
+                    <Card 
+                      isHoverable
+                      isPressable
+                      className="h-full bg-content1 border-0 overflow-hidden card-3d card-shine"
+                      shadow="sm"
+                    >
+                    <CardBody className="p-0">
+                      {/* Gradient header strip */}
+                      <div className={`h-1.5 w-full bg-gradient-to-r ${colors.gradient}`} />
                       
-                      <h3 className="font-heading text-xl font-semibold text-foreground">
-                        {service.title}
-                      </h3>
-                      
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {service.description}
-                      </p>
+                      <div className="p-6 pb-4">
+                        {/* Icon with animated background */}
+                        <motion.div 
+                          className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-5 overflow-hidden icon-spin-hover"
+                          style={{ backgroundColor: colors.light }}
+                        >
+                          <motion.div
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                            style={{ 
+                              background: `radial-gradient(circle at center, ${colors.accent}30 0%, transparent 70%)` 
+                            }}
+                          />
+                          <Icon className="w-8 h-8 relative z-10" style={{ color: colors.accent }} />
+                        </motion.div>
+                        
+                        {/* Title */}
+                        <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                          {service.title}
+                        </h3>
+                        
+                        {/* Description */}
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                          {service.description}
+                        </p>
+                        
+                        {/* Meta info */}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            {meta.time}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            {meta.needsCall ? (
+                              <>
+                                <Phone className="h-3.5 w-3.5" />
+                                Quick call
+                              </>
+                            ) : (
+                              <>
+                                <PhoneOff className="h-3.5 w-3.5 text-emerald-500" />
+                                <span className="text-emerald-600 dark:text-emerald-400">No call needed</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
                     </CardBody>
                     
-                    <CardFooter className="flex items-center justify-between px-8 pb-6 pt-0">
+                    <Divider />
+                    
+                    <CardFooter className="flex items-center justify-between px-6 py-4">
                       <Chip 
                         color={colors.chipColor} 
                         variant="flat" 
                         size="sm"
+                        classNames={{
+                          base: "interactive-pill",
+                          content: "font-medium"
+                        }}
                       >
                         From ${service.priceFrom.toFixed(2)}
                       </Chip>
-                      <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${colors.accent}20, ${colors.accent}10)`,
-                        }}
+                      
+                      <motion.div 
+                        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors duration-300"
+                        whileHover={{ x: 4 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       >
-                        <ArrowRight className="h-5 w-5" style={{ color: colors.accent }} />
-                      </div>
+                        Start now
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                      </motion.div>
                     </CardFooter>
                   </Card>
+                  </GlowingBorder>
                 </Link>
               </motion.div>
             )

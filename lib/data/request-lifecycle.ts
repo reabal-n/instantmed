@@ -1,5 +1,6 @@
 import "server-only"
 import type { RequestStatus, PaymentStatus } from "@/types/db"
+import { logger } from "@/lib/logger"
 
 // ============================================
 // REQUEST LIFECYCLE STATE MACHINE
@@ -265,7 +266,7 @@ export function logTransitionAttempt(
   actorId: string,
   actorRole: "doctor" | "patient" | "system"
 ): void {
-  console.log("[RequestLifecycle] Transition attempt:", {
+  logger.debug("[RequestLifecycle] Transition attempt", {
     requestId,
     currentStatus,
     newStatus,
@@ -282,7 +283,7 @@ export function logTransitionSuccess(
   newStatus: RequestStatus,
   actorId: string
 ): void {
-  console.log("[RequestLifecycle] Transition SUCCESS:", {
+  logger.info("[RequestLifecycle] Transition SUCCESS", {
     requestId,
     previousStatus,
     newStatus,
@@ -298,7 +299,7 @@ export function logTransitionFailure(
   reason: string,
   actorId: string
 ): void {
-  console.error("[RequestLifecycle] Transition BLOCKED:", {
+  logger.warn("[RequestLifecycle] Transition BLOCKED", {
     requestId,
     currentStatus,
     attemptedStatus,

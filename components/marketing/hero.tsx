@@ -1,15 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Shield, Lock, DollarSign, Clock, ArrowRight, Play, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
-import { Button as HeroButton } from "@heroui/react"
-import { ShatterButtonLink } from '@/components/ui/shatter-button'
-import { EstimatedTimeBadge } from '@/components/ui/estimated-time-badge'
-import { LiveVisitorCounter } from '@/components/ui/live-visitor-counter'
+import { Shield, Lock, DollarSign, Clock, ArrowRight, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
+import { Button } from "@heroui/react"
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { HighlightText } from '@/components/ui/highlight-text'
+import { motion } from 'framer-motion'
+import { GlowingBorder } from '@/components/ui/glowing-effect'
 
 const iconMap = {
   Shield,
@@ -20,158 +18,195 @@ const iconMap = {
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-20">
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:pt-32 lg:pb-24">
-        {/* Top indicators - Doctor availability and live visitors */}
-        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8">
+    <section className="relative overflow-hidden min-h-[85vh] flex items-center pt-16">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-12 lg:pt-28 lg:pb-20">
+        {/* Top indicator */}
+        <motion.div 
+          className="flex justify-center lg:justify-start mb-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <DoctorAvailabilityPill />
-          <LiveVisitorCounter minVisitors={10} maxVisitors={20} />
-        </div>
+        </motion.div>
+        
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left content */}
           <div className="text-center lg:text-left">
-            {/* Badge - Liquid Glass Pill */}
-            <div className="mb-8 animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group">
-                <span className="relative flex h-2.5 w-2.5">
+            {/* Badge */}
+            <motion.div 
+              className="mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 interactive-pill cursor-default">
+                <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                 </span>
-                <span className="emoji-glow-yellow text-base">⚡</span>
-                <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Australia&apos;s fastest online GP</span>
+                <span className="text-sm font-medium text-foreground/80">Australia&apos;s fastest online GP</span>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Headline - Lora font with stable layout */}
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 animate-slide-up-delay-1">
-              <span className="block sm:inline">Your{' '}</span>
-              <span className="text-gradient">
+            {/* Headline */}
+            <motion.h1 
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <span>Your{' '}</span>
+              <span className="text-primary">
                 <RotatingText texts={heroRotatingTexts} />
               </span>
-              <br className="hidden lg:block" />
-              <span className="block sm:inline text-foreground/90"> — sorted in </span>
-              <HighlightText 
-                text="under an hour" 
-                highlightColor="hsl(var(--primary) / 0.15)"
-                duration={1.2}
-                delay={0.8}
-                className="font-bold"
-              />
+              <br className="hidden sm:block" />
+              <span className="text-foreground/90"> — sorted in </span>
+              <span className="text-primary font-bold">15 minutes</span>
               <span className="text-foreground/90">.</span>
-            </h1>
+            </motion.h1>
 
             {/* Subtext */}
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed animate-slide-up-delay-2">
-              Tell us what you need, a real GP reviews it, and you&apos;re done. 
-              No appointments. No waiting rooms. No phone queues.
-            </p>
+            <motion.p 
+              className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              Med certs &amp; repeat scripts with no phone call required.
+              New scripts just need a quick 2-min consult.
+            </motion.p>
 
-            {/* CTAs - ShatterButton + HeroUI Button */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-10 animate-slide-up-delay-3">
-              <ShatterButtonLink 
+            {/* CTAs */}
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <Button 
+                as={Link}
                 href="/start"
-                className="px-8 h-12 text-sm font-semibold"
+                color="primary"
+                size="lg"
+                className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
+                endContent={<ArrowRight className="h-4 w-4" />}
               >
-                Get started free <ArrowRight className="h-4 w-4 ml-2 inline" />
-              </ShatterButtonLink>
-              <HeroButton 
+                Get started
+              </Button>
+              <Button 
                 as={Link}
                 href="#how-it-works"
-                variant="light"
+                variant="bordered"
                 size="lg"
-                className="h-12 text-sm px-6 text-muted-foreground hover:text-foreground"
-                startContent={<Play className="h-4 w-4" />}
+                className="h-12 px-6"
               >
                 See how it works
-              </HeroButton>
-            </div>
+              </Button>
+            </motion.div>
 
-            {/* Estimated time badge */}
-            <div className="mb-6 animate-slide-up-delay-3">
-              <EstimatedTimeBadge 
-                estimatedTime="20-60 min"
-                label="Average turnaround"
-                type="certificate"
-              />
-            </div>
-
-            {/* Trust row - liquid glass pills */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-2">
-              {trustSignals.map((signal, index) => {
+            {/* Trust row */}
+            <motion.div 
+              className="flex flex-wrap justify-center lg:justify-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              {trustSignals.slice(0, 3).map((signal) => {
                 const Icon = iconMap[signal.icon as keyof typeof iconMap]
                 return (
                   <div 
                     key={signal.text} 
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full liquid-glass-pill hover-bounce"
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground"
                   >
-                    <Icon className="h-3.5 w-3.5 text-primary/70" />
+                    <Icon className="h-4 w-4 text-primary/70" />
                     <span>{signal.text}</span>
                   </div>
                 )
               })}
-            </div>
+            </motion.div>
           </div>
 
-          {/* Right side - Abstract illustration with floating cards */}
-          <div className="relative hidden lg:block">
-            {/* Main visual container */}
-            <div className="relative">
-              {/* Abstract background shape */}
-              <div className="w-full aspect-square max-w-[500px] mx-auto relative">
-                {/* Gradient circle background */}
-                <div className="absolute inset-8 rounded-full bg-gradient-to-br from-indigo-100 via-violet-50 to-purple-100 dark:from-indigo-900/30 dark:via-violet-900/20 dark:to-purple-900/30" />
-                
-                {/* Floating cards */}
-                {/* Card 1: Request submitted */}
-                <div className="absolute top-8 left-0 glass-card rounded-2xl p-4 shadow-xl animate-float-slow hover:scale-105 transition-transform duration-300 cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center relative">
-                      <FileText className="w-5 h-5 text-indigo-600" />
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Request submitted</p>
-                      <p className="text-xs text-muted-foreground">Just now</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Card 2: Doctor reviewing */}
-                <div className="absolute top-1/3 right-0 glass-card rounded-2xl p-4 shadow-xl animate-float-medium hover:scale-105 transition-transform duration-300 cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                      <Stethoscope className="w-5 h-5 text-violet-600 animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">GP reviewing</p>
-                      <p className="text-xs text-muted-foreground">Dr. Sarah M.</p>
+          {/* Right side - Visual */}
+          <motion.div 
+            className="relative hidden lg:block"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="relative w-full aspect-square max-w-[480px] mx-auto">
+              {/* Background gradient */}
+              <div className="absolute inset-12 rounded-full bg-linear-to-br from-primary/10 via-secondary/5 to-primary/10" />
+              
+              {/* Floating cards */}
+              <motion.div 
+                className="absolute top-8 left-0"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <GlowingBorder>
+                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Request submitted</p>
+                        <p className="text-xs text-muted-foreground">Just now</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Card 3: Approved */}
-                <div className="absolute bottom-12 left-8 glass-card rounded-2xl p-4 shadow-xl animate-float-fast border-2 border-green-200 hover:scale-105 hover:border-green-300 transition-all duration-300 cursor-default">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-green-700">Approved ✓</p>
-                      <p className="text-xs text-muted-foreground">42 min total</p>
+                </GlowingBorder>
+              </motion.div>
+              
+              <motion.div 
+                className="absolute top-1/3 right-0"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              >
+                <GlowingBorder>
+                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                        <Stethoscope className="w-5 h-5 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">GP reviewing</p>
+                        <p className="text-xs text-muted-foreground">Dr. Sarah M.</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Center icon */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30">
-                    <Pill className="w-12 h-12 text-white" />
+                </GlowingBorder>
+              </motion.div>
+              
+              <motion.div 
+                className="absolute bottom-12 left-8"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              >
+                <GlowingBorder>
+                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border-2 border-success">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-success" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-success">Approved ✓</p>
+                        <p className="text-xs text-muted-foreground">12 min total</p>
+                      </div>
+                    </div>
                   </div>
+                </GlowingBorder>
+              </motion.div>
+              
+              {/* Center icon */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-2xl shadow-primary/30">
+                  <Pill className="w-10 h-10 text-white" />
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

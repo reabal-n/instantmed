@@ -1,191 +1,425 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { TiltCard } from "@/components/shared/tilt-card"
-import { ArrowRight, Clock, Heart, Shield, Sparkles, Users } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  ArrowRight,
+  Clock,
+  Shield,
+  Zap,
+  Heart,
+  Pill,
+  Lock,
+  ChevronDown,
+  PhoneOff,
+  Users,
+  Sparkles,
+} from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Women's Health Online | UTI, Contraception, Menopause | InstantMed",
+  title: "Women's Health Online Australia | UTI Treatment & Birth Control | InstantMed",
   description:
-    "Discreet online consultations for women's health. UTI treatment, contraception renewals, morning-after pill, menopause support, and PCOS testing. Request a female doctor.",
+    "Discreet women's health consultations with Australian doctors. UTI treatment, contraception renewals, morning-after pill. Script in 15 minutes. Request a female doctor.",
   keywords: [
-    "womens health online",
+    "womens health online australia",
     "UTI treatment online",
+    "birth control prescription online",
     "contraception online australia",
     "morning after pill online",
-    "menopause telehealth",
-    "PCOS blood test",
+    "female doctor telehealth",
+    "womens health telehealth",
   ],
   openGraph: {
-    title: "Women's Health Online | InstantMed",
-    description: "Discreet online consultations for women's health from AHPRA-registered doctors.",
+    title: "Women's Health Online | UTI & Birth Control | InstantMed",
+    description: "Get discreet women's health prescriptions from Australian doctors in 15 minutes. Request a female doctor.",
     url: "https://instantmed.com.au/womens-health",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/womens-health",
   },
 }
 
 const services = [
   {
     id: "uti",
-    title: "UTI Treatment",
-    description: "Burning or frequent urination? Get assessed and treated quickly.",
-    price: "$24.95",
-    time: "~30 min",
-    href: "/prescriptions/request?condition=uti&vertical=womens-health",
-    color: "#EC4899",
+    name: "UTI Treatment",
+    description: "Burning, frequent urination, or pelvic discomfort? Get assessed and treated quickly without a clinic visit.",
+    symptoms: ["Burning sensation when urinating", "Frequent urge to urinate", "Cloudy or strong-smelling urine", "Pelvic pain or pressure"],
+    treatment: "Antibiotics (trimethoprim, nitrofurantoin)",
+    time: "~15 min",
     popular: true,
   },
   {
     id: "contraception",
-    title: "Contraception Renewal",
-    description: "Continue your regular contraceptive pill or discuss alternatives.",
-    price: "$24.95",
-    time: "~1 hour",
-    href: "/prescriptions/request?condition=contraception&vertical=womens-health",
-    color: "#8B5CF6",
+    name: "Contraception / Birth Control",
+    description: "Continue your regular contraceptive pill or discuss alternatives. Includes combined pill, mini-pill, and others.",
+    options: ["Combined oral contraceptive", "Progestogen-only pill (mini pill)", "Other hormonal options"],
+    time: "~15 min",
+    popular: true,
   },
   {
     id: "morning-after",
-    title: "Morning-After Pill",
-    description: "Time-sensitive? We prioritise these requests. Discreet and fast.",
-    price: "$29.95",
-    time: "~20 min",
-    href: "/prescriptions/request?condition=morning-after&vertical=womens-health",
-    color: "#F59E0B",
-    badge: "Urgent",
+    name: "Morning-After Pill",
+    description: "Time-sensitive emergency contraception. We prioritise these requests for fast turnaround.",
+    info: "Most effective within 72 hours of unprotected sex. Some options effective up to 5 days.",
+    time: "URGENT",
+    urgent: true,
+  },
+]
+
+const platformFeatures = [
+  {
+    icon: Users,
+    title: "Request a Female Doctor",
+    description: "Prefer to be seen by a female doctor? Simply indicate your preference and we'll do our best to accommodate.",
   },
   {
-    id: "menopause",
-    title: "Menopause Support",
-    description: "Hot flushes, mood changes, sleep issues? Discuss treatment options.",
-    price: "$34.95",
-    time: "~1 hour",
-    href: "/prescriptions/request?condition=menopause&vertical=womens-health",
-    color: "#06B6D4",
+    icon: PhoneOff,
+    title: "No Phone Call Required",
+    description: "Complete your entire consultation online. Share sensitive details in writing, on your own terms.",
+  },
+  {
+    icon: Clock,
+    title: "Script in 15 Minutes",
+    description: "Our doctors review requests quickly. Most prescriptions are issued within 15 minutes during business hours.",
+  },
+  {
+    icon: Shield,
+    title: "100% Confidential",
+    description: "Your consultation is private and encrypted. We never share your details with anyone except your pharmacy.",
+  },
+]
+
+const faqs = [
+  {
+    question: "Can I get UTI treatment without seeing a doctor in person?",
+    answer:
+      "Yes, for uncomplicated UTIs (the most common type), our doctors can assess your symptoms and prescribe appropriate antibiotics online. If your symptoms suggest a complicated UTI or other condition, we may recommend an in-person visit or further testing.",
+  },
+  {
+    question: "What birth control options can you prescribe?",
+    answer:
+      "Our doctors can prescribe oral contraceptives including combined pills (containing oestrogen and progestogen) and progestogen-only pills (mini pills). For other methods like IUDs, implants, or injections, you'll need to see a doctor in person for insertion/administration.",
+  },
+  {
+    question: "How quickly can I get the morning-after pill?",
+    answer:
+      "We prioritise emergency contraception requests. Most prescriptions are issued within 15-30 minutes during business hours. The e-script is sent directly to your phone so you can collect from any pharmacy immediately.",
+  },
+  {
+    question: "Can I request a female doctor?",
+    answer:
+      "Absolutely. When you start your consultation, you can indicate a preference for a female doctor. While we can't guarantee availability at all times, we'll do our best to accommodate your request.",
+  },
+  {
+    question: "Is this service really private?",
+    answer:
+      "Completely. All consultations are encrypted and confidential. Your pharmacy receives only the prescription — not your consultation details. Your bank statement will show 'InstantMed' only, with no indication of the service type.",
+  },
+  {
+    question: "What if I'm not sure what I need?",
+    answer:
+      "That's okay! Start a consultation and describe your symptoms or concerns. Our doctors can help determine the best course of action, whether that's treatment, further testing, or a referral to an appropriate specialist.",
   },
 ]
 
 export default function WomensHealthPage() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-hero">
-      <Navbar variant="marketing" />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <main className="flex-1 pt-24">
-        {/* Hero */}
-        <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
-          <div
-            className="hero-orb w-[400px] h-[400px] -top-[100px] right-1/4 opacity-40"
-            style={{ background: "radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%)" }}
-          />
+      <div className="flex min-h-screen flex-col bg-background">
+        <Navbar variant="marketing" />
 
-          <div className="relative mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-50 text-pink-700 text-sm font-medium mb-6">
-              <Heart className="h-4 w-4" />
-              Women's Health
-            </div>
-
-            <h1
-              className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Healthcare that <span className="text-pink-500">understands you</span>
-            </h1>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto mb-6">
-              Discreet, judgement-free consultations for women's health concerns. Handled online by Australian doctors.
-            </p>
-
-            {/* Female doctor toggle */}
-            <div className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-white/80 backdrop-blur border border-pink-100 shadow-sm">
-              <Users className="h-5 w-5 text-pink-500" />
-              <span className="text-sm font-medium">Request a female doctor</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-              </label>
-            </div>
-
-            {/* Trust badges */}
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Shield className="h-4 w-4 text-pink-400" />
-                <span>100% confidential</span>
+        <main className="flex-1 pt-20">
+          {/* Hero */}
+          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-pink-500/5 to-transparent">
+            <div className="mx-auto max-w-4xl text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pink-500/10 text-pink-600 text-sm mb-6">
+                <Heart className="h-4 w-4" />
+                Women's Health • Request Female Doctor
               </div>
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-pink-400" />
-                <span>No awkward waiting rooms</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-pink-400" />
-                <span>Same-day response</span>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Services Grid */}
-        <section className="px-4 py-12 bg-mesh">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="text-xl font-semibold text-center mb-8" style={{ fontFamily: "var(--font-display)" }}>
-              How can we help?
-            </h2>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+                Women's Healthcare That Understands You
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
+                Discreet, judgement-free consultations for UTIs, contraception, and more.
+                Get a prescription from an Australian doctor in <strong>15 minutes</strong>.
+              </p>
+              <p className="text-sm text-muted-foreground mb-8">
+                TGA-approved treatments • AHPRA-registered doctors • Request a female doctor
+              </p>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {services.map((service) => (
-                <Link key={service.id} href={service.href} className="group">
-                  <TiltCard className="glass-card rounded-xl p-5 h-full hover-lift">
-                    <div className="flex items-start justify-between mb-3">
-                      <div
-                        className="h-10 w-10 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: `${service.color}15` }}
-                      >
-                        <Heart className="h-5 w-5" style={{ color: service.color }} />
-                      </div>
-                      {service.popular && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-pink-100 text-pink-600">
-                          Popular
-                        </span>
-                      )}
-                      {service.badge && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">
-                          {service.badge}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="font-semibold mb-1">{service.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold">{service.price}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {service.time}
-                        </span>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-pink-500 group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </TiltCard>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <Link href="/start?service=womens-health">
+                  <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-white text-base px-8 w-full sm:w-auto">
+                    Start Consultation
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </Link>
-              ))}
+                <Link href="#services">
+                  <Button variant="outline" size="lg" className="text-base px-8 w-full sm:w-auto">
+                    View Services
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Zap className="h-4 w-4 text-pink-600" />
+                  <span className="font-medium">Script in 15 min</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Users className="h-4 w-4 text-pink-600" />
+                  <span className="font-medium">Female doctors available</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Shield className="h-4 w-4 text-pink-600" />
+                  <span className="font-medium">100% confidential</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Lock className="h-4 w-4 text-pink-600" />
+                  <span className="font-medium">Encrypted & secure</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Reassurance Section */}
-        <section className="px-4 py-12">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>
-              We get it
-            </h2>
-            <p className="text-muted-foreground">
-              Some things are easier to discuss without eye contact. Our online process lets you share what's happening
-              in your own words, at your own pace. A real doctor reads everything and responds thoughtfully.
-            </p>
-          </div>
-        </section>
-      </main>
+          {/* Services */}
+          <section id="services" className="py-16 px-4 bg-slate-50">
+            <div className="mx-auto max-w-4xl">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold sm:text-3xl mb-3">How Can We Help?</h2>
+                <p className="text-muted-foreground max-w-xl mx-auto">
+                  Select a service below or start a general consultation to discuss your needs
+                </p>
+              </div>
 
-      <Footer />
-    </div>
+              <div className="space-y-6">
+                {services.map((service) => (
+                  <div
+                    key={service.id}
+                    className="bg-white rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                          {service.urgent ? (
+                            <Sparkles className="h-5 w-5 text-pink-600" />
+                          ) : (
+                            <Heart className="h-5 w-5 text-pink-600" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold">{service.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            {service.popular && (
+                              <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100">Popular</Badge>
+                            )}
+                            {service.urgent && (
+                              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Priority</Badge>
+                            )}
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> {service.time}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-muted-foreground mb-4">{service.description}</p>
+
+                    {service.symptoms && (
+                      <div className="mb-4">
+                        <p className="text-sm font-medium mb-2">Common symptoms:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {service.symptoms.map((symptom, i) => (
+                            <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded-full">
+                              {symptom}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {service.options && (
+                      <div className="mb-4">
+                        <p className="text-sm font-medium mb-2">Options include:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {service.options.map((option, i) => (
+                            <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded-full">
+                              {option}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {service.info && (
+                      <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg mb-4">
+                        ⏰ {service.info}
+                      </p>
+                    )}
+
+                    <Link href={`/start?service=womens-health&condition=${service.id}`}>
+                      <Button className="bg-pink-600 hover:bg-pink-700 w-full sm:w-auto">
+                        Start Consultation
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Platform Features */}
+          <section className="py-16 px-4">
+            <div className="mx-auto max-w-4xl">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold sm:text-3xl mb-3">Why Choose InstantMed?</h2>
+                <p className="text-muted-foreground">
+                  Healthcare designed with women in mind
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                {platformFeatures.map((feature, i) => (
+                  <div key={i} className="flex gap-4 p-4 rounded-xl bg-slate-50">
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                      <feature.icon className="h-6 w-6 text-pink-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works */}
+          <section className="py-16 px-4 bg-slate-50">
+            <div className="mx-auto max-w-4xl">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold sm:text-3xl mb-3">How It Works</h2>
+                <p className="text-muted-foreground">Three simple steps to get the care you need</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                    1
+                  </div>
+                  <h3 className="font-semibold mb-2">Complete Questionnaire</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Answer health questions privately online. Request a female doctor if preferred.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                    2
+                  </div>
+                  <h3 className="font-semibold mb-2">Doctor Reviews</h3>
+                  <p className="text-sm text-muted-foreground">
+                    An AHPRA-registered doctor reviews your request and prescribes if appropriate.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                    3
+                  </div>
+                  <h3 className="font-semibold mb-2">Collect Your Script</h3>
+                  <p className="text-sm text-muted-foreground">
+                    E-script sent to your phone. Collect from any pharmacy Australia-wide.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Reassurance */}
+          <section className="py-16 px-4">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-2xl font-bold mb-4">We Get It</h2>
+              <p className="text-muted-foreground mb-6">
+                Some things are easier to discuss without eye contact. Our online process lets you share what's happening
+                in your own words, at your own pace. A real doctor reads everything and responds thoughtfully — no judgement, just care.
+              </p>
+              <Link href="/start?service=womens-health">
+                <Button className="bg-pink-600 hover:bg-pink-700">
+                  Start Your Consultation
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </section>
+
+          {/* FAQs */}
+          <section className="py-16 px-4 bg-slate-50">
+            <div className="mx-auto max-w-3xl">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold sm:text-3xl mb-3">Frequently Asked Questions</h2>
+              </div>
+
+              <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                  <details key={i} className="group bg-white rounded-xl border">
+                    <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
+                      <span className="font-medium pr-4">{faq.question}</span>
+                      <ChevronDown className="h-5 w-5 text-muted-foreground group-open:rotate-180 transition-transform" />
+                    </summary>
+                    <div className="px-5 pb-5">
+                      <p className="text-muted-foreground">{faq.answer}</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Final CTA */}
+          <section className="py-16 px-4 bg-pink-600">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-2xl font-bold sm:text-3xl text-white mb-4">
+                Ready to Get Started?
+              </h2>
+              <p className="text-pink-100 mb-8 max-w-xl mx-auto">
+                Complete a confidential consultation in minutes. Request a female doctor if you prefer.
+              </p>
+              <Link href="/start?service=womens-health">
+                <Button size="lg" className="bg-white text-pink-600 hover:bg-pink-50 text-base px-8">
+                  Start Consultation
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+              <p className="text-pink-200 text-sm mt-4">
+                Takes ~3 minutes • 100% confidential • Script in 15 min
+              </p>
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    </>
   )
 }

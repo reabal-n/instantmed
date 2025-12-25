@@ -7,6 +7,7 @@ import { PaymentConfirmedEmail } from "./templates/payment-confirmed"
 import { RequestApprovedEmail } from "./templates/request-approved"
 import { NeedsMoreInfoEmail } from "./templates/needs-more-info"
 import { RequestDeclinedEmail } from "./templates/request-declined"
+import { logger } from "../logger"
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -85,14 +86,14 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     })
 
     // TODO: Integrate with Resend or SendGrid for actual email delivery
-    // For now, just log to console in development
+    // For now, log to centralized logger in development
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Email] Would send to ${to}:`, { subject, template })
+      logger.info(`[Email] Would send to ${to}`, { subject, template })
     }
 
     return { success: true }
   } catch (error) {
-    console.error("Error sending email:", error)
+    logger.error("Error sending email: " + String(error), { error })
     return { success: false, error: String(error) }
   }
 }

@@ -1,7 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Star, Quote } from "lucide-react"
+import { Star, Quote, Users, Clock, Award } from "lucide-react"
+import { Card, CardBody, Chip } from "@heroui/react"
 
 interface Testimonial {
   id: number
@@ -10,7 +11,6 @@ interface Testimonial {
   rating: number
   text: string
   service: "med-cert" | "prescription"
-  avatar?: string
 }
 
 const testimonials: Testimonial[] = [
@@ -62,193 +62,148 @@ const testimonials: Testimonial[] = [
     text: "Incredibly convenient. Had my certificate emailed to me and my employer within the hour.",
     service: "med-cert",
   },
-  {
-    id: 7,
-    name: "Sophie H.",
-    location: "Canberra",
-    rating: 5,
-    text: "Professional service with real Australian doctors. Highly recommend for anyone needing quick medical care.",
-    service: "prescription",
-  },
-  {
-    id: 8,
-    name: "Chris B.",
-    location: "Newcastle",
-    rating: 5,
-    text: "The pricing is transparent and fair. No hidden fees, no surprises. Just great service.",
-    service: "med-cert",
-  },
 ]
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="relative group mx-3 w-[340px] shrink-0">
-      {/* Glow effect on hover */}
-      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500/20 via-violet-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-      
-      {/* Card */}
-      <div className="relative h-full rounded-2xl overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-white/10 border border-slate-200/80 dark:border-white/10 p-6 shadow-lg shadow-indigo-500/5 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-indigo-500/15 group-hover:-translate-y-3 group-hover:border-indigo-200 dark:group-hover:border-indigo-500/30 group-hover:scale-[1.02]">
-        {/* Quote icon */}
-        <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-          <Quote className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
-        </div>
-        
-        {/* Stars */}
-        <div className="flex gap-0.5 mb-4">
-          {Array.from({ length: testimonial.rating }).map((_, i) => (
-            <Star
-              key={i}
-              className="w-4 h-4 fill-amber-400 text-amber-400"
-            />
-          ))}
-        </div>
-        
-        {/* Text */}
-        <p className="text-muted-foreground text-sm leading-relaxed mb-5 line-clamp-4">
-          &ldquo;{testimonial.text}&rdquo;
-        </p>
-        
-        {/* Author */}
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm">
-            {testimonial.name.charAt(0)}
+    <div className="mx-2 w-[320px] shrink-0">
+      <Card
+        className="h-full bg-content1 border border-divider hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
+        shadow="sm"
+      >
+        <CardBody className="p-5">
+          {/* Quote icon */}
+          <div className="absolute top-4 right-4 opacity-5">
+            <Quote className="w-8 h-8 text-foreground" />
           </div>
-          <div>
-            <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
-            <p className="text-xs text-muted-foreground">{testimonial.location}</p>
+          
+          {/* Stars */}
+          <div className="flex gap-0.5 mb-3">
+            {Array.from({ length: testimonial.rating }).map((_, i) => (
+              <Star
+                key={i}
+                className="w-4 h-4 fill-amber-400 text-amber-400"
+              />
+            ))}
           </div>
-          {/* Service badge */}
-          <div className="ml-auto">
-            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-              testimonial.service === "med-cert" 
-                ? "bg-indigo-50 text-indigo-600" 
-                : "bg-violet-50 text-violet-600"
-            }`}>
+          
+          {/* Text */}
+          <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+            &ldquo;{testimonial.text}&rdquo;
+          </p>
+          
+          {/* Author */}
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
+              {testimonial.name.charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground text-sm truncate">{testimonial.name}</p>
+              <p className="text-xs text-muted-foreground">{testimonial.location}</p>
+            </div>
+            <Chip
+              size="sm"
+              variant="flat"
+              color={testimonial.service === "med-cert" ? "primary" : "secondary"}
+              classNames={{
+                base: "h-6",
+                content: "text-[10px] font-medium"
+              }}
+            >
               {testimonial.service === "med-cert" ? "Med Cert" : "Script"}
-            </span>
+            </Chip>
           </div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
     </div>
   )
 }
 
 export function TestimonialMarquee() {
-  // Double the testimonials for seamless loop
   const doubledTestimonials = [...testimonials, ...testimonials]
 
   return (
-    <section className="py-20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4"
-          >
-            <span className="emoji-glow text-base">💬</span>
-            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">Trusted by thousands</span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-4"
-          >
+    <section className="py-16 lg:py-20 overflow-hidden bg-content2/30">
+      {/* Section Header */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
+            <Users className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-foreground/80">Trusted by thousands</span>
+          </div>
+          
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
             What our patients say
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-muted-foreground max-w-2xl mx-auto"
-          >
-            Join thousands of Australians who trust InstantMed for their healthcare needs
-          </motion.p>
-        </div>
+          </h2>
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            Join thousands of Australians who trust InstantMed for their healthcare needs.
+          </p>
+        </motion.div>
       </div>
 
-      {/* First row - scrolling left */}
+      {/* Scrolling testimonials */}
       <div className="relative mb-6">
         {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
         <motion.div
           className="flex"
           animate={{
-            x: [0, -50 * testimonials.length * 7.5],
+            x: [0, -324 * testimonials.length],
           }}
           transition={{
             x: {
-              duration: 60,
+              duration: 40,
               repeat: Infinity,
               ease: "linear",
             },
           }}
         >
           {doubledTestimonials.map((testimonial, index) => (
-            <TestimonialCard key={`row1-${testimonial.id}-${index}`} testimonial={testimonial} />
-          ))}
-        </motion.div>
-      </div>
-
-      {/* Second row - scrolling right */}
-      <div className="relative">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-        
-        <motion.div
-          className="flex"
-          initial={{ x: -50 * testimonials.length * 7.5 }}
-          animate={{
-            x: [- 50 * testimonials.length * 7.5, 0],
-          }}
-          transition={{
-            x: {
-              duration: 60,
-              repeat: Infinity,
-              ease: "linear",
-            },
-          }}
-        >
-          {[...doubledTestimonials].reverse().map((testimonial, index) => (
-            <TestimonialCard key={`row2-${testimonial.id}-${index}`} testimonial={testimonial} />
+            <TestimonialCard key={`${testimonial.id}-${index}`} testimonial={testimonial} />
           ))}
         </motion.div>
       </div>
 
       {/* Stats */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ delay: 0.3 }}
-        className="max-w-4xl mx-auto mt-16 px-4"
+        transition={{ delay: 0.2 }}
+        className="max-w-3xl mx-auto mt-12 px-4"
       >
-        <div className="grid grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">4.9</div>
-            <div className="flex justify-center gap-0.5 mb-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-            <p className="text-sm text-muted-foreground">Average rating</p>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">10k+</div>
-            <p className="text-sm text-muted-foreground mt-3">Happy patients</p>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">&lt;30min</div>
-            <p className="text-sm text-muted-foreground mt-3">Average response</p>
-          </div>
+        <div className="grid grid-cols-3 gap-6">
+          {[
+            { icon: Award, value: "4.9", label: "Average rating", showStars: true },
+            { icon: Users, value: "10k+", label: "Happy patients" },
+            { icon: Clock, value: "<15min", label: "Typical response" },
+          ].map((stat, index) => (
+            <motion.div 
+              key={stat.label}
+              className="text-center"
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <div className="text-2xl md:text-3xl font-bold text-foreground mb-1">{stat.value}</div>
+              {stat.showStars && (
+                <div className="flex justify-center gap-0.5 mb-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </motion.div>
+          ))}
         </div>
       </motion.div>
     </section>

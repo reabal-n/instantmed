@@ -1,5 +1,6 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type {
   Request,
   RequestWithPatient,
@@ -39,7 +40,7 @@ export async function getPatientRequests(patientId: string, status?: RequestStat
   const { data, error } = await query
 
   if (error) {
-    console.error("Error fetching patient requests:", error)
+    logger.error("Error fetching patient requests", { error })
     return []
   }
 
@@ -62,7 +63,7 @@ export async function getPatientRequestStats(patientId: string): Promise<{
   const { data, error } = await supabase.from("requests").select("status, payment_status").eq("patient_id", patientId)
 
   if (error || !data) {
-    console.error("Error fetching request stats:", error)
+    logger.error("Error fetching request stats", { error })
     return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0, awaiting_payment: 0 }
   }
 
@@ -92,7 +93,7 @@ export async function getRequestForPatient(requestId: string, patientId: string)
     .single()
 
   if (error || !data) {
-    console.error("Error fetching request:", error)
+    logger.error("Error fetching request", { error })
     return null
   }
 
@@ -119,14 +120,14 @@ export async function getAllRequestsByStatus(status: RequestStatus): Promise<Req
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching requests by status:", error)
+    logger.error("Error fetching requests by status", { error })
     return []
   }
 
   // Filter out any requests where patient data couldn't be loaded (RLS issue)
   const validData = (data || []).filter((r) => r.patient !== null)
   if (validData.length !== data?.length) {
-    console.warn(`[getAllRequestsByStatus] Filtered out ${(data?.length || 0) - validData.length} requests with null patient data`)
+    logger.warn("Filtered out requests with null patient data", { filtered: (data?.length || 0) - validData.length })
   }
 
   return validData as RequestWithPatient[]
@@ -149,7 +150,7 @@ export async function getRequestsAwaitingPayment(): Promise<RequestWithPatient[]
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching requests awaiting payment:", error)
+    logger.error("Error fetching requests awaiting payment", { error })
     return []
   }
 
@@ -176,7 +177,7 @@ export async function getRequestWithDetails(requestId: string): Promise<RequestW
     .single()
 
   if (error || !data) {
-    console.error("Error fetching request details:", error)
+    logger.error("Error fetching request details", { error })
     return null
   }
 
@@ -214,7 +215,7 @@ export async function createRequest(
     .single()
 
   if (requestError || !createdRequest) {
-    console.error("Error creating request:", requestError)
+    logger.error("Error creating request", { error: requestError })
     return null
   }
 
@@ -224,7 +225,7 @@ export async function createRequest(
   })
 
   if (answersError) {
-    console.error("Error creating request answers:", answersError)
+    logger.error("Error creating request answers", { error: answersError })
   }
 
   return createdRequest as Request
@@ -245,7 +246,7 @@ export async function updateRequestStatus(
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   if (!uuidRegex.test(requestId)) {
-    console.error("[updateRequestStatus] Invalid requestId format:", requestId)
+    logger.error("[updateRequestStatus] Invalid requestId format", { requestId })
     return null
   }
 
@@ -259,7 +260,7 @@ export async function updateRequestStatus(
     .single()
 
   if (fetchError || !currentRequest) {
-    console.error("[updateRequestStatus] Failed to fetch current state:", { requestId, error: fetchError })
+    logger.error("[updateRequestStatus] Failed to fetch current state", { requestId, error: fetchError })
     return null
   }
 
@@ -313,7 +314,7 @@ export async function updateRequestStatus(
     .single()
 
   if (error || !data) {
-    console.error("[updateRequestStatus] Database error:", { requestId, status, error })
+    logger.error("[updateRequestStatus] Database error", { requestId, status, error })
     return null
   }
 
@@ -335,7 +336,7 @@ export async function updateClinicalNote(requestId: string, clinicalNote: string
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error updating clinical note:", error)
+    logger.error("Error updating clinical note", { error })
     return false
   }
 
@@ -359,7 +360,7 @@ export async function updateScriptSent(requestId: string, scriptSent: boolean, s
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error updating script sent status:", error)
+    logger.error("Error updating script sent status", { error })
     return false
   }
 
@@ -382,7 +383,7 @@ export async function getDoctorDashboardStats(): Promise<{
   const { data, error } = await supabase.from("requests").select("status, payment_status").eq("payment_status", "paid") // Only count paid requests
 
   if (error || !data) {
-    console.error("Error fetching dashboard stats:", error)
+    logger.error("Error fetching dashboard stats", { error })
     return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0 }
   }
 
@@ -410,7 +411,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching all requests:", error)
+    logger.error("Error fetching all requests", { error })
     return []
   }
 
@@ -422,7 +423,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
  */
 export async function createDocument(requestId: string, documentType: string, content: string): Promise<boolean> {
   // TODO: Implement when documents table is created
-  console.log("createDocument called with:", requestId, documentType)
+  logger.info("createDocument called", { requestId, documentType })
   return false
 }
 
@@ -552,7 +553,7 @@ export async function escalateRequest(
     .single()
 
   if (fetchError || !currentRequest) {
-    console.error("[escalateRequest] Failed to fetch request:", { requestId, error: fetchError })
+    logger.error("[escalateRequest] Failed to fetch request", { requestId, error: fetchError })
     return false
   }
 
@@ -564,7 +565,7 @@ export async function escalateRequest(
 
   if (!validation.valid) {
     logTransitionFailure(requestId, currentStatus, "needs_follow_up", validation.error || "Unknown error", doctorId)
-    console.error("[escalateRequest] Invalid transition:", validation.error)
+    logger.warn("[escalateRequest] Invalid transition", { error: validation.error })
     return false
   }
 
@@ -581,7 +582,7 @@ export async function escalateRequest(
     .eq("id", requestId)
 
   if (error) {
-    console.error("[escalateRequest] Database error:", error)
+    logger.error("[escalateRequest] Database error", { error })
     return false
   }
 
@@ -605,7 +606,7 @@ export async function markAsReviewed(requestId: string, doctorId: string): Promi
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error marking as reviewed:", error)
+    logger.error("Error marking as reviewed", { error })
     return false
   }
 

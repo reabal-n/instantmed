@@ -1,5 +1,6 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
+import { logger } from "@/lib/logger"
 
 export type AuditAction =
   | "login"
@@ -36,7 +37,7 @@ function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
-    console.warn("Missing Supabase credentials for audit logging")
+    logger.warn("Missing Supabase credentials for audit logging")
     return null
   }
   return createClient(url, key)
@@ -46,10 +47,8 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   const supabase = getServiceClient()
   
   if (!supabase) {
-    // Log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.log("[Audit Log]", entry)
-    }
+    // Log to console in development (logger already handles env filtering)
+    logger.debug("[Audit Log]", { entry })
     return
   }
 
@@ -67,7 +66,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       created_at: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("Failed to log audit event:", error)
+    logger.error("Failed to log audit event", { error })
   }
 }
 

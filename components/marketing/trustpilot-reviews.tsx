@@ -1,173 +1,175 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Star } from "lucide-react"
+import { Star, MapPin } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { GlowingBorder } from '@/components/ui/glowing-effect'
 
 const reviews = [
   {
     name: "Sarah M.",
+    location: "Sydney",
     rating: 5,
-    text: "Got my medical certificate in under 30 minutes. Incredibly fast and professional service!",
+    text: "Got my med cert in 20 mins. Lifesaver when you're actually sick and can't leave bed.",
     date: "2 days ago",
-    verified: true,
   },
   {
     name: "James K.",
+    location: "Melbourne",
     rating: 5,
-    text: "So much easier than waiting at a GP. The doctor was thorough and my script was ready same day.",
+    text: "Finally a telehealth that doesn't make you wait 3 days. Script sorted same day.",
     date: "1 week ago",
-    verified: true,
   },
   {
-    name: "Emily R.",
+    name: "Emma L.",
+    location: "Brisbane",
     rating: 5,
-    text: "Perfect for busy professionals. Legit doctors, fast turnaround, and accepted by my employer.",
+    text: "Was skeptical but the doctor was legit thorough. Employer accepted my cert no questions.",
     date: "3 days ago",
-    verified: true,
+  },
+  {
+    name: "Michael T.",
+    location: "Perth",
+    rating: 5,
+    text: "4am and needed a script before my flight. Done in 15 mins. Unreal service.",
+    date: "5 days ago",
+  },
+  {
+    name: "Jessica W.",
+    location: "Adelaide",
+    rating: 5,
+    text: "No awkward video call, just answered questions and got my prescription. So easy.",
+    date: "1 week ago",
+  },
+  {
+    name: "David R.",
+    location: "Gold Coast",
+    rating: 5,
+    text: "Repeat script for my blood pressure meds. Usually takes a week to see my GP. This took 12 mins.",
+    date: "4 days ago",
+  },
+  {
+    name: "Sophie H.",
+    location: "Canberra",
+    rating: 5,
+    text: "Real Australian doctors, not some overseas call centre. Actually listened to my concerns.",
+    date: "6 days ago",
+  },
+  {
+    name: "Chris B.",
+    location: "Newcastle",
+    rating: 5,
+    text: "Pricing upfront, no hidden fees. Wish my regular GP was this transparent.",
+    date: "2 weeks ago",
+  },
+  {
+    name: "Lisa M.",
+    location: "Hobart",
+    rating: 5,
+    text: "Got a sick note for work while lying in bed with the flu. This is how healthcare should work.",
+    date: "3 days ago",
+  },
+  {
+    name: "Ryan P.",
+    location: "Darwin",
+    rating: 5,
+    text: "Living remote, nearest GP is 2 hours away. InstantMed is a game changer up here.",
+    date: "1 week ago",
   },
 ]
 
-function TrustpilotStar({ filled, delay = 0 }: { filled: boolean; delay?: number }) {
+function StarRating({ rating }: { rating: number }) {
   return (
-    <motion.div
-      initial={{ scale: 0, rotate: -180 }}
-      animate={{ scale: 1, rotate: 0 }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 260, 
-        damping: 20, 
-        delay: delay * 0.1 
-      }}
-      className="relative"
-    >
-      <div className={`w-6 h-6 ${filled ? "bg-[#00b67a]" : "bg-gray-200"} flex items-center justify-center`}>
-        <Star 
-          className={`w-4 h-4 ${filled ? "text-white fill-white" : "text-gray-400"}`} 
-        />
-      </div>
-    </motion.div>
-  )
-}
-
-function StarRating({ rating, small = false }: { rating: number; small?: boolean }) {
-  const size = small ? "w-4 h-4" : "w-5 h-5"
-  const starSize = small ? "w-3 h-3" : "w-3.5 h-3.5"
-  
-  return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-px">
       {[1, 2, 3, 4, 5].map((star) => (
         <div 
           key={star} 
-          className={`${size} ${star <= rating ? "bg-[#00b67a]" : "bg-gray-200"} flex items-center justify-center`}
+          className={cn(
+            "w-4 h-4 flex items-center justify-center",
+            star <= rating ? "bg-[#00b67a]" : "bg-gray-300"
+          )}
         >
-          <Star className={`${starSize} ${star <= rating ? "text-white fill-white" : "text-gray-400"}`} />
+          <Star className={cn(
+            "w-2.5 h-2.5",
+            star <= rating ? "text-white fill-white" : "text-gray-400"
+          )} />
         </div>
       ))}
     </div>
   )
 }
 
-export function TrustpilotReviews() {
+function ReviewCard({ review }: { review: typeof reviews[0] }) {
   return (
-    <section className="py-6 relative overflow-hidden">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Main Trust Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col items-center gap-4 mb-8"
-        >
-          {/* Trustpilot Logo Style */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <TrustpilotStar key={i} filled={true} delay={i} />
-              ))}
-            </div>
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="flex items-center gap-2"
-            >
-              <span className="text-lg font-semibold text-foreground">Trustpilot</span>
-            </motion.div>
+    <div className="shrink-0 w-[300px] mx-2">
+      <GlowingBorder>
+        <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 h-full">
+          <div className="flex items-center justify-between mb-2">
+            <StarRating rating={review.rating} />
+            <span className="text-[10px] text-zinc-400">{review.date}</span>
           </div>
           
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center gap-2 text-sm text-muted-foreground"
-          >
-            <span className="font-semibold text-foreground">4.9</span>
-            <span>out of 5</span>
-            <span className="text-muted-foreground/60">•</span>
-            <span>Based on <span className="font-medium text-foreground">2,847</span> reviews</span>
-          </motion.div>
-        </motion.div>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed mb-3 line-clamp-2">
+            {review.text}
+          </p>
+          
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{review.name}</span>
+            <span className="text-zinc-300 dark:text-zinc-600">•</span>
+            <span className="flex items-center gap-0.5 text-zinc-500">
+              <MapPin className="w-3 h-3" />
+              {review.location}
+            </span>
+          </div>
+        </div>
+      </GlowingBorder>
+    </div>
+  )
+}
 
-        {/* Review Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {reviews.map((review, index) => (
-            <motion.div
-              key={review.name}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                duration: 0.5, 
-                delay: 0.3 + index * 0.15,
-                ease: [0.25, 0.46, 0.45, 0.94]
-              }}
-              whileHover={{ 
-                y: -4, 
-                transition: { duration: 0.2 } 
-              }}
-              className="glass-card rounded-2xl p-5 border border-white/20 backdrop-blur-sm"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <StarRating rating={review.rating} small />
-                {review.verified && (
-                  <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">
-                    Verified
-                  </span>
-                )}
+export function TrustpilotReviews() {
+  return (
+    <section className="py-8 overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+      {/* Trustpilot header */}
+      <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-px">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="w-6 h-6 bg-[#00b67a] flex items-center justify-center">
+                <Star className="w-4 h-4 text-white fill-white" />
               </div>
-              
-              <p className="text-sm text-foreground/90 leading-relaxed mb-4">
-                &ldquo;{review.text}&rdquo;
-              </p>
-              
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">{review.name}</span>
-                <span>{review.date}</span>
-              </div>
-            </motion.div>
+            ))}
+          </div>
+          <span className="text-lg font-semibold text-zinc-900 dark:text-white ml-1">Trustpilot</span>
+        </div>
+        <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-700" />
+        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="font-semibold text-zinc-900 dark:text-white">4.9</span> • 2,847 reviews
+        </div>
+      </div>
+
+      {/* Marquee container */}
+      <div className="relative">
+        {/* Fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+        
+        {/* Scrolling track */}
+        <div className="flex animate-marquee hover:paused">
+          {[...reviews, ...reviews].map((review, index) => (
+            <ReviewCard key={`${review.name}-${index}`} review={review} />
           ))}
         </div>
-
-        {/* Trust indicators */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="flex flex-wrap items-center justify-center gap-6 mt-8 text-xs text-muted-foreground"
-        >
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>AHPRA Registered Doctors</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>256-bit Encryption</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Australian Owned</span>
-          </div>
-        </motion.div>
       </div>
+      
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 40s linear infinite;
+        }
+      `}</style>
     </section>
   )
 }

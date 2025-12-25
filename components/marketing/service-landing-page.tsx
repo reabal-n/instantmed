@@ -30,6 +30,7 @@ import {
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { GlowingBorder } from '@/components/ui/glowing-effect'
 import type { ServiceConfig } from '@/lib/marketing/services'
 import { MarketingNavbar } from './navbar'
 import { MarketingFooter } from './footer'
@@ -217,25 +218,27 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               transition={{ delay: 0.2 }}
               className="relative hidden lg:block"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10">
-                <Image
-                  src={config.heroImage}
-                  alt={config.heroImageAlt}
-                  width={600}
-                  height={500}
-                  className="w-full h-auto object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-transparent to-transparent" />
+              <GlowingBorder>
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10">
+                  <Image
+                    src={config.heroImage}
+                    alt={config.heroImageAlt}
+                    width={600}
+                    height={500}
+                    className="w-full h-auto object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-transparent to-transparent" />
 
-                {/* Price badge */}
-                <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
-                  <div className="text-sm text-slate-500">From</div>
-                  <div className={cn('text-2xl font-bold', colors.text)}>
-                    ${config.priceFrom.toFixed(2)}
+                  {/* Price badge */}
+                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
+                    <div className="text-sm text-slate-500">From</div>
+                    <div className={cn('text-2xl font-bold', colors.text)}>
+                      ${config.priceFrom.toFixed(2)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </GlowingBorder>
 
               {/* Decorative elements */}
               <div className={cn('absolute -top-4 -right-4 w-24 h-24 rounded-2xl -z-10', colors.light)} />
@@ -291,24 +294,26 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                     <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-slate-200" />
                   )}
 
-                  <div className="relative bg-white rounded-2xl p-6 text-center">
-                    {/* Step number */}
-                    <div className={cn('w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-lg', colors.button)}>
-                      {step.step}
-                    </div>
+                  <GlowingBorder>
+                    <div className="relative bg-white rounded-2xl p-6 text-center">
+                      {/* Step number */}
+                      <div className={cn('w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-lg', colors.button)}>
+                        {step.step}
+                      </div>
 
-                    {/* Icon */}
-                    <div className={cn('w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4', colors.iconBg)}>
-                      <StepIcon className={cn('h-8 w-8', colors.text)} />
-                    </div>
+                      {/* Icon */}
+                      <div className={cn('w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4', colors.iconBg)}>
+                        <StepIcon className={cn('h-8 w-8', colors.text)} />
+                      </div>
 
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">
-                      {step.title}
-                    </h3>
-                    <p className="text-slate-600">
-                      {step.description}
-                    </p>
-                  </div>
+                      <h3 className="text-xl font-bold text-slate-900 mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="text-slate-600">
+                        {step.description}
+                      </p>
+                    </div>
+                  </GlowingBorder>
                 </motion.div>
               )
             })}
@@ -353,7 +358,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               <ul className="space-y-3">
                 {config.eligibleFor.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <Check className={cn('h-5 w-5 flex-shrink-0 mt-0.5', colors.text)} />
+                    <Check className={cn('h-5 w-5 shrink-0 mt-0.5', colors.text)} />
                     <span className="text-slate-700">{item}</span>
                   </li>
                 ))}
@@ -371,7 +376,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               <ul className="space-y-3">
                 {config.notEligibleFor.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <X className="h-5 w-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                    <X className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
                     <span className="text-slate-600">{item}</span>
                   </li>
                 ))}
@@ -406,7 +411,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               <ul className="text-left max-w-md mx-auto space-y-3 mb-8">
                 {config.pricingFeatures.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <Check className={cn('h-5 w-5 flex-shrink-0', colors.text)} />
+                    <Check className={cn('h-5 w-5 shrink-0', colors.text)} />
                     <span className="text-slate-700">{feature}</span>
                   </li>
                 ))}
@@ -501,7 +506,7 @@ function FAQItem({
         <span className="font-semibold text-slate-900 pr-4">{question}</span>
         <ChevronDown
           className={cn(
-            'h-5 w-5 text-slate-400 flex-shrink-0 transition-transform',
+            'h-5 w-5 text-slate-400 shrink-0 transition-transform',
             isOpen && 'rotate-180'
           )}
         />

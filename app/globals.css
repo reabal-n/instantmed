@@ -749,6 +749,169 @@
    INTERACTIVE COMPONENTS
    ================================ */
 
+/* 3D Card Tilt Effect - Apply to card containers */
+.card-3d {
+  transition: transform 400ms ease-out, box-shadow 400ms ease-out;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-3d:hover {
+  transform: translateY(-8px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.1),
+    0 12px 24px -8px rgba(99, 102, 241, 0.08);
+}
+
+/* Magnetic button effect */
+.magnetic-button {
+  position: relative;
+  transition: transform 200ms ease-out;
+}
+
+.magnetic-button:hover {
+  transform: scale(1.02);
+}
+
+.magnetic-button:active {
+  transform: scale(0.98);
+}
+
+/* Interactive pill with lift and glow */
+.interactive-pill {
+  @apply relative transition-all duration-200 ease-out;
+  transform-origin: center;
+}
+
+.interactive-pill:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.25);
+}
+
+.interactive-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Floating badge animation */
+.badge-float {
+  animation: badge-float 3s ease-in-out infinite;
+}
+
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Card shine effect on hover */
+.card-shine {
+  @apply relative overflow-hidden;
+}
+
+.card-shine::before {
+  content: "";
+  position: absolute;
+  inset: -100%;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.2) 35%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.2) 65%,
+    transparent 80%
+  );
+  transform: translateX(-100%) rotate(0deg);
+  transition: transform 600ms ease-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.card-shine:hover::before {
+  transform: translateX(100%) rotate(0deg);
+}
+
+/* Glow pulse for important elements */
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+  }
+}
+
+/* Scale up on hover with spring effect */
+.scale-spring {
+  @apply transition-transform duration-200;
+}
+
+.scale-spring:hover {
+  transform: scale(1.05);
+}
+
+.scale-spring:active {
+  transform: scale(0.97);
+}
+
+/* Icon rotate on hover */
+.icon-spin-hover {
+  @apply transition-transform duration-300;
+}
+
+.icon-spin-hover:hover {
+  transform: rotate(12deg) scale(1.1);
+}
+
+/* Underline slide effect */
+.underline-slide {
+  @apply relative;
+}
+
+.underline-slide::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 300ms ease-out;
+}
+
+.underline-slide:hover::after {
+  width: 100%;
+}
+
+/* Border gradient animation */
+.border-gradient-animated {
+  position: relative;
+  background-clip: padding-box;
+}
+
+.border-gradient-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary));
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 /* Premium button with shimmer */
 .btn-premium {
   @apply relative overflow-hidden transition-all duration-300;
@@ -1390,3 +1553,118 @@
   animation: float-fast 2.5s ease-in-out infinite;
   animation-delay: 1s;
 }
+
+/* ================================
+   21ST.DEV PREMIUM EFFECTS
+   ================================ */
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scrollbar hide utility (alternate name) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glowing effect styles */
+.glow {
+  position: relative;
+}
+
+/* Candy background pattern for stats */
+.candy-bg {
+  background-color: hsl(var(--muted) / 0.02);
+  background-image: linear-gradient(
+    135deg,
+    hsl(var(--muted)) 25%,
+    transparent 25.5%,
+    transparent 50%,
+    hsl(var(--muted)) 50.5%,
+    hsl(var(--muted)) 75%,
+    transparent 75.5%,
+    transparent
+  );
+  background-size: 10px 10px;
+}
+
+/* Spotlight card styles */
+[data-glow]::before,
+[data-glow]::after {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: calc(var(--border-size, 2px) * -1);
+  border: var(--border-size, 2px) solid transparent;
+  border-radius: calc(var(--radius, 14) * 1px);
+  background-attachment: fixed;
+  background-size: calc(100% + (2 * var(--border-size, 2px))) calc(100% + (2 * var(--border-size, 2px)));
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  mask: linear-gradient(transparent, transparent), linear-gradient(white, white);
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+}
+
+[data-glow]::before {
+  background-image: radial-gradient(
+    calc(var(--spotlight-size, 150px) * 0.75) calc(var(--spotlight-size, 150px) * 0.75) at
+    calc(var(--x, 0) * 1px)
+    calc(var(--y, 0) * 1px),
+    hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 50) * 1%) / var(--border-spot-opacity, 1)), transparent 100%
+  );
+  filter: brightness(2);
+}
+
+[data-glow]::after {
+  background-image: radial-gradient(
+    calc(var(--spotlight-size, 150px) * 0.5) calc(var(--spotlight-size, 150px) * 0.5) at
+    calc(var(--x, 0) * 1px)
+    calc(var(--y, 0) * 1px),
+    hsl(0 100% 100% / var(--border-light-opacity, 1)), transparent 100%
+  );
+}
+
+/* Gradient radial for glow menu */
+.bg-gradient-radial {
+  background-image: radial-gradient(var(--tw-gradient-stops));
+}
+
+/* 3D folder colors for light/dark modes */
+:root {
+  --folder-back: hsl(var(--primary) / 0.6);
+  --folder-front: hsl(var(--primary) / 0.8);
+  --folder-tab: hsl(var(--primary) / 0.5);
+}
+
+.dark {
+  --folder-back: hsl(var(--primary) / 0.4);
+  --folder-front: hsl(var(--primary) / 0.6);
+  --folder-tab: hsl(var(--primary) / 0.3);
+}
+
+/* Pin container animations */
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-wave {
+  animation: wave 2s ease-in-out infinite;
+}
+

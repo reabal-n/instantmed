@@ -16,8 +16,8 @@ import { createClient } from "@supabase/supabase-js"
  * Body: { "request_id": "<uuid>" }
  */
 
-// Ensure this only runs in development
-const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
+// Ensure this only runs in development - NOT preview/production
+const IS_DEV = process.env.NODE_ENV === "development"
 
 interface SimulateRequest {
   request_id: string

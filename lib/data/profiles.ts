@@ -1,5 +1,6 @@
 import { createClient } from "../supabase/server"
 import { createServiceRoleClient } from "../supabase/service-role"
+import { logger } from "@/lib/logger"
 import type { Profile, AustralianState } from "../../types/db"
 
 /**
@@ -145,7 +146,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     .single()
 
   if (requestError || !request || !request.patient) {
-    console.error("Error fetching request for email lookup:", requestError)
+    logger.error("Error fetching request for email lookup", { error: requestError })
     return null
   }
 
@@ -155,7 +156,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
   // For guest profiles (no auth_user_id), we can't get email this way
   // In that case, email should be stored elsewhere (e.g., checkout metadata)
   if (!authUserId) {
-    console.log("[Email] Guest profile - no auth_user_id available")
+    logger.debug("[Email] Guest profile - no auth_user_id available")
     return null
   }
 
@@ -165,7 +166,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
   const { data: authUser, error: authError } = await serviceClient.auth.admin.getUserById(authUserId)
 
   if (authError || !authUser?.user?.email) {
-    console.error("Error fetching auth user email:", authError)
+    logger.error("Error fetching auth user email", { error: authError })
     return null
   }
 

@@ -22,16 +22,16 @@ export function OneHourPromise() {
           <div className="text-white">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-sm font-medium mb-6">
               <Clock className="h-4 w-4" />
-              Our promise
+              Our 15-minute promise
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Done in about an hour
+              Med certs &amp; repeats in 15 minutes
             </h2>
             
             <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
-              Most requests are reviewed within {slaPolicy.standardTurnaround}. 
-              We respect your time — that's the whole point.
+              No phone calls for med certificates and repeat prescriptions. 
+              New scripts just need a quick 2-minute consult.
             </p>
 
             <div className="space-y-4 mb-8">
@@ -91,7 +91,7 @@ export function OneHourPromise() {
                   <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
                     <Zap className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-white mb-1">&lt;1hr</p>
+                  <p className="text-3xl font-bold text-white mb-1">15min</p>
                   <p className="text-sm text-indigo-100">typical review</p>
                 </div>
                 

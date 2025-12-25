@@ -1,0 +1,344 @@
+import { Navbar } from "@/components/shared/navbar"
+import { Footer } from "@/components/shared/footer"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOpen, FileText, Calendar } from "lucide-react"
+import Link from "next/link"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Medical Certificates for Uni Students | Special Consideration | InstantMed",
+  description: "Get a medical certificate for university special consideration or missed exams. 15-minute turnaround. Accepted by all Australian universities. No GP wait times.",
+  keywords: [
+    "medical certificate uni student",
+    "special consideration medical certificate",
+    "university medical certificate online",
+    "missed exam medical certificate",
+    "TAFE medical certificate",
+    "student sick certificate online",
+  ],
+  openGraph: {
+    title: "Medical Certificates for Uni Students | InstantMed",
+    description: "Get your medical certificate for special consideration in 15 minutes. Accepted by all Australian unis.",
+    url: "https://instantmed.com.au/for/students",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/for/students",
+  },
+}
+
+export default function StudentsPage() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Will my university accept an online medical certificate?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are accepted by all Australian universities for special consideration, deferred exams, and assignment extensions.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can I use this for a missed exam?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. The certificate states the dates you were unfit to attend class or sit exams. This is what universities require for deferred exam applications.",
+        },
+      },
+    ],
+  }
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+
+      <div className="flex min-h-screen flex-col bg-background">
+        <Navbar variant="marketing" />
+
+        <main className="flex-1 pt-20">
+          {/* Hero */}
+          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-indigo-500/10 to-transparent">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 text-sm mb-6">
+                <GraduationCap className="h-4 w-4" />
+                For Uni & TAFE Students
+              </div>
+
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+                Medical Certificates for Special Consideration
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-4">
+                Too sick for that exam or assignment? Get your medical certificate in <strong>15 minutes</strong>. Accepted by all Australian universities and TAFEs.
+              </p>
+              <p className="text-sm text-muted-foreground mb-8">
+                Valid for special consideration • Deferred exams • Assignment extensions
+              </p>
+
+              <Link href="/medical-certificate/request?reason=uni">
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-base px-8">
+                  Get Certificate Now
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+
+              {/* Speed badges */}
+              <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Zap className="h-4 w-4 text-indigo-600" />
+                  <span className="font-medium">15 min turnaround</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+                  <span>All unis accept</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                  <Shield className="h-4 w-4 text-indigo-600" />
+                  <span>AHPRA doctors</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Speed Stats */}
+          <section className="px-4 py-8 bg-indigo-600 text-white">
+            <div className="mx-auto max-w-4xl">
+              <div className="grid gap-6 sm:grid-cols-3 text-center">
+                <div>
+                  <div className="text-3xl font-bold mb-1">2 min</div>
+                  <div className="text-sm text-white/80">questionnaire</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold mb-1">15 min</div>
+                  <div className="text-sm text-white/80">doctor review</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold mb-1">PDF</div>
+                  <div className="text-sm text-white/80">straight to email</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Universities */}
+          <section className="px-4 py-12">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-xl font-bold mb-6">Accepted by all Australian universities</h2>
+              <p className="text-muted-foreground mb-8">
+                Our certificates meet the requirements for special consideration at every Australian university and TAFE.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 text-sm text-muted-foreground">
+                {[
+                  "University of Sydney",
+                  "University of Melbourne",
+                  "UNSW",
+                  "Monash University",
+                  "UQ",
+                  "UWA",
+                  "ANU",
+                  "RMIT",
+                  "UTS",
+                  "QUT",
+                  "All TAFEs",
+                ].map((uni) => (
+                  <span key={uni} className="px-3 py-1.5 bg-muted/50 rounded-full">
+                    {uni}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Use Cases */}
+          <section className="px-4 py-12 bg-muted/30">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-xl font-bold mb-8 text-center">What you can use it for</h2>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  {
+                    icon: FileText,
+                    title: "Special Consideration",
+                    desc: "For exams, assignments, or class attendance affected by illness",
+                  },
+                  {
+                    icon: Calendar,
+                    title: "Deferred Exams",
+                    desc: "Medical evidence for exam deferrals and supplementary assessments",
+                  },
+                  {
+                    icon: BookOpen,
+                    title: "Assignment Extensions",
+                    desc: "Documentation for late submission without penalty",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="text-center p-5 rounded-xl bg-background">
+                    <item.icon className="h-8 w-8 mx-auto mb-3 text-indigo-600" />
+                    <h3 className="font-semibold mb-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Why Students Use This */}
+          <section className="px-4 py-12">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-xl font-bold mb-8 text-center">Why students use InstantMed</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  {
+                    icon: Clock,
+                    title: "No GP waitlists",
+                    desc: "Skip the 2-week wait for a bulk-billing appointment. Get your cert in 15 minutes.",
+                  },
+                  {
+                    icon: Zap,
+                    title: "Before the deadline",
+                    desc: "Special consideration deadlines are tight. We get you sorted same-day.",
+                  },
+                  {
+                    icon: Smartphone,
+                    title: "From your phone",
+                    desc: "Do it from bed when you're too sick to leave the house. PDF to your email.",
+                  },
+                  {
+                    icon: Shield,
+                    title: "Legit certificate",
+                    desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-4 p-4 rounded-xl bg-muted/30">
+                    <item.icon className="h-6 w-6 text-indigo-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold mb-1">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonials */}
+          <section className="px-4 py-12 bg-muted/30">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-xl font-bold text-center mb-8">What students say</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  {
+                    name: "Sophie L.",
+                    uni: "UNSW",
+                    quote: "Had a migraine on exam day. Got my cert submitted to special con before 5pm cutoff.",
+                  },
+                  {
+                    name: "James W.",
+                    uni: "University of Melbourne",
+                    quote: "Way better than waiting 3 weeks for a GP. My assignment extension was approved same day.",
+                  },
+                  {
+                    name: "Priya K.",
+                    uni: "UQ",
+                    quote: "Was too sick to leave bed. Did the whole thing on my phone. Lifesaver.",
+                  },
+                  {
+                    name: "Marcus T.",
+                    uni: "UTS",
+                    quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
+                  },
+                ].map((item) => (
+                  <div key={item.name} className="p-5 rounded-xl bg-background">
+                    <div className="flex gap-1 mb-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm mb-3">&quot;{item.quote}&quot;</p>
+                    <p className="text-xs text-muted-foreground">
+                      — {item.name}, {item.uni}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* FAQs */}
+          <section className="px-4 py-12">
+            <div className="mx-auto max-w-2xl">
+              <h2 className="text-xl font-bold text-center mb-8">FAQ for students</h2>
+              <div className="space-y-4">
+                {[
+                  {
+                    q: "Will my uni actually accept this?",
+                    a: "Yes. Our certificates are issued by AHPRA-registered doctors and include all the details unis require: doctor's name, provider number, dates of illness, and signature. Every Australian university accepts them.",
+                  },
+                  {
+                    q: "Can I get a certificate for an exam I already missed?",
+                    a: "Yes, we can backdate certificates up to 48 hours if clinically appropriate. Just indicate the dates you were unwell when completing the questionnaire.",
+                  },
+                  {
+                    q: "Does it say what I was sick with?",
+                    a: "By default, certificates say 'medical condition' without specific details — protecting your privacy. If your uni requires more detail, let us know.",
+                  },
+                  {
+                    q: "How long can the certificate cover?",
+                    a: "Most student certificates cover 1-3 days for acute illness. The doctor will determine appropriate duration based on your symptoms.",
+                  },
+                  {
+                    q: "What does it cost?",
+                    a: "Medical certificates for students are $24.95 — one flat fee. If your request isn't approved, you get a refund minus a small admin fee.",
+                  },
+                ].map((faq, i) => (
+                  <div key={i} className="p-5 rounded-xl bg-muted/30">
+                    <h3 className="font-semibold mb-2">{faq.q}</h3>
+                    <p className="text-sm text-muted-foreground">{faq.a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="px-4 py-16 bg-muted/30">
+            <div className="mx-auto max-w-xl text-center">
+              <h2 className="text-2xl font-bold mb-4">Get your certificate in 15 minutes</h2>
+              <p className="text-muted-foreground mb-6">
+                Don&apos;t miss your special consideration deadline. Get sorted now.
+              </p>
+              <Link href="/medical-certificate/request?reason=uni">
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Get Certificate Now
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+              <p className="mt-4 text-xs text-muted-foreground">$24.95 • Accepted by all unis</p>
+            </div>
+          </section>
+
+          {/* Related */}
+          <section className="px-4 py-8 border-t">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm text-muted-foreground">
+                <Link href="/seo/medical-certificate-for-uni" className="text-indigo-600 hover:underline">
+                  Uni Med Certs
+                </Link>
+                {" • "}
+                <Link href="/medical-certificate" className="text-indigo-600 hover:underline">
+                  All Certificates
+                </Link>
+                {" • "}
+                <Link href="/how-it-works" className="text-indigo-600 hover:underline">
+                  How It Works
+                </Link>
+              </p>
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    </>
+  )
+}

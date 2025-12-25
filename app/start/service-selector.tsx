@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { SectionPill } from "@/components/ui/section-pill"
+import { GlowingBorder } from "@/components/ui/glowing-effect"
 import { motion } from "framer-motion"
 
 const services = [
@@ -105,74 +106,76 @@ export function ServiceSelector({ isAuthenticated }: { isAuthenticated: boolean 
             {services.map((service, i) => (
               <BlurFade key={service.id} delay={0.1 + i * 0.1}>
                 <Link href={service.href} className="group block h-full">
-                  <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-                    <div className="h-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
-                      {/* Image section */}
-                      <div className="relative h-40 overflow-hidden">
-                        <Image
-                          src={service.image}
-                          alt={service.title}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-                        
-                        {/* Popular badge */}
-                        {service.popular && (
-                          <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            <Sparkles className="h-3 w-3" />
-                            Most Popular
-                          </div>
-                        )}
-
-                        {/* Price tag */}
-                        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
-                          <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
-                        </div>
-
-                        {/* Icon */}
-                        <div
-                          className="absolute bottom-4 left-4 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl shadow-lg"
-                          style={{
-                            background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
-                          }}
-                        >
-                          <service.icon className="h-6 w-6 text-white" />
-                        </div>
-                        
-                        {/* Time badge */}
-                        <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
-                          <Clock className="h-3 w-3" style={{ color: service.color }} />
-                          <span className="font-medium">{service.estimatedTime}</span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-xl font-bold text-foreground">{service.title}</h2>
-                          <ArrowRight 
-                            className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" 
-                            style={{ color: service.color }} 
+                  <GlowingBorder>
+                    <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
+                      <div className="h-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                        {/* Image section */}
+                        <div className="relative h-40 overflow-hidden">
+                          <Image
+                            src={service.image}
+                            alt={service.title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                           />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+                          
+                          {/* Popular badge */}
+                          {service.popular && (
+                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                              <Sparkles className="h-3 w-3" />
+                              Most Popular
+                            </div>
+                          )}
+
+                          {/* Price tag */}
+                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                            <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
+                          </div>
+
+                          {/* Icon */}
+                          <div
+                            className="absolute bottom-4 left-4 h-12 w-12 rounded-xl flex items-center justify-center backdrop-blur-xl shadow-lg"
+                            style={{
+                              background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
+                            }}
+                          >
+                            <service.icon className="h-6 w-6 text-white" />
+                          </div>
+                          
+                          {/* Time badge */}
+                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                            <Clock className="h-3 w-3" style={{ color: service.color }} />
+                            <span className="font-medium">{service.estimatedTime}</span>
+                          </div>
                         </div>
-                        <p className="text-muted-foreground mb-4">{service.description}</p>
-                        
-                        {/* Features */}
-                        <div className="flex flex-wrap gap-2">
-                          {service.features.map((feature) => (
-                            <span 
-                              key={feature} 
-                              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-muted-foreground"
-                            >
-                              <Check className="h-3 w-3" style={{ color: service.color }} />
-                              {feature}
-                            </span>
-                          ))}
+
+                        {/* Content */}
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-xl font-bold text-foreground">{service.title}</h2>
+                            <ArrowRight 
+                              className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" 
+                              style={{ color: service.color }} 
+                            />
+                          </div>
+                          <p className="text-muted-foreground mb-4">{service.description}</p>
+                          
+                          {/* Features */}
+                          <div className="flex flex-wrap gap-2">
+                            {service.features.map((feature) => (
+                              <span 
+                                key={feature} 
+                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-muted-foreground"
+                              >
+                                <Check className="h-3 w-3" style={{ color: service.color }} />
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </GlowingBorder>
                 </Link>
               </BlurFade>
             ))}

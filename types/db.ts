@@ -13,7 +13,7 @@ export type RequestType =
 
 export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up"
 
-export type RequestCategory = "medical_certificate" | "prescription" | "other"
+export type RequestCategory = "medical_certificate" | "prescription" | "referral" | "other"
 
 export type MedicalCertificateSubtype = "work" | "uni" | "carer"
 export type PrescriptionSubtype = "repeat" | "chronic_review"
@@ -150,7 +150,7 @@ export interface PathologyDraftData {
   clinical_indication: string | null
   symptom_duration: string | null
   severity: string | null
-  urgency: "Routine" | "Urgent" | "ASAP"
+  urgency: "Routine" | "Soon" | "Urgent" | "ASAP"
   previous_tests: string | null
   imaging_region?: string | null
   doctor_name: string

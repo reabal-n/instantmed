@@ -1,37 +1,39 @@
 'use client'
 
-import { ClipboardList, Stethoscope, FileCheck, Clock, CheckCircle, Zap } from 'lucide-react'
-import { Progress } from '@heroui/react'
+import { ArrowRight } from 'lucide-react'
+import { Card, CardBody, Progress, Button } from '@heroui/react'
 import { howItWorks } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { ClipboardListPremium, StethoscopePremium, FileCheckPremium, ZapPremium, ClockPremium } from '@/components/icons/certification-logos'
 
 const iconMap = {
-  ClipboardList,
-  Stethoscope,
-  FileCheck,
+  ClipboardList: ClipboardListPremium,
+  Stethoscope: StethoscopePremium,
+  FileCheck: FileCheckPremium,
 }
 
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.2 },
+    transition: { staggerChildren: 0.15 },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, x: -20 },
+  hidden: { opacity: 0, x: -30 },
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const },
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 }
 
 export function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
-      
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -39,22 +41,27 @@ export function HowItWorks() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass-pill cursor-pointer group mb-4">
-            <Zap className="w-4 h-4 text-primary group-hover:animate-pulse" />
-            <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">How it works</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            From request to done in three steps
+          <motion.div 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            <ZapPremium className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground/80">How it works</span>
+          </motion.div>
+          
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+            Three steps. Done in minutes.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            No phone trees. No video calls. No leaving your couch. Just healthcare that works.
+            No phone trees. No waiting rooms. Just healthcare that works.
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Steps */}
           <motion.div 
-            className="space-y-8"
+            className="space-y-6"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -67,119 +74,161 @@ export function HowItWorks() {
               return (
                 <motion.div 
                   key={step.step} 
-                  className="relative flex gap-5 group"
+                  className="relative group"
                   variants={itemVariants}
                 >
-                  {/* Connector line with gradient */}
+                  <Card
+                    className="bg-content1 border border-divider card-3d card-shine"
+                    shadow="sm"
+                  >
+                    <CardBody className="p-5">
+                      <div className="flex gap-4">
+                        {/* Step indicator */}
+                        <div className="relative shrink-0">
+                          <motion.div 
+                            className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center border border-primary/10 icon-spin-hover"
+                          >
+                            <Icon className="h-6 w-6 text-primary" />
+                          </motion.div>
+                          <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-lg">
+                            {step.step}
+                          </span>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="flex-1 pt-1">
+                          <h3 className="text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors">
+                            {step.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    </CardBody>
+                  </Card>
+                  
+                  {/* Connector */}
                   {!isLast && (
-                    <div className="absolute left-6 top-14 w-0.5 h-[calc(100%-1rem)] bg-gradient-to-b from-indigo-300 to-violet-200" />
+                    <div className="absolute left-[1.75rem] top-full w-0.5 h-6 bg-gradient-to-b from-primary/30 to-transparent" />
                   )}
-                  
-                  {/* Step number */}
-                  <div className="relative shrink-0">
-                    <motion.div 
-                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:shadow-indigo-500/20 transition-shadow"
-                      whileHover={{ scale: 1.05, rotate: 3 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    >
-                      <Icon className="h-6 w-6 text-indigo-600" />
-                    </motion.div>
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                      {step.step}
-                    </span>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="pt-1">
-                    <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-indigo-500 transition-colors">
-                      {step.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {step.description}
-                    </p>
-                  </div>
                 </motion.div>
               )
             })}
+            
+            {/* CTA below steps */}
+            <motion.div 
+              className="pt-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+            >
+              <Button
+                as={Link}
+                href="/start"
+                color="primary"
+                size="lg"
+                className="w-full sm:w-auto px-8"
+                endContent={<ArrowRight className="h-4 w-4" />}
+              >
+                Start your request
+              </Button>
+            </motion.div>
           </motion.div>
 
-          {/* Right: Visual representation */}
+          {/* Right: Visual card */}
           <motion.div 
-            className="relative"
+            className="relative hidden lg:block"
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className="relative bg-white dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-3xl p-8 lg:p-12 shadow-lg">
-              {/* Timeline visual */}
-              <div className="space-y-6">
-                {/* Step 1 */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-white/10 flex items-center justify-center border border-indigo-100 dark:border-white/20">
-                    <ClipboardList className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div className="flex-1 bg-slate-50 dark:bg-white/10 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-                    <p className="font-medium text-foreground">Submit your request</p>
-                    <p className="text-sm text-muted-foreground">2-3 minutes</p>
-                  </div>
+            <Card className="bg-content1 border border-divider overflow-hidden">
+              <CardBody className="p-8">
+                {/* Timeline visual */}
+                <div className="space-y-5">
+                  {/* Step 1 */}
+                  <motion.div 
+                    className="flex items-center gap-4"
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                      <ClipboardListPremium className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 bg-content2 rounded-xl p-4">
+                      <p className="font-medium text-foreground">Submit your request</p>
+                      <p className="text-sm text-muted-foreground">2-3 minutes</p>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Connector */}
+                  <div className="ml-6 w-0.5 h-3 bg-gradient-to-b from-primary/40 to-secondary/40" />
+                  
+                  {/* Step 2 */}
+                  <motion.div 
+                    className="flex items-center gap-4"
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center border border-secondary/20">
+                      <StethoscopePremium className="w-6 h-6 text-secondary" />
+                    </div>
+                    <div className="flex-1 bg-content2 rounded-xl p-4">
+                      <p className="font-medium text-foreground">Doctor reviews</p>
+                      <p className="text-sm text-muted-foreground">~15 minutes</p>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Connector */}
+                  <div className="ml-6 w-0.5 h-3 bg-gradient-to-b from-secondary/40 to-success/40" />
+                  
+                  {/* Step 3 */}
+                  <motion.div 
+                    className="flex items-center gap-4"
+                    whileHover={{ x: 4 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center border border-success/20">
+                      <FileCheckPremium className="w-6 h-6 text-success" />
+                    </div>
+                    <div className="flex-1 bg-success/10 rounded-xl p-4 border border-success/20">
+                      <p className="font-medium text-success">Done! Document ready</p>
+                      <p className="text-sm text-muted-foreground">Sent to your email</p>
+                    </div>
+                  </motion.div>
                 </div>
                 
-                {/* Connector */}
-                <div className="ml-7 w-0.5 h-4 bg-gradient-to-b from-indigo-300 to-violet-300" />
+                {/* Floating time badge */}
+                <motion.div 
+                  className="absolute -top-3 -right-3 bg-content1 rounded-2xl px-4 py-2.5 border border-divider shadow-xl"
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <div className="flex items-center gap-2">
+                    <ClockPremium className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-primary">~15 min</span>
+                  </div>
+                </motion.div>
                 
-                {/* Step 2 */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-white/10 flex items-center justify-center border border-indigo-100 dark:border-white/20">
-                    <Stethoscope className="w-7 h-7 text-violet-600 dark:text-violet-400" />
+                {/* Progress indicator */}
+                <div className="mt-8 pt-6 border-t border-divider">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-foreground">Typical completion</span>
+                    <span className="text-sm text-primary font-medium">15-20 min</span>
                   </div>
-                  <div className="flex-1 bg-slate-50 dark:bg-white/10 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-                    <p className="font-medium text-foreground">GP reviews</p>
-                    <p className="text-sm text-muted-foreground">~45 minutes</p>
-                  </div>
+                  <Progress 
+                    value={85} 
+                    color="success"
+                    size="sm"
+                    className="max-w-full"
+                    aria-label="Completion progress"
+                  />
                 </div>
-                
-                {/* Connector */}
-                <div className="ml-7 w-0.5 h-4 bg-gradient-to-b from-violet-300 to-green-300" />
-                
-                {/* Step 3 */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-500/20 flex items-center justify-center border border-green-200 dark:border-green-500/30">
-                    <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="flex-1 bg-green-50 dark:bg-green-500/20 rounded-xl p-4 border border-green-200 dark:border-green-500/30">
-                    <p className="font-medium text-green-500 dark:text-green-400">Done! Document ready</p>
-                    <p className="text-sm text-muted-foreground">42 min total</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating time badge */}
-              <motion.div 
-                className="absolute -top-4 -right-4 bg-white dark:bg-indigo-500/20 backdrop-blur-sm rounded-2xl px-5 py-3 border border-indigo-200 dark:border-indigo-500/30 shadow-lg"
-                whileHover={{ y: -2 }}
-              >
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  <span className="font-bold text-indigo-600 dark:text-indigo-300">&lt; 1 hour</span>
-                </div>
-              </motion.div>
-              
-              {/* Progress indicator */}
-              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-foreground">Typical completion</span>
-                  <span className="text-sm text-muted-foreground">42 min</span>
-                </div>
-                <Progress 
-                  value={70} 
-                  color="success"
-                  size="sm"
-                  className="max-w-full"
-                  aria-label="Completion progress"
-                />
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           </motion.div>
         </div>
       </div>

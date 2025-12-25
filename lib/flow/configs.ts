@@ -186,8 +186,8 @@ export const medCertConfig: FlowConfig = {
     requiresMedicare: false,
     requiresIdVerification: false,
   },
-  estimatedTime: '~45 min',
-  features: ['Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
+  estimatedTime: '~15 mins',
+  features: ['No phone call needed', 'Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
 }
 
 // ============================================
@@ -352,8 +352,8 @@ export const commonScriptsConfig: FlowConfig = {
     requiresMedicare: false,
     requiresIdVerification: false,
   },
-  estimatedTime: '~1 hour',
-  features: ['E-script available', 'Sent to your pharmacy', 'Medication review'],
+  estimatedTime: '~15 mins',
+  features: ['No phone call needed', 'E-script available', 'Sent to your pharmacy', 'Medication review'],
 }
 
 // Keep prescription config as alias
@@ -719,19 +719,21 @@ export const serviceCategories = [
     name: 'Medical Certificate',
     description: 'Sick leave, carer\'s leave, or fitness certificates',
     price: '$24.95',
-    time: '~45 min',
+    time: '~15 mins',
     icon: 'FileText',
     popular: true,
-    features: ['Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
+    noCallRequired: true,
+    features: ['No phone call needed', 'Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
   },
   {
     slug: 'common-scripts',
-    name: 'Common Prescriptions',
+    name: 'Repeat Prescriptions',
     description: 'Repeat scripts for ongoing medications',
     price: '$19.95',
-    time: '~1 hour',
+    time: '~15 mins',
     icon: 'Pill',
-    features: ['E-script available', 'Sent to your pharmacy', 'Medication review'],
+    noCallRequired: true,
+    features: ['No phone call needed', 'E-script available', 'Sent to your pharmacy'],
   },
   {
     slug: 'weight-management',

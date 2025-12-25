@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm build",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
     "check:rls": "npx tsx scripts/rls-check.ts"
   },

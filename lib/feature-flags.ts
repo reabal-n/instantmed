@@ -2,6 +2,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { unstable_cache } from "next/cache"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import { logger } from "@/lib/logger"
 
 // Feature flag keys
 export const FLAG_KEYS = {
@@ -204,11 +205,11 @@ export async function updateFeatureFlag(
       },
     })
 
-    console.log("[FeatureFlags] Flag updated:", { key, value, updatedBy })
+    logger.info("[FeatureFlags] Flag updated", { key, value, updatedBy })
 
     return { success: true }
   } catch (error) {
-    console.error("[FeatureFlags] Unexpected error:", error)
+    logger.error("[FeatureFlags] Unexpected error", { error })
     return { success: false, error: "Unexpected error" }
   }
 }

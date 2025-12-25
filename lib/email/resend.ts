@@ -1,5 +1,7 @@
 "use server"
 
+import { logger } from "../logger"
+
 import { env } from "../env"
 
 /**
@@ -50,11 +52,11 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
 
   // If no API key, log and return success (development mode)
   if (!apiKey) {
-    console.log(`[Email Dev Mode] Would send email:`)
-    console.log(`  To: ${to}`)
-    console.log(`  From: ${from}`)
-    console.log(`  Subject: ${subject}`)
-    console.log(`  Tags: ${JSON.stringify(tags)}`)
+    logger.debug(`[Email Dev Mode] Would send email:`)
+    logger.debug(`To: ${to}`)
+    logger.debug(`From: ${from}`)
+    logger.debug(`Subject: ${subject}`)
+    logger.debug(`Tags: ${JSON.stringify(tags)}`)
     return { success: true, id: `dev-${Date.now()}` }
   }
 
@@ -78,14 +80,15 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
     const data: ResendResponse = await response.json()
 
     if (!response.ok) {
-      console.error("[Resend Error]", data.error)
+      logger.error("[Resend Error] " + (data.error?.message || JSON.stringify(data.error)), data.error)
       return { success: false, error: data.error?.message || "Failed to send email" }
     }
-
-    console.log(`[Resend] Email sent to ${to}, id: ${data.id}`)
+    logger.info(`[Resend] Email sent to ${to}, id: ${data.id}`)
     return { success: true, id: data.id }
   } catch (error) {
-    console.error("[Resend Error]", error)
+    logger.error("[Resend Error] " + (error instanceof Error ? error.message : String(error)), {
+      error,
+    })
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
