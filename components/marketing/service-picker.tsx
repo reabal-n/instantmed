@@ -6,7 +6,7 @@ import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { GradientBorderChase, MagneticCard } from '@/components/ui/glowing-effect'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -115,20 +115,27 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
-                  <GlowingBorder 
-                    colors={[colors.accent, colors.accent + '80', colors.accent + '40']}
+                  <MagneticCard 
+                    intensity={8}
+                    scale={1.02}
                     borderRadius="1rem"
                     className="h-full"
                   >
-                    <Card 
-                      isHoverable
-                      isPressable
-                      className="h-full bg-content1 border-0 overflow-hidden card-3d card-shine"
-                      shadow="sm"
+                    <GradientBorderChase
+                      colors={[colors.accent, '#06B6D4', '#8B5CF6', colors.accent]}
+                      duration={3}
+                      borderRadius="1rem"
+                      className="h-full"
                     >
+                      <Card 
+                        isHoverable
+                        isPressable
+                        className="h-full bg-content1 border-0 overflow-hidden"
+                        shadow="sm"
+                      >
                     <CardBody className="p-0">
                       {/* Gradient header strip */}
-                      <div className={`h-1.5 w-full bg-gradient-to-r ${colors.gradient}`} />
+                      <div className={`h-1.5 w-full bg-linear-to-r ${colors.gradient}`} />
                       
                       <div className="p-6 pb-4">
                         {/* Icon with animated background */}
@@ -203,7 +210,8 @@ export function ServicePicker() {
                       </motion.div>
                     </CardFooter>
                   </Card>
-                  </GlowingBorder>
+                    </GradientBorderChase>
+                  </MagneticCard>
                 </Link>
               </motion.div>
             )

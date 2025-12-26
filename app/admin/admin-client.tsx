@@ -27,12 +27,15 @@ import {
   TrendingUp,
   DollarSign,
   Calendar,
+  XCircle,
+  Loader2,
 } from "lucide-react"
 import type { RequestWithPatient, DashboardAnalytics } from "@/types/db"
 import { toast } from "sonner"
 import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
 import { cn } from "@/lib/utils"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
+import { addCsrfHeaders } from "@/lib/security/csrf-client"
 import {
   LineChart,
   Line,
@@ -88,6 +91,7 @@ export function AdminClient({
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [localRequests, setLocalRequests] = useState(allRequests)
   const [testMode, setTestMode] = useState(getIsTestMode())
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set())
 
   const sidebarItems = [
     { id: "queue" as Section, label: "Doctor Queue", icon: FileText, count: stats.pending },
@@ -140,6 +144,21 @@ export function AdminClient({
     }
   }
 
+  const getPaymentBadge = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] px-1.5">Paid</Badge>
+      case "pending_payment":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] px-1.5">Unpaid</Badge>
+      case "failed":
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[10px] px-1.5">Failed</Badge>
+      case "refunded":
+        return <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-[10px] px-1.5">Refunded</Badge>
+      default:
+        return null
+    }
+  }
+
   const handleScriptSentToggle = async (requestId: string, currentValue: boolean) => {
     setLocalRequests((prev) =>
       prev.map((r) =>
@@ -176,6 +195,110 @@ export function AdminClient({
     setTestModeOverride(newValue)
     setTestMode(newValue)
     toast.success(newValue ? "Test mode enabled" : "Test mode disabled")
+  }
+
+  // Handle approve request
+  const handleApprove = async (requestId: string) => {
+    // Check if already processing
+    if (loadingActions.has(requestId)) {
+      return
+    }
+
+    // Mark as loading
+    setLoadingActions((prev) => new Set(prev).add(requestId))
+
+    // Optimistic update
+    setLocalRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? { ...r, status: "approved" as const }
+          : r
+      )
+    )
+
+    try {
+      const response = await fetch("/api/admin/approve", {
+        method: "POST",
+        headers: addCsrfHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ requestId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to approve request")
+      }
+
+      toast.success("Request approved successfully")
+    } catch (error) {
+      // Revert on error
+      setLocalRequests((prev) =>
+        prev.map((r) =>
+          r.id === requestId
+            ? { ...r, status: "pending" as const }
+            : r
+        )
+      )
+      toast.error(error instanceof Error ? error.message : "Failed to approve request")
+    } finally {
+      // Remove loading state
+      setLoadingActions((prev) => {
+        const next = new Set(prev)
+        next.delete(requestId)
+        return next
+      })
+    }
+  }
+
+  // Handle decline request
+  const handleDecline = async (requestId: string) => {
+    // Check if already processing
+    if (loadingActions.has(requestId)) {
+      return
+    }
+
+    // Mark as loading
+    setLoadingActions((prev) => new Set(prev).add(requestId))
+
+    // Optimistic update
+    setLocalRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? { ...r, status: "declined" as const }
+          : r
+      )
+    )
+
+    try {
+      const response = await fetch("/api/admin/decline", {
+        method: "POST",
+        headers: addCsrfHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ requestId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to decline request")
+      }
+
+      toast.success("Request declined")
+    } catch (error) {
+      // Revert on error
+      setLocalRequests((prev) =>
+        prev.map((r) =>
+          r.id === requestId
+            ? { ...r, status: "pending" as const }
+            : r
+        )
+      )
+      toast.error(error instanceof Error ? error.message : "Failed to decline request")
+    } finally {
+      // Remove loading state
+      setLoadingActions((prev) => {
+        const next = new Set(prev)
+        next.delete(requestId)
+        return next
+      })
+    }
   }
 
   // Get unique patients from requests
@@ -366,9 +489,12 @@ export function AdminClient({
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                {getStatusBadge(request.status)}
-                                {request.script_sent && <Send className="h-3.5 w-3.5 text-indigo-500" />}
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                  {getStatusBadge(request.status)}
+                                  {request.script_sent && <Send className="h-3.5 w-3.5 text-indigo-500" />}
+                                </div>
+                                {request.payment_status && getPaymentBadge(request.payment_status)}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -377,13 +503,65 @@ export function AdminClient({
                               </span>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Link 
-                                href={`/doctor/requests/${request.id}`}
-                                className="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium border-2 bg-white/50 hover:bg-white/80 border-white/40 transition-all"
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                Review
-                              </Link>
+                              <div className="flex items-center justify-end gap-2">
+                                {/* Only show quick approve/decline for non-medical-certificate requests that are paid and pending */}
+                                {/* Medical certificates require going through the document builder */}
+                                {request.status === "pending" && request.payment_status === "paid" && request.category !== "medical_certificate" && (
+                                  <>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleApprove(request.id)}
+                                            disabled={loadingActions.has(request.id)}
+                                            className="h-8 w-8 p-0 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-50"
+                                          >
+                                            {loadingActions.has(request.id) ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <CheckCircle className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          {loadingActions.has(request.id) ? "Processing..." : "Approve"}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDecline(request.id)}
+                                            disabled={loadingActions.has(request.id)}
+                                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                                          >
+                                            {loadingActions.has(request.id) ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <XCircle className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          {loadingActions.has(request.id) ? "Processing..." : "Decline"}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </>
+                                )}
+                                <Link 
+                                  href={`/doctor/requests/${request.id}`}
+                                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium border bg-white/50 hover:bg-white/80 border-border/40 transition-all"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  Review
+                                </Link>
+                              </div>
                             </TableCell>
                           </TableRow>
                         )

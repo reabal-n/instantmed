@@ -30,7 +30,7 @@ import {
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { MagneticCard, SpotlightReveal } from '@/components/ui/glowing-effect'
 import type { ServiceConfig } from '@/lib/marketing/services'
 import { MarketingNavbar } from './navbar'
 import { MarketingFooter } from './footer'
@@ -218,7 +218,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               transition={{ delay: 0.2 }}
               className="relative hidden lg:block"
             >
-              <GlowingBorder>
+              <MagneticCard intensity={6} scale={1.02} borderRadius="1rem">
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/10">
                   <Image
                     src={config.heroImage}
@@ -238,7 +238,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                     </div>
                   </div>
                 </div>
-              </GlowingBorder>
+              </MagneticCard>
 
               {/* Decorative elements */}
               <div className={cn('absolute -top-4 -right-4 w-24 h-24 rounded-2xl -z-10', colors.light)} />
@@ -294,8 +294,8 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                     <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-slate-200" />
                   )}
 
-                  <GlowingBorder>
-                    <div className="relative bg-white rounded-2xl p-6 text-center">
+                  <SpotlightReveal color={colors.text.replace('text-', '#').replace('-600', '')} size={350} borderRadius="1rem">
+                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 hover:border-transparent hover:shadow-xl transition-all duration-300">
                       {/* Step number */}
                       <div className={cn('w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-lg', colors.button)}>
                         {step.step}
@@ -306,14 +306,14 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                         <StepIcon className={cn('h-8 w-8', colors.text)} />
                       </div>
 
-                      <h3 className="text-xl font-bold text-slate-900 mb-2">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                         {step.title}
                       </h3>
-                      <p className="text-slate-600">
+                      <p className="text-slate-600 dark:text-slate-400">
                         {step.description}
                       </p>
                     </div>
-                  </GlowingBorder>
+                  </SpotlightReveal>
                 </motion.div>
               )
             })}

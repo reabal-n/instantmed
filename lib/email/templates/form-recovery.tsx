@@ -79,8 +79,7 @@ function getServiceName(service: string): string {
   const names: Record<string, string> = {
     "medical-certificate": "medical certificate",
     prescriptions: "prescription",
-    pathology: "pathology referral",
-    referrals: "specialist referral",
+    pathology: "pathology request",
   }
   return names[service] || "request"
 }

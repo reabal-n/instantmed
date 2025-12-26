@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import { Button, Card, CardBody } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { SparklesPremium, ClockPremium, ShieldPremiumAlt } from '@/components/icons/certification-logos'
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { GradientBorderChase, MagneticCard } from '@/components/ui/glowing-effect'
 
 // Credit card icon inline since we only need it once
 function CreditCardIcon({ className }: { className?: string }) {
@@ -35,11 +35,14 @@ export function CTASection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <GlowingBorder 
-            colors={['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))']}
-            borderRadius="1.5rem"
-          >
-            <Card className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 border-0 overflow-hidden card-shine">
+          <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
+            <GradientBorderChase 
+              colors={['#00E2B5', '#06B6D4', '#8B5CF6', '#EC4899', '#00E2B5']}
+              duration={4}
+              borderWidth={2}
+              borderRadius="1.5rem"
+            >
+              <Card className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 border-0 overflow-hidden">
               <CardBody className="p-8 sm:p-12 text-center">
               {/* Badge */}
               <motion.div
@@ -93,7 +96,8 @@ export function CTASection() {
               </p>
             </CardBody>
           </Card>
-          </GlowingBorder>
+            </GradientBorderChase>
+          </MagneticCard>
         </motion.div>
       </div>
     </section>

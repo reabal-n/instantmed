@@ -2,7 +2,7 @@
 
 import { Star, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { Spotlight } from '@/components/ui/glowing-effect'
 
 const reviews = [
   {
@@ -101,8 +101,8 @@ function StarRating({ rating }: { rating: number }) {
 function ReviewCard({ review }: { review: typeof reviews[0] }) {
   return (
     <div className="shrink-0 w-[300px] mx-2">
-      <GlowingBorder>
-        <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 h-full">
+      <Spotlight color="oklch(0.65 0.15 160 / 0.12)" size={250}>
+        <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 h-full transition-all duration-300 hover:border-[#00b67a]/30 hover:shadow-lg hover:shadow-[#00b67a]/5">
           <div className="flex items-center justify-between mb-2">
             <StarRating rating={review.rating} />
             <span className="text-[10px] text-zinc-400">{review.date}</span>
@@ -121,7 +121,7 @@ function ReviewCard({ review }: { review: typeof reviews[0] }) {
             </span>
           </div>
         </div>
-      </GlowingBorder>
+      </Spotlight>
     </div>
   )
 }

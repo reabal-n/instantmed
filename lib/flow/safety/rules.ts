@@ -359,43 +359,6 @@ const weightRules: SafetyRule[] = [
 ]
 
 // ============================================
-// REFERRAL RULES
-// ============================================
-
-const referralRules: SafetyRule[] = [
-  ...emergencyRules,
-  {
-    id: 'referral_incomplete_history',
-    name: 'Incomplete History',
-    description: 'No previous treatment or tests mentioned',
-    conditions: [
-      { fieldId: 'previous_treatment', operator: 'is_empty' },
-      { fieldId: 'recent_tests', operator: 'is_empty' },
-    ],
-    conditionLogic: 'AND',
-    outcome: 'REQUEST_MORE_INFO',
-    riskTier: 'low',
-    additionalInfoRequired: [
-      {
-        id: 'why_no_history',
-        label: 'Is this a new issue or have you not sought treatment yet?',
-        type: 'select',
-        options: [
-          { value: 'new_issue', label: 'This is a new issue' },
-          { value: 'not_sought', label: 'Haven\'t sought treatment yet' },
-          { value: 'seeking_second_opinion', label: 'Seeking a second opinion' },
-        ],
-        required: true,
-      },
-    ],
-    patientMessage: 'To help the specialist, could you provide a bit more context?',
-    doctorNote: 'No previous treatment history provided',
-    priority: 200,
-    services: ['referral'],
-  },
-]
-
-// ============================================
 // SERVICE CONFIGS
 // ============================================
 
@@ -423,14 +386,6 @@ export const weightSafetyConfig: SafetyRulesConfig = {
   defaultRiskTier: 'low',
 }
 
-export const referralSafetyConfig: SafetyRulesConfig = {
-  serviceSlug: 'referral',
-  version: '1.0',
-  rules: referralRules,
-  defaultOutcome: 'ALLOW',
-  defaultRiskTier: 'low',
-}
-
 // ============================================
 // CONFIG REGISTRY
 // ============================================
@@ -439,7 +394,6 @@ export const safetyConfigs: Record<string, SafetyRulesConfig> = {
   'medical-certificate': medCertSafetyConfig,
   'med-cert': medCertSafetyConfig,
   prescription: prescriptionSafetyConfig,
-  referral: referralSafetyConfig,
   'weight-management': weightSafetyConfig,
   weight: weightSafetyConfig,
 }

@@ -1,6 +1,6 @@
 /**
  * Flow Configurations
- * JSON configs for medical certificate, prescription, and referral flows
+ * JSON configs for medical certificate and prescription flows
  */
 
 import type { FlowConfig } from "./flow-engine"
@@ -301,140 +301,7 @@ export const PRESCRIPTION_FLOW: FlowConfig = {
   },
 }
 
-export const REFERRAL_FLOW: FlowConfig = {
-  id: "referral",
-  name: "Referral",
-  sections: [
-    {
-      id: "type",
-      title: "Referral type",
-      emoji: "🔬",
-      questions: [
-        {
-          id: "refType",
-          type: "single",
-          label: "What type of referral?",
-          required: true,
-          options: [
-            { id: "blood", label: "Blood test", emoji: "🩸" },
-            { id: "imaging", label: "Imaging", emoji: "📷" },
-          ],
-        },
-      ],
-    },
-    {
-      id: "bloodTests",
-      title: "Blood tests",
-      emoji: "🩸",
-      showIf: { field: "refType", operator: "equals", value: "blood" },
-      questions: [
-        {
-          id: "bloodTests",
-          type: "multi",
-          label: "Which tests do you need?",
-          sublabel: "Select all that apply",
-          required: true,
-          validation: { min: 1 },
-          options: [
-            { id: "general", label: "General check-up" },
-            { id: "thyroid", label: "Thyroid" },
-            { id: "iron", label: "Iron studies" },
-            { id: "diabetes", label: "Diabetes (HbA1c)" },
-            { id: "cholesterol", label: "Cholesterol" },
-            { id: "liver", label: "Liver function" },
-            { id: "kidney", label: "Kidney function" },
-            { id: "vitamin", label: "Vitamin D/B12" },
-            { id: "hormone", label: "Hormones" },
-            { id: "sti", label: "STI screening" },
-            { id: "other", label: "Other" },
-          ],
-        },
-      ],
-    },
-    {
-      id: "imaging",
-      title: "Imaging",
-      emoji: "📷",
-      showIf: { field: "refType", operator: "equals", value: "imaging" },
-      questions: [
-        {
-          id: "imagingType",
-          type: "single",
-          label: "What type of imaging?",
-          required: true,
-          options: [
-            { id: "xray", label: "X-ray" },
-            { id: "ultrasound", label: "Ultrasound" },
-            { id: "ct", label: "CT scan" },
-            { id: "mri", label: "MRI" },
-          ],
-        },
-        {
-          id: "bodyRegion",
-          type: "single",
-          label: "Which body area?",
-          required: true,
-          options: [
-            { id: "head", label: "Head/Neck" },
-            { id: "chest", label: "Chest" },
-            { id: "abdomen", label: "Abdomen" },
-            { id: "spine", label: "Spine" },
-            { id: "arm", label: "Arm/Shoulder" },
-            { id: "leg", label: "Leg/Hip" },
-            { id: "other", label: "Other" },
-          ],
-        },
-      ],
-    },
-    {
-      id: "reason",
-      title: "Reason",
-      emoji: "📝",
-      questions: [
-        {
-          id: "testReason",
-          type: "text",
-          label: "Brief reason for this test",
-          placeholder: "e.g. feeling tired lately, checking cholesterol...",
-          required: true,
-        },
-        {
-          id: "notes",
-          type: "text",
-          label: "Anything else?",
-          placeholder: "Additional details...",
-        },
-      ],
-    },
-  ],
-  safetySection: {
-    id: "safety",
-    title: "Safety check",
-    questions: [
-      {
-        id: "safetyPregnant",
-        type: "toggle",
-        label: "Are you pregnant or possibly pregnant?",
-        flagIf: [
-          {
-            value: true,
-            severity: "warning",
-            message: "Patient indicates possible pregnancy - consider imaging alternatives",
-          },
-        ],
-      },
-      {
-        id: "safetyUrgent",
-        type: "toggle",
-        label: "Is this urgent or an emergency?",
-        flagIf: [{ value: true, severity: "knockout", message: "Urgent case - recommend immediate in-person care" }],
-      },
-    ],
-  },
-}
-
 export const FLOW_CONFIGS: Record<string, FlowConfig> = {
   medcert: MEDCERT_FLOW,
   prescription: PRESCRIPTION_FLOW,
-  referral: REFERRAL_FLOW,
 }

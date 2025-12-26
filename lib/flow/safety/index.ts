@@ -10,7 +10,6 @@ export {
   medCertSafetyConfig,
   prescriptionSafetyConfig,
   weightSafetyConfig,
-  referralSafetyConfig,
 } from './rules'
 
 // Evaluation Functions

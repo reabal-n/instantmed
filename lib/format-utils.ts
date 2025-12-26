@@ -7,7 +7,6 @@ export function formatCategory(category: string | null | undefined): string {
   const categoryMap: Record<string, string> = {
     medical_certificate: "Medical Certificate",
     prescription: "Prescription",
-    referral: "Referral",
     pathology: "Pathology",
   }
 
@@ -34,10 +33,9 @@ export function formatSubtype(subtype: string | null | undefined): string {
     premature_ejaculation: "Premature Ejaculation",
     hair_loss: "Hair Loss",
     acne: "Acne",
-    // Referrals
+    // Pathology
     imaging: "Imaging",
     bloods: "Blood Tests",
-    specialist: "Specialist",
   }
 
   return subtypeMap[subtype] || subtype.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
@@ -52,7 +50,6 @@ export function formatRequestType(type: string | null | undefined): string {
   const typeMap: Record<string, string> = {
     medical_certificate: "Medical Certificate",
     prescription: "Prescription",
-    referral: "Referral",
     pathology: "Pathology Request",
   }
 

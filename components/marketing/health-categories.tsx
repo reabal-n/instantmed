@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardBody, CardFooter, Chip } from '@heroui/react'
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { SpotlightReveal, NeonGlow } from '@/components/ui/glowing-effect'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 
@@ -157,68 +157,70 @@ export function HealthCategories() {
             return (
               <motion.div key={category.id} variants={itemVariants}>
                 <Link href={category.href} className="group block h-full">
-                  <GlowingBorder>
-                    <Card 
-                      isHoverable
-                      isPressable
-                      className="h-full bg-content1 border border-divider overflow-hidden card-3d card-shine hover:border-primary/20"
-                      shadow="sm"
-                    >
-                      <CardBody className="p-0">
-                        {/* Gradient strip */}
-                        <div className={`h-1 w-full bg-linear-to-r ${colors.gradient}`} />
-                        
-                        <div className="p-4 flex flex-col gap-3">
-                          {/* Icon */}
-                          <div 
-                            className="w-10 h-10 rounded-xl flex items-center justify-center icon-spin-hover"
-                            style={{ backgroundColor: colors.light }}
-                          >
-                            <Icon className="h-5 w-5" style={{ color: colors.accent }} />
-                          </div>
+                  <NeonGlow color={colors.accent} intensity="low" borderRadius="1rem">
+                    <SpotlightReveal color={colors.accent} size={300} borderRadius="1rem">
+                      <Card 
+                        isHoverable
+                        isPressable
+                        className="h-full bg-content1 border border-divider overflow-hidden hover:border-transparent"
+                        shadow="sm"
+                      >
+                        <CardBody className="p-0">
+                          {/* Gradient strip */}
+                          <div className={`h-1 w-full bg-linear-to-r ${colors.gradient}`} />
                           
-                          {/* Title */}
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {category.title}
-                          </h3>
-                          
-                          {/* Description */}
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {category.description}
-                          </p>
+                          <div className="p-4 flex flex-col gap-3">
+                            {/* Icon */}
+                            <div 
+                              className="w-10 h-10 rounded-xl flex items-center justify-center icon-spin-hover"
+                              style={{ backgroundColor: colors.light }}
+                            >
+                              <Icon className="h-5 w-5" style={{ color: colors.accent }} />
+                            </div>
+                            
+                            {/* Title */}
+                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {category.title}
+                            </h3>
+                            
+                            {/* Description */}
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {category.description}
+                            </p>
 
-                          {/* Treatment chips */}
-                          <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
-                            {category.treatments.map((treatment) => (
-                              <Chip
-                                key={treatment}
-                                size="sm"
-                                variant="flat"
-                                color={colors.chipColor}
-                                classNames={{
-                                  base: "h-5 interactive-pill",
-                                  content: "text-[10px] font-medium px-1.5"
-                                }}
-                              >
-                                {treatment}
-                              </Chip>
-                            ))}
+                            {/* Treatment chips */}
+                            <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
+                              {category.treatments.map((treatment) => (
+                                <Chip
+                                  key={treatment}
+                                  size="sm"
+                                  variant="flat"
+                                  color={colors.chipColor}
+                                  classNames={{
+                                    base: "h-5 interactive-pill",
+                                    content: "text-[10px] font-medium px-1.5"
+                                  }}
+                                >
+                                  {treatment}
+                                </Chip>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </CardBody>
-                      
-                      <CardFooter className="px-4 pb-4 pt-0">
-                        <motion.div 
-                          className="flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors"
-                          whileHover={{ x: 2 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        >
-                          <span>Learn more</span>
-                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                        </motion.div>
-                      </CardFooter>
-                    </Card>
-                  </GlowingBorder>
+                        </CardBody>
+                        
+                        <CardFooter className="px-4 pb-4 pt-0">
+                          <motion.div 
+                            className="flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors"
+                            whileHover={{ x: 2 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                          >
+                            <span>Learn more</span>
+                            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                          </motion.div>
+                        </CardFooter>
+                      </Card>
+                    </SpotlightReveal>
+                  </NeonGlow>
                 </Link>
               </motion.div>
             )

@@ -316,7 +316,7 @@ export const mensHealthConfig: ServiceConfig = {
     'Premature concerns',
     'Hair loss (male pattern)',
     'Low energy or fatigue',
-    'STI testing referrals',
+    'STI testing',
     'General men\'s wellness',
   ],
   notEligibleFor: [

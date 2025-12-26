@@ -29,7 +29,24 @@ export async function getPatientRequests(patientId: string, status?: RequestStat
 
   let query = supabase
     .from("requests")
-    .select("*")
+    .select(`
+      id,
+      patient_id,
+      type,
+      category,
+      subtype,
+      status,
+      payment_status,
+      paid,
+      priority_review,
+      reviewed_by,
+      reviewed_at,
+      doctor_notes,
+      escalation_level,
+      active_checkout_session_id,
+      created_at,
+      updated_at
+    `)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
@@ -87,7 +104,24 @@ export async function getRequestForPatient(requestId: string, patientId: string)
 
   const { data, error } = await supabase
     .from("requests")
-    .select("*")
+    .select(`
+      id,
+      patient_id,
+      type,
+      category,
+      subtype,
+      status,
+      payment_status,
+      paid,
+      priority_review,
+      reviewed_by,
+      reviewed_at,
+      doctor_notes,
+      escalation_level,
+      active_checkout_session_id,
+      created_at,
+      updated_at
+    `)
     .eq("id", requestId)
     .eq("patient_id", patientId)
     .single()
@@ -170,8 +204,29 @@ export async function getRequestWithDetails(requestId: string): Promise<RequestW
     .from("requests")
     .select(`
       *,
-      patient:profiles!patient_id (*),
-      answers:request_answers (*)
+      patient:profiles!patient_id (
+        id,
+        auth_user_id,
+        full_name,
+        date_of_birth,
+        email,
+        phone,
+        medicare_number,
+        medicare_irn,
+        medicare_expiry,
+        address_line1,
+        address_line2,
+        suburb,
+        state,
+        postcode
+      ),
+      answers:request_answers (
+        id,
+        request_id,
+        answers,
+        created_at,
+        updated_at
+      )
     `)
     .eq("id", requestId)
     .single()
@@ -181,11 +236,20 @@ export async function getRequestWithDetails(requestId: string): Promise<RequestW
     return null
   }
 
+  // Fetch the latest document for this request
+  const { data: document } = await supabase
+    .from("documents")
+    .select("id, request_id, type, subtype, pdf_url, created_at, updated_at")
+    .eq("request_id", requestId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
   // Supabase returns arrays for one-to-many, take first item or null
   return {
     ...data,
     answers: data.answers?.[0] || null,
-    document: null, // Documents table not yet created
+    document: document || null,
   } as RequestWithDetails
 }
 
@@ -405,8 +469,40 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
   const { data, error } = await supabase
     .from("requests")
     .select(`
-      *,
-      patient:profiles!patient_id (*)
+      id,
+      patient_id,
+      type,
+      category,
+      subtype,
+      status,
+      payment_status,
+      paid,
+      priority_review,
+      reviewed_by,
+      reviewed_at,
+      doctor_notes,
+      escalation_level,
+      active_checkout_session_id,
+      created_at,
+      updated_at,
+      patient:profiles!patient_id (
+        id,
+        auth_user_id,
+        full_name,
+        date_of_birth,
+        email,
+        phone,
+        medicare_number,
+        medicare_irn,
+        medicare_expiry,
+        address_line1,
+        address_line2,
+        suburb,
+        state,
+        postcode,
+        created_at,
+        updated_at
+      )
     `)
     .order("created_at", { ascending: false })
 
@@ -415,7 +511,18 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
     return []
   }
 
-  return data as RequestWithPatient[]
+  // Filter out requests without patient data (RLS issue)
+  const validData = (data || []).filter((r) => r.patient !== null)
+
+  if (validData.length !== data?.length) {
+    logger.warn("Filtered out requests with null patient data in admin view", {
+      total: data?.length || 0,
+      valid: validData.length,
+      filtered: (data?.length || 0) - validData.length
+    })
+  }
+
+  return validData as RequestWithPatient[]
 }
 
 /**
@@ -436,7 +543,6 @@ export function formatCategory(category: RequestCategory | string | null | undef
   const categoryMap: Record<string, string> = {
     medical_certificate: "Medical Certificate",
     prescription: "Prescription",
-    referral: "Referral",
     pathology: "Pathology",
   }
 
@@ -463,10 +569,9 @@ export function formatSubtype(subtype: RequestSubtype | string | null | undefine
     premature_ejaculation: "Premature Ejaculation",
     hair_loss: "Hair Loss",
     acne: "Acne",
-    // Referrals
+    // Pathology
     imaging: "Imaging",
     bloods: "Blood Tests",
-    specialist: "Specialist",
   }
 
   return subtypeMap[subtype] || subtype.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
@@ -481,7 +586,6 @@ export function formatRequestType(type: string | null | undefined): string {
   const typeMap: Record<string, string> = {
     medical_certificate: "Medical Certificate",
     prescription: "Prescription",
-    referral: "Referral",
     pathology: "Pathology Request",
   }
 

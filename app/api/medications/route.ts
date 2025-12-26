@@ -1,43 +1,55 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-// Rate limiting - simple in-memory store (use Redis in production)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-const RATE_LIMIT = 30 // requests per window
-const RATE_WINDOW = 60 * 1000 // 1 minute
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_WINDOW })
-    return true
-  }
-  
-  if (record.count >= RATE_LIMIT) {
-    return false
-  }
-  
-  record.count++
-  return true
-}
+import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
-  // Rate limiting
-  const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
-  if (!checkRateLimit(ip)) {
+  // Rate limiting using database
+  const ip = await getClientIP()
+  const rateLimitResult = await checkRateLimit(
+    ip,
+    "ip",
+    "/api/medications",
+    { maxRequests: 30, windowMs: 60 * 1000 } // 30 requests per minute
+  )
+
+  if (!rateLimitResult.allowed) {
+    logger.warn('Rate limit exceeded for medications search', { ip })
     return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429 }
+      {
+        error: "Too many requests. Please try again later.",
+        retryAfter: rateLimitResult.retryAfter
+      },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(rateLimitResult.retryAfter || 60)
+        }
+      }
     )
   }
 
+  // Increment rate limit
+  await incrementRateLimit(
+    ip,
+    "ip",
+    "/api/medications",
+    { maxRequests: 30, windowMs: 60 * 1000 }
+  )
+
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()
-  
+
   if (!query || query.length < 2) {
     return NextResponse.json({ medications: [] })
+  }
+
+  // Validate query length to prevent abuse
+  if (query.length > 100) {
+    return NextResponse.json(
+      { error: "Query too long" },
+      { status: 400 }
+    )
   }
 
   // Block S8/controlled substance searches
@@ -76,7 +88,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = await createClient()
-    
+
     // Use the search_medications function we already have in the database
     const { data, error } = await supabase.rpc("search_medications", {
       search_query: query,
@@ -84,7 +96,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
-      console.error("Medication search error:", error)
+      logger.error("Medication search RPC error", { error, query })
       // Fallback to direct query if RPC fails
       const { data: fallbackData, error: fallbackError } = await supabase
         .from("medications")
@@ -94,11 +106,12 @@ export async function GET(request: NextRequest) {
         .order("is_common", { ascending: false })
         .order("display_order", { ascending: true })
         .limit(15)
-      
+
       if (fallbackError) {
+        logger.error("Medication search fallback error", { error: fallbackError, query })
         throw fallbackError
       }
-      
+
       // Transform to match expected format
       const medications = (fallbackData || []).map(med => transformMedication(med))
       return NextResponse.json({ medications })
@@ -106,10 +119,13 @@ export async function GET(request: NextRequest) {
 
     // Transform results to include form/strength combinations
     const medications = (data || []).map((med: MedicationRow) => transformMedication(med))
-    
+
     return NextResponse.json({ medications })
   } catch (error) {
-    console.error("Medication search error:", error)
+    logger.error("Medication search error", {
+      error: error instanceof Error ? error.message : String(error),
+      query
+    })
     return NextResponse.json(
       { error: "Failed to search medications" },
       { status: 500 }

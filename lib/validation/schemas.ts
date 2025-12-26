@@ -182,13 +182,6 @@ export const prescriptionRequestSchema = z.object({
   reason: z.string().min(10, "Please describe why you need this medication"),
 })
 
-export const referralRequestSchema = z.object({
-  specialistType: z.string().min(1, "Please select a specialist type"),
-  reason: z.string().min(10, "Please describe your reason for referral"),
-  urgency: z.enum(["routine", "urgent", "asap"]),
-  preferredLocation: z.string().optional(),
-})
-
 // ============================================
 // Type Exports
 // ============================================
@@ -203,4 +196,3 @@ export type OnboardingFormData = z.infer<typeof onboardingSchema>
 export type ContactFormData = z.infer<typeof contactSchema>
 export type MedCertRequestFormData = z.infer<typeof medCertRequestSchema>
 export type PrescriptionRequestFormData = z.infer<typeof prescriptionRequestSchema>
-export type ReferralRequestFormData = z.infer<typeof referralRequestSchema>

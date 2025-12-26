@@ -191,7 +191,7 @@ export const pricingTiers = [
       "New prescriptions available",
       "Dose adjustments",
       "Detailed review",
-      "Referrals if needed",
+      "Pathology requests if needed",
     ],
     cta: "Book a consult",
     href: "/consult/request",

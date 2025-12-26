@@ -1,5 +1,6 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import type { DashboardAnalytics } from "@/types/db"
 
 /**
@@ -21,7 +22,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
     .order("created_at", { ascending: true })
 
   if (requestsError) {
-    console.error("Error fetching requests for analytics:", requestsError)
+    logger.error("Error fetching requests for analytics", { error: requestsError })
   }
 
   const requests = monthRequests || []
@@ -34,7 +35,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
     .gte("created_at", monthStart)
 
   if (paymentsError) {
-    console.error("Error fetching payments for analytics:", paymentsError)
+    logger.error("Error fetching payments for analytics", { error: paymentsError })
   }
 
   const payments = monthPayments || []

@@ -13,7 +13,6 @@ export type FlowStepId =
 export type ServiceCategory = 
   | 'medical-certificate'
   | 'prescription'
-  | 'referral'
   | 'weight-management'
   | 'mens-health'
   | 'womens-health'

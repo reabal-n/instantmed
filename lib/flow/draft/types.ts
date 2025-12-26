@@ -77,7 +77,6 @@ export interface DraftClaimResult {
 export const SERVICE_NAMES: Record<string, string> = {
   'medical-certificate': 'Medical Certificate',
   'prescription': 'Prescription',
-  'referral': 'Specialist Referral',
   'weight-management': 'Weight Management',
 }
 

@@ -66,7 +66,7 @@ export interface UploadDocumentResult {
  * 
  * @param pdfBuffer - The PDF as a Buffer
  * @param requestId - The request ID to organize the document under
- * @param documentType - The type of document (med_cert, referral, etc.)
+ * @param documentType - The type of document (med_cert, pathology, etc.)
  * @param subtype - The subtype (work, uni, carer, etc.)
  * @returns The permanent Supabase Storage URL
  */

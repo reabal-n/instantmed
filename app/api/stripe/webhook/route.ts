@@ -3,17 +3,12 @@ import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 // Use service role for webhook (bypasses RLS)
 function getServiceClient() {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !serviceKey) {
-    throw new Error("Missing Supabase credentials for webhook")
-  }
-
-  return createClient(supabaseUrl, serviceKey)
+  return createClient(env.supabaseUrl, env.supabaseServiceRoleKey)
 }
 
 /**
@@ -40,7 +35,9 @@ async function tryClaimEvent(
 
   if (error) {
     // If the function doesn't exist yet (migration not applied), fall back to legacy check
-    console.warn("[Stripe Webhook] try_process_stripe_event not available, using legacy check:", error.message)
+    logger.warn("[Stripe Webhook] try_process_stripe_event not available, using legacy check", {
+      error: error.message
+    })
     return await legacyClaimEvent(supabase, eventId, eventType, requestId, sessionId)
   }
 
@@ -81,11 +78,11 @@ async function legacyClaimEvent(
   if (insertError) {
     // Likely a unique constraint violation from concurrent request
     if (insertError.code === "23505") {
-      console.log("[Stripe Webhook] Lost race to process event:", eventId)
+      logger.info("[Stripe Webhook] Lost race to process event", { eventId })
       return false
     }
     // Log but continue - the event record is for idempotency, not critical
-    console.error("[Stripe Webhook] Error recording event:", insertError)
+    logger.error("[Stripe Webhook] Error recording event", { error: insertError })
   }
 
   return true
@@ -111,14 +108,15 @@ export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature")
 
   if (!signature) {
-    console.error("[Stripe Webhook] Missing stripe-signature header")
+    logger.error("[Stripe Webhook] Missing stripe-signature header")
     return NextResponse.json({ error: "Missing signature" }, { status: 400 })
   }
 
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-
-  if (!webhookSecret) {
-    console.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured")
+  let webhookSecret: string
+  try {
+    webhookSecret = env.stripeWebhookSecret
+  } catch (error) {
+    logger.error("[Stripe Webhook] STRIPE_WEBHOOK_SECRET not configured", { error })
     return NextResponse.json({ error: "Webhook not configured" }, { status: 500 })
   }
 
@@ -127,7 +125,9 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error("[Stripe Webhook] Signature verification failed:", err)
+    logger.error("[Stripe Webhook] Signature verification failed", {
+      error: err instanceof Error ? err.message : String(err)
+    })
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     const requestId = session.metadata?.request_id
     const patientId = session.metadata?.patient_id
 
-    console.log("[Stripe Webhook] checkout.session.completed received:", {
+    logger.info("[Stripe Webhook] checkout.session.completed received", {
       eventId: event.id,
       sessionId: session.id,
       requestId,
@@ -163,12 +163,12 @@ export async function POST(request: Request) {
     )
 
     if (!shouldProcess) {
-      console.log("[Stripe Webhook] Event already processed, skipping:", event.id)
+      logger.info("[Stripe Webhook] Event already processed, skipping", { eventId: event.id })
       return NextResponse.json({ received: true, skipped: true })
     }
 
     if (!requestId) {
-      console.error("[Stripe Webhook] CRITICAL: Missing request_id in metadata:", {
+      logger.error("[Stripe Webhook] CRITICAL: Missing request_id in metadata", {
         eventId: event.id,
         sessionId: session.id,
       })
@@ -192,13 +192,13 @@ export async function POST(request: Request) {
         .single()
 
       if (paymentError) {
-        console.error("[Stripe Webhook] Payment update error (non-fatal):", {
+        logger.error("[Stripe Webhook] Payment update error (non-fatal)", {
           sessionId: session.id,
           error: paymentError.message,
         })
         // Continue - payment record is secondary to request status
       } else {
-        console.log("[Stripe Webhook] Payment record updated:", {
+        logger.info("[Stripe Webhook] Payment record updated", {
           paymentId: paymentData?.id,
           sessionId: session.id,
         })
@@ -213,7 +213,10 @@ export async function POST(request: Request) {
 
       if (fetchError || !currentRequest) {
         const errorMsg = `Request not found: ${requestId}`
-        console.error("[Stripe Webhook] CRITICAL:", errorMsg)
+        logger.error("[Stripe Webhook] CRITICAL: Request not found", {
+          requestId,
+          error: fetchError
+        })
         await recordEventError(supabase, event.id, errorMsg)
         // Return 200 - the request doesn't exist, retrying won't help
         return NextResponse.json({ error: "Request not found", processed: true }, { status: 200 })
@@ -221,7 +224,7 @@ export async function POST(request: Request) {
 
       // STEP 3: Guard against double-marking as paid
       if (currentRequest.payment_status === "paid" && currentRequest.paid === true) {
-        console.log("[Stripe Webhook] Request already marked as paid, skipping update:", {
+        logger.info("[Stripe Webhook] Request already marked as paid, skipping update", {
           requestId,
           currentStatus: currentRequest.status,
         })
@@ -252,11 +255,11 @@ export async function POST(request: Request) {
           .single()
 
         if (recheckRequest?.payment_status === "paid") {
-          console.log("[Stripe Webhook] Request was updated by concurrent webhook:", requestId)
+          logger.info("[Stripe Webhook] Request was updated by concurrent webhook", { requestId })
           return NextResponse.json({ received: true, concurrent_update: true })
         }
 
-        console.error("[Stripe Webhook] Request update FAILED:", {
+        logger.error("[Stripe Webhook] Request update FAILED", {
           requestId,
           sessionId: session.id,
           error: requestError.message,
@@ -266,7 +269,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Failed to update request" }, { status: 500 })
       }
 
-      console.log("[Stripe Webhook] Request updated to paid:", {
+      logger.info("[Stripe Webhook] Request updated to paid", {
         requestId,
         newStatus: requestData?.status,
         sessionId: session.id,
@@ -292,9 +295,11 @@ export async function POST(request: Request) {
             .eq("id", patientId)
 
           if (profileError) {
-            console.error("[Stripe Webhook] Profile customer ID save error (non-fatal):", profileError.message)
+            logger.error("[Stripe Webhook] Profile customer ID save error (non-fatal)", {
+              error: profileError.message
+            })
           } else {
-            console.log("[Stripe Webhook] Customer ID saved to profile:", { patientId, customerId })
+            logger.info("[Stripe Webhook] Customer ID saved to profile", { patientId, customerId })
           }
         }
       }
@@ -316,13 +321,13 @@ export async function POST(request: Request) {
             patientName: patientProfile.full_name || "Patient",
             amount: session.amount_total,
           }).catch((err) => {
-            console.error("[Stripe Webhook] Notification error (non-fatal):", err)
+            logger.error("[Stripe Webhook] Notification error (non-fatal)", { error: err })
           })
         }
       }
 
       const duration = Date.now() - startTime
-      console.log("[Stripe Webhook] Payment processed successfully:", {
+      logger.info("[Stripe Webhook] Payment processed successfully", {
         eventId: event.id,
         requestId,
         sessionId: session.id,
@@ -331,7 +336,7 @@ export async function POST(request: Request) {
 
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Unknown error"
-      console.error("[Stripe Webhook] Unexpected error:", { requestId, error: errorMsg })
+      logger.error("[Stripe Webhook] Unexpected error", { requestId, error: errorMsg })
       await recordEventError(supabase, event.id, errorMsg)
       return NextResponse.json({ error: "Internal error" }, { status: 500 })
     }
@@ -342,7 +347,7 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session
     const requestId = session.metadata?.request_id
 
-    console.log("[Stripe Webhook] checkout.session.expired received:", {
+    logger.info("[Stripe Webhook] checkout.session.expired received", {
       eventId: event.id,
       sessionId: session.id,
       requestId,
@@ -358,7 +363,7 @@ export async function POST(request: Request) {
     )
 
     if (!shouldProcess) {
-      console.log("[Stripe Webhook] Expired event already processed:", event.id)
+      logger.info("[Stripe Webhook] Expired event already processed", { eventId: event.id })
       return NextResponse.json({ received: true, skipped: true })
     }
 
@@ -374,7 +379,9 @@ export async function POST(request: Request) {
           .eq("stripe_session_id", session.id)
 
         if (expireError) {
-          console.error("[Stripe Webhook] Error expiring payment:", expireError.message)
+          logger.error("[Stripe Webhook] Error expiring payment", {
+            error: expireError.message
+          })
         }
 
         // Clear the active checkout session on the request
@@ -384,13 +391,13 @@ export async function POST(request: Request) {
           .eq("id", requestId)
           .eq("active_checkout_session_id", session.id)
 
-        console.log("[Stripe Webhook] Payment marked expired:", {
+        logger.info("[Stripe Webhook] Payment marked expired", {
           requestId,
           sessionId: session.id,
         })
 
       } catch (error) {
-        console.error("[Stripe Webhook] Error handling expired session:", {
+        logger.error("[Stripe Webhook] Error handling expired session", {
           requestId,
           error: error instanceof Error ? error.message : error,
         })
@@ -400,7 +407,7 @@ export async function POST(request: Request) {
 
   // Log unhandled event types for visibility
   if (!["checkout.session.completed", "checkout.session.expired"].includes(event.type)) {
-    console.log("[Stripe Webhook] Unhandled event type:", event.type)
+    logger.info("[Stripe Webhook] Unhandled event type", { eventType: event.type })
     // Still try to claim to prevent duplicates
     await tryClaimEvent(supabase, event.id, event.type)
   }

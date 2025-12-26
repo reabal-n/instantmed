@@ -223,7 +223,7 @@ export async function createGeneratedDocument(
     return null
   }
 
-  const validTypes = ["med_cert", "prescription", "referral", "pathology"]
+  const validTypes = ["med_cert", "prescription", "pathology"]
   if (!validTypes.includes(type)) {
     return null
   }
@@ -353,7 +353,7 @@ function determinePathologySubtype(testsArray: string[]): "pathology_bloods" | "
 }
 
 /**
- * Get or create a pathology/imaging request draft for a referral request.
+ * Get or create a pathology/imaging request draft for a pathology request.
  * Uses idempotent creation pattern.
  */
 export async function getOrCreatePathologyDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
@@ -369,7 +369,7 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .from("document_drafts")
     .select("*")
     .eq("request_id", requestId)
-    .eq("type", "referral")
+    .eq("type", "pathology")
     .maybeSingle()
 
   if (fetchError) {
@@ -397,8 +397,8 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     return null
   }
 
-  // Verify this is a pathology-imaging referral
-  if (request.category !== "referral" || request.subtype !== "pathology-imaging") {
+  // Verify this is a pathology request
+  if (request.category !== "pathology") {
     return null
   }
 
@@ -434,7 +434,7 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     .from("document_drafts")
     .insert({
       request_id: requestId,
-      type: "referral",
+      type: "pathology",
       subtype: pathologySubtype,
       data: draftData,
     })
@@ -448,7 +448,7 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
         .from("document_drafts")
         .select("*")
         .eq("request_id", requestId)
-        .eq("type", "referral")
+        .eq("type", "pathology")
         .single()
       
       return raceDraft as DocumentDraft | null

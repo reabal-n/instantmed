@@ -19,7 +19,31 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     return null
   }
 
-  const { data, error } = await supabase.from("profiles").select("*").eq("auth_user_id", user.id).single()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(`
+      id,
+      auth_user_id,
+      full_name,
+      date_of_birth,
+      email,
+      phone,
+      role,
+      medicare_number,
+      medicare_irn,
+      medicare_expiry,
+      address_line1,
+      address_line2,
+      suburb,
+      state,
+      postcode,
+      stripe_customer_id,
+      onboarding_completed,
+      created_at,
+      updated_at
+    `)
+    .eq("auth_user_id", user.id)
+    .single()
 
   if (error || !data) {
     return null
@@ -34,7 +58,31 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 export async function getProfileById(profileId: string): Promise<Profile | null> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", profileId).single()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(`
+      id,
+      auth_user_id,
+      full_name,
+      date_of_birth,
+      email,
+      phone,
+      role,
+      medicare_number,
+      medicare_irn,
+      medicare_expiry,
+      address_line1,
+      address_line2,
+      suburb,
+      state,
+      postcode,
+      stripe_customer_id,
+      onboarding_completed,
+      created_at,
+      updated_at
+    `)
+    .eq("id", profileId)
+    .single()
 
   if (error || !data) {
     return null

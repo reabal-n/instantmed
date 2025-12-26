@@ -7,7 +7,7 @@ import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
-import { GlowingBorder } from '@/components/ui/glowing-effect'
+import { HolographicCard, PulseGlow } from '@/components/ui/glowing-effect'
 
 const iconMap = {
   Shield,
@@ -144,7 +144,7 @@ export function Hero() {
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <GlowingBorder>
+                <HolographicCard borderRadius="1rem" intensity={0.6}>
                   <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -156,7 +156,7 @@ export function Hero() {
                       </div>
                     </div>
                   </div>
-                </GlowingBorder>
+                </HolographicCard>
               </motion.div>
               
               <motion.div 
@@ -164,7 +164,7 @@ export function Hero() {
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               >
-                <GlowingBorder>
+                <HolographicCard borderRadius="1rem" intensity={0.6}>
                   <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
@@ -176,7 +176,7 @@ export function Hero() {
                       </div>
                     </div>
                   </div>
-                </GlowingBorder>
+                </HolographicCard>
               </motion.div>
               
               <motion.div 
@@ -184,7 +184,7 @@ export function Hero() {
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               >
-                <GlowingBorder>
+                <PulseGlow color="#22c55e" duration={2} scale={1.03}>
                   <div className="bg-content1 rounded-2xl p-4 shadow-xl border-2 border-success">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
@@ -196,7 +196,7 @@ export function Hero() {
                       </div>
                     </div>
                   </div>
-                </GlowingBorder>
+                </PulseGlow>
               </motion.div>
               
               {/* Center icon */}

@@ -256,8 +256,7 @@ export async function sendWelcomeEmail(to: string, patientName: string): Promise
         <ul style="padding-left: 20px;">
           <li>Get medical certificates in hours, not days</li>
           <li>Request prescriptions from registered doctors</li>
-          <li>Get specialist referrals without the wait</li>
-          <li>Access pathology test referrals online</li>
+          <li>Access pathology test requests online</li>
         </ul>
       </div>
       

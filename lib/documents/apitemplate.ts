@@ -264,9 +264,9 @@ export function validatePathologySubtype(subtype: string | null | undefined): Pa
 }
 
 /**
- * Generate a pathology/imaging referral PDF from draft data using APITemplate.io
- * @param subtype - The referral subtype: 'pathology_bloods' | 'pathology_imaging'
- * @param data - The referral draft data
+ * Generate a pathology/imaging request PDF from draft data using APITemplate.io
+ * @param subtype - The pathology subtype: 'pathology_bloods' | 'pathology_imaging'
+ * @param data - The pathology draft data
  */
 export async function generatePathologyReferralPdfFromDraft(
   subtype: PathologySubtype,
@@ -282,7 +282,7 @@ export async function generatePathologyReferralPdfFromDraft(
   const templateId = getPathologyTemplateIdForSubtype(validatedSubtype)
 
   // Format dates for display
-  const formatDateForReferral = (dateStr: string | null): string => {
+  const formatDateForDisplay = (dateStr: string | null): string => {
     if (!dateStr) return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
     try {
       return new Date(dateStr).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
@@ -296,12 +296,12 @@ export async function generatePathologyReferralPdfFromDraft(
   const templateData = {
     // Patient details
     patient_name: data.patient_name || "Patient Name",
-    patient_dob: formatDateForReferral(data.dob),
-    dob: formatDateForReferral(data.dob),
+    patient_dob: formatDateForDisplay(data.dob),
+    dob: formatDateForDisplay(data.dob),
     medicare_number: data.medicare_number || "Not provided",
     medicare_no: data.medicare_number || "Not provided",
 
-    // Referral details
+    // Request details
     tests_requested: data.tests_requested || "As specified",
     requested_tests: data.tests_requested || "As specified",
     clinical_indication: data.clinical_indication || "As clinically indicated",
@@ -319,11 +319,11 @@ export async function generatePathologyReferralPdfFromDraft(
     provider_no: data.provider_number || "2426577L",
 
     // Issue date
-    created_date: formatDateForReferral(data.created_date),
-    issue_date: formatDateForReferral(data.created_date),
-    request_date: formatDateForReferral(data.created_date),
+    created_date: formatDateForDisplay(data.created_date),
+    issue_date: formatDateForDisplay(data.created_date),
+    request_date: formatDateForDisplay(data.created_date),
 
-    // Referral type
+    // Request type
     referral_type: isBloodTest ? "Pathology Request - Blood Tests" : "Imaging Request",
     form_type: isBloodTest ? "pathology" : "imaging",
     is_blood_test: isBloodTest,

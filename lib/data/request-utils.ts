@@ -5,7 +5,6 @@ export function formatRequestType(type: string): string {
   const typeLabels: Record<string, string> = {
     script: "Prescription",
     med_cert: "Medical Certificate",
-    referral: "Referral",
     hair_loss: "Hair Loss Treatment",
     acne: "Acne Treatment",
     ed: "ED Treatment",
@@ -23,7 +22,6 @@ export function formatCategory(category: string | null): string {
   const labels: Record<string, string> = {
     medical_certificate: "Medical Certificate",
     prescription: "Prescription",
-    referral: "Referral",
     pathology: "Pathology",
     other: "Other",
   }
@@ -39,7 +37,6 @@ export function formatSubtype(subtype: string | null): string {
     carer: "Carer's Leave Certificate",
     repeat: "Repeat Prescription",
     chronic_review: "Chronic Medication Review",
-    specialist: "Specialist Referral",
     imaging: "Imaging Request",
     bloods: "Blood Tests",
     contraceptive: "Contraceptive Pill",
