@@ -116,7 +116,7 @@ export function checkSafetyFlags(
       } else if (Array.isArray(flag.value)) {
         triggered = Array.isArray(fieldValue)
           ? flag.value.some((v) => fieldValue.includes(v))
-          : flag.value.includes(String(fieldValue))
+          : flag.value.includes(fieldValue)
       } else {
         triggered = fieldValue === flag.value
       }
@@ -191,14 +191,14 @@ export function validateForm(config: FlowConfig, data: Record<string, unknown>):
 }
 
 // Generate structured JSON summary for doctor dashboard
-export function generateDoctorSummary(config: FlowConfig, data: Record<string, unknown>): {
-  flowType: string
-  flowName: string
-  submittedAt: string
-  sections: Record<string, Record<string, unknown>>
-  safetyFlags: { severity: "info" | "warning" | "knockout"; message: string }[]
-} {
-  const sections: Record<string, Record<string, unknown>> = {}
+export function generateDoctorSummary(config: FlowConfig, data: Record<string, unknown>): Record<string, unknown> {
+  const summary: Record<string, unknown> = {
+    flowType: config.id,
+    flowName: config.name,
+    submittedAt: new Date().toISOString(),
+    sections: {},
+    safetyFlags: checkSafetyFlags(config, data),
+  }
 
   for (const section of getVisibleSections(config, data)) {
     const sectionData: Record<string, unknown> = {}
@@ -220,15 +220,9 @@ export function generateDoctorSummary(config: FlowConfig, data: Record<string, u
     }
 
     if (Object.keys(sectionData).length > 0) {
-      sections[section.title] = sectionData
+      summary.sections[section.title] = sectionData
     }
   }
 
-  return {
-    flowType: config.id,
-    flowName: config.name,
-    submittedAt: new Date().toISOString(),
-    sections,
-    safetyFlags: checkSafetyFlags(config, data),
-  }
+  return summary
 }
