@@ -24,7 +24,7 @@ export default async function NewMedCertPage({
   } : undefined
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <MedCertIntakeClient
         subtype={type}
         isAuthenticated={!!authUser}

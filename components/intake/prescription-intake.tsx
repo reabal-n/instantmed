@@ -789,7 +789,7 @@ export function PrescriptionIntake({
                 placeholder="E.g., dosage, frequency, any concerns..."
                 value={formData.additionalNotes}
                 onChange={(e) => updateField("additionalNotes", e.target.value)}
-                className="min-h-[80px] rounded-xl resize-none"
+                className="min-h-20 rounded-xl resize-none"
               />
             </FormField>
 

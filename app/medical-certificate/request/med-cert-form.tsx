@@ -47,7 +47,6 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { 
-  buttonInteraction, 
   cardInteractive, 
   pageTransitionDirectional,
   validationMessage,
@@ -638,7 +637,7 @@ export function MedCertForm({
   userEmail,
   userName,
 }: MedCertFormProps) {
-  const router = useRouter()
+  const _router = useRouter()
   const mainRef = useRef<HTMLElement>(null)
 
   // Auth state
@@ -700,7 +699,7 @@ export function MedCertForm({
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
 
-      // Check if we're returning from OAuth with saved form data (with localStorage TTL fallback)
+      // Check if we&apos;re returning from OAuth with saved form data (with localStorage TTL fallback)
       const savedFormDataObj = loadFormData<typeof formData>(STORAGE_KEYS.MED_CERT_FORM)
       const savedStep = loadFormData<FlowStep>(STORAGE_KEYS.MED_CERT_STEP)
       

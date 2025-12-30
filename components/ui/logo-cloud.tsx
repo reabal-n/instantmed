@@ -46,43 +46,33 @@ export function LogoCloud({
               <br />
               <span className="font-semibold">{subtitle}</span>
             </h2>
-            <div className="mx-auto my-5 h-px max-w-sm bg-border [mask-image:linear-gradient(to_right,transparent,black,transparent)]" />
+            <div className="mx-auto my-5 h-px max-w-sm bg-border mask-[linear-gradient(to_right,transparent,black,transparent)]" />
           </>
         )}
 
         <div
           className={cn(
-            "overflow-hidden py-4 [mask-image:linear-gradient(to_right,transparent,black,transparent)]"
+            "overflow-hidden py-4 mask-[linear-gradient(to_right,transparent,black,transparent)]"
           )}
         >
           <InfiniteSlider gap={42} reverse speed={80} speedOnHover={25}>
             {logos.map((logo) => (
               <div key={`logo-${logo.alt}`} className="flex items-center justify-center">
-                {logo.src.startsWith('http') ? (
-                  <img
-                    alt={logo.alt}
-                    className="pointer-events-none h-4 select-none md:h-5 dark:brightness-0 dark:invert grayscale hover:grayscale-0 transition-all duration-300"
-                    height={logo.height || 20}
-                    loading="lazy"
-                    src={logo.src}
-                    width={logo.width || "auto"}
-                  />
-                ) : (
-                  <Image
-                    alt={logo.alt}
-                    className="pointer-events-none h-4 select-none md:h-5 dark:brightness-0 dark:invert grayscale hover:grayscale-0 transition-all duration-300"
-                    height={logo.height || 20}
-                    width={logo.width || 100}
-                    src={logo.src}
-                  />
-                )}
+                <Image
+                  alt={logo.alt}
+                  className="pointer-events-none h-4 select-none md:h-5 dark:brightness-0 dark:invert grayscale hover:grayscale-0 transition-all duration-300"
+                  height={logo.height || 20}
+                  width={logo.width || 100}
+                  src={logo.src}
+                  unoptimized={logo.src.startsWith('http')}
+                />
               </div>
             ))}
           </InfiniteSlider>
         </div>
 
         {showHeader && (
-          <div className="mt-5 h-px bg-border [mask-image:linear-gradient(to_right,transparent,black,transparent)]" />
+          <div className="mt-5 h-px bg-border mask-[linear-gradient(to_right,transparent,black,transparent)]" />
         )}
       </section>
     </div>

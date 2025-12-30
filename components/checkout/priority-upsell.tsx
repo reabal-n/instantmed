@@ -11,8 +11,8 @@ interface PriorityUpsellProps {
   className?: string
 }
 
-export function PriorityUpsell({ selected, onToggle, basePrice, className }: PriorityUpsellProps) {
-  const [isHovered, setIsHovered] = useState(false)
+export function PriorityUpsell({ selected, onToggle, basePrice: _basePrice, className }: PriorityUpsellProps) {
+  const [_isHovered, setIsHovered] = useState(false)
 
   return (
     <button
@@ -31,7 +31,7 @@ export function PriorityUpsell({ selected, onToggle, basePrice, className }: Pri
       <div className="flex items-start gap-3">
         <div
           className={cn(
-            "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+            "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
             selected ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-600 dark:bg-amber-900/30",
           )}
         >
@@ -70,7 +70,7 @@ export function PriorityUpsell({ selected, onToggle, basePrice, className }: Pri
         {/* Checkbox indicator */}
         <div
           className={cn(
-            "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+            "shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
             selected ? "border-amber-500 bg-amber-500" : "border-muted-foreground/30",
           )}
         >

@@ -93,7 +93,7 @@ const faqs = [
   {
     question: "What is propranolol and how does it help with performance anxiety?",
     answer:
-      "Propranolol is a beta-blocker that reduces the physical symptoms of anxiety — racing heart, trembling hands, sweating, and shaky voice. It doesn't sedate you or affect your mental clarity; it simply blocks the adrenaline response that causes these symptoms. Many professionals, musicians, and public speakers use it for specific high-pressure situations.",
+      "Propranolol is a beta-blocker that reduces the physical symptoms of anxiety — racing heart, trembling hands, sweating, and shaky voice. It doesn&apos;t sedate you or affect your mental clarity; it simply blocks the adrenaline response that causes these symptoms. Many professionals, musicians, and public speakers use it for specific high-pressure situations.",
   },
   {
     question: "When should I take propranolol?",
@@ -103,12 +103,12 @@ const faqs = [
   {
     question: "Is propranolol safe?",
     answer:
-      "Propranolol has been used safely for decades. However, it's not suitable for everyone — particularly those with asthma, very low blood pressure, or certain heart conditions. Our doctors will review your health history to ensure it's appropriate for you.",
+      "Propranolol has been used safely for decades. However, it&apos;s not suitable for everyone — particularly those with asthma, very low blood pressure, or certain heart conditions. Our doctors will review your health history to ensure it&apos;s appropriate for you.",
   },
   {
     question: "Will propranolol make me feel drowsy or 'drugged'?",
     answer:
-      "No. Unlike anti-anxiety medications like benzodiazepines, propranolol doesn't sedate you or affect your cognitive function. You'll feel calm and clear-headed, just without the physical symptoms of anxiety. Many people say they feel like their 'normal self' — just without the nerves.",
+      "No. Unlike anti-anxiety medications like benzodiazepines, propranolol doesn&apos;t sedate you or affect your cognitive function. You'll feel calm and clear-headed, just without the physical symptoms of anxiety. Many people say they feel like their 'normal self' — just without the nerves.",
   },
   {
     question: "Can I use propranolol for everyday anxiety?",

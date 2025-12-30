@@ -295,7 +295,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
 
       {expiryWarning && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{expiryWarning}</span>
         </div>
       )}

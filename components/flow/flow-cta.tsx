@@ -163,7 +163,7 @@ export function FlowCTA({
               'transition-all duration-200',
               variant === 'primary' && [
                 state === 'enabled' && [
-                  'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
+                  'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
                   'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
                 ],
                 state === 'disabled' && [
@@ -171,7 +171,7 @@ export function FlowCTA({
                   'shadow-none',
                 ],
                 state === 'loading' && [
-                  'bg-gradient-to-r from-indigo-600 to-violet-600 text-white cursor-wait',
+                  'bg-linear-to-r from-indigo-600 to-violet-600 text-white cursor-wait',
                 ],
               ],
               variant === 'secondary' && [
@@ -270,7 +270,7 @@ export function InlineFlowCTA({
           'w-full h-13 sm:h-14 text-base font-semibold rounded-xl',
           'transition-all duration-200',
           !disabled && [
-            'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
+            'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
             'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
           ],
           disabled && [

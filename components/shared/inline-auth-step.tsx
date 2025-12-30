@@ -227,7 +227,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
         onAuthComplete(authData.user.id, profileId)
         router.refresh()
       } else {
-        // The user doesn't exist in auth.users until they confirm
+        // The user doesn&apos;t exist in auth.users until they confirm
         console.log("[Inline Auth] Email confirmation required, showing check-email screen")
         setMode("check-email")
       }

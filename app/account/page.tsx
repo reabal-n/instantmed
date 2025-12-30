@@ -17,7 +17,7 @@ import {
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Chip, Spinner, Avatar } from '@heroui/react'
+import { Chip, Spinner } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'

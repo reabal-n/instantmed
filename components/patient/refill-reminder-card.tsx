@@ -80,7 +80,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
       className={cn("rounded-2xl border bg-white dark:bg-gray-900 overflow-hidden", className)}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+      <div className="px-4 py-3 border-b bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center">
             <Pill className="h-4 w-4 text-white" />

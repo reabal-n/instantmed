@@ -83,14 +83,14 @@ const cities: Record<
     state: "NSW",
     slug: "newcastle",
     population: "320,000",
-    localTestimonial: { name: "David H.", quote: "Super convenient when you're too crook to drive to the GP." },
+    localTestimonial: { name: "David H.", quote: "Super convenient when you&apos;re too crook to drive to the GP." },
   },
   hobart: {
     name: "Hobart",
     state: "TAS",
     slug: "hobart",
     population: "240,000",
-    localTestimonial: { name: "Amy S.", quote: "Great option when you can't get in to see anyone locally." },
+    localTestimonial: { name: "Amy S.", quote: "Great option when you can&apos;t get in to see anyone locally." },
   },
   darwin: {
     name: "Darwin",

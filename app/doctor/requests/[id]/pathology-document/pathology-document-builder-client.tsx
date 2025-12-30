@@ -53,9 +53,9 @@ export function PathologyDocumentBuilderClient({
   request,
   draft,
   existingDocument,
-  patientAge,
+  patientAge: _patientAge,
   formatCategory,
-  formatSubtype,
+  formatSubtype: _formatSubtype,
 }: PathologyDocumentBuilderClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -244,13 +244,13 @@ export function PathologyDocumentBuilderClient({
       {/* Messages */}
       {savedMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+          <CheckCircle className="h-5 w-5 shrink-0" />
           <span>{savedMessage}</span>
         </div>
       )}
       {errorMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 animate-in fade-in slide-in-from-top-2">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <AlertCircle className="h-5 w-5 shrink-0" />
           <div className="flex-1">
             <span>{errorMessage}</span>
             {apiStatus === "error" && (
@@ -370,7 +370,7 @@ export function PathologyDocumentBuilderClient({
                   value={formData.tests_requested}
                   onChange={(e) => updateField("tests_requested", e.target.value)}
                   placeholder={isBloodTest ? "FBC, U&E, LFTs, Lipids..." : "X-ray chest, Ultrasound abdomen..."}
-                  className="rounded-xl min-h-[80px]"
+                  className="rounded-xl min-h-20"
                 />
               </div>
               <div className="space-y-2">
@@ -380,7 +380,7 @@ export function PathologyDocumentBuilderClient({
                   value={formData.clinical_indication || ""}
                   onChange={(e) => updateField("clinical_indication", e.target.value)}
                   placeholder="Reason for investigation..."
-                  className="rounded-xl min-h-[80px]"
+                  className="rounded-xl min-h-20"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">

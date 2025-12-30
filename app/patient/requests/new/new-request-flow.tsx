@@ -361,7 +361,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   placeholder="List any medications you are currently taking..."
                   value={formData.current_medications}
                   onChange={(e) => handleInputChange("current_medications", e.target.value)}
-                  className="min-h-[80px] rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
+                  className="min-h-20 rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
                 />
               </div>
 
@@ -375,7 +375,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   placeholder="List any known allergies (medications, foods, etc.)..."
                   value={formData.allergies}
                   onChange={(e) => handleInputChange("allergies", e.target.value)}
-                  className="min-h-[80px] rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
+                  className="min-h-20 rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
                 />
               </div>
 

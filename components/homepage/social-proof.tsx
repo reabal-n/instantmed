@@ -74,7 +74,7 @@ export function LiveActivityCounter() {
       >
         {toast && (
           <div className="glass-card rounded-lg px-3 py-2 shadow-lg border border-[#00E2B5]/20 flex items-center gap-2 max-w-[280px]">
-            <div className="flex-shrink-0 h-7 w-7 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
+            <div className="shrink-0 h-7 w-7 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
             </div>
             <div className="min-w-0">
@@ -209,7 +209,7 @@ const testimonials: Testimonial[] = [
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="flex-shrink-0 w-[300px] sm:w-[340px] mx-3">
+    <div className="shrink-0 w-[300px] sm:w-[340px] mx-3">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-700">
         {/* Header with service badge and rating */}
         <div className="flex items-center justify-between mb-4">

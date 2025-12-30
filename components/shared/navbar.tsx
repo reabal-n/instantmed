@@ -248,7 +248,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         <motion.nav
           className={cn(
             "relative mx-auto max-w-5xl rounded-2xl overflow-hidden",
-            "p-1 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-lg border border-border/40 shadow-lg",
+            "p-1 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border border-border/40 shadow-lg",
             scrolled && "shadow-xl border-border/60",
           )}
           role="navigation"
@@ -269,7 +269,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           <div className="relative z-10 flex items-center justify-between px-4 py-2">
             {/* Logo */}
             <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="InstantMed home">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600">
                 <Zap className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               </div>
               <span className="text-sm font-semibold text-foreground">InstantMed</span>

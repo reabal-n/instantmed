@@ -67,13 +67,13 @@ export function AnimatedRadio({
           </div>
         ))}
 
-        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-neutral-800 to-transparent">
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-linear-to-b from-transparent via-gray-300 dark:via-neutral-800 to-transparent">
           <div
-            className="relative h-1/3 w-full bg-gradient-to-b from-transparent via-purple-600 dark:via-purple-500 to-transparent transition-transform duration-500 ease-[cubic-bezier(0.37,1.95,0.66,0.56)]"
+            className="relative h-1/3 w-full bg-linear-to-b from-transparent via-purple-600 dark:via-purple-500 to-transparent transition-transform duration-500 ease-[cubic-bezier(0.37,1.95,0.66,0.56)]"
             style={{ transform: getGliderTransform() }}
           >
             <div className="absolute top-1/2 -translate-y-1/2 h-3/5 w-[300%] bg-purple-600 dark:bg-purple-500 blur-[10px]" />
-            <div className="absolute left-0 h-full w-36 bg-gradient-to-r from-purple-600/10 dark:from-purple-500/10 to-transparent" />
+            <div className="absolute left-0 h-full w-36 bg-linear-to-r from-purple-600/10 dark:from-purple-500/10 to-transparent" />
           </div>
         </div>
       </div>

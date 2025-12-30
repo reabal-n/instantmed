@@ -22,7 +22,7 @@ const trustPoints = [
   {
     icon: Lock,
     title: "No Medicare BS",
-    description: "Flat fee, you know what you're paying. No surprise bills, no rebate paperwork.",
+    description: "Flat fee, you know what you&apos;re paying. No surprise bills, no rebate paperwork.",
     color: "#a855f7",
   },
   {

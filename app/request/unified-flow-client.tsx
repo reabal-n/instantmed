@@ -254,7 +254,7 @@ export function UnifiedFlowClient({
   medicareNumber: savedMedicare,
   medicareIrn: savedIrn,
 }: Props) {
-  const router = useRouter()
+  const _router = useRouter()
   const supabase = createClient()
 
   // Auth state
@@ -369,7 +369,7 @@ export function UnifiedFlowClient({
   }, [isAuthenticated, needsOnboarding, savedMedicare])
 
   const steps = getSteps()
-  const currentIndex = steps.indexOf(step)
+  const _currentIndex = steps.indexOf(step)
   const progressLabels = [
     "Details",
     savedMedicare ? null : "Medicare",

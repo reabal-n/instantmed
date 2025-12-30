@@ -8,7 +8,6 @@ import {
   Pill,
   Clock,
   AlertTriangle,
-  Info,
   CheckCircle2,
   ArrowRight,
   RefreshCw,
@@ -513,7 +512,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                   value={data.symptoms}
                   onChange={(e) => updateData('symptoms', e.target.value)}
                   placeholder="Tell us more so the doctor can help..."
-                  className="mt-1.5 w-full min-h-[80px] p-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-0 resize-none text-sm"
+                  className="mt-1.5 w-full min-h-20 p-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-0 resize-none text-sm"
                 />
               </motion.div>
             )}
@@ -613,15 +612,15 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
         {/* Info notices */}
         <div className="space-y-3 pt-2">
           <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              Some medications (like Schedule 8 controlled substances) can't be prescribed
+              Some medications (like Schedule 8 controlled substances) can&apos;t be prescribed
               online. The doctor will let you know if an in-person visit is needed.
             </p>
           </div>
 
           <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <p className="text-sm text-emerald-800">
               Your script will be sent securely via eScript or directly to your chosen
               pharmacy.

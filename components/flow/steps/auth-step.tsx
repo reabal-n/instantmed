@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Mail,
   ArrowRight,
@@ -340,7 +340,7 @@ export function AuthStep({
           </div>
 
           <h2 className="text-2xl font-bold text-slate-900 mt-6">
-            You're signed in
+            You&apos;re signed in
           </h2>
           <p className="text-slate-600 mt-2">
             Continuing to payment...
@@ -435,7 +435,7 @@ export function AuthStep({
           </div>
 
           <p className="text-xs text-slate-400 text-center">
-            Can't find the email? Check your spam folder, or try again with a different email.
+            Can&apos;t find the email? Check your spam folder, or try again with a different email.
           </p>
         </motion.div>
       </FlowContent>
@@ -534,9 +534,9 @@ export function AuthStep({
         )}
 
         <div className="flex items-center gap-3 text-sm text-slate-500">
-          <Lock className="w-4 h-4 flex-shrink-0" />
+          <Lock className="w-4 h-4 shrink-0" />
           <p>
-            We'll send you a one-time code to verify your email. No password needed.
+            We&apos;ll send you a one-time code to verify your email. No password needed.
           </p>
         </div>
 

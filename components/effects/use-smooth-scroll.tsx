@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useInView, useSpring, useTransform, MotionValue } from "framer-motion"
+import { useInView, useTransform, MotionValue } from "framer-motion"
 
 interface UseSmoothScrollOptions {
   offset?: number
@@ -10,7 +10,7 @@ interface UseSmoothScrollOptions {
 }
 
 export function useSmoothScroll(options: UseSmoothScrollOptions = {}) {
-  const { offset = 100, threshold = 0.1, once = true } = options
+  const { offset = 100, threshold: _threshold = 0.1, once = true } = options
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once, margin: `-${offset}px` as `${number}px` })
 

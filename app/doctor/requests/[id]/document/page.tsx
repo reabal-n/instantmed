@@ -33,7 +33,7 @@ export default async function DocumentBuilderPage({
   const draft = await getOrCreateMedCertDraftForRequest(id)
 
   if (!draft) {
-    // Handle error - couldn't create draft
+    // Handle error - couldn&apos;t create draft
     redirect(`/doctor/requests/${id}`)
   }
 

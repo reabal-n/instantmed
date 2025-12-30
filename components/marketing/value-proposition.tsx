@@ -38,7 +38,7 @@ export function HeroValueProp({ className }: { className?: string }) {
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
           Scripts &amp; Med Certs
           <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500">
             in 15 minutes
           </span>
         </h1>
@@ -84,7 +84,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 dark:border-green-800 p-6"
+        className="relative overflow-hidden rounded-2xl border-2 border-green-200 bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 dark:border-green-800 p-6"
       >
         <div className="absolute top-3 right-3">
           <Badge className="bg-green-600 text-white">Most Popular</Badge>
@@ -149,7 +149,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative rounded-2xl border bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800 p-6"
+        className="relative rounded-2xl border bg-linear-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800 p-6"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
@@ -328,7 +328,7 @@ export function HowItWorksSection({ className }: { className?: string }) {
           >
             {/* Connector line */}
             {index < steps.length - 1 && (
-              <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-blue-300 to-transparent" />
+              <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-linear-to-r from-blue-300 to-transparent" />
             )}
 
             <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Calendar, Clock, Video, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Clock, Video, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -247,7 +247,7 @@ export function AppointmentReminder({
   type,
   onJoin,
   onReschedule,
-  onCancel,
+  onCancel: _onCancel,
 }: AppointmentReminderProps) {
   const isToday = isSameDay(date, new Date())
   const isPast = isBefore(date, new Date())

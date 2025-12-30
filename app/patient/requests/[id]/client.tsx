@@ -27,7 +27,7 @@ import { resendCertificateEmailAction } from "@/app/actions/resend-certificate"
 import { PDFPreviewInline } from "@/components/ui/pdf-preview"
 import { AmendmentForm } from "@/components/patient/amendment-form"
 import type { Request, GeneratedDocument } from "@/types/db"
-import { formatRequestType, formatCategory } from "@/lib/format-utils"
+import { formatRequestType } from "@/lib/format-utils"
 
 interface PatientRequestDetailPageProps {
   request: Request

@@ -168,7 +168,7 @@ interface CompactTimelineProps {
 }
 
 export function CompactTimeline({ currentStatus, paymentStatus, className }: CompactTimelineProps) {
-  const { completedSteps, activeStep, isFailed } = getTimelineState(currentStatus, paymentStatus)
+  const { completedSteps, activeStep: _activeStep, isFailed } = getTimelineState(currentStatus, paymentStatus)
   const totalSteps = TIMELINE_STEPS.length
   const completedCount = completedSteps.length
   const progress = (completedCount / totalSteps) * 100

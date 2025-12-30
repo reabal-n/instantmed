@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, X, Cloud, CloudOff, Loader2 } from 'lucide-react'
+import { ArrowLeft, X, Cloud, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 

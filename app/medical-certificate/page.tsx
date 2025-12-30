@@ -33,7 +33,7 @@ const CERT_TYPES = [
     price: "$19.95",
     time: "~45 min",
     icon: Briefcase,
-    description: "For when you're unwell and need a day or two to recover.",
+    description: "For when you&apos;re unwell and need a day or two to recover.",
     popular: true,
     href: "/medical-certificate/request?type=personal",
   },
@@ -71,7 +71,7 @@ const FAQS = [
     a: "Sometimes. If clinically appropriate, a doctor may issue a certificate for recent dates. This requires the $29.95 extended consultation.",
   },
   {
-    q: "What if I'm actually quite sick?",
+    q: "What if I&apos;m actually quite sick?",
     a: "Then you definitely should get a certificate. If we identify any red flags, we'll let you know if you should seek in-person care.",
   },
   {

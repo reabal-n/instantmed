@@ -61,16 +61,16 @@ export function DashboardSidebar({
   }
 
   return (
-    <aside className="hidden lg:flex w-64 flex-shrink-0 flex-col">
+    <aside className="hidden lg:flex w-64 shrink-0 flex-col">
       <div className="sticky top-24 space-y-4">
         {/* Logo/Brand Header */}
         <div className="glass-card rounded-2xl p-4 border border-white/20">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                 InstantMed
               </span>
               <p className="text-xs text-muted-foreground capitalize">{variant} Portal</p>
@@ -92,7 +92,7 @@ export function DashboardSidebar({
                 className={cn(
                   "group flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25"
+                    ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25"
                     : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/10",
                 )}
               >
@@ -143,7 +143,7 @@ export function DashboardSidebar({
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</h4>
             <Button 
               asChild 
-              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
+              className="w-full rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
             >
               <Link href="/start">
                 New Request
@@ -172,7 +172,7 @@ export function DashboardSidebar({
         {/* User Profile Card */}
         <div className="glass-card rounded-2xl p-4 border border-white/20">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white font-semibold">
               {userName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">

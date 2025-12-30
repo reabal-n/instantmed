@@ -544,7 +544,7 @@ export function StreamlinedIntake({
               </h1>
               <p className="text-muted-foreground">
                 {formData.certType === "carer"
-                  ? "About the person you're caring for"
+                  ? "About the person you&apos;re caring for"
                   : "About your condition"}
               </p>
             </div>
@@ -632,7 +632,7 @@ export function StreamlinedIntake({
                 placeholder="E.g., ongoing condition, specific requirements..."
                 value={formData.additionalNotes}
                 onChange={(e) => updateField("additionalNotes", e.target.value)}
-                className="min-h-[80px] rounded-xl resize-none"
+                className="min-h-20 rounded-xl resize-none"
               />
             </FormField>
 

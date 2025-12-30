@@ -118,7 +118,7 @@ const chronicConditionOptions = [
 const chronicReviewOptions = [
   { id: "within_3_months", label: "Within 3 months" },
   { id: "3_to_12_months", label: "3–12 months ago" },
-  { id: "more_12_months", label: "> 12 months / can't remember" },
+  { id: "more_12_months", label: "> 12 months / can&apos;t remember" },
 ]
 
 const chronicControlOptions = [
@@ -174,22 +174,22 @@ const MultiPillButton = ({
 )
 
 export function PrescriptionFlowClient({
-  category,
+  category: _category,
   subtype,
   title,
-  description,
+  description: _description,
   patientId: initialPatientId,
   isAuthenticated: initialIsAuthenticated,
   needsOnboarding: initialNeedsOnboarding,
-  userEmail,
+  userEmail: _userEmail,
   userName,
 }: PrescriptionFlowClientProps) {
-  const router = useRouter()
+  const _router = useRouter()
 
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
   const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
-  const [currentUserName, setCurrentUserName] = useState(userName || "")
+  const [currentUserName, _setCurrentUserName] = useState(userName || "")
 
   const [step, setStep] = useState<"intro" | "form" | "auth" | "onboarding">("intro")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -435,7 +435,7 @@ export function PrescriptionFlowClient({
               </div>
             </div>
 
-            {/* Removed step 4 about payment as it's handled after auth/onboarding */}
+            {/* Removed step 4 about payment as it&apos;s handled after auth/onboarding */}
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -557,7 +557,7 @@ export function PrescriptionFlowClient({
           style={{ animationFillMode: "forwards" }}
         >
           <div className="flex gap-3">
-            <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
             <div>
               <h3 className="text-base font-semibold text-red-800">Immediate attention required</h3>
               <p className="mt-1 text-sm text-red-700 leading-relaxed">
@@ -760,7 +760,7 @@ export function PrescriptionFlowClient({
             value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             placeholder="Any other relevant information for the doctor..."
-            className="rounded-xl bg-white/50 border-white/40 focus:border-primary/40 min-h-[80px] resize-none"
+            className="rounded-xl bg-white/50 border-white/40 focus:border-primary/40 min-h-20 resize-none"
           />
         </div>
       </div>

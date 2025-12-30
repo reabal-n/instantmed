@@ -62,7 +62,7 @@ export function StickyCTABar() {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white flex items-center gap-1.5 truncate">
-              <Zap className="w-4 h-4 text-[#00E2B5] flex-shrink-0" />
+              <Zap className="w-4 h-4 text-[#00E2B5] shrink-0" />
               {config.name}
             </p>
             <p className="text-xs text-white/60">From {config.price} · Under 1 hour</p>
@@ -70,13 +70,13 @@ export function StickyCTABar() {
           <Button
             asChild
             size="sm"
-            className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-5 flex-shrink-0"
+            className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-5 shrink-0"
           >
             <Link href={config.href}>Get Started</Link>
           </Button>
           <button
             onClick={() => setIsDismissed(true)}
-            className="p-1.5 text-white/40 hover:text-white/70 transition-colors flex-shrink-0"
+            className="p-1.5 text-white/40 hover:text-white/70 transition-colors shrink-0"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

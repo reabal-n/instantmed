@@ -17,9 +17,9 @@ import {
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Men's Health Online Australia | ED Treatment | Sildenafil & Tadalafil | InstantMed",
+  title: "Men&apos;s Health Online Australia | ED Treatment | Sildenafil & Tadalafil | InstantMed",
   description:
-    "Discreet men's health consultations with Australian doctors. Get prescriptions for erectile dysfunction treatments including sildenafil and tadalafil. Script in 15 minutes, no awkward conversations.",
+    "Discreet men&apos;s health consultations with Australian doctors. Get prescriptions for erectile dysfunction treatments including sildenafil and tadalafil. Script in 15 minutes, no awkward conversations.",
   keywords: [
     "mens health online australia",
     "erectile dysfunction treatment australia",
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
     "discreet mens health",
   ],
   openGraph: {
-    title: "Men's Health Online | Discreet ED Treatment | InstantMed",
-    description: "Get discreet men's health prescriptions from Australian doctors in 15 minutes. No phone calls required for most requests.",
+    title: "Men&apos;s Health Online | Discreet ED Treatment | InstantMed",
+    description: "Get discreet men&apos;s health prescriptions from Australian doctors in 15 minutes. No phone calls required for most requests.",
     url: "https://instantmed.com.au/mens-health",
   },
   alternates: {
@@ -86,7 +86,7 @@ const platformFeatures = [
 
 const faqs = [
   {
-    question: "What's the difference between Sildenafil and Tadalafil?",
+    question: "What&apos;s the difference between Sildenafil and Tadalafil?",
     answer:
       "Sildenafil (Viagra®) works quickly (30-60 min) and lasts 4-6 hours — ideal for planned intimacy. Tadalafil (Cialis®) also works in 30-60 minutes but lasts up to 36 hours, offering more flexibility and spontaneity. Both are equally effective; the choice depends on your lifestyle and preferences.",
   },
@@ -98,7 +98,7 @@ const faqs = [
   {
     question: "Is this service actually private?",
     answer:
-      "Absolutely. All consultations are encrypted and confidential. Your pharmacy receives only the prescription — not your consultation details. Medications are dispensed with standard labelling. Your bank statement will show 'InstantMed' only.",
+      "Absolutely. All consultations are encrypted and confidential. Your pharmacy receives only the prescription — not your consultation details. Medications are dispensed with standard labelling. Your bank statement will show &apos;InstantMed&apos; only.",
   },
   {
     question: "How quickly can I get my prescription?",
@@ -106,9 +106,9 @@ const faqs = [
       "Most prescriptions are issued within 15 minutes during business hours. Your e-script is sent directly to your phone via SMS, ready to collect at any pharmacy Australia-wide.",
   },
   {
-    question: "What if the medication doesn't work for me?",
+    question: "What if the medication doesn&apos;t work for me?",
     answer:
-      "Response varies between individuals. If the initial treatment isn't effective, our doctors can adjust dosage or recommend an alternative. Some men find one medication works better than the other.",
+      "Response varies between individuals. If the initial treatment isn&apos;t effective, our doctors can adjust dosage or recommend an alternative. Some men find one medication works better than the other.",
   },
   {
     question: "Are there any side effects?",
@@ -148,7 +148,7 @@ export default function MensHealthPage() {
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Men's Health Treatment Online
+                Men&apos;s Health Treatment Online
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
                 Get a prescription for ED treatment from an Australian doctor in{" "}

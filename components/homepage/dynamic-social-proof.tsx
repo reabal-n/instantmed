@@ -35,8 +35,8 @@ const locations = [
 const services = ["med cert", "prescription"]
 
 export function DynamicSocialProof() {
-  const [todayCount, setTodayCount] = useState(127)
-  const [viewingCount, setViewingCount] = useState(14)
+  const [_todayCount, setTodayCount] = useState(127)
+  const [_viewingCount, setViewingCount] = useState(14)
   const [toast, setToast] = useState<{ name: string; location: string; service: string } | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
 
@@ -98,7 +98,7 @@ export function DynamicSocialProof() {
       >
         {toast && (
           <div className="glass-card rounded-lg px-3 py-2.5 shadow-lg border border-[#00E2B5]/20 flex items-center gap-2.5 max-w-[300px]">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
+            <div className="shrink-0 h-8 w-8 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
             </div>
             <div className="min-w-0">
@@ -210,7 +210,7 @@ export function RotatingReviews() {
           <Star key={i} className="h-3 w-3 text-[#F59E0B] fill-[#F59E0B]" />
         ))}
       </div>
-      <p className="text-sm italic text-muted-foreground">"{review.text}"</p>
+      <p className="text-sm italic text-muted-foreground">&quot;{review.text}&quot;</p>
       <p className="text-xs text-muted-foreground mt-1">— {review.author}</p>
     </div>
   )

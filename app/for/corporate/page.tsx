@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Building2, Clock, Smartphone, Star, Briefcase, Mail, Lock } from "lucide-react"
+import { ArrowRight, Shield, Zap, Building2, Clock, Star, Briefcase, Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -191,7 +191,7 @@ export default function CorporatePage() {
                   {
                     name: "Sarah M.",
                     role: "Marketing Manager, Sydney",
-                    quote: "Had a migraine and couldn't look at screens. Got my cert from bed, forwarded to HR, done.",
+                    quote: "Had a migraine and couldn&apos;t look at screens. Got my cert from bed, forwarded to HR, done.",
                   },
                   {
                     name: "David K.",
@@ -259,7 +259,7 @@ export default function CorporatePage() {
                   },
                   {
                     q: "Will it look different from a normal cert?",
-                    a: "The format is professional and includes all legally required information. Many HR systems now expect digital certificates. You'll receive a clean PDF that's easy to submit.",
+                    a: "The format is professional and includes all legally required information. Many HR systems now expect digital certificates. You'll receive a clean PDF that&apos;s easy to submit.",
                   },
                   {
                     q: "Does it say what I was sick with?",
@@ -267,7 +267,7 @@ export default function CorporatePage() {
                   },
                   {
                     q: "Can I get a certificate for mental health?",
-                    a: "Yes. Mental health conditions (stress, anxiety, burnout) are valid medical reasons for sick leave. The certificate won't specify 'mental health' unless you want it to.",
+                    a: "Yes. Mental health conditions (stress, anxiety, burnout) are valid medical reasons for sick leave. The certificate won&apos;t specify 'mental health' unless you want it to.",
                   },
                   {
                     q: "What if I need a certificate for carer's leave?",

@@ -49,7 +49,7 @@ export function FormSection({
       {(icon || title || description) && (
         <div className="flex items-start gap-3 mb-5">
           {icon && (
-            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               {icon}
             </div>
           )}

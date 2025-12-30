@@ -11,7 +11,6 @@ import {
   Pill,
   Lock,
   ChevronDown,
-  PhoneOff,
   Scale,
   TrendingDown,
   Activity,
@@ -78,7 +77,7 @@ const platformFeatures = [
   {
     icon: Activity,
     title: "Ongoing Support",
-    description: "Regular check-ins to monitor progress, adjust dosage, and ensure you're on track.",
+    description: "Regular check-ins to monitor progress, adjust dosage, and ensure you&apos;re on track.",
   },
   {
     icon: Shield,
@@ -112,7 +111,7 @@ const faqs = [
   {
     question: "Do I need to have tried other weight loss methods first?",
     answer:
-      "Generally, yes. Weight loss medications are most appropriate as an adjunct to lifestyle modifications (diet and exercise) for people who haven't achieved adequate results with lifestyle changes alone. Your doctor will discuss your history as part of the assessment.",
+      "Generally, yes. Weight loss medications are most appropriate as an adjunct to lifestyle modifications (diet and exercise) for people who haven&apos;t achieved adequate results with lifestyle changes alone. Your doctor will discuss your history as part of the assessment.",
   },
   {
     question: "Are these medications PBS-subsidised?",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { motion, useMotionValue, useSpring } from "framer-motion"
+import { motion, useMotionValue } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface Particle {
@@ -29,7 +29,7 @@ const COLORS = [
 
 export function ParticleParallaxBackground({
   className,
-  particleCount = 50,
+  particleCount: _particleCount = 50,
   intensity = "medium",
 }: ParticleParallaxBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -38,14 +38,19 @@ export function ParticleParallaxBackground({
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === "undefined") return false
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  })
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false
+    return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  })
 
   // Check for reduced motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    setPrefersReducedMotion(mediaQuery.matches)
     mediaQuery.addEventListener("change", handleChange)
     return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
@@ -55,7 +60,6 @@ export function ParticleParallaxBackground({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
     }
-    checkMobile()
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
   }, [])

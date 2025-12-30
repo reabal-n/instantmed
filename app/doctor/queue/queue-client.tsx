@@ -401,7 +401,7 @@ export function QueueClient({
                                 [request.id]: e.target.value,
                               }))
                             }
-                            className="min-h-[80px] text-sm"
+                            className="min-h-20 text-sm"
                           />
                         </div>
                         {doctorNotes[request.id] && (

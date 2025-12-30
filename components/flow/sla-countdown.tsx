@@ -74,8 +74,8 @@ export function SLACountdown({ targetTime, status, className }: SLACountdownProp
       className={cn(
         'rounded-2xl overflow-hidden',
         isUrgent || timeRemaining.isOverdue 
-          ? 'bg-gradient-to-br from-amber-500 to-orange-500'
-          : 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+          ? 'bg-linear-to-br from-amber-500 to-orange-500'
+          : 'bg-linear-to-br from-emerald-500 to-emerald-600',
         className
       )}
     >
@@ -105,7 +105,7 @@ export function SLACountdown({ targetTime, status, className }: SLACountdownProp
           {timeRemaining.isOverdue ? (
             <div className="flex items-center gap-2">
               <AlertCircle className="w-6 h-6" />
-              <span className="text-2xl font-bold">We're on it</span>
+              <span className="text-2xl font-bold">We&apos;re on it</span>
             </div>
           ) : (
             <>

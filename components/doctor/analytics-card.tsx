@@ -154,7 +154,7 @@ export function AnalyticsCard({
             </button>
           ))}
           <div
-            className="absolute bottom-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-300 ease-in-out"
+            className="absolute bottom-0 h-0.5 bg-linear-to-r from-indigo-500 to-violet-500 transition-all duration-300 ease-in-out"
             style={{
               left: activeTab === "overview" ? "0px" : activeTab === "analytics" ? "96px" : "192px",
               width: "88px",
@@ -178,7 +178,7 @@ export function AnalyticsCard({
               <p className="text-2xl font-semibold text-foreground">{data.totalRequests?.toLocaleString()}</p>
               <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-muted">
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500"
+                  className="h-full bg-linear-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500"
                   style={{ width: isHovered ? "92%" : "85%" }}
                 />
               </div>
@@ -230,7 +230,7 @@ export function AnalyticsCard({
 
         {activeTab === "reports" && (
           <div className="space-y-3">
-            <div className="rounded-xl p-4 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-border/50">
+            <div className="rounded-xl p-4 bg-linear-to-r from-indigo-500/10 to-violet-500/10 border border-border/50">
               <h3 className="text-sm font-medium mb-2 text-foreground">Weekly Summary</h3>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 Request volume increased by {data.weeklyGrowth}% compared to last week. Approval rates remain consistently high at {data.approvalRate}%.
@@ -257,7 +257,7 @@ export function AnalyticsCard({
 
       {/* Action Buttons */}
       <div className="mt-6 flex gap-3">
-        <button className="flex-1 py-2.5 px-4 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-xl font-medium text-sm hover:from-indigo-600 hover:to-violet-600 transition-all duration-200 shadow-sm hover:shadow-md">
+        <button className="flex-1 py-2.5 px-4 bg-linear-to-r from-indigo-500 to-violet-500 text-white rounded-xl font-medium text-sm hover:from-indigo-600 hover:to-violet-600 transition-all duration-200 shadow-sm hover:shadow-md">
           View Full Report
         </button>
         <button className="flex-1 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 border border-border bg-card text-foreground hover:bg-muted">

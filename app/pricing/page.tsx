@@ -50,7 +50,7 @@ const faqs = [
   },
   {
     q: "Is this covered by Medicare?",
-    a: "Our service fee isn't Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
+    a: "Our service fee isn&apos;t Medicare rebateable. However, any medications prescribed through our service may be eligible for PBS subsidies where applicable.",
   },
 ]
 
@@ -124,7 +124,7 @@ export default function PricingPage() {
                   <ul className="space-y-3 mb-8">
                     {service.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-3 text-sm">
-                        <Check className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: service.color }} />
+                        <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: service.color }} />
                         <span className="text-muted-foreground">{feature}</span>
                       </li>
                     ))}

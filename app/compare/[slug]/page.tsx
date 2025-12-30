@@ -27,7 +27,7 @@ const comparisons: Record<
     description:
       "Honest comparison of telehealth vs traditional GP visits. When to use InstantMed and when to see someone in person.",
     intro:
-      "We're not trying to replace your GP — we're here for the simple stuff when you need it fast. Here's an honest comparison to help you decide.",
+      "We're not trying to replace your GP — we&apos;re here for the simple stuff when you need it fast. Here&apos;s an honest comparison to help you decide.",
     instantMed: {
       pros: [
         "No appointments needed",
@@ -48,7 +48,7 @@ const comparisons: Record<
         "Repeat prescriptions for stable conditions",
         "Referrals when you know what you need",
         "UTI treatment (straightforward cases)",
-        "When you can't get a same-day GP appointment",
+        "When you can&apos;t get a same-day GP appointment",
       ],
     },
     alternative: {
@@ -86,7 +86,7 @@ const comparisons: Record<
       { feature: "Referrals", instantMed: "✓", alternative: "✓" },
     ],
     verdict:
-      "Use InstantMed for quick, simple stuff when you need it fast. See your GP for anything complex, new, or requiring examination. Both have their place — we're not competing, we're complementing.",
+      "Use InstantMed for quick, simple stuff when you need it fast. See your GP for anything complex, new, or requiring examination. Both have their place — we&apos;re not competing, we&apos;re complementing.",
     faqs: [
       {
         q: "Is InstantMed trying to replace GPs?",
@@ -94,11 +94,11 @@ const comparisons: Record<
       },
       {
         q: "Why would I pay when I can get bulk-billed?",
-        a: "Time is money. If you're missing work waiting for an appointment, or sitting in a waiting room for an hour, InstantMed might actually be cheaper in the long run.",
+        a: "Time is money. If you&apos;re missing work waiting for an appointment, or sitting in a waiting room for an hour, InstantMed might actually be cheaper in the long run.",
       },
       {
         q: "How do I know if my issue is suitable for telehealth?",
-        a: "If it's something you could describe over the phone without being examined, it's probably suitable. If you're unsure, start a request and we'll tell you if we can help.",
+        a: "If it&apos;s something you could describe over the phone without being examined, it&apos;s probably suitable. If you&apos;re unsure, start a request and we'll tell you if we can help.",
       },
     ],
   },
@@ -107,7 +107,7 @@ const comparisons: Record<
     h1: "InstantMed vs the Emergency Department",
     description:
       "Know when to use telehealth and when to go to emergency. Clear guidance on what constitutes an emergency.",
-    intro: "Let's be very clear: InstantMed is NOT for emergencies. Here's how to know the difference.",
+    intro: "Let&apos;s be very clear: InstantMed is NOT for emergencies. Here&apos;s how to know the difference.",
     instantMed: {
       pros: ["Fast for non-urgent issues", "No ED waiting times", "Comfortable from home", "Affordable fixed pricing"],
       cons: ["NOT for emergencies", "No urgent medications", "No physical examination", "No diagnostic equipment"],
@@ -151,7 +151,7 @@ const comparisons: Record<
       { feature: "Urgent meds", instantMed: "No", alternative: "Yes" },
     ],
     verdict:
-      "If you're ever unsure whether something is an emergency, go to ED or call 000. It's always better to be safe. InstantMed is for when you know you're not dying but still need medical help.",
+      "If you&apos;re ever unsure whether something is an emergency, go to ED or call 000. It's always better to be safe. InstantMed is for when you know you&apos;re not dying but still need medical help.",
     faqs: [
       {
         q: "What counts as an emergency?",
@@ -159,7 +159,7 @@ const comparisons: Record<
       },
       {
         q: "Can InstantMed refer me to emergency?",
-        a: "If we identify something urgent during your consultation, we'll advise you to seek emergency care immediately. But don't wait for us if you think it's an emergency.",
+        a: "If we identify something urgent during your consultation, we'll advise you to seek emergency care immediately. But don&apos;t wait for us if you think it&apos;s an emergency.",
       },
       {
         q: "What about after-hours urgent care?",
@@ -173,7 +173,7 @@ const comparisons: Record<
     description:
       "Comprehensive guide to understanding when telehealth is appropriate and when you should see a doctor in person.",
     intro:
-      "Telehealth isn't for everything, but it's perfect for a lot of common health needs. Here's how to figure out if it's right for your situation.",
+      "Telehealth isn&apos;t for everything, but it&apos;s perfect for a lot of common health needs. Here&apos;s how to figure out if it&apos;s right for your situation.",
     instantMed: {
       pros: [
         "Convenient and fast",
@@ -184,10 +184,10 @@ const comparisons: Record<
       ],
       cons: ["No physical examination", "Limited for new diagnoses", "Relies on your description", "Internet required"],
       bestFor: [
-        "You know what's wrong (common conditions)",
+        "You know what&apos;s wrong (common conditions)",
         "You need paperwork (certs, referrals)",
         "Repeat prescriptions",
-        "You can't easily get to a GP",
+        "You can&apos;t easily get to a GP",
         "Privacy matters (sensitive conditions)",
         "Time is critical",
       ],
@@ -207,7 +207,7 @@ const comparisons: Record<
         "Mental health concerns",
         "Chronic disease management",
         "Children and elderly",
-        "When you're not sure what's wrong",
+        "When you&apos;re not sure what&apos;s wrong",
       ],
     },
     comparisonTable: [
@@ -217,18 +217,18 @@ const comparisons: Record<
       { feature: "New chest pain", instantMed: "✗ See someone", alternative: "✓ Yes (or ED)" },
       { feature: "Skin rash (new)", instantMed: "Maybe (with photos)", alternative: "✓ Better" },
       { feature: "Mental health", instantMed: "Initial support only", alternative: "✓ Better" },
-      { feature: "Lump you've found", instantMed: "✗ See someone", alternative: "✓ Yes" },
+      { feature: "Lump you&apos;ve found", instantMed: "✗ See someone", alternative: "✓ Yes" },
     ],
     verdict:
       "Telehealth is brilliant for straightforward, common conditions where you know what you need. It's not a replacement for comprehensive medical care, but it fills a genuine gap for busy Australians who need quick help for simple things.",
     faqs: [
       {
         q: "How do I know if my condition is suitable?",
-        a: "Ask yourself: Could I describe this accurately over the phone? Does it need to be touched or listened to? If it's something you've had before and recognise, or it's clearly a common condition, telehealth is probably fine.",
+        a: "Ask yourself: Could I describe this accurately over the phone? Does it need to be touched or listened to? If it&apos;s something you&apos;ve had before and recognise, or it&apos;s clearly a common condition, telehealth is probably fine.",
       },
       {
-        q: "What if the doctor can't help me online?",
-        a: "We'll tell you, and we won't charge you. If we identify that you need in-person care, we'll advise accordingly and you can request a refund.",
+        q: "What if the doctor can&apos;t help me online?",
+        a: "We'll tell you, and we won&apos;t charge you. If we identify that you need in-person care, we'll advise accordingly and you can request a refund.",
       },
       {
         q: "Is telehealth legitimate?",

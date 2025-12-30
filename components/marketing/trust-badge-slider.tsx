@@ -33,7 +33,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
     <section className={cn("py-6 bg-content2/30 border-y border-divider", className)}>
       <div
         className={cn(
-          "overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+          "overflow-hidden mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         )}
       >
         <InfiniteSlider gap={48} speed={35} speedOnHover={18}>

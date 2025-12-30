@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense, useCallback } from 'react'
+import { useEffect, useState, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
@@ -32,46 +32,60 @@ function StartFlowContent() {
   
   const currentStepId = useFlowStep()
   const serviceSlug = useFlowService()
-  const { setServiceSlug, goToStep, nextStep, reset } = useFlowStore()
+  const { setServiceSlug, goToStep, nextStep: _nextStep, reset } = useFlowStore()
 
   // Get config based on service (default to medCert for now)
-  const [config, setConfig] = useState<FlowConfig>(medCertConfig)
+  const [configOverride, setConfigOverride] = useState<FlowConfig | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Initialize on mount
+  // Derive config from serviceSlug or use override
+  const config = useMemo(() => {
+    if (configOverride) return configOverride
+    if (serviceSlug) {
+      const slugConfig = getFlowConfig(serviceSlug)
+      if (slugConfig) return slugConfig
+    }
+    return medCertConfig
+  }, [serviceSlug, configOverride])
+
+  // Initialize on mount - only handle navigation, not config
   useEffect(() => {
+    if (isInitialized) return
+
     const serviceParam = searchParams.get('service')
     const stepParam = searchParams.get('step')
 
-    // Set service from URL if provided
-    if (serviceParam) {
-      const serviceConfig = getFlowConfig(serviceParam)
-      if (serviceConfig) {
-        setServiceSlug(serviceParam)
-        setConfig(serviceConfig)
-        // Skip service selection if service is pre-selected
-        if (!stepParam) {
-          goToStep('questions')
+    // Queue all state updates for next tick to avoid sync setState
+    queueMicrotask(() => {
+      // Set service from URL if provided
+      if (serviceParam) {
+        const serviceConfig = getFlowConfig(serviceParam)
+        if (serviceConfig) {
+          setServiceSlug(serviceParam)
+          // Skip service selection if service is pre-selected
+          if (!stepParam) {
+            goToStep('questions')
+          }
         }
       }
-    }
 
-    // Resume at step if specified
-    if (stepParam) {
-      const validSteps: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
-      if (validSteps.includes(stepParam as FlowStepId)) {
-        goToStep(stepParam as FlowStepId)
+      // Resume at step if specified
+      if (stepParam) {
+        const validSteps: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
+        if (validSteps.includes(stepParam as FlowStepId)) {
+          goToStep(stepParam as FlowStepId)
+        }
       }
-    }
 
-    setIsInitialized(true)
+      setIsInitialized(true)
+    })
   }, [searchParams, isInitialized, setServiceSlug, goToStep])
 
   // Handle service selection
   const handleServiceSelect = (slug: string) => {
     const newConfig = getFlowConfig(slug)
     if (newConfig) {
-      setConfig(newConfig)
+      setConfigOverride(newConfig)
     }
   }
 

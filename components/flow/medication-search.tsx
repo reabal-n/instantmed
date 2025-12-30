@@ -234,7 +234,7 @@ export function MedicationSearch({
     return (
       <div className={cn('relative', className)}>
         <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0">
             <Pill className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -378,7 +378,7 @@ export function MedicationSearch({
                       >
                         <div
                           className={cn(
-                            'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
+                            'w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
                             med.is_common ? 'bg-emerald-100' : 'bg-slate-100'
                           )}
                         >
@@ -412,7 +412,7 @@ export function MedicationSearch({
                             )}
                           </p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                        <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -422,7 +422,7 @@ export function MedicationSearch({
                 {query.length >= 2 && results.length === 0 && !isSearching && (
                   <div className="p-4 text-center">
                     <p className="text-sm text-slate-500 mb-3">
-                      No medications found for "{query}"
+                      No medications found for &quot;{query}&quot;
                     </p>
                   </div>
                 )}
@@ -439,12 +439,12 @@ export function MedicationSearch({
                         : 'hover:bg-slate-50'
                     )}
                   >
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                       <Plus className="w-5 h-5 text-slate-500" />
                     </div>
                     <div className="flex-1">
                       <span className="font-medium text-slate-700">
-                        Can't find it? Add "{query}" manually
+                        Can&apos;t find it? Add &quot;{query}&quot; manually
                       </span>
                       <p className="text-sm text-slate-500">
                         The doctor will verify the medication name

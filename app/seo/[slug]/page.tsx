@@ -81,11 +81,11 @@ const seoPages: Record<
     faqs: [
       {
         q: "Can I get my blood pressure medication renewed online?",
-        a: "Yes, if you're on a stable dose and your BP is well-controlled. The doctor may request recent BP readings.",
+        a: "Yes, if you&apos;re on a stable dose and your BP is well-controlled. The doctor may request recent BP readings.",
       },
       {
         q: "What information do I need?",
-        a: "Your current medication name and dose, how long you've been taking it, and recent blood pressure readings if available.",
+        a: "Your current medication name and dose, how long you&apos;ve been taking it, and recent blood pressure readings if available.",
       },
     ],
     relatedLinks: [
@@ -103,7 +103,7 @@ const seoPages: Record<
     faqs: [
       {
         q: "Can you prescribe antibiotics for a UTI online?",
-        a: "Yes, if your symptoms are consistent with a straightforward UTI and you don't have any red flags requiring in-person assessment.",
+        a: "Yes, if your symptoms are consistent with a straightforward UTI and you don&apos;t have any red flags requiring in-person assessment.",
       },
       {
         q: "How quickly can I get treatment?",

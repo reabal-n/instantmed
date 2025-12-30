@@ -32,7 +32,7 @@ const posts = [
     slug: "can-you-get-prescription-without-seeing-doctor",
     title: "Can You Get a Prescription Without Seeing a Doctor?",
     excerpt:
-      "Understanding telehealth prescriptions in Australia. When online scripts are appropriate, what medications can't be prescribed online, and how e-scripts work.",
+      "Understanding telehealth prescriptions in Australia. When online scripts are appropriate, what medications can&apos;t be prescribed online, and how e-scripts work.",
     author: "Dr. James Liu",
     date: "2024-01-10",
     readTime: "7 min",
@@ -43,7 +43,7 @@ const posts = [
     slug: "telehealth-vs-gp-when-to-use-each",
     title: "Telehealth vs GP: When to Use Each",
     excerpt:
-      "Telehealth is convenient, but it's not right for everything. Learn when online healthcare is perfect and when you should book an in-person appointment instead.",
+      "Telehealth is convenient, but it&apos;s not right for everything. Learn when online healthcare is perfect and when you should book an in-person appointment instead.",
     author: "Dr. Sarah Chen",
     date: "2024-01-05",
     readTime: "6 min",

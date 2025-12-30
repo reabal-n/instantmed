@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
-interface VisualCardProps extends React.HTMLAttributes<HTMLDivElement> {}
+type VisualCardProps = React.HTMLAttributes<HTMLDivElement>
 
 export function VisualCard({ className, ...props }: VisualCardProps) {
   return (
@@ -31,7 +31,7 @@ export function VisualCardBody({ className, ...props }: VisualCardProps) {
   )
 }
 
-interface VisualCardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+type VisualCardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 
 export function VisualCardTitle({ className, ...props }: VisualCardTitleProps) {
   return (
@@ -45,7 +45,7 @@ export function VisualCardTitle({ className, ...props }: VisualCardTitleProps) {
   )
 }
 
-interface VisualCardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+type VisualCardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
 export function VisualCardDescription({ className, ...props }: VisualCardDescriptionProps) {
   return (
@@ -101,7 +101,7 @@ export function DonutVisual({
 }
 
 const EllipseGradient: React.FC<{ color: string }> = ({ color }) => (
-  <div className="absolute inset-0 z-[5] flex h-full w-full items-center justify-center">
+  <div className="absolute inset-0 z-5 flex h-full w-full items-center justify-center">
     <svg width="100%" height="100%" viewBox="0 0 356 180" fill="none" preserveAspectRatio="xMidYMid slice">
       <rect width="356" height="180" fill="url(#ellipse-gradient)" />
       <defs>
@@ -125,7 +125,7 @@ const EllipseGradient: React.FC<{ color: string }> = ({ color }) => (
 const GridLayer: React.FC<{ color: string }> = ({ color }) => (
   <div
     style={{ "--grid-color": color } as React.CSSProperties}
-    className="pointer-events-none absolute inset-0 z-[4] h-full w-full bg-transparent bg-[linear-gradient(to_right,var(--grid-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-color)_1px,transparent_1px)] bg-[size:20px_20px] bg-center opacity-70 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"
+    className="pointer-events-none absolute inset-0 z-4 h-full w-full bg-transparent bg-[linear-gradient(to_right,var(--grid-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-color)_1px,transparent_1px)] bg-size-[20px_20px] bg-center opacity-70 mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"
   />
 )
 
@@ -157,7 +157,7 @@ const DonutLayer: React.FC<LayerProps> = ({ hovered, color, secondaryColor }) =>
   const secondaryDashoffset = circumference - (secondaryProgress / 100) * circumference
 
   return (
-    <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute top-0 left-0 z-[7] flex h-[360px] w-full transform items-center justify-center transition-transform duration-500 group-hover/visual-card:-translate-y-[90px] group-hover/visual-card:scale-110">
+    <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute top-0 left-0 z-7 flex h-[360px] w-full transform items-center justify-center transition-transform duration-500 group-hover/visual-card:-translate-y-[90px] group-hover/visual-card:scale-110">
       <div className="relative flex h-[120px] w-[120px] items-center justify-center text-muted-foreground">
         <svg width="120" height="120" viewBox="0 0 100 100">
           <circle
@@ -206,10 +206,10 @@ const DonutLayer: React.FC<LayerProps> = ({ hovered, color, secondaryColor }) =>
 
 const LabelLayer: React.FC<{ color: string; label: string; sublabel: string }> = ({ color, label, sublabel }) => (
   <div className="relative h-full w-full" style={{ "--color": color } as React.CSSProperties}>
-    <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute inset-0 z-[6] flex w-full translate-y-0 items-start justify-center bg-transparent p-4 transition-transform duration-500 group-hover/visual-card:translate-y-full">
+    <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute inset-0 z-6 flex w-full translate-y-0 items-start justify-center bg-transparent p-4 transition-transform duration-500 group-hover/visual-card:translate-y-full">
       <div className="ease-[cubic-bezier(0.6,0.6,0,1)] rounded-md border border-zinc-200 bg-white/25 px-2 py-1.5 opacity-100 backdrop-blur-sm transition-opacity duration-500 group-hover/visual-card:opacity-0 dark:border-zinc-800 dark:bg-black/25">
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--color)]" />
+          <div className="h-2 w-2 shrink-0 rounded-full bg-(--color)" />
           <p className="text-xs text-foreground">{label}</p>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
@@ -219,7 +219,7 @@ const LabelLayer: React.FC<{ color: string; label: string; sublabel: string }> =
 )
 
 const GradientLayer: React.FC<{ color: string }> = ({ color }) => (
-  <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute inset-0 z-[6] flex translate-y-full items-center justify-center opacity-0 transition-all duration-500 group-hover/visual-card:translate-y-0 group-hover/visual-card:opacity-100">
+  <div className="ease-[cubic-bezier(0.6,0.6,0,1)] absolute inset-0 z-6 flex translate-y-full items-center justify-center opacity-0 transition-all duration-500 group-hover/visual-card:translate-y-0 group-hover/visual-card:opacity-100">
     <svg width="100%" height="180" viewBox="0 0 356 180" fill="none" preserveAspectRatio="xMidYMid slice">
       <rect width="356" height="180" fill="url(#gradient-layer)" />
       <defs>

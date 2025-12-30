@@ -1,19 +1,16 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   CheckCircle2,
   AlertCircle,
   Phone,
-  XCircle,
   ArrowRight,
   Loader2,
   FileText,
-  MessageSquare,
   Clock,
   Shield,
-  ChevronDown,
   ExternalLink,
 } from 'lucide-react'
 import { FlowContent } from '../flow-content'
@@ -26,7 +23,6 @@ import {
   evaluateSafetyWithAdditionalInfo,
   type SafetyEvaluationResult,
   type SafetyOutcome,
-  type AdditionalInfoItem,
 } from '@/lib/flow/safety'
 import { cn } from '@/lib/utils'
 
@@ -319,7 +315,7 @@ export function SafetyCheckStep({
                           [item.id]: e.target.value,
                         }))
                       }
-                      className="mt-1.5 w-full min-h-[80px] p-3 rounded-lg border border-slate-200 focus:border-amber-500 focus:ring-0 resize-none text-sm"
+                      className="mt-1.5 w-full min-h-20 p-3 rounded-lg border border-slate-200 focus:border-amber-500 focus:ring-0 resize-none text-sm"
                       placeholder="Type your response..."
                     />
                   ) : item.type === 'select' && item.options ? (
@@ -397,7 +393,7 @@ export function SafetyCheckStep({
             </div>
 
             <h2 className="text-2xl font-bold text-slate-900 mt-6">
-              We'll be in touch soon
+              We&apos;ll be in touch soon
             </h2>
             <p className="text-slate-600 mt-2 max-w-md mx-auto">
               A member of our team will call you within 2 business hours to
@@ -417,7 +413,7 @@ export function SafetyCheckStep({
             </div>
 
             <p className="text-sm text-slate-500 mt-6">
-              You won't be charged until after your consultation
+              You won&apos;t be charged until after your consultation
             </p>
           </motion.div>
         </FlowContent>
@@ -487,7 +483,7 @@ export function SafetyCheckStep({
                 <div>
                   <p className="font-medium text-slate-900">No upfront charge</p>
                   <p className="text-sm text-slate-600">
-                    You'll only pay if the doctor can help you
+                    You&apos;ll only pay if the doctor can help you
                   </p>
                 </div>
               </div>

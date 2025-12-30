@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Bell, X, Check, CheckCheck, FileText, CreditCard, Pill, AlertCircle } from "lucide-react"
+import { Bell, X, CheckCheck, FileText, CreditCard, Pill, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNotifications, type Notification } from "@/lib/hooks/use-notifications"
 import { cn } from "@/lib/utils"

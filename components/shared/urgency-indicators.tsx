@@ -123,7 +123,7 @@ export function CompletionTime({ className }: CompletionTimeProps) {
     () => true,
     () => false,
   )
-  const [time, setTime] = useState(() => {
+  const [time, _setTime] = useState(() => {
     const hour = new Date().getHours()
     const isPeakHour = hour >= 9 && hour <= 17
     const baseTime = isPeakHour ? 55 : 35

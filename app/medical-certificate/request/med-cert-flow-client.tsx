@@ -88,8 +88,6 @@ const SYMPTOMS = ["Headache", "Fever", "Nausea", "Pain", "Fatigue", "Cold/Flu", 
 // Relationships for carer's certificate
 const RELATIONSHIPS = ["Parent", "Child", "Partner", "Sibling", "Grandparent", "Other"] as const
 
-const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
-
 interface MedCertFlowClientProps {
   patientId: string | null
   isAuthenticated: boolean
@@ -338,10 +336,10 @@ export function MedCertFlowClient({
   userEmail,
   userName,
 }: MedCertFlowClientProps) {
-  const router = useRouter()
+  const _router = useRouter()
   const mainRef = useRef<HTMLElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
-  const searchParams = useSearchParams() // Added for guest checkout redirection
+  const _searchParams = useSearchParams() // Added for guest checkout redirection
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -379,8 +377,8 @@ export function MedCertFlowClient({
   const [step, setStep] = useState<FlowStep>("type")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showEmergencyModal, setShowEmergencyModal] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [_showEmergencyModal, setShowEmergencyModal] = useState(false)
+  const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
   // const [medicareError, setMedicareError] = useState<string | null>(null) // Removed
   // const [medicareValid, setMedicareValid] = useState(false) // Removed
 
@@ -405,12 +403,12 @@ export function MedCertFlowClient({
   }, [error])
 
   // Auto-advance handlers
-  const selectCertType = useCallback((t: string) => {
+  const _selectCertType = useCallback((t: string) => {
     setFormData((prev) => ({ ...prev, certType: t }))
     setTimeout(() => setStep("duration"), 200)
   }, [])
 
-  const selectDuration = useCallback((d: string) => {
+  const _selectDuration = useCallback((d: string) => {
     setFormData((prev) => ({ ...prev, duration: d }))
     if (d !== "specific") {
       // Automatically advance to startDate if duration is not specific
@@ -553,7 +551,7 @@ export function MedCertFlowClient({
     checkSession()
   }, [isAuthenticated, step, goNext])
 
-  const toggleSymptom = (symptom: string) => {
+  const _toggleSymptom = (symptom: string) => {
     setFormData((prev) => ({
       ...prev,
       selectedSymptoms: prev.selectedSymptoms.includes(symptom)
@@ -563,7 +561,7 @@ export function MedCertFlowClient({
   }
 
   // Medicare validation with realtime feedback using microcopy
-  // Removed Medicare validation logic as it's no longer a separate step
+  // Removed Medicare validation logic as it&apos;s no longer a separate step
   // const formatMedicareNumber = (value: string): string => {
   //   const digits = value.replace(/\D/g, "").slice(0, 10)
   //   if (digits.length <= 4) return digits
@@ -671,7 +669,7 @@ export function MedCertFlowClient({
   }
 
   // Google auth
-  const handleGoogleAuth = async () => {
+  const _handleGoogleAuth = async () => {
     setIsGoogleLoading(true)
     setError(null)
 

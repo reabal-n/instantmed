@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 // Card Components
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
+type CardProps = React.HTMLAttributes<HTMLDivElement>
 
 export function AnimatedCardDiagram({ className, ...props }: CardProps) {
   return (
@@ -35,7 +35,7 @@ export function DiagramCardBody({ className, ...props }: CardProps) {
   );
 }
 
-interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 
 export function DiagramCardTitle({ className, ...props }: CardTitleProps) {
   return (
@@ -49,7 +49,7 @@ export function DiagramCardTitle({ className, ...props }: CardTitleProps) {
   );
 }
 
-interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
 export function DiagramCardDescription({ className, ...props }: CardDescriptionProps) {
   return (
@@ -125,7 +125,7 @@ interface LayerProps {
 
 const EllipseGradient: React.FC<{ color: string }> = ({ color }) => {
   return (
-    <div className="absolute inset-0 z-[5] flex h-full w-full items-center justify-center">
+    <div className="absolute inset-0 z-5 flex h-full w-full items-center justify-center">
       <svg
         width="356"
         height="196"
@@ -157,7 +157,7 @@ const GridLayer: React.FC<{ color: string }> = ({ color }) => {
   return (
     <div
       style={{ "--grid-color": color } as React.CSSProperties}
-      className="pointer-events-none absolute inset-0 z-[4] h-full w-full bg-transparent bg-[linear-gradient(to_right,var(--grid-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-color)_1px,transparent_1px)] bg-[size:20px_20px] bg-center opacity-70 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"
+      className="pointer-events-none absolute inset-0 z-4 h-full w-full bg-transparent bg-[linear-gradient(to_right,var(--grid-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--grid-color)_1px,transparent_1px)] bg-size-[20px_20px] bg-center opacity-70 mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"
     />
   );
 };
@@ -186,7 +186,7 @@ const DonutChart: React.FC<LayerProps> = ({ hovered, color, secondaryColor }) =>
     circumference - (secondaryProgress / 100) * circumference;
 
   return (
-    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute top-0 left-0 z-[7] flex h-[360px] w-[356px] transform items-center justify-center transition-transform duration-500 group-hover/animated-card:-translate-y-[90px] group-hover/animated-card:scale-110">
+    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute top-0 left-0 z-7 flex h-[360px] w-[356px] transform items-center justify-center transition-transform duration-500 group-hover/animated-card:-translate-y-[90px] group-hover/animated-card:scale-110">
       <div className="relative flex h-[120px] w-[120px] items-center justify-center text-muted-foreground">
         <div className="donut-chart-container relative">
           <svg width="120" height="120" viewBox="0 0 100 100">
@@ -252,10 +252,10 @@ const InfoBadge: React.FC<{ color: string }> = ({ color }) => {
       className="relative h-full w-[356px]"
       style={{ "--color": color } as React.CSSProperties}
     >
-      <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-[6] flex w-[356px] translate-y-0 items-start justify-center bg-transparent p-4 transition-transform duration-500 group-hover/animated-card:translate-y-full">
+      <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-6 flex w-[356px] translate-y-0 items-start justify-center bg-transparent p-4 transition-transform duration-500 group-hover/animated-card:translate-y-full">
         <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] rounded-md border border-border bg-background/25 px-2 py-1.5 opacity-100 backdrop-blur-sm transition-opacity duration-500 group-hover/animated-card:opacity-0">
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--color)]" />
+            <div className="h-2 w-2 shrink-0 rounded-full bg-(--color)" />
             <p className="text-xs text-foreground">
               Real-time Analytics
             </p>
@@ -271,7 +271,7 @@ const InfoBadge: React.FC<{ color: string }> = ({ color }) => {
 
 const GradientOverlay: React.FC<{ color: string }> = ({ color }) => {
   return (
-    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-[6] flex translate-y-full items-center justify-center opacity-0 transition-all duration-500 group-hover/animated-card:translate-y-0 group-hover/animated-card:opacity-100">
+    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-6 flex translate-y-full items-center justify-center opacity-0 transition-all duration-500 group-hover/animated-card:translate-y-0 group-hover/animated-card:opacity-100">
       <svg
         width="356"
         height="180"
@@ -309,7 +309,7 @@ const FloatingTags: React.FC<LayerProps> = ({ color, secondaryColor, hovered }) 
   ];
 
   return (
-    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-[7] flex items-center justify-center opacity-0 transition-opacity duration-500 group-hover/animated-card:opacity-100">
+    <div className="ease-[cubic-bezier(0.6, 0.6, 0, 1)] absolute inset-0 z-7 flex items-center justify-center opacity-0 transition-opacity duration-500 group-hover/animated-card:opacity-100">
       {items.map((item, index) => (
         <div
           key={item.id}

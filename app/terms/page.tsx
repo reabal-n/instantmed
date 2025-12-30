@@ -28,7 +28,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using InstantMed's services, you agree to be bound by these Terms of Service. If you do
+                By accessing or using InstantMed&apos;s services, you agree to be bound by these Terms of Service. If you do
                 not agree to these terms, please do not use our services. We reserve the right to modify these terms at
                 any time.
               </p>

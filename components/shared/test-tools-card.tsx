@@ -41,7 +41,7 @@ export function TestToolsCard({ patientId }: TestToolsCardProps) {
       } else {
         toast.error("Failed to create request", { description: result.error })
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred")
     } finally {
       setIsCreating(false)
@@ -57,7 +57,7 @@ export function TestToolsCard({ patientId }: TestToolsCardProps) {
       } else {
         toast.error("Failed to create request", { description: result.error })
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred")
     } finally {
       setIsCreatingPaid(false)

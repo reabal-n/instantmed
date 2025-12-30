@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react'
-import { FlowContent, FlowSection } from '../flow-content'
+import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FlowContent } from '../flow-content'
 import { FieldRenderer } from '../field-renderer'
 import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowAnswers, useFlowProgress } from '@/lib/flow'
-import type { FlowConfig, FieldConfig, QuestionGroup } from '@/lib/flow'
+import type { FlowConfig } from '@/lib/flow'
 import { cn } from '@/lib/utils'
 
 interface QuestionnaireStepProps {
@@ -131,11 +131,11 @@ export function QuestionnaireStep({
       {currentGroup.id === 'eligibility' && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <div className="flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-medium text-amber-800 mb-1">Important safety check</p>
               <p className="text-amber-700">
-                If you're experiencing a medical emergency, please call 000 immediately.
+                If you&apos;re experiencing a medical emergency, please call 000 immediately.
                 This service is for non-urgent conditions only.
               </p>
             </div>

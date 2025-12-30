@@ -226,7 +226,7 @@ export function DoctorDashboardClient({
                     <Button
                       size="sm"
                       asChild
-                      className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
+                      className="rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
                     >
                       <Link href={`/doctor/requests/${request.id}?action=approve`}>
                         <CheckCircle className="h-4 w-4" />
@@ -382,7 +382,7 @@ export function DoctorDashboardClient({
       >
         <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          <Button asChild className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white">
+          <Button asChild className="rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white">
             <Link href="/doctor/queue">
               <Clock className="h-4 w-4 mr-2" />
               Review Queue ({stats.pending} pending)

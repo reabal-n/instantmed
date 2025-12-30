@@ -127,7 +127,7 @@ export function ResumePrompt({
               >
                 <div className="flex items-center gap-4">
                   {/* Icon */}
-                  <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <div className="shrink-0 w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
                     <Icon className="w-6 h-6 text-slate-500" />
                   </div>
 
@@ -172,7 +172,7 @@ export function ResumePrompt({
                   </div>
 
                   {/* Arrow */}
-                  <ChevronRight className="flex-shrink-0 w-5 h-5 text-slate-300" />
+                  <ChevronRight className="shrink-0 w-5 h-5 text-slate-300" />
                 </div>
               </motion.button>
             )
@@ -248,7 +248,7 @@ export function ResumeBanner({
         className
       )}
     >
-      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-emerald-600" />
       </div>
 
@@ -261,7 +261,7 @@ export function ResumeBanner({
         </p>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onDismiss}
           className="p-1 text-emerald-600 hover:text-emerald-800"

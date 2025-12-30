@@ -75,7 +75,7 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
 
       if (!response.ok) throw new Error("Failed to update")
       toast.success("Profile updated successfully")
-    } catch (error) {
+    } catch {
       toast.error("Failed to update profile")
     } finally {
       setIsSaving(false)
@@ -102,7 +102,7 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
       } else {
         toast.error(result.error || "Failed to change password")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to change password")
     } finally {
       setIsChangingPassword(false)
@@ -119,7 +119,7 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
       } else {
         toast.error(result.error || "Failed to delete account")
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete account")
     } finally {
       setIsDeletingAccount(false)

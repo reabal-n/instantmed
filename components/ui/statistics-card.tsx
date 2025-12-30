@@ -34,7 +34,7 @@ interface StatsProps {
 }
 
 const Stats = ({ 
-  title = "We don't believe in talk we Deliver Results",
+  title = "We don&apos;t believe in talk we Deliver Results",
   description = "Experience the difference with our proven track record of success.",
   items = [
     { value: 35, label: "competitor 1", delay: 0.2 },

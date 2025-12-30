@@ -31,7 +31,7 @@ export function Footer() {
               className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-foreground"
               aria-label="InstantMed home"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00E2B5] to-[#06B6D4]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#00E2B5] to-[#06B6D4]">
                 <Zap className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
               InstantMed

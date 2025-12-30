@@ -52,8 +52,8 @@ export function SummaryPayment({
   onSubmit,
   isSubmitting = false,
 }: SummaryPaymentProps) {
-  const [additionalNotes, setAdditionalNotes] = useState(data.additionalNotes || "")
-  const [showConfetti, setShowConfetti] = useState(false)
+  const [additionalNotes, setAdditionalNotes] = useState(typeof data.additionalNotes === 'string' ? data.additionalNotes : "")
+  const [_showConfetti, _setShowConfetti] = useState(false)
 
   // Generate structured summary
   const summary = generateDoctorSummary(config, data)
@@ -82,9 +82,9 @@ export function SummaryPayment({
         {/* Details */}
         <div className="p-4">
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Details</div>
-          {Object.entries(summary.sections).map(([sectionName, sectionData]) => (
+          {Object.entries((summary.sections ?? {}) as Record<string, Record<string, unknown>>).map(([sectionName, sectionData]) => (
             <div key={sectionName}>
-              {Object.entries(sectionData as Record<string, unknown>).map(([key, val]) => (
+              {Object.entries(sectionData).map(([key, val]) => (
                 <SummaryRow
                   key={key}
                   label={key}
@@ -122,7 +122,7 @@ export function SummaryPayment({
           value={additionalNotes}
           onChange={(e) => setAdditionalNotes(e.target.value)}
           placeholder="Optional — add any extra details here..."
-          className="min-h-[80px]"
+          className="min-h-20"
         />
       </div>
 

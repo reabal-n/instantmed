@@ -312,7 +312,7 @@ export function AdminClient({
       <aside className="w-64 shrink-0 border-r border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="p-4 border-b border-border/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
               <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -470,7 +470,7 @@ export function AdminClient({
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-9 w-9 border-2 border-white/50 shadow-sm">
-                                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs">
+                                  <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs">
                                     {getInitials(request.patient.full_name)}
                                   </AvatarFallback>
                                 </Avatar>
@@ -603,7 +603,7 @@ export function AdminClient({
                 <div key={patient.id} className="glass-card rounded-2xl p-4 hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12 border-2 border-white/50">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                      <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground">
                         {getInitials(patient.full_name)}
                       </AvatarFallback>
                     </Avatar>

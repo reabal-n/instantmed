@@ -16,7 +16,7 @@ interface FormDraft {
 }
 
 export function useFormRecovery(service: string) {
-  const [draftState, setDraftState] = useState(() => {
+  const [draftState, _setDraftState] = useState(() => {
     if (typeof window === "undefined") {
       return { draft: null as FormDraft | null, showRecovery: false }
     }

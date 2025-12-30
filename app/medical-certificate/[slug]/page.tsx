@@ -145,7 +145,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
 
-  // Check if it's a subtype page
+  // Check if it&apos;s a subtype page
   if (validSubtypes.includes(slug)) {
     const info = subtypeInfo[slug]
     return {
@@ -154,7 +154,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
-  // Check if it's a suburb SEO page
+  // Check if it&apos;s a suburb SEO page
   const data = suburbs[slug]
   if (data) {
     const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
@@ -246,7 +246,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         <main className="flex-1">
           {/* Hero */}
           <section className="relative px-4 py-16 md:py-24 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00E2B5]/10 via-transparent to-purple-500/5" />
+            <div className="absolute inset-0 bg-linear-to-br from-[#00E2B5]/10 via-transparent to-purple-500/5" />
             <div className="relative mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00E2B5]/10 border border-[#00E2B5]/20 text-[#00E2B5] text-sm mb-6">
                 <MapPin className="h-4 w-4" />

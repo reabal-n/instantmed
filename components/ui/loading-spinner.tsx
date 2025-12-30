@@ -28,7 +28,7 @@ export function LoadingSpinner({
   )
 }
 
-interface LoadingDotsProps extends React.HTMLAttributes<HTMLDivElement> {}
+type LoadingDotsProps = React.HTMLAttributes<HTMLDivElement>
 
 export function LoadingDots({ className, ...props }: LoadingDotsProps) {
   return (

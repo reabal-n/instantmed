@@ -148,7 +148,7 @@ export default function WeightManagementPage() {
                   {
                     icon: Target,
                     title: "Personalised to you",
-                    desc: "Your plan is based on your health history, goals, and what's worked (or hasn't) before.",
+                    desc: "Your plan is based on your health history, goals, and what&apos;s worked (or hasn't) before.",
                   },
                   {
                     icon: MessageSquare,
@@ -294,8 +294,8 @@ export default function WeightManagementPage() {
                     a: "Some medications may be PBS-subsidised for eligible patients. Your doctor will discuss costs and eligibility during your consultation. Out-of-pocket costs vary.",
                   },
                   {
-                    q: "What if I'm not eligible?",
-                    a: "If medication isn't appropriate for you, you'll receive a full refund of the consultation fee. We'll also provide recommendations for alternative approaches.",
+                    q: "What if I&apos;m not eligible?",
+                    a: "If medication isn&apos;t appropriate for you, you'll receive a full refund of the consultation fee. We'll also provide recommendations for alternative approaches.",
                   },
                   {
                     q: "How much does the program cost?",

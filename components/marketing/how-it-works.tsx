@@ -86,7 +86,7 @@ export function HowItWorks() {
                         {/* Step indicator */}
                         <div className="relative shrink-0">
                           <motion.div 
-                            className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center border border-primary/10 icon-spin-hover"
+                            className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-secondary/10 flex items-center justify-center border border-primary/10 icon-spin-hover"
                           >
                             <Icon className="h-6 w-6 text-primary" />
                           </motion.div>
@@ -110,7 +110,7 @@ export function HowItWorks() {
                   
                   {/* Connector */}
                   {!isLast && (
-                    <div className="absolute left-[1.75rem] top-full w-0.5 h-6 bg-gradient-to-b from-primary/30 to-transparent" />
+                    <div className="absolute left-[1.75rem] top-full w-0.5 h-6 bg-linear-to-b from-primary/30 to-transparent" />
                   )}
                 </motion.div>
               )
@@ -165,7 +165,7 @@ export function HowItWorks() {
                   </motion.div>
                   
                   {/* Connector */}
-                  <div className="ml-6 w-0.5 h-3 bg-gradient-to-b from-primary/40 to-secondary/40" />
+                  <div className="ml-6 w-0.5 h-3 bg-linear-to-b from-primary/40 to-secondary/40" />
                   
                   {/* Step 2 */}
                   <motion.div 
@@ -183,7 +183,7 @@ export function HowItWorks() {
                   </motion.div>
                   
                   {/* Connector */}
-                  <div className="ml-6 w-0.5 h-3 bg-gradient-to-b from-secondary/40 to-success/40" />
+                  <div className="ml-6 w-0.5 h-3 bg-linear-to-b from-secondary/40 to-success/40" />
                   
                   {/* Step 3 */}
                   <motion.div 

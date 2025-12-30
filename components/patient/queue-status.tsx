@@ -32,22 +32,31 @@ export function QueueStatus({
   isPriority = false,
   className,
 }: QueueStatusProps) {
+  // Use stable seed based on createdAt to avoid impure render
+  const [randomSeed] = useState(() => {
+    const requestAge = Date.now() - new Date(createdAt).getTime()
+    const ageMinutes = Math.floor(requestAge / 60000)
+    return {
+      ageMinutes,
+      queueOffset: Math.floor(Math.random() * 3),
+      minuteOffset: Math.floor(Math.random() * 8),
+      doctorOffset: Math.floor(Math.random() * 2),
+    }
+  })
+
   const initialQueue = useMemo<QueueData | null>(() => {
     if (status !== "pending") return null
 
-    const requestAge = Date.now() - new Date(createdAt).getTime()
-    const ageMinutes = Math.floor(requestAge / 60000)
-
-    const basePosition = Math.max(1, 5 - Math.floor(ageMinutes / 10))
+    const basePosition = Math.max(1, 5 - Math.floor(randomSeed.ageMinutes / 10))
     const position = isPriority ? Math.max(1, Math.ceil(basePosition / 2)) : basePosition
 
     return {
       position,
-      totalInQueue: position + Math.floor(Math.random() * 3),
-      estimatedMinutes: position * 12 + Math.floor(Math.random() * 8),
-      doctorsOnline: 2 + Math.floor(Math.random() * 2),
+      totalInQueue: position + randomSeed.queueOffset,
+      estimatedMinutes: position * 12 + randomSeed.minuteOffset,
+      doctorsOnline: 2 + randomSeed.doctorOffset,
     }
-  }, [createdAt, isPriority, status])
+  }, [isPriority, status, randomSeed])
 
   const [queueData, setQueueData] = useState<QueueData | null>(initialQueue)
   const [notifyEnabled, setNotifyEnabled] = useState(false)
@@ -98,8 +107,8 @@ export function QueueStatus({
       className={cn(
         "rounded-2xl border p-4 sm:p-5",
         isPriority
-          ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800"
-          : "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800",
+          ? "bg-linear-to-br from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800"
+          : "bg-linear-to-br from-blue-50 to-cyan-50 border-blue-200 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800",
         className
       )}
     >
@@ -200,8 +209,8 @@ export function QueueStatus({
             className={cn(
               "h-full rounded-full",
               isPriority
-                ? "bg-gradient-to-r from-amber-500 to-orange-500"
-                : "bg-gradient-to-r from-blue-500 to-cyan-500"
+                ? "bg-linear-to-r from-amber-500 to-orange-500"
+                : "bg-linear-to-r from-blue-500 to-cyan-500"
             )}
             initial={{ width: "10%" }}
             animate={{

@@ -3,7 +3,7 @@ import { siteConfig, slaPolicy } from '@/lib/marketing/homepage'
 
 export function OneHourPromise() {
   return (
-    <section id="sla" className="py-20 lg:py-28 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 relative overflow-hidden scroll-mt-20">
+    <section id="sla" className="py-20 lg:py-28 bg-linear-to-br from-indigo-600 via-violet-600 to-purple-700 relative overflow-hidden scroll-mt-20">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -36,7 +36,7 @@ export function OneHourPromise() {
 
             <div className="space-y-4 mb-8">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
@@ -49,7 +49,7 @@ export function OneHourPromise() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                   <MessageCircle className="h-5 w-5" />
                 </div>
                 <div>
@@ -61,7 +61,7 @@ export function OneHourPromise() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
@@ -77,7 +77,7 @@ export function OneHourPromise() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <p className="text-sm text-indigo-100">
                 <strong className="text-white">Note:</strong> Complex cases, requests requiring additional information, 
-                or periods of high demand may take longer. We'll always keep you updated.
+                or periods of high demand may take longer. We&apos;ll always keep you updated.
               </p>
             </div>
           </div>

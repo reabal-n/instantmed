@@ -62,7 +62,7 @@ export function DoctorCredentialsCard({
   if (variant === "inline") {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+        <div className="relative h-8 w-8 rounded-full overflow-hidden bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
           {doctor.photoUrl ? (
             <Image
               src={doctor.photoUrl}
@@ -97,7 +97,7 @@ export function DoctorCredentialsCard({
         )}
       >
         {/* Photo */}
-        <div className="relative h-14 w-14 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 flex-shrink-0 flex items-center justify-center">
+        <div className="relative h-14 w-14 rounded-full overflow-hidden bg-linear-to-br from-blue-500 to-cyan-500 shrink-0 flex items-center justify-center">
           {doctor.photoUrl ? (
             <Image
               src={doctor.photoUrl}
@@ -170,7 +170,7 @@ export function DoctorCredentialsCard({
         >
           <div className="flex items-start gap-4">
             {/* Photo */}
-            <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 flex-shrink-0 flex items-center justify-center">
+            <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-linear-to-br from-blue-500 to-cyan-500 shrink-0 flex items-center justify-center">
               {doctor.photoUrl ? (
                 <Image
                   src={doctor.photoUrl}
@@ -221,7 +221,7 @@ export function DoctorCredentialsCard({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+            <div className="relative h-12 w-12 rounded-full overflow-hidden bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
               {doctor.photoUrl ? (
                 <Image
                   src={doctor.photoUrl}

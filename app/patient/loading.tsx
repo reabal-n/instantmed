@@ -2,7 +2,7 @@ import { Loader } from "@/components/ui/loader"
 
 export default function PatientLoading() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <div className="container max-w-5xl py-8 px-4">
         {/* Animated loader */}
         <div className="flex justify-center mb-8">

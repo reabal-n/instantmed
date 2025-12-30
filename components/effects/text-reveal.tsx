@@ -22,7 +22,7 @@ export function TextRevealChar({
   duration = 0.5,
   staggerDelay = 0.02,
   once = true,
-  as: Component = "span",
+  as: _Component = "span",
 }: TextRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once, margin: "-100px" })

@@ -36,7 +36,7 @@ import {
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
 import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
-import { formatCategory, formatSubtype, formatRequestType } from "@/lib/format-utils"
+import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 interface RequestDetailClientProps {
   request: RequestWithDetails
@@ -69,7 +69,7 @@ export function RequestDetailClient({
       if (request.category === "medical_certificate") {
         router.push(`/doctor/requests/${request.id}/document`)
       }
-      // For other types, we could auto-trigger approve but it's safer to let the doctor review first
+      // For other types, we could auto-trigger approve but it&apos;s safer to let the doctor review first
     }
   }, [initialAction, request.id, request.category, request.status, router])
 
@@ -125,8 +125,9 @@ export function RequestDetailClient({
     })
   }
 
-  const getStatusBadge = (status: string) => {
+  const _getStatusBadge = (status: string) => {
     switch (status) {
+      case "pending":
       case "pending":
         return <Badge className="bg-amber-100/80 text-amber-700 border-0 font-medium">Pending</Badge>
       case "approved":
@@ -140,7 +141,7 @@ export function RequestDetailClient({
     }
   }
 
-  const getInitials = (name: string) => {
+  const _getInitials = (name: string) => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -191,7 +192,7 @@ export function RequestDetailClient({
 
   // S8 Warning Detection: Check if patient free text contains S8 substance terms
   const mappedAnswers = mapLegacyAnswers(answers)
-  const structuredMed = extractMedicationFromAnswers(mappedAnswers)
+  const _structuredMed = extractMedicationFromAnswers(mappedAnswers)
   
   // Collect all free text fields to check for S8 mentions
   const freeTextFields = [
@@ -215,7 +216,7 @@ export function RequestDetailClient({
 
 
   // Medical cert / prescription grouped answers
-  const groupedAnswersForPrescriptionAndMedCert = {
+  const _groupedAnswersForPrescriptionAndMedCert = {
     reason: answers.reason_label || answers.reason,
     dateNeeded: answers.date_needed_label || answers.dateNeeded || answers["Date needed"],
     workType: answers.work_type_label || answers.workType || answers["Work type"],

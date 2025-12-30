@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import { motion } from "framer-motion"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 interface MarqueeProps {
@@ -26,7 +27,7 @@ export function Marquee({
   return (
     <div
       className={cn(
-        "flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]",
+        "flex overflow-hidden mask-[linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]",
         pauseOnHover && "group",
         className
       )}
@@ -94,7 +95,7 @@ export function VerticalMarquee({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]",
+        "flex flex-col overflow-hidden mask-[linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]",
         pauseOnHover && "group",
         className
       )}
@@ -159,10 +160,10 @@ export function LogoTicker({
         >
           {logo.href ? (
             <a href={logo.href} target="_blank" rel="noopener noreferrer">
-              <img src={logo.src} alt={logo.alt} className="h-8 w-auto object-contain" />
+              <Image src={logo.src} alt={logo.alt} width={100} height={32} className="h-8 w-auto object-contain" unoptimized />
             </a>
           ) : (
-            <img src={logo.src} alt={logo.alt} className="h-8 w-auto object-contain" />
+            <Image src={logo.src} alt={logo.alt} width={100} height={32} className="h-8 w-auto object-contain" unoptimized />
           )}
         </div>
       ))}

@@ -33,7 +33,7 @@ const conditions: Record<
     h1: "UTI Treatment Online — Fast Relief When You Need It",
     description:
       "Get UTI treatment online in Australia. Same-day assessment by Australian doctors. Antibiotics prescribed if appropriate. No awkward conversations.",
-    heroSubhead: "Burning, stinging, constant trips to the loo? We get it. Let's sort it out quickly and discreetly.",
+    heroSubhead: "Burning, stinging, constant trips to the loo? We get it. Let&apos;s sort it out quickly and discreetly.",
     symptoms: [
       "Burning or stinging when you pee",
       "Needing to pee urgently or frequently",
@@ -65,7 +65,7 @@ const conditions: Record<
     faqs: [
       {
         q: "Can you prescribe antibiotics for a UTI online?",
-        a: "Yes — if your symptoms are consistent with a straightforward UTI and you don't have any red flags, our doctors can prescribe appropriate antibiotics via e-script.",
+        a: "Yes — if your symptoms are consistent with a straightforward UTI and you don&apos;t have any red flags, our doctors can prescribe appropriate antibiotics via e-script.",
       },
       {
         q: "How quickly will I feel better?",
@@ -73,7 +73,7 @@ const conditions: Record<
       },
       {
         q: "What if it keeps coming back?",
-        a: "If you're getting recurrent UTIs (3+ per year), we'd recommend seeing a GP in person for further investigation and prevention strategies.",
+        a: "If you&apos;re getting recurrent UTIs (3+ per year), we'd recommend seeing a GP in person for further investigation and prevention strategies.",
       },
       {
         q: "Do I need a urine test?",
@@ -139,7 +139,7 @@ const conditions: Record<
     h1: "Eczema Treatment Online — Stop the Itch",
     description:
       "Get eczema treatment online in Australia. Prescription steroid creams and moisturising advice from Australian doctors.",
-    heroSubhead: "Itchy, red, cracked skin? Let's get you some relief without the wait.",
+    heroSubhead: "Itchy, red, cracked skin? Let&apos;s get you some relief without the wait.",
     symptoms: [
       "Itchy, dry, or cracked skin",
       "Red or inflamed patches",
@@ -185,7 +185,7 @@ const conditions: Record<
     h1: "Hay Fever Treatment Online — Breathe Easy",
     description:
       "Get prescription hay fever treatment online. Stronger antihistamines and nasal sprays when over-the-counter options fail.",
-    heroSubhead: "Sneezing, itchy eyes, runny nose? When the chemist stuff isn't cutting it, we can help.",
+    heroSubhead: "Sneezing, itchy eyes, runny nose? When the chemist stuff isn&apos;t cutting it, we can help.",
     symptoms: [
       "Sneezing fits",
       "Itchy, watery eyes",
@@ -231,7 +231,7 @@ const conditions: Record<
     h1: "Acid Reflux Treatment Online — Settle Your Stomach",
     description:
       "Get acid reflux and heartburn treatment online. Prescription PPIs and advice from Australian doctors.",
-    heroSubhead: "Heartburn keeping you up at night? Constant burping and discomfort? Let's sort it.",
+    heroSubhead: "Heartburn keeping you up at night? Constant burping and discomfort? Let&apos;s sort it.",
     symptoms: [
       "Burning sensation in chest (heartburn)",
       "Acid taste in mouth",
@@ -566,11 +566,11 @@ const conditions: Record<
     faqs: [
       {
         q: "Can you prescribe antibiotics for cold/flu?",
-        a: "Colds and flu are caused by viruses, so antibiotics won't help. We can advise on symptom relief and prescribe if a bacterial infection develops.",
+        a: "Colds and flu are caused by viruses, so antibiotics won&apos;t help. We can advise on symptom relief and prescribe if a bacterial infection develops.",
       },
       {
         q: "How long should I stay home?",
-        a: "Generally until you're fever-free for 24 hours and symptoms are improving. The doctor can advise based on your specific situation.",
+        a: "Generally until you&apos;re fever-free for 24 hours and symptoms are improving. The doctor can advise based on your specific situation.",
       },
     ],
     relatedConditions: ["sinus-infection", "hay-fever"],
@@ -582,7 +582,7 @@ const conditions: Record<
     h1: "Sinus Infection Treatment Online — Clear the Pressure",
     description:
       "Get sinus infection treatment online. Antibiotics and nasal sprays prescribed if appropriate by Australian doctors.",
-    heroSubhead: "Head pounding, face aching, blocked up? Let's get you sorted.",
+    heroSubhead: "Head pounding, face aching, blocked up? Let&apos;s get you sorted.",
     symptoms: [
       "Pain and pressure around forehead, cheeks, eyes",
       "Blocked or runny nose",
@@ -672,7 +672,7 @@ const conditions: Record<
     h1: "Thrush Treatment Online — Quick and Discreet",
     description:
       "Get thrush treatment online. Prescription antifungal medication for vaginal or oral thrush from Australian doctors.",
-    heroSubhead: "Itching, burning, cottage cheese discharge? Let's get you comfortable again.",
+    heroSubhead: "Itching, burning, cottage cheese discharge? Let&apos;s get you comfortable again.",
     symptoms: [
       "Itching and irritation",
       "Thick white discharge",

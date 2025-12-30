@@ -139,7 +139,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                 >
                   <motion.div
                     className={cn(
-                      'flex-shrink-0 w-5 h-5 rounded-full border-2 mt-0.5',
+                      'shrink-0 w-5 h-5 rounded-full border-2 mt-0.5',
                       'flex items-center justify-center',
                       'transition-colors duration-150',
                       isSelected
@@ -209,7 +209,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                 >
                   <motion.div
                     className={cn(
-                      'flex-shrink-0 w-5 h-5 rounded-md border-2 mt-0.5',
+                      'shrink-0 w-5 h-5 rounded-md border-2 mt-0.5',
                       'flex items-center justify-center',
                       'transition-colors duration-150',
                       isSelected
@@ -375,7 +375,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             className="overflow-hidden"
           >
             <div className="flex items-center gap-1.5 text-xs text-red-600">
-              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               {error}
             </div>
           </motion.div>

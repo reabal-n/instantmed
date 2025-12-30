@@ -30,7 +30,7 @@ const medications: Record<
     uses: ["Chest infections", "Ear infections", "Urinary tract infections", "Skin infections", "Dental infections"],
     dosages: ["250mg three times daily", "500mg three times daily", "Course typically 5-7 days"],
     sideEffects: ["Nausea", "Diarrhea", "Skin rash", "Yeast infections"],
-    warnings: ["Tell your doctor if you're allergic to penicillin", "Complete the full course even if you feel better"],
+    warnings: ["Tell your doctor if you&apos;re allergic to penicillin", "Complete the full course even if you feel better"],
     prescribable: true,
     schedule: "S4",
   },

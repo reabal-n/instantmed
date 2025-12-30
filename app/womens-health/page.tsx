@@ -9,7 +9,6 @@ import {
   Shield,
   Zap,
   Heart,
-  Pill,
   Lock,
   ChevronDown,
   PhoneOff,
@@ -19,9 +18,9 @@ import {
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Women's Health Online Australia | UTI Treatment & Birth Control | InstantMed",
+  title: "Women&apos;s Health Online Australia | UTI Treatment & Birth Control | InstantMed",
   description:
-    "Discreet women's health consultations with Australian doctors. UTI treatment, contraception renewals, morning-after pill. Script in 15 minutes. Request a female doctor.",
+    "Discreet women&apos;s health consultations with Australian doctors. UTI treatment, contraception renewals, morning-after pill. Script in 15 minutes. Request a female doctor.",
   keywords: [
     "womens health online australia",
     "UTI treatment online",
@@ -32,8 +31,8 @@ export const metadata: Metadata = {
     "womens health telehealth",
   ],
   openGraph: {
-    title: "Women's Health Online | UTI & Birth Control | InstantMed",
-    description: "Get discreet women's health prescriptions from Australian doctors in 15 minutes. Request a female doctor.",
+    title: "Women&apos;s Health Online | UTI & Birth Control | InstantMed",
+    description: "Get discreet women&apos;s health prescriptions from Australian doctors in 15 minutes. Request a female doctor.",
     url: "https://instantmed.com.au/womens-health",
   },
   alternates: {
@@ -73,7 +72,7 @@ const platformFeatures = [
   {
     icon: Users,
     title: "Request a Female Doctor",
-    description: "Prefer to be seen by a female doctor? Simply indicate your preference and we'll do our best to accommodate.",
+    description: "Prefer to be seen by a female doctor? Simply indicate your preference and we&apos;ll do our best to accommodate.",
   },
   {
     icon: PhoneOff,
@@ -101,7 +100,7 @@ const faqs = [
   {
     question: "What birth control options can you prescribe?",
     answer:
-      "Our doctors can prescribe oral contraceptives including combined pills (containing oestrogen and progestogen) and progestogen-only pills (mini pills). For other methods like IUDs, implants, or injections, you'll need to see a doctor in person for insertion/administration.",
+      "Our doctors can prescribe oral contraceptives including combined pills (containing oestrogen and progestogen) and progestogen-only pills (mini pills). For other methods like IUDs, implants, or injections, you&apos;ll need to see a doctor in person for insertion/administration.",
   },
   {
     question: "How quickly can I get the morning-after pill?",
@@ -111,17 +110,17 @@ const faqs = [
   {
     question: "Can I request a female doctor?",
     answer:
-      "Absolutely. When you start your consultation, you can indicate a preference for a female doctor. While we can't guarantee availability at all times, we'll do our best to accommodate your request.",
+      "Absolutely. When you start your consultation, you can indicate a preference for a female doctor. While we can&apos;t guarantee availability at all times, we&apos;ll do our best to accommodate your request.",
   },
   {
     question: "Is this service really private?",
     answer:
-      "Completely. All consultations are encrypted and confidential. Your pharmacy receives only the prescription — not your consultation details. Your bank statement will show 'InstantMed' only, with no indication of the service type.",
+      "Completely. All consultations are encrypted and confidential. Your pharmacy receives only the prescription — not your consultation details. Your bank statement will show &apos;InstantMed&apos; only, with no indication of the service type.",
   },
   {
-    question: "What if I'm not sure what I need?",
+    question: "What if I&apos;m not sure what I need?",
     answer:
-      "That's okay! Start a consultation and describe your symptoms or concerns. Our doctors can help determine the best course of action, whether that's treatment, further testing, or a referral to an appropriate specialist.",
+      "That&apos;s okay! Start a consultation and describe your symptoms or concerns. Our doctors can help determine the best course of action, whether that&apos;s treatment, further testing, or a referral to an appropriate specialist.",
   },
 ]
 
@@ -152,11 +151,11 @@ export default function WomensHealthPage() {
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pink-500/10 text-pink-600 text-sm mb-6">
                 <Heart className="h-4 w-4" />
-                Women's Health • Request Female Doctor
+                Women&apos;s Health • Request Female Doctor
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Women's Healthcare That Understands You
+                Women&apos;s Healthcare That Understands You
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
                 Discreet, judgement-free consultations for UTIs, contraception, and more.
@@ -361,7 +360,7 @@ export default function WomensHealthPage() {
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold mb-4">We Get It</h2>
               <p className="text-muted-foreground mb-6">
-                Some things are easier to discuss without eye contact. Our online process lets you share what's happening
+                Some things are easier to discuss without eye contact. Our online process lets you share what&apos;s happening
                 in your own words, at your own pace. A real doctor reads everything and responds thoughtfully — no judgement, just care.
               </p>
               <Link href="/start?service=womens-health">

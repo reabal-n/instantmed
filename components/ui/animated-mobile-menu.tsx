@@ -318,7 +318,7 @@ export function AnimatedMobileMenu({
         variants={sidebarVariants}
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
-          "bg-gradient-to-b from-white/98 to-gray-50/98",
+          "bg-linear-to-b from-white/98 to-gray-50/98",
           "dark:from-gray-900/98 dark:to-gray-950/98",
           "backdrop-blur-xl",
           "shadow-2xl shadow-black/10 dark:shadow-black/30"

@@ -1,98 +1,100 @@
-import "server-only"
-import { headers } from "next/headers"
-import { logger } from "../logger"
+import { cookies } from "next/headers"
+import { NextResponse } from "next/server"
+import crypto from "crypto"
+
+const CSRF_TOKEN_NAME = "csrf_token"
+const CSRF_HEADER_NAME = "x-csrf-token"
+const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+
+interface CSRFToken {
+  value: string
+  expiresAt: number
+}
 
 /**
- * CSRF Protection for API routes
- *
- * For Server Actions, Next.js provides built-in CSRF protection.
- * For API routes, we use origin verification.
+ * Generate a new CSRF token
  */
+export async function generateCSRFToken(): Promise<string> {
+  const token = crypto.randomBytes(32).toString("hex")
+  const expiresAt = Date.now() + TOKEN_EXPIRY_MS
 
-/**
- * Verify the request origin matches the host
- * This provides CSRF protection for state-changing operations
- */
-export async function verifyCsrfToken(request: Request): Promise<boolean> {
-  // Only check for state-changing methods
-  const method = request.method
-  if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
-    return true // Safe methods don't need CSRF protection
-  }
+  const tokenData: CSRFToken = { value: token, expiresAt }
 
-  const headersList = await headers()
-  const origin = headersList.get("origin")
-  const referer = headersList.get("referer")
-  const host = headersList.get("host")
-
-  // Allow requests with valid origin or referer
-  if (origin) {
-    const originUrl = new URL(origin)
-    if (originUrl.host === host) {
-      return true
-    }
-  }
-
-  if (referer) {
-    const refererUrl = new URL(referer)
-    if (refererUrl.host === host) {
-      return true
-    }
-  }
-
-  // Check for custom CSRF header (for API clients)
-  const csrfHeader = headersList.get("x-csrf-token")
-  if (csrfHeader) {
-    // In a production app, you'd verify this against a session token
-    // For now, just checking its presence
-    return true
-  }
-
-  logger.warn("CSRF verification failed", {
-    method,
-    origin,
-    referer,
-    host,
-    hasCsrfHeader: !!csrfHeader
+  const cookieStore = await cookies()
+  cookieStore.set(CSRF_TOKEN_NAME, JSON.stringify(tokenData), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: TOKEN_EXPIRY_MS / 1000,
+    path: "/",
   })
 
-  return false
+  return token
 }
 
 /**
- * Middleware helper to verify CSRF and return error if invalid
+ * Validate CSRF token from request
  */
-export async function requireValidCsrf(request: Request): Promise<Response | null> {
-  const isValid = await verifyCsrfToken(request)
+export async function validateCSRFToken(request: Request): Promise<boolean> {
+  try {
+    // Get token from header
+    const headerToken = request.headers.get(CSRF_HEADER_NAME)
 
-  if (!isValid) {
-    logger.error("CSRF validation failed - rejecting request", {
-      method: request.method,
-      url: request.url
-    })
+    if (!headerToken) {
+      return false
+    }
 
-    return new Response(
-      JSON.stringify({
-        error: "Invalid request origin",
-        code: "CSRF_VALIDATION_FAILED"
-      }),
-      {
-        status: 403,
-        headers: {
-          "Content-Type": "application/json"
-        }
-      }
+    // Get token from cookie
+    const cookieStore = await cookies()
+    const cookieValue = cookieStore.get(CSRF_TOKEN_NAME)?.value
+
+    if (!cookieValue) {
+      return false
+    }
+
+    const tokenData: CSRFToken = JSON.parse(cookieValue)
+
+    // Check expiry
+    if (Date.now() > tokenData.expiresAt) {
+      return false
+    }
+
+    // Constant-time comparison to prevent timing attacks
+    return crypto.timingSafeEqual(
+      Buffer.from(headerToken),
+      Buffer.from(tokenData.value)
     )
+  } catch {
+    return false
   }
-
-  return null // No error
 }
 
 /**
- * Generate a CSRF token for forms
- * In production, this should be cryptographically secure and session-bound
+ * Middleware wrapper to require CSRF token for mutations
  */
-export function generateCsrfToken(): string {
-  // Simple implementation - in production use crypto.randomBytes
-  return Buffer.from(`${Date.now()}-${Math.random()}`).toString("base64")
+export function withCSRFProtection(
+  handler: (request: Request) => Promise<NextResponse>
+) {
+  return async (request: Request): Promise<NextResponse> => {
+    // Only check for state-changing methods
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+      const isValid = await validateCSRFToken(request)
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: "Invalid or missing CSRF token" },
+          { status: 403 }
+        )
+      }
+    }
+
+    return handler(request)
+  }
+}
+
+/**
+ * API route to get a CSRF token (for client-side use)
+ */
+export async function getCSRFTokenForClient(): Promise<string> {
+  return await generateCSRFToken()
 }

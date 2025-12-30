@@ -50,7 +50,7 @@ const iconBadgeVariants = cva(
           'border border-destructive/20',
         ],
         gradient: [
-          'bg-gradient-to-br from-primary/20 to-accent/20',
+          'bg-linear-to-br from-primary/20 to-accent/20',
           'text-primary',
           'border border-primary/10',
         ],

@@ -49,7 +49,7 @@ const contentVariants = {
 export function FlowShell({
   config,
   children,
-  onComplete,
+  onComplete: _onComplete,
   onExit,
   ctaLabel = 'Continue',
   ctaDisabled = false,
@@ -58,7 +58,7 @@ export function FlowShell({
   className,
 }: FlowShellProps) {
   const router = useRouter()
-  const { currentStepId, stepIndex, totalSteps } = useFlowProgress()
+  const { currentStepId, stepIndex, totalSteps: _totalSteps } = useFlowProgress()
   const { isLoading, isSaving, lastSavedAt } = useFlowUI()
   const { prevStep, saveDraft } = useFlowStore()
 
@@ -97,7 +97,7 @@ export function FlowShell({
   }, [stepIndex, prevStep, handleExit])
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] bg-linear-to-b from-slate-50 to-white flex flex-col">
       {/* Subtle noise texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"

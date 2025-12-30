@@ -27,7 +27,7 @@ const services = [
   {
     icon: Pill,
     title: "Prescription",
-    description: "Need your regular medications? We'll send a script to your pharmacy.",
+    description: "Need your regular medications? We&apos;ll send a script to your pharmacy.",
     color: "#06B6D4",
     gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
@@ -99,7 +99,7 @@ export function FeaturesSection() {
         </motion.div>
 
         <GridStagger className="grid gap-8 md:grid-cols-2" staggerDelay={0.1}>
-          {services.map((service, i) => {
+          {services.map((service) => {
             const Icon = service.icon
             return (
               <Link key={service.title} href={service.href} className="group block">

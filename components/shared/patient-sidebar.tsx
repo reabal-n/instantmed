@@ -21,7 +21,7 @@ export function PatientSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0">
+    <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-24 space-y-6">
         {/* Main Nav */}
         <nav className="glass-card rounded-2xl p-3 space-y-1">

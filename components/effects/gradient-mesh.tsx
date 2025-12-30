@@ -183,21 +183,27 @@ export function GradientBorder({
   return (
     <div className={cn("relative", className)} style={{ padding: borderWidth }}>
       {/* Animated gradient border */}
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          borderRadius,
-          background: `linear-gradient(var(--gradient-angle), ${colors.join(", ")})`,
-        }}
-        animate={{
-          "--gradient-angle": ["0deg", "360deg"],
-        } as Record<string, unknown>}
-        transition={{
-          duration: animationDuration,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      />
+      {(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const animateProps = { "--gradient-angle": ["0deg", "360deg"] } as any
+        return (
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              borderRadius,
+              background: `linear-gradient(var(--gradient-angle), ${colors.join(", ")})`,
+              // @ts-expect-error -- Framer Motion custom CSS properties for animation
+              "--gradient-angle": "0deg",
+            }}
+            animate={animateProps}
+            transition={{
+              duration: animationDuration,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+        )
+      })()}
 
       {/* Inner content container */}
       <div

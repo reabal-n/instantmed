@@ -58,7 +58,7 @@ export function ContextualSocialProof({ service, variant = "mini", className }: 
             <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
           ))}
         </div>
-        <span className="truncate">"{current.quote}"</span>
+        <span className="truncate">&quot;{current.quote}&quot;</span>
         <span className="text-xs opacity-60">— {current.name}</span>
       </div>
     )
@@ -68,11 +68,11 @@ export function ContextualSocialProof({ service, variant = "mini", className }: 
     return (
       <div className={cn("glass-card rounded-xl p-4", className)}>
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Star className="w-4 h-4 text-primary fill-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground">"{current.quote}"</p>
+            <p className="text-sm font-medium text-foreground">&quot;{current.quote}&quot;</p>
             <p className="text-xs text-muted-foreground mt-1">
               {current.name} · {current.time}
             </p>
@@ -86,7 +86,7 @@ export function ContextualSocialProof({ service, variant = "mini", className }: 
   return (
     <div className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-      <span className="truncate max-w-[200px]">"{current.quote}"</span>
+      <span className="truncate max-w-[200px]">&quot;{current.quote}&quot;</span>
     </div>
   )
 }
@@ -96,7 +96,7 @@ interface ServiceStatsProps {
   className?: string
 }
 
-export function ServiceStats({ service, className }: ServiceStatsProps) {
+export function ServiceStats({ service: _service, className }: ServiceStatsProps) {
   const [count, setCount] = useState(0)
   const isClient = useSyncExternalStore(
     () => () => {},
@@ -154,7 +154,7 @@ export function AverageCompletionTime({ className }: { className?: string }) {
     () => true,
     () => false,
   )
-  const [time, setTime] = useState(() => {
+  const [time, _setTime] = useState(() => {
     const hour = new Date().getHours()
     const isPeakHour = hour >= 9 && hour <= 17
     const baseTime = isPeakHour ? 55 : 35

@@ -222,8 +222,8 @@ export function UnifiedBackground({
         className={cn(
           "absolute inset-0 transition-colors duration-700",
           isDark
-            ? "bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950"
-            : "bg-gradient-to-br from-white via-slate-50/80 to-indigo-50/50"
+            ? "bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950"
+            : "bg-linear-to-br from-white via-slate-50/80 to-indigo-50/50"
         )}
       />
 

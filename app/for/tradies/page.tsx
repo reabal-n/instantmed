@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, CheckCircle2, Zap, HardHat, Clock, Smartphone, Star, Wrench, Building } from "lucide-react"
+import { ArrowRight, Shield, Zap, HardHat, Clock, Smartphone, Star, Wrench, Building } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -209,7 +209,7 @@ export default function TradiesPage() {
               <h2 className="text-xl font-bold mb-6 text-center">What you can get</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { title: "Sick Leave Cert", desc: "For when you're crook", price: "From $24.95" },
+                  { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: "From $24.95" },
                   { title: "Carer's Leave Cert", desc: "Looking after sick family", price: "From $24.95" },
                   { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $19.95" },
                 ].map((item) => (

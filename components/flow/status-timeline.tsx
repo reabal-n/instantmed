@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check, Clock, FileText, User, Send } from 'lucide-react'
+import { Check, FileText, User, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type RequestStatus = 
@@ -136,7 +136,7 @@ export function StatusTimeline({
               {/* Icon circle */}
               <motion.div
                 className={cn(
-                  'relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                  'relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0',
                   'transition-colors duration-300',
                   isCompleted && 'bg-emerald-500',
                   isCurrent && 'bg-emerald-500 ring-4 ring-emerald-100',

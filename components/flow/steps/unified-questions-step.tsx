@@ -209,7 +209,7 @@ export function UnifiedQuestionsStep({
           <div className="flex items-center gap-3">
             {/* Status indicator */}
             <div className={cn(
-              'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
+              'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
               status === 'complete' && 'bg-emerald-500',
               status === 'incomplete' && 'bg-slate-200',
               status === 'error' && 'bg-red-500'

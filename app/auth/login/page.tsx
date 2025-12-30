@@ -286,25 +286,25 @@ export default function LoginPage() {
               <div className="absolute -inset-[1px] rounded-3xl overflow-hidden">
                 {/* Top beam */}
                 <motion.div 
-                  className="absolute top-0 left-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
+                  className="absolute top-0 left-0 h-[2px] w-[40%] bg-linear-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
                   animate={{ left: ["-40%", "100%"] }}
                   transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
                 />
                 {/* Right beam */}
                 <motion.div 
-                  className="absolute top-0 right-0 h-[40%] w-[2px] bg-gradient-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
+                  className="absolute top-0 right-0 h-[40%] w-[2px] bg-linear-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
                   animate={{ top: ["-40%", "100%"] }}
                   transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 0.75 }}
                 />
                 {/* Bottom beam */}
                 <motion.div 
-                  className="absolute bottom-0 right-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
+                  className="absolute bottom-0 right-0 h-[2px] w-[40%] bg-linear-to-r from-transparent via-[#00E2B5] to-transparent opacity-60"
                   animate={{ right: ["-40%", "100%"] }}
                   transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 1.5 }}
                 />
                 {/* Left beam */}
                 <motion.div 
-                  className="absolute bottom-0 left-0 h-[40%] w-[2px] bg-gradient-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
+                  className="absolute bottom-0 left-0 h-[40%] w-[2px] bg-linear-to-b from-transparent via-[#06B6D4] to-transparent opacity-60"
                   animate={{ bottom: ["-40%", "100%"] }}
                   transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5, delay: 2.25 }}
                 />
@@ -323,7 +323,7 @@ export default function LoginPage() {
               </div>
 
               {/* Card border glow on hover */}
-              <div className="absolute -inset-[0.5px] rounded-3xl bg-gradient-to-r from-[#00E2B5]/5 via-[#06B6D4]/10 to-[#00E2B5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -inset-[0.5px] rounded-3xl bg-linear-to-r from-[#00E2B5]/5 via-[#06B6D4]/10 to-[#00E2B5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               {/* Glass card background */}
               <div className="relative glass-card rounded-3xl p-8 border border-white/20 overflow-hidden">

@@ -82,7 +82,7 @@ export function BenefitsSection() {
                   <BlurFade key={benefit.title} delay={0.2 + i * 0.05}>
                     <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/40 dark:border-gray-700/40 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-colors">
                       <div
-                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
                         style={{ background: `linear-gradient(135deg, ${benefit.color}20, ${benefit.color}10)` }}
                       >
                         <Icon className="h-5 w-5" style={{ color: benefit.color }} />
@@ -132,7 +132,7 @@ export function BenefitsSection() {
                         className="bg-green-50 dark:bg-green-900/30 rounded-2xl p-4 mb-4"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
                             <Image
                               src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
                               alt="Doctor"

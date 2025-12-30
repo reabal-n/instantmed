@@ -142,7 +142,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
       )}
     >
       <div className="flex items-start gap-3">
-        <Icon className={cn('w-5 h-5 mt-0.5 flex-shrink-0', iconColors[toast.type])} />
+        <Icon className={cn('w-5 h-5 mt-0.5 shrink-0', iconColors[toast.type])} />
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm">{toast.title}</p>
           {toast.description && (
@@ -151,7 +151,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
         </div>
         <button
           onClick={onRemove}
-          className="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+          className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
         >
           <X className="w-4 h-4" />
         </button>

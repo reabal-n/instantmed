@@ -80,7 +80,7 @@ export function useDraftResume(
               id: d.id,
               sessionId: d.sessionId,
               serviceSlug: d.serviceSlug,
-              serviceName: getServiceName(String(d.serviceSlug || '')),
+              serviceName: getServiceName(d.serviceSlug as string),
               currentStep: d.currentStep,
               progress: 0, // Will calculate
               createdAt: d.createdAt,

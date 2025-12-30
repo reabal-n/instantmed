@@ -25,7 +25,7 @@ const features = [
   {
     icon: Stethoscope,
     title: "New prescriptions",
-    description: "Get a new prescription for medications you haven't taken before",
+    description: "Get a new prescription for medications you haven&apos;t taken before",
   },
   {
     icon: MessageSquare,
@@ -72,7 +72,7 @@ export default function ConsultPage() {
               style={{ animationDelay: "0.1s", animationFillMode: "forwards", fontFamily: "var(--font-display)" }}
             >
               Speak with an Australian GP{" "}
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
                 online
               </span>
             </h1>
@@ -91,7 +91,7 @@ export default function ConsultPage() {
               <Button
                 asChild
                 size="lg"
-                className="rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-14 px-8 shadow-lg"
+                className="rounded-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-14 px-8 shadow-lg"
               >
                 <Link href="/consult/request">
                   Book a consult — $44.95
@@ -164,7 +164,7 @@ export default function ConsultPage() {
               <Button
                 asChild
                 size="lg"
-                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-12 px-8"
+                className="w-full sm:w-auto rounded-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-12 px-8"
               >
                 <Link href="/consult/request">
                   Get started

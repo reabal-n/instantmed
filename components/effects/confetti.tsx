@@ -47,7 +47,7 @@ export function useConfetti() {
   }, [])
 
   const fire = useCallback((originX?: number, originY?: number) => {
-    // Create canvas if it doesn't exist
+    // Create canvas if it doesn&apos;t exist
     if (!canvasRef.current) {
       const canvas = document.createElement("canvas")
       canvas.style.position = "fixed"

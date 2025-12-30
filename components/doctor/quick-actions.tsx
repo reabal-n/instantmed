@@ -6,7 +6,6 @@ import {
   CheckCircle, 
   XCircle, 
   Clock, 
-  Send, 
   Keyboard,
   ChevronRight,
   Zap,
@@ -14,7 +13,6 @@ import {
   FileDown,
   Pill
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -47,8 +45,8 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({
-  requestId,
-  requestType,
+  requestId: _requestId,
+  requestType: _requestType,
   onApprove,
   onDecline,
   onRequestInfo,

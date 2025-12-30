@@ -148,7 +148,7 @@ interface MouseFollowProps {
 export function MouseFollow({
   children,
   className,
-  strength = 20,
+  strength: _strength = 20,
   ease = 0.1,
 }: MouseFollowProps) {
   const ref = useRef<HTMLDivElement>(null)

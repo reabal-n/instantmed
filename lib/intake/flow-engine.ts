@@ -116,7 +116,7 @@ export function checkSafetyFlags(
       } else if (Array.isArray(flag.value)) {
         triggered = Array.isArray(fieldValue)
           ? flag.value.some((v) => fieldValue.includes(v))
-          : flag.value.includes(fieldValue)
+          : flag.value.includes(fieldValue as string)
       } else {
         triggered = fieldValue === flag.value
       }
@@ -191,12 +191,18 @@ export function validateForm(config: FlowConfig, data: Record<string, unknown>):
 }
 
 // Generate structured JSON summary for doctor dashboard
-export function generateDoctorSummary(config: FlowConfig, data: Record<string, unknown>): Record<string, unknown> {
-  const summary: Record<string, unknown> = {
+export function generateDoctorSummary(config: FlowConfig, data: Record<string, unknown>): {
+  flowType: string
+  flowName: string
+  submittedAt: string
+  sections: Record<string, Record<string, unknown>>
+  safetyFlags: { severity: "info" | "warning" | "knockout"; message: string }[]
+} {
+  const summary = {
     flowType: config.id,
     flowName: config.name,
     submittedAt: new Date().toISOString(),
-    sections: {},
+    sections: {} as Record<string, Record<string, unknown>>,
     safetyFlags: checkSafetyFlags(config, data),
   }
 

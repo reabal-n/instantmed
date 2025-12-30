@@ -249,7 +249,7 @@ export function TrackingClient({
                 {/* Icon */}
                 <div
                   className={cn(
-                    "relative z-10 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+                    "relative z-10 shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
                     step.status === "complete"
                       ? "bg-primary text-primary-foreground"
                       : step.status === "current"

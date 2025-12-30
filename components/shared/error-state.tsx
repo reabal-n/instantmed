@@ -47,7 +47,7 @@ const errorConfig: Record<
   "not-found": {
     icon: FileX,
     defaultTitle: "Not found",
-    defaultMessage: "We couldn't find what you're looking for.",
+    defaultMessage: "We couldn&apos;t find what you&apos;re looking for.",
     iconColor: "text-slate-500",
     bgColor: "bg-slate-50",
   },

@@ -24,7 +24,7 @@ export const RED_FLAG_SYMPTOMS = [
   { id: "stroke_signs", label: "Face drooping, arm weakness, speech difficulty", severity: "critical", emoji: "🧠" },
   { id: "severe_bleeding", label: "Uncontrolled bleeding", severity: "critical", emoji: "🩸" },
   { id: "loss_consciousness", label: "Loss of consciousness", severity: "critical", emoji: "😵" },
-  { id: "severe_allergic", label: "Severe allergic reaction (swelling, can't breathe)", severity: "critical", emoji: "⚠️" },
+  { id: "severe_allergic", label: "Severe allergic reaction (swelling, can&apos;t breathe)", severity: "critical", emoji: "⚠️" },
   { id: "suicidal_thoughts", label: "Thoughts of self-harm or suicide", severity: "critical", emoji: "🆘" },
   { id: "severe_head_injury", label: "Severe head injury", severity: "critical", emoji: "🤕" },
 ] as const
@@ -87,7 +87,7 @@ export function checkSymptoms(
 
   // Check for additional keywords in details
   const criticalKeywords = [
-    "can't breathe",
+    "can&apos;t breathe",
     "cannot breathe",
     "crushing chest",
     "heart attack",

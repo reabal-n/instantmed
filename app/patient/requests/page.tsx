@@ -42,7 +42,7 @@ export default async function PatientRequestsPage({
           className="rounded-2xl border border-emerald-200 bg-emerald-50/80 backdrop-blur-sm p-4 flex items-start gap-3 animate-fade-in-up"
           style={{ animationFillMode: "forwards" }}
         >
-          <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-emerald-800">Request submitted successfully</p>
             <p className="text-sm text-emerald-700 mt-0.5">

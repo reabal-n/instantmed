@@ -161,8 +161,8 @@ export default function ShiftWorkersPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   {
-                    title: "GPs don't work your hours",
-                    desc: "Finish a night shift at 6am and can't see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
+                    title: "GPs don&apos;t work your hours",
+                    desc: "Finish a night shift at 6am and can&apos;t see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
                   },
                   {
                     title: "No time to wait",
@@ -200,7 +200,7 @@ export default function ShiftWorkersPage() {
                   {
                     name: "Marcus P.",
                     role: "Chef, Melbourne",
-                    quote: "Hospitality hours mean I can't see a GP during the week. This saved me so much hassle.",
+                    quote: "Hospitality hours mean I can&apos;t see a GP during the week. This saved me so much hassle.",
                   },
                   {
                     name: "Emma T.",

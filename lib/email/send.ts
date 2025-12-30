@@ -39,23 +39,28 @@ function renderTemplate(template: EmailTemplate, data: Record<string, unknown>):
 
   switch (template) {
     case "request_received":
-      element = React.createElement(RequestReceivedEmail, data as Record<string, unknown>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(RequestReceivedEmail, data as any)
       subject = `Your ${data.requestType} request has been received`
       break
     case "payment_confirmed":
-      element = React.createElement(PaymentConfirmedEmail, data as Record<string, unknown>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(PaymentConfirmedEmail, data as any)
       subject = `Payment confirmed for your ${data.requestType}`
       break
     case "request_approved":
-      element = React.createElement(RequestApprovedEmail, data as Record<string, unknown>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(RequestApprovedEmail, data as any)
       subject = `Good news! Your ${data.requestType} has been approved`
       break
     case "needs_more_info":
-      element = React.createElement(NeedsMoreInfoEmail, data as Record<string, unknown>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(NeedsMoreInfoEmail, data as any)
       subject = `Action needed: Additional information required`
       break
     case "request_declined":
-      element = React.createElement(RequestDeclinedEmail, data as Record<string, unknown>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(RequestDeclinedEmail, data as any)
       subject = `Update on your ${data.requestType} request`
       break
     default:

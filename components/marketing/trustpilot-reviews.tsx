@@ -9,14 +9,14 @@ const reviews = [
     name: "Sarah M.",
     location: "Sydney",
     rating: 5,
-    text: "Got my med cert in 20 mins. Lifesaver when you're actually sick and can't leave bed.",
+    text: "Got my med cert in 20 mins. Lifesaver when you&apos;re actually sick and can&apos;t leave bed.",
     date: "2 days ago",
   },
   {
     name: "James K.",
     location: "Melbourne",
     rating: 5,
-    text: "Finally a telehealth that doesn't make you wait 3 days. Script sorted same day.",
+    text: "Finally a telehealth that doesn&apos;t make you wait 3 days. Script sorted same day.",
     date: "1 week ago",
   },
   {

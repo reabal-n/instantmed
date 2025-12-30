@@ -1,7 +1,7 @@
 "use client"
 
 import type * as React from "react"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { ChevronDown, Check, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -64,7 +64,7 @@ function CardSelector({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative p-4 rounded-xl border-2 text-center transition-all duration-150 min-h-[80px]",
+        "relative p-4 rounded-xl border-2 text-center transition-all duration-150 min-h-20",
         selected
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
           : "border-border hover:border-primary/50 hover:bg-muted/50",
@@ -129,8 +129,8 @@ function QuestionField({
   error,
 }: {
   question: FlowQuestion
-  value: any
-  onChange: (value: any) => void
+  value: string | string[] | boolean | undefined
+  onChange: (value: string | string[] | boolean) => void
   error?: string
 }) {
   switch (question.type) {
@@ -140,7 +140,7 @@ function QuestionField({
           <Label className="text-sm font-medium">{question.label}</Label>
           {question.sublabel && <p className="text-xs text-muted-foreground">{question.sublabel}</p>}
           <RadioGroup
-            value={value}
+            value={typeof value === 'string' ? value : undefined}
             onValueChange={onChange}
             className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
@@ -208,13 +208,13 @@ function QuestionField({
           {question.sublabel && <p className="text-xs text-muted-foreground">{question.sublabel}</p>}
           {isMultiline ? (
             <Textarea
-              value={value || ""}
+              value={typeof value === 'string' ? value : ""}
               onChange={(e) => onChange(e.target.value)}
               placeholder={question.placeholder}
-              className="min-h-[80px]"
+              className="min-h-20"
             />
           ) : (
-            <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={question.placeholder} />
+            <Input value={typeof value === 'string' ? value : ""} onChange={(e) => onChange(e.target.value)} placeholder={question.placeholder} />
           )}
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
@@ -224,7 +224,7 @@ function QuestionField({
       return (
         <div className="space-y-2">
           <Label className="text-sm font-medium">{question.label}</Label>
-          <Input type="date" value={value || ""} onChange={(e) => onChange(e.target.value)} />
+          <Input type="date" value={typeof value === 'string' ? value : ""} onChange={(e) => onChange(e.target.value)} />
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
       )
@@ -254,7 +254,7 @@ function Section({
 }: {
   section: FlowSection
   data: Record<string, unknown>
-  onChange: (field: string, value: unknown) => void
+  onChange: (field: string, value: string | string[] | boolean) => void
   errors?: Record<string, string>
   isOpen: boolean
   onToggle: () => void
@@ -289,7 +289,7 @@ function Section({
               <QuestionField
                 key={question.id}
                 question={question}
-                value={data[question.id]}
+                value={data[question.id] as string | string[] | boolean | undefined}
                 onChange={(value) => onChange(question.id, value)}
                 error={errors?.[question.id]}
               />
@@ -301,7 +301,7 @@ function Section({
   )
 }
 
-export function CollapsibleForm({ config, data, onChange, errors = {}, onValidate }: CollapsibleFormProps) {
+export function CollapsibleForm({ config, data, onChange, errors = {}, onValidate: _onValidate }: CollapsibleFormProps) {
   const visibleSections = useMemo(() => getVisibleSections(config, data), [config, data])
 
   const [openSections, setOpenSections] = useState<Set<string>>(() => {
@@ -334,7 +334,7 @@ export function CollapsibleForm({ config, data, onChange, errors = {}, onValidat
   }, [])
 
   const handleChange = useCallback(
-    (field: string, value: any) => {
+    (field: string, value: string | string[] | boolean) => {
       onChange({ ...data, [field]: value })
     },
     [data, onChange],

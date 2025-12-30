@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button, Input, Textarea, Progress as HeroProgress } from "@heroui/react"
+import { Button, Input, Textarea } from "@heroui/react"
 import confetti from "canvas-confetti"
 import {
   ArrowLeft,
@@ -347,7 +347,7 @@ export function PrescriptionFlowClient({
   userEmail,
   userName,
 }: Props) {
-  const router = useRouter()
+  const _router = useRouter()
   const supabase = createClient()
 
   // Auth state
@@ -361,7 +361,7 @@ export function PrescriptionFlowClient({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [signupMode, setSignupMode] = useState<"new" | "existing">("new")
 
   // Form state - structured medication selection
@@ -457,7 +457,7 @@ export function PrescriptionFlowClient({
       if (nextIndex < steps.length && steps[nextIndex] === "signup" && isAuthenticated && !needsOnboarding) {
         nextIndex++
       }
-      // Safety check: ensure we don't go out of bounds
+      // Safety check: ensure we don&apos;t go out of bounds
       if (nextIndex < steps.length) {
         goTo(steps[nextIndex])
       }
@@ -487,7 +487,7 @@ export function PrescriptionFlowClient({
         return selectedMedication !== null
       case "gating":
         // Both gating questions must be answered
-        // If blocked (prescribedBefore=No OR doseChanged=Yes), show block UI but don't allow continue
+        // If blocked (prescribedBefore=No OR doseChanged=Yes), show block UI but don&apos;t allow continue
         return prescribedBefore !== null && doseChanged !== null && !isGatingBlocked
       case "condition":
         return !!condition && (condition !== "other" || otherCondition.trim().length > 0)
@@ -518,7 +518,7 @@ export function PrescriptionFlowClient({
   }
 
   // Handle signup/signin
-  const handleAuth = async () => {
+  const _handleAuth = async () => {
     setAuthLoading(true)
     setError(null)
 
@@ -1027,7 +1027,7 @@ export function PrescriptionFlowClient({
                   <Button
                     as={Link}
                     href="/consult"
-                    className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
+                    className="w-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
                     radius="lg"
                   >
                     Continue to General Consult ($44.95)

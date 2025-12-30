@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { Check, AlertCircle, Loader2 } from 'lucide-react'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'
@@ -36,7 +35,7 @@ const REQUIRED_CONSENTS: { type: ConsentType; label: string; version: string }[]
   },
 ]
 
-export function DetailsStep({ config, onComplete }: DetailsStepProps) {
+export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
   const existingIdentity = useFlowIdentity()
   const { setIdentityData, addConsent, nextStep } = useFlowStore()
   const supabase = createClient()
@@ -59,7 +58,7 @@ export function DetailsStep({ config, onComplete }: DetailsStepProps) {
   const [acceptedConsents, setAcceptedConsents] = useState<Set<ConsentType>>(new Set())
 
   // Auth form state (for non-logged-in users)
-  const [authMode, setAuthMode] = useState<'signup' | 'login'>('signup')
+  const [_authMode, _setAuthMode] = useState<'signup' | 'login'>('signup')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -263,7 +262,7 @@ export function DetailsStep({ config, onComplete }: DetailsStepProps) {
 
               {authError && (
                 <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 shrink-0" />
                   {authError}
                 </div>
               )}
@@ -314,7 +313,7 @@ export function DetailsStep({ config, onComplete }: DetailsStepProps) {
                 >
                   <div
                     className={cn(
-                      'flex-shrink-0 w-5 h-5 rounded border-2 mt-0.5',
+                      'shrink-0 w-5 h-5 rounded border-2 mt-0.5',
                       'flex items-center justify-center',
                       isAccepted
                         ? 'border-emerald-500 bg-emerald-500'

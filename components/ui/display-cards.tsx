@@ -170,7 +170,7 @@ function SingleCard({ card, index, isTop, reducedMotion, direction }: SingleCard
       
       {/* Subtle inner border glow */}
       <div className="absolute inset-[1px] rounded-xl pointer-events-none">
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/5 to-transparent" />
+        <div className="absolute inset-0 rounded-xl bg-linear-to-b from-white/5 to-transparent" />
       </div>
     </motion.div>
   )

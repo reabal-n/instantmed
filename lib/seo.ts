@@ -117,11 +117,12 @@ export function generateStructuredData(type: "Organization" | "MedicalBusiness" 
     return baseOrg
   }
 
-  if (type === "FAQPage" && data?.faqs && Array.isArray(data.faqs)) {
+  if (type === "FAQPage" && data?.faqs) {
+    const faqs = data.faqs as { question: string; answer: string }[]
     return {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: data.faqs.map((faq: { question: string; answer: string }) => ({
+      mainEntity: faqs.map((faq) => ({
         "@type": "Question",
         name: faq.question,
         acceptedAnswer: {

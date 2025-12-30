@@ -28,15 +28,15 @@ const faqCategories = [
       },
       {
         q: "How long does it take?",
-        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can't help you, you get a full refund.",
+        a: "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). We aim to respond within 24 hours maximum. If we can&apos;t help you, you get a full refund.",
       },
       {
         q: "How do I know if I need a GP visit instead?",
-        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that's the case.",
+        a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that&apos;s the case.",
       },
       {
         q: "Will a doctor call me?",
-        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care — it's a feature, not a bug.",
+        a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care — it&apos;s a feature, not a bug.",
       },
     ],
   },
@@ -54,7 +54,7 @@ const faqCategories = [
       },
       {
         q: "What if my request is declined?",
-        a: "If the doctor determines a certificate isn't clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a GP in person for a more thorough assessment.",
+        a: "If the doctor determines a certificate isn&apos;t clinically appropriate, you'll receive a full refund within 3-5 business days. They may also explain why and suggest alternatives, like seeing a GP in person for a more thorough assessment.",
       },
       {
         q: "What if I need more than 2 days off?",
@@ -72,7 +72,7 @@ const faqCategories = [
       },
       {
         q: "What if my prescription request is declined?",
-        a: "If the doctor determines a prescription isn't clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it's a new medication, or there are potential interactions with your other medications.",
+        a: "If the doctor determines a prescription isn&apos;t clinically appropriate, you'll receive a full refund. They may recommend alternatives or suggest an in-person consultation. Common reasons include: medication requires physical monitoring, it&apos;s a new medication, or there are potential interactions with your other medications.",
       },
       {
         q: "How do I receive my prescription?",
@@ -94,11 +94,11 @@ const faqCategories = [
       },
       {
         q: "Do you share my data with anyone?",
-        a: "Never. We don't sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
+        a: "Never. We don&apos;t sell or share your data with third parties. Ever. The only exceptions are: sending prescriptions to your nominated pharmacy (because you asked us to), and complying with legal requirements (like mandatory disease reporting).",
       },
       {
         q: "Can I delete my account?",
-        a: "Yes, you can request full deletion of your account and data at any time. Note that we're legally required to retain medical records for 7 years as per Australian healthcare regulations.",
+        a: "Yes, you can request full deletion of your account and data at any time. Note that we&apos;re legally required to retain medical records for 7 years as per Australian healthcare regulations.",
       },
     ],
   },
@@ -108,15 +108,15 @@ const faqCategories = [
     faqs: [
       {
         q: "What payment methods do you accept?",
-        a: "Visa, Mastercard, American Express, and digital wallets including Apple Pay and Google Pay. All payments are processed securely via Stripe. We don't store your card details.",
+        a: "Visa, Mastercard, American Express, and digital wallets including Apple Pay and Google Pay. All payments are processed securely via Stripe. We don&apos;t store your card details.",
       },
       {
         q: "What's your refund policy?",
-        a: "If we're unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
+        a: "If we&apos;re unable to help you (e.g., your request is declined for clinical reasons), you'll receive a full refund within 3-5 business days. No questions asked, no hoops to jump through.",
       },
       {
         q: "Is there a Medicare rebate for the consultation?",
-        a: "Our consultation fees aren't covered by Medicare as they're a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
+        a: "Our consultation fees aren't covered by Medicare as they&apos;re a private telehealth service. However, any prescriptions you receive are Medicare-eligible.",
       },
     ],
   },

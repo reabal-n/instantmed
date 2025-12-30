@@ -41,7 +41,7 @@ export function DoctorSidebar({ pendingCount = 0, scriptsToSend = 0 }: DoctorSid
                 className={cn(
                   "flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
+                    ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-white/50",
                 )}
               >

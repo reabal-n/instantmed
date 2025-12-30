@@ -72,7 +72,7 @@ const LiveVisitorCounter = () => {
     return (
       <div className="relative h-5 w-4 overflow-hidden inline-block">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
-          let digitOffset = (10 + num - offset) % 10
+          const digitOffset = (10 + num - offset) % 10
           let translateY = digitOffset * 20
 
           if (digitOffset > 5) {

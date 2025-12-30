@@ -72,7 +72,7 @@ export function EmptyState({
 export function EmptyRequests() {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6">
+      <div className="w-20 h-20 rounded-full bg-linear-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30 flex items-center justify-center mb-6">
         <FileText className="w-10 h-10 text-indigo-500" />
       </div>
       <h3 className="text-xl font-semibold mb-2">No requests yet</h3>
@@ -112,7 +112,7 @@ export function EmptySearch() {
 export function EmptyQueue() {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center mb-6 animate-bounce-slow">
+      <div className="w-20 h-20 rounded-full bg-linear-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center mb-6 animate-bounce-slow">
         <span className="text-4xl">🎉</span>
       </div>
       <h3 className="text-xl font-semibold mb-2">All caught up!</h3>

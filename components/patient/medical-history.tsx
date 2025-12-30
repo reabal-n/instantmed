@@ -6,11 +6,9 @@ import {
   Pill, 
   Calendar, 
   ChevronDown, 
-  ChevronRight,
   AlertCircle,
   Activity,
   Shield,
-  Clock,
   Download
 } from "lucide-react"
 import { Button } from "@/components/ui/button"

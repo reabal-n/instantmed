@@ -201,7 +201,7 @@ export default function StudentsPage() {
                   {
                     icon: Smartphone,
                     title: "From your phone",
-                    desc: "Do it from bed when you're too sick to leave the house. PDF to your email.",
+                    desc: "Do it from bed when you&apos;re too sick to leave the house. PDF to your email.",
                   },
                   {
                     icon: Shield,
@@ -288,7 +288,7 @@ export default function StudentsPage() {
                   },
                   {
                     q: "What does it cost?",
-                    a: "Medical certificates for students are $24.95 — one flat fee. If your request isn't approved, you get a refund minus a small admin fee.",
+                    a: "Medical certificates for students are $24.95 — one flat fee. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
                   },
                 ].map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-muted/30">

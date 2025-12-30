@@ -147,7 +147,7 @@ export function PasswordConfirmation({
         <p className="text-xs text-muted-foreground">
           {value.length < password.length 
             ? `${password.length - value.length} more characters needed`
-            : "Passwords don't match"
+            : "Passwords don&apos;t match"
           }
         </p>
       )}

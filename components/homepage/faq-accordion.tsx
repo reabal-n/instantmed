@@ -113,7 +113,7 @@ export function FAQAccordion({ limit, showCategories = false }: FAQAccordionProp
                 <span className="font-medium text-foreground pr-4">{faq.question}</span>
               </div>
               <div
-                className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                   openId === faq.id
                     ? "bg-[#00E2B5] text-white rotate-0"
                     : "bg-muted text-muted-foreground"

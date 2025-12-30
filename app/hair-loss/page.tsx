@@ -13,8 +13,6 @@ import {
   Lock,
   ChevronDown,
   PhoneOff,
-  Sparkles,
-  CheckCircle2,
 } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -102,9 +100,9 @@ const platformFeatures = [
 
 const faqs = [
   {
-    question: "What's the difference between Finasteride and Minoxidil?",
+    question: "What&apos;s the difference between Finasteride and Minoxidil?",
     answer:
-      "Finasteride is an oral tablet that blocks DHT (the hormone causing hair loss) from within. It's most effective for hair loss at the crown and mid-scalp. Minoxidil is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both together for best results.",
+      "Finasteride is an oral tablet that blocks DHT (the hormone causing hair loss) from within. It&apos;s most effective for hair loss at the crown and mid-scalp. Minoxidil is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both together for best results.",
   },
   {
     question: "How long until I see results?",
@@ -124,12 +122,12 @@ const faqs = [
   {
     question: "Is the service really discreet?",
     answer:
-      "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
+      "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows &apos;InstantMed&apos; only.",
   },
   {
     question: "Can women use these treatments?",
     answer:
-      "Minoxidil can be used by women for hair loss (at lower concentrations). Finasteride is NOT suitable for women, especially those who are or may become pregnant. If you're a woman experiencing hair loss, please indicate this in your consultation.",
+      "Minoxidil can be used by women for hair loss (at lower concentrations). Finasteride is NOT suitable for women, especially those who are or may become pregnant. If you&apos;re a woman experiencing hair loss, please indicate this in your consultation.",
   },
 ]
 
@@ -350,7 +348,7 @@ export default function HairLossPage() {
             <div className="mx-auto max-w-3xl">
               <div className="text-center mb-12">
                 <h2 className="text-2xl font-bold sm:text-3xl mb-3">What to Expect</h2>
-                <p className="text-muted-foreground">Hair regrowth takes time — here's a typical timeline</p>
+                <p className="text-muted-foreground">Hair regrowth takes time — here&apos;s a typical timeline</p>
               </div>
 
               <div className="space-y-4">

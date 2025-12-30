@@ -76,12 +76,12 @@ export default function TrustPage() {
       icon: Scale,
       title: "Complaints Process",
       description:
-        "We take complaints seriously. If you're unhappy with our service, you can lodge a complaint directly with us or escalate to the relevant health ombudsman.",
+        "We take complaints seriously. If you&apos;re unhappy with our service, you can lodge a complaint directly with us or escalate to the relevant health ombudsman.",
       details: [
         "Respond to complaints within 48 hours",
         "Independent review by senior doctors",
         "Escalation to Health Complaints Commissioner",
-        "Full refund if we can't help you",
+        "Full refund if we can&apos;t help you",
       ],
     },
   ]
@@ -103,7 +103,7 @@ export default function TrustPage() {
                 Your health. <span className="text-primary">Our responsibility.</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                InstantMed is built on a foundation of trust, transparency, and clinical excellence. Here's how we keep
+                InstantMed is built on a foundation of trust, transparency, and clinical excellence. Here&apos;s how we keep
                 you safe.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
@@ -128,7 +128,7 @@ export default function TrustPage() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-12">
-              {trustPoints.map((point, index) => (
+              {trustPoints.map((point) => (
                 <div key={point.title} className="rounded-2xl border bg-card p-6 md:p-8">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -159,7 +159,7 @@ export default function TrustPage() {
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl font-bold text-foreground mb-4">Verify our doctors yourself</h2>
               <p className="text-muted-foreground mb-6">
-                Every doctor's registration can be independently verified on the AHPRA public register. We encourage you
+                Every doctor&apos;s registration can be independently verified on the AHPRA public register. We encourage you
                 to check.
               </p>
               <Button asChild variant="outline" className="rounded-full bg-transparent">
@@ -178,7 +178,7 @@ export default function TrustPage() {
             <div className="max-w-xl mx-auto text-center">
               <h2 className="text-2xl font-bold text-foreground mb-4">Still have concerns?</h2>
               <p className="text-muted-foreground mb-6">
-                We're happy to answer any questions about our processes, doctors, or security measures.
+                We&apos;re happy to answer any questions about our processes, doctors, or security measures.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild className="rounded-full">

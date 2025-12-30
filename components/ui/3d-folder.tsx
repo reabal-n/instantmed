@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, forwardRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -210,16 +209,16 @@ interface ImageLightboxProps {
 function ImageLightbox({
   projects,
   currentIndex,
-  isOpen,
+  isOpen: _isOpen,
   onClose,
-  sourceRect,
+  sourceRect: _sourceRect,
   onCloseComplete,
   onNavigate,
 }: ImageLightboxProps) {
   const [animationPhase, setAnimationPhase] = useState<"initial" | "animating" | "complete">("initial");
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [internalIndex, setInternalIndex] = useState(currentIndex);
+  const [internalIndex, _setInternalIndex] = useState(currentIndex);
   const [isSliding, setIsSliding] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -426,7 +425,7 @@ const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
         }}
       >
         <img src={image} alt={title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-foreground/60 to-transparent" />
         <p className="absolute bottom-1.5 left-1.5 right-1.5 text-[10px] font-medium text-primary-foreground truncate">
           {title}
         </p>

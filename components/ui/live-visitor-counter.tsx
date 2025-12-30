@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 const AVATARS: string[] = [
@@ -125,10 +126,13 @@ export function LiveVisitorCounter({
             className="h-5 w-5 rounded-full border border-white dark:border-gray-800 overflow-hidden"
             style={{ backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length] }}
           >
-            <img
+            <Image
               src={url}
               alt=""
+              width={20}
+              height={20}
               className="h-full w-full object-cover"
+              unoptimized
             />
           </div>
         ))}

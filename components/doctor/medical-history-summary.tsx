@@ -82,7 +82,7 @@ export function MedicalHistorySummary({
       <div className="p-4 flex items-start justify-between">
         <div className="flex items-start gap-3">
           {/* Avatar */}
-          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg">
+          <div className="h-12 w-12 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg">
             {data.fullName.charAt(0).toUpperCase()}
           </div>
           

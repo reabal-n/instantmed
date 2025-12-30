@@ -152,7 +152,7 @@ const testimonials: Testimonial[] = [
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="flex-shrink-0 w-[340px] sm:w-[380px] mx-3">
+    <div className="shrink-0 w-[340px] sm:w-[380px] mx-3">
       <div className="glass-card rounded-2xl p-6 h-full hover-lift transition-all duration-300">
         <div className="flex items-start justify-between mb-4">
           <span className="text-3xl">{testimonial.emoji || "💬"}</span>
@@ -166,7 +166,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           </div>
         </div>
 
-        <p className="text-foreground leading-relaxed mb-5 text-[15px]">"{testimonial.quote}"</p>
+        <p className="text-foreground leading-relaxed mb-5 text-[15px]">&quot;{testimonial.quote}&quot;</p>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

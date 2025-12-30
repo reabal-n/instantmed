@@ -890,7 +890,7 @@ export function EnhancedIntakeFlow({
             {/* Emergency warning */}
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <div className="flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-800">Important</p>
                   <p className="text-amber-700">
@@ -1113,7 +1113,7 @@ export function EnhancedIntakeFlow({
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">

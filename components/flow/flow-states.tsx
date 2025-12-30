@@ -242,7 +242,7 @@ interface WaitingStateProps {
 export function WaitingState({ 
   title, 
   message, 
-  showTimer = false,
+  showTimer: _showTimer = false,
   className 
 }: WaitingStateProps) {
   return (

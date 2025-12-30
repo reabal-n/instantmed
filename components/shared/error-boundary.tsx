@@ -28,7 +28,7 @@ interface State {
 async function reportError(error: Error, errorInfo: React.ErrorInfo): Promise<void> {
   try {
     // In production, send to error tracking service (e.g., Sentry, LogRocket)
-    const errorReport = {
+    const _errorReport = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,

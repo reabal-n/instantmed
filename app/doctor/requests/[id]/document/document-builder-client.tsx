@@ -277,13 +277,13 @@ export function DocumentBuilderClient({
       {/* Messages */}
       {savedMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle className="h-5 w-5 flex-shrink-0" />
+          <CheckCircle className="h-5 w-5 shrink-0" />
           <span>{savedMessage}</span>
         </div>
       )}
       {errorMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 animate-in fade-in slide-in-from-top-2">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <AlertCircle className="h-5 w-5 shrink-0" />
           <div className="flex-1">
             <span>{errorMessage}</span>
             {apiStatus === "error" && (
@@ -383,7 +383,7 @@ export function DocumentBuilderClient({
                   value={formData.reason || ""}
                   onChange={(e) => updateField("reason", e.target.value)}
                   placeholder="Medical condition requiring absence..."
-                  className="rounded-xl min-h-[80px]"
+                  className="rounded-xl min-h-20"
                 />
               </div>
               <div className="space-y-2">

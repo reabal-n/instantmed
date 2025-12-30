@@ -8,9 +8,6 @@ import {
   Button,
   Input,
   Textarea,
-  Card,
-  CardBody,
-  Progress,
 } from "@heroui/react"
 import confetti from "canvas-confetti"
 import {
@@ -122,7 +119,7 @@ function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: stri
 // Safety knockout component
 function SafetyKnockout() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-red-50 to-white">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-b from-red-50 to-white">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -416,7 +413,7 @@ export function ConsultFlowClient({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50/50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-violet-50/50 to-white">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border/40">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
@@ -534,7 +531,7 @@ export function ConsultFlowClient({
                   <Textarea
                     value={consultDetails}
                     onChange={(e) => setConsultDetails(e.target.value)}
-                    placeholder="Please describe your symptoms, how long you've had them, and any relevant medical history..."
+                    placeholder="Please describe your symptoms, how long you&apos;ve had them, and any relevant medical history..."
                     className="min-h-[120px]"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -548,8 +545,8 @@ export function ConsultFlowClient({
                   <Textarea
                     value={currentMedications}
                     onChange={(e) => setCurrentMedications(e.target.value)}
-                    placeholder="List any medications you're currently taking..."
-                    className="min-h-[80px]"
+                    placeholder="List any medications you&apos;re currently taking..."
+                    className="min-h-20"
                   />
                 </div>
               </div>

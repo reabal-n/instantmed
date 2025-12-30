@@ -42,8 +42,8 @@ export function AnimatedGradientBackground() {
       <div 
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark 
-            ? "bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" 
-            : "bg-gradient-to-br from-white via-slate-50 to-indigo-50/30"
+            ? "bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950" 
+            : "bg-linear-to-br from-white via-slate-50 to-indigo-50/30"
         }`}
       />
       

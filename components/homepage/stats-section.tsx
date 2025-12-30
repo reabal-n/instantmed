@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Users, Clock, Star, Shield, ArrowRight } from "lucide-react"
+import { Users, Clock, Star, Shield } from "lucide-react"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { motion } from "framer-motion"
 

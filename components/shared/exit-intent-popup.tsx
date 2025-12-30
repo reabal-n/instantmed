@@ -55,7 +55,7 @@ export function ExitIntentPopup() {
           </div>
 
           <h2 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "var(--font-display)" }}>
-            Wait! Don't leave empty-handed
+            Wait! Don&apos;t leave empty-handed
           </h2>
 
           <p className="text-muted-foreground mb-6">

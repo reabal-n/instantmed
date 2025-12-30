@@ -18,14 +18,14 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /how long|wait|time|fast/i,
       response:
-        "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). You'll get an email as soon as it's done!",
+        "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). You'll get an email as soon as it&apos;s done!",
     },
   ],
   pricing: [
     {
       match: /price|cost|fee|how much|pay/i,
       response:
-        "Med certs are $19.95 and scripts are $24.95. If we can't help you, you get a full refund — no questions asked.",
+        "Med certs are $19.95 and scripts are $24.95. If we can&apos;t help you, you get a full refund — no questions asked.",
     },
   ],
   status: [
@@ -39,7 +39,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /script|prescription|medication|medicine|pill/i,
       response:
-        "We can help with repeat prescriptions for stable conditions. Once approved, you'll get an eScript via SMS that works at any Aussie pharmacy. Note: we can't prescribe controlled substances.",
+        "We can help with repeat prescriptions for stable conditions. Once approved, you'll get an eScript via SMS that works at any Aussie pharmacy. Note: we can&apos;t prescribe controlled substances.",
     },
   ],
   medcert: [
@@ -53,7 +53,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /refund|money back|cancel/i,
       response:
-        "If we can't help with your request for any clinical reason, you get a full refund automatically. No forms, no hassle.",
+        "If we can&apos;t help with your request for any clinical reason, you get a full refund automatically. No forms, no hassle.",
     },
   ],
   legitimate: [
@@ -85,7 +85,7 @@ export function LiveChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hi! I'm the InstantMed assistant. How can I help you today?",
+      text: "Hi! I&apos;m the InstantMed assistant. How can I help you today?",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -215,7 +215,7 @@ export function LiveChatWidget() {
         </div>
 
         {/* Messages */}
-        <div className="h-[320px] overflow-y-auto p-4 space-y-4 bg-muted/30">
+        <div className="h-80 overflow-y-auto p-4 space-y-4 bg-muted/30">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -235,7 +235,7 @@ export function LiveChatWidget() {
               </div>
               <div
                 className={cn(
-                  "max-w-[240px] rounded-2xl px-4 py-2.5 text-sm",
+                  "max-w-60 rounded-2xl px-4 py-2.5 text-sm",
                   message.sender === "user"
                     ? "bg-foreground text-background rounded-tr-sm"
                     : "bg-card text-foreground shadow-sm border rounded-tl-sm",

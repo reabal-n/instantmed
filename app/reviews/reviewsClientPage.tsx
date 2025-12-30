@@ -24,7 +24,7 @@ const reviewsData: ReviewItem[] = [
   {
     id: 1,
     quote:
-      "Woke up feeling awful and couldn't get into my GP. Filled out the form, and a doctor reviewed it within the hour. Had my certificate sorted before lunch.",
+      "Woke up feeling awful and couldn&apos;t get into my GP. Filled out the form, and a doctor reviewed it within the hour. Had my certificate sorted before lunch.",
     name: "Sarah M.",
     location: "Bondi, NSW",
     service: "Medical Certificate",
@@ -167,7 +167,7 @@ const reviewsData: ReviewItem[] = [
   {
     id: 12,
     quote:
-      "Got my prescription sorted in a day. My condition has been bothering me for months but I couldn't get a GP appointment. This was the push I needed.",
+      "Got my prescription sorted in a day. My condition has been bothering me for months but I couldn&apos;t get a GP appointment. This was the push I needed.",
     name: "Alex P.",
     location: "St Kilda, VIC",
     service: "Prescription",
@@ -206,7 +206,7 @@ const reviewsData: ReviewItem[] = [
   {
     id: 15,
     quote:
-      "My regular pharmacy was out of my medication and my GP couldn't see me for a week. Got a new script here in 2 hours and picked it up same day. Crisis averted!",
+      "My regular pharmacy was out of my medication and my GP couldn&apos;t see me for a week. Got a new script here in 2 hours and picked it up same day. Crisis averted!",
     name: "Sandra K.",
     location: "Toowong, QLD",
     service: "Prescription",
@@ -219,7 +219,7 @@ const reviewsData: ReviewItem[] = [
   {
     id: 16,
     quote:
-      "First time using telehealth and I'm converted. The interface is actually pleasant to use (rare for medical stuff) and the doctor was friendly and efficient.",
+      "First time using telehealth and I&apos;m converted. The interface is actually pleasant to use (rare for medical stuff) and the doctor was friendly and efficient.",
     name: "Tim J.",
     location: "Northbridge, WA",
     service: "Medical Certificate",
@@ -271,7 +271,7 @@ const reviewsData: ReviewItem[] = [
   {
     id: 20,
     quote:
-      "Got gastro the night before a big presentation. Certificate was in my inbox by 7am. My boss was suspicious it was that easy but hey, that's progress.",
+      "Got gastro the night before a big presentation. Certificate was in my inbox by 7am. My boss was suspicious it was that easy but hey, that&apos;s progress.",
     name: "Nick B.",
     location: "Pyrmont, NSW",
     service: "Medical Certificate",

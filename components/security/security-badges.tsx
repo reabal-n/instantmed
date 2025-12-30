@@ -44,7 +44,7 @@ export function SecurityBadges() {
           className="group flex items-center gap-3 px-4 py-3 rounded-xl backdrop-blur-xl border border-white/10 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/30 transition-all duration-300"
         >
           <div
-            className="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center backdrop-blur-xl"
+            className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center backdrop-blur-xl"
             style={{
               background: `linear-gradient(135deg, ${cert.color}20, ${cert.color}10)`,
               border: `1px solid ${cert.color}30`,
