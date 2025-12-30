@@ -120,6 +120,10 @@ export function GlowingEffect({
     }
   }, [mouseX, mouseY])
 
+  const glowBackground = useTransform([springX, springY], ([x, y]) =>
+    `radial-gradient(${radius}px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`,
+  )
+
   if (disabled) {
     return <div className={className}>{children}</div>
   }
@@ -135,11 +139,7 @@ export function GlowingEffect({
       <motion.div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: useTransform(
-            [springX, springY],
-            ([x, y]) =>
-              `radial-gradient(${radius}px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`
-          ),
+          background: glowBackground,
           opacity: intensity,
           filter: `blur(${blur}px)`,
         }}

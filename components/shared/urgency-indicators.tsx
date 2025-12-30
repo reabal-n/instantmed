@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { cn } from "@/lib/utils"
 
 interface DoctorsOnlineProps {
@@ -20,21 +20,23 @@ function isWithinHours(): boolean {
 }
 
 export function DoctorsOnline({ className, variant = "badge" }: DoctorsOnlineProps) {
-  const [isOnline, setIsOnline] = useState(true)
-  const [mounted, setMounted] = useState(false)
+  const [isOnline, setIsOnline] = useState(() => isWithinHours())
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   useEffect(() => {
-    setMounted(true)
-    setIsOnline(isWithinHours())
-
+    if (!isClient) return
     const interval = setInterval(() => {
       setIsOnline(isWithinHours())
     }, 60000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   if (variant === "dot") {
     return (
@@ -77,16 +79,19 @@ interface QueueDepthProps {
 }
 
 export function QueueDepth({ className }: QueueDepthProps) {
-  const [depth, setDepth] = useState(0)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    // Simulate realistic queue depth based on time
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+  const [depth, setDepth] = useState(() => {
     const hour = new Date().getHours()
     const isPeakHour = hour >= 9 && hour <= 17
-    const baseDepth = isPeakHour ? Math.floor(Math.random() * 8) + 3 : Math.floor(Math.random() * 4)
-    setDepth(baseDepth)
+    return isPeakHour ? Math.floor(Math.random() * 8) + 3 : Math.floor(Math.random() * 4)
+  })
+
+  useEffect(() => {
+    if (!isClient) return
 
     // Slowly change
     const interval = setInterval(() => {
@@ -97,9 +102,9 @@ export function QueueDepth({ className }: QueueDepthProps) {
     }, 45000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
-  if (!mounted || depth === 0) return null
+  if (!isClient || depth === 0) return null
 
   return (
     <p className={cn("text-xs text-muted-foreground", className)}>
@@ -113,18 +118,19 @@ interface CompletionTimeProps {
 }
 
 export function CompletionTime({ className }: CompletionTimeProps) {
-  const [time, setTime] = useState(45)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+  const [time, setTime] = useState(() => {
     const hour = new Date().getHours()
     const isPeakHour = hour >= 9 && hour <= 17
     const baseTime = isPeakHour ? 55 : 35
-    setTime(baseTime + Math.floor(Math.random() * 15))
-  }, [])
+    return baseTime + Math.floor(Math.random() * 15)
+  })
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return <p className={cn("text-xs text-emerald-600", className)}>Most requests completed in under {time} mins today</p>
 }
@@ -134,15 +140,17 @@ interface ViewerCountProps {
 }
 
 export function ViewerCount({ className }: ViewerCountProps) {
-  const [count, setCount] = useState(0)
-  const [mounted, setMounted] = useState(false)
+  const [count, setCount] = useState(() => {
+    return Math.floor(Math.random() * 8) + 3
+  })
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   useEffect(() => {
-    setMounted(true)
-    // Generate realistic viewer count
-    const baseCount = Math.floor(Math.random() * 8) + 3
-    setCount(baseCount)
-
+    if (!isClient) return
     const interval = setInterval(() => {
       setCount((prev) => {
         const change = Math.floor(Math.random() * 3) - 1
@@ -151,9 +159,9 @@ export function ViewerCount({ className }: ViewerCountProps) {
     }, 10000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return <p className={cn("text-xs text-muted-foreground", className)}>{count} people viewing this page</p>
 }

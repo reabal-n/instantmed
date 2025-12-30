@@ -1,8 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
 import { AlertCircle, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
 
 interface InlineErrorProps {
   message?: string
@@ -13,21 +13,13 @@ interface InlineErrorProps {
 }
 
 export function InlineError({ message, show = true, onDismiss, className, autoDismiss }: InlineErrorProps) {
-  const [visible, setVisible] = useState(show)
-
   useEffect(() => {
-    setVisible(show)
+    if (!show || !autoDismiss) return
+    const timer = setTimeout(() => onDismiss?.(), autoDismiss)
+    return () => clearTimeout(timer)
+  }, [autoDismiss, onDismiss, show])
 
-    if (show && autoDismiss) {
-      const timer = setTimeout(() => {
-        setVisible(false)
-        onDismiss?.()
-      }, autoDismiss)
-      return () => clearTimeout(timer)
-    }
-  }, [show, autoDismiss, onDismiss])
-
-  if (!visible || !message) return null
+  if (!show || !message) return null
 
   return (
     <div
@@ -42,7 +34,6 @@ export function InlineError({ message, show = true, onDismiss, className, autoDi
       {onDismiss && (
         <button
           onClick={() => {
-            setVisible(false)
             onDismiss()
           }}
           className="shrink-0 p-0.5 rounded hover:bg-destructive/10 transition-colors"

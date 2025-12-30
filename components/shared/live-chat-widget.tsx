@@ -92,6 +92,7 @@ export function LiveChatWidget() {
   ])
   const [input, setInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messageIdRef = useRef(1)
 
   // Proactive trigger after 30 seconds on page
   useEffect(() => {
@@ -109,8 +110,10 @@ export function LiveChatWidget() {
   const handleSend = (text: string) => {
     if (!text.trim()) return
 
+    const nextId = String(messageIdRef.current++)
+
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: nextId,
       text: text.trim(),
       sender: "user",
       timestamp: new Date(),
@@ -122,8 +125,9 @@ export function LiveChatWidget() {
     // Smart response with delay
     setTimeout(() => {
       const response = getSmartResponse(text)
+      const botId = String(messageIdRef.current++)
       const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: botId,
         text: response,
         sender: "bot",
         timestamp: new Date(),

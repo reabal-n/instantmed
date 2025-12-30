@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -67,13 +67,16 @@ export function DoctorAvailability({
   showAfterHoursUpsell = false,
   onAfterHoursClick,
 }: DoctorAvailabilityProps) {
-  const [isOnline, setIsOnline] = useState(true)
-  const [countdown, setCountdown] = useState({ hours: 0, minutes: 0 })
-  const [mounted, setMounted] = useState(false)
+  const [isOnline, setIsOnline] = useState(() => isWithinHours())
+  const [countdown, setCountdown] = useState(() => getTimeUntilOpen())
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   useEffect(() => {
-    setMounted(true)
-
+    if (!isClient) return
     const updateStatus = () => {
       setIsOnline(isWithinHours())
       if (!isWithinHours()) {
@@ -85,9 +88,9 @@ export function DoctorAvailability({
     const interval = setInterval(updateStatus, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
-  if (!mounted) {
+  if (!isClient) {
     return null // Avoid hydration mismatch
   }
 

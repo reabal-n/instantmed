@@ -28,9 +28,9 @@ export function LiveRegion({
   const [announcement, setAnnouncement] = useState(message)
   
   useEffect(() => {
-    setAnnouncement(message)
+    if (!message) return
     
-    if (clearAfter && message) {
+    if (clearAfter) {
       const timer = setTimeout(() => setAnnouncement(""), clearAfter)
       return () => clearTimeout(timer)
     }

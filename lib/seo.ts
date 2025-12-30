@@ -86,7 +86,7 @@ export function generateSEOMetadata({
   }
 }
 
-export function generateStructuredData(type: "Organization" | "MedicalBusiness" | "FAQPage", data?: any) {
+export function generateStructuredData(type: "Organization" | "MedicalBusiness" | "FAQPage", data?: Record<string, unknown>) {
   const baseOrg = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
@@ -117,7 +117,7 @@ export function generateStructuredData(type: "Organization" | "MedicalBusiness" 
     return baseOrg
   }
 
-  if (type === "FAQPage" && data?.faqs) {
+  if (type === "FAQPage" && data?.faqs && Array.isArray(data.faqs)) {
     return {
       "@context": "https://schema.org",
       "@type": "FAQPage",

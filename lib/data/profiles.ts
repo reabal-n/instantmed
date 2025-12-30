@@ -49,7 +49,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     return null
   }
 
-  return data as Profile
+  return data as unknown as Profile
 }
 
 /**
@@ -88,7 +88,7 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
     return null
   }
 
-  return data as Profile
+  return data as unknown as Profile
 }
 
 /**
@@ -112,7 +112,7 @@ export async function createProfile(profile: {
     return null
   }
 
-  return data as Profile
+  return data as unknown as Profile
 }
 
 /**
@@ -136,7 +136,7 @@ export async function updateProfile(
     return null
   }
 
-  return data as Profile
+  return data as unknown as Profile
 }
 
 export interface OnboardingData {
@@ -170,7 +170,7 @@ export async function completeOnboarding(profileId: string, data: OnboardingData
     return null
   }
 
-  return profile as Profile
+  return profile as unknown as Profile
 }
 
 /**

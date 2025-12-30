@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { Star, Users, Clock, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,19 +30,23 @@ interface ContextualSocialProofProps {
 
 export function ContextualSocialProof({ service, variant = "mini", className }: ContextualSocialProofProps) {
   const [index, setIndex] = useState(0)
-  const [mounted, setMounted] = useState(false)
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   const testimonials = TESTIMONIALS[service || "default"] || TESTIMONIALS.default
 
   useEffect(() => {
-    setMounted(true)
+    if (!isClient) return
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % testimonials.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [testimonials.length])
+  }, [isClient, testimonials.length])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   const current = testimonials[index]
 
@@ -94,15 +98,14 @@ interface ServiceStatsProps {
 
 export function ServiceStats({ service, className }: ServiceStatsProps) {
   const [count, setCount] = useState(0)
-  const [mounted, setMounted] = useState(false)
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   useEffect(() => {
-    setMounted(true)
-    // Generate realistic "today" count based on time of day
-    const hour = new Date().getHours()
-    const baseCount = Math.floor(hour * 3.5) + Math.floor(Math.random() * 10)
-    setCount(baseCount)
-
+    if (!isClient) return
     // Slowly increment
     const interval = setInterval(() => {
       if (Math.random() > 0.7) {
@@ -111,9 +114,9 @@ export function ServiceStats({ service, className }: ServiceStatsProps) {
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return (
     <div className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
@@ -146,19 +149,19 @@ export function QueuePosition({ position, className }: { position: number; class
 }
 
 export function AverageCompletionTime({ className }: { className?: string }) {
-  const [time, setTime] = useState(45)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    // Simulate realistic average based on current load
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+  const [time, setTime] = useState(() => {
     const hour = new Date().getHours()
     const isPeakHour = hour >= 9 && hour <= 17
     const baseTime = isPeakHour ? 55 : 35
-    setTime(baseTime + Math.floor(Math.random() * 15))
-  }, [])
+    return baseTime + Math.floor(Math.random() * 15)
+  })
 
-  if (!mounted) return null
+  if (!isClient) return null
 
   return (
     <div className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>

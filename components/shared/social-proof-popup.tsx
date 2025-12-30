@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Check, Sparkles } from "lucide-react"
 
@@ -52,13 +52,13 @@ export function SocialProofPopup() {
   const [isVisible, setIsVisible] = useState(false)
   const [notification, setNotification] = useState(() => generateNotification())
   const [hasInteracted, setHasInteracted] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 
   // Check if mobile on mount
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
   const showNextNotification = useCallback(() => {
     if (hasInteracted) return
     setNotification(generateNotification())

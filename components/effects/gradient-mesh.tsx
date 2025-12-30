@@ -184,18 +184,12 @@ export function GradientBorder({
     <div className={cn("relative", className)} style={{ padding: borderWidth }}>
       {/* Animated gradient border */}
       <motion.div
-        className="absolute inset-0"
+        className="absolute inset-0 animate-spin"
         style={{
           borderRadius,
-          background: `linear-gradient(var(--gradient-angle), ${colors.join(", ")})`,
-        }}
-        animate={{
-          "--gradient-angle": ["0deg", "360deg"],
-        } as any}
-        transition={{
-          duration: animationDuration,
-          repeat: Infinity,
-          ease: "linear",
+          background: `linear-gradient(45deg, ${colors.join(", ")})`,
+          animationDuration: `${animationDuration}s`,
+          animationTimingFunction: "linear",
         }}
       />
 

@@ -46,7 +46,6 @@ export function StickyCTABar() {
     if (isDismissed) return
 
     window.addEventListener("scroll", handleScroll, { passive: true })
-    handleScroll() // Check initial state
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isDismissed, handleScroll])
 

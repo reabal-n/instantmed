@@ -562,6 +562,7 @@ export function useHydrateFlowStore() {
       useFlowStore.setState({ startedAt: getTimestamp() })
     }
     
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHydrated(true)
   }, [])
 

@@ -57,8 +57,8 @@ export interface FlowConfig {
 
 // Evaluate a condition against form data
 export function evaluateCondition(
-  condition: FlowQuestion["showIf"] | FlowSection["showIf"],
-  data: Record<string, any>,
+  condition: FlowQuestion["showIf"] | FlowSection["showIf"] | undefined,
+  data: Record<string, unknown>,
 ): boolean {
   if (!condition) return true
 
@@ -97,7 +97,7 @@ export function evaluateCondition(
 // Check for safety flags in form data
 export function checkSafetyFlags(
   config: FlowConfig,
-  data: Record<string, any>,
+  data: Record<string, unknown>,
 ): { severity: "info" | "warning" | "knockout"; message: string }[] {
   const flags: { severity: "info" | "warning" | "knockout"; message: string }[] = []
 
@@ -116,7 +116,7 @@ export function checkSafetyFlags(
       } else if (Array.isArray(flag.value)) {
         triggered = Array.isArray(fieldValue)
           ? flag.value.some((v) => fieldValue.includes(v))
-          : flag.value.includes(fieldValue)
+          : flag.value.includes(String(fieldValue))
       } else {
         triggered = fieldValue === flag.value
       }
@@ -131,17 +131,17 @@ export function checkSafetyFlags(
 }
 
 // Get visible sections based on current form data
-export function getVisibleSections(config: FlowConfig, data: Record<string, any>): FlowSection[] {
+export function getVisibleSections(config: FlowConfig, data: Record<string, unknown>): FlowSection[] {
   return config.sections.filter((section) => evaluateCondition(section.showIf, data))
 }
 
 // Get visible questions within a section
-export function getVisibleQuestions(section: FlowSection, data: Record<string, any>): FlowQuestion[] {
+export function getVisibleQuestions(section: FlowSection, data: Record<string, unknown>): FlowQuestion[] {
   return section.questions.filter((question) => evaluateCondition(question.showIf, data))
 }
 
 // Validate a single field
-export function validateField(question: FlowQuestion, value: any): string | null {
+export function validateField(question: FlowQuestion, value: unknown): string | null {
   if (
     question.required &&
     (value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0))
@@ -175,7 +175,7 @@ export function validateField(question: FlowQuestion, value: any): string | null
 }
 
 // Validate entire form
-export function validateForm(config: FlowConfig, data: Record<string, any>): Record<string, string> {
+export function validateForm(config: FlowConfig, data: Record<string, unknown>): Record<string, string> {
   const errors: Record<string, string> = {}
 
   for (const section of getVisibleSections(config, data)) {
@@ -191,17 +191,17 @@ export function validateForm(config: FlowConfig, data: Record<string, any>): Rec
 }
 
 // Generate structured JSON summary for doctor dashboard
-export function generateDoctorSummary(config: FlowConfig, data: Record<string, any>): Record<string, any> {
-  const summary: Record<string, any> = {
-    flowType: config.id,
-    flowName: config.name,
-    submittedAt: new Date().toISOString(),
-    sections: {},
-    safetyFlags: checkSafetyFlags(config, data),
-  }
+export function generateDoctorSummary(config: FlowConfig, data: Record<string, unknown>): {
+  flowType: string
+  flowName: string
+  submittedAt: string
+  sections: Record<string, Record<string, unknown>>
+  safetyFlags: { severity: "info" | "warning" | "knockout"; message: string }[]
+} {
+  const sections: Record<string, Record<string, unknown>> = {}
 
   for (const section of getVisibleSections(config, data)) {
-    const sectionData: Record<string, any> = {}
+    const sectionData: Record<string, unknown> = {}
 
     for (const question of getVisibleQuestions(section, data)) {
       const value = data[question.id]
@@ -220,9 +220,15 @@ export function generateDoctorSummary(config: FlowConfig, data: Record<string, a
     }
 
     if (Object.keys(sectionData).length > 0) {
-      summary.sections[section.title] = sectionData
+      sections[section.title] = sectionData
     }
   }
 
-  return summary
+  return {
+    flowType: config.id,
+    flowName: config.name,
+    submittedAt: new Date().toISOString(),
+    sections,
+    safetyFlags: checkSafetyFlags(config, data),
+  }
 }

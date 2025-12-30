@@ -1,16 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { getIsTestMode } from "@/lib/test-mode"
 import { AlertTriangle } from "lucide-react"
 
 export function TestModeBanner() {
-  const [showBanner, setShowBanner] = useState(false)
+  const [showBanner, setShowBanner] = useState(() => (typeof window !== "undefined" ? getIsTestMode() : false))
 
   useEffect(() => {
-    // Initial check
-    setShowBanner(getIsTestMode())
-
     // Listen for changes
     const handleChange = () => setShowBanner(getIsTestMode())
     window.addEventListener("test-mode-changed", handleChange)

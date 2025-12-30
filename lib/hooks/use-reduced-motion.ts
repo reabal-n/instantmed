@@ -1,25 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 /**
  * Hook to detect if user prefers reduced motion
  * Use this to disable animations for accessibility
  */
 export function useReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
+  const subscribe = (callback: () => void) => {
+    if (typeof window === "undefined") return () => {}
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mediaQuery.matches)
+    mediaQuery.addEventListener("change", callback)
+    return () => mediaQuery.removeEventListener("change", callback)
+  }
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
-    }
+  const getSnapshot = () => {
+    if (typeof window === "undefined") return false
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  }
 
-    mediaQuery.addEventListener("change", handleChange)
-    return () => mediaQuery.removeEventListener("change", handleChange)
-  }, [])
-
-  return prefersReducedMotion
+  return useSyncExternalStore(subscribe, getSnapshot, () => false)
 }

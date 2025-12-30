@@ -13,8 +13,8 @@ import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 
 interface CollapsibleFormProps {
   config: FlowConfig
-  data: Record<string, any>
-  onChange: (data: Record<string, any>) => void
+  data: Record<string, unknown>
+  onChange: (data: Record<string, unknown>) => void
   errors?: Record<string, string>
   onValidate?: (errors: Record<string, string>) => void
 }
@@ -253,8 +253,8 @@ function Section({
   isComplete,
 }: {
   section: FlowSection
-  data: Record<string, any>
-  onChange: (field: string, value: any) => void
+  data: Record<string, unknown>
+  onChange: (field: string, value: unknown) => void
   errors?: Record<string, string>
   isOpen: boolean
   onToggle: () => void
@@ -302,12 +302,9 @@ function Section({
 }
 
 export function CollapsibleForm({ config, data, onChange, errors = {}, onValidate }: CollapsibleFormProps) {
-  const [openSections, setOpenSections] = useState<Set<string>>(new Set())
-
   const visibleSections = useMemo(() => getVisibleSections(config, data), [config, data])
 
-  // Auto-open first incomplete section
-  useEffect(() => {
+  const [openSections, setOpenSections] = useState<Set<string>>(() => {
     for (const section of visibleSections) {
       const questions = getVisibleQuestions(section, data)
       const hasRequired = questions.some((q) => q.required)
@@ -318,11 +315,11 @@ export function CollapsibleForm({ config, data, onChange, errors = {}, onValidat
       })
 
       if (hasRequired && !isComplete) {
-        setOpenSections(new Set([section.id]))
-        break
+        return new Set([section.id])
       }
     }
-  }, []) // Only on mount
+    return new Set()
+  })
 
   const toggleSection = useCallback((sectionId: string) => {
     setOpenSections((prev) => {

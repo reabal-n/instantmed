@@ -1,21 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { X, Gift, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export function ExitIntentPopup() {
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+  const [hasShown, setHasShown] = useState(() => {
+    if (typeof window === "undefined") return false
+    return sessionStorage.getItem("exitIntentShown") === "true"
+  })
   const [isVisible, setIsVisible] = useState(false)
-  const [hasShown, setHasShown] = useState(false)
 
   useEffect(() => {
+    if (!isClient || hasShown) return
     // Check if already shown this session
-    if (sessionStorage.getItem("exitIntentShown")) {
-      setHasShown(true)
-      return
-    }
-
     const handleMouseLeave = (e: MouseEvent) => {
       // Only trigger when mouse leaves from the top of the page
       if (e.clientY <= 0 && !hasShown) {
@@ -27,7 +31,7 @@ export function ExitIntentPopup() {
 
     document.addEventListener("mouseleave", handleMouseLeave)
     return () => document.removeEventListener("mouseleave", handleMouseLeave)
-  }, [hasShown])
+  }, [hasShown, isClient])
 
   if (!isVisible) return null
 

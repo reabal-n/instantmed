@@ -167,17 +167,12 @@ const DonutChart: React.FC<LayerProps> = ({ hovered, color, secondaryColor }) =>
   const [secondaryProgress, setSecondaryProgress] = useState(0);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    if (!hovered) return;
 
-    if (hovered) {
-      timeout = setTimeout(() => {
-        setMainProgress(66);
-        setSecondaryProgress(100);
-      }, 200);
-    } else {
-      setMainProgress(12.5);
-      setSecondaryProgress(0);
-    }
+    const timeout = setTimeout(() => {
+      setMainProgress(66);
+      setSecondaryProgress(100);
+    }, 200);
 
     return () => {
       clearTimeout(timeout);

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useSyncExternalStore } from 'react';
 import styled from 'styled-components';
 import { useTheme } from 'next-themes';
 
@@ -10,19 +10,19 @@ interface SkyToggleProps {
 
 const SkyToggle = ({ size = 30 }: SkyToggleProps) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && (theme === 'dark' || resolvedTheme === 'dark');
+  const isDark = isMounted && (theme === 'dark' || resolvedTheme === 'dark');
 
   const handleToggle = () => {
     setTheme(isDark ? 'light' : 'dark');
   };
 
-  if (!mounted) {
+  if (!isMounted) {
     return (
       <StyledWrapper $size={size}>
         <div className="theme-switch">

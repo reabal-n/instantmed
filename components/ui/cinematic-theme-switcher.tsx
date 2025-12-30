@@ -1,7 +1,7 @@
 "use client"
 
 import { Sun, Moon } from "lucide-react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useSyncExternalStore } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 
@@ -26,7 +26,11 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
   const { theme, setTheme, resolvedTheme } = useTheme()
 
   // State Management
-  const [mounted, setMounted] = useState(false)
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
   const [particles, setParticles] = useState<Particle[]>([])
   const [isAnimating, setIsAnimating] = useState(false)
 
@@ -34,12 +38,7 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
   const toggleRef = useRef<HTMLButtonElement>(null)
 
   // Track whether toggle is in checked (dark) or unchecked (light) position
-  const isDark = mounted && (theme === "dark" || resolvedTheme === "dark")
-
-  // Handle hydration - prevent mismatch
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const isDark = isMounted && (theme === "dark" || resolvedTheme === "dark")
 
   // Generate particles with different timing
   const generateParticles = () => {
@@ -71,7 +70,7 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
   }
 
   // Prevent hydration mismatch - show placeholder during SSR
-  if (!mounted) {
+  if (!isMounted) {
     return (
       <div className="relative inline-block">
         <div className={`relative flex ${trackHeight} ${trackWidth} items-center rounded-full bg-gray-200 ${padding}`} />

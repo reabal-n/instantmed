@@ -76,11 +76,11 @@ export function useDraftResume(
           if (response.ok) {
             const { drafts: fetchedDrafts } = await response.json()
             
-            serverDrafts = (fetchedDrafts || []).map((d: any) => ({
+            serverDrafts = (fetchedDrafts || []).map((d: Record<string, unknown>) => ({
               id: d.id,
               sessionId: d.sessionId,
               serviceSlug: d.serviceSlug,
-              serviceName: getServiceName(d.serviceSlug),
+              serviceName: getServiceName(String(d.serviceSlug || '')),
               currentStep: d.currentStep,
               progress: 0, // Will calculate
               createdAt: d.createdAt,

@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { useMemo } from "react"
 import { Loader2 } from "lucide-react"
 
 interface LoadingSpinnerProps {
@@ -45,11 +46,12 @@ interface SkeletonCardProps {
 }
 
 export function SkeletonCard({ lines = 3, className }: SkeletonCardProps) {
+  const widths = useMemo(() => Array.from({ length: lines }, (_, i) => 60 + ((i * 13) % 30)), [lines])
   return (
     <div className={cn("p-4 rounded-xl border border-border/50 bg-card/50", className)}>
       <div className="skeleton h-5 w-1/3 rounded mb-3" />
-      {Array.from({ length: lines }).map((_, i) => (
-        <div key={i} className="skeleton h-4 rounded mb-2" style={{ width: `${Math.random() * 30 + 60}%` }} />
+      {widths.map((width, i) => (
+        <div key={i} className="skeleton h-4 rounded mb-2" style={{ width: `${width}%` }} />
       ))}
     </div>
   )

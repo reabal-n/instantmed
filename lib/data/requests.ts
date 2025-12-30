@@ -29,24 +29,7 @@ export async function getPatientRequests(patientId: string, status?: RequestStat
 
   let query = supabase
     .from("requests")
-    .select(`
-      id,
-      patient_id,
-      type,
-      category,
-      subtype,
-      status,
-      payment_status,
-      paid,
-      priority_review,
-      reviewed_by,
-      reviewed_at,
-      doctor_notes,
-      escalation_level,
-      active_checkout_session_id,
-      created_at,
-      updated_at
-    `)
+    .select(`*`)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
 
@@ -61,7 +44,7 @@ export async function getPatientRequests(patientId: string, status?: RequestStat
     return []
   }
 
-  return data as Request[]
+  return data as unknown as Request[]
 }
 
 /**
@@ -104,24 +87,7 @@ export async function getRequestForPatient(requestId: string, patientId: string)
 
   const { data, error } = await supabase
     .from("requests")
-    .select(`
-      id,
-      patient_id,
-      type,
-      category,
-      subtype,
-      status,
-      payment_status,
-      paid,
-      priority_review,
-      reviewed_by,
-      reviewed_at,
-      doctor_notes,
-      escalation_level,
-      active_checkout_session_id,
-      created_at,
-      updated_at
-    `)
+    .select(`*`)
     .eq("id", requestId)
     .eq("patient_id", patientId)
     .single()
@@ -131,7 +97,7 @@ export async function getRequestForPatient(requestId: string, patientId: string)
     return null
   }
 
-  return data as Request
+  return data as unknown as Request
 }
 
 /**
@@ -164,7 +130,7 @@ export async function getAllRequestsByStatus(status: RequestStatus): Promise<Req
     logger.warn("Filtered out requests with null patient data", { filtered: (data?.length || 0) - validData.length })
   }
 
-  return validData as RequestWithPatient[]
+  return validData as unknown as RequestWithPatient[]
 }
 
 /**
@@ -190,7 +156,7 @@ export async function getRequestsAwaitingPayment(): Promise<RequestWithPatient[]
 
   // Filter out any requests where patient data couldn't be loaded
   const validData = (data || []).filter((r) => r.patient !== null)
-  return validData as RequestWithPatient[]
+  return validData as unknown as RequestWithPatient[]
 }
 
 /**
@@ -292,7 +258,7 @@ export async function createRequest(
     logger.error("Error creating request answers", { error: answersError })
   }
 
-  return createdRequest as Request
+  return createdRequest as unknown as Request
 }
 
 /**
@@ -385,7 +351,7 @@ export async function updateRequestStatus(
   // STEP 5: Log success
   logTransitionSuccess(requestId, currentStatus, status, reviewedBy || "system")
 
-  return data as Request
+  return data as unknown as Request
 }
 
 /**
@@ -469,40 +435,8 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
   const { data, error } = await supabase
     .from("requests")
     .select(`
-      id,
-      patient_id,
-      type,
-      category,
-      subtype,
-      status,
-      payment_status,
-      paid,
-      priority_review,
-      reviewed_by,
-      reviewed_at,
-      doctor_notes,
-      escalation_level,
-      active_checkout_session_id,
-      created_at,
-      updated_at,
-      patient:profiles!patient_id (
-        id,
-        auth_user_id,
-        full_name,
-        date_of_birth,
-        email,
-        phone,
-        medicare_number,
-        medicare_irn,
-        medicare_expiry,
-        address_line1,
-        address_line2,
-        suburb,
-        state,
-        postcode,
-        created_at,
-        updated_at
-      )
+      *,
+      patient:profiles!patient_id (*)
     `)
     .order("created_at", { ascending: false })
 
@@ -522,7 +456,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
     })
   }
 
-  return validData as RequestWithPatient[]
+  return validData as unknown as RequestWithPatient[]
 }
 
 /**

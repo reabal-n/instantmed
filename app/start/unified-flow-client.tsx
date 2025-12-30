@@ -65,17 +65,7 @@ function StartFlowContent() {
     }
 
     setIsInitialized(true)
-  }, [searchParams, setServiceSlug, goToStep])
-
-  // Update config when service changes
-  useEffect(() => {
-    if (serviceSlug) {
-      const newConfig = getFlowConfig(serviceSlug)
-      if (newConfig) {
-        setConfig(newConfig)
-      }
-    }
-  }, [serviceSlug])
+  }, [searchParams, isInitialized, setServiceSlug, goToStep])
 
   // Handle service selection
   const handleServiceSelect = (slug: string) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Clock, Users, Zap, CheckCircle2, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -32,27 +32,29 @@ export function QueueStatus({
   isPriority = false,
   className,
 }: QueueStatusProps) {
-  const [queueData, setQueueData] = useState<QueueData | null>(null)
+  const initialQueue = useMemo<QueueData | null>(() => {
+    if (status !== "pending") return null
+
+    const requestAge = Date.now() - new Date(createdAt).getTime()
+    const ageMinutes = Math.floor(requestAge / 60000)
+
+    const basePosition = Math.max(1, 5 - Math.floor(ageMinutes / 10))
+    const position = isPriority ? Math.max(1, Math.ceil(basePosition / 2)) : basePosition
+
+    return {
+      position,
+      totalInQueue: position + Math.floor(Math.random() * 3),
+      estimatedMinutes: position * 12 + Math.floor(Math.random() * 8),
+      doctorsOnline: 2 + Math.floor(Math.random() * 2),
+    }
+  }, [createdAt, isPriority, status])
+
+  const [queueData, setQueueData] = useState<QueueData | null>(initialQueue)
   const [notifyEnabled, setNotifyEnabled] = useState(false)
 
   // Simulate queue position (in production, fetch from API)
   useEffect(() => {
     if (status !== "pending") return
-
-    // Calculate initial position based on request age
-    const requestAge = Date.now() - new Date(createdAt).getTime()
-    const ageMinutes = Math.floor(requestAge / 60000)
-    
-    // Simulate queue position decreasing over time
-    const basePosition = Math.max(1, 5 - Math.floor(ageMinutes / 10))
-    const position = isPriority ? Math.max(1, Math.ceil(basePosition / 2)) : basePosition
-
-    setQueueData({
-      position,
-      totalInQueue: position + Math.floor(Math.random() * 3),
-      estimatedMinutes: position * 12 + Math.floor(Math.random() * 8),
-      doctorsOnline: 2 + Math.floor(Math.random() * 2),
-    })
 
     // Update every 30 seconds
     const interval = setInterval(() => {

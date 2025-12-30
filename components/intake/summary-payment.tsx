@@ -10,7 +10,7 @@ import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
 interface SummaryPaymentProps {
   config: FlowConfig
-  data: Record<string, any>
+  data: Record<string, unknown>
   price: string
   medicare: { number: string; irn: number | null }
   onEdit: (sectionId: string) => void
@@ -52,7 +52,9 @@ export function SummaryPayment({
   onSubmit,
   isSubmitting = false,
 }: SummaryPaymentProps) {
-  const [additionalNotes, setAdditionalNotes] = useState(data.additionalNotes || "")
+  const [additionalNotes, setAdditionalNotes] = useState<string>(
+    typeof data.additionalNotes === 'string' ? data.additionalNotes : ""
+  )
   const [showConfetti, setShowConfetti] = useState(false)
 
   // Generate structured summary
@@ -82,9 +84,9 @@ export function SummaryPayment({
         {/* Details */}
         <div className="p-4">
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Details</div>
-          {Object.entries(summary.sections).map(([sectionName, sectionData]) => (
+          {summary.sections && typeof summary.sections === 'object' ? Object.entries(summary.sections as Record<string, Record<string, unknown>>).map(([sectionName, sectionData]) => (
             <div key={sectionName}>
-              {Object.entries(sectionData as Record<string, any>).map(([key, val]) => (
+              {Object.entries(sectionData).map(([key, val]) => (
                 <SummaryRow
                   key={key}
                   label={key}
@@ -93,7 +95,7 @@ export function SummaryPayment({
                 />
               ))}
             </div>
-          ))}
+          )) : null}
         </div>
 
         {/* Medicare */}

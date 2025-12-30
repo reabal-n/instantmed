@@ -58,23 +58,23 @@ function renderTemplate(template: EmailTemplate, data: EmailTemplateProps): { ht
 
   switch (template) {
     case "request_received":
-      element = React.createElement(RequestReceivedEmail, data)
+      element = React.createElement(RequestReceivedEmail, data as unknown as React.ComponentProps<typeof RequestReceivedEmail>)
       subject = `Your ${data.requestType || 'request'} has been received`
       break
     case "payment_confirmed":
-      element = React.createElement(PaymentConfirmedEmail, data)
+      element = React.createElement(PaymentConfirmedEmail, data as unknown as React.ComponentProps<typeof PaymentConfirmedEmail>)
       subject = `Payment confirmed for your ${data.requestType || 'request'}`
       break
     case "request_approved":
-      element = React.createElement(RequestApprovedEmail, data)
+      element = React.createElement(RequestApprovedEmail, data as unknown as React.ComponentProps<typeof RequestApprovedEmail>)
       subject = `Good news! Your ${data.requestType || 'request'} has been approved`
       break
     case "needs_more_info":
-      element = React.createElement(NeedsMoreInfoEmail, data)
+      element = React.createElement(NeedsMoreInfoEmail, data as unknown as React.ComponentProps<typeof NeedsMoreInfoEmail>)
       subject = `Action needed: Additional information required`
       break
     case "request_declined":
-      element = React.createElement(RequestDeclinedEmail, data)
+      element = React.createElement(RequestDeclinedEmail, data as unknown as React.ComponentProps<typeof RequestDeclinedEmail>)
       subject = `Update on your ${data.requestType || 'request'} request`
       break
     default:

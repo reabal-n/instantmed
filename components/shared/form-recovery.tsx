@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { X, RotateCcw, Trash2 } from "lucide-react"
 
@@ -16,32 +16,35 @@ interface FormDraft {
 }
 
 export function useFormRecovery(service: string) {
-  const [draft, setDraft] = useState<FormDraft | null>(null)
-  const [showRecoveryModal, setShowRecoveryModal] = useState(false)
-
-  // Load draft on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed: FormDraft = JSON.parse(stored)
-        const hoursSinceSave = (Date.now() - parsed.savedAt) / (1000 * 60 * 60)
-
-        if (hoursSinceSave < EXPIRY_HOURS && parsed.service === service) {
-          setDraft(parsed)
-          // Only show modal if there's meaningful data
-          if (Object.keys(parsed.data).length > 2) {
-            setShowRecoveryModal(true)
-          }
-        } else {
-          // Expired or different service, clear it
-          localStorage.removeItem(STORAGE_KEY)
-        }
-      } catch {
-        localStorage.removeItem(STORAGE_KEY)
-      }
+  const [draftState, setDraftState] = useState(() => {
+    if (typeof window === "undefined") {
+      return { draft: null as FormDraft | null, showRecovery: false }
     }
-  }, [service])
+
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) {
+      return { draft: null as FormDraft | null, showRecovery: false }
+    }
+
+    try {
+      const parsed: FormDraft = JSON.parse(stored)
+      const hoursSinceSave = (Date.now() - parsed.savedAt) / (1000 * 60 * 60)
+
+      if (hoursSinceSave < EXPIRY_HOURS && parsed.service === service) {
+        const hasMeaningfulData = Object.keys(parsed.data).length > 2
+        return { draft: parsed, showRecovery: hasMeaningfulData }
+      }
+
+      localStorage.removeItem(STORAGE_KEY)
+      return { draft: null as FormDraft | null, showRecovery: false }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+      return { draft: null as FormDraft | null, showRecovery: false }
+    }
+  })
+
+  const [draft, setDraft] = useState<FormDraft | null>(draftState.draft)
+  const [showRecoveryModal, setShowRecoveryModal] = useState(draftState.showRecovery)
 
   // Save draft
   const saveDraft = useCallback(
