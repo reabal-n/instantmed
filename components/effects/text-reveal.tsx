@@ -201,7 +201,10 @@ export function TextRevealGradient({
           opacity: { duration: 0.5, delay },
           backgroundPosition: { duration: duration * 2, delay, repeat: Infinity },
         }}
-        className="bg-linear-to-r from-[#00E2B5] via-[#06B6D4] via-[#8B5CF6] via-[#06B6D4] to-[#00E2B5] bg-size-[200%_auto] bg-clip-text text-transparent"
+        className="bg-clip-text text-transparent bg-size-[200%_auto]"
+        style={{
+          backgroundImage: "linear-gradient(to right, #00E2B5, #06B6D4, #8B5CF6, #06B6D4, #00E2B5)",
+        }}
       >
         {children}
       </motion.span>

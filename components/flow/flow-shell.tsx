@@ -97,7 +97,7 @@ export function FlowShell({
   }, [stepIndex, prevStep, handleExit])
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-linear-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-[100dvh] bg-linear-to-b from-slate-50 to-white flex flex-col">
       {/* Subtle noise texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"

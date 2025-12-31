@@ -74,6 +74,29 @@ export function getStripeWebhookSecret(): string {
   return key
 }
 
+/**
+ * Vercel AI Gateway API key for AI features
+ */
+export function getVercelAIGatewayApiKey(): string {
+  const key = process.env.VERCEL_AI_GATEWAY_API_KEY
+  if (!key) {
+    console.warn("[env] VERCEL_AI_GATEWAY_API_KEY not set - AI features will not work")
+    return ""
+  }
+  return key
+}
+
+/**
+ * Internal API secret for server-to-server calls
+ */
+export function getInternalApiSecret(): string {
+  const key = process.env.INTERNAL_API_SECRET
+  if (!key && process.env.NODE_ENV === "production") {
+    throw new Error("Missing INTERNAL_API_SECRET environment variable in production")
+  }
+  return key || "dev-secret"
+}
+
 
 // ============================================
 // PUBLIC ENVIRONMENT VARIABLES
@@ -202,6 +225,12 @@ export const env = {
   },
   get stripeWebhookSecret() {
     return getStripeWebhookSecret()
+  },
+  get vercelAIGatewayApiKey() {
+    return getVercelAIGatewayApiKey()
+  },
+  get internalApiSecret() {
+    return getInternalApiSecret()
   },
 
   // Public
