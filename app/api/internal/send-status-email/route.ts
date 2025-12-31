@@ -7,19 +7,16 @@ import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/s
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify internal secret - required in production
+    // Verify internal secret - required in all environments
     const secret = request.headers.get("x-internal-secret")
     const expectedSecret = process.env.INTERNAL_API_SECRET
     
-    // In production, require the secret to be set
-    if (process.env.NODE_ENV === "production" && !expectedSecret) {
+    if (!expectedSecret) {
+      console.error("[send-status-email] INTERNAL_API_SECRET not configured")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
     
-    // Allow dev-secret fallback only in development
-    const effectiveSecret = expectedSecret || "dev-secret"
-    
-    if (secret !== effectiveSecret) {
+    if (secret !== expectedSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
