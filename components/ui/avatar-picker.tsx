@@ -270,16 +270,15 @@ const mainAvatarVariants = {
     y: 0,
     opacity: 1,
     transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 20,
+      duration: 0.18,
+      ease: "easeOut",
     },
   },
   exit: {
     y: -20,
     opacity: 0,
     transition: {
-      duration: 0.2,
+      duration: 0.15,
     },
   },
 }
@@ -304,9 +303,8 @@ const pickerVariants = {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20,
+        duration: 0.18,
+        ease: "easeOut",
       },
     },
   },
@@ -321,9 +319,8 @@ const selectedVariants = {
     opacity: 1,
     rotate: 0,
     transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 15,
+      duration: 0.2,
+      ease: "easeOut",
     },
   },
   exit: {
@@ -363,9 +360,8 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
             height: "6rem",
             transition: {
               height: {
-                type: "spring",
-                stiffness: 100,
-                damping: 20,
+                duration: 0.15,
+                ease: "easeOut",
               },
             },
           }}

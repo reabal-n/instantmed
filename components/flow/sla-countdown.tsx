@@ -61,8 +61,8 @@ export function SLACountdown({ targetTime, status, className }: SLACountdownProp
         )}
       >
         <CheckCircle2 className="w-12 h-12 mx-auto mb-3" />
-        <h3 className="text-xl font-bold mb-1">Complete!</h3>
-        <p className="text-emerald-100 text-sm">Your request has been processed</p>
+        <h3 className="text-xl font-bold mb-1">Complete</h3>
+        <p className="text-emerald-100 text-sm">Your request has been processed.</p>
       </motion.div>
     )
   }

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Centralized logging utility with environment-based filtering.
  * - In development: All logs are shown

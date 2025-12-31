@@ -52,7 +52,7 @@ export const CATEGORY_ICONS: Record<MedicationCategory, string> = {
   "blood-pressure": "❤️",
   cholesterol: "🫀",
   diabetes: "💉",
-  skin: "✨",
+  skin: "🧴",
   "womens-health": "♀️",
   "mens-health": "♂️",
   "weight-loss": "⚖️",

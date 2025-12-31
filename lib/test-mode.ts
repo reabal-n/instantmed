@@ -1,25 +1,27 @@
 /**
  * Test Mode Helper
- * Enables test features for development/staging environments
+ * Enables test features ONLY when explicitly enabled via environment variable.
+ * Never enabled automatically based on NODE_ENV to prevent accidental test mode in staging/preview.
  */
 
 export function getIsTestMode(): boolean {
-  // Server-side: only check env var
+  // Server-side: only check env var (explicit opt-in only)
   if (typeof window === "undefined") {
-    return process.env.NEXT_PUBLIC_TEST_MODE === "true" || process.env.NODE_ENV !== "production"
+    return process.env.NEXT_PUBLIC_TEST_MODE === "true"
   }
 
-  // Client-side: check localStorage override first
+  // Client-side: check localStorage override first (for dev convenience)
   const override = localStorage.getItem("test-mode-override")
   if (override !== null) {
     return override === "true"
   }
 
-  // Fallback to env var
-  return process.env.NEXT_PUBLIC_TEST_MODE === "true" || process.env.NODE_ENV !== "production"
+  // Fallback to env var (explicit opt-in only)
+  return process.env.NEXT_PUBLIC_TEST_MODE === "true"
 }
 
-export const isTestMode = process.env.NEXT_PUBLIC_TEST_MODE === "true" || process.env.NODE_ENV !== "production"
+// Static check - only true if explicitly enabled
+export const isTestMode = process.env.NEXT_PUBLIC_TEST_MODE === "true"
 
 // Test Medicare data
 export const TEST_DATA = {

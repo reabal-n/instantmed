@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Error tracking needs console as fallback for tracking service failures */
 /**
  * Error Tracking Foundation
  * 

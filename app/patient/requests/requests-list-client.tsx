@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Eye, CreditCard, Loader2, Search } from "lucide-react"
 import { retryPaymentForRequestAction } from "@/lib/stripe/checkout"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { useToast } from "@/components/ui/toast-provider"
 
 interface RequestItem {
   id: string
@@ -27,6 +28,7 @@ type FilterStatus = "all" | "pending" | "approved" | "declined" | "needs_follow_
 
 export function RequestsListClient({ requests }: RequestsListClientProps) {
   const router = useRouter()
+  const toast = useToast()
   const [filter, setFilter] = useState<FilterStatus>("all")
   const [retryingPayment, setRetryingPayment] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -39,14 +41,14 @@ export function RequestsListClient({ requests }: RequestsListClientProps) {
       if (result.success && result.checkoutUrl) {
         router.push(result.checkoutUrl)
       } else {
-        alert(result.error || "Failed to initiate payment. Please try again.")
+        toast.error("Payment Error", result.error || "Failed to initiate payment. Please try again.")
         setRetryingPayment(null)
       }
     } catch {
-      alert("An error occurred. Please try again.")
+      toast.error("Error", "An error occurred. Please try again.")
       setRetryingPayment(null)
     }
-  }, [router])
+  }, [router, toast])
 
   const filteredRequests = requests
     .filter((r) => {

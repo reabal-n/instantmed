@@ -1,4 +1,5 @@
 "use server"
+import { logger } from "@/lib/logger"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
@@ -111,7 +112,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       .single()
 
     if (requestError || !request) {
-      console.error("[createRequestAction] Error creating request:", requestError)
+      logger.error("[createRequestAction] Error creating request", { error: String(requestError) })
 
       if (requestError?.code === "23503") {
         return {
@@ -143,7 +144,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     })
 
     if (answersError) {
-      console.error("[createRequestAction] Error creating answers:", answersError)
+      logger.error("[createRequestAction] Error creating answers", { error: String(answersError) })
       // Don't fail - the request exists, answers are supplementary
     }
 
@@ -152,7 +153,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       requestId: request.id,
     }
   } catch (error) {
-    console.error("[createRequestAction] Unexpected error:", error)
+    logger.error("[createRequestAction] Unexpected error", { error: String(error) })
     return {
       success: false,
       error: "An unexpected error occurred. Please try again or contact support at help@instantmed.com.au",
@@ -207,13 +208,13 @@ export async function updateDraftAction(
       })
 
     if (error) {
-      console.error("[updateDraftAction] Error:", error)
+      logger.error("[updateDraftAction] Error", { error: String(error) })
       return { success: false, error: "Failed to update draft" }
     }
 
     return { success: true }
   } catch (error) {
-    console.error("[updateDraftAction] Unexpected error:", error)
+    logger.error("[updateDraftAction] Unexpected error", { error: String(error) })
     return { success: false, error: "An unexpected error occurred" }
   }
 }

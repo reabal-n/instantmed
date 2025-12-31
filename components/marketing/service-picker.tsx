@@ -21,21 +21,21 @@ const colorConfig: Record<string, {
   chipColor: "primary" | "secondary" | "success" | "warning" | "danger" 
 }> = {
   emerald: { 
-    gradient: 'from-emerald-500 to-teal-600',
-    accent: '#10b981', 
-    light: 'rgba(16, 185, 129, 0.1)', 
+    gradient: 'from-emerald-400 to-teal-500',
+    accent: '#059669', 
+    light: 'rgba(5, 150, 105, 0.08)', 
     chipColor: 'success' 
   },
   cyan: { 
-    gradient: 'from-cyan-500 to-blue-600',
-    accent: '#06b6d4', 
-    light: 'rgba(6, 182, 212, 0.1)', 
+    gradient: 'from-cyan-400 to-blue-500',
+    accent: '#0891b2', 
+    light: 'rgba(8, 145, 178, 0.08)', 
     chipColor: 'primary' 
   },
   violet: { 
-    gradient: 'from-violet-500 to-purple-600',
-    accent: '#8b5cf6', 
-    light: 'rgba(139, 92, 246, 0.1)', 
+    gradient: 'from-violet-400 to-purple-500',
+    accent: '#7c3aed', 
+    light: 'rgba(124, 58, 237, 0.08)', 
     chipColor: 'secondary' 
   },
 }

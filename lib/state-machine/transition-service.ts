@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- State machine transitions need console for debugging */
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import {

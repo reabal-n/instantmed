@@ -37,6 +37,7 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/comp
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { AnimatedSelect } from "@/components/ui/animated-select"
+import { logger } from "@/lib/logger"
 
 // Flow steps
 type FlowStep =
@@ -758,6 +759,7 @@ export function PrescriptionFlowClient({
     }
   }
 
+   
   useEffect(() => {
     const checkSession = async () => {
       // Restore form data from sessionStorage if returning from OAuth
@@ -786,7 +788,7 @@ export function PrescriptionFlowClient({
           if (parsed.email) setEmail(parsed.email)
           sessionStorage.removeItem("rx_form_data")
         } catch (e) {
-          console.error("Failed to restore form data:", e)
+          logger.error("Failed to restore form data", { error: e })
         }
       }
       

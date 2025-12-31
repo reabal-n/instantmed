@@ -148,7 +148,7 @@ export default function MedicalCertificatePage() {
                     
                     {cert.popular && (
                       <span className="absolute -top-3 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg" style={{ boxShadow: '0 4px 12px rgba(0,226,181,0.3)' }}>
-                        ✨ Most popular
+                        Most popular
                       </span>
                     )}
 

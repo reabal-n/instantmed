@@ -277,15 +277,14 @@ export default function HowItWorksPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <TiltCard className="p-10 md:p-12">
-                <div className="text-5xl mb-4">🚀</div>
                 <h2
                   className="text-2xl md:text-3xl font-bold text-foreground mb-3"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Ready to skip the waiting room?
+                  Skip the waiting room
                 </h2>
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  Choose what you need and we&apos;ll take care of the rest. Most requests are done within a few hours.
+                  Choose what you need and we&apos;ll handle the rest. Most requests are done within an hour.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild size="lg" className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-8">

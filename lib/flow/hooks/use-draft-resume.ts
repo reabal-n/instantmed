@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable no-console -- Draft restoration needs console for debugging */
 
 import { useState, useEffect, useCallback } from 'react'
 import { useFlowStore } from '../store'

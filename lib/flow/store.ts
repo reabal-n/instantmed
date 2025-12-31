@@ -1,9 +1,11 @@
 'use client'
+/* eslint-disable no-console -- Flow state management needs console for debugging */
 
 import { useState, useEffect } from 'react'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { FlowState, FlowActions, FlowStepId, IdentityData, ConsentRecord } from './types'
+import type { FlowState, FlowActions, FlowStepId } from './types'
+import type { IdentityData as _IdentityData, ConsentRecord as _ConsentRecord } from './types'
 import type { SyncStatus } from './draft/types'
 import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
 
@@ -73,7 +75,7 @@ const STEP_ORDER: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
 // Debounce timer
 let saveTimer: NodeJS.Timeout | null = null
 const SAVE_DEBOUNCE_MS = 1500
-const MAX_RETRY_COUNT = 3
+const _MAX_RETRY_COUNT = 3
 
 // Extended actions for sync
 interface ExtendedFlowActions extends FlowActions {

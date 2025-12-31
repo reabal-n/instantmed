@@ -11,7 +11,7 @@ interface SectionPillProps {
 }
 
 export function SectionPill({ 
-  emoji = "✨", 
+  emoji, 
   text, 
   hoverText,
   className 
@@ -31,15 +31,14 @@ export function SectionPill({
         className,
       )}
     >
-      {/* Glowing floating emoji */}
-      <span 
-        className="text-base animate-float-gentle emoji-glow"
-        style={{
-          filter: "drop-shadow(0 0 8px rgba(0, 226, 181, 0.5))",
-        }}
-      >
-        {emoji}
-      </span>
+      {/* Only show emoji if provided */}
+      {emoji && (
+        <span 
+          className="text-base"
+        >
+          {emoji}
+        </span>
+      )}
 
       {/* Text with hover slide effect */}
       <div className="relative overflow-hidden h-5">

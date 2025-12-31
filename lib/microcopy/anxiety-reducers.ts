@@ -1,55 +1,55 @@
 export const ANXIETY_REDUCERS = {
   // Security reassurance
   security: {
-    short: "Your information is secure",
-    medium: "Your data is encrypted and never shared",
-    long: "We use bank-level encryption. Your information is stored securely in Australia and never shared with third parties.",
+    short: "Your info is safe with us",
+    medium: "Encrypted. Private. Not going anywhere.",
+    long: "Bank-level encryption. Stored in Australia. We don't share your data with anyone. Ever.",
   },
 
   // Time expectations
   timing: {
-    review: "Most requests reviewed within 1-2 hours",
+    review: "Most requests done within 1-2 hours",
     businessHours: "Faster during 8am-10pm AEST",
-    worst: "Always within 24 hours",
-    approval: "If approved, you'll receive your document via email",
+    worst: "Worst case, 24 hours",
+    approval: "If approved, document lands in your inbox",
   },
 
   // Process clarity
   process: {
-    whatHappens: "A real GP will review your request and make a clinical decision",
-    moreInfo: "The doctor may contact you if they need more information",
-    decline: "If we can't help, you'll get a full refund — no questions asked",
+    whatHappens: "A real GP reviews every request — not a bot, not an algorithm",
+    moreInfo: "If they need more info, they'll reach out",
+    decline: "If we can't help, full refund. No awkward conversations.",
   },
 
   // Medicare validation
   medicare: {
-    format: "10 digits, no spaces — check your Medicare card",
-    irnHint: "The number next to your name (1-9)",
-    why: "Required for Medicare compliance and prescriptions",
+    format: "10 digits, no spaces. It's on the front of your card.",
+    irnHint: "The little number next to your name (1-9)",
+    why: "Needed for Medicare compliance. Boring but necessary.",
   },
 
   // Celebration moments
   celebration: {
-    submitted: "You're all done! A doctor will review this shortly.",
-    approved: "Great news — your request has been approved!",
-    documentReady: "Your document is ready to download",
+    submitted: "Request submitted. A doctor will take a look shortly.",
+    approved: "All sorted — your request has been approved.",
+    documentReady: "Your document is ready. Check your email or download below.",
   },
 
   // Error messages that help
   errors: {
-    medicare: "Medicare number should be 10 digits — check your card",
-    email: "Please enter a valid email address",
-    password: "Password must be at least 8 characters",
-    network: "Connection issue — your progress is saved, try again",
-    generic: "Something went wrong. Don't worry, your data is safe.",
+    medicare: "Medicare number should be 10 digits — grab your card",
+    email: "That doesn't look like an email address",
+    password: "Password needs at least 8 characters",
+    network: "Connection dropped — your progress is saved, try again",
+    generic: "Something went sideways. Don't worry, your data is safe.",
   },
 
   // Trust builders
   trust: {
     doctors: "Reviewed by AHPRA-registered Australian GPs",
-    refund: "Full refund if we can't help",
+    refund: "Full refund if we can't help. No questions.",
     privacy: "We never share your data",
-    support: "Real humans available if you need help",
+    support: "Real humans if you need help",
   },
 }
 

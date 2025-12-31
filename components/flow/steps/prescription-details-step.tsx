@@ -223,6 +223,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
       }, 300)
       return () => clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only react to data/openSection changes
   }, [data, openSection])
 
   return (

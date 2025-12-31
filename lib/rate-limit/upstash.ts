@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Rate limiting needs console as fallback */
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import { NextResponse } from "next/server"

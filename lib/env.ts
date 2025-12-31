@@ -88,13 +88,34 @@ export function getVercelAIGatewayApiKey(): string {
 
 /**
  * Internal API secret for server-to-server calls
+ * Required in all environments for security
  */
 export function getInternalApiSecret(): string {
   const key = process.env.INTERNAL_API_SECRET
-  if (!key && process.env.NODE_ENV === "production") {
-    throw new Error("Missing INTERNAL_API_SECRET environment variable in production")
+  if (!key) {
+    throw new Error("Missing INTERNAL_API_SECRET environment variable")
   }
-  return key || "dev-secret"
+  return key
+}
+
+/**
+ * Admin email addresses (comma-separated in env)
+ * Used to identify admin users for special permissions
+ */
+export function getAdminEmails(): string[] {
+  const emails = process.env.ADMIN_EMAILS
+  if (!emails) {
+    // Default fallback for backwards compatibility
+    return ["admin@instantmed.com.au"]
+  }
+  return emails.split(",").map(e => e.trim().toLowerCase())
+}
+
+/**
+ * Check if an email is an admin
+ */
+export function isAdminEmail(email: string): boolean {
+  return getAdminEmails().includes(email.toLowerCase())
 }
 
 

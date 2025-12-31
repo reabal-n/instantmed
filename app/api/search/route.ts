@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ results })
   } catch (error) {
-    console.error("Search error:", error)
+    logger.error("Search error", { error: String(error) })
     return NextResponse.json({ error: "Search failed" }, { status: 500 })
   }
 }

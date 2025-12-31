@@ -672,7 +672,7 @@ export function EnhancedIntakeFlow({
       case "account":
         return { title: "Your details", subtitle: "So we can send you the result" }
       case "review":
-        return { title: "Review & pay", subtitle: "Almost done!" }
+        return { title: "Review & pay", subtitle: "Check everything looks right." }
     }
   }
 

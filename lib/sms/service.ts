@@ -30,7 +30,7 @@ interface SmsResult {
 // SMS Templates
 export const SMS_TEMPLATES = {
   REQUEST_APPROVED: (patientName: string, requestType: string) =>
-    `Hi ${patientName}, great news! Your ${requestType} request has been approved by a doctor. Check your email for details or view at instantmed.com.au/patient`,
+    `Hi ${patientName}, your ${requestType} request has been approved. Check your email for details or view at instantmed.com.au/patient`,
 
   REQUEST_DECLINED: (patientName: string) =>
     `Hi ${patientName}, we couldn't complete your request this time. A refund has been processed. See email for details or contact support@instantmed.com.au`,

@@ -81,8 +81,8 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         await createNotification({
           userId: patientId,
           type: "document_ready",
-          title: "Your request has been approved! ✓",
-          message: "Great news! A doctor has approved your request. Your document is ready to download.",
+          title: "Your request has been approved",
+          message: "A doctor has approved your request. Your document is ready to download.",
           actionUrl,
           metadata: { requestId, requestType, status: newStatus },
         })

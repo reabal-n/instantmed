@@ -2,33 +2,42 @@
  * InstantMed Microcopy Style Guide
  * ================================
  *
- * Brand Voice: Relatable, professional, witty, informal, irreverent, friendly
+ * Brand Voice: Calm. Competent. Human.
+ * A little dry humor. Zero cringe.
+ * 
+ * Think: smart doctor who's seen it all and still bothers to explain things properly.
  *
  * DO:
  * - Use contractions (you're, we'll, don't)
  * - Be conversational and human
- * - Add subtle wit where appropriate
+ * - Short sentences, plain English
+ * - One idea per line
+ * - Slightly informal is fine
+ * - Reassuring > enthusiastic
  * - Offer a next step in error messages
- * - Celebrate wins with enthusiasm
- * - Use Aussie slang sparingly (crook, sorted, no worries)
+ * - Errors should feel noticed by a human, not a system
  *
  * DON'T:
  * - Blame the user for errors
  * - Use corporate jargon (leverage, optimize, utilize)
  * - Say "asynchronous", "automated", or "AI-generated"
- * - Be overly formal or stiff
- * - Use ALL CAPS except for very short emphasis
+ * - Be overly enthusiastic ("Awesome!", "You're all set!")
+ * - Use 🚀🔥✨ or startup mascot energy
+ * - Sound like a hospital pamphlet or fintech ad
+ *
+ * Emojis: One max, sparingly, only for empty/loading states.
+ * Never for medical, legal, or diagnostic content.
  */
 
 // ============================================
-// BUTTON TEXT
+// BUTTON TEXT (keep these boring)
 // ============================================
 export const BUTTONS = {
   // Primary actions
-  submit: "Send it through",
-  continue: "Next",
-  confirm: "Looks good",
-  pay: "Pay & submit",
+  submit: "Submit for review",
+  continue: "Continue",
+  confirm: "Confirm",
+  pay: "Pay and submit",
   payAmount: (amount: string) => `Pay ${amount}`,
   signIn: "Sign in",
   signUp: "Create account",
@@ -46,8 +55,8 @@ export const BUTTONS = {
   viewAll: "View all",
 
   // Contextual
-  viewRequest: "View my request",
-  viewRequests: "View my requests",
+  viewRequest: "View request",
+  viewRequests: "View requests",
   newRequest: "New request",
   downloadPdf: "Download PDF",
   copyLink: "Copy link",
@@ -59,39 +68,42 @@ export const BUTTONS = {
 // ============================================
 export const LOADING = {
   // Generic
-  generic: "Hang tight...",
-  almostThere: "Almost there...",
-  justASec: "Just a sec...",
+  generic: "Just a moment...",
+  almostThere: "Nearly there...",
+  justASec: "One sec.",
+  hangTight: "Hang tight.",
+  stillGoing: "Still working on it...",
 
   // Specific actions
   signingIn: "Signing you in...",
   creatingAccount: "Setting up your account...",
-  savingDetails: "Saving your details...",
+  savingDetails: "Saving...",
   processing: "Processing...",
-  submitting: "Sending it through...",
+  submitting: "Submitting...",
 
   // Payment
-  paymentProcessing: "Securely doing the money thing...",
-  paymentVerifying: "Verifying payment...",
+  paymentProcessing: "Processing payment... don't refresh.",
+  paymentVerifying: "Verifying with your bank...",
 
   // Doctor/review
   findingDoctor: "Finding a doctor...",
-  doctorReviewing: "A real human doctor is looking at this right now",
+  doctorReviewing: "A doctor is looking at this now.",
   generatingDocument: "Generating your document...",
 
   // Data
-  loadingRequests: "Loading your requests...",
-  loadingProfile: "Fetching your details...",
+  loadingRequests: "Fetching your requests...",
+  loadingProfile: "Loading your details...",
   checkingStatus: "Checking status...",
 } as const
 
 // ============================================
 // ERROR MESSAGES
 // ============================================
+// These should feel like a human noticed something — not a compiler.
 export const ERRORS = {
   // Generic
-  generic: "Whoops, something went wrong on our end. Try again?",
-  genericRetry: "That didn't work. Mind trying again?",
+  generic: "Something went wrong on our end. Give it another go?",
+  genericRetry: "That didn't save properly. Try again?",
 
   // Network
   network: "Looks like you're offline. Check your connection and try again.",
@@ -99,41 +111,41 @@ export const ERRORS = {
 
   // Authentication
   authFailed: "Couldn't sign you in. Double-check your details?",
-  emailExists: "That email's already got an account — want to sign in instead?",
-  invalidCredentials: "Email or password doesn't match. Try again?",
-  passwordTooShort: "Password needs to be at least 6 characters",
-  invalidEmail: "That email doesn't look right — mind checking it?",
+  emailExists: "That email already has an account. Want to sign in instead?",
+  invalidCredentials: "Email or password doesn't match. Mind checking?",
+  passwordTooShort: "Password needs to be at least 6 characters.",
+  invalidEmail: "That doesn't look quite right. Mind checking the email?",
 
   // Medicare
-  medicareInvalid: "Medicare number doesn't look right — should be 10 digits, check your card",
-  medicareIncomplete: (remaining: number) => `${remaining} more digit${remaining === 1 ? "" : "s"} to go`,
-  medicareStartDigit: "Medicare numbers start with 2, 3, 4, 5 or 6",
-  irnInvalid: "IRN should be 1-9 (it's next to your name on the card)",
-  expiryInvalid: "Check the expiry date on your card",
+  medicareInvalid: "Medicare number doesn't look right — should be 10 digits.",
+  medicareIncomplete: (remaining: number) => `${remaining} more digit${remaining === 1 ? "" : "s"} to go.`,
+  medicareStartDigit: "Medicare numbers start with 2, 3, 4, 5 or 6.",
+  irnInvalid: "IRN should be 1-9. It's the little number next to your name.",
+  expiryInvalid: "Check the expiry on your card — might've lapsed.",
 
   // Payment
   paymentFailed: "Payment didn't go through. Try a different card?",
-  paymentDeclined: "Your card was declined. Got another one handy?",
-  paymentCancelled: "No worries — your answers are saved. Complete payment when you're ready.",
+  paymentDeclined: "Card was declined. Got another one handy?",
+  paymentCancelled: "No worries — your details are saved. Come back whenever.",
 
   // Forms
-  required: "This one's required",
-  tooShort: (min: number) => `Needs to be at least ${min} characters`,
-  tooLong: (max: number) => `Keep it under ${max} characters`,
-  invalidPhone: "That phone number doesn't look right",
-  invalidDate: "Check the date format",
+  required: "This one's required. Mind filling it in?",
+  tooShort: (min: number) => `Needs at least ${min} characters.`,
+  tooLong: (max: number) => `Keep it under ${max} characters — we're not writing a novel.`,
+  invalidPhone: "That phone number doesn't look quite right.",
+  invalidDate: "Check the date format — DD/MM/YYYY.",
 
   // Permissions
   notAuthorized: "You don't have access to this. Need to sign in?",
-  sessionExpired: "Your session expired. Sign in again?",
+  sessionExpired: "You've been signed out. Happens sometimes. Sign in again?",
 
   // Not found
-  notFound: "We couldn't find what you're looking for",
-  requestNotFound: "This request doesn't exist or you don't have access to it",
+  notFound: "We couldn't find that. It might've moved.",
+  requestNotFound: "This request doesn't exist, or it's not yours.",
 
   // Rate limiting
-  tooManyRequests: "Slow down a bit! Try again in a minute.",
-  tooManyAttempts: "Too many attempts. Take a breather and try again later.",
+  tooManyRequests: "Easy there. Try again in a minute.",
+  tooManyAttempts: "Too many tries. Take a breather and try again.",
 } as const
 
 // ============================================
@@ -141,33 +153,33 @@ export const ERRORS = {
 // ============================================
 export const SUCCESS = {
   // Generic
-  saved: "Saved!",
-  updated: "Updated!",
-  done: "Done!",
+  saved: "Saved.",
+  updated: "Updated.",
+  done: "Done.",
 
   // Requests
   requestSubmitted: {
-    title: "You're all done!",
+    title: "Request submitted",
     subtitle: "A doctor will review this shortly.",
-    body: "That's it! Go put the kettle on. We'll email you when your document's ready — usually within an hour (8am-10pm AEST).",
+    body: "We'll email you when your document is ready — usually within an hour (8am–10pm AEST).",
   },
 
   // Account
-  accountCreated: "Account created! Welcome to InstantMed.",
-  signedIn: "Welcome back!",
+  accountCreated: "Account created.",
+  signedIn: "Signed in.",
   passwordReset: "Check your email for a reset link.",
-  passwordChanged: "Password updated!",
-  profileUpdated: "Profile saved!",
+  passwordChanged: "Password updated.",
+  profileUpdated: "Profile saved.",
 
   // Payment
-  paymentSuccess: "Payment received!",
+  paymentSuccess: "Payment received 👍",
 
   // Copy
-  linkCopied: "Link copied!",
+  linkCopied: "Copied.",
 
   // Document
   documentReady: {
-    title: "Your document is ready!",
+    title: "Your document is ready",
     subtitle: "Download it below or check your email.",
   },
 } as const
@@ -178,24 +190,24 @@ export const SUCCESS = {
 export const EMPTY = {
   noRequests: {
     title: "No requests yet",
-    subtitle: "Feeling healthy? Nice.",
+    subtitle: "Feeling healthy? Good for you.",
     cta: "Start a request",
   },
   noDocuments: {
     title: "No documents yet",
-    subtitle: "Once a request is approved, your documents will appear here.",
+    subtitle: "Once a request is approved, your docs will live here.",
   },
   noNotifications: {
-    title: "All caught up",
-    subtitle: "No new notifications.",
+    title: "All quiet",
+    subtitle: "Nothing new. We'll ping you when there is.",
   },
   noResults: {
-    title: "No results found",
-    subtitle: "Try a different search term?",
+    title: "Nothing found",
+    subtitle: "Try a different search?",
   },
   noMedications: {
-    title: "No medications found",
-    subtitle: "Try searching for the brand name or generic name.",
+    title: "No matches",
+    subtitle: "Try the brand name or generic. Or just type what's on the box.",
   },
 } as const
 
@@ -212,17 +224,17 @@ export const FORM = {
   password: {
     label: "Password",
     placeholder: "6+ characters",
-    helper: "At least 6 characters",
+    helper: "At least 6 characters. Make it memorable.",
   },
   name: {
     label: "Full name",
     placeholder: "As it appears on your Medicare card",
-    helper: "Must match your Medicare card exactly",
+    helper: "Must match your Medicare card — they're picky about that",
   },
   phone: {
     label: "Phone",
     placeholder: "04XX XXX XXX",
-    helper: "In case the doctor needs to reach you",
+    helper: "In case the doctor needs to call. We won't spam you.",
   },
   dob: {
     label: "Date of birth",
@@ -232,8 +244,8 @@ export const FORM = {
   // Request-specific
   notes: {
     label: "Anything else?",
-    placeholder: "Optional — anything that might help the doctor...",
-    helper: "The more detail, the better",
+    placeholder: "Optional — anything that might help...",
+    helper: "More detail = faster review",
   },
   symptoms: {
     label: "What's going on?",
@@ -241,8 +253,8 @@ export const FORM = {
   },
   medication: {
     label: "Which medication?",
-    placeholder: "Start typing to search...",
-    helper: "Brand name or generic",
+    placeholder: "Start typing...",
+    helper: "Brand name or generic — whatever's on the box",
   },
 } as const
 
@@ -250,11 +262,11 @@ export const FORM = {
 // TOOLTIPS & HELPERS
 // ============================================
 export const TOOLTIPS = {
-  medicare: "We need this to verify your identity. Your details are encrypted and secure.",
-  irn: "The small number (1-9) next to your name on your Medicare card.",
-  priority: "Skip the queue — a doctor will review your request within 15 minutes.",
-  securePayment: "All payments are processed securely via Stripe. We never see your card details.",
-  doctorReview: "Every request is reviewed by an AHPRA-registered Australian GP.",
+  medicare: "We need this to verify your identity. Encrypted, secure, never shared.",
+  irn: "The small number (1-9) next to your name. Usually overlooked.",
+  priority: "Jump the queue — doctor reviews within 15 minutes.",
+  securePayment: "Payments go through Stripe. We never see your card details.",
+  doctorReview: "Every request reviewed by an AHPRA-registered Australian GP. The real deal.",
 } as const
 
 // ============================================
@@ -277,10 +289,10 @@ export const STATUS = {
 // TIME & TURNAROUND
 // ============================================
 export const TIME = {
-  turnaround: "Usually within 1 hour",
-  turnaroundLong: "Most requests completed within 1 hour (8am-10pm AEST)",
+  turnaround: "Usually under an hour",
+  turnaroundLong: "Most requests done within 1 hour (8am-10pm AEST)",
   hours: "8am — 10pm AEST, 7 days",
-  afterHours: "After hours? Requests reviewed first thing tomorrow.",
+  afterHours: "After hours? We'll get to it first thing.",
   priority: "15-minute priority review",
   estimatedWait: (minutes: number) =>
     minutes < 60
@@ -292,12 +304,12 @@ export const TIME = {
 // EMAIL SUBJECT LINES
 // ============================================
 export const EMAIL_SUBJECTS = {
-  requestReceived: "We've got your request",
-  paymentConfirmed: "Payment confirmed — we're on it",
-  inReview: "A doctor is reviewing your request",
-  approved: "Good news — your request is approved",
-  documentReady: "Your document is ready to download",
-  needsInfo: "Quick question about your request",
+  requestReceived: "Got your request",
+  paymentConfirmed: "Payment confirmed — on it",
+  inReview: "A doctor is on it",
+  approved: "Your request is approved",
+  documentReady: "Your document is ready",
+  needsInfo: "Quick question from the doctor",
   declined: "About your request",
   reminder: "Your request is waiting",
   welcome: "Welcome to InstantMed",

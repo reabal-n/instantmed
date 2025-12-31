@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Rate limiting needs console as fallback */
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { headers } from "next/headers"

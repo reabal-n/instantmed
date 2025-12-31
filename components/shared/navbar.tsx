@@ -102,8 +102,8 @@ const glowVariants = {
     opacity: 1,
     scale: 2,
     transition: {
-      opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-      scale: { duration: 0.5, type: "spring", stiffness: 300, damping: 25 },
+      opacity: { duration: 0.15, ease: "easeOut" },
+      scale: { duration: 0.15, ease: "easeOut" },
     },
   },
 }
@@ -112,7 +112,7 @@ const navGlowVariants = {
   initial: { opacity: 0 },
   hover: {
     opacity: 1,
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+    transition: { duration: 0.15, ease: "easeOut" },
   },
 }
 

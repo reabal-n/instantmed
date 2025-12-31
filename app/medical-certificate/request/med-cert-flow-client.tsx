@@ -97,7 +97,7 @@ interface MedCertFlowClientProps {
 }
 
 // Google icon component
-function GoogleIcon({ className }: { className?: string }) {
+function _GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -342,9 +342,9 @@ export function MedCertFlowClient({
   const _searchParams = useSearchParams() // Added for guest checkout redirection
 
   // Auth state
-  const [patientId, setPatientId] = useState<string | null>(initialPatientId)
+  const [_patientId, setPatientId] = useState<string | null>(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
-  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
+  const [_needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
 
   // Form data state for all steps
   // Updated formData with new fields and removed old ones

@@ -1,5 +1,5 @@
 import type {
-  SafetyRulesConfig,
+  SafetyRulesConfig as _SafetyRulesConfig,
   SafetyRule,
   RuleCondition,
   SafetyEvaluationResult,

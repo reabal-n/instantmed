@@ -8,46 +8,69 @@
   /* Add test banner height variable */
   --test-banner-height: 0px;
 
-  /* Premium color palette: warm cream base, indigo/violet accents */
-  --background: #faf9f7;
-  --foreground: #1a1a2e;
-  --card: rgba(255, 255, 255, 0.85);
-  --card-foreground: #1a1a2e;
-  --popover: rgba(255, 255, 255, 0.98);
-  --popover-foreground: #1a1a2e;
-  --primary: #6366f1;
+  /* InstantMed Design System: Light, airy, slightly warm - not sterile */
+  /* Backgrounds */
+  --background: #F9FAFB;
+  --foreground: #1a1a1a;
+  --card: #FFFFFF;
+  --card-foreground: #1a1a1a;
+  --popover: #FFFFFF;
+  --popover-foreground: #1a1a1a;
+  
+  /* Primary: Action blue */
+  --primary: #2563EB;
   --primary-foreground: #ffffff;
-  --secondary: #f5f3f0;
-  --secondary-foreground: #3d3d5c;
-  --muted: #f5f3f0;
-  --muted-foreground: #6b7280;
+  
+  /* Secondary: Soft lavender (for marketing only) */
+  --secondary: #F6F7FB;
+  --secondary-foreground: #1a1a1a;
+  
+  /* Muted: Soft surfaces */
+  --muted: #F6F7FB;
+  --muted-foreground: #666666;
+  
+  /* Accents: VERY restrained - only for hero/empty states/marketing */
   --accent: #8b5cf6;
   --accent-foreground: #ffffff;
+  
+  /* Destructive states */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(26, 26, 46, 0.08);
-  --input: #f5f3f0;
-  --ring: #6366f1;
-  --chart-1: #6366f1;
+  
+  /* Borders & inputs */
+  --border: rgba(0, 0, 0, 0.06);
+  --input: #F9FAFB;
+  --ring: #2563EB;
+  
+  /* Charts */
+  --chart-1: #2563EB;
   --chart-2: #8b5cf6;
-  --chart-3: #a855f7;
+  --chart-3: #22c55e;
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
-  --radius: 1rem;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1a1a2e;
-  --sidebar-primary: #6366f1;
+  
+  /* Radius */
+  --radius: 12px;
+  
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f3f0;
-  --sidebar-accent-foreground: #3d3d5c;
-  --sidebar-border: rgba(26, 26, 46, 0.08);
-  --sidebar-ring: #6366f1;
+  --sidebar-accent: #F6F7FB;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: rgba(0, 0, 0, 0.06);
+  --sidebar-ring: #2563EB;
+  
+  /* Status colors */
   --success: #22c55e;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
-  --warning-foreground: #1a1a2e;
-  --navy: #1a1a2e;
-  --indigo: #6366f1;
+  --warning-foreground: #1a1a1a;
+  
+  /* Legacy/compat tokens */
+  --navy: #1a1a1a;
+  --indigo: #2563EB;
   --violet: #8b5cf6;
   --violet-light: #f5f3ff;
 
@@ -65,33 +88,34 @@
 }
 
 .dark {
-  --background: #0f0f1a;
-  --foreground: #f8f8fc;
-  --card: rgba(30, 30, 50, 0.6);
-  --card-foreground: #f8f8fc;
-  --popover: rgba(30, 30, 50, 0.95);
-  --popover-foreground: #f8f8fc;
-  --primary: #818cf8;
-  --primary-foreground: #0f0f1a;
-  --secondary: #1e1e2e;
-  --secondary-foreground: #f8f8fc;
-  --muted: #1e1e2e;
-  --muted-foreground: #a1a1aa;
+  /* Dark theme: maintain soft, calm aesthetic */
+  --background: #0f0f0f;
+  --foreground: #fafafa;
+  --card: #1a1a1a;
+  --card-foreground: #fafafa;
+  --popover: #1a1a1a;
+  --popover-foreground: #fafafa;
+  --primary: #60a5fa;
+  --primary-foreground: #0f0f0f;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #fafafa;
+  --muted: #2a2a2a;
+  --muted-foreground: #999999;
   --accent: #a78bfa;
-  --accent-foreground: #0f0f1a;
+  --accent-foreground: #0f0f0f;
   --destructive: #ef4444;
-  --destructive-foreground: #f8f8fc;
-  --border: rgba(248, 248, 252, 0.1);
-  --input: #1e1e2e;
-  --ring: #818cf8;
-  --sidebar: #0f0f1a;
-  --sidebar-foreground: #f8f8fc;
-  --sidebar-primary: #818cf8;
-  --sidebar-primary-foreground: #0f0f1a;
-  --sidebar-accent: #1e1e2e;
-  --sidebar-accent-foreground: #f8f8fc;
-  --sidebar-border: rgba(248, 248, 252, 0.1);
-  --sidebar-ring: #818cf8;
+  --destructive-foreground: #0f0f0f;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #1a1a1a;
+  --ring: #60a5fa;
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #60a5fa;
+  --sidebar-primary-foreground: #0f0f0f;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #60a5fa;
 }
 
 @theme inline {
@@ -162,8 +186,9 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    line-height: 1.6;
   }
-  /* Lora for all headings - elegant serif */
+  /* Lora for all headings - editorial feel, never bold-bold */
   h1,
   h2,
   h3,
@@ -171,11 +196,84 @@
   h5,
   h6 {
     font-family: var(--font-heading);
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
   }
-  h1 {
-    font-weight: 700;
+  h1 { @apply text-4xl font-medium; }
+  h2 { @apply text-3xl font-medium; }
+  h3 { @apply text-2xl font-medium; }
+  h4 { @apply text-xl font-medium; }
+  h5 { @apply text-lg font-medium; }
+  h6 { @apply text-base font-medium; }
+  
+  /* Body text: readable like an article, not compressed like a dashboard */
+  p { 
+    line-height: 1.75;
+  }
+  
+  /* Meta/labels: 400 weight with opacity, not size hacks */
+  label,
+  .text-muted,
+  .text-muted-foreground {
+    font-weight: 400;
+    opacity: 0.7;
+  }
+}
+
+@layer components {
+  /* Soft card styling: sheets, not boxes */
+  .card,
+  [class*="card"],
+  [class*="Card"] {
+    @apply bg-card text-card-foreground;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    /* Remove harsh borders */
+    border: none;
+  }
+  
+  /* Modal/popover softness */
+  [role="dialog"],
+  .modal,
+  .popover {
+    @apply bg-popover text-popover-foreground;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    border: none;
+  }
+  
+  /* Input fields: calm, non-interrogating */
+  input,
+  textarea,
+  select {
+    @apply bg-input text-foreground;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    line-height: 1.5;
+    transition: all 0.15s ease-out;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  /* Buttons: subtle, not showy */
+  button {
+    transition: all 0.15s ease-out;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+  
+  button:active {
+    transform: translateY(0);
   }
 }
 

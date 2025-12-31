@@ -14,66 +14,74 @@ import type { Transition, Variants, TargetAndTransition } from 'framer-motion'
 // =============================================================================
 // GLOBAL TIMING CONSTANTS
 // =============================================================================
+// InstantMed Design System: Subtle, physical motion (150-220ms)
+// No bounce. No elastic. Ease-out only.
 
 export const duration = {
-  instant: 0.075,
-  fast: 0.15,
-  normal: 0.25,
-  slow: 0.4,
-  slower: 0.6,
-  page: 0.5,
+  instant: 0.15,  // 150ms - minimum perceptible
+  fast: 0.15,     // 150ms - snappy, responsive
+  normal: 0.18,   // 180ms - standard smooth
+  slow: 0.22,     // 220ms - generous, reassuring
+  slower: 0.25,   // 250ms - final fallback for complex motions
+  page: 0.2,      // 200ms - page transitions
 } as const
 
 export const staggerDelay = {
-  fast: 0.03,
-  normal: 0.05,
-  slow: 0.08,
+  fast: 0.04,    // 40ms between staggered items
+  normal: 0.06,  // 60ms between staggered items
+  slow: 0.08,    // 80ms between staggered items
 } as const
 
 // =============================================================================
 // GLOBAL EASING PRESETS
 // =============================================================================
+// ONLY ease-out. No bounces. No springs.
 
 export const easing = {
-  // Standard easings
-  default: [0.4, 0, 0.2, 1] as const,
-  in: [0.4, 0, 1, 1] as const,
-  out: [0, 0, 0.2, 1] as const,
-  inOut: [0.4, 0, 0.2, 1] as const,
+  // ease-out is the ONLY easing we use
+  // It feels physical and natural
+  default: [0, 0, 0.2, 1] as const,     // ease-out
+  in: [0.4, 0, 1, 1] as const,          // only if truly needed
+  out: [0, 0, 0.2, 1] as const,         // PRIMARY
+  inOut: [0.42, 0, 0.58, 1] as const,   // fallback
   
-  // Expressive easings
-  bounce: [0.34, 1.56, 0.64, 1] as const,
-  spring: [0.175, 0.885, 0.32, 1.1] as const,
-  smooth: [0.23, 1, 0.32, 1] as const,
+  // Expressive easings - DEPRECATED
+  // Do not use bounce or spring
+  bounce: [0, 0, 0.2, 1] as const,     // fallback to ease-out
+  spring: [0, 0, 0.2, 1] as const,     // fallback to ease-out
+  smooth: [0, 0, 0.2, 1] as const,     // fallback to ease-out
   
   // CSS-compatible strings
   css: {
-    default: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    bounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.1)',
+    default: 'ease-out',
+    bounce: 'ease-out',
+    spring: 'ease-out',
   },
 } as const
 
 // =============================================================================
-// SPRING PRESETS
+// SPRING PRESETS - DEPRECATED
 // =============================================================================
+// DO NOT USE SPRINGS. All animations use duration + ease-out.
+// Kept for backwards compatibility, will be removed.
 
 export const spring = {
-  snappy: { type: 'spring', stiffness: 400, damping: 30 } as Transition,
-  smooth: { type: 'spring', stiffness: 200, damping: 25 } as Transition,
-  bouncy: { type: 'spring', stiffness: 300, damping: 20 } as Transition,
-  gentle: { type: 'spring', stiffness: 150, damping: 20 } as Transition,
+  snappy: { duration: 0.15, ease: 'easeOut' } as Transition,
+  smooth: { duration: 0.18, ease: 'easeOut' } as Transition,
+  bouncy: { duration: 0.15, ease: 'easeOut' } as Transition,
+  gentle: { duration: 0.2, ease: 'easeOut' } as Transition,
 }
 
 // =============================================================================
 // TRANSITION PRESETS
 // =============================================================================
+// All transitions use ease-out with 150-220ms durations
 
 export const transition = {
-  fast: { duration: duration.fast, ease: easing.default } as Transition,
-  normal: { duration: duration.normal, ease: easing.default } as Transition,
-  slow: { duration: duration.slow, ease: easing.default } as Transition,
-  page: { duration: duration.page, ease: easing.out } as Transition,
+  fast: { duration: duration.fast, ease: 'easeOut' } as Transition,
+  normal: { duration: duration.normal, ease: 'easeOut' } as Transition,
+  slow: { duration: duration.slow, ease: 'easeOut' } as Transition,
+  page: { duration: duration.page, ease: 'easeOut' } as Transition,
 }
 
 // =============================================================================
@@ -108,7 +116,7 @@ export function withReducedMotion<T extends Variants>(variants: T): T {
   
   for (const [key, value] of Object.entries(variants)) {
     if (typeof value === 'object' && value !== null) {
-      const { x, y, scale, rotate, ...rest } = value as Record<string, unknown>
+      const { x: _x, y: _y, scale: _scale, rotate: _rotate, ...rest } = value as Record<string, unknown>
       reduced[key] = {
         ...rest,
         // Keep opacity for reduced motion, remove transforms

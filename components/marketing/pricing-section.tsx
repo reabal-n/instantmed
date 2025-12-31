@@ -24,12 +24,6 @@ export function PricingSection() {
           <div className="relative">
             <h2 className="text-4xl md:text-5xl font-bold font-handwritten text-zinc-900 dark:text-white rotate-[-1deg]">
               Pay per consult. No subscriptions.
-              <div className="absolute -right-12 top-0 text-amber-500 rotate-12 hidden md:block">
-                ✨
-              </div>
-              <div className="absolute -left-8 bottom-0 text-blue-500 -rotate-12 hidden md:block">
-                ⭐️
-              </div>
             </h2>
             <div
               className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-44 h-3 bg-blue-500/20 

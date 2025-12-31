@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable no-console -- Global error boundary intentionally uses console for minimal dependency */
 
 import { useEffect } from "react"
 import { AlertTriangle, RefreshCw } from "lucide-react"

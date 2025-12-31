@@ -79,8 +79,8 @@ BEGIN
   CASE NEW.status
     WHEN 'approved' THEN
       v_type := 'document_ready';
-      v_title := 'Your request has been approved! ✓';
-      v_message := 'Great news! A doctor has approved your request. Your document is ready to download.';
+      v_title := 'Your request has been approved';
+      v_message := 'A doctor has approved your request. Your document is ready to download.';
     WHEN 'declined' THEN
       v_type := 'request_update';
       v_title := 'Update on your request';

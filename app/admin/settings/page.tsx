@@ -4,8 +4,7 @@ import { getFeatureFlags } from "@/lib/feature-flags"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { FeatureFlagsClient } from "./feature-flags-client"
-
-const ADMIN_EMAILS = ["me@reabal.ai", "admin@instantmed.com.au"]
+import { isAdminEmail } from "@/lib/env"
 
 export default async function AdminSettingsPage() {
   const authUser = await getAuthenticatedUserWithProfile()
@@ -16,7 +15,7 @@ export default async function AdminSettingsPage() {
 
   const userEmail = authUser.user.email?.toLowerCase() || ""
   const isAdmin =
-    ADMIN_EMAILS.includes(userEmail) ||
+    isAdminEmail(userEmail) ||
     authUser.profile.role === "admin" ||
     authUser.profile.role === "doctor"
 

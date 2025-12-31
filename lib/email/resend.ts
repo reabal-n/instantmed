@@ -155,7 +155,7 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
         <div style="background: linear-gradient(135deg, #dcfce7, #d1fae5); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
           <span style="font-size: 48px;">✓</span>
           <h1 style="color: #166534; font-size: 24px; margin: 16px 0 0 0;">
-            Your medical certificate is ready!
+            Your medical certificate is ready
           </h1>
         </div>
         
@@ -163,7 +163,7 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
         <p style="font-size: 16px;">Hi ${patientName},</p>
         
         <p style="font-size: 16px;">
-          Great news! Your <strong>Medical Certificate - ${certTypeLabel}</strong> has been reviewed and approved by one of our doctors.
+          Your <strong>Medical Certificate - ${certTypeLabel}</strong> has been reviewed and approved by one of our doctors.
         </p>
         
         <!-- Download Button -->

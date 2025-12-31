@@ -1,4 +1,5 @@
 "use server"
+import { logger } from "@/lib/logger"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -12,7 +13,7 @@ export async function createOrGetProfile(
     try {
       supabase = createServiceRoleClient()
     } catch (clientError) {
-      console.error("[Profile Action] Failed to create service role client:", clientError)
+      logger.error("[Profile Action] Failed to create service role client", { error: String(clientError) })
       return { profileId: null, error: "Server configuration error. Please contact support." }
     }
 
@@ -23,7 +24,7 @@ export async function createOrGetProfile(
       .maybeSingle()
 
     if (selectError) {
-      console.error("[Profile Action] Error checking for existing profile:", {
+      logger.error("[Profile Action] Error checking for existing profile:", {
         code: selectError.code,
         message: selectError.message,
         details: selectError.details,

@@ -13,6 +13,9 @@ function isValidUUID(id: string): boolean {
   return uuidRegex.test(id)
 }
 
+import { getAppUrl, getInternalApiSecret } from "@/lib/env"
+import { logger } from "@/lib/logger"
+
 // Trigger email sending via internal API (avoids react-dom/server import in server action)
 async function triggerStatusEmail(
   requestId: string, 
@@ -21,19 +24,18 @@ async function triggerStatusEmail(
   declineReason?: string
 ): Promise<void> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const baseUrl = getAppUrl()
     await fetch(`${baseUrl}/api/internal/send-status-email`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        "x-internal-secret": process.env.INTERNAL_API_SECRET || "dev-secret",
+        "x-internal-secret": getInternalApiSecret(),
       },
       body: JSON.stringify({ requestId, status, doctorName, declineReason }),
     })
   } catch (error) {
     // Log but don't fail the status update if email fails
-    // eslint-disable-next-line no-console
-    console.error("Failed to trigger status email:", error)
+    logger.error("Failed to trigger status email", { error, requestId, status })
   }
 }
 

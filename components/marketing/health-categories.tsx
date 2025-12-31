@@ -70,32 +70,32 @@ const colorConfig: Record<string, {
 }> = {
   blue: { 
     accent: '#3B82F6', 
-    light: 'rgba(59, 130, 246, 0.08)', 
-    gradient: 'from-blue-500 to-indigo-600',
+    light: 'rgba(59, 130, 246, 0.06)', 
+    gradient: 'from-blue-400 to-indigo-500',
     chipColor: 'primary'
   },
   pink: { 
     accent: '#EC4899', 
-    light: 'rgba(236, 72, 153, 0.08)', 
-    gradient: 'from-pink-500 to-rose-600',
+    light: 'rgba(236, 72, 153, 0.06)', 
+    gradient: 'from-pink-400 to-rose-500',
     chipColor: 'danger'
   },
   violet: { 
     accent: '#8B5CF6', 
-    light: 'rgba(139, 92, 246, 0.08)', 
-    gradient: 'from-violet-500 to-purple-600',
+    light: 'rgba(139, 92, 246, 0.06)', 
+    gradient: 'from-violet-400 to-purple-500',
     chipColor: 'secondary'
   },
   teal: { 
     accent: '#14B8A6', 
-    light: 'rgba(20, 184, 166, 0.08)', 
-    gradient: 'from-teal-500 to-cyan-600',
+    light: 'rgba(20, 184, 166, 0.06)', 
+    gradient: 'from-teal-400 to-cyan-500',
     chipColor: 'success'
   },
   indigo: { 
     accent: '#6366F1', 
-    light: 'rgba(99, 102, 241, 0.08)', 
-    gradient: 'from-indigo-500 to-violet-600',
+    light: 'rgba(99, 102, 241, 0.06)', 
+    gradient: 'from-indigo-400 to-violet-500',
     chipColor: 'primary'
   },
 }

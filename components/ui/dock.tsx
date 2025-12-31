@@ -69,7 +69,7 @@ const DockIconButton = React.forwardRef<HTMLButtonElement, DockIconButtonProps>(
           <motion.div
             layoutId="dock-active-indicator"
             className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           />
         )}
       </>

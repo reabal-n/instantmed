@@ -28,18 +28,16 @@ const sidebarVariants: Variants = {
   open: (height = 1000) => ({
     clipPath: `circle(${height * 2 + 200}px at calc(100% - 44px) 44px)`,
     transition: {
-      type: "spring",
-      stiffness: 20,
-      restDelta: 2,
+      duration: 0.2,
+      ease: "easeOut",
     },
   }),
   closed: {
     clipPath: "circle(0px at calc(100% - 44px) 44px)",
     transition: {
-      delay: 0.3,
-      type: "spring",
-      stiffness: 400,
-      damping: 40,
+      delay: 0.15,
+      duration: 0.15,
+      ease: "easeOut",
     },
   },
 }
@@ -47,7 +45,7 @@ const sidebarVariants: Variants = {
 // Navigation list animation variants
 const navVariants: Variants = {
   open: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.15 },
   },
   closed: {
     transition: { staggerChildren: 0.05, staggerDirection: -1 },

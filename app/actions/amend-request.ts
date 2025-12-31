@@ -1,4 +1,5 @@
 "use server"
+import { logger } from "@/lib/logger"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
@@ -85,7 +86,7 @@ export async function submitRequestAmendmentAction(
       .eq("request_id", requestId)
 
     if (updateError) {
-      console.error("[AmendRequest] Error updating answers:", updateError)
+      logger.error("[AmendRequest] Error updating answers", { error: updateError.message })
       return { success: false, error: "Failed to update your request. Please try again." }
     }
 
@@ -103,7 +104,7 @@ export async function submitRequestAmendmentAction(
       .eq("id", requestId)
 
     if (requestUpdateError) {
-      console.error("[AmendRequest] Error updating request metadata:", requestUpdateError)
+      logger.error("[AmendRequest] Error updating request metadata", { error: requestUpdateError.message })
       // Don't fail - the main update succeeded
     }
 
@@ -115,7 +116,7 @@ export async function submitRequestAmendmentAction(
       message: "Your request has been updated. The doctor will see your changes.",
     }
   } catch (error) {
-    console.error("[AmendRequest] Unexpected error:", error)
+    logger.error("[AmendRequest] Unexpected error", { error: error instanceof Error ? error.message : String(error) })
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",

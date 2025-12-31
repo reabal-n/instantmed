@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable no-console -- Notification hook needs console for realtime debugging */
 
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"

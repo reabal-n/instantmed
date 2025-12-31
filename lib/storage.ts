@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable no-console -- Client-side storage utilities need console for error reporting */
 
 /**
  * Storage utilities with TTL support for form persistence

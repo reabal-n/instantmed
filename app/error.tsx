@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
+import { logger } from "@/lib/logger"
 
 export default function Error({
   error,
@@ -14,21 +15,12 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log error with structured context for observability
-    const errorLog = {
-      timestamp: new Date().toISOString(),
-      level: "error",
+    logger.error("[GlobalErrorBoundary]", {
       message: error.message,
       name: error.name,
       digest: error.digest,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       url: typeof window !== "undefined" ? window.location.href : undefined,
-      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-    }
-    
-    console.error("[GlobalErrorBoundary]", JSON.stringify(errorLog))
-    
-    // In production, you would send this to an error tracking service
-    // Example: Sentry.captureException(error)
+    })
   }, [error])
 
   return (

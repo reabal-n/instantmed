@@ -1,4 +1,5 @@
 "use server"
+import { logger } from "@/lib/logger"
 
 import { createClient } from "@/lib/supabase/server"
 import { isTestMode } from "@/lib/test-mode"
@@ -36,7 +37,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
     .single()
 
   if (requestError || !request) {
-    console.error("Error creating test request:", requestError)
+    logger.error("Error creating test request", { error: String(requestError) })
     return { success: false, error: requestError?.message || "Failed to create request" }
   }
 
@@ -53,7 +54,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
   })
 
   if (answersError) {
-    console.error("Error creating test answers:", answersError)
+    logger.error("Error creating test answers", { error: String(answersError) })
   }
 
   // If paid, create a mock payment record
@@ -69,7 +70,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
     })
 
     if (paymentError) {
-      console.error("Error creating test payment:", paymentError)
+      logger.error("Error creating test payment", { error: String(paymentError) })
     }
   }
 
@@ -98,7 +99,7 @@ export async function skipPaymentTestMode(requestId: string): Promise<TestReques
     .eq("id", requestId)
 
   if (updateError) {
-    console.error("Error skipping payment:", updateError)
+    logger.error("Error skipping payment", { error: String(updateError) })
     return { success: false, error: updateError.message }
   }
 
@@ -114,7 +115,7 @@ export async function skipPaymentTestMode(requestId: string): Promise<TestReques
   })
 
   if (paymentError) {
-    console.error("Error creating skip payment record:", paymentError)
+    logger.error("Error creating skip payment record", { error: String(paymentError) })
   }
 
   return { success: true, requestId }

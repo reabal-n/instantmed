@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @next/next/no-img-element -- External emoji images from GitHub */
 
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef } from "react"

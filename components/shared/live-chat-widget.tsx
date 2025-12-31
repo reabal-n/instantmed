@@ -18,49 +18,49 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /how long|wait|time|fast/i,
       response:
-        "Most requests are reviewed within 1-2 hours during business hours (8am-10pm AEST). You'll get an email as soon as it&apos;s done!",
+        "Most requests are done within 1-2 hours (8am-10pm AEST). We'll email you the second it's ready.",
     },
   ],
   pricing: [
     {
       match: /price|cost|fee|how much|pay/i,
       response:
-        "Med certs are $19.95 and scripts are $24.95. If we can&apos;t help you, you get a full refund — no questions asked.",
+        "Med certs are $19.95, scripts are $24.95. If we can't help, full refund. No forms, no drama.",
     },
   ],
   status: [
     {
       match: /status|my request|where|track/i,
       response:
-        "You can check your request status anytime in your dashboard at /patient. I can also look it up if you share your request ID!",
+        "Check your request anytime at /patient. Or share your request ID and I'll dig it up.",
     },
   ],
   prescription: [
     {
       match: /script|prescription|medication|medicine|pill/i,
       response:
-        "We can help with repeat prescriptions for stable conditions. Once approved, you'll get an eScript via SMS that works at any Aussie pharmacy. Note: we can&apos;t prescribe controlled substances.",
+        "We do repeat scripts for stable conditions. Once approved, you get an eScript via SMS — works at any pharmacy. Heads up: we can't do controlled substances.",
     },
   ],
   medcert: [
     {
       match: /med cert|medical certificate|sick|unwell|work/i,
       response:
-        "Our med certs are accepted by all employers and universities. A GP reviews your symptoms and issues the certificate if appropriate — usually within a couple of hours.",
+        "Med certs accepted everywhere — work, uni, TAFE. A GP reviews your symptoms and issues the cert if it checks out. Usually a couple of hours.",
     },
   ],
   refund: [
     {
       match: /refund|money back|cancel/i,
       response:
-        "If we can&apos;t help with your request for any clinical reason, you get a full refund automatically. No forms, no hassle.",
+        "If we can't help for any clinical reason, automatic refund. No chasing, no paperwork.",
     },
   ],
   legitimate: [
     {
       match: /legit|real|scam|legal|safe/i,
       response:
-        "100% legit! All our doctors are AHPRA-registered Australian GPs. You can verify their credentials on the public AHPRA register. We're compliant with all Australian telehealth regulations.",
+        "Totally legit. All our doctors are AHPRA-registered Australian GPs — you can look them up on the public register. We follow all telehealth regulations.",
     },
   ],
 }
@@ -76,7 +76,7 @@ function getSmartResponse(text: string): string {
     }
   }
 
-  return "Thanks for your message! For detailed inquiries, email support@instantmed.com.au or call 1300 123 456. A human will get back to you within a few hours."
+  return "Good question — I'm not sure on that one. Email support@instantmed.com.au or call 1300 123 456 and a real human will help."
 }
 
 export function LiveChatWidget() {
@@ -85,7 +85,7 @@ export function LiveChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hi! I&apos;m the InstantMed assistant. How can I help you today?",
+      text: "Hey! Got a question? I can help with the basics, or point you to a human.",
       sender: "bot",
       timestamp: new Date(),
     },

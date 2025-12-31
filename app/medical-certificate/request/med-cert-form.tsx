@@ -643,7 +643,7 @@ export function MedCertForm({
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
-  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
+  const [_needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboarding)
 
   // Form state
   const [formData, setFormData] = useState({

@@ -43,7 +43,7 @@ export function handleActionError(
   error: unknown,
   context?: Record<string, unknown>
 ): ActionResult<never> {
-  const errorMessage = error instanceof Error ? error.message : "Unknown error"
+  const _errorMessage = error instanceof Error ? error.message : "Unknown error"
   const errorCode = (error as Error & { code?: string })?.code
   
   log.error(`Unhandled error in ${actionName}`, { ...context, errorCode }, error)

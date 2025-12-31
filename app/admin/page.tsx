@@ -5,12 +5,7 @@ import { Footer } from "@/components/shared/footer"
 import { getAllRequestsForAdmin, getDoctorDashboardStats } from "@/lib/data/requests"
 import { getDashboardAnalytics } from "@/lib/data/analytics"
 import { AdminClient } from "./admin-client"
-
-// Admin emails that have access
-const ADMIN_EMAILS = [
-  "me@reabal.ai",
-  "admin@instantmed.com.au",
-]
+import { isAdminEmail } from "@/lib/env"
 
 export default async function AdminDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
@@ -24,7 +19,7 @@ export default async function AdminDashboardPage() {
   
   // Check if user is admin by email or role
   const isAdmin = 
-    ADMIN_EMAILS.includes(userEmail) ||
+    isAdminEmail(userEmail) ||
     authUser.profile.role === "admin" ||
     authUser.profile.role === "doctor"
 

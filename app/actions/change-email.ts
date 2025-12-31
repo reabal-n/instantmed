@@ -1,4 +1,5 @@
 "use server"
+import { logger } from "@/lib/logger"
 
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -47,7 +48,7 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
     })
 
     if (error) {
-      console.error("[ChangeEmail] Error:", error)
+      logger.error("[ChangeEmail] Error", { error: String(error) })
       if (error.message.includes("email")) {
         return { success: false, error: "Unable to update email. Please try again." }
       }
@@ -59,7 +60,7 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
       message: `A verification email has been sent to ${newEmail}. Please click the link to confirm your new email address.`,
     }
   } catch (error) {
-    console.error("[ChangeEmail] Unexpected error:", error)
+    logger.error("[ChangeEmail] Unexpected error", { error: String(error) })
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -89,7 +90,7 @@ export async function resendEmailVerificationAction(): Promise<ChangeEmailResult
       message: "Verification email resent. Please check your inbox.",
     }
   } catch (error) {
-    console.error("[ResendVerification] Error:", error)
+    logger.error("[ResendVerification] Error", { error: String(error) })
     return { success: false, error: "Failed to resend verification email" }
   }
 }

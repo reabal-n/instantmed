@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceClient, createClient } from "@/lib/supabase/server"
-
-// Hardcoded admin emails that can be upgraded
-const ALLOWED_EMAILS = ["me@reabal.ai", "admin@instantmed.com.au"]
+import { isAdminEmail } from "@/lib/env"
 
 // Only allow in development/preview
 const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
@@ -30,7 +28,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const email = searchParams.get("email")?.toLowerCase()
 
-  if (!email || !ALLOWED_EMAILS.includes(email)) {
+  if (!email || !isAdminEmail(email)) {
     return NextResponse.json(
       { error: "Unauthorized email" },
       { status: 403 }

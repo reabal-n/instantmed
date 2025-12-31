@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable no-console -- Error boundary intentionally uses console */
 
 import { useEffect } from "react"
 import Link from "next/link"

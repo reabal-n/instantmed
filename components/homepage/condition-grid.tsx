@@ -21,7 +21,7 @@ const conditions: Condition[] = [
     id: "med-cert",
     icon: "📄",
     name: "Med Certificate",
-    tagline: "Work or uni. Sorted.",
+    tagline: "For when you're actually sick.",
     price: "$29",
     href: "/medical-certificate",
     color: "#00E2B5",
@@ -31,7 +31,7 @@ const conditions: Condition[] = [
     id: "weight-loss",
     icon: "⚖️",
     name: "Weight Loss",
-    tagline: "Ozempic & friends.",
+    tagline: "Ozempic, Saxenda, the works.",
     price: "$149",
     href: "/weight-loss",
     color: "#10B981",
@@ -41,7 +41,7 @@ const conditions: Condition[] = [
     id: "cold-flu",
     icon: "🤧",
     name: "Cold & Flu",
-    tagline: "Feel like death? Get sorted.",
+    tagline: "Feeling like garbage? Same.",
     price: "$39",
     href: "/prescriptions",
     color: "#06B6D4",
@@ -50,7 +50,7 @@ const conditions: Condition[] = [
     id: "uti",
     icon: "🔥",
     name: "UTI",
-    tagline: "Burning? Yeah, no thanks.",
+    tagline: "You know the feeling. Let's fix it.",
     price: "$39",
     href: "/womens-health?condition=uti",
     color: "#EC4899",
@@ -59,7 +59,7 @@ const conditions: Condition[] = [
     id: "blood-pressure",
     icon: "💊",
     name: "Blood Pressure",
-    tagline: "Keep the ticker happy.",
+    tagline: "Keep the numbers where they should be.",
     price: "$39",
     href: "/prescriptions",
     color: "#EF4444",
@@ -68,7 +68,7 @@ const conditions: Condition[] = [
     id: "hair-loss",
     icon: "💇",
     name: "Hair Loss",
-    tagline: "Fighting the fade.",
+    tagline: "Fighting the inevitable.",
     price: "$39",
     href: "/mens-health?condition=hair-loss",
     color: "#8B5CF6",
@@ -77,7 +77,7 @@ const conditions: Condition[] = [
     id: "contraception",
     icon: "💊",
     name: "Contraception",
-    tagline: "No surprises.",
+    tagline: "Planning ahead.",
     price: "$39",
     href: "/womens-health?condition=contraception",
     color: "#F472B6",
@@ -86,7 +86,7 @@ const conditions: Condition[] = [
     id: "skin",
     icon: "🩹",
     name: "Skin Issues",
-    tagline: "Rashes, acne, the works.",
+    tagline: "Rashes, acne, mystery bumps.",
     price: "$39",
     href: "/prescriptions",
     color: "#F59E0B",
@@ -95,7 +95,7 @@ const conditions: Condition[] = [
     id: "sleep",
     icon: "😴",
     name: "Sleep",
-    tagline: "Actually get some rest.",
+    tagline: "For when counting sheep isn't cutting it.",
     price: "$39",
     href: "/prescriptions",
     color: "#6366F1",
@@ -104,7 +104,7 @@ const conditions: Condition[] = [
     id: "ed",
     icon: "💪",
     name: "Erectile Dysfunction",
-    tagline: "Discreet. No judgement.",
+    tagline: "Discreet. No awkward chats.",
     price: "$39",
     href: "/mens-health?condition=ed",
     color: "#3B82F6",
@@ -113,7 +113,7 @@ const conditions: Condition[] = [
     id: "reflux",
     icon: "🔥",
     name: "Acid Reflux",
-    tagline: "Tame the burn.",
+    tagline: "Regret that second coffee.",
     price: "$39",
     href: "/prescriptions",
     color: "#F97316",
@@ -122,7 +122,7 @@ const conditions: Condition[] = [
     id: "allergies",
     icon: "🌸",
     name: "Allergies",
-    tagline: "Stop the sniffles.",
+    tagline: "Spring can wait.",
     price: "$39",
     href: "/prescriptions",
     color: "#A855F7",
@@ -195,7 +195,7 @@ export function ConditionGrid() {
                   className="absolute top-3 right-3 z-10"
                   initial={{ scale: 0, rotate: -10 }}
                   animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                  transition={{ delay: 0.2, duration: 0.15, ease: "easeOut" }}
                 >
                   <div 
                     className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
@@ -204,7 +204,7 @@ export function ConditionGrid() {
                       boxShadow: `0 4px 12px ${condition.color}40`,
                     }}
                   >
-                    ✨ Popular
+                    Popular
                   </div>
                 </motion.div>
               )}

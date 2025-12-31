@@ -177,7 +177,7 @@ export const PRESCRIPTION_FLOW: FlowConfig = {
           required: true,
           options: [
             { id: "repeat", label: "Repeat", emoji: "🔄" },
-            { id: "new", label: "New medication", emoji: "✨" },
+            { id: "new", label: "New medication", emoji: "➕" },
           ],
         },
       ],

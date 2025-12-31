@@ -77,9 +77,8 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: 'spring' as const,
-      stiffness: 400,
-      damping: 30,
+      duration: 0.2,
+      ease: "easeOut",
     },
   },
 }
@@ -97,9 +96,8 @@ const wordVariants = {
     scale: 1,
     filter: 'blur(0px)',
     transition: {
-      type: 'spring' as const,
-      stiffness: 300,
-      damping: 25,
+      duration: 0.18,
+      ease: "easeOut",
     },
   },
   exit: {

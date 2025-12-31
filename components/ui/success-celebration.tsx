@@ -115,20 +115,20 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
           {expandedFaq && (
             <div className="mt-2 p-4 rounded-xl bg-muted/30 text-left text-sm text-muted-foreground space-y-3">
               <p>
-                <strong>1. Doctor review</strong> — A registered GP will look over your request and make a clinical
-                decision.
+                <strong>1. Doctor review</strong> — A real GP (not a bot) will look at your request and make a
+                clinical decision.
               </p>
               <p>
-                <strong>2. Might need more info</strong> — Occasionally the doctor may message you if they need
-                clarification.
+                <strong>2. Maybe a question</strong> — Sometimes the doctor needs to clarify something. They&apos;ll
+                reach out if so.
               </p>
               <p>
-                <strong>3. Document ready</strong> — Once approved, you&apos;ll get an email with your document attached.
-                Download it anytime from your dashboard.
+                <strong>3. Document ready</strong> — Once approved, email with your document attached. Also in your
+                dashboard forever.
               </p>
               <p>
-                <strong>4. Not approved?</strong> — If the doctor can&apos;t approve your request, you&apos;ll get a full refund
-                and an explanation.
+                <strong>4. Not approved?</strong> — Full refund, no drama. They&apos;ll explain why and suggest next
+                steps.
               </p>
             </div>
           )}

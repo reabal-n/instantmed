@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Dynamic project images */
 
 import { useState, useRef, forwardRef } from "react";
 import { X, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";

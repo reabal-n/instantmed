@@ -20,17 +20,17 @@ export const COPY = {
 
   // Service selection
   services: {
-    heading: "What do you need today?",
-    subtitle: "Pick one and we'll handle the rest",
+    heading: "What do you need?",
+    subtitle: "Pick one. We'll handle the paperwork.",
     options: {
       medcert: {
         label: "Medical certificate",
-        description: "Sick day? We've got you.",
+        description: "For when you're genuinely unwell.",
         icon: "FileText",
       },
       prescription: {
         label: "Prescription",
-        description: "Refills and new scripts.",
+        description: "Refills, repeats, the usual.",
         icon: "Pill",
       },
     },
@@ -50,7 +50,7 @@ export const COPY = {
     },
     symptoms: {
       heading: "What's going on?",
-      headingCarer: "What are they experiencing?",
+      headingCarer: "What are they dealing with?",
       subtitle: "Tap all that apply",
       options: [
         { id: "cold", label: "Cold/Flu", emoji: "🤧" },
@@ -126,17 +126,17 @@ export const COPY = {
   // Safety check (universal, shortened)
   safety: {
     heading: "Quick safety check",
-    subtitle: "Just a few questions to make sure this is right for you",
+    subtitle: "Just making sure this is right for you",
     questions: {
       pregnant: "Pregnant or possibly pregnant?",
       allergies: "Any medication allergies?",
-      reactions: "Any severe reactions before?",
-      urgent: "Anything urgent or concerning?",
+      reactions: "Any bad reactions before?",
+      urgent: "Anything urgent we should know about?",
     },
     labels: { yes: "Yes", no: "No" },
     knockout: {
-      heading: "We recommend in-person care",
-      body: "Based on your answers, it's best to see a doctor face-to-face or visit urgent care.",
+      heading: "You should see someone in person",
+      body: "Based on your answers, it's best to see a doctor face-to-face. Safety first.",
       cta: "Find urgent care",
     },
   },
@@ -170,10 +170,10 @@ export const COPY = {
   account: {
     headingNew: "Almost there",
     headingExisting: "Welcome back",
-    subtitle: "Create an account to receive your documents",
+    subtitle: "We need an account to send you the goods",
     google: "Continue with Google",
     divider: "or use email",
-    name: { label: "Full name", placeholder: "Your name" },
+    name: { label: "Full name", placeholder: "As on your Medicare card" },
     email: { label: "Email", placeholder: "you@example.com" },
     password: { label: "Password", placeholder: "6+ characters" },
     terms: {
@@ -185,14 +185,14 @@ export const COPY = {
     ctaNew: "Create account",
     ctaExisting: "Sign in",
     switchNew: "New here? Create account",
-    switchExisting: "Have an account? Sign in",
+    switchExisting: "Already have an account? Sign in",
     forgot: "Forgot password?",
   },
 
   // Review
   review: {
     heading: "Review & pay",
-    subtitle: "Double-check everything looks right",
+    subtitle: "Have a quick look. Make sure it's right.",
     edit: "Edit",
     sections: {
       type: "Request type",
@@ -200,7 +200,7 @@ export const COPY = {
       medicare: "Medicare",
     },
     disclaimer:
-      "A doctor will review your request. They may message you if they need more info. Most requests are completed within 1 hour (8am–10pm AEST).",
+      "A real doctor will review this. They might message you if they need more. Most requests done within an hour (8am–10pm AEST).",
   },
 
   // Payment
@@ -233,8 +233,9 @@ export const COPY = {
 
   // Success states
   success: {
-    heading: "Request submitted!",
-    subtitle: "A doctor will review it shortly",
+    heading: "Request submitted",
+    subtitle: "A doctor will review this shortly.",
+
     turnaround: "Most requests completed within 1 hour (8am–10pm AEST)",
     cta: "View my requests",
   },
