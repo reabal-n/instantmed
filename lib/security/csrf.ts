@@ -98,3 +98,20 @@ export function withCSRFProtection(
 export async function getCSRFTokenForClient(): Promise<string> {
   return await generateCSRFToken()
 }
+
+/**
+ * Require valid CSRF token for API routes
+ * Returns null if valid, NextResponse error if invalid
+ */
+export async function requireValidCsrf(request: Request): Promise<NextResponse | null> {
+  const isValid = await validateCSRFToken(request)
+  
+  if (!isValid) {
+    return NextResponse.json(
+      { error: "Invalid or missing CSRF token" },
+      { status: 403 }
+    )
+  }
+  
+  return null
+}

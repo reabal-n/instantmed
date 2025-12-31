@@ -7,6 +7,7 @@ import { PaymentConfirmedEmail } from "./templates/payment-confirmed"
 import { RequestApprovedEmail } from "./templates/request-approved"
 import { NeedsMoreInfoEmail } from "./templates/needs-more-info"
 import { RequestDeclinedEmail } from "./templates/request-declined"
+import { sendViaResend } from "./resend"
 import { logger } from "../logger"
 
 function getServiceClient() {
@@ -72,7 +73,7 @@ function renderTemplate(template: EmailTemplate, data: Record<string, unknown>):
 }
 
 /**
- * Send an email (logs to database, actual sending via Resend/SendGrid would be added)
+ * Send an email via Resend and log to database
  */
 export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string }> {
   const { to, template, data, requestId } = params
@@ -80,22 +81,45 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
   try {
     const { html, subject } = renderTemplate(template, data)
 
-    // Log to database
+    // Log to database first
     const supabase = getServiceClient()
-    await supabase.from("email_logs").insert({
+    const { data: logEntry } = await supabase.from("email_logs").insert({
       request_id: requestId,
       recipient_email: to,
       template_type: template,
       subject,
       metadata: { data },
+    }).select().single()
+
+    // Send via Resend
+    const result = await sendViaResend({
+      to,
+      subject,
+      html,
+      tags: [
+        { name: "template", value: template },
+        ...(requestId ? [{ name: "request_id", value: requestId }] : []),
+      ],
     })
 
-    // TODO: Integrate with Resend or SendGrid for actual email delivery
-    // For now, log to centralized logger in development
-    if (process.env.NODE_ENV === "development") {
-      logger.info(`[Email] Would send to ${to}`, { subject, template })
+    // Update log with send status
+    if (logEntry) {
+      await supabase.from("email_logs").update({
+        metadata: { 
+          ...data, 
+          resend_id: result.id,
+          sent: result.success,
+          error: result.error,
+        },
+      }).eq("id", logEntry.id)
     }
 
+    if (!result.success) {
+      logger.warn(`[Email] Failed to send to ${to}: ${result.error}`, { subject, template })
+      return { success: false, error: result.error }
+    }
+
+    logger.info(`[Email] Sent to ${to}`, { subject, template, resendId: result.id })
     return { success: true }
   } catch (error) {
     logger.error("Error sending email: " + String(error), { error })

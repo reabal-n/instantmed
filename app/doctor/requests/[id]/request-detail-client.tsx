@@ -32,6 +32,8 @@ import {
   MessageSquare,
   Download,
   FileEdit,
+  Sparkles,
+  Loader2,
 } from "lucide-react"
 import { updateStatusAction, saveClinicalNoteAction } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
@@ -61,6 +63,10 @@ export function RequestDetailClient({
   const [noteSaved, setNoteSaved] = useState(false)
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [isGeneratingNote, setIsGeneratingNote] = useState(false)
+  const [declineReason, setDeclineReason] = useState("")
+  const [isGeneratingDeclineReason, setIsGeneratingDeclineReason] = useState(false)
+  const [declineCategory, setDeclineCategory] = useState<"clinical" | "service" | "compliance" | "safety" | "incomplete">("clinical")
 
   // Handle quick actions from dashboard
   useEffect(() => {
@@ -73,9 +79,72 @@ export function RequestDetailClient({
     }
   }, [initialAction, request.id, request.category, request.status, router])
 
+  // AI-powered SOAP note generation
+  const handleGenerateClinicalNote = async () => {
+    setIsGeneratingNote(true)
+    try {
+      const response = await fetch("/api/ai/clinical-note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName: request.patient.full_name || "Patient",
+          patientAge,
+          requestType: request.category,
+          requestSubtype: request.subtype || "general",
+          questionnaire: request.answers?.answers || {},
+          redFlags: Object.entries(request.answers?.answers || {}).some(
+            ([key, value]) => (key.includes("safety") || key.includes("red_flag") || key.startsWith("rf_")) && value === true
+          ),
+          existingNote: clinicalNote || undefined,
+        }),
+      })
+      const data = await response.json()
+      if (data.success && data.note) {
+        setClinicalNote(data.note)
+        setActionMessage({ type: "success", text: "AI clinical note generated - please review and edit as needed" })
+        setTimeout(() => setActionMessage(null), 4000)
+      } else {
+        setActionMessage({ type: "error", text: data.error || "Failed to generate note" })
+      }
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to connect to AI service" })
+    } finally {
+      setIsGeneratingNote(false)
+    }
+  }
+
+  // AI-powered decline reason generation
+  const handleGenerateDeclineReason = async () => {
+    setIsGeneratingDeclineReason(true)
+    try {
+      const response = await fetch("/api/ai/decline-reason", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName: request.patient.full_name || "Patient",
+          requestType: request.category,
+          requestSubtype: request.subtype || "general",
+          questionnaire: request.answers?.answers || {},
+          declineCategory,
+          additionalContext: clinicalNote || undefined,
+        }),
+      })
+      const data = await response.json()
+      if (data.success && data.reason) {
+        setDeclineReason(data.reason)
+      } else {
+        setActionMessage({ type: "error", text: data.error || "Failed to generate decline reason" })
+      }
+    } catch {
+      setActionMessage({ type: "error", text: "Failed to connect to AI service" })
+    } finally {
+      setIsGeneratingDeclineReason(false)
+    }
+  }
+
   const handleStatusChange = async (status: RequestStatus) => {
     startTransition(async () => {
-      const result = await updateStatusAction(request.id, status)
+      const result = await updateStatusAction(request.id, status, status === "declined" ? declineReason : undefined)
       if (result.success) {
         let message = `Request ${status === "approved" ? "approved" : status === "declined" ? "declined" : "marked as needs follow-up"}`
         
@@ -606,11 +675,33 @@ export function RequestDetailClient({
           )}
         </div>
         <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateClinicalNote}
+              disabled={isGeneratingNote || request.status !== "pending"}
+              className="rounded-lg bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200 text-violet-700"
+            >
+              {isGeneratingNote ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate SOAP Note
+                </>
+              )}
+            </Button>
+            <span className="text-xs text-muted-foreground">AI will create a structured clinical note from questionnaire</span>
+          </div>
           <Textarea
             value={clinicalNote}
             onChange={(e) => setClinicalNote(e.target.value)}
-            placeholder="Add internal notes about this request..."
-            className="min-h-[100px] rounded-xl"
+            placeholder="Add internal notes about this request... or click 'Generate SOAP Note' for AI assistance"
+            className="min-h-[150px] rounded-xl font-mono text-sm"
           />
           <Button
             variant="outline"
@@ -715,22 +806,84 @@ export function RequestDetailClient({
       )}
 
       {/* Decline Confirmation Dialog */}
-      <AlertDialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
-        <AlertDialogContent className="rounded-2xl">
+      <AlertDialog open={showDeclineDialog} onOpenChange={(open) => {
+        setShowDeclineDialog(open)
+        if (!open) {
+          // Reset state when closing
+          setDeclineReason("")
+          setDeclineCategory("clinical")
+        }
+      }}>
+        <AlertDialogContent className="rounded-2xl max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Decline this request?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action will decline the patient&apos;s request. They will be notified via email. Make sure you have added
-              clinical notes explaining the reason.
+            <AlertDialogTitle>Decline this request</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              The patient will receive an email with your decline reason. You can use AI to help compose a compassionate message.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Decline Category Selection */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Reason Category</label>
+              <select
+                value={declineCategory}
+                onChange={(e) => setDeclineCategory(e.target.value as typeof declineCategory)}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="clinical">Clinical - Requires in-person examination</option>
+                <option value="service">Service - Not available via telehealth</option>
+                <option value="compliance">Compliance - Prescribing guidelines</option>
+                <option value="safety">Safety - Requires urgent in-person care</option>
+                <option value="incomplete">Incomplete - Insufficient information</option>
+              </select>
+            </div>
+
+            {/* AI Generate Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateDeclineReason}
+              disabled={isGeneratingDeclineReason}
+              className="w-full rounded-lg bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200 text-violet-700"
+            >
+              {isGeneratingDeclineReason ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Decline Message
+                </>
+              )}
+            </Button>
+
+            {/* Editable Decline Reason */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Message to Patient</label>
+              <Textarea
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                placeholder="Enter the reason for declining this request. This will be sent to the patient via email."
+                className="min-h-[120px] rounded-xl text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                This message will appear in the patient&apos;s email notification.
+              </p>
+            </div>
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleStatusChange("declined")}
-              className="rounded-xl bg-red-600 hover:bg-red-700"
+              disabled={!declineReason.trim()}
+              className="rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Decline Request
+              <XCircle className="mr-2 h-4 w-4" />
+              Decline & Send Email
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

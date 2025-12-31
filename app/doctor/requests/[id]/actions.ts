@@ -13,9 +13,34 @@ function isValidUUID(id: string): boolean {
   return uuidRegex.test(id)
 }
 
+// Trigger email sending via internal API (avoids react-dom/server import in server action)
+async function triggerStatusEmail(
+  requestId: string, 
+  status: RequestStatus, 
+  doctorName: string,
+  declineReason?: string
+): Promise<void> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    await fetch(`${baseUrl}/api/internal/send-status-email`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "x-internal-secret": process.env.INTERNAL_API_SECRET || "dev-secret",
+      },
+      body: JSON.stringify({ requestId, status, doctorName, declineReason }),
+    })
+  } catch (error) {
+    // Log but don't fail the status update if email fails
+    // eslint-disable-next-line no-console
+    console.error("Failed to trigger status email:", error)
+  }
+}
+
 export async function updateStatusAction(
   requestId: string,
   status: RequestStatus,
+  declineReason?: string,
 ): Promise<{ success: boolean; error?: string; code?: string; refund?: RefundResult }> {
   // Validate input
   if (!isValidUUID(requestId)) {
@@ -36,6 +61,9 @@ export async function updateStatusAction(
     if (!result) {
       return { success: false, error: "Failed to update status" }
     }
+
+    // Trigger email notification asynchronously (non-blocking)
+    triggerStatusEmail(requestId, status, profile.full_name || "Your Doctor", declineReason)
 
     // If declined, process refund if eligible
     let refundResult: RefundResult | undefined
