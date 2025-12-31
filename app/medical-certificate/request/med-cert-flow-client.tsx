@@ -40,36 +40,32 @@ import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 
-// Flow steps
+// Flow steps - safety merged into symptoms step
 type FlowStep =
   | "type"
   | "duration"
   | "startDate"
   | "symptoms"
-  | "notes"
-  | "safety"
   | "patientDetails"
   | "review"
   | "payment"
 
-// Updated steps
+// Updated steps - safety merged into symptoms step
 const STEPS: FlowStep[] = [
   "type",
   "duration",
   "startDate",
   "symptoms",
-  "notes",
-  "safety",
   "patientDetails",
   "review",
   "payment",
 ]
 
-// Certificate types with compliant labels
+// Certificate types with emojis
 const CERT_TYPES = [
-  { id: "work", label: MICROCOPY.type.work.label, icon: Briefcase, description: MICROCOPY.type.work.description },
-  { id: "uni", label: MICROCOPY.type.uni.label, icon: GraduationCap, description: MICROCOPY.type.uni.description },
-  { id: "carer", label: MICROCOPY.type.carer.label, icon: Heart, description: MICROCOPY.type.carer.description },
+  { id: "work", label: MICROCOPY.type.work.label, emoji: "💼", description: MICROCOPY.type.work.description },
+  { id: "uni", label: MICROCOPY.type.uni.label, emoji: "📚", description: MICROCOPY.type.uni.description },
+  { id: "carer", label: MICROCOPY.type.carer.label, emoji: "❤️", description: MICROCOPY.type.carer.description },
 ] as const
 
 // Duration options with icons for AnimatedSelect
@@ -448,17 +444,7 @@ export function MedCertFlowClient({
     setError(null)
     const currentIndex = STEPS.indexOf(step)
 
-    // Updated navigation logic for new flow
-    if (step === "safety") {
-      setStep("patientDetails")
-      return
-    }
-
-    if (step === "review") {
-      setStep("payment")
-      return
-    }
-
+    // Simple navigation - just go to next step
     if (currentIndex < STEPS.length - 1) {
       setStep(STEPS[currentIndex + 1])
     }
@@ -468,42 +454,7 @@ export function MedCertFlowClient({
     setError(null)
     const currentIndex = STEPS.indexOf(step)
 
-    // Updated navigation logic for new flow
-    if (step === "payment") {
-      setStep("review")
-      return
-    }
-
-    if (step === "review") {
-      setStep("patientDetails")
-      return
-    }
-
-    if (step === "patientDetails") {
-      setStep("safety")
-      return
-    }
-
-    if (step === "safety") {
-      setStep("notes")
-      return
-    }
-
-    if (step === "notes") {
-      setStep("symptoms")
-      return
-    }
-
-    if (step === "symptoms") {
-      setStep("startDate")
-      return
-    }
-
-    if (step === "startDate") {
-      setStep("duration")
-      return
-    }
-
+    // Simple navigation - just go to previous step
     if (currentIndex > 0) {
       setStep(STEPS[currentIndex - 1])
     }
@@ -634,25 +585,27 @@ export function MedCertFlowClient({
       case "startDate":
         return !!formData.startDate
       case "symptoms":
+        // Must have symptoms, notes (if extended), and emergency confirmation
         if (isCarer) {
-          return formData.selectedSymptoms.length > 0 && !!formData.carerPatientName && !!formData.carerRelationship
+          return (
+            formData.selectedSymptoms.length > 0 &&
+            !!formData.carerPatientName &&
+            !!formData.carerRelationship &&
+            formData.safetyAnswers.notEmergency === true
+          )
         }
-        return formData.selectedSymptoms.length > 0
-      case "notes":
-        const days = getDurationDays(formData.duration!) // Added ! to assert duration is not null
-        if (days > 2 || formData.duration === "4-7" || formData.duration === "1-2weeks") {
-          return formData.additionalNotes.trim().length > 0
+        // For extended leave, require notes
+        const days = getDurationDays(formData.duration!)
+        const needsNotes = days > 2 || formData.duration === "4-7" || formData.duration === "1-2weeks"
+        if (needsNotes && !formData.additionalNotes.trim()) {
+          return false
         }
-        return true // Optional for <= 2 days
-      case "safety":
-        // Check if all safety answers are provided
-        return Object.keys(formData.safetyAnswers).length === 3
-      // Removed 'medicare' validation
+        return formData.selectedSymptoms.length > 0 && formData.safetyAnswers.notEmergency === true
       case "patientDetails":
         return (
           !!formData.email &&
           !!formData.dateOfBirth &&
-          formData.medicareNumber.length === 10 && // Assumes length check is sufficient for format
+          formData.medicareNumber.length === 10 &&
           !!formData.medicareIrn &&
           !!formData.addressLine1 &&
           !!formData.suburb &&
@@ -660,9 +613,9 @@ export function MedCertFlowClient({
           !!formData.postcode
         )
       case "review":
-        return true // Always proceed to review
+        return true
       case "payment":
-        return true // Always proceed to payment
+        return true
       default:
         return false
     }
@@ -874,8 +827,8 @@ export function MedCertFlowClient({
           <section aria-labelledby="step-type-heading" className="space-y-4 animate-step-enter">
             <StepHeader
               emoji="📄"
-              title={MICROCOPY.type.heading}
-              subtitle={MICROCOPY.type.subtitle}
+              title="What's the certificate for?"
+              subtitle="Select one option"
               stepNumber={1}
               totalSteps={3}
             />
@@ -886,7 +839,7 @@ export function MedCertFlowClient({
                   key={type.id}
                   selected={formData.certType === type.id}
                   onClick={() => setFormData((prev) => ({ ...prev, certType: type.id }))}
-                  icon={type.icon}
+                  emoji={type.emoji}
                   label={type.label}
                   description={type.description}
                 />
@@ -982,24 +935,29 @@ export function MedCertFlowClient({
         )
 
       case "symptoms":
+        const needsDetailedNotes = getDurationDays(formData.duration!) > 2 || 
+          formData.duration === "4-7" || 
+          formData.duration === "1-2weeks"
+        
         return (
-          <section aria-labelledby="step-symptoms-heading" className="space-y-4 animate-step-enter">
+          <section aria-labelledby="step-symptoms-heading" className="space-y-5 animate-step-enter">
             <StepHeader
-              emoji={isCarer ? "🧑‍⚕️" : "🪒"}
-              title={isCarer ? MICROCOPY.symptoms.headingCarer : MICROCOPY.symptoms.heading}
-              subtitle={MICROCOPY.symptoms.subtitle}
+              emoji={isCarer ? "🩺" : "🤒"}
+              title={isCarer ? "Tell us about their condition" : "Tell us about your symptoms"}
+              subtitle="This helps our doctors help you faster"
             />
 
+            {/* Carer details */}
             {isCarer && (
-              <fieldset className="space-y-3">
+              <fieldset className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border">
                 <legend className="sr-only">Person being cared for</legend>
                 <div className="space-y-1">
-                  <Label htmlFor="carer-name" className="text-xs font-medium">
-                    {MICROCOPY.symptoms.carerName}
+                  <Label htmlFor="carer-name" className="text-sm font-medium">
+                    Who are you caring for?
                   </Label>
                   <Input
                     id="carer-name"
-                    placeholder={MICROCOPY.symptoms.carerNamePlaceholder}
+                    placeholder="Their full name"
                     value={formData.carerPatientName}
                     onChange={(e) => setFormData((prev) => ({ ...prev, carerPatientName: e.target.value }))}
                     className="h-11 rounded-xl"
@@ -1007,7 +965,7 @@ export function MedCertFlowClient({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium">{MICROCOPY.symptoms.relationship}</Label>
+                  <Label className="text-sm font-medium">Your relationship</Label>
                   <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Relationship">
                     {RELATIONSHIPS.map((rel) => (
                       <ChipButton
@@ -1022,153 +980,99 @@ export function MedCertFlowClient({
               </fieldset>
             )}
 
-            <TagsSelector
-              tags={SYMPTOMS.map((s) => ({ id: s, label: s }))}
-              value={formData.selectedSymptoms.map((s) => ({ id: s, label: s }))}
-              onChange={(tags) => setFormData((prev) => ({ ...prev, selectedSymptoms: tags.map((t) => t.label) }))}
-              placeholder="Tap to select symptoms..."
-            />
+            {/* Symptoms */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {isCarer ? "What symptoms are they experiencing?" : "What symptoms do you have?"}
+              </Label>
+              <TagsSelector
+                tags={SYMPTOMS.map((s) => ({ id: s, label: s }))}
+                value={formData.selectedSymptoms.map((s) => ({ id: s, label: s }))}
+                onChange={(tags) => setFormData((prev) => ({ ...prev, selectedSymptoms: tags.map((t) => t.label) }))}
+                placeholder="Tap to select..."
+              />
+            </div>
 
             {formData.selectedSymptoms.includes("Other") && (
               <div className="space-y-1">
-                <Label htmlFor="other-symptom" className="text-xs font-medium">
-                  {MICROCOPY.symptoms.otherLabel}
+                <Label htmlFor="other-symptom" className="text-sm font-medium">
+                  Please describe
                 </Label>
                 <Input
                   id="other-symptom"
-                  placeholder={MICROCOPY.symptoms.otherPlaceholder}
+                  placeholder="Brief description of symptoms"
                   value={formData.otherSymptom}
                   onChange={(e) => setFormData((prev) => ({ ...prev, otherSymptom: e.target.value }))}
                   className="h-11 rounded-xl"
                 />
               </div>
             )}
-          </section>
-        )
 
-      case "notes":
-        return (
-          <section aria-labelledby="step-notes-heading" className="space-y-4 animate-step-enter">
-            <header className="text-center space-y-1">
-              <div className="text-4xl mb-2 animate-bounce-gentle">✍️</div>
-              <h2 id="step-notes-heading" className="text-xl font-semibold">
-                {MICROCOPY.notes.heading}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {getDurationDays(formData.duration!) > 2 ||
-                formData.duration === "4-7" ||
-                formData.duration === "1-2weeks"
-                  ? "Please describe why you need extended leave (required for certificates over 2 days)"
-                  : MICROCOPY.notes.subtitle}
-              </p>
-            </header>
-
+            {/* Additional notes */}
             <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-medium">
+                {needsDetailedNotes 
+                  ? "Why do you need extended leave? (required)" 
+                  : "Anything else the doctor should know? (optional)"}
+              </Label>
               <Textarea
                 id="notes"
-                value={formData.additionalNotes} // Changed from formData.notes to formData.additionalNotes
+                value={formData.additionalNotes}
                 onChange={(e) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
-                placeholder={MICROCOPY.notes.placeholder}
-                className="min-h-[120px] resize-none rounded-xl"
+                placeholder={needsDetailedNotes 
+                  ? "Please describe your condition and why you need more than 2 days..." 
+                  : "e.g. symptoms started yesterday, feeling worse today..."}
+                className="min-h-[80px] resize-none rounded-xl"
                 maxLength={500}
-                aria-describedby="notes-count"
               />
-              <p id="notes-count" className="text-xs text-right text-muted-foreground">
-                {formData.additionalNotes.length}/500 {/* Changed from formData.notes.length */}
+              <p className="text-xs text-right text-muted-foreground">
+                {formData.additionalNotes.length}/500
               </p>
+            </div>
+
+            {/* Emergency disclaimer - integrated as checkbox */}
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-amber-800">Important</p>
+                  <p className="text-sm text-amber-700">
+                    If you're experiencing a medical emergency, call 000.
+                  </p>
+                </div>
+              </div>
+              
+              <label className="flex items-start gap-3 p-3 rounded-lg bg-white border border-amber-200 cursor-pointer hover:bg-amber-50/50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.safetyAnswers.notEmergency === true}
+                  onChange={(e) => setFormData((prev) => ({ 
+                    ...prev, 
+                    safetyAnswers: { ...prev.safetyAnswers, notEmergency: e.target.checked } 
+                  }))}
+                  className="mt-0.5 h-5 w-5 rounded border-amber-300 text-primary focus:ring-primary"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-sm font-medium text-foreground">
+                    I confirm this is not a medical emergency
+                  </span>
+                  <span className="text-xs text-muted-foreground block">
+                    I understand this is a non-urgent telehealth service
+                  </span>
+                </div>
+              </label>
+              
+              {formData.safetyAnswers.notEmergency && (
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">Ready to continue</span>
+                </div>
+              )}
             </div>
           </section>
         )
 
-      case "safety":
-        return (
-          <section aria-labelledby="step-safety-heading" className="space-y-4 animate-step-enter">
-            <StepHeader emoji="🛡️" title={MICROCOPY.safety.heading} subtitle={MICROCOPY.safety.subtitle} />
-
-            <fieldset className="space-y-3">
-              <legend className="sr-only">Safety screening questions</legend>
-
-              {[
-                {
-                  id: "chest-pain",
-                  question: MICROCOPY.safety.questions.chestPain,
-                  value: formData.safetyAnswers.chestPain, // Changed from formData.hasChestPain
-                  setter: (val: boolean) =>
-                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, chestPain: val } })), // Changed setter
-                },
-                {
-                  id: "severe",
-                  question: MICROCOPY.safety.questions.severe,
-                  value: formData.safetyAnswers.severeSymptoms, // Changed from formData.hasSevereSymptoms
-                  setter: (val: boolean) =>
-                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, severeSymptoms: val } })), // Changed setter
-                },
-                {
-                  id: "emergency",
-                  question: MICROCOPY.safety.questions.emergency,
-                  value: formData.safetyAnswers.emergency, // Changed from formData.isEmergency
-                  setter: (val: boolean) =>
-                    setFormData((prev) => ({ ...prev, safetyAnswers: { ...prev.safetyAnswers, emergency: val } })), // Changed setter
-                },
-              ].map(({ id, question, value, setter }) => (
-                <div
-                  key={id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-border"
-                >
-                  <span className="text-sm font-medium pr-4">{question}</span>
-                  <div className="flex gap-2" role="radiogroup" aria-label={question}>
-                    {[
-                      { label: MICROCOPY.safety.no, val: false },
-                      { label: MICROCOPY.safety.yes, val: true },
-                    ].map(({ label, val }) => (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => {
-                          setter(val)
-                          if (val && id === "emergency") setShowEmergencyModal(true)
-                        }}
-                        aria-pressed={value === val}
-                        className={`
-                          min-w-[48px] min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium transition-all
-                          focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
-                          ${
-                            value === val
-                              ? val
-                                ? "bg-destructive text-destructive-foreground"
-                                : "bg-primary text-primary-foreground"
-                              : "bg-muted hover:bg-muted/80"
-                          }
-                        `}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </fieldset>
-
-            {isRedFlag && (
-              <div role="alert" className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 space-y-2">
-                <div className="flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="w-5 h-5" aria-hidden="true" />
-                  <span className="font-semibold">{MICROCOPY.safety.alert.heading}</span>
-                </div>
-                <p className="text-sm text-destructive/90">{MICROCOPY.safety.alert.body}</p>
-                <Button variant="destructive" className="w-full mt-2" onClick={() => window.open("tel:000")}>
-                  {MICROCOPY.safety.alert.cta}
-                </Button>
-              </div>
-            )}
-          </section>
-        )
-
-      // Removed medicare step rendering
-      // case "medicare":
-      //   return null
-
-      // New Step: Patient Details
+      // Patient Details Step
       case "patientDetails":
         return (
           <section aria-labelledby="step-patient-details-heading" className="space-y-4">
@@ -1396,20 +1300,22 @@ export function MedCertFlowClient({
               </div>
 
               {/* Notes */}
-              <div className="flex items-center justify-between p-3">
-                <div className="space-y-0.5 flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">{MICROCOPY.review.notes}</p>
-                  <p className="text-sm font-medium truncate">{formData.additionalNotes || MICROCOPY.review.none}</p>
+              {formData.additionalNotes && (
+                <div className="flex items-center justify-between p-3">
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">{MICROCOPY.review.notes}</p>
+                    <p className="text-sm font-medium truncate">{formData.additionalNotes}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => goToStep("symptoms")}
+                    className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
+                    aria-label={`${MICROCOPY.review.edit} ${MICROCOPY.review.notes}`}
+                  >
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => goToStep("notes")}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
-                  aria-label={`${MICROCOPY.review.edit} ${MICROCOPY.review.notes}`}
-                >
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
+              )}
 
               {/* Medicare */}
               {/* Removed medicare section from review */}
