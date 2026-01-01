@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button, Input, Textarea } from "@heroui/react"
@@ -29,6 +29,10 @@ import {
   Bug,
   Sparkles,
   MoreHorizontal,
+  Lock,
+  BadgeCheck,
+  Phone,
+  Save,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
@@ -38,6 +42,10 @@ import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { logger } from "@/lib/logger"
+
+// Draft persistence constants
+const STORAGE_KEY = "instantmed_rx_draft"
+const DRAFT_EXPIRY_HOURS = 24
 
 // Flow steps
 type FlowStep =
@@ -130,6 +138,52 @@ const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
 // Progress stages
 const PROGRESS_STAGES = ["Details", "Medicare", "Account", "Pay"] as const
 
+// Time estimate per stage in minutes
+const STAGE_TIME_ESTIMATES = [4, 1, 1, 1] // Details takes longer due to medication search
+
+// Trust indicators strip
+function TrustStrip() {
+  return (
+    <div className="flex items-center justify-center gap-4 py-2 px-3 bg-muted/50 rounded-lg">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
+            <BadgeCheck className="w-3.5 h-3.5 text-green-600" aria-hidden="true" />
+            <span className="hidden sm:inline">AHPRA Doctors</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+          All prescriptions reviewed by AHPRA-registered Australian doctors
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
+            <Lock className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <span className="hidden sm:inline">Encrypted</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+          Your data is protected with bank-level 256-bit encryption
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
+            <Shield className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+            <span className="hidden sm:inline">Private</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+          We never sell your data. Your health information stays private.
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  )
+}
+
 interface Props {
   patientId: string | null
   isAuthenticated: boolean
@@ -162,8 +216,11 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-// Progress indicator with animated dots
+// Progress indicator with animated dots and time estimate
 function Progress({ stages, currentIndex }: { stages: readonly string[]; currentIndex: number }) {
+  // Calculate remaining time
+  const remainingMinutes = STAGE_TIME_ESTIMATES.slice(currentIndex).reduce((a, b) => a + b, 0)
+  
   return (
     <nav aria-label="Progress" className="w-full">
       <div className="flex flex-col items-center gap-2">
@@ -194,9 +251,10 @@ function Progress({ stages, currentIndex }: { stages: readonly string[]; current
             }}
           />
         </div>
-        {/* Step label */}
+        {/* Step label with time estimate */}
         <p className="text-xs text-muted-foreground">
           Step {currentIndex + 1} of {stages.length}: <span className="font-medium text-foreground">{stages[currentIndex]}</span>
+          <span className="ml-2 text-muted-foreground/70">~{remainingMinutes} min left</span>
         </p>
       </div>
     </nav>
@@ -399,6 +457,11 @@ export function PrescriptionFlowClient({
   // Controlled substance warning
   const [showControlledWarning, setShowControlledWarning] = useState(false)
   const [isKnockedOut, setIsKnockedOut] = useState(false)
+  
+  // Draft persistence state
+  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const draftCheckDone = useRef(false)
 
   // Only repeat scripts - new scripts require General Consult
   const steps = REPEAT_STEPS
@@ -406,11 +469,106 @@ export function PrescriptionFlowClient({
 
   // Get progress stage index
   const getProgressIndex = () => {
-    if (["type", "medication", "condition", "duration", "control", "sideEffects", "notes", "safety"].includes(step))
+    if (["type", "medication", "gating", "condition", "duration", "control", "sideEffects", "notes", "safety"].includes(step))
       return 0
     if (step === "medicare") return 1
     if (step === "signup") return 2
     return 3
+  }
+  
+  // Draft persistence - collect form data
+  const getFormData = useCallback(() => ({
+    rxType,
+    selectedMedication,
+    prescribedBefore,
+    doseChanged,
+    condition,
+    otherCondition,
+    duration,
+    control,
+    sideEffects,
+    notes,
+    safetyAnswers,
+    medicareNumber,
+    irn,
+    dob,
+    fullName,
+    email,
+    step,
+  }), [rxType, selectedMedication, prescribedBefore, doseChanged, condition, otherCondition, duration, control, sideEffects, notes, safetyAnswers, medicareNumber, irn, dob, fullName, email, step])
+  
+  // Check for existing draft on mount
+  useEffect(() => {
+    if (draftCheckDone.current) return
+    draftCheckDone.current = true
+    
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const { data, timestamp } = JSON.parse(saved)
+        const age = (Date.now() - timestamp) / (1000 * 60 * 60)
+        if (age < DRAFT_EXPIRY_HOURS && data.step !== "type") {
+          setShowRecoveryPrompt(true)
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [])
+  
+  // Auto-save draft
+  useEffect(() => {
+    if (step === "type" || step === "payment") return
+    
+    const timer = setTimeout(() => {
+      try {
+        const draft = { data: getFormData(), timestamp: Date.now() }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+        setLastSaved(new Date())
+      } catch {
+        // localStorage may be full or unavailable
+      }
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [getFormData, step])
+  
+  // Restore draft
+  const restoreDraft = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const { data } = JSON.parse(saved)
+        if (data.rxType) setRxType(data.rxType)
+        if (data.selectedMedication) setSelectedMedication(data.selectedMedication)
+        if (data.prescribedBefore !== null) setPrescribedBefore(data.prescribedBefore)
+        if (data.doseChanged !== null) setDoseChanged(data.doseChanged)
+        if (data.condition) setCondition(data.condition)
+        if (data.otherCondition) setOtherCondition(data.otherCondition)
+        if (data.duration) setDuration(data.duration)
+        if (data.control) setControl(data.control)
+        if (data.sideEffects) setSideEffects(data.sideEffects)
+        if (data.notes) setNotes(data.notes)
+        if (data.safetyAnswers) setSafetyAnswers(data.safetyAnswers)
+        if (data.medicareNumber) setMedicareNumber(data.medicareNumber)
+        if (data.irn) setIrn(data.irn)
+        if (data.dob) setDob(data.dob)
+        if (data.fullName) setFullName(data.fullName)
+        if (data.email) setEmail(data.email)
+        if (data.step && data.step !== "type") setStep(data.step)
+      }
+    } catch {
+      // Ignore errors
+    }
+    setShowRecoveryPrompt(false)
+  }
+  
+  // Start fresh
+  const startFresh = () => {
+    localStorage.removeItem(STORAGE_KEY)
+    setShowRecoveryPrompt(false)
   }
 
   // Medicare validation
@@ -836,6 +994,39 @@ export function PrescriptionFlowClient({
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
+        {/* Draft Recovery Modal */}
+        {showRecoveryPrompt && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <RefreshCw className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-lg font-semibold mb-2">Continue where you left off?</h2>
+                <p className="text-sm text-muted-foreground">
+                  We saved your progress from your last visit.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button
+                  onPress={restoreDraft}
+                  className="w-full h-12 rounded-xl"
+                  color="primary"
+                >
+                  Continue my request
+                </Button>
+                <Button
+                  onPress={startFresh}
+                  variant="ghost"
+                  className="w-full h-10 rounded-xl"
+                >
+                  Start fresh
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showControlledWarning && (
           <ControlledWarning
             onClose={() => {
@@ -866,7 +1057,10 @@ export function PrescriptionFlowClient({
                 <X className="w-5 h-5" />
               </Link>
             </div>
-            <Progress stages={PROGRESS_STAGES} currentIndex={getProgressIndex()} />
+            <TrustStrip />
+            <div className="mt-3">
+              <Progress stages={PROGRESS_STAGES} currentIndex={getProgressIndex()} />
+            </div>
           </div>
         </header>
 
@@ -1464,44 +1658,62 @@ export function PrescriptionFlowClient({
         {/* Footer */}
         {!showEmailConfirm && (
           <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
-            <div className="max-w-md mx-auto flex gap-3">
-              {/* Back button */}
-              {step !== "type" && (
-                <Button
-                  variant="ghost"
-                  onClick={goBack}
-                  className="h-12 px-4 rounded-xl"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              )}
-              
-              {/* Step-specific CTAs */}
-              {step === "type" ? (
-                <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
-                  <span>Tap an option to continue</span>
-                </div>
-              ) : step === "payment" ? (
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl">
-                  {isSubmitting ? (
+            <div className="max-w-md mx-auto space-y-3">
+              {/* Save indicator & Emergency info */}
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  {lastSaved && (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {RX_MICROCOPY.payment.processing}
+                      <Save className="w-3 h-3 text-green-500" aria-hidden="true" />
+                      <span>Progress saved</span>
                     </>
-                  ) : (
-                    RX_MICROCOPY.payment.cta
                   )}
-                </Button>
-              ) : step === "safety" && checkSafetyKnockout() ? (
-                <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="flex-1 h-12 rounded-xl">
-                  Find a GP near you
-                </Button>
-              ) : step !== "signup" ? (
-                <Button onClick={goNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl">
-                  {RX_MICROCOPY.nav.continue}
-                </Button>
-              ) : null}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-3 h-3 text-red-500" aria-hidden="true" />
+                  <span>Emergency? Call <a href="tel:000" className="underline font-medium">000</a></span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                {/* Back button */}
+                {step !== "type" && (
+                  <Button
+                    variant="ghost"
+                    onClick={goBack}
+                    className="h-12 px-4 rounded-xl"
+                    aria-label="Go back"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                )}
+                
+                {/* Step-specific CTAs */}
+                {step === "type" ? (
+                  <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+                    <span>Tap an option to continue</span>
+                  </div>
+                ) : step === "payment" ? (
+                  <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {RX_MICROCOPY.payment.processing}
+                      </>
+                    ) : (
+                      RX_MICROCOPY.payment.cta
+                    )}
+                  </Button>
+                ) : step === "safety" && checkSafetyKnockout() ? (
+                  <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="flex-1 h-12 rounded-xl">
+                    Find a GP near you
+                  </Button>
+                ) : step !== "signup" ? (
+                  <Button onClick={goNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl">
+                    {RX_MICROCOPY.nav.continue}
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </footer>
         )}

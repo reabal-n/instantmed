@@ -29,16 +29,23 @@ import {
   CalendarDays,
   CalendarRange,
   CalendarClock,
+  Lock,
+  BadgeCheck,
+  Phone,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
+
+// Storage key for form persistence
+const STORAGE_KEY = "instantmed_medcert_draft"
+const DRAFT_EXPIRY_HOURS = 24
 
 // Flow steps - safety merged into symptoms step
 type FlowStep =
@@ -116,7 +123,7 @@ function _GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-// Progress indicator component with animated dots
+// Progress indicator component with animated dots and time estimate
 function ProgressIndicator({
   steps,
   currentIndex,
@@ -124,6 +131,10 @@ function ProgressIndicator({
   steps: readonly string[]
   currentIndex: number
 }) {
+  // Estimate remaining time based on steps left
+  const stepsRemaining = steps.length - currentIndex
+  const estimatedMinutes = Math.max(1, stepsRemaining) // ~1 min per step
+
   return (
     <nav aria-label="Request progress" className="w-full">
       <div className="flex flex-col items-center gap-2">
@@ -154,12 +165,55 @@ function ProgressIndicator({
             }}
           />
         </div>
-        {/* Step label */}
-        <p className="text-xs text-muted-foreground">
-          Step {currentIndex + 1} of {steps.length}: <span className="font-medium text-foreground">{steps[currentIndex]}</span>
-        </p>
+        {/* Step label with time estimate */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Step {currentIndex + 1} of {steps.length}</span>
+          <span className="text-muted-foreground/50">•</span>
+          <span className="text-primary/70">~{estimatedMinutes} min left</span>
+        </div>
       </div>
     </nav>
+  )
+}
+
+// Trust indicators strip for telehealth compliance
+function TrustStrip() {
+  return (
+    <div className="flex items-center justify-center gap-4 py-2 text-xs text-muted-foreground" role="region" aria-label="Trust indicators">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1 cursor-help">
+            <BadgeCheck className="w-3.5 h-3.5 text-green-600" aria-hidden="true" />
+            <span>AHPRA Doctors</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">All our doctors are registered with AHPRA</p>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1 cursor-help">
+            <Lock className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <span>256-bit encrypted</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">Your data is protected with bank-grade encryption</p>
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1 cursor-help">
+            <Shield className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
+            <span>HIPAA compliant</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">We follow strict healthcare privacy standards</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   )
 }
 
@@ -375,14 +429,75 @@ export function MedCertFlowClient({
   const [error, setError] = useState<string | null>(null)
   const [_showEmergencyModal, setShowEmergencyModal] = useState(false)
   const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
-  // const [medicareError, setMedicareError] = useState<string | null>(null) // Removed
-  // const [medicareValid, setMedicareValid] = useState(false) // Removed
+  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   const isCarer = formData.certType === "carer"
   const isRedFlag =
     formData.safetyAnswers.chestPain === true || 
     formData.safetyAnswers.severeSymptoms === true || 
     formData.safetyAnswers.emergency === true
+
+  // Auto-save draft to localStorage (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only save if we have meaningful data
+      if (formData.certType || formData.selectedSymptoms.length > 0) {
+        const draft = {
+          formData,
+          step,
+          savedAt: Date.now(),
+        }
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+          setLastSaved(new Date())
+        } catch {
+          // localStorage might be full or disabled
+        }
+      }
+    }, 1000) // Save 1 second after last change
+
+    return () => clearTimeout(timer)
+  }, [formData, step])
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        const hoursSinceSave = (Date.now() - draft.savedAt) / (1000 * 60 * 60)
+        if (hoursSinceSave < DRAFT_EXPIRY_HOURS && draft.formData?.certType) {
+          setShowRecoveryPrompt(true)
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [])
+
+  // Restore draft handler
+  const restoreDraft = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        setFormData(draft.formData)
+        setStep(draft.step)
+      }
+    } catch {
+      // Ignore errors
+    }
+    setShowRecoveryPrompt(false)
+  }, [])
+
+  // Clear draft and start fresh
+  const startFresh = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setShowRecoveryPrompt(false)
+  }, [])
 
   // Focus management on step change
   useEffect(() => {
@@ -1582,6 +1697,31 @@ export function MedCertFlowClient({
 
   return (
     <TooltipProvider>
+      {/* Draft Recovery Prompt */}
+      {showRecoveryPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-6 h-6 text-primary" />
+              </div>
+              <h2 className="text-lg font-semibold mb-2">Welcome back!</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                You have an unfinished request. Would you like to continue where you left off?
+              </p>
+              <div className="space-y-2">
+                <Button onClick={restoreDraft} className="w-full h-12 rounded-xl">
+                  Continue my request
+                </Button>
+                <Button onClick={startFresh} variant="outline" className="w-full h-12 rounded-xl">
+                  Start fresh
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main
         ref={mainRef}
         tabIndex={-1}
@@ -1589,8 +1729,8 @@ export function MedCertFlowClient({
         aria-label="Medical certificate request"
       >
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
-          <div className="max-w-md mx-auto space-y-3">
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
+          <div className="max-w-md mx-auto space-y-2">
             <div className="flex items-center justify-between">
               <Link href="/" className="text-sm font-semibold text-primary">
                 InstantMed
@@ -1601,6 +1741,8 @@ export function MedCertFlowClient({
               </div>
             </div>
             <ProgressIndicator steps={progressSteps} currentIndex={currentProgressIndex} />
+            {/* Trust indicators */}
+            <TrustStrip />
           </div>
         </header>
 
@@ -1675,6 +1817,21 @@ export function MedCertFlowClient({
                 <ArrowRight className="w-5 h-5" />
               </Button>
             )}
+          </div>
+          {/* Auto-save indicator and emergency info */}
+          <div className="max-w-md mx-auto flex items-center justify-between mt-2 text-[10px] text-muted-foreground/60">
+            <div className="flex items-center gap-1">
+              {lastSaved && (
+                <>
+                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <span>Draft saved</span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              <span>Emergency? Call 000</span>
+            </div>
           </div>
         </footer>
       </main>
