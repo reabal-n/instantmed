@@ -149,7 +149,7 @@ export default async function MedCertRequestPage() {
         patientId={authUser?.profile?.id || null}
         isAuthenticated={!!authUser}
         needsOnboarding={authUser?.profile ? !authUser.profile.onboarding_completed : true}
-        userEmail={authUser?.user?.email}
+        userEmail={authUser?.user?.email ?? undefined}
         userName={authUser?.profile?.full_name || authUser?.user?.user_metadata?.full_name}
       />
     </>

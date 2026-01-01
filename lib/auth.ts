@@ -15,6 +15,11 @@ export interface AuthenticatedUser {
   user: {
     id: string
     email?: string | null
+    // Backward-compatible user_metadata for existing code that relied on Supabase
+    user_metadata?: {
+      full_name?: string
+      date_of_birth?: string
+    }
   }
   profile: Profile
 }
@@ -73,6 +78,11 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
     user: {
       id: user.id,
       email: user.emailAddresses[0]?.emailAddress ?? null,
+      // Populate user_metadata from profile for backward compatibility
+      user_metadata: {
+        full_name: profile.full_name ?? undefined,
+        date_of_birth: profile.date_of_birth ?? undefined,
+      },
     },
     profile,
   }
@@ -145,6 +155,11 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     user: {
       id: user.id,
       email: email ?? null,
+      // Populate user_metadata from profile for backward compatibility
+      user_metadata: {
+        full_name: (profile as Profile).full_name ?? undefined,
+        date_of_birth: (profile as Profile).date_of_birth ?? undefined,
+      },
     },
     profile: profile as Profile,
   }
@@ -196,13 +211,23 @@ export async function getOptionalAuth(): Promise<AuthenticatedUser | null> {
 /**
  * Get the current authenticated user (without profile)
  */
-export async function getCurrentUser(): Promise<{ id: string; email?: string | null } | null> {
+export async function getCurrentUser(): Promise<{ 
+  id: string
+  email?: string | null
+  user_metadata?: { full_name?: string; date_of_birth?: string }
+} | null> {
   const user = await currentUser()
   if (!user) return null
+  
+  // Build full name from Clerk user data
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || undefined
   
   return {
     id: user.id,
     email: user.emailAddresses[0]?.emailAddress ?? null,
+    user_metadata: {
+      full_name: fullName,
+    },
   }
 }
 

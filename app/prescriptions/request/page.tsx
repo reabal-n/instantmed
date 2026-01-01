@@ -153,7 +153,7 @@ export default async function PrescriptionRequestPage() {
         patientId={profile?.id || null}
         isAuthenticated={!!user}
         needsOnboarding={!!user && !profile}
-        userEmail={user?.email}
+        userEmail={user?.email ?? undefined}
         userName={profile?.full_name || user?.user_metadata?.full_name}
       />
     </>

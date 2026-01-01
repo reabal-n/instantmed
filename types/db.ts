@@ -27,7 +27,10 @@ export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC
 // Table: profiles
 export interface Profile {
   id: string // uuid, PK
-  auth_user_id: string // uuid, references auth.users.id
+  auth_user_id: string // uuid, references auth.users.id (deprecated - use clerk_user_id)
+  clerk_user_id?: string | null // Clerk user ID for modern auth
+  email?: string | null // User email
+  avatar_url?: string | null // Profile avatar URL
   full_name: string
   date_of_birth: string // ISO date string
   role: UserRole
@@ -44,6 +47,8 @@ export interface Profile {
   medicare_expiry: string | null // ISO date string
   medicare_expiry_month: string | null
   medicare_expiry_year: string | null
+  // Doctor-specific fields
+  ahpra_number?: string | null // AHPRA registration number for doctors
   // Consent and onboarding
   consent_myhr: boolean
   my_health_record_consent: boolean

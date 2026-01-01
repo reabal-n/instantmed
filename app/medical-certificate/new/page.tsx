@@ -17,7 +17,7 @@ export default async function NewMedCertPage({
 
   const profileData = authUser?.profile ? {
     fullName: authUser.profile.full_name,
-    email: authUser.user?.email,
+    email: authUser.user?.email ?? undefined,
     dateOfBirth: authUser.profile.date_of_birth,
     medicareNumber: authUser.profile.medicare_number || undefined,
     medicareIrn: authUser.profile.medicare_irn?.toString() || undefined,

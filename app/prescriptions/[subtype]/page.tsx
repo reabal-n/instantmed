@@ -51,7 +51,7 @@ export default async function PrescriptionSubtypePage({
             patientId={authUser?.profile.id || null}
             isAuthenticated={!!authUser}
             needsOnboarding={needsOnboarding}
-            userEmail={authUser?.user.email}
+            userEmail={authUser?.user.email ?? undefined}
             userName={authUser?.profile.full_name}
           />
         </div>
