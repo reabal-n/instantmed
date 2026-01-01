@@ -872,7 +872,7 @@ export function PrescriptionFlowClient({
 
         {/* Content */}
         <main
-          className={`max-w-md mx-auto px-4 py-5 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}
+          className={`max-w-md mx-auto px-4 py-5 pb-24 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}
         >
           {/* Step: Type */}
           {step === "type" && (
@@ -1462,11 +1462,28 @@ export function PrescriptionFlowClient({
         </main>
 
         {/* Footer */}
-        {step !== "type" && !showEmailConfirm && (
-          <footer className="sticky bottom-0 bg-background/80 backdrop-blur-lg border-t px-4 py-3">
-            <div className="max-w-md mx-auto">
-              {step === "payment" ? (
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-12">
+        {!showEmailConfirm && (
+          <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
+            <div className="max-w-md mx-auto flex gap-3">
+              {/* Back button */}
+              {step !== "type" && (
+                <Button
+                  variant="ghost"
+                  onClick={goBack}
+                  className="h-12 px-4 rounded-xl"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              )}
+              
+              {/* Step-specific CTAs */}
+              {step === "type" ? (
+                <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+                  <span>Tap an option to continue</span>
+                </div>
+              ) : step === "payment" ? (
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1477,11 +1494,11 @@ export function PrescriptionFlowClient({
                   )}
                 </Button>
               ) : step === "safety" && checkSafetyKnockout() ? (
-                <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="w-full h-12">
+                <Button onPress={() => setIsKnockedOut(true)} variant="bordered" className="flex-1 h-12 rounded-xl">
                   Find a GP near you
                 </Button>
               ) : step !== "signup" ? (
-                <Button onClick={goNext} disabled={!canContinue()} className="w-full h-12">
+                <Button onClick={goNext} disabled={!canContinue()} className="flex-1 h-12 rounded-xl">
                   {RX_MICROCOPY.nav.continue}
                 </Button>
               ) : null}

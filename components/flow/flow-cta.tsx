@@ -106,7 +106,7 @@ export function FlowCTA({
     <div
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40',
-        'bg-white/95 backdrop-blur-md border-t border-slate-100',
+        'bg-background/95 backdrop-blur-sm border-t border-slate-100',
         'px-4 py-4 sm:py-5',
         'safe-area-pb', // Support for notch devices
         className

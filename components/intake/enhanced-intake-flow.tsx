@@ -1131,7 +1131,7 @@ export function EnhancedIntakeFlow({
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-24">
         {/* Step title */}
         <motion.div
           key={step + "-title"}
@@ -1160,40 +1160,59 @@ export function EnhancedIntakeFlow({
       </main>
 
       {/* Footer CTA */}
-      <footer className="sticky bottom-0 bg-white border-t p-4">
-        <div className="max-w-lg mx-auto">
-          <Button
-            onClick={goNext}
-            disabled={
-              isSubmitting ||
-              (step === "safety" && symptomCheckResult.severity === "critical")
-            }
-            className="w-full h-12 text-base font-medium"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : isLastStep ? (
-              <>
-                Pay {SERVICES.find((s) => s.id === state.service)?.price}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            ) : (
-              <>
-                Continue
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-
-          {step === "service" && (
-            <p className="text-center text-xs text-muted-foreground mt-3">
-              🔒 Secure • No payment until review complete
-            </p>
+      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
+        <div className="max-w-lg mx-auto flex gap-3">
+          {/* Back button */}
+          {stepIndex > 0 && (
+            <Button
+              variant="ghost"
+              onClick={goBack}
+              className="h-12 px-4 rounded-xl"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          )}
+          
+          {/* Step-specific CTAs */}
+          {step === "service" ? (
+            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+              <span>Tap a service to continue</span>
+            </div>
+          ) : (
+            <Button
+              onClick={goNext}
+              disabled={
+                isSubmitting ||
+                (step === "safety" && symptomCheckResult.severity === "critical")
+              }
+              className="flex-1 h-12 text-base font-medium rounded-xl"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : isLastStep ? (
+                <>
+                  Pay {SERVICES.find((s) => s.id === state.service)?.price}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
           )}
         </div>
+
+        {step === "service" && (
+          <p className="text-center text-xs text-muted-foreground mt-3">
+            🔒 Secure • No payment until review complete
+          </p>
+        )}
       </footer>
     </div>
   )

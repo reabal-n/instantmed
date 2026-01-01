@@ -838,7 +838,11 @@ export function MedCertFlowClient({
                 <TileButton
                   key={type.id}
                   selected={formData.certType === type.id}
-                  onClick={() => setFormData((prev) => ({ ...prev, certType: type.id }))}
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, certType: type.id }))
+                    // Auto-advance after selection for smoother UX
+                    setTimeout(() => setStep("duration"), 250)
+                  }}
                   emoji={type.emoji}
                   label={type.label}
                   description={type.description}
@@ -861,7 +865,13 @@ export function MedCertFlowClient({
                 color: opt.color,
               }))}
               value={formData.duration || undefined}
-              onChange={(value) => setFormData((prev) => ({ ...prev, duration: value }))}
+              onChange={(value) => {
+                setFormData((prev) => ({ ...prev, duration: value }))
+                // Auto-advance for preset durations, not for "specific"
+                if (value !== "specific") {
+                  setTimeout(() => setStep("startDate"), 300)
+                }
+              }}
               placeholder="Select duration..."
             />
 
@@ -1595,7 +1605,7 @@ export function MedCertFlowClient({
         </header>
 
         {/* Content */}
-        <div className="flex-1 px-4 py-5">
+        <div className="flex-1 px-4 py-5 pb-24">
           <div className="max-w-md mx-auto">
             {error && (
               <div ref={errorRef} tabIndex={-1} className="mb-4">
@@ -1607,12 +1617,13 @@ export function MedCertFlowClient({
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3">
+        {/* Footer - hide on auto-advance steps, show contextual actions */}
+        <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
           <div className="max-w-md mx-auto flex gap-3">
+            {/* Back button - show on most steps except first, start date, and payment */}
             {step !== "type" &&
               step !== "startDate" &&
-              step !== "payment" && ( // Show back button unless on specific steps
+              step !== "payment" && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -1624,7 +1635,18 @@ export function MedCertFlowClient({
                 </Button>
               )}
 
-            {step === "payment" ? (
+            {/* Step-specific CTAs */}
+            {step === "type" ? (
+              // Type step: show helper text, selection auto-advances
+              <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+                <span>Tap an option to continue</span>
+              </div>
+            ) : step === "duration" && formData.duration !== "specific" && !formData.duration ? (
+              // Duration step without selection: show helper
+              <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+                <span>Select your leave duration</span>
+              </div>
+            ) : step === "payment" ? (
               <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl gap-2">
                 {isSubmitting ? (
                   <>
