@@ -7,7 +7,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import confetti from "canvas-confetti"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   ArrowRight,
@@ -24,6 +23,7 @@ import {
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
+import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 
 interface PrescriptionFlowClientProps {
   category: string
@@ -197,7 +197,7 @@ export function PrescriptionFlowClient({
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   // Common form state
-  const [medicationName, setMedicationName] = useState("")
+  const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [redFlagValues, setRedFlagValues] = useState<Record<string, boolean>>(
     Object.fromEntries(redFlags.map((rf) => [rf.id, false])),
@@ -220,7 +220,7 @@ export function PrescriptionFlowClient({
   // Validation based on subtype
   const isFormValid = (() => {
     if (hasRedFlags) return false
-    if (!medicationName.trim()) return false
+    if (!selectedMedication) return false
     switch (subtype) {
       case "repeat":
         return repeatReason && repeatDuration && repeatControl && repeatSideEffects
@@ -241,7 +241,12 @@ export function PrescriptionFlowClient({
 
   const buildAnswers = (): Record<string, unknown> => {
     const baseAnswers = {
-      medication_name: medicationName,
+      // AMT-backed structured medication data
+      amt_code: selectedMedication?.amt_code,
+      medication_display: selectedMedication?.display,
+      medication_name: selectedMedication?.medication_name,
+      medication_form: selectedMedication?.form,
+      medication_strength: selectedMedication?.strength,
       additional_notes: additionalNotes,
       red_flags: redFlagValues,
     }
@@ -599,11 +604,10 @@ export function PrescriptionFlowClient({
           <Label className="text-sm font-medium">
             Medication name and strength <span className="text-red-500">*</span>
           </Label>
-          <Input
-            value={medicationName}
-            onChange={(e) => setMedicationName(e.target.value)}
-            placeholder="e.g., Lexapro 10mg, Metformin 500mg"
-            className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
+          <MedicationCombobox
+            value={selectedMedication}
+            onChange={setSelectedMedication}
+            placeholder="Search for your medication (e.g., Lexapro 10mg)"
           />
         </div>
 
