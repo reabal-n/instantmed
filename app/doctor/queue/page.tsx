@@ -6,7 +6,7 @@ import { QueueClient } from "./queue-client"
 export default async function DoctorQueuePage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const pendingRequests = await getAllRequestsByStatus("pending")

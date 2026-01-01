@@ -1,10 +1,21 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import type { Profile } from "@/types/db"
-import type { User } from "@supabase/supabase-js"
+/**
+ * Authentication helpers using Clerk
+ * 
+ * This module provides authentication utilities that work with Clerk.
+ * It maintains backward compatibility with the previous Supabase auth API.
+ */
 
+import { auth, currentUser } from '@clerk/nextjs/server'
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import type { Profile } from "@/types/db"
+
+// Backward-compatible type that works with existing code
 export interface AuthenticatedUser {
-  user: User
+  user: {
+    id: string
+    email?: string | null
+  }
   profile: Profile
 }
 
@@ -13,33 +24,135 @@ export interface AuthenticatedUser {
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
+  const user = await currentUser()
+  
+  if (!user) {
     return null
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const supabase = await createClient()
+  
+  // Try to find profile by clerk_user_id first, then fall back to email
+  let profile: Profile | null = null
+  
+  const { data: clerkProfile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", user.id)
     .single()
+  
+  if (clerkProfile) {
+    profile = clerkProfile as Profile
+  } else {
+    // Fallback: try to find by email (for migrated users)
+    const email = user.emailAddresses[0]?.emailAddress
+    if (email) {
+      const { data: emailProfile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("email", email)
+        .single()
+      
+      if (emailProfile) {
+        // Update the profile with clerk_user_id for future lookups
+        await supabase
+          .from("profiles")
+          .update({ clerk_user_id: user.id })
+          .eq("id", emailProfile.id)
+        
+        profile = emailProfile as Profile
+      }
+    }
+  }
 
-  if (profileError || !profile) {
+  if (!profile) {
     return null
   }
 
-  return { user, profile: profile as Profile }
+  return {
+    user: {
+      id: user.id,
+      email: user.emailAddresses[0]?.emailAddress ?? null,
+    },
+    profile,
+  }
+}
+
+/**
+ * Get authenticated user, creating a profile if one doesn't exist.
+ * Used for onboarding and first-time user flows.
+ */
+export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser | null> {
+  const user = await currentUser()
+  
+  if (!user) {
+    return null
+  }
+
+  const supabase = await createClient()
+  const email = user.emailAddresses[0]?.emailAddress
+  
+  // Try to find existing profile
+  let { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("clerk_user_id", user.id)
+    .single()
+  
+  if (!profile && email) {
+    // Try by email
+    const { data: emailProfile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", email)
+      .single()
+    
+    if (emailProfile) {
+      // Update existing profile with clerk_user_id
+      await supabase
+        .from("profiles")
+        .update({ clerk_user_id: user.id })
+        .eq("id", emailProfile.id)
+      profile = emailProfile
+    }
+  }
+  
+  // Create new profile if none exists
+  if (!profile) {
+    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || null
+    
+    const { data: newProfile, error } = await supabase
+      .from("profiles")
+      .insert({
+        clerk_user_id: user.id,
+        email: email,
+        full_name: fullName,
+        avatar_url: user.imageUrl || null,
+        role: "patient",
+        onboarding_completed: false,
+      })
+      .select()
+      .single()
+    
+    if (error || !newProfile) {
+      return null
+    }
+    
+    profile = newProfile
+  }
+
+  return {
+    user: {
+      id: user.id,
+      email: email ?? null,
+    },
+    profile: profile as Profile,
+  }
 }
 
 /**
  * Require authentication with a specific role.
- * Redirects to login if not authenticated, or appropriate dashboard if wrong role.
+ * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
  */
 export async function requireAuth(
   requiredRole: "patient" | "doctor",
@@ -48,7 +161,7 @@ export async function requireAuth(
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   // Admin role has access to doctor pages
@@ -61,7 +174,7 @@ export async function requireAuth(
     } else if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
       redirect("/doctor")
     } else {
-      redirect("/auth/login")
+      redirect("/sign-in")
     }
   }
 
@@ -74,68 +187,108 @@ export async function requireAuth(
 }
 
 /**
- * Sign out the current user
+ * Get optional auth - returns user if logged in, null otherwise
  */
-export async function signOut() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  redirect("/")
-}
-
 export async function getOptionalAuth(): Promise<AuthenticatedUser | null> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return null
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("auth_user_id", user.id)
-    .single()
-
-  if (profileError || !profile) {
-    return null
-  }
-
-  return { user, profile: profile as Profile }
+  return getAuthenticatedUserWithProfile()
 }
 
 /**
  * Get the current authenticated user (without profile)
  */
-export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error || !user) return null
-  return user
+export async function getCurrentUser(): Promise<{ id: string; email?: string | null } | null> {
+  const user = await currentUser()
+  if (!user) return null
+  
+  return {
+    id: user.id,
+    email: user.emailAddresses[0]?.emailAddress ?? null,
+  }
 }
 
 /**
- * Get a user's profile by their auth user ID
+ * Get a user's profile by their Clerk user ID
  */
-export async function getUserProfile(authUserId: string): Promise<Profile | null> {
+export async function getUserProfile(clerkUserId: string): Promise<Profile | null> {
   const supabase = await createClient()
-  const { data: profile, error } = await supabase.from("profiles").select("*").eq("auth_user_id", authUserId).single()
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("clerk_user_id", clerkUserId)
+    .single()
+  
   if (error || !profile) return null
   return profile as Profile
 }
 
+/**
+ * Check if onboarding is required for the user
+ */
 export async function checkOnboardingRequired(authUser: AuthenticatedUser): Promise<boolean> {
   return authUser.profile.role === "patient" && !authUser.profile.onboarding_completed
 }
 
+/**
+ * Require patient authentication
+ */
 export async function requirePatientAuth(options?: {
   allowIncompleteOnboarding?: boolean
 }): Promise<AuthenticatedUser> {
   return requireAuth("patient", options)
+}
+
+/**
+ * Sign out - redirects to home page
+ * Note: Clerk handles sign out via the UserButton or SignOutButton components
+ */
+export async function signOut() {
+  redirect("/")
+}
+
+/**
+ * Get the Clerk auth state (userId, sessionId, etc.)
+ * Use this for lightweight auth checks without profile data
+ */
+export async function getClerkAuth() {
+  return await auth()
+}
+
+/**
+ * Get authenticated user for API routes.
+ * Returns the Clerk user ID and profile, or null if not authenticated.
+ */
+export async function getApiAuth(): Promise<{ userId: string; profile: Profile } | null> {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    return null
+  }
+
+  const supabase = await createClient()
+  
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("clerk_user_id", userId)
+    .single()
+  
+  if (!profile) {
+    return null
+  }
+
+  return { userId, profile: profile as Profile }
+}
+
+/**
+ * Require authentication in API routes.
+ * Returns user info or throws/returns null for unauthorized.
+ */
+export async function requireApiAuth(): Promise<{ userId: string; profile: Profile }> {
+  const result = await getApiAuth()
+  
+  if (!result) {
+    throw new Error("Unauthorized")
+  }
+
+  return result
 }

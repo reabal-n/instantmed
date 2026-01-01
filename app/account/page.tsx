@@ -56,7 +56,7 @@ export default function AccountPage() {
         const { data: { user } } = await supabase.auth.getUser()
         
         if (!user) {
-          router.push('/auth/login?redirect=/account')
+          router.push('/sign-in?redirect=/account')
           return
         }
 

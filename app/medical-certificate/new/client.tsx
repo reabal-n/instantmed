@@ -95,7 +95,7 @@ export function MedCertIntakeClient({
   const handleAuthRequired = () => {
     // Save form state and redirect to auth
     sessionStorage.setItem("med_cert_redirect", "/medical-certificate/new")
-    router.push("/auth/login?redirect=/medical-certificate/new")
+    router.push("/sign-in?redirect=/medical-certificate/new")
   }
 
   return (

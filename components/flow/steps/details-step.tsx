@@ -269,7 +269,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
 
               <p className="text-sm text-slate-500">
                 Already have an account?{' '}
-                <a href="/auth/login" className="text-emerald-600 hover:underline">
+                <a href="/sign-in" className="text-emerald-600 hover:underline">
                   Sign in
                 </a>
               </p>

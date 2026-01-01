@@ -11,7 +11,7 @@ export default async function PatientSettingsPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   if (authUser.profile.role !== "patient") {

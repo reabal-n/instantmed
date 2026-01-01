@@ -6,7 +6,7 @@ import { AdminDashboardClient } from "./admin-dashboard-client"
 export default async function AdminDashboardPage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const [allRequests, stats] = await Promise.all([getAllRequestsForAdmin(), getDoctorDashboardStats()])

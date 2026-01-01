@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getRequestForPatient } from "@/lib/data/requests"
-import { getLatestDocumentForRequest } from "@/lib/data/documents"
+import { getLatestDocumentForRequest, getMedCertCertificateForRequest } from "@/lib/data/documents"
 import PatientRequestDetailPageClient from "./client"
 import type { Metadata } from "next"
 
@@ -24,7 +24,7 @@ export default async function PatientRequestDetailPage({
   const authUser = await getAuthenticatedUserWithProfile()
   
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
   
   // Fetch the request with ownership check
@@ -35,9 +35,14 @@ export default async function PatientRequestDetailPage({
   }
   
   // Fetch document if request is approved
-  const document = request.status === "approved" 
-    ? await getLatestDocumentForRequest(id)
-    : null
+  // Try med cert certificate first (new flow), then fall back to regular documents
+  let document = null
+  if (request.status === "approved") {
+    document = await getMedCertCertificateForRequest(id)
+    if (!document) {
+      document = await getLatestDocumentForRequest(id)
+    }
+  }
   
   return (
     <PatientRequestDetailPageClient 

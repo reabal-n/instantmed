@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Lora, JetBrains_Mono, Caveat } from "next/font/google"
+import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
@@ -161,31 +162,33 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        <JsonLd />
-        <OrganizationSchema />
-        <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
-      </head>
-      <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <HeroUIProviderWrapper>
-            <SkipToContent />
-            <div id="main-content" className="page-enter relative">
-              {children}
-            </div>
-            <Toaster position="top-center" richColors />
-            <SocialProofPopup />
-            <StickyCTABar />
-            <Analytics />
-            <WebVitalsReporter />
-          </HeroUIProviderWrapper>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+        suppressHydrationWarning
+      >
+        <head>
+          <JsonLd />
+          <OrganizationSchema />
+          <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
+        </head>
+        <body className="font-sans antialiased">
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            <HeroUIProviderWrapper>
+              <SkipToContent />
+              <div id="main-content" className="page-enter relative">
+                {children}
+              </div>
+              <Toaster position="top-center" richColors />
+              <SocialProofPopup />
+              <StickyCTABar />
+              <Analytics />
+              <WebVitalsReporter />
+            </HeroUIProviderWrapper>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

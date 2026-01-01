@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
+import { useClerk, useUser } from "@clerk/nextjs"
 import {
   LogOut,
   User,
@@ -30,7 +31,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { cn } from "@/lib/utils"
-import { createClient } from "@/lib/supabase/client"
 import SkyToggle from "@/components/ui/sky-toggle"
 import { NotificationBell } from "@/components/shared/notification-bell"
 import { ShatterButtonLink } from "@/components/ui/shatter-button"
@@ -208,11 +208,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState<{ id: string } | null>(null)
   const router = useRouter()
   const pathname = usePathname()
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
+  const { signOut } = useClerk()
+  const { isSignedIn } = useUser()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -220,19 +221,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  useEffect(() => {
-    if (variant === "marketing") {
-      const supabase = createClient()
-      supabase.auth.getUser().then(({ data }) => {
-        setUser(data.user)
-      })
-    }
-  }, [variant])
-
   const handleSignOut = async () => {
     setIsLoggingOut(true)
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await signOut()
     router.push("/")
     router.refresh()
   }
@@ -325,7 +316,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={12} />
-                    {user ? (
+                    {isSignedIn ? (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -341,7 +332,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         asChild
                         className="rounded-md text-xs h-7 px-2.5 hover:bg-white/40 dark:hover:bg-white/5"
                       >
-                        <Link href="/auth/login">Sign in</Link>
+                        <Link href="/sign-in">Sign in</Link>
                       </Button>
                     )}
                     <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
@@ -501,7 +492,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {variant === "marketing" && (
               <>
                 <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
                     Sign in
                   </Link>
                 </Button>

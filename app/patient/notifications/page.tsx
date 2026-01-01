@@ -15,7 +15,7 @@ export default async function NotificationsPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login?redirect=/patient/notifications")
+    redirect("/sign-in?redirect=/patient/notifications")
   }
 
   // Get profile with notification preferences

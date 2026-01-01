@@ -23,7 +23,7 @@ async function getAllPatients() {
 export default async function PatientsPage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const patients = await getAllPatients()

@@ -66,7 +66,7 @@ export function PrescriptionIntakeClient({
   const handleAuthRequired = () => {
     // Save form state and redirect to auth
     sessionStorage.setItem("prescription_redirect", "/prescriptions/new")
-    router.push("/auth/login?redirect=/prescriptions/new")
+    router.push("/sign-in?redirect=/prescriptions/new")
   }
 
   return (

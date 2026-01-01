@@ -11,7 +11,7 @@ export default async function DoctorDashboardPage() {
   // Ensure user is a doctor
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   // Fetch all data with individual error handling to prevent total failure

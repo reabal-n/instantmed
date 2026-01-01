@@ -28,7 +28,7 @@ export default async function PatientDashboardPage({
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   if (!authUser.profile.onboarding_completed) {

@@ -510,3 +510,63 @@ export async function updatePathologyDraftData(
 
   return updatedDraft as DocumentDraft
 }
+
+/**
+ * Get med cert certificate for a request (from med_cert_certificates table)
+ * Used for the new med cert flow that generates PDFs with react-pdf
+ */
+export async function getMedCertCertificateForRequest(requestId: string): Promise<GeneratedDocument | null> {
+  if (!isValidUUID(requestId)) {
+    return null
+  }
+
+  const supabase = await createClient()
+
+  // First check if this is a med cert request with a certificate
+  const { data: request } = await supabase
+    .from("requests")
+    .select("type, certificate_id")
+    .eq("id", requestId)
+    .single()
+
+  // If no request or not a med cert or no certificate_id, fall back to regular documents
+  if (!request || request.type !== "med_cert" || !request.certificate_id) {
+    return null
+  }
+
+  // Check the med_cert_requests table for certificate link
+  const { data: medCertRequest } = await supabase
+    .from("med_cert_requests")
+    .select("certificate_id")
+    .eq("id", requestId)
+    .single()
+
+  const certificateId = medCertRequest?.certificate_id || request.certificate_id
+
+  if (!certificateId) {
+    return null
+  }
+
+  // Get the certificate from med_cert_certificates
+  const { data: certificate, error } = await supabase
+    .from("med_cert_certificates")
+    .select("*")
+    .eq("id", certificateId)
+    .single()
+
+  if (error || !certificate) {
+    return null
+  }
+
+  // Transform to GeneratedDocument format for compatibility with existing UI
+  return {
+    id: certificate.id,
+    request_id: requestId,
+    type: "med_cert",
+    subtype: certificate.certificate_type,
+    pdf_url: certificate.pdf_url,
+    verification_code: certificate.certificate_number,
+    created_at: certificate.created_at,
+    updated_at: certificate.updated_at,
+  } as GeneratedDocument
+}

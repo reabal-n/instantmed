@@ -13,7 +13,7 @@ export default async function PathologyDocumentPage({ params }: PathologyDocumen
 
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const request = await getRequestWithDetails(id)

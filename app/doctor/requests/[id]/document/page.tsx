@@ -14,7 +14,7 @@ export default async function DocumentBuilderPage({
   // Ensure user is a doctor
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   // Fetch the request with all details

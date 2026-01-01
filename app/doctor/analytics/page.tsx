@@ -162,7 +162,7 @@ async function getAnalytics() {
 export default async function AnalyticsPage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const analytics = await getAnalytics()

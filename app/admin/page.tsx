@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login?redirect=/admin")
+    redirect("/sign-in?redirect=/admin")
   }
 
   // Get user email from auth user

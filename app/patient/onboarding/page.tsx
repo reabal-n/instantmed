@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getOrCreateAuthenticatedUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { OnboardingFlow } from "./onboarding-flow"
 
@@ -7,11 +7,11 @@ export default async function PatientOnboardingPage({
 }: {
   searchParams: Promise<{ redirect?: string }>
 }) {
-  const authUser = await getAuthenticatedUserWithProfile()
+  const authUser = await getOrCreateAuthenticatedUser()
   const { redirect: redirectTo } = await searchParams
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   if (authUser.profile.role !== "patient") {

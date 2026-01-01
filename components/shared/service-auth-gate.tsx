@@ -102,7 +102,7 @@ export function ServiceAuthGate({
           </Link>
         </Button>
         <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80">
-          <Link href={`/auth/login?redirect=${redirectParam}`}>
+          <Link href={`/sign-in?redirect=${redirectParam}`}>
             <LogIn className="mr-2 h-4 w-4" />
             Sign in with email
           </Link>
@@ -111,7 +111,7 @@ export function ServiceAuthGate({
 
       <p className="mt-5 text-xs text-muted-foreground">
         Already have an account with pending requests?{" "}
-        <Link href={`/auth/login?redirect=${redirectParam}`} className="text-primary hover:underline">
+        <Link href={`/sign-in?redirect=${redirectParam}`} className="text-primary hover:underline">
           Check your dashboard
           <ArrowRight className="inline ml-0.5 h-3 w-3" />
         </Link>

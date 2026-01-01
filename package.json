@@ -12,6 +12,7 @@
     "check:rls": "npx tsx scripts/rls-check.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.36.5",
     "@edge-runtime/cookies": "^6.0.0",
     "@heroui/react": "^2.8.6",
     "@heroui/system": "^2.4.24",
@@ -66,6 +67,7 @@
     "sonner": "^2.0.7",
     "stripe": "^20.0.0",
     "styled-components": "^6.1.19",
+    "svix": "^1.84.1",
     "tailwind-merge": "^3.4.0",
     "tesseract.js": "^7.0.0",
     "usehooks-ts": "^3.1.1",
