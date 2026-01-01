@@ -141,12 +141,20 @@ export function QueueClient({
       .toUpperCase()
   }
 
-  const handleApprove = async (requestId: string) => {
+  const handleApprove = async (requestId: string, category?: string | null) => {
     startTransition(async () => {
-      const result = await updateStatusAction(requestId, "approved", doctorId)
+      // For prescription requests, set status to awaiting_prescribe instead of approved
+      // This requires external Parchment entry before completion
+      const newStatus = category === "prescription" ? "awaiting_prescribe" : "approved"
+      const result = await updateStatusAction(requestId, newStatus as import("@/types/db").RequestStatus, doctorId)
       if (result.success) {
         setRequests((prev) => prev.filter((r) => r.id !== requestId))
-        router.push(`/doctor/requests/${requestId}/document`)
+        // For med certs, go to document builder; for scripts, go to request detail
+        if (category === "prescription") {
+          router.push(`/doctor/requests/${requestId}`)
+        } else {
+          router.push(`/doctor/requests/${requestId}/document`)
+        }
       }
     })
   }
@@ -420,12 +428,12 @@ export function QueueClient({
                       {/* Actions */}
                       <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
                         <Button
-                          onClick={() => handleApprove(request.id)}
+                          onClick={() => handleApprove(request.id, request.category)}
                           disabled={isPending}
                           className="bg-emerald-600 hover:bg-emerald-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1.5" />
-                          Approve & Generate
+                          {request.category === "prescription" ? "Approve Script" : "Approve & Generate"}
                         </Button>
                         <Button variant="destructive" onClick={() => handleDecline(request.id)} disabled={isPending}>
                           <XCircle className="h-4 w-4 mr-1.5" />

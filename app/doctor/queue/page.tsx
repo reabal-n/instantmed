@@ -9,10 +9,16 @@ export default async function DoctorQueuePage() {
     redirect("/sign-in")
   }
 
-  const pendingRequests = await getAllRequestsByStatus("pending")
+  // Fetch both pending and awaiting_prescribe requests
+  const [pendingRequests, awaitingPrescribeRequests] = await Promise.all([
+    getAllRequestsByStatus("pending"),
+    getAllRequestsByStatus("awaiting_prescribe"),
+  ])
 
-  // Sort by oldest first (FIFO queue)
-  const sortedRequests = [...pendingRequests].sort(
+  // Combine and sort by oldest first (FIFO queue)
+  // Pending requests come first, then awaiting_prescribe
+  const allRequests = [...pendingRequests, ...awaitingPrescribeRequests]
+  const sortedRequests = allRequests.sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
   )
 

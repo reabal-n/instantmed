@@ -177,14 +177,20 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       return { success: false, error: "Failed to create your request. Please try again." }
     }
 
-    // 5. Insert the answers
+    // 5. Insert the answers (ATOMIC - fail if answers cannot be saved)
     const { error: answersError } = await supabase.from("request_answers").insert({
       request_id: request.id,
       answers: input.answers,
     })
 
     if (answersError) {
-      // Don't fail the whole request, answers are supplementary
+      // Answers are critical for clinical review - rollback the request
+      logger.error("[Stripe Checkout] Failed to save answers, rolling back request", {
+        requestId: request.id,
+        error: answersError.message,
+      })
+      await supabase.from("requests").delete().eq("id", request.id)
+      return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
 
     // 6. Get the price ID

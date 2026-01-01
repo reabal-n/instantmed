@@ -11,7 +11,19 @@ export type RequestType =
   | "hsv"
   | "bv_partner"
 
-export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up"
+export type RequestStatus = "pending" | "approved" | "declined" | "needs_follow_up" | "awaiting_prescribe"
+
+export type DeclineReasonCode =
+  | "requires_examination"      // Clinical - Requires in-person physical examination
+  | "not_telehealth_suitable"   // Service - Not available via telehealth
+  | "prescribing_guidelines"    // Compliance - Against prescribing guidelines
+  | "controlled_substance"      // Compliance - Request for controlled/S8 substance
+  | "urgent_care_needed"        // Safety - Requires urgent in-person care
+  | "insufficient_info"         // Incomplete - Insufficient information provided
+  | "patient_not_eligible"      // Eligibility - Patient doesn't meet service criteria
+  | "duplicate_request"         // Administrative - Duplicate of existing request
+  | "outside_scope"             // Service - Outside scope of telehealth practice
+  | "other"                     // Other - See decline_reason_note for details
 
 export type RequestCategory = "medical_certificate" | "prescription" | "referral" | "other"
 
@@ -84,6 +96,13 @@ export interface Request {
   script_sent: boolean
   script_sent_at: string | null
   script_notes: string | null
+  parchment_reference: string | null // eScript reference from Parchment
+  sent_via: "parchment" | "paper" | null // How the script was sent
+  // Decision tracking fields
+  decision: "approved" | "declined" | null
+  decline_reason_code: DeclineReasonCode | null
+  decline_reason_note: string | null
+  decided_at: string | null // ISO timestamp
   // Payment fields
   paid: boolean
   payment_status: PaymentStatus

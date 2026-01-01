@@ -51,6 +51,10 @@ function getTimelineState(currentStatus: string, paymentStatus?: string): {
   // Check request status
   if (currentStatus === "pending") {
     activeStep = "in_review"
+  } else if (currentStatus === "awaiting_prescribe") {
+    // Prescription approved, awaiting eScript - show as in_review with progress
+    completedSteps.push("in_review")
+    activeStep = "approved"
   } else if (currentStatus === "approved") {
     completedSteps.push("in_review", "approved")
   } else if (currentStatus === "declined") {

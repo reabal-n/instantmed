@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import { validateConsultPayload } from "@/lib/validation/schemas"
 import type { RequestCategory, RequestSubtype } from "@/types/db"
 
 export interface CreateRequestInput {
@@ -58,6 +59,18 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
         return {
           success: false,
           error: validation.error || "Invalid repeat script request. Please check your form data.",
+          errorCode: "VALIDATION_ERROR",
+        }
+      }
+    }
+
+    // 3b. Schema validation for consults
+    if (input.type === "consult" || input.category === "other") {
+      const validation = validateConsultPayload(input.answers)
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid consultation request. Please check your form data.",
           errorCode: "VALIDATION_ERROR",
         }
       }

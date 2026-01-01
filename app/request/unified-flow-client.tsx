@@ -992,23 +992,31 @@ export function UnifiedFlowClient({
 
         {step === "clinical" && service === "prescription" && (
           <div className="space-y-6">
-            {/* Type */}
+            {/* Type - Only repeat scripts allowed; new meds require consult */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Prescription type</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {(["repeat", "new"] as const).map((t) => (
-                  <SelectCard
-                    key={t}
-                    selected={rxType === t}
-                    onClick={() => {
-                      setRxType(t)
-                      setForm({ ...form, isRepeat: t === "repeat" })
-                    }}
-                  >
-                    <div className="font-medium">{COPY.prescription.types[t].label}</div>
-                    <div className="text-xs text-muted-foreground">{COPY.prescription.types[t].description}</div>
-                  </SelectCard>
-                ))}
+              <div className="grid gap-2">
+                <SelectCard
+                  selected={rxType === "repeat"}
+                  onClick={() => {
+                    setRxType("repeat")
+                    setForm({ ...form, isRepeat: true })
+                  }}
+                >
+                  <div className="font-medium">{COPY.prescription.types.repeat.label}</div>
+                  <div className="text-xs text-muted-foreground">{COPY.prescription.types.repeat.description}</div>
+                </SelectCard>
+              </div>
+              {/* Info box for new medications */}
+              <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm text-amber-800 font-medium">Need a new medication?</p>
+                <p className="text-xs text-amber-700 mt-1">New medications require a General Consult ($44.95) for proper assessment.</p>
+                <a
+                  href="/consult/request"
+                  className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-amber-900 hover:underline"
+                >
+                  Start a General Consult <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
             </div>
 

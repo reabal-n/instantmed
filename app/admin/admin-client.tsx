@@ -133,6 +133,8 @@ export function AdminClient({
     switch (status) {
       case "pending":
         return <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">Pending</Badge>
+      case "awaiting_prescribe":
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Awaiting eScript</Badge>
       case "approved":
         return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Approved</Badge>
       case "declined":
@@ -188,7 +190,10 @@ export function AdminClient({
     }
   }
 
-  const pendingScripts = localRequests.filter((r) => r.status === "approved" && !r.script_sent).length
+  const pendingScripts = localRequests.filter((r) => 
+    (r.status === "approved" && !r.script_sent) || 
+    r.status === "awaiting_prescribe"
+  ).length
 
   const handleTestModeToggle = () => {
     const newValue = !testMode
@@ -409,12 +414,13 @@ export function AdminClient({
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px] rounded-xl bg-white/50 border-white/40">
+                  <SelectTrigger className="w-[160px] rounded-xl bg-white/50 border-white/40">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="awaiting_prescribe">Awaiting eScript</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="declined">Declined</SelectItem>
                   </SelectContent>

@@ -22,14 +22,19 @@ import { logger } from "@/lib/logger"
 //   needs_follow_up → declined  (doctor)
 //   needs_follow_up → pending   (patient responds to info request)
 //
+//   PRESCRIPTION WORKFLOW:
+//   pending → awaiting_prescribe  (doctor approves script - needs external Parchment entry)
+//   awaiting_prescribe → approved (doctor marks eScript sent)
+//
 // ============================================
 
 // Valid status transitions for request workflow status
 const VALID_STATUS_TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
-  pending: ["approved", "declined", "needs_follow_up"],
+  pending: ["approved", "declined", "needs_follow_up", "awaiting_prescribe"],
   approved: [], // Terminal state - no further transitions
   declined: [], // Terminal state - no further transitions
-  needs_follow_up: ["approved", "declined", "pending"], // Can go back to pending when patient responds
+  needs_follow_up: ["approved", "declined", "pending", "awaiting_prescribe"], // Can go back to pending when patient responds
+  awaiting_prescribe: ["approved"], // Doctor marks eScript sent → approved
 }
 
 // Valid payment status transitions (for reference - enforced at webhook level)
@@ -41,7 +46,7 @@ const VALID_PAYMENT_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
 }
 
 // Statuses that require payment to be completed first
-const STATUSES_REQUIRING_PAYMENT: RequestStatus[] = ["approved", "declined", "needs_follow_up"]
+const STATUSES_REQUIRING_PAYMENT: RequestStatus[] = ["approved", "declined", "needs_follow_up", "awaiting_prescribe"]
 
 // Terminal statuses that cannot be changed
 const TERMINAL_STATUSES: RequestStatus[] = ["approved", "declined"]
@@ -138,7 +143,7 @@ export function canDoctorApprove(
     }
   }
 
-  if (!["pending", "needs_follow_up"].includes(currentStatus)) {
+  if (!["pending", "needs_follow_up", "awaiting_prescribe"].includes(currentStatus)) {
     return {
       valid: false,
       error: `Cannot approve request in status: ${currentStatus}`,

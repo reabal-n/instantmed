@@ -64,12 +64,13 @@ const formatDate = (dateString: string) => {
   })
 }
 
-type StatusVariant = "pending" | "in-review" | "approved" | "declined" | "needs-action" | "needs-payment"
+type StatusVariant = "pending" | "in-review" | "approved" | "declined" | "needs-action" | "needs-payment" | "awaiting-script"
 
 const getStatusVariant = (status: string, paymentStatus?: string): StatusVariant => {
   if (paymentStatus === "pending_payment") return "needs-payment"
   if (status === "needs_follow_up") return "needs-action"
   if (status === "pending") return "in-review"
+  if (status === "awaiting_prescribe") return "awaiting-script"
   if (status === "approved") return "approved"
   if (status === "declined") return "declined"
   return "pending"
@@ -79,6 +80,7 @@ const getStatusLabel = (status: string, paymentStatus?: string): string => {
   if (paymentStatus === "pending_payment") return "Payment needed"
   if (status === "needs_follow_up") return "Info requested"
   if (status === "pending") return "In review"
+  if (status === "awaiting_prescribe") return "Script approved"
   if (status === "approved") return "Ready"
   if (status === "declined") return "See notes"
   return "Pending"
@@ -88,6 +90,7 @@ const getStatusMessage = (status: string, paymentStatus?: string): string => {
   if (paymentStatus === "pending_payment") return "Complete payment to submit"
   if (status === "needs_follow_up") return "Doctor needs more information"
   if (status === "pending") return "Usually within 1 hour (8am–10pm)"
+  if (status === "awaiting_prescribe") return "eScript being sent to pharmacy"
   if (status === "approved") return "Download available"
   if (status === "declined") return "Unable to approve — see details"
   return ""
@@ -97,6 +100,7 @@ const getRequestIcon = (status: string, paymentStatus?: string) => {
   if (paymentStatus === "pending_payment") return <CreditCard className="h-5 w-5" />
   if (status === "needs_follow_up") return <MessageSquare className="h-5 w-5" />
   if (status === "pending") return <Clock className="h-5 w-5" />
+  if (status === "awaiting_prescribe") return <FileText className="h-5 w-5" />
   if (status === "approved") return <CheckCircle className="h-5 w-5" />
   if (status === "declined") return <XCircle className="h-5 w-5" />
   return <Clock className="h-5 w-5" />
@@ -104,7 +108,7 @@ const getRequestIcon = (status: string, paymentStatus?: string) => {
 
 const _getRequestCardVariant = (status: string, paymentStatus?: string): "default" | "warning" | "in-progress" | "success" => {
   if (paymentStatus === "pending_payment" || status === "needs_follow_up") return "warning"
-  if (status === "pending") return "in-progress"
+  if (status === "pending" || status === "awaiting_prescribe") return "in-progress"
   if (status === "approved") return "success"
   return "default"
 }

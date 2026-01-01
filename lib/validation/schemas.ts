@@ -183,6 +183,59 @@ export const prescriptionRequestSchema = z.object({
 })
 
 // ============================================
+// Consult Request Schema
+// ============================================
+
+export const consultRequestSchema = z.object({
+  reason: z.enum([
+    "new_medication",
+    "dose_change",
+    "complex_condition",
+    "second_opinion",
+    "referral",
+    "other",
+  ], { error: "Please select a reason for your consultation" }),
+  details: z.string().min(20, "Please provide at least 20 characters describing your concern"),
+  symptoms: z.string().optional(),
+  duration: z.string().optional(),
+  safetyAnswers: z.object({
+    rf_chest_pain: z.boolean().optional(),
+    rf_suicidal: z.boolean().optional(),
+    rf_emergency: z.boolean().optional(),
+  }).optional(),
+})
+
+/**
+ * Validate consult request answers
+ * Returns validation result with error message if invalid
+ */
+export function validateConsultPayload(
+  answers: Record<string, unknown>
+): { valid: boolean; error?: string } {
+  const result = consultRequestSchema.safeParse(answers)
+  if (!result.success) {
+    const firstError = result.error.errors[0]
+    return { valid: false, error: firstError?.message || "Invalid consultation request" }
+  }
+  
+  // Check for red-flag knockouts
+  const safetyAnswers = answers.safetyAnswers as Record<string, boolean> | undefined
+  if (safetyAnswers) {
+    if (safetyAnswers.rf_chest_pain === true) {
+      return { valid: false, error: "Please seek immediate medical attention. Call 000 if experiencing chest pain." }
+    }
+    if (safetyAnswers.rf_suicidal === true) {
+      return { valid: false, error: "Please contact Lifeline (13 11 14) or go to your nearest emergency department." }
+    }
+    if (safetyAnswers.rf_emergency === true) {
+      return { valid: false, error: "For medical emergencies, please call 000 or visit your nearest emergency department." }
+    }
+  }
+  
+  return { valid: true }
+}
+
+// ============================================
 // Type Exports
 // ============================================
 

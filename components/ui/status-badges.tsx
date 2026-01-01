@@ -10,7 +10,8 @@ import {
   CreditCard, 
   MessageSquare,
   Loader2,
-  Sparkles
+  Sparkles,
+  FileText
 } from "lucide-react"
 
 // =============================================================================
@@ -24,6 +25,7 @@ type StatusVariant =
   | "declined" 
   | "needs-action" 
   | "needs-payment"
+  | "awaiting-script"
   | "info"
   | "success"
   | "warning"
@@ -46,6 +48,12 @@ const statusConfig: Record<StatusVariant, StatusBadgeConfig> = {
     bg: "bg-violet-100 dark:bg-violet-950/30",
     text: "text-violet-700 dark:text-violet-400",
     icon: Clock,
+    pulse: true,
+  },
+  "awaiting-script": {
+    bg: "bg-purple-100 dark:bg-purple-950/30",
+    text: "text-purple-700 dark:text-purple-400",
+    icon: FileText,
     pulse: true,
   },
   approved: {

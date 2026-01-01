@@ -35,8 +35,8 @@ import {
   Sparkles,
   Loader2,
 } from "lucide-react"
-import { updateStatusAction, saveClinicalNoteAction } from "./actions"
-import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request } from "@/types/db"
+import { updateStatusAction, saveClinicalNoteAction, markEScriptSentAction, type DeclineData } from "./actions"
+import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request, DeclineReasonCode } from "@/types/db"
 import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
@@ -66,7 +66,13 @@ export function RequestDetailClient({
   const [isGeneratingNote, setIsGeneratingNote] = useState(false)
   const [declineReason, setDeclineReason] = useState("")
   const [isGeneratingDeclineReason, setIsGeneratingDeclineReason] = useState(false)
-  const [declineCategory, setDeclineCategory] = useState<"clinical" | "service" | "compliance" | "safety" | "incomplete">("clinical")
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
+
+  // eScript sent dialog state
+  const [showEScriptDialog, setShowEScriptDialog] = useState(false)
+  const [parchmentReference, setParchmentReference] = useState("")
+  const [sentVia, setSentVia] = useState<"parchment" | "paper">("parchment")
+  const [isMarkingEScript, setIsMarkingEScript] = useState(false)
 
   // Handle quick actions from dashboard
   useEffect(() => {
@@ -125,7 +131,7 @@ export function RequestDetailClient({
           requestType: request.category,
           requestSubtype: request.subtype || "general",
           questionnaire: request.answers?.answers || {},
-          declineCategory,
+          declineReasonCode,
           additionalContext: clinicalNote || undefined,
         }),
       })
@@ -144,7 +150,12 @@ export function RequestDetailClient({
 
   const handleStatusChange = async (status: RequestStatus) => {
     startTransition(async () => {
-      const result = await updateStatusAction(request.id, status, status === "declined" ? declineReason : undefined)
+      // Build decline data if declining
+      const declineData: DeclineData | undefined = status === "declined" 
+        ? { reasonCode: declineReasonCode, reasonNote: declineReason }
+        : undefined
+      
+      const result = await updateStatusAction(request.id, status, declineData)
       if (result.success) {
         let message = `Request ${status === "approved" ? "approved" : status === "declined" ? "declined" : "marked as needs follow-up"}`
         
@@ -184,6 +195,33 @@ export function RequestDetailClient({
     })
   }
 
+  const handleMarkEScriptSent = async () => {
+    setIsMarkingEScript(true)
+    try {
+      const result = await markEScriptSentAction(
+        request.id,
+        parchmentReference.trim() || null,
+        sentVia
+      )
+      if (result.success) {
+        setShowEScriptDialog(false)
+        setActionMessage({
+          type: "success",
+          text: `eScript marked as sent${sentVia === "parchment" ? " via Parchment" : " (paper script)"} - patient email sent`,
+        })
+        setTimeout(() => {
+          router.push("/doctor")
+        }, 2500)
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to mark eScript sent" })
+      }
+    } catch {
+      setActionMessage({ type: "error", text: "An unexpected error occurred" })
+    } finally {
+      setIsMarkingEScript(false)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-AU", {
       day: "numeric",
@@ -197,8 +235,9 @@ export function RequestDetailClient({
   const _getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-      case "pending":
         return <Badge className="bg-amber-100/80 text-amber-700 border-0 font-medium">Pending</Badge>
+      case "awaiting_prescribe":
+        return <Badge className="bg-violet-100/80 text-violet-700 border-0 font-medium">Awaiting eScript</Badge>
       case "approved":
         return <Badge className="bg-emerald-100/80 text-emerald-700 border-0 font-medium">Approved</Badge>
       case "declined":
@@ -408,14 +447,16 @@ export function RequestDetailClient({
             className={
               request.status === "pending"
                 ? "bg-amber-100 text-amber-700 border-0"
-                : request.status === "approved"
-                  ? "bg-emerald-100 text-emerald-700 border-0"
-                  : request.status === "declined"
-                    ? "bg-red-100 text-red-700 border-0"
-                    : "bg-blue-100 text-blue-700 border-0"
+                : request.status === "awaiting_prescribe"
+                  ? "bg-violet-100 text-violet-700 border-0"
+                  : request.status === "approved"
+                    ? "bg-emerald-100 text-emerald-700 border-0"
+                    : request.status === "declined"
+                      ? "bg-red-100 text-red-700 border-0"
+                      : "bg-blue-100 text-blue-700 border-0"
             }
           >
-            {request.status.replace("_", " ")}
+            {request.status === "awaiting_prescribe" ? "Awaiting eScript" : request.status.replace("_", " ")}
           </Badge>
         </div>
       </div>
@@ -717,6 +758,32 @@ export function RequestDetailClient({
       </div>
 
       {/* Action Buttons - Desktop */}
+      {/* For awaiting_prescribe status, show Mark eScript Sent UI */}
+      {request.status === "awaiting_prescribe" && isPrescription && (
+        <div className="bg-violet-50 border-2 border-violet-300 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-violet-500 flex items-center justify-center shrink-0">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-violet-900">Awaiting eScript Entry</h2>
+              <p className="text-violet-700 mt-1">
+                This prescription has been approved clinically. Please enter the script in Parchment, then mark it as sent below.
+              </p>
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={() => setShowEScriptDialog(true)}
+                  className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Mark eScript Sent
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="hidden lg:flex items-center justify-end gap-4">
         <Button
           variant="outline"
@@ -805,13 +872,28 @@ export function RequestDetailClient({
         </div>
       )}
 
+      {/* Action Bar - Mobile (Sticky) - For awaiting_prescribe */}
+      {request.status === "awaiting_prescribe" && isPrescription && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-xl border-t border-white/40 lg:hidden">
+          <div className="flex items-center gap-3 max-w-3xl mx-auto">
+            <Button
+              onClick={() => setShowEScriptDialog(true)}
+              className="flex-1 rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Mark eScript Sent
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Decline Confirmation Dialog */}
       <AlertDialog open={showDeclineDialog} onOpenChange={(open) => {
         setShowDeclineDialog(open)
         if (!open) {
           // Reset state when closing
           setDeclineReason("")
-          setDeclineCategory("clinical")
+          setDeclineReasonCode("requires_examination")
         }
       }}>
         <AlertDialogContent className="rounded-2xl max-w-lg">
@@ -823,19 +905,34 @@ export function RequestDetailClient({
           </AlertDialogHeader>
           
           <div className="space-y-4 py-4">
-            {/* Decline Category Selection */}
+            {/* Decline Reason Code Selection */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Reason Category</label>
+              <label className="text-sm font-medium mb-2 block">Decline Reason <span className="text-red-500">*</span></label>
               <select
-                value={declineCategory}
-                onChange={(e) => setDeclineCategory(e.target.value as typeof declineCategory)}
+                value={declineReasonCode}
+                onChange={(e) => setDeclineReasonCode(e.target.value as DeclineReasonCode)}
                 className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
-                <option value="clinical">Clinical - Requires in-person examination</option>
-                <option value="service">Service - Not available via telehealth</option>
-                <option value="compliance">Compliance - Prescribing guidelines</option>
-                <option value="safety">Safety - Requires urgent in-person care</option>
-                <option value="incomplete">Incomplete - Insufficient information</option>
+                <optgroup label="Clinical">
+                  <option value="requires_examination">Requires in-person physical examination</option>
+                  <option value="urgent_care_needed">Requires urgent in-person care</option>
+                </optgroup>
+                <optgroup label="Service">
+                  <option value="not_telehealth_suitable">Not available via telehealth</option>
+                  <option value="outside_scope">Outside scope of telehealth practice</option>
+                </optgroup>
+                <optgroup label="Compliance">
+                  <option value="prescribing_guidelines">Against prescribing guidelines</option>
+                  <option value="controlled_substance">Request for controlled/S8 substance</option>
+                </optgroup>
+                <optgroup label="Administrative">
+                  <option value="insufficient_info">Insufficient information provided</option>
+                  <option value="patient_not_eligible">Patient doesn&apos;t meet service criteria</option>
+                  <option value="duplicate_request">Duplicate of existing request</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="other">Other reason (specify below)</option>
+                </optgroup>
               </select>
             </div>
 
@@ -862,11 +959,11 @@ export function RequestDetailClient({
 
             {/* Editable Decline Reason */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Message to Patient</label>
+              <label className="text-sm font-medium mb-2 block">Message to Patient <span className="text-red-500">*</span></label>
               <Textarea
                 value={declineReason}
                 onChange={(e) => setDeclineReason(e.target.value)}
-                placeholder="Enter the reason for declining this request. This will be sent to the patient via email."
+                placeholder="Enter a compassionate explanation for the patient. This will be sent via email."
                 className="min-h-[120px] rounded-xl text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -879,12 +976,94 @@ export function RequestDetailClient({
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleStatusChange("declined")}
-              disabled={!declineReason.trim()}
+              disabled={!declineReason.trim() || !declineReasonCode}
               className="rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <XCircle className="mr-2 h-4 w-4" />
               Decline & Send Email
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* eScript Sent Dialog */}
+      <AlertDialog open={showEScriptDialog} onOpenChange={(open) => {
+        setShowEScriptDialog(open)
+        if (!open) {
+          // Reset state when closing
+          setParchmentReference("")
+          setSentVia("parchment")
+        }
+      }}>
+        <AlertDialogContent className="rounded-2xl max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark eScript as Sent</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Confirm that you have entered the prescription in Parchment or issued a paper script. This will complete the request and notify the patient.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Sent Via Selection */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">How was the script sent?</label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={sentVia === "parchment" ? "default" : "outline"}
+                  onClick={() => setSentVia("parchment")}
+                  className={`flex-1 rounded-xl ${sentVia === "parchment" ? "bg-violet-600 hover:bg-violet-700" : ""}`}
+                >
+                  eScript (Parchment)
+                </Button>
+                <Button
+                  type="button"
+                  variant={sentVia === "paper" ? "default" : "outline"}
+                  onClick={() => setSentVia("paper")}
+                  className={`flex-1 rounded-xl ${sentVia === "paper" ? "bg-violet-600 hover:bg-violet-700" : ""}`}
+                >
+                  Paper Script
+                </Button>
+              </div>
+            </div>
+
+            {/* Parchment Reference (optional) */}
+            {sentVia === "parchment" && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Parchment Reference (optional)</label>
+                <input
+                  type="text"
+                  value={parchmentReference}
+                  onChange={(e) => setParchmentReference(e.target.value)}
+                  placeholder="e.g., PAR-12345678"
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the Parchment reference ID for tracking purposes.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl" disabled={isMarkingEScript}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleMarkEScriptSent}
+              disabled={isMarkingEScript}
+              className="rounded-xl bg-violet-600 hover:bg-violet-700"
+            >
+              {isMarkingEScript ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Confirm & Complete
+                </>
+              )}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
