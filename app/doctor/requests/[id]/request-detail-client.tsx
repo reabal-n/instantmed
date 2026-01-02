@@ -35,6 +35,7 @@ import {
   Sparkles,
   Loader2,
 } from "lucide-react"
+import { MedCertEditor } from "@/components/doctor/med-cert-editor"
 import { updateStatusAction, saveClinicalNoteAction, markEScriptSentAction, type DeclineData } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request, DeclineReasonCode } from "@/types/db"
 import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
@@ -756,6 +757,11 @@ export function RequestDetailClient({
           </Button>
         </div>
       </div>
+
+      {/* Medical Certificate Editor - Only for med cert requests */}
+      {isMedCert && request.status === "pending" && (
+        <MedCertEditor request={request} />
+      )}
 
       {/* Action Buttons - Desktop */}
       {/* For awaiting_prescribe status, show Mark eScript Sent UI */}

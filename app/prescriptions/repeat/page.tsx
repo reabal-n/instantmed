@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
 // SEO Metadata
@@ -46,11 +47,9 @@ function LoadingState() {
 
 // Server-side data fetching
 async function getPatientData() {
-  const supabase = await createClient()
+  const { userId } = await auth()
   
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  if (!session?.user) {
+  if (!userId) {
     return {
       patientId: null,
       isAuthenticated: false,
@@ -64,7 +63,9 @@ async function getPatientData() {
     }
   }
   
-  // Get patient profile
+  const supabase = await createClient()
+  
+  // Get patient profile using Clerk ID
   const { data: profile } = await supabase
     .from("profiles")
     .select(`
@@ -79,7 +80,7 @@ async function getPatientData() {
       preferred_pharmacy_address,
       preferred_pharmacy_phone
     `)
-    .eq("user_id", session.user.id)
+    .eq("clerk_user_id", userId)
     .single()
   
   const preferredPharmacy = profile?.preferred_pharmacy_name
@@ -94,8 +95,8 @@ async function getPatientData() {
     patientId: profile?.id || null,
     isAuthenticated: true,
     needsOnboarding: !profile?.onboarding_complete,
-    userEmail: profile?.email || session.user.email,
-    userName: profile?.full_name || session.user.user_metadata?.full_name,
+    userEmail: profile?.email,
+    userName: profile?.full_name,
     userPhone: profile?.phone || undefined,
     userDob: profile?.date_of_birth || undefined,
     userAddress: profile?.address || undefined,

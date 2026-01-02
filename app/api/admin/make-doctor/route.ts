@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
-import { createServiceClient, createClient } from "@/lib/supabase/server"
+import { createServiceClient } from "@/lib/supabase/server"
 import { isAdminEmail } from "@/lib/env"
+import { auth, currentUser } from "@clerk/nextjs/server"
 
 // Only allow in development/preview
 const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
@@ -14,11 +15,11 @@ export async function GET(request: Request) {
     )
   }
 
-  // Require authentication - caller must be logged in
-  const supabaseAuth = await createClient()
-  const { data: { user } } = await supabaseAuth.auth.getUser()
+  // Require authentication using Clerk
+  const { userId } = await auth()
+  const clerkUser = await currentUser()
   
-  if (!user) {
+  if (!userId || !clerkUser) {
     return NextResponse.json(
       { error: "Authentication required" },
       { status: 401 }
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url)
   const email = searchParams.get("email")?.toLowerCase()
+  const userEmail = clerkUser.primaryEmailAddress?.emailAddress?.toLowerCase()
 
   if (!email || !isAdminEmail(email)) {
     return NextResponse.json(
@@ -36,7 +38,7 @@ export async function GET(request: Request) {
   }
   
   // Additional check: only allow self-upgrade
-  if (user.email?.toLowerCase() !== email) {
+  if (userEmail !== email) {
     return NextResponse.json(
       { error: "Can only upgrade your own account" },
       { status: 403 }

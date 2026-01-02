@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { currentUser } from "@clerk/nextjs/server"
 import { logger } from "@/lib/logger"
 
 interface SendVerificationEmailParams {
@@ -8,32 +8,20 @@ interface SendVerificationEmailParams {
 
 /**
  * Send email verification link to user
+ * Note: With Clerk, email verification is handled automatically during signup.
+ * This function is kept for backwards compatibility but now just returns success
+ * since Clerk handles email verification internally.
  */
 export async function sendVerificationEmail({
   email,
-  redirectTo = "/account",
 }: SendVerificationEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
-
-    // Generate OTP verification link
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}${redirectTo}`,
-        shouldCreateUser: false, // Don't create new users, only verify existing
-      },
-    })
-
-    if (error) {
-      logger.error("Failed to send verification email", { error: error.message, email })
-      return { success: false, error: error.message }
-    }
-
-    logger.info("Verification email sent", { email })
+    // With Clerk, email verification is handled during signup
+    // This is a no-op for compatibility
+    logger.info("Email verification requested (handled by Clerk)", { email })
     return { success: true }
   } catch (error) {
-    logger.error("Unexpected error sending verification email", { error })
+    logger.error("Unexpected error in email verification", { error })
     return { success: false, error: "Failed to send verification email" }
   }
 }
@@ -43,15 +31,17 @@ export async function sendVerificationEmail({
  */
 export async function isEmailVerified(): Promise<boolean> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await currentUser()
 
     if (!user) {
       return false
     }
 
-    // Supabase sets email_confirmed_at when email is verified
-    return !!user.email_confirmed_at
+    // Clerk verifies emails - check if primary email is verified
+    const primaryEmail = user.emailAddresses.find(
+      (e) => e.id === user.primaryEmailAddressId
+    )
+    return primaryEmail?.verification?.status === "verified"
   } catch (error) {
     logger.error("Error checking email verification status", { error })
     return false
@@ -60,27 +50,29 @@ export async function isEmailVerified(): Promise<boolean> {
 
 /**
  * Resend verification email with rate limiting
+ * Note: With Clerk, this is handled through the Clerk dashboard or API
  */
 export async function resendVerificationEmail(
   email: string
 ): Promise<{ success: boolean; error?: string; retryAfter?: number }> {
   try {
-    const supabase = await createClient()
+    const user = await currentUser()
 
-    // Check if user exists
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user || user.email !== email) {
+    if (!user || user.primaryEmailAddress?.emailAddress !== email) {
       return { success: false, error: "User not found" }
     }
 
     // Check if already verified
-    if (user.email_confirmed_at) {
+    const primaryEmail = user.emailAddresses.find(
+      (e) => e.id === user.primaryEmailAddressId
+    )
+    if (primaryEmail?.verification?.status === "verified") {
       return { success: false, error: "Email already verified" }
     }
 
-    // Send new verification email
-    return await sendVerificationEmail({ email })
+    // With Clerk, verification is automatic - user can request resend from Clerk UI
+    logger.info("Verification email resend requested (handled by Clerk)", { email })
+    return { success: true }
   } catch (error) {
     logger.error("Error resending verification email", { error })
     return { success: false, error: "Failed to resend verification email" }

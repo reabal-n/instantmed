@@ -634,31 +634,39 @@ export function RepeatRxIntakeFlow({
     }
   }, [currentStep, medication, emergencyAccepted, lastPrescribed, stability, prescriber, indication, currentDose, doseChanged, sideEffects, pregnantOrBreastfeeding, gpAttestationAccepted, termsAccepted])
   
-  // Handle auth callback
+  // Handle auth callback - now using Clerk's user state
   useEffect(() => {
     if (searchParams.get("auth_success") === "true") {
       // Clear the URL param
       window.history.replaceState({}, "", window.location.pathname)
+    }
+    
+    // Use Clerk user for authentication check after OAuth redirect
+    const setupProfile = async () => {
+      if (user && !isSignedIn) {
+        return // Wait for Clerk to fully load
+      }
       
-      // Check session
-      supabase.auth.getSession().then(async ({ data: { session } }) => {
-        if (session?.user) {
-          const { profileId } = await createOrGetProfile(
-            session.user.id,
-            session.user.user_metadata?.full_name || "",
-            session.user.user_metadata?.date_of_birth || ""
-          )
-          
-          if (profileId) {
-            setPatientId(profileId)
-            setIsAuthenticated(true)
-            goToStep("medication")
-          }
+      if (user && isSignedIn) {
+        const { profileId } = await createOrGetProfile(
+          user.id,
+          user.fullName || "",
+          ""
+        )
+        
+        if (profileId) {
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          goToStep("medication")
         }
-      })
+      }
+    }
+    
+    if (user && isSignedIn) {
+      setupProfile()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, goToStep])
+  }, [searchParams, goToStep, user, isSignedIn])
   
   // ============================================================================
   // RENDER

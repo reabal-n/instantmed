@@ -5,6 +5,8 @@ import { StreamlinedIntake, type IntakeFormData } from "@/components/intake/stre
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { useConfetti } from "@/components/effects/confetti"
+import { useUser, useClerk } from "@clerk/nextjs"
+import { logger } from "@/lib/logger"
 
 interface MedCertIntakeClientProps {
   subtype?: string
@@ -26,11 +28,11 @@ export function MedCertIntakeClient({
   const router = useRouter()
   const supabase = createClient()
   const { fire: fireConfetti } = useConfetti()
+  const { user } = useUser()
+  const { openSignIn } = useClerk()
 
   const handleSubmit = async (data: IntakeFormData) => {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    // Use Clerk user for authentication
     if (!user) {
       throw new Error("Please sign in to continue")
     }
@@ -38,7 +40,7 @@ export function MedCertIntakeClient({
     // Get or create profile
     const profileResult = await createOrGetProfile(
       user.id,
-      data.fullName || user.user_metadata?.full_name || "",
+      data.fullName || user.fullName || "",
       data.dateOfBirth || ""
     )
 
@@ -79,7 +81,7 @@ export function MedCertIntakeClient({
       .single()
 
     if (requestError || !request) {
-      console.error("Failed to create request:", requestError)
+      logger.error("Failed to create request", { error: requestError })
       throw new Error("Failed to create request. Please try again.")
     }
 
@@ -93,9 +95,11 @@ export function MedCertIntakeClient({
   }
 
   const handleAuthRequired = () => {
-    // Save form state and redirect to auth
-    sessionStorage.setItem("med_cert_redirect", "/medical-certificate/new")
-    router.push("/sign-in?redirect=/medical-certificate/new")
+    // Use Clerk's sign-in modal
+    openSignIn({
+      afterSignInUrl: "/medical-certificate/new",
+      afterSignUpUrl: "/medical-certificate/new",
+    })
   }
 
   return (

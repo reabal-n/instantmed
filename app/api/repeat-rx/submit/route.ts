@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { auth } from "@clerk/nextjs/server"
+import { rateLimit } from "@/lib/rate-limit/limiter"
+import { logger } from "@/lib/logger"
 import type {
   ClinicalSummary,
   RepeatRxSubmitPayload,
@@ -20,6 +22,24 @@ import type {
  */
 export async function POST(request: Request) {
   try {
+    // Get client IP for rate limiting
+    const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
+    const userAgent = request.headers.get("user-agent") || "unknown"
+    
+    // Get user session via Clerk
+    const { userId } = await auth()
+    
+    // Apply rate limiting (use userId if authenticated, IP otherwise)
+    const rateLimitKey = userId || `ip:${ipAddress}`
+    const rateLimitResult = await rateLimit(rateLimitKey, '/api/repeat-rx/submit')
+    if (!rateLimitResult.allowed) {
+      logger.warn("[Repeat Rx Submit] Rate limit exceeded", { rateLimitKey })
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a few minutes before trying again." },
+        { status: 429, headers: { 'Retry-After': '300' } }
+      )
+    }
+    
     const body = await request.json() as RepeatRxSubmitPayload
     const { medication, answers, consentTimestamps, pharmacyDetails } = body
     
@@ -53,12 +73,6 @@ export async function POST(request: Request) {
       )
     }
     
-    // Get client IP and user agent for audit
-    const ipAddress = request.headers.get("x-forwarded-for") || "unknown"
-    const userAgent = request.headers.get("user-agent") || "unknown"
-    
-    // Get user session via Clerk
-    const { userId } = await auth()
     const supabase = await createClient()
     
     let patientId: string | null = null

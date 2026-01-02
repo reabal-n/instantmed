@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
+import { notifyRequestStatusChange } from "@/lib/notifications/service"
+import { logger } from "@/lib/logger"
 import type { ClinicianDecision } from "@/types/repeat-rx"
 
 interface DecisionPayload {
@@ -41,22 +44,22 @@ export async function POST(
       )
     }
     
-    // Get authenticated clinician
+    // Get authenticated clinician via Clerk
+    const { userId } = await auth()
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
     
-    if (!session?.user) {
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       )
     }
     
-    // Verify clinician role
+    // Verify clinician role using Clerk user ID
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, role")
-      .eq("user_id", session.user.id)
+      .eq("clerk_user_id", userId)
       .single()
     
     if (!profile || profile.role !== "clinician") {
@@ -145,8 +148,34 @@ export async function POST(
       user_agent: request.headers.get("user-agent") || "unknown",
     })
     
-    // TODO: Send notification to patient (email/SMS)
-    // TODO: If approved, generate prescription PDF and send to eRx
+    // Send notification to patient (email/SMS)
+    try {
+      // Get patient details for notification
+      const { data: patientProfile } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, clerk_user_id")
+        .eq("id", existingRequest.patient_id)
+        .single()
+      
+      if (patientProfile) {
+        await notifyRequestStatusChange({
+          requestId: id,
+          patientId: patientProfile.id,
+          patientEmail: patientProfile.email || "",
+          patientName: patientProfile.full_name || "there",
+          requestType: "prescription",
+          newStatus: body.decision === "approved" ? "approved" : body.decision === "declined" ? "declined" : "pending",
+          documentUrl: undefined, // PDF generated separately if approved
+        })
+        logger.info("[Repeat Rx Decision] Patient notified", { requestId: id, decision: body.decision })
+      }
+    } catch (notifyError) {
+      // Log but don't fail the request - notification is not critical
+      logger.error("[Repeat Rx Decision] Failed to notify patient", { 
+        error: notifyError instanceof Error ? notifyError.message : "Unknown error",
+        requestId: id 
+      })
+    }
     
     return NextResponse.json({
       success: true,

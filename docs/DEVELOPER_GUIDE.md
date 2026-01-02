@@ -117,25 +117,34 @@ instantmed/
 ```typescript
 // app/api/example/route.ts
 import { NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
-import { applyRateLimit, RATE_LIMIT_STANDARD } from "@/lib/rate-limit"
+import { rateLimit } from "@/lib/rate-limit/limiter"
 
 export async function GET(request: Request) {
-  // Rate limiting
-  const rateLimited = applyRateLimit(request, RATE_LIMIT_STANDARD)
-  if (rateLimited) return rateLimited
-
-  // Auth check
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  // Auth check using Clerk
+  const { userId } = await auth()
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Rate limiting
+  const rateLimitResult = await rateLimit(userId, '/api/your-route')
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    )
   }
 
   // Your logic here
   return NextResponse.json({ data: "example" })
 }
 ```
+
+> **Note:** As of June 2025, authentication is handled by Clerk, not Supabase Auth.
+> Supabase is used only for database operations. Always use `auth()` from Clerk
+> for authentication checks in server-side code.
 
 ### Adding a Database Migration
 ```bash

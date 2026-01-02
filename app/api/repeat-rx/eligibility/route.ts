@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { auth } from "@clerk/nextjs/server"
+import { rateLimit } from "@/lib/rate-limit/limiter"
 import type {
   MedicationSelection,
   RepeatRxIntakeAnswers,
@@ -20,6 +21,19 @@ import type {
  */
 export async function POST(request: Request) {
   try {
+    // Rate limiting - use IP or userId
+    const { userId } = await auth()
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
+    const rateLimitKey = userId || `ip:${ip}`
+    
+    const rateLimitResult = await rateLimit(rateLimitKey, '/api/repeat-rx/eligibility')
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+    
     const body = await request.json()
     const { medication, answers } = body as {
       medication: MedicationSelection
@@ -38,7 +52,7 @@ export async function POST(request: Request) {
     const result = checkEligibility(medication, answers)
     
     // Log audit event (optional - only if user is authenticated)
-    const { userId } = await auth()
+    // userId already obtained above for rate limiting
     const supabase = await createClient()
     
     if (userId) {

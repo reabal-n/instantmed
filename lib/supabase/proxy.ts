@@ -1,47 +1,16 @@
-import { createServerClient } from "@supabase/ssr"
+/**
+ * @deprecated This file is deprecated as of Clerk migration.
+ * Authentication middleware is now handled by Clerk in /workspaces/instantmed/middleware.ts
+ * 
+ * Keeping for reference only. Do not use.
+ */
+
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
-        },
-      },
-    },
-  )
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Protect /patient routes - require authenticated user
-  if (request.nextUrl.pathname.startsWith("/patient") && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/auth/login"
-    return NextResponse.redirect(url)
-  }
-
-  // Protect /doctor routes - require authenticated user
-  if (request.nextUrl.pathname.startsWith("/doctor") && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/auth/login"
-    return NextResponse.redirect(url)
-  }
-
-  return supabaseResponse
+/**
+ * @deprecated Use Clerk middleware instead - see middleware.ts
+ */
+export async function updateSession(_request: NextRequest) {
+  console.warn("[DEPRECATED] lib/supabase/proxy.ts is deprecated. Use Clerk middleware instead.")
+  return NextResponse.next()
 }

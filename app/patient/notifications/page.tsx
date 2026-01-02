@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { NotificationsClient } from "./notifications-client"
 
 export const metadata = {
@@ -8,21 +9,19 @@ export const metadata = {
 }
 
 export default async function NotificationsPage() {
-  const supabase = await createClient()
+  const { userId } = await auth()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!userId) {
     redirect("/sign-in?redirect=/patient/notifications")
   }
 
-  // Get profile with notification preferences
+  const supabase = await createClient()
+
+  // Get profile with notification preferences using Clerk ID
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, full_name, first_name, notification_preferences")
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
     .single()
 
   if (!profile) {

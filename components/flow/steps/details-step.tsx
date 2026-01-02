@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import type { FlowConfig, IdentityData, ConsentType } from '@/lib/flow'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { useUser, useClerk } from '@clerk/nextjs'
 
 interface DetailsStepProps {
   config: FlowConfig
@@ -39,12 +39,12 @@ const REQUIRED_CONSENTS: { type: ConsentType; label: string; version: string }[]
 export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
   const existingIdentity = useFlowIdentity()
   const { setIdentityData, addConsent, nextStep } = useFlowStore()
-  const supabase = createClient()
+  const { user: clerkUser, isLoaded } = useUser()
+  const { openSignIn } = useClerk()
 
-  // Check auth status
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
+  // Check auth status based on Clerk
+  const isLoggedIn = !!clerkUser
+  const isCheckingAuth = !isLoaded
 
   // Form state
   const [formData, setFormData] = useState<Partial<IdentityData>>({
@@ -60,24 +60,21 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
 
   // Auth form state (for non-logged-in users)
   const [_authMode, _setAuthMode] = useState<'signup' | 'login'>('signup')
-  const [password, setPassword] = useState('')
+  const [_password, _setPassword] = useState('')
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Check auth on mount
+  // Prefill form with Clerk user data
   useEffect(() => {
-    const checkAuth = async () => {
-      setIsCheckingAuth(true)
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setIsLoggedIn(true)
-        setUser({ id: user.id, email: user.email })
-        setFormData((prev) => ({ ...prev, email: user.email || prev.email }))
-      }
-      setIsCheckingAuth(false)
+    if (clerkUser) {
+      setFormData((prev) => ({ 
+        ...prev, 
+        email: clerkUser.primaryEmailAddress?.emailAddress || prev.email,
+        firstName: clerkUser.firstName || prev.firstName,
+        lastName: clerkUser.lastName || prev.lastName,
+      }))
     }
-    checkAuth()
-  }, [supabase])
+  }, [clerkUser])
 
   // Update form field
   const updateField = (field: keyof IdentityData, value: string) => {
@@ -104,39 +101,29 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
       (f) => formData[f as keyof IdentityData]?.toString().trim()
     )
     const hasAllConsents = REQUIRED_CONSENTS.every((c) => acceptedConsents.has(c.type))
-    const hasPasswordIfNeeded = isLoggedIn || password.length >= 8
+    // With Clerk, we don't need password check - auth is handled separately
+    const isAuthenticated = isLoggedIn
 
-    return hasAllFields && hasAllConsents && hasPasswordIfNeeded
+    return hasAllFields && hasAllConsents && isAuthenticated
   }
 
   // Handle continue
   const handleContinue = async () => {
+    // If not logged in, open Clerk sign-in modal
+    if (!isLoggedIn) {
+      openSignIn({
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
+      })
+      return
+    }
+    
     if (!isFormComplete()) return
 
     setIsSubmitting(true)
     setAuthError('')
 
     try {
-      // If not logged in, create account first
-      if (!isLoggedIn) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email!,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        })
-
-        if (authError) {
-          setAuthError(authError.message)
-          setIsSubmitting(false)
-          return
-        }
-
-        setUser(authData.user ? { id: authData.user.id, email: authData.user.email } : null)
-        setIsLoggedIn(true)
-      }
-
       // Save identity data
       setIdentityData(formData as IdentityData)
 
@@ -231,35 +218,20 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
         {!isLoggedIn && (
           <FlowSection title="Create account">
             <p className="text-sm text-slate-500 mb-4">
-              Create an account to track your request and access your documents.
+              Sign in to track your request and access your documents.
             </p>
 
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(e) => updateField('email', e.target.value)}
-                  placeholder="john@example.com"
-                  className="mt-1.5 h-11"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
-                  className="mt-1.5 h-11"
-                />
-                <p className="mt-1 text-xs text-slate-400">
-                  Minimum 8 characters
-                </p>
-              </div>
+              <Button
+                type="button"
+                onClick={() => openSignIn({
+                  afterSignInUrl: window.location.href,
+                  afterSignUpUrl: window.location.href,
+                })}
+                className="w-full h-11"
+              >
+                Sign in or create account
+              </Button>
 
               {authError && (
                 <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
@@ -268,11 +240,8 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
                 </div>
               )}
 
-              <p className="text-sm text-slate-500">
-                Already have an account?{' '}
-                <Link href="/sign-in" className="text-emerald-600 hover:underline">
-                  Sign in
-                </Link>
+              <p className="text-sm text-slate-500 text-center">
+                You&apos;ll need to sign in to continue with your request.
               </p>
             </div>
           </FlowSection>
@@ -286,12 +255,12 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
               <Input
                 id="email"
                 type="email"
-                value={formData.email || user?.email || ''}
+                value={formData.email || clerkUser?.primaryEmailAddress?.emailAddress || ''}
                 disabled
                 className="mt-1.5 h-11 bg-slate-50"
               />
               <p className="mt-1 text-xs text-slate-400">
-                Logged in as {user?.email}
+                Logged in as {clerkUser?.primaryEmailAddress?.emailAddress}
               </p>
             </div>
           </FlowSection>

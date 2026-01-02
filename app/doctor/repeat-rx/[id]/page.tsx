@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { RepeatRxReviewClient } from "./review-client"
 
 // Generate metadata for SEO
@@ -31,20 +32,19 @@ function LoadingState() {
 
 // Fetch request data server-side
 async function getRequestData(id: string) {
-  const supabase = await createClient()
+  const { userId } = await auth()
   
-  // Check if user is authenticated and is a clinician
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  if (!session?.user) {
+  if (!userId) {
     return { error: "unauthorized", data: null }
   }
   
-  // Check clinician role
+  const supabase = await createClient()
+  
+  // Check clinician role using Clerk ID
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
-    .eq("user_id", session.user.id)
+    .eq("clerk_user_id", userId)
     .single()
   
   if (!profile || profile.role !== "clinician") {

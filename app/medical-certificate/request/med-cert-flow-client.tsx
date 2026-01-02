@@ -586,17 +586,13 @@ export function MedCertFlowClient({
   // Check for returning users (modified for new flow)
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user && !isAuthenticated) {
-        // Removed direct set of userName, dateOfBirth, as they are now part of patientDetails step
+      // Use Clerk user instead of Supabase session
+      if (user && !isAuthenticated) {
+        const supabase = createClient()
         const { profileId } = await createOrGetProfile(
-          session.user.id,
-          session.user.user_metadata?.full_name || "",
-          session.user.user_metadata?.date_of_birth || "",
+          user.id,
+          user.fullName || "",
+          "",
         )
 
         if (profileId) {
@@ -618,7 +614,7 @@ export function MedCertFlowClient({
       }
     }
     checkSession()
-  }, [isAuthenticated, step, goNext])
+  }, [user, isAuthenticated, step, goNext])
 
   const _toggleSymptom = (symptom: string) => {
     setFormData((prev) => ({

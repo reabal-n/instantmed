@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
+import { logger } from "@/lib/logger"
 
 /**
  * AI Clinical Note Generation
@@ -31,8 +32,7 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     )
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Error in clinical-note route:", error)
+    logger.error("Error in clinical-note route", { error })
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 }

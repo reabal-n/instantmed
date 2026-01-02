@@ -5,11 +5,12 @@ import { requireAuth } from "../../../../../lib/auth"
 import { updateMedCertDraftData, getDraftById, createGeneratedDocument, hasDocumentForRequest } from "../../../../../lib/data/documents"
 import { updateRequestStatus, getRequestWithDetails } from "../../../../../lib/data/requests"
 import { RequestLifecycleError } from "../../../../../lib/data/request-lifecycle"
-import { generateMedCertPdf } from "../../../../../lib/documents/pdf-generator"
-import { uploadPdfBuffer, isPermanentStorageUrl } from "../../../../../lib/storage/documents"
+import { generateMedCertPdfFactory } from "../../../../../lib/documents/med-cert-pdf-factory"
+import { uploadPdfBuffer } from "../../../../../lib/storage/documents"
 import { sendMedCertReadyEmail } from "../../../../../lib/email/resend"
 import { getPatientEmailFromRequest } from "../../../../../lib/data/profiles"
-import { assertApprovalInvariants, ApprovalInvariantError, verifyDocumentUrlIsPermanent } from "../../../../../lib/approval/invariants"
+import { assertApprovalInvariants, ApprovalInvariantError } from "../../../../../lib/approval/med-cert-invariants"
+import { logger } from "../../../../../lib/logger"
 import type { MedCertDraftData } from "../../../../../types/db"
 
 // UUID validation helper
@@ -81,38 +82,41 @@ export async function generateMedCertPdfAndApproveAction(
         return { 
           success: false, 
           error: invariantError.message,
-          code: invariantError.code 
         }
       }
       throw invariantError
     }
 
-    // Generate PDF and upload to permanent storage
+    // Generate PDF and upload to permanent storage using consolidated factory
     let pdfUrl: string
     try {
-      // Step 1: Generate PDF buffer
-      const pdfBuffer = await generateMedCertPdf(data, draft.subtype, draft.request_id)
+      // Use consolidated factory that handles logo/signature assets
+      const pdfResult = await generateMedCertPdfFactory({
+        data,
+        subtype: draft.subtype,
+        requestId: draft.request_id,
+      })
       
-      // Step 2: Upload to Supabase Storage
-      const uploadResult = await uploadPdfBuffer(pdfBuffer, draft.request_id, "med_cert", draft.subtype || "work")
+      logger.info(`[actions] PDF generated: ${pdfResult.certId} (${pdfResult.size} bytes)`)
+      
+      // Upload to Supabase Storage
+      const uploadResult = await uploadPdfBuffer(
+        pdfResult.buffer,
+        draft.request_id,
+        "med_cert",
+        draft.subtype || "work"
+      )
       
       if (!uploadResult.success || !uploadResult.permanentUrl) {
         return { success: false, error: uploadResult.error || "Failed to upload PDF" }
       }
       
       pdfUrl = uploadResult.permanentUrl
+      logger.info(`[actions] PDF uploaded to ${pdfUrl}`)
     } catch (pdfError) {
       const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
+      logger.error(`[actions] PDF generation failed: ${errorMessage}`)
       return { success: false, error: errorMessage }
-    }
-
-    // INVARIANT CHECK: PDF URL must be permanent (Supabase Storage)
-    if (!isPermanentStorageUrl(pdfUrl)) {
-      return { 
-        success: false, 
-        error: "PDF storage failed - document URL is not permanent. Please try again.",
-        code: "TEMPORARY_URL"
-      }
     }
 
     // Create document record with correct subtype
@@ -127,12 +131,6 @@ export async function generateMedCertPdfAndApproveAction(
     const documentExists = await hasDocumentForRequest(draft.request_id)
     if (!documentExists) {
       return { success: false, error: "Document verification failed - please try again", code: "DOCUMENT_MISSING" }
-    }
-
-    // INVARIANT CHECK: Verify stored URL is permanent
-    const urlCheck = await verifyDocumentUrlIsPermanent(draft.request_id)
-    if (!urlCheck.valid) {
-      return { success: false, error: urlCheck.error || "Document URL verification failed", code: "TEMPORARY_URL" }
     }
 
     // Update request status to approved - pass doctor ID for audit trail
@@ -193,9 +191,13 @@ export async function testPdfGenerationAction(): Promise<{ success: boolean; err
       notes: null,
     }
 
-    const pdfBuffer = await generateMedCertPdf(testData, "work", "test-request-id")
+    const result = await generateMedCertPdfFactory({
+      data: testData,
+      subtype: "work",
+      requestId: "test-request-id",
+    })
     
-    if (pdfBuffer && pdfBuffer.length > 0) {
+    if (result.buffer && result.buffer.length > 0) {
       return { success: true }
     }
     
@@ -225,7 +227,6 @@ export async function approveWithoutPdfAction(requestId: string): Promise<{ succ
         return { 
           success: false, 
           error: invariantError.message,
-          code: invariantError.code 
         }
       }
       throw invariantError

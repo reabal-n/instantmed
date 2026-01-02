@@ -4,6 +4,7 @@ import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { logger } from "@/lib/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
+import { rateLimit } from "@/lib/rate-limit/limiter"
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
     const apiKey = process.env.INTERNAL_API_KEY
     const authHeader = request.headers.get('authorization')
     let authorized = false
+    let rateLimitKey = 'api-key'
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
@@ -18,6 +20,17 @@ export async function POST(request: Request) {
       try {
         const { userId } = await auth()
         if (userId) {
+          rateLimitKey = userId
+          
+          // Apply rate limiting for authenticated users
+          const rateLimitResult = await rateLimit(userId, '/api/admin/approve')
+          if (!rateLimitResult.allowed) {
+            return NextResponse.json(
+              { error: 'Rate limit exceeded. Please try again later.' },
+              { status: 429, headers: { 'Retry-After': '60' } }
+            )
+          }
+          
           const serverSupabase = await createServerClient()
           const { data: profile, error: profileError } = await serverSupabase
             .from('profiles')

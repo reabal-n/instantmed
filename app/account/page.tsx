@@ -17,10 +17,12 @@ import {
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useUser, useClerk } from '@clerk/nextjs'
 import { Chip, Spinner } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
+import { logger } from '@/lib/logger'
 
 interface Profile {
   id: string
@@ -44,6 +46,8 @@ interface RequestSummary {
 export default function AccountPage() {
   const router = useRouter()
   const supabase = createClient()
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser()
+  const { signOut } = useClerk()
   
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -52,19 +56,20 @@ export default function AccountPage() {
 
   useEffect(() => {
     const loadAccountData = async () => {
+      // Wait for Clerk to be loaded
+      if (!isClerkLoaded) return
+      
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (!user) {
+        if (!clerkUser) {
           router.push('/sign-in?redirect=/account')
           return
         }
 
-        // Get profile
+        // Get profile using Clerk user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('auth_user_id', user.id)
+          .eq('clerk_user_id', clerkUser.id)
           .single()
 
         if (profileError) throw profileError
@@ -72,7 +77,7 @@ export default function AccountPage() {
         setProfile({
           id: profileData.id,
           full_name: profileData.full_name,
-          email: user.email || profileData.email,
+          email: clerkUser.primaryEmailAddress?.emailAddress || profileData.email,
           phone: profileData.phone,
           role: profileData.role,
           created_at: profileData.created_at,
@@ -108,7 +113,7 @@ export default function AccountPage() {
           })))
         }
       } catch (err) {
-        console.error('Error loading account:', err)
+        logger.error('Error loading account:', { error: err })
         setError('Failed to load account data')
       } finally {
         setIsLoading(false)
@@ -116,10 +121,10 @@ export default function AccountPage() {
     }
 
     loadAccountData()
-  }, [supabase, router])
+  }, [supabase, router, clerkUser, isClerkLoaded])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push('/')
   }
 

@@ -1,8 +1,9 @@
 "use client"
-/* eslint-disable no-console -- Notification hook needs console for realtime debugging */
 
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@clerk/nextjs"
+import { logger } from "@/lib/logger"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
 export interface Notification {
@@ -32,23 +33,24 @@ export function useNotifications(): UseNotificationsReturn {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser()
 
   const fetchNotifications = useCallback(async () => {
+    if (!isClerkLoaded || !clerkUser) {
+      setNotifications([])
+      setLoading(false)
+      return
+    }
+    
     try {
       setLoading(true)
       setError(null)
 
-      // Get current user's profile
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setNotifications([])
-        return
-      }
-
+      // Get profile using Clerk user ID
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("auth_user_id", user.id)
+        .eq("clerk_user_id", clerkUser.id)
         .single()
 
       if (!profile) {
@@ -69,12 +71,12 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(data || [])
     } catch (err) {
-      console.error("Error fetching notifications:", err)
+      logger.error("Error fetching notifications:", { error: err })
       setError(err instanceof Error ? err.message : "Failed to load notifications")
     } finally {
       setLoading(false)
     }
-  }, [supabase])
+  }, [supabase, clerkUser, isClerkLoaded])
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -94,14 +96,13 @@ export function useNotifications(): UseNotificationsReturn {
   }, [supabase])
 
   const markAllAsRead = useCallback(async () => {
+    if (!clerkUser) return
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("auth_user_id", user.id)
+        .eq("clerk_user_id", clerkUser.id)
         .single()
 
       if (!profile) return
@@ -116,22 +117,21 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (err) {
-      console.error("Error marking all notifications as read:", err)
+      logger.error("Error marking all notifications as read:", { error: err })
     }
-  }, [supabase])
+  }, [supabase, clerkUser])
 
   // Set up real-time subscription
   useEffect(() => {
     let channel: RealtimeChannel | null = null
 
     const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!clerkUser) return
 
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("auth_user_id", user.id)
+        .eq("clerk_user_id", clerkUser.id)
         .single()
 
       if (!profile) return
@@ -162,7 +162,7 @@ export function useNotifications(): UseNotificationsReturn {
         supabase.removeChannel(channel)
       }
     }
-  }, [supabase, fetchNotifications])
+  }, [supabase, fetchNotifications, clerkUser])
 
   const unreadCount = notifications.filter(n => !n.read).length
 

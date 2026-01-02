@@ -450,7 +450,7 @@ function ErrorAlert({
 function SignInDialog({
   open,
   onOpenChange,
-  onSuccess,
+  onSuccess: _onSuccess,
   onGoogleAuth,
   isGoogleLoading,
 }: {
@@ -460,53 +460,9 @@ function SignInDialog({
   onGoogleAuth: () => void
   isGoogleLoading: boolean
 }) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-
-    try {
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (signInError) throw signInError
-
-      if (!authData.user) {
-        throw new Error("Failed to sign in")
-      }
-
-      // Get profile data to prefill form
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, date_of_birth")
-        .eq("user_id", authData.user.id)
-        .single()
-
-      // Success - pass user data back
-      onSuccess(
-        authData.user.email || email,
-        profile?.full_name || authData.user.user_metadata?.full_name,
-        profile?.date_of_birth || authData.user.user_metadata?.date_of_birth
-      )
-      
-      onOpenChange(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid email or password")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
+  // With Clerk migration, we use Clerk's modal for all authentication
+  // The onSuccess callback is handled by the parent component's useEffect on isSignedIn
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -517,20 +473,13 @@ function SignInDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-          {/* Google sign-in */}
+        <div className="space-y-4 pt-4">
+          {/* Sign in with Clerk */}
           <Button
             type="button"
-            variant="outline"
             onClick={() => {
               onOpenChange(false)
-              onGoogleAuth()
+              onGoogleAuth() // This now uses Clerk's openSignIn
             }}
             disabled={isGoogleLoading}
             className="w-full h-11 rounded-xl gap-2"
@@ -538,78 +487,10 @@ function SignInDialog({
             {isGoogleLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <GoogleIcon className="w-4 h-4" />
+              <LogIn className="w-4 h-4" />
             )}
-            Continue with Google
+            Sign in to your account
           </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
-
-          {/* Email/password form */}
-          <form onSubmit={handleSignIn} className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="signin-email" className="text-sm">Email</Label>
-              <Input
-                id="signin-email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11 rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="signin-password" className="text-sm">Password</Label>
-              <div className="relative">
-                <Input
-                  id="signin-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="h-11 rounded-xl pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </button>
-              </div>
-              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-
-            <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-xl">
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-          </form>
 
           <p className="text-xs text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
@@ -699,10 +580,7 @@ export function MedCertForm({
   // Check for returning users after OAuth and restore form state
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-
-      // Check if we&apos;re returning from OAuth with saved form data (with localStorage TTL fallback)
+      // Check if we're returning from OAuth with saved form data (with localStorage TTL fallback)
       const savedFormDataObj = loadFormData<typeof formData>(STORAGE_KEYS.MED_CERT_FORM)
       const savedStep = loadFormData<FlowStep>(STORAGE_KEYS.MED_CERT_STEP)
       
@@ -716,11 +594,13 @@ export function MedCertForm({
         clearFormData(STORAGE_KEYS.MED_CERT_STEP)
       }
 
-      if (session?.user && !isAuthenticated) {
+      // Use Clerk user for authentication check
+      if (user && !isAuthenticated) {
+        const supabase = createClient()
         const { profileId } = await createOrGetProfile(
-          session.user.id,
-          session.user.user_metadata?.full_name || "",
-          session.user.user_metadata?.date_of_birth || ""
+          user.id,
+          user.fullName || "",
+          ""
         )
 
         if (profileId) {
@@ -737,8 +617,8 @@ export function MedCertForm({
 
           setFormData((prev) => ({
             ...prev,
-            email: session.user.email || profile?.email || prev.email,
-            fullName: profile?.full_name || session.user.user_metadata?.full_name || prev.fullName,
+            email: user.primaryEmailAddress?.emailAddress || profile?.email || prev.email,
+            fullName: profile?.full_name || user.fullName || prev.fullName,
             dateOfBirth: profile?.date_of_birth || prev.dateOfBirth,
             medicareNumber: profile?.medicare_number || prev.medicareNumber,
             medicareIrn: profile?.medicare_irn || prev.medicareIrn,
@@ -759,46 +639,47 @@ export function MedCertForm({
   }, [isAuthenticated])
 
   // Handle successful sign-in from dialog
+  // Note: With Clerk migration, this is mainly triggered by the checkSession useEffect
+  // when user signs in via Clerk modal. Kept for backwards compatibility.
   const handleSignInSuccess = async (email: string, name?: string, dob?: string) => {
+    // Use Clerk user if available
+    if (!user) return
+
     const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    const { profileId } = await createOrGetProfile(
+      user.id,
+      name || user.fullName || "",
+      dob || ""
+    )
 
-    if (session?.user) {
-      const { profileId } = await createOrGetProfile(
-        session.user.id,
-        name || session.user.user_metadata?.full_name || "",
-        dob || session.user.user_metadata?.date_of_birth || ""
-      )
+    if (profileId) {
+      setPatientId(profileId)
+      setIsAuthenticated(true)
+      setNeedsOnboarding(false)
 
-      if (profileId) {
-        setPatientId(profileId)
-        setIsAuthenticated(true)
-        setNeedsOnboarding(false)
+      // Prefill form data from user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode")
+        .eq("id", profileId)
+        .single()
 
-        // Prefill form data from user profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode")
-          .eq("id", profileId)
-          .single()
+      setFormData((prev) => ({
+        ...prev,
+        email: email || user.primaryEmailAddress?.emailAddress || prev.email,
+        fullName: profile?.full_name || name || prev.fullName,
+        dateOfBirth: profile?.date_of_birth || dob || prev.dateOfBirth,
+        medicareNumber: profile?.medicare_number || prev.medicareNumber,
+        medicareIrn: profile?.medicare_irn || prev.medicareIrn,
+        addressLine1: profile?.address_line1 || prev.addressLine1,
+        suburb: profile?.suburb || prev.suburb,
+        state: profile?.state || prev.state,
+        postcode: profile?.postcode || prev.postcode,
+      }))
 
-        setFormData((prev) => ({
-          ...prev,
-          email: email || prev.email,
-          fullName: profile?.full_name || name || prev.fullName,
-          dateOfBirth: profile?.date_of_birth || dob || prev.dateOfBirth,
-          medicareNumber: profile?.medicare_number || prev.medicareNumber,
-          medicareIrn: profile?.medicare_irn || prev.medicareIrn,
-          addressLine1: profile?.address_line1 || prev.addressLine1,
-          suburb: profile?.suburb || prev.suburb,
-          state: profile?.state || prev.state,
-          postcode: profile?.postcode || prev.postcode,
-        }))
-
-        // Clear any previous errors
-        setError(null)
-        setErrorType(null)
-      }
+      // Clear any previous errors
+      setError(null)
+      setErrorType(null)
     }
   }
 

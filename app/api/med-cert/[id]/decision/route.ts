@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"
 import { logger } from "@/lib/logger"
-import { generateMedCertPdf, generateCertificateNumber } from "@/lib/pdf/generate-med-cert"
+import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
+import { uploadPdfBuffer } from "@/lib/storage/documents"
+import { createGeneratedDocument } from "@/lib/data/documents"
+import { updateRequestStatus } from "@/lib/data/requests"
+import { assertApprovalInvariants, ApprovalInvariantError } from "@/lib/approval/med-cert-invariants"
 import { getApiAuth } from "@/lib/auth"
+import { rateLimit } from "@/lib/rate-limit/limiter"
+import { RequestLifecycleError } from "@/lib/data/request-lifecycle"
 
 // ============================================================================
 // TYPES
@@ -46,6 +52,15 @@ export async function PATCH(
     }
 
     const { userId, profile } = authResult
+
+    // Rate limiting for clinician decisions
+    const rateLimitResult = await rateLimit(userId, '/api/med-cert/decision')
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
 
     // Verify clinician role
     if (!["clinician", "doctor", "admin"].includes(profile.role)) {
@@ -136,88 +151,118 @@ export async function PATCH(
       return NextResponse.json({ success: true })
     }
 
-    // Approval flow - generate certificate
+    // Approval flow - fetch draft, generate PDF, upload, and approve
     
-    // Fetch patient details with auth info for email
-    const { data: patientProfile } = await supabase
-      .from("profiles")
-      .select("id, full_name, date_of_birth, auth_user_id")
-      .eq("id", certRequest.patient_id)
+    // Fetch the document draft for this request
+    const { data: draft, error: draftError } = await supabase
+      .from("document_drafts")
+      .select("*")
+      .eq("request_id", requestId)
+      .eq("document_type", "med_cert")
       .single()
 
-    if (!patientProfile) {
+    if (draftError || !draft) {
+      logger.warn("No med cert draft found for request", { requestId })
       return NextResponse.json(
-        { success: false, error: "Patient profile not found" },
-        { status: 404 }
+        { success: false, error: "Medical certificate draft not found. Doctor may need to create one." },
+        { status: 400 }
       )
     }
 
-    // Get patient email from auth
-    const { data: authUser } = await supabase.auth.admin.getUserById(patientProfile.auth_user_id)
-    const patientEmail = authUser?.user?.email
+    // Parse draft data (should be JSON)
+    const draftData = typeof draft.document_data === "string" 
+      ? JSON.parse(draft.document_data)
+      : draft.document_data
 
-    if (!patientEmail) {
-      return NextResponse.json(
-        { success: false, error: "Patient email not found" },
-        { status: 404 }
-      )
+    // Run approval invariants
+    try {
+      await assertApprovalInvariants(requestId)
+    } catch (invariantError) {
+      if (invariantError instanceof ApprovalInvariantError) {
+        logger.warn("Approval invariant failed", { requestId, error: invariantError.message })
+        return NextResponse.json(
+          { success: false, error: invariantError.message },
+          { status: 400 }
+        )
+      }
+      throw invariantError
     }
 
-    // Generate certificate number
-    const certificateNumber = generateCertificateNumber()
+    // Generate PDF using consolidated factory
+    let pdfUrl: string
+    let certId: string
+    try {
+      const pdfResult = await generateMedCertPdfFactory({
+        data: draftData,
+        subtype: draft.subtype,
+        requestId,
+      })
 
-    // Build symptoms summary
-    const symptoms = certRequest.symptoms as string[]
-    const symptomsSummary = symptoms.join(", ") + (certRequest.other_symptom_text ? ` (${certRequest.other_symptom_text})` : "")
+      certId = pdfResult.certId
+      logger.info(`[decision] PDF generated: ${certId} (${pdfResult.size} bytes)`)
 
-    // Calculate duration
-    const startDate = new Date(certRequest.start_date)
-    const endDate = new Date(certRequest.end_date)
-    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      // Upload to Supabase Storage
+      const uploadResult = await uploadPdfBuffer(
+        pdfResult.buffer,
+        requestId,
+        "med_cert",
+        draft.subtype || "work"
+      )
 
-    // Generate PDF with react-pdf, upload to Supabase, send email
-    const pdfResult = await generateMedCertPdf({
-      requestId,
-      patientId: patientProfile.id,
-      certificateNumber,
-      certificateType: certRequest.certificate_type,
-      patientName: patientProfile.full_name || "Unknown",
-      patientDob: patientProfile.date_of_birth,
-      patientEmail,
-      startDate: certRequest.start_date,
-      endDate: certRequest.end_date,
-      durationDays,
-      symptomsSummary,
-      carerPersonName: certRequest.carer_person_name || undefined,
-      carerRelationship: certRequest.carer_relationship || undefined,
-      clinicianId: profile.id,
-      clinicianName: profile.full_name || "Unknown Clinician",
-      clinicianRegistration: profile.ahpra_number || "AHPRA Registered",
-    })
+      if (!uploadResult.success || !uploadResult.permanentUrl) {
+        logger.error("Failed to upload PDF", { requestId, error: uploadResult.error })
+        return NextResponse.json(
+          { success: false, error: uploadResult.error || "Failed to upload certificate" },
+          { status: 500 }
+        )
+      }
 
-    if (!pdfResult.success) {
-      logger.error("Failed to generate med cert PDF", { error: pdfResult.error, requestId })
+      pdfUrl = uploadResult.permanentUrl
+      logger.info(`[decision] PDF uploaded to ${pdfUrl}`)
+    } catch (pdfError) {
+      const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
+      logger.error("PDF generation failed", { requestId, error: errorMessage })
       return NextResponse.json(
-        { success: false, error: pdfResult.error || "Failed to generate certificate" },
+        { success: false, error: errorMessage },
         { status: 500 }
       )
     }
 
-    // Update request as approved
-    const { error: updateError } = await supabase
-      .from("med_cert_requests")
-      .update({
-        status: "approved",
-        decision_at: now,
-        decision_by: profile.id,
-        certificate_id: pdfResult.certificateId,
-      })
-      .eq("id", requestId)
+    // Create generated document record
+    const document = await createGeneratedDocument(
+      requestId,
+      "med_cert",
+      draft.subtype || "work",
+      pdfUrl
+    )
 
-    if (updateError) {
-      logger.error("Failed to approve med cert request", { error: updateError, requestId })
+    if (!document) {
+      logger.error("Failed to create generated document record", { requestId })
       return NextResponse.json(
-        { success: false, error: "Failed to update request" },
+        { success: false, error: "Failed to save certificate record" },
+        { status: 500 }
+      )
+    }
+
+    // Update request status to approved
+    let updatedRequest
+    try {
+      updatedRequest = await updateRequestStatus(requestId, "approved", profile.id)
+    } catch (lifecycleError) {
+      if (lifecycleError instanceof RequestLifecycleError) {
+        logger.warn("Lifecycle error on approval", { requestId, error: lifecycleError.message })
+        return NextResponse.json(
+          { success: false, error: lifecycleError.message },
+          { status: 400 }
+        )
+      }
+      throw lifecycleError
+    }
+
+    if (!updatedRequest) {
+      logger.error("Failed to update request status", { requestId })
+      return NextResponse.json(
+        { success: false, error: "Failed to update request status" },
         { status: 500 }
       )
     }
@@ -230,7 +275,7 @@ export async function PATCH(
       actor_role: "clinician",
       event_data: {
         clinical_notes: body.clinicalNotes || null,
-        certificate_id: pdfResult.certificateId,
+        certificate_id: certId,
       },
       ip_address: ip,
       user_agent: headersList.get("user-agent"),
@@ -238,8 +283,8 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      certificateId: pdfResult.certificateId,
-      pdfUrl: pdfResult.pdfUrl,
+      certificateId: certId,
+      pdfUrl,
     })
 
   } catch (error) {

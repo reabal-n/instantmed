@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient()
+    const { userId } = await auth()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const supabase = await createClient()
     const body = await request.json()
     const { full_name, phone, street_address, suburb, state, postcode } = body
 
@@ -28,7 +25,7 @@ export async function PATCH(request: Request) {
         postcode,
         updated_at: new Date().toISOString(),
       })
-      .eq("auth_user_id", user.id)
+      .eq("clerk_user_id", userId)
 
     if (error) throw error
 
