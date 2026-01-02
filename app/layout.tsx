@@ -11,6 +11,7 @@ import { SkipToContent } from "@/components/shared/skip-to-content"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+import Script from "next/script"
 import "./globals.css"
 
 const inter = Inter({
@@ -169,6 +170,19 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <head>
+          {/* Google tag (gtag.js) */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
+            strategy="afterInteractive"
+          />
+          <Script id="google-gtag" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17795889471');
+            `}
+          </Script>
           <JsonLd />
           <OrganizationSchema />
           <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />

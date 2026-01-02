@@ -214,7 +214,7 @@ export function validateConsultPayload(
 ): { valid: boolean; error?: string } {
   const result = consultRequestSchema.safeParse(answers)
   if (!result.success) {
-    const firstError = result.error.errors[0]
+    const firstError = result.error.issues[0]
     return { valid: false, error: firstError?.message || "Invalid consultation request" }
   }
   

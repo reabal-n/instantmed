@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { logger } from "@/lib/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 
 export async function POST(request: Request) {
   try {
@@ -15,13 +16,13 @@ export async function POST(request: Request) {
       authorized = true
     } else {
       try {
-        const serverSupabase = await createServerClient()
-        const { data: { user } } = await serverSupabase.auth.getUser()
-        if (user) {
+        const { userId } = await auth()
+        if (userId) {
+          const serverSupabase = await createServerClient()
           const { data: profile, error: profileError } = await serverSupabase
             .from('profiles')
             .select('role')
-            .eq('auth_user_id', user.id)
+            .eq('clerk_user_id', userId)
             .single()
 
           if (!profileError && profile?.role === 'admin') {

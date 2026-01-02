@@ -103,7 +103,7 @@ const cities: Record<
 
 const services = [
   { name: "Medical Certificates", href: "/medical-certificate", price: "From $19.95" },
-  { name: "Prescriptions", href: "/prescriptions", price: "From $24.95" },
+  { name: "Prescriptions", href: "/prescriptions", price: "From $29.95" },
 ]
 
 interface PageProps {

@@ -125,7 +125,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     'Backdating beyond 48 hours',
   ],
   
-  priceFrom: 24.95,
+  priceFrom: 19.95,
   pricingNote: 'One flat fee. No hidden costs.',
   pricingFeatures: [
     'Same-day certificate',
@@ -431,7 +431,7 @@ export const commonScriptsConfig: ServiceConfig = {
     'First-time prescriptions for complex conditions',
   ],
   
-  priceFrom: 19.95,
+  priceFrom: 29.95,
   pricingNote: 'Consultation fee only. Medication cost separate at pharmacy.',
   pricingFeatures: [
     'Quick questionnaire',

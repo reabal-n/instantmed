@@ -329,7 +329,7 @@ export function MedicationCombobox({
           <strong className="text-foreground">Repeat scripts only.</strong> If you need a new prescription, 
           please book a{" "}
           <Link href="/consult" className="text-primary underline hover:no-underline">
-            General Consult ($44.95)
+            General Consult ($49.95)
           </Link>
           . We do not provide S8 medicines (opioids, benzodiazepines, stimulants).
         </p>

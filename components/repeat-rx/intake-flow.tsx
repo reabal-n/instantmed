@@ -35,6 +35,7 @@ import type {
   EligibilityResult,
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
+import { useUser, useClerk } from "@clerk/nextjs"
 
 // ============================================================================
 // CONSTANTS
@@ -446,6 +447,8 @@ export function RepeatRxIntakeFlow({
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const { openSignIn } = useClerk()
+  const { user, isSignedIn } = useUser()
   
   // ============================================================================
   // STATE
@@ -516,21 +519,11 @@ export function RepeatRxIntakeFlow({
     // Save current form state before redirect
     sessionStorage.setItem("repeat_rx_redirect", "true")
     
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/prescriptions/repeat?auth_success=true`,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
+    openSignIn({
+      afterSignInUrl: `${window.location.origin}/prescriptions/repeat?auth_success=true`,
+      afterSignUpUrl: `${window.location.origin}/prescriptions/repeat?auth_success=true`,
     })
-    
-    if (error) {
-      setError("Failed to sign in. Please try again.")
-      setIsLoading(false)
-    }
+    setIsLoading(false)
   }
   
   const handleGuestContinue = () => {

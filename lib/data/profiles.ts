@@ -1,6 +1,7 @@
 import { createClient } from "../supabase/server"
 import { createServiceRoleClient } from "../supabase/service-role"
 import { logger } from "@/lib/logger"
+import { currentUser } from "@clerk/nextjs/server"
 import type { Profile, AustralianState } from "../../types/db"
 
 /**
@@ -8,22 +9,20 @@ import type { Profile, AustralianState } from "../../types/db"
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
+  const user = await currentUser()
+  
+  if (!user) {
     return null
   }
 
+  const supabase = await createClient()
+  
   const { data, error } = await supabase
     .from("profiles")
     .select(`
       id,
       auth_user_id,
+      clerk_user_id,
       full_name,
       date_of_birth,
       email,
@@ -42,7 +41,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       created_at,
       updated_at
     `)
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", user.id)
     .single()
 
   if (error || !data) {

@@ -35,7 +35,7 @@ import {
   Save,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
-import { createClient } from "@/lib/supabase/client"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
@@ -81,7 +81,7 @@ const REPEAT_STEPS: FlowStep[] = [
 // NEW_STEPS removed - new scripts require General Consult
 
 // Prescription types - only repeat scripts available
-// New scripts require General Consult ($44.95)
+// New scripts require General Consult ($49.95)
 const RX_TYPES = [
   {
     id: "repeat",
@@ -407,7 +407,8 @@ export function PrescriptionFlowClient({
   userName,
 }: Props) {
   const _router = useRouter()
-  const supabase = createClient()
+  const { isSignedIn, user: clerkUser } = useUser()
+  const { openSignIn } = useClerk()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -676,188 +677,51 @@ export function PrescriptionFlowClient({
     return SAFETY_QUESTIONS.some((q) => q.knockout && safetyAnswers[q.id] === true)
   }
 
-  // Handle signup/signin
-  const _handleAuth = async () => {
-    setAuthLoading(true)
-    setError(null)
-
-    try {
-      if (isSignUp) {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
-          },
-        })
-
-        if (signUpError) throw signUpError
-
-        if (data.session) {
-          // Immediate login - create profile
-          const profileResult = await createOrGetProfile(
-            data.user!.id,
-            fullName,
-            dob
-          )
-
-          if (!profileResult.error && profileResult.profileId) {
-            setPatientId(profileResult.profileId)
-            setIsAuthenticated(true)
-            setNeedsOnboarding(false)
-            goTo("review")
-          }
-        } else {
-          setShowEmailConfirm(true)
-        }
-      } else {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-        if (signInError) throw signInError
-
-        // Check if profile exists
-        const profileResult = await createOrGetProfile(
-          data.user.id,
-          data.user.user_metadata?.full_name || fullName,
-          dob
-        )
-
-        if (!profileResult.error && profileResult.profileId) {
-          setPatientId(profileResult.profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
-          goTo("review")
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : RX_MICROCOPY.errors.generic)
-    } finally {
-      setAuthLoading(false)
+  // Handle Google auth - uses Clerk modal
+  const handleGoogleAuth = () => {
+    // Save form data before opening auth modal
+    const formState = {
+      rxType,
+      step,
+      selectedMedication,
+      prescribedBefore,
+      doseChanged,
+      condition,
+      otherCondition,
+      duration,
+      control,
+      sideEffects,
+      notes,
+      safetyAnswers,
+      medicareNumber,
+      irn,
+      dob,
+      fullName,
+      email,
     }
+    sessionStorage.setItem("rx_form_data", JSON.stringify(formState))
+    sessionStorage.setItem("rx_form_step", step)
+    sessionStorage.setItem("pending_profile_dob", dob)
+    sessionStorage.setItem("pending_profile_name", fullName)
+
+    // Open Clerk sign-in modal
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
   }
 
-  // Handle Google auth
-  const handleGoogleAuth = async () => {
-    setIsGoogleLoading(true)
-    setError(null)
+  // Handle email signup - now uses Clerk
+  const handleEmailSignup = () => {
+    // Save form data before opening auth modal  
+    sessionStorage.setItem("pending_profile_name", fullName)
+    sessionStorage.setItem("pending_profile_dob", dob)
 
-    try {
-      // Save form data before OAuth redirect
-      const formState = {
-        rxType,
-        step,
-        selectedMedication,
-        prescribedBefore,
-        doseChanged,
-        condition,
-        otherCondition,
-        duration,
-        control,
-        sideEffects,
-        notes,
-        safetyAnswers,
-        medicareNumber,
-        irn,
-        dob,
-        fullName,
-        email,
-      }
-      sessionStorage.setItem("rx_form_data", JSON.stringify(formState))
-      sessionStorage.setItem("rx_form_step", step)
-      
-      sessionStorage.setItem("questionnaire_flow", "true")
-      sessionStorage.setItem("questionnaire_path", window.location.pathname)
-      sessionStorage.setItem("pending_profile_dob", dob)
-
-      const callbackUrl = new URL("/auth/callback", window.location.origin)
-      callbackUrl.searchParams.set("redirect", window.location.pathname)
-      callbackUrl.searchParams.set("flow", "questionnaire")
-      callbackUrl.searchParams.set("auth_success", "true")
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: callbackUrl.toString(),
-        },
-      })
-
-      if (error) throw error
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed")
-      setIsGoogleLoading(false)
-    }
-  }
-
-  // Handle email signup
-  const handleEmailSignup = async () => {
-    setIsSubmitting(true)
-    setError(null)
-
-    try {
-      sessionStorage.setItem("pending_profile_name", fullName)
-      sessionStorage.setItem("pending_profile_dob", dob)
-
-      if (signupMode === "existing") {
-        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-
-        if (signInError) throw signInError
-        if (!authData.user) throw new Error("Sign in failed")
-
-        const { profileId } = await createOrGetProfile(
-          authData.user.id,
-          authData.user.user_metadata?.full_name || fullName,
-          dob,
-        )
-
-        if (!profileId) throw new Error("Failed to create profile")
-
-        setPatientId(profileId)
-        setIsAuthenticated(true)
-        setNeedsOnboarding(false)
-
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        goNext()
-      } else {
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
-            data: {
-              full_name: fullName,
-              date_of_birth: dob,
-              role: "patient",
-            },
-          },
-        })
-
-        if (signUpError) throw signUpError
-        if (!authData.user) throw new Error("Sign up failed")
-
-        if (authData.session) {
-          const { profileId } = await createOrGetProfile(authData.user.id, fullName, dob)
-
-          if (!profileId) throw new Error("Failed to create profile")
-
-          setPatientId(profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
-
-          await new Promise((resolve) => setTimeout(resolve, 100))
-          goNext()
-        } else {
-          setError("Please check your email to confirm your account, then sign in.")
-          setSignupMode("existing")
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Open Clerk sign-in modal
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
   }
 
   // Handle submit
@@ -919,10 +783,9 @@ export function PrescriptionFlowClient({
 
    
   useEffect(() => {
-    const checkSession = async () => {
-      // Restore form data from sessionStorage if returning from OAuth
+    const restoreFormData = () => {
+      // Restore form data from sessionStorage if returning from auth
       const savedFormData = sessionStorage.getItem("rx_form_data")
-      const savedStep = sessionStorage.getItem("rx_form_step") as FlowStep | null
       
       if (savedFormData) {
         try {
@@ -949,18 +812,20 @@ export function PrescriptionFlowClient({
           logger.error("Failed to restore form data", { error: e })
         }
       }
-      
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    }
+    restoreFormData()
+  }, [])
 
-      if (session?.user && !isAuthenticated) {
+  // Sync Clerk auth state
+  useEffect(() => {
+    const syncClerkAuth = async () => {
+      if (isSignedIn && clerkUser && !isAuthenticated) {
         const pendingName = sessionStorage.getItem("pending_profile_name")
         const pendingDob = sessionStorage.getItem("pending_profile_dob")
-        const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
-        const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
+        const userNameFromSession = pendingName || clerkUser.fullName || clerkUser.firstName || ""
+        const userDob = pendingDob || ""
 
-        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
+        const { profileId } = await createOrGetProfile(clerkUser.id, userNameFromSession, userDob)
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -970,21 +835,15 @@ export function PrescriptionFlowClient({
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
 
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get("auth_success") === "true") {
-            window.history.replaceState({}, "", window.location.pathname)
-            // If we restored form data, go to review step
-            if (savedFormData && savedStep) {
-              goTo("review")
-            } else if (step === "signup") {
-              goNext()
-            }
+          // Auto-advance if on signup step
+          if (step === "signup") {
+            goTo("review")
           }
         }
       }
     }
-    checkSession()
-  }, [isAuthenticated, step, goNext, goTo])
+    syncClerkAuth()
+  }, [isSignedIn, clerkUser, isAuthenticated, step, goTo])
 
   // If knocked out by safety check
   if (isKnockedOut) {
@@ -1226,7 +1085,7 @@ export function PrescriptionFlowClient({
                     className="w-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white"
                     radius="lg"
                   >
-                    Continue to General Consult ($44.95)
+                    Continue to General Consult ($49.95)
                   </Button>
                 </div>
               )}

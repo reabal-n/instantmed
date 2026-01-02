@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogIn, UserPlus, ArrowRight, Loader2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { useClerk } from "@clerk/nextjs"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -40,27 +39,19 @@ export function ServiceAuthGate({
   description = "Create an account or log in to submit your request.",
 }: ServiceAuthGateProps) {
   const pathname = usePathname()
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const { openSignIn } = useClerk()
+  const [isLoading, setIsLoading] = useState(false)
 
   // Encode the current path for redirect after auth
   const redirectParam = encodeURIComponent(pathname)
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true)
-    try {
-      const supabase = createClient()
-      const redirectUrl = `${window.location.origin}/auth/callback?redirect=${redirectParam}`
-
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: redirectUrl,
-        },
-      })
-    } catch (error) {
-      console.error("Google sign-in error:", error)
-      setIsGoogleLoading(false)
-    }
+  const handleSignIn = () => {
+    setIsLoading(true)
+    openSignIn({
+      afterSignInUrl: pathname,
+      afterSignUpUrl: pathname,
+    })
+    setIsLoading(false)
   }
 
   return (
@@ -74,11 +65,11 @@ export function ServiceAuthGate({
 
       <div className="mt-6 flex flex-col gap-3">
         <Button
-          onClick={handleGoogleSignIn}
-          disabled={isGoogleLoading}
+          onClick={handleSignIn}
+          disabled={isLoading}
           className="w-full rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
         >
-          {isGoogleLoading ? (
+          {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <GoogleIcon className="mr-2 h-4 w-4" />
@@ -95,26 +86,22 @@ export function ServiceAuthGate({
           </div>
         </div>
 
-        <Button asChild className="w-full rounded-xl btn-glow">
-          <Link href={`/auth/register?redirect=${redirectParam}`}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Create account
-          </Link>
+        <Button onClick={handleSignIn} className="w-full rounded-xl btn-glow">
+          <UserPlus className="mr-2 h-4 w-4" />
+          Create account
         </Button>
-        <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 hover:bg-white/80">
-          <Link href={`/sign-in?redirect=${redirectParam}`}>
-            <LogIn className="mr-2 h-4 w-4" />
-            Sign in with email
-          </Link>
+        <Button variant="outline" onClick={handleSignIn} className="w-full rounded-xl bg-white/50 hover:bg-white/80">
+          <LogIn className="mr-2 h-4 w-4" />
+          Sign in with email
         </Button>
       </div>
 
       <p className="mt-5 text-xs text-muted-foreground">
         Already have an account with pending requests?{" "}
-        <Link href={`/sign-in?redirect=${redirectParam}`} className="text-primary hover:underline">
+        <button onClick={handleSignIn} className="text-primary hover:underline">
           Check your dashboard
           <ArrowRight className="inline ml-0.5 h-3 w-3" />
-        </Link>
+        </button>
       </p>
     </div>
   )

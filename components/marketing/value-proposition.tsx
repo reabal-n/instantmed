@@ -109,14 +109,14 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={FileText}
             title="Medical Certificates"
             description="Sick leave, carer's leave, fitness"
-            price="$24.95"
+            price="$19.95"
             time="~15 mins"
           />
           <ServiceItem
             icon={Pill}
             title="Repeat Prescriptions"
             description="Ongoing medications you already take"
-            price="$19.95"
+            price="$29.95"
             time="~15 mins"
           />
         </div>

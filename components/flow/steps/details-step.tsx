@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Check, AlertCircle, Loader2 } from 'lucide-react'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'
@@ -269,9 +270,9 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
 
               <p className="text-sm text-slate-500">
                 Already have an account?{' '}
-                <a href="/sign-in" className="text-emerald-600 hover:underline">
+                <Link href="/sign-in" className="text-emerald-600 hover:underline">
                   Sign in
-                </a>
+                </Link>
               </p>
             </div>
           </FlowSection>

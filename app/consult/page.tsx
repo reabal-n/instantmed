@@ -18,7 +18,7 @@ import {
 export const metadata: Metadata = {
   title: "General Consult | Online Doctor Consultation | InstantMed",
   description:
-    "Book an online consultation with an Australian GP. New prescriptions, complex health concerns, and comprehensive assessments. $44.95 flat fee.",
+    "Book an online consultation with an Australian GP. New prescriptions, complex health concerns, and comprehensive assessments. $49.95 flat fee.",
 }
 
 const features = [
@@ -94,7 +94,7 @@ export default function ConsultPage() {
                 className="rounded-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-14 px-8 shadow-lg"
               >
                 <Link href="/consult/request">
-                  Book a consult — $44.95
+                  Book a consult — $49.95
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -150,7 +150,7 @@ export default function ConsultPage() {
             <div className="glass-card rounded-3xl p-8 text-center">
               <Badge className="mb-4 bg-violet-500/10 text-violet-600 border-0">One flat fee</Badge>
               <div className="mb-6">
-                <span className="text-5xl font-bold">$44.95</span>
+                <span className="text-5xl font-bold">$49.95</span>
                 <span className="text-muted-foreground ml-2">AUD</span>
               </div>
               <ul className="space-y-3 text-left max-w-sm mx-auto mb-8">
@@ -227,7 +227,7 @@ export default function ConsultPage() {
             </p>
             <Button asChild variant="outline" className="rounded-full">
               <Link href="/prescriptions/request">
-                Get a repeat script — $24.95
+                Get a repeat script — $29.95
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

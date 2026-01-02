@@ -231,7 +231,7 @@ export default function CorporatePage() {
               <h2 className="text-xl font-bold mb-6 text-center">Other services for busy professionals</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: "From $19.95", href: "/prescriptions" },
+                  { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: "From $29.95", href: "/prescriptions" },
                   { title: "Hair Loss", desc: "Discreet treatment options", price: "From $29.95", href: "/hair-loss" },
                   { title: "Weight Management", desc: "Doctor-guided programs", price: "From $49.95", href: "/weight-management" },
                 ].map((item) => (
@@ -296,7 +296,7 @@ export default function CorporatePage() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground">$24.95 • Valid for all employers</p>
+              <p className="mt-4 text-xs text-muted-foreground">$19.95 • Valid for all employers</p>
             </div>
           </section>
 

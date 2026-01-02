@@ -852,7 +852,7 @@ export function PrescriptionFlowClient({
           ) : (
             <>
               <CreditCard className="mr-2 h-4 w-4" />
-              Pay & Submit - $24.95
+              Pay & Submit - $29.95
             </>
           )}
         </Button>

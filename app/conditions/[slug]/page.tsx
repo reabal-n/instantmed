@@ -201,7 +201,7 @@ const conditions: Record<
     ],
     pricing: {
       name: "Hay Fever Consultation",
-      price: "$24.95",
+      price: "$29.95",
       description: "Includes assessment and prescription if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=hayfever",
@@ -294,7 +294,7 @@ const conditions: Record<
     ],
     pricing: {
       name: "Repeat Prescription",
-      price: "$24.95",
+      price: "$29.95",
       description: "For stable patients on existing medication",
     },
     ctaHref: "/prescriptions?category=blood-pressure",
@@ -336,11 +336,11 @@ const conditions: Record<
       "Confirm current medication and dose",
       "Review recent lipid results if available",
       "Doctor issues repeat prescription",
-      "E-script sent instantly",
+      "E-script sent to your phone if approved",
     ],
     pricing: {
       name: "Repeat Prescription",
-      price: "$24.95",
+      price: "$29.95",
       description: "For stable patients on existing medication",
     },
     ctaHref: "/prescriptions?category=cholesterol",
@@ -475,7 +475,7 @@ const conditions: Record<
       "E-script sent to your phone",
       "Pick up from any pharmacy",
     ],
-    pricing: { name: "Contraception Repeat", price: "$24.95", description: "For women already on the pill" },
+    pricing: { name: "Contraception Repeat", price: "$29.95", description: "For women already on the pill" },
     ctaHref: "/womens-health?condition=contraception",
     ctaText: "Get Pill Repeat",
     whenToSeeGP: [
@@ -686,7 +686,7 @@ const conditions: Record<
       "Antifungal treatment prescribed",
       "Advice on prevention",
     ],
-    pricing: { name: "Thrush Consultation", price: "$24.95", description: "Includes assessment and prescription" },
+    pricing: { name: "Thrush Consultation", price: "$29.95", description: "Includes assessment and prescription" },
     ctaHref: "/womens-health?condition=thrush",
     ctaText: "Get Thrush Treatment",
     whenToSeeGP: [

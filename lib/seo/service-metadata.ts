@@ -13,7 +13,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
   "medical-certificate": {
     title: "Online Medical Certificate Australia | Same Day | InstantMed",
     description:
-      "Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $24.95.",
+      "Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $19.95.",
     keywords: [
       "online medical certificate australia",
       "same day medical certificate",
@@ -41,7 +41,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       },
       {
         question: "What does it cost?",
-        answer: "Medical certificates start from $24.95. The exact price depends on the type of certificate required.",
+        answer: "Medical certificates start from $19.95. The exact price depends on the type of certificate required.",
       },
     ],
   },

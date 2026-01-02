@@ -389,7 +389,7 @@ export function RequestDetailClient({
               </ul>
               <div className="mt-4 p-3 bg-red-200 rounded-lg">
                 <p className="text-sm text-red-900 font-medium">
-                  Action required: Decline this request and advise patient to book a General Consult ($44.95) for proper assessment.
+                  Action required: Decline this request and advise patient to book a General Consult ($49.95) for proper assessment.
                 </p>
               </div>
             </div>

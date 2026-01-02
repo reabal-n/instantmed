@@ -116,7 +116,7 @@ const SERVICES: Array<{
     title: "Medical Certificate",
     subtitle: "Sick leave, carer's leave, study",
     icon: FileText,
-    price: "$24.95",
+    price: "$29.95",
     time: "~15 mins",
     noCall: true,
     popular: true,

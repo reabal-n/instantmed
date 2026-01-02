@@ -3,8 +3,8 @@ import { PrescriptionIntakeClient } from "./client"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Get Prescription Online | InstantMed",
-  description: "Get your prescription online in minutes. Reviewed by Australian-registered doctors. Fast, secure, and PBS eligible.",
+  title: "Request Prescription Online | InstantMed",
+  description: "Request your repeat prescription online. Reviewed by AHPRA-registered Australian doctors. E-script sent to your phone if approved.",
 }
 
 export default async function NewPrescriptionPage() {

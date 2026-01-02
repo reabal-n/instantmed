@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,7 +20,6 @@ import {
   AlertTriangle,
   ExternalLink,
 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
@@ -255,11 +255,12 @@ export function UnifiedFlowClient({
   medicareIrn: savedIrn,
 }: Props) {
   const _router = useRouter()
-  const supabase = createClient()
+  const { openSignIn } = useClerk()
+  const { isSignedIn, user: clerkUser } = useUser()
 
-  // Auth state
+  // Auth state - use Clerk state when available
   const [patientId, setPatientId] = useState(initialPatientId)
-  const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth)
+  const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth || !!isSignedIn)
   const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboard)
 
   // Flow state
@@ -598,72 +599,42 @@ export function UnifiedFlowClient({
     } catch {}
   }, [])
 
-  // Auth handlers
-  const handleGoogleAuth = async () => {
-    setIsSubmitting(true)
-    setError(null)
-    try {
-      const redirectUrl = `${window.location.origin}/auth/callback?next=/request`
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: redirectUrl },
-      })
-      if (error) throw error
-    } catch (e) {
-      setError(e instanceof Error ? e.message : COPY.errors.auth)
-      setIsSubmitting(false)
+  // Sync Clerk auth state
+  useEffect(() => {
+    if (isSignedIn && clerkUser) {
+      setIsAuthenticated(true)
+      // If we have a Clerk user, try to get their profile
+      if (clerkUser.primaryEmailAddress?.emailAddress) {
+        setEmail(clerkUser.primaryEmailAddress.emailAddress)
+        setFullName(clerkUser.fullName || clerkUser.firstName || "")
+      }
     }
+  }, [isSignedIn, clerkUser])
+
+  // Auth handlers - use Clerk
+  const handleGoogleAuth = () => {
+    // Open Clerk's sign-in modal with Google OAuth
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
   }
 
+  const handleSignIn = () => {
+    // Open Clerk's sign-in modal
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
+  }
+
+  // Skip the email auth handlers since we're using Clerk
   const handleEmailAuth = async () => {
-    setIsSubmitting(true)
-    setError(null)
-    try {
-      if (authMode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=/request`,
-          },
-        })
-        if (error) throw error
-        if (data.session) {
-          // Immediate login (no email confirmation)
-          const result = await createOrGetProfile(
-            data.user!.id,
-            fullName,
-            form.dob || ""
-          )
-          if (result.error) throw new Error(result.error || "Profile creation failed")
-          setPatientId(result.profileId!)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
-          goTo("review")
-        } else {
-          setError("Check your email to confirm, then sign in.")
-          setAuthMode("signin")
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        const result = await createOrGetProfile(
-          data.user.id,
-          fullName || data.user.user_metadata?.full_name || "",
-          form.dob || ""
-        )
-        if (result.error) throw new Error(result.error || "Profile creation failed")
-        setPatientId(result.profileId!)
-        setIsAuthenticated(true)
-        setNeedsOnboarding(false)
-        goTo("review")
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : COPY.errors.auth)
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Redirect to Clerk sign-in instead of using Supabase
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
   }
 
   // Submit request
@@ -1010,7 +981,7 @@ export function UnifiedFlowClient({
               {/* Info box for new medications */}
               <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
                 <p className="text-sm text-amber-800 font-medium">Need a new medication?</p>
-                <p className="text-xs text-amber-700 mt-1">New medications require a General Consult ($44.95) for proper assessment.</p>
+                <p className="text-xs text-amber-700 mt-1">New medications require a General Consult ($49.95) for proper assessment.</p>
                 <a
                   href="/consult/request"
                   className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-amber-900 hover:underline"
@@ -1251,133 +1222,55 @@ export function UnifiedFlowClient({
           </div>
         )}
 
-        {/* Account */}
+        {/* Account - Now uses Clerk */}
         {step === "account" && (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold">
-                {authMode === "signup" ? COPY.account.headingNew : COPY.account.headingExisting}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">{COPY.account.subtitle}</p>
+              <h2 className="text-xl font-semibold">Sign in to continue</h2>
+              <p className="text-sm text-muted-foreground mt-1">Create an account or sign in to complete your request</p>
             </div>
 
-            <Button
-              variant="outline"
-              className="w-full gap-3 h-12 bg-transparent"
-              onClick={handleGoogleAuth}
-              disabled={isSubmitting}
-            >
-              <GoogleIcon className="w-5 h-5" />
-              {COPY.account.google}
-            </Button>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">{COPY.account.divider}</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            <div className="space-y-3">
-              {authMode === "signup" && (
-                <div className="space-y-1.5">
-                  <Label className="text-sm">{COPY.account.name.label}</Label>
-                  <Input
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value)
-                      setForm({ ...form, fullName: e.target.value })
-                    }}
-                    placeholder={COPY.account.name.placeholder}
-                  />
+            {/* Sign in with account card */}
+            <div className="p-6 rounded-2xl border bg-card space-y-4">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Check className="w-5 h-5 text-primary" />
                 </div>
-              )}
-              <div className="space-y-1.5">
-                <Label className="text-sm">{COPY.account.email.label}</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    setForm({ ...form, email: e.target.value })
-                  }}
-                  placeholder={COPY.account.email.placeholder}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm">{COPY.account.password.label}</Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value)
-                      setForm({ ...form, password: e.target.value })
-                    }}
-                    placeholder={COPY.account.password.placeholder}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                <div>
+                  <p className="font-medium text-foreground">Your details are saved</p>
+                  <p>Sign in to complete your request</p>
                 </div>
               </div>
-
-              {authMode === "signup" && (
-                <label className="flex items-start gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={agreedTerms}
-                    onChange={(e) => {
-                      setAgreedTerms(e.target.checked)
-                      setForm({ ...form, agreedTerms: e.target.checked })
-                    }}
-                    className="mt-1"
-                  />
-                  <span className="text-muted-foreground">
-                    {COPY.account.terms.prefix}{" "}
-                    <a href="/terms" className="text-primary underline">
-                      {COPY.account.terms.terms}
-                    </a>{" "}
-                    {COPY.account.terms.and}{" "}
-                    <a href="/privacy" className="text-primary underline">
-                      {COPY.account.terms.privacy}
-                    </a>
-                  </span>
-                </label>
-              )}
 
               <Button
-                className="w-full h-12"
-                onClick={handleEmailAuth}
-                disabled={isSubmitting || (authMode === "signup" && (!agreedTerms || !fullName)) || !email || !password}
+                className="w-full h-12 gap-3"
+                onClick={handleSignIn}
               >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : authMode === "signup" ? (
-                  COPY.account.ctaNew
-                ) : (
-                  COPY.account.ctaExisting
-                )}
+                <GoogleIcon className="w-5 h-5" />
+                Continue with Google
               </Button>
 
-              <div className="flex justify-between text-sm">
-                <button
-                  onClick={() => setAuthMode(authMode === "signup" ? "signin" : "signup")}
-                  className="text-primary underline underline-offset-2"
-                >
-                  {authMode === "signup" ? COPY.account.switchExisting : COPY.account.switchNew}
-                </button>
-                {authMode === "signin" && (
-                  <a href="/auth/forgot-password" className="text-muted-foreground underline underline-offset-2">
-                    {COPY.account.forgot}
-                  </a>
-                )}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
               </div>
+
+              <Button
+                variant="outline"
+                className="w-full h-12"
+                onClick={handleSignIn}
+              >
+                Sign in with email
+              </Button>
             </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              By continuing, you agree to our{" "}
+              <a href="/terms" className="text-primary underline">Terms</a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-primary underline">Privacy Policy</a>
+            </p>
           </div>
         )}
 

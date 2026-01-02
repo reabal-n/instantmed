@@ -286,7 +286,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </Button>
               </Link>
 
-              <p className="mt-4 text-sm text-gray-400">From $24.95 • No phone call required</p>
+              <p className="mt-4 text-sm text-gray-400">From $19.95 • No phone call required</p>
             </div>
           </section>
 

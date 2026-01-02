@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
+import { auth } from "@clerk/nextjs/server"
 import type {
   MedicationSelection,
   RepeatRxIntakeAnswers,
@@ -37,15 +38,15 @@ export async function POST(request: Request) {
     const result = checkEligibility(medication, answers)
     
     // Log audit event (optional - only if user is authenticated)
+    const { userId } = await auth()
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
     
-    if (session?.user) {
-      // Get patient profile
+    if (userId) {
+      // Get patient profile using Clerk user ID
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("user_id", session.user.id)
+        .eq("clerk_user_id", userId)
         .single()
       
       if (profile?.id) {

@@ -120,10 +120,10 @@ src/
 
 ## Pricing
 
-- Medical Certificate: $24.95 AUD
-- Prescription: $29.95 AUD
-- Backdating Fee: +$10.00 AUD
-- Priority Review: +$9.95 AUD
+- Medical Certificate: $19.95 AUD
+- Repeat Prescription: $29.95 AUD  
+- GP Consult (new scripts): $49.95 AUD
+- Priority Review: +$10.00 AUD
 
 ## Mobile Optimization
 

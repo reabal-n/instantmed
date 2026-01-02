@@ -1,14 +1,23 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
+
+/**
+ * Flow Authentication Utilities
+ * 
+ * NOTE: This file provides client-side auth utilities for intake flows.
+ * The app uses Clerk for authentication. Use Clerk hooks like useUser()
+ * and useClerk() in React components instead of these functions where possible.
+ * 
+ * Supabase client is used here ONLY for database operations (drafts), not auth.
+ */
 
 // ============================================
 // SESSION MANAGEMENT
 // ============================================
 
 export interface FlowSession {
-  user: User | null
+  user: { id: string; email: string | null } | null
   isAuthenticated: boolean
   email: string | null
   userId: string | null
@@ -16,67 +25,49 @@ export interface FlowSession {
 
 /**
  * Get current flow session state
+ * 
+ * NOTE: This function is deprecated. Use the useUser() hook from @clerk/nextjs instead.
+ * For server-side auth, use getAuthenticatedUserWithProfile() from @/lib/auth.
+ * 
+ * This returns a dummy unauthenticated state since Clerk manages auth via hooks.
  */
 export async function getFlowSession(): Promise<FlowSession> {
-  const supabase = createClient()
-
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (error || !user) {
-      return {
-        user: null,
-        isAuthenticated: false,
-        email: null,
-        userId: null,
-      }
-    }
-
-    return {
-      user,
-      isAuthenticated: true,
-      email: user.email || null,
-      userId: user.id,
-    }
-  } catch {
-    return {
-      user: null,
-      isAuthenticated: false,
-      email: null,
-      userId: null,
-    }
+  // Clerk auth is managed via hooks (useUser, useAuth)
+  // This function cannot access Clerk state since it's not a hook
+  // Components should use useUser() directly instead
+  console.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
+  
+  return {
+    user: null,
+    isAuthenticated: false,
+    email: null,
+    userId: null,
   }
 }
 
 /**
  * Subscribe to auth state changes in flow context
+ * 
+ * NOTE: This function is deprecated. Use Clerk's useUser() hook instead.
+ * Clerk handles auth state reactively through its React context.
  */
 export function subscribeToFlowAuth(
   callback: (session: FlowSession) => void
 ): () => void {
-  const supabase = createClient()
+  // Clerk doesn't use subscriptions - it uses React context
+  // Components should use useUser() hook which automatically updates
+  console.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
+  
+  // Call callback with unauthenticated state
+  callback({
+    user: null,
+    isAuthenticated: false,
+    email: null,
+    userId: null,
+  })
 
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (_event: string, session: Session | null) => {
-      if (session?.user) {
-        callback({
-          user: session.user,
-          isAuthenticated: true,
-          email: session.user.email || null,
-          userId: session.user.id,
-        })
-      } else {
-        callback({
-          user: null,
-          isAuthenticated: false,
-          email: null,
-          userId: null,
-        })
-      }
-    }
-  )
-
-  return () => subscription.unsubscribe()
+  // Return no-op unsubscribe
+  return () => {}
 }
 
 // ============================================

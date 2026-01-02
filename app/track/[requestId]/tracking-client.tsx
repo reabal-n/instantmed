@@ -223,7 +223,7 @@ export function TrackingClient({
                 <span>Estimated wait: ~{estimatedMinutes} min</span>
               </div>
               {request.priority_review && (
-                <p className="text-xs text-amber-600 mt-2">Priority review — guaranteed within 15 minutes</p>
+                <p className="text-xs text-amber-600 mt-2">Priority review — typically within 15 minutes</p>
               )}
             </div>
           )}

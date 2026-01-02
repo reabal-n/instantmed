@@ -214,6 +214,7 @@ export function getStatusLabel(status: RequestStatus): string {
     approved: "Approved",
     declined: "Declined",
     needs_follow_up: "Needs Follow-up",
+    awaiting_prescribe: "Awaiting eScript",
   }
   return labels[status] || status
 }

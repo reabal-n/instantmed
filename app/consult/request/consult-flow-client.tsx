@@ -21,7 +21,7 @@ import {
   Stethoscope,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
-import { createClient } from "@/lib/supabase/client"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 
 // Flow steps for general consult
@@ -179,7 +179,8 @@ export function ConsultFlowClient({
   userName,
 }: Props) {
   const router = useRouter()
-  const supabase = createClient()
+  const { isSignedIn, user: clerkUser } = useUser()
+  const { openSignIn } = useClerk()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -309,25 +310,16 @@ export function ConsultFlowClient({
     return SAFETY_QUESTIONS.some((q) => q.knockout && safetyAnswers[q.id] === true)
   }
 
-  // Handle Google auth
-  const handleGoogleAuth = async () => {
+  // Handle Google auth - uses Clerk modal
+  const handleGoogleAuth = () => {
     sessionStorage.setItem("pending_profile_name", fullName)
     sessionStorage.setItem("pending_profile_dob", dob)
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
+    // Open Clerk sign-in modal
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
     })
-
-    if (error) {
-      setError(error.message)
-    }
   }
 
   // Handle submit
@@ -372,20 +364,16 @@ export function ConsultFlowClient({
     }
   }
 
-  // Check session on mount
+  // Sync Clerk auth state
   useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user && !isAuthenticated) {
+    const syncClerkAuth = async () => {
+      if (isSignedIn && clerkUser && !isAuthenticated) {
         const pendingName = sessionStorage.getItem("pending_profile_name")
         const pendingDob = sessionStorage.getItem("pending_profile_dob")
-        const userNameFromSession = pendingName || session.user.user_metadata?.full_name || ""
-        const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
+        const userNameFromSession = pendingName || clerkUser.fullName || clerkUser.firstName || ""
+        const userDob = pendingDob || ""
 
-        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
+        const { profileId } = await createOrGetProfile(clerkUser.id, userNameFromSession, userDob)
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -394,18 +382,15 @@ export function ConsultFlowClient({
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
 
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get("auth_success") === "true") {
-            window.history.replaceState({}, "", window.location.pathname)
-            if (step === "signup") {
-              goNext()
-            }
+          // Auto-advance if on signup step
+          if (step === "signup") {
+            goNext()
           }
         }
       }
     }
-    checkSession()
-  }, [isAuthenticated, step, goNext, supabase.auth])
+    syncClerkAuth()
+  }, [isSignedIn, clerkUser, isAuthenticated, step, goNext])
 
   // If knocked out by safety check
   if (isKnockedOut) {
@@ -666,8 +651,8 @@ export function ConsultFlowClient({
               ) : (
                 <>
                   <StepHeader
-                    title={isSignUp ? "Create your account" : "Sign in"}
-                    subtitle="To save your request and receive updates"
+                    title="Sign in to continue"
+                    subtitle="Create an account or sign in to save your request"
                   />
 
                   <Button
@@ -685,133 +670,19 @@ export function ConsultFlowClient({
                     <div className="flex-1 h-px bg-border" />
                   </div>
 
-                  <div className="space-y-3">
-                    {isSignUp && (
-                      <Input
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Full name"
-                        className="h-11"
-                      />
-                    )}
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email"
-                      className="h-11"
-                    />
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
-                        className="h-11 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
+                  <Button
+                    className="w-full h-11 bg-violet-600 hover:bg-violet-700"
+                    onClick={handleGoogleAuth}
+                  >
+                    Sign in with email
+                  </Button>
 
-                    {isSignUp && (
-                      <label className="flex items-start gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={agreedToTerms}
-                          onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          className="mt-1 rounded border-border"
-                        />
-                        <span className="text-xs text-muted-foreground">
-                          I agree to the{" "}
-                          <Link href="/terms" className="underline">
-                            Terms of Service
-                          </Link>{" "}
-                          and{" "}
-                          <Link href="/privacy" className="underline">
-                            Privacy Policy
-                          </Link>
-                        </span>
-                      </label>
-                    )}
-
-                    <Button
-                      className="w-full h-11 bg-violet-600 hover:bg-violet-700"
-                      disabled={authLoading || !canContinue()}
-                      onClick={async () => {
-                        setAuthLoading(true)
-                        setError(null)
-                        try {
-                          if (isSignUp) {
-                            const { data, error: signUpError } = await supabase.auth.signUp({
-                              email,
-                              password,
-                              options: {
-                                data: { full_name: fullName },
-                                emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
-                              },
-                            })
-                            if (signUpError) throw signUpError
-                            if (data.session) {
-                              const profileResult = await createOrGetProfile(
-                                data.user!.id,
-                                fullName,
-                                dob
-                              )
-                              if (!profileResult.error && profileResult.profileId) {
-                                setPatientId(profileResult.profileId)
-                                setIsAuthenticated(true)
-                                setNeedsOnboarding(false)
-                                goTo("review")
-                              }
-                            } else {
-                              setShowEmailConfirm(true)
-                            }
-                          } else {
-                            const { data, error: signInError } =
-                              await supabase.auth.signInWithPassword({ email, password })
-                            if (signInError) throw signInError
-                            if (data.user) {
-                              const profileResult = await createOrGetProfile(
-                                data.user.id,
-                                data.user.user_metadata?.full_name || "",
-                                dob
-                              )
-                              if (profileResult.profileId) {
-                                setPatientId(profileResult.profileId)
-                                setIsAuthenticated(true)
-                                setNeedsOnboarding(false)
-                                goTo("review")
-                              }
-                            }
-                          }
-                        } catch (err: unknown) {
-                          setError(err instanceof Error ? err.message : "Authentication failed")
-                        } finally {
-                          setAuthLoading(false)
-                        }
-                      }}
-                    >
-                      {authLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : isSignUp ? (
-                        "Create account"
-                      ) : (
-                        "Sign in"
-                      )}
-                    </Button>
-
-                    <p className="text-xs text-center text-muted-foreground">
-                      {isSignUp ? "Already have an account?" : "New here?"}{" "}
-                      <button onClick={() => setIsSignUp(!isSignUp)} className="text-violet-600 underline">
-                        {isSignUp ? "Sign in" : "Create account"}
-                      </button>
-                    </p>
-                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    By continuing, you agree to our{" "}
+                    <Link href="/terms" className="underline">Terms</Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" className="underline">Privacy Policy</Link>
+                  </p>
                 </>
               )}
             </div>
@@ -863,7 +734,7 @@ export function ConsultFlowClient({
               <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
-                  <span className="text-2xl font-bold">$44.95</span>
+                  <span className="text-2xl font-bold">$49.95</span>
                 </div>
                 <hr className="border-border/40" />
                 <ul className="space-y-2">
@@ -909,7 +780,7 @@ export function ConsultFlowClient({
                   Processing...
                 </>
               ) : (
-                "Pay $44.95 & Submit"
+                "Pay $49.95 & Submit"
               )}
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (

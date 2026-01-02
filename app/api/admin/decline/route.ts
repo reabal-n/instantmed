@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { auth } from "@clerk/nextjs/server"
 
 export async function POST(request: Request) {
   try {
@@ -23,24 +24,24 @@ export async function POST(request: Request) {
     // Require either an internal API key OR an authenticated admin session
     const apiKey = process.env.INTERNAL_API_KEY
     let authorized = false
-    let userId: string | null = null
+    let clerkUserId: string | null = null
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
     } else {
       try {
-        const serverSupabase = await createServerClient()
-        const { data: { user } } = await serverSupabase.auth.getUser()
-        if (user) {
+        const { userId } = await auth()
+        if (userId) {
+          const serverSupabase = await createServerClient()
           const { data: profile, error: profileError } = await serverSupabase
             .from('profiles')
             .select('role, id')
-            .eq('auth_user_id', user.id)
+            .eq('clerk_user_id', userId)
             .single()
 
           if (!profileError && profile?.role === 'admin') {
             authorized = true
-            userId = user.id
+            clerkUserId = userId
           }
         }
       } catch (err) {
@@ -54,9 +55,9 @@ export async function POST(request: Request) {
     }
 
     // Rate limiting
-    const rateLimitResult = await rateLimit(userId, '/api/admin/decline')
+    const rateLimitResult = await rateLimit(clerkUserId, '/api/admin/decline')
     if (!rateLimitResult.allowed) {
-      logger.warn('Rate limit exceeded for admin decline', { userId })
+      logger.warn('Rate limit exceeded for admin decline', { userId: clerkUserId })
       return NextResponse.json(
         {
           error: 'Too many requests. Please try again later.',

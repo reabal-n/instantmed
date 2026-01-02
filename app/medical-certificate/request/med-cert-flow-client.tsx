@@ -42,6 +42,7 @@ import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
+import { useUser, useClerk } from "@clerk/nextjs"
 
 // Storage key for form persistence
 const STORAGE_KEY = "instantmed_medcert_draft"
@@ -390,6 +391,8 @@ export function MedCertFlowClient({
   const mainRef = useRef<HTMLElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
   const _searchParams = useSearchParams() // Added for guest checkout redirection
+  const { openSignIn } = useClerk()
+  const { user, isSignedIn } = useUser()
 
   // Auth state
   const [_patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -741,8 +744,6 @@ export function MedCertFlowClient({
     setIsGoogleLoading(true)
     setError(null)
 
-    const supabase = createClient()
-
     try {
       sessionStorage.setItem("questionnaire_flow", "true")
       sessionStorage.setItem("questionnaire_path", window.location.pathname)
@@ -750,23 +751,11 @@ export function MedCertFlowClient({
       sessionStorage.setItem("pending_profile_dob", formData.dateOfBirth)
       sessionStorage.setItem("pending_profile_name", formData.fullName || "") // Store full name for profile creation
 
-      const callbackUrl = new URL("/auth/callback", window.location.origin)
-      callbackUrl.searchParams.set("redirect", window.location.pathname)
-      callbackUrl.searchParams.set("flow", "questionnaire")
-      // Add auth_success param to indicate successful auth flow
-      callbackUrl.searchParams.set("auth_success", "true")
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          // Use NEXT_PUBLIC_VERCEL_URL for deployment, fallback to localhost
-          redirectTo: process.env.NEXT_PUBLIC_VERCEL_URL
-            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-            : "http://localhost:3000/auth/callback",
-        },
+      openSignIn({
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
       })
-
-      if (error) throw error
+      setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.signIn)
       setIsGoogleLoading(false)
@@ -1162,7 +1151,7 @@ export function MedCertFlowClient({
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-amber-800">Important</p>
                   <p className="text-sm text-amber-700">
-                    If you're experiencing a medical emergency, call 000.
+                    If you&apos;re experiencing a medical emergency, call 000.
                   </p>
                 </div>
               </div>

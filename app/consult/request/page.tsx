@@ -10,7 +10,7 @@ import Script from "next/script"
 export const metadata: Metadata = {
   title: "Book a General Consult Online | Australian GP | InstantMed",
   description:
-    "Book an online consultation with an Australian GP. New prescriptions, complex health concerns, and comprehensive assessments. $44.95 flat fee.",
+    "Book an online consultation with an Australian GP. New prescriptions, complex health concerns, and comprehensive assessments. $49.95 flat fee.",
   keywords: [
     "online doctor consultation australia",
     "telehealth consultation",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Book a General Consult Online | InstantMed Australia",
     description:
-      "Speak with an Australian GP online. New prescriptions, complex health concerns, referrals. $44.95 flat fee.",
+      "Speak with an Australian GP online. New prescriptions, complex health concerns, referrals. $49.95 flat fee.",
     url: "https://instantmed.com.au/consult/request",
     siteName: "InstantMed",
     locale: "en_AU",
@@ -45,7 +45,7 @@ function ConsultJsonLd() {
           "@type": "MedicalBusiness",
           name: "InstantMed",
           url: "https://instantmed.com.au",
-          priceRange: "$44.95",
+          priceRange: "$49.95",
         },
         offers: {
           "@type": "Offer",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 
 // Type for the raw Supabase response (patient is an array from join)
 interface RequestRow {
@@ -24,20 +25,17 @@ interface RequestRow {
 
 export async function GET() {
   try {
-    const supabase = await createClient()
+    // Verify doctor auth via Clerk
+    const { userId } = await auth()
 
-    // Verify doctor auth
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const supabase = await createClient()
+
     // Check if user is a doctor
-    const { data: profile } = await supabase.from("profiles").select("role").eq("auth_user_id", user.id).single()
+    const { data: profile } = await supabase.from("profiles").select("role").eq("clerk_user_id", userId).single()
 
     if (!profile || profile.role !== "doctor") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

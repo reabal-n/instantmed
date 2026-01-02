@@ -46,6 +46,7 @@ import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 import { cn } from "@/lib/utils"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { 
   cardInteractive, 
   pageTransitionDirectional,
@@ -639,6 +640,8 @@ export function MedCertForm({
 }: MedCertFormProps) {
   const _router = useRouter()
   const mainRef = useRef<HTMLElement>(null)
+  const { openSignIn } = useClerk()
+  const { user, isSignedIn } = useUser()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -891,26 +894,16 @@ export function MedCertForm({
     setIsGoogleLoading(true)
     setError(null)
 
-    const supabase = createClient()
-
     try {
       // Store form data with localStorage fallback (24hr TTL) for OAuth redirect
       saveFormData(STORAGE_KEYS.MED_CERT_FORM, formData)
       saveFormData(STORAGE_KEYS.MED_CERT_STEP, step)
       
-      // Build callback URL with flow params
-      const currentPath = window.location.pathname
-      const baseUrl = window.location.origin
-      const callbackUrl = `${baseUrl}/auth/callback?flow=questionnaire&redirect=${encodeURIComponent(currentPath)}`
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: callbackUrl,
-        },
+      openSignIn({
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
       })
-
-      if (error) throw error
+      setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in. Please try again.")
       setIsGoogleLoading(false)

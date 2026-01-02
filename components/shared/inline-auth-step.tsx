@@ -4,12 +4,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, Shield, ArrowLeft, Mail, User, Calendar, CheckCircle } from "lucide-react"
+import { Loader2, Shield, CheckCircle } from "lucide-react"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -42,578 +39,124 @@ interface InlineAuthStepProps {
 
 export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAuthStepProps) {
   const router = useRouter()
-  const [mode, setMode] = useState<"choose" | "signup" | "signin" | "check-email">("choose")
-
-  // Signup fields
-  const [fullName, setFullName] = useState("")
-  const [dateOfBirth, setDateOfBirth] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [termsAccepted, setTermsAccepted] = useState(false)
+  const { isSignedIn, user } = useUser()
+  const { openSignIn } = useClerk()
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
-  // Check for returning users who confirmed their email
+  // Handle Clerk auth - when user is signed in via Clerk, complete the flow
   useEffect(() => {
-    const checkSession = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const authSuccess = urlParams.get("auth_success")
-
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user && authSuccess === "true") {
-        // User just completed Google OAuth and came back
-        const pendingName = sessionStorage.getItem("pending_profile_name")
-        const pendingDob = sessionStorage.getItem("pending_profile_dob")
-
-        const userName = pendingName || session.user.user_metadata?.full_name || ""
-        const userDob = pendingDob || session.user.user_metadata?.date_of_birth || ""
-
-        const { ensureProfile } = await import("@/app/actions/ensure-profile")
-        const { profileId } = await ensureProfile(session.user.id, session.user.email || "", { fullName: userName, dateOfBirth: userDob })
-
-        if (profileId) {
-          sessionStorage.removeItem("pending_profile_name")
-          sessionStorage.removeItem("pending_profile_dob")
-
-          // Clear the auth_success param from URL
-          window.history.replaceState({}, "", window.location.pathname)
-
-          onAuthComplete(session.user.id, profileId)
-          router.refresh()
-        }
-      }
-    }
-
-    checkSession()
-  }, [onAuthComplete, router])
-
-  const handleGoogleAuth = async () => {
-    setIsGoogleLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-
-    try {
-      console.log("[v0] Starting Google OAuth from questionnaire")
-
-      sessionStorage.setItem("questionnaire_flow", "true")
-      sessionStorage.setItem("questionnaire_path", window.location.pathname)
-
-      const callbackUrl = new URL("/auth/callback", window.location.origin)
-      callbackUrl.searchParams.set("redirect", window.location.pathname)
-      callbackUrl.searchParams.set("flow", "questionnaire")
-
-      console.log("[v0] OAuth callback URL:", callbackUrl.toString())
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: callbackUrl.toString(),
-        },
-      })
-
-      if (error) {
-        console.error("[v0] OAuth error:", error)
-        throw error
-      }
-
-      // User will be redirected to Google, then back to /auth/callback
-    } catch (err) {
-      console.error("[v0] Google OAuth failed:", err)
-      setError(err instanceof Error ? err.message : "Failed to sign in with Google")
-      setIsGoogleLoading(false)
-    }
-  }
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!termsAccepted) {
-      setError("Please accept the terms and conditions")
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-
-    try {
-      console.log("[Inline Auth] Starting signup process", {
-        email,
-        hasFullName: !!fullName,
-        hasDateOfBirth: !!dateOfBirth,
-      })
-
-      // Store profile data for later - will be used after email confirmation or immediately
-      sessionStorage.setItem("pending_profile_name", fullName)
-      sessionStorage.setItem("pending_profile_dob", dateOfBirth)
-      sessionStorage.setItem("questionnaire_flow", "true")
-      sessionStorage.setItem("questionnaire_path", window.location.pathname)
-
-      const emailRedirectTo = `${window.location.origin}${window.location.pathname}`
-      console.log("[Inline Auth] Signing up with redirect:", emailRedirectTo)
-
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo,
-          data: {
-            full_name: fullName,
-            date_of_birth: dateOfBirth,
-            role: "patient",
-          },
-        },
-      })
-
-      if (signUpError) {
-        console.error("[Inline Auth] Signup error:", {
-          message: signUpError.message,
-          status: signUpError.status,
-          code: signUpError.code,
-        })
-        if (signUpError.message.includes("weak") || signUpError.message.includes("password")) {
-          throw new Error("Please choose a password with at least 6 characters")
-        }
-        throw signUpError
-      }
-
-      if (!authData.user) {
-        console.error("[Inline Auth] No user returned from signup")
-        throw new Error("Failed to create account")
-      }
-
-      console.log("[Inline Auth] User created successfully", {
-        userId: authData.user.id,
-        email: authData.user.email,
-        hasSession: !!authData.session,
-        emailConfirmed: authData.user.email_confirmed_at ? true : false,
-      })
-
-      // Check if we have an active session (email confirmation disabled or auto-confirmed)
-      if (authData.session) {
-        console.log("[Inline Auth] User is auto-confirmed, ensuring profile exists server-side")
-        
-        let profileId: string
+    const completeAuth = async () => {
+      if (isSignedIn && user) {
+        setIsLoading(true)
         try {
           const { ensureProfile } = await import("@/app/actions/ensure-profile")
-          const result = await ensureProfile(
-            authData.user.id,
-            authData.user.email || "",
-            {
-              fullName,
-              dateOfBirth,
-            }
-          )
+          const userEmail = user.primaryEmailAddress?.emailAddress || ""
+          const userName = user.fullName || user.firstName || ""
           
-          if (result.error || !result.profileId) {
-            throw new Error(result.error || "Profile creation returned no profileId")
-          }
-          
-          profileId = result.profileId
-          console.log("[Inline Auth] Profile ready, completing flow", { profileId })
-        } catch (profileError) {
-          console.error("[Inline Auth] Profile creation failed (hard error):", profileError)
-          throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
-        }
+          const { profileId } = await ensureProfile(user.id, userEmail, { 
+            fullName: userName, 
+            dateOfBirth: "" 
+          })
 
-        onAuthComplete(authData.user.id, profileId)
-        router.refresh()
-      } else {
-        // The user doesn&apos;t exist in auth.users until they confirm
-        console.log("[Inline Auth] Email confirmation required, showing check-email screen")
-        setMode("check-email")
+          if (profileId) {
+            onAuthComplete(user.id, profileId)
+            router.refresh()
+          }
+        } catch (err) {
+          console.error("Error completing auth:", err)
+          setError("Failed to complete authentication")
+        } finally {
+          setIsLoading(false)
+        }
       }
-    } catch (err) {
-      console.error("[Inline Auth] Signup flow error:", err)
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
     }
+
+    completeAuth()
+  }, [isSignedIn, user, onAuthComplete, router])
+
+  const handleSignIn = () => {
+    openSignIn({
+      afterSignInUrl: window.location.href,
+      afterSignUpUrl: window.location.href,
+    })
   }
 
-  const handleSignin = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    setIsLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-
-    try {
-      console.log("[Inline Auth] Starting signin process", { email })
-
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (signInError) {
-        console.error("[Inline Auth] Signin error:", {
-          message: signInError.message,
-          status: signInError.status,
-          code: signInError.code,
-        })
-        throw signInError
-      }
-
-      if (!authData.user) {
-        console.error("[Inline Auth] No user returned from signin")
-        throw new Error("Failed to sign in")
-      }
-
-      console.log("[Inline Auth] Signin successful", {
-        userId: authData.user.id,
-        email: authData.user.email,
-        emailConfirmed: authData.user.email_confirmed_at ? true : false,
-      })
-
-      // Ensure profile exists - user is confirmed so this will work
-      const pendingName = sessionStorage.getItem("pending_profile_name")
-      const pendingDob = sessionStorage.getItem("pending_profile_dob")
-      const userName = pendingName || authData.user.user_metadata?.full_name || ""
-      const userDob = pendingDob || authData.user.user_metadata?.date_of_birth || ""
-
-      console.log("[Inline Auth] Ensuring profile exists server-side", {
-        userName,
-        hasDob: !!userDob,
-      })
-
-      let profileId: string
-      try {
-        const { ensureProfile } = await import("@/app/actions/ensure-profile")
-        const result = await ensureProfile(
-          authData.user.id,
-          authData.user.email || "",
-          {
-            fullName: userName,
-            dateOfBirth: userDob,
-          }
-        )
-        
-        if (result.error || !result.profileId) {
-          throw new Error(result.error || "Profile creation returned no profileId")
-        }
-        
-        profileId = result.profileId
-      } catch (profileError) {
-        console.error("[Inline Auth] Profile creation failed (hard error):", profileError)
-        throw profileError instanceof Error ? profileError : new Error("Failed to create profile")
-      }
-
-      console.log("[Inline Auth] Profile ready", { profileId })
-
-      // Clear pending data
-      sessionStorage.removeItem("pending_profile_name")
-      sessionStorage.removeItem("pending_profile_dob")
-
-      onAuthComplete(authData.user.id, profileId)
-      router.refresh()
-    } catch (err) {
-      console.error("[Inline Auth] Signin flow error:", err)
-      setError(err instanceof Error ? err.message : "Invalid email or password")
-    } finally {
-      setIsLoading(false)
-    }
+  // If loading (checking auth status)
+  if (isLoading) {
+    return (
+      <div className="space-y-6 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">Completing sign in...</h2>
+        <p className="text-sm text-muted-foreground">Please wait while we set up your account</p>
+      </div>
+    )
   }
 
-  if (mode === "check-email") {
+  // If already signed in, show authenticated state
+  if (isSignedIn && user) {
     return (
       <div className="space-y-6 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
           <CheckCircle className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-xl font-semibold text-foreground">Check your email</h2>
-        <p className="text-sm text-muted-foreground">
-          We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Click the link in your email to confirm your account, then come back here and sign in.
-        </p>
-        <div className="pt-4 space-y-3">
-          <Button onClick={() => setMode("signin")} className="w-full h-12 rounded-xl btn-glow">
-            I&apos;ve confirmed - Sign in
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setMode("signup")}
-            className="w-full text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to signup
-          </Button>
-        </div>
+        <h2 className="text-xl font-semibold text-foreground">You&apos;re signed in</h2>
+        <p className="text-sm text-muted-foreground">Continuing to complete your request...</p>
       </div>
     )
   }
 
-  if (mode === "choose") {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
-            <Shield className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <h2 className="text-xl font-semibold text-foreground">Almost there!</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Create an account or sign in to complete your {serviceName} request
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <Button
-            onClick={handleGoogleAuth}
-            disabled={isGoogleLoading}
-            className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <GoogleIcon className="mr-2 h-5 w-5" />
-            )}
-            Continue with Google
-          </Button>
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
-
-          <Button onClick={() => setMode("signup")} className="w-full h-12 rounded-xl btn-glow">
-            <Mail className="mr-2 h-4 w-4" />
-            Sign up with email
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => setMode("signin")}
-            className="w-full h-12 rounded-xl bg-white/50 hover:bg-white/80"
-          >
-            Already have an account? Sign in
-          </Button>
-        </div>
-
-        <Button variant="ghost" onClick={onBack} className="w-full text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to questionnaire
-        </Button>
-      </div>
-    )
-  }
-
-  if (mode === "signup") {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground">Create your account</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Your answers are saved - just need your details</p>
-        </div>
-
-        {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
-
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="signup-name" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              Full name
-            </Label>
-            <Input
-              id="signup-name"
-              placeholder="John Smith"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="signup-dob" className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Date of birth
-            </Label>
-            <Input
-              id="signup-dob"
-              type="date"
-              required
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-              disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="signup-email" className="text-sm font-medium flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              Email
-            </Label>
-            <Input
-              id="signup-email"
-              type="email"
-              placeholder="you@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="signup-password" className="text-sm font-medium">
-              Password
-            </Label>
-            <Input
-              id="signup-password"
-              type="password"
-              placeholder="At least 6 characters"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-            />
-          </div>
-
-          <div className="flex items-start gap-2 pt-1">
-            <Checkbox
-              id="signup-terms"
-              className="mt-0.5 rounded"
-              checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-              disabled={isLoading}
-            />
-            <label htmlFor="signup-terms" className="text-xs text-muted-foreground leading-relaxed">
-              I agree to the{" "}
-              <Link href="/terms" className="text-primary hover:underline">
-                Terms
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-            </label>
-          </div>
-
-          <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl btn-glow">
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              "Create account & continue"
-            )}
-          </Button>
-        </form>
-
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            onClick={() => setMode("choose")}
-            className="flex-1 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setMode("signin")}
-            className="flex-1 text-muted-foreground hover:text-foreground"
-          >
-            Have an account? Sign in
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Sign in mode
+  // Default: show sign in options
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-foreground">Welcome back</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Sign in to complete your request</p>
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/20">
+          <Shield className="h-7 w-7 text-primary-foreground" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">Almost there!</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Create an account or sign in to complete your {serviceName} request
+        </p>
       </div>
 
       {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
 
-      <form onSubmit={handleSignin} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="signin-email" className="text-sm font-medium">
-            Email
-          </Label>
-          <Input
-            id="signin-email"
-            type="email"
-            placeholder="you@example.com"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-            className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-          />
+      <div className="space-y-3">
+        <Button
+          onClick={handleSignIn}
+          className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
+        >
+          <GoogleIcon className="mr-2 h-5 w-5" />
+          Continue with Google
+        </Button>
+
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-muted-foreground">or</span>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="signin-password" className="text-sm font-medium">
-            Password
-          </Label>
-          <Input
-            id="signin-password"
-            type="password"
-            placeholder="Your password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            className="h-11 rounded-xl bg-white/50 border-white/40 focus:border-primary/50"
-          />
-        </div>
-
-        <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl btn-glow">
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            "Sign in & continue"
-          )}
-        </Button>
-      </form>
-
-      <div className="flex gap-2">
-        <Button
-          variant="ghost"
-          onClick={() => setMode("choose")}
-          className="flex-1 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => setMode("signup")}
-          className="flex-1 text-muted-foreground hover:text-foreground"
-        >
-          Need an account? Sign up
+        <Button onClick={handleSignIn} className="w-full h-12 rounded-xl btn-glow">
+          Sign in with email
         </Button>
       </div>
+
+      <p className="text-xs text-center text-muted-foreground">
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className="text-primary hover:underline">Terms</Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+      </p>
+
+      <Button variant="ghost" onClick={onBack} className="w-full text-muted-foreground hover:text-foreground">
+        Back to questionnaire
+      </Button>
     </div>
   )
 }

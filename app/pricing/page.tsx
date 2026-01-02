@@ -25,7 +25,7 @@ const services = [
   },
   {
     name: "Prescription",
-    price: 24.95,
+    price: 29.95,
     description: "Repeat scripts for ongoing meds",
     features: ["E-script to your phone", "Any pharmacy Australia-wide", "Fast turnaround", "SMS token delivery"],
     popular: false,

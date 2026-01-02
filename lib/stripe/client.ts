@@ -59,9 +59,9 @@ export function getDisplayPriceForCategory(category: ServiceCategory): string {
     case "medical_certificate":
       return "$19.95"
     case "prescription":
-      return "$24.95"
+      return "$29.95"
     case "consult":
-      return "$44.95"
+      return "$49.95"
     default:
       return "$19.95"
   }
@@ -79,8 +79,8 @@ export function calculateTotalPrice(
 ): number {
   const basePrices: Record<ServiceCategory, number> = {
     medical_certificate: 1995,
-    prescription: 2495,
-    consult: 4495,
+    prescription: 2995,
+    consult: 4995,
   }
 
   let total = basePrices[category] || 1995

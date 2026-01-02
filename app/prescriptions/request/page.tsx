@@ -10,7 +10,7 @@ import Script from "next/script"
 export const metadata: Metadata = {
   title: "Request a Prescription Online Australia | Repeat Scripts | InstantMed",
   description:
-    "Request prescriptions online from Australian doctors. Repeat scripts reviewed same-day. E-script sent to your phone for any pharmacy. No phone call needed. $24.95.",
+    "Request prescriptions online from Australian doctors. Repeat scripts reviewed same-day. E-script sent to your phone for any pharmacy. No phone call needed. $29.95.",
   keywords: [
     "online prescription australia",
     "repeat prescription online",
@@ -59,11 +59,11 @@ function PrescriptionJsonLd() {
           "@type": "MedicalBusiness",
           name: "InstantMed",
           url: "https://instantmed.com.au",
-          priceRange: "$24.95",
+          priceRange: "$29.95",
         },
         offers: {
           "@type": "Offer",
-          price: "24.95",
+          price: "29.95",
           priceCurrency: "AUD",
           availability: "https://schema.org/InStock",
         },

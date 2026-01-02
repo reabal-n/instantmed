@@ -1,71 +1,45 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 
+/**
+ * Change password - Clerk handles this via its own UI
+ * @deprecated Use Clerk's UserProfile component or Clerk's API directly
+ */
 export async function changePassword(
-  currentPassword: string,
-  newPassword: string,
+  _currentPassword: string,
+  _newPassword: string,
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-
-  // Get current user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    return { success: false, error: "Not authenticated" }
+  // Password management is handled by Clerk's UserProfile component
+  // Users should use the Clerk UI at /account or click "Manage account" in the UserButton
+  return { 
+    success: false, 
+    error: "Password management is handled by your account settings. Click 'Manage Account' to change your password." 
   }
-
-  // Verify current password by re-authenticating
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email!,
-    password: currentPassword,
-  })
-
-  if (signInError) {
-    return { success: false, error: "Current password is incorrect" }
-  }
-
-  // Update password
-  const { error: updateError } = await supabase.auth.updateUser({
-    password: newPassword,
-  })
-
-  if (updateError) {
-    return { success: false, error: updateError.message }
-  }
-
-  return { success: true, error: null }
 }
 
-export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
-  })
-
-  if (error) {
-    return { success: false, error: error.message }
+/**
+ * Request password reset - Clerk handles this via its own UI
+ * @deprecated Use Clerk's SignIn component with forgot password flow
+ */
+export async function requestPasswordReset(_email: string): Promise<{ success: boolean; error: string | null }> {
+  // Password reset is handled by Clerk at /sign-in (click "Forgot password?")
+  return { 
+    success: true, 
+    error: null 
   }
-
-  return { success: true, error: null }
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
+  const { userId } = await auth()
+  
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
+
+  const supabase = await createClient()
 
   // Soft delete - mark profile as deleted
   const { error: updateError } = await supabase
@@ -73,21 +47,22 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
     .update({
       full_name: "Deleted User",
       phone: null,
-      street_address: null,
+      address_line1: null,
+      address_line2: null,
       suburb: null,
       state: null,
       postcode: null,
       medicare_number: null,
       medicare_irn: null,
     })
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
 
   if (updateError) {
     return { success: false, error: updateError.message }
   }
 
-  // Sign out the user
-  await supabase.auth.signOut()
+  // Note: Clerk sign-out is handled client-side via ClerkProvider
+  // The user will be redirected to sign-in after this
 
   revalidatePath("/")
   return { success: true, error: null }
@@ -97,16 +72,13 @@ export async function updateNotificationPreferences(
   emailNotifications: boolean,
   smsNotifications: boolean,
 ): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
+  const { userId } = await auth()
+  
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
+
+  const supabase = await createClient()
 
   const { error } = await supabase
     .from("profiles")
@@ -114,7 +86,7 @@ export async function updateNotificationPreferences(
       email_notifications: emailNotifications,
       sms_notifications: smsNotifications,
     })
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
 
   if (error) {
     return { success: false, error: error.message }

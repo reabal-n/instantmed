@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { sendMedCertReadyEmail } from "@/lib/email/resend"
 import { logger } from "@/lib/logger"
+import { auth } from "@clerk/nextjs/server"
 
 const RESEND_LIMIT = 3 // Max resends per 24 hours
 const RESEND_WINDOW_MS = 24 * 60 * 60 * 1000 // 24 hours
@@ -21,24 +22,25 @@ interface ResendResult {
  */
 export async function resendCertificateEmailAction(requestId: string): Promise<ResendResult> {
   try {
-    const supabase = await createClient()
-
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    const { userId } = await auth()
+    if (!userId) {
       return { success: false, error: "Not authenticated" }
     }
 
-    // Get user's profile
+    const supabase = await createClient()
+
+    // Get user's profile using Clerk user ID
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
-      .eq("auth_user_id", user.id)
+      .select("id, email")
+      .eq("clerk_user_id", userId)
       .single()
 
     if (!profile) {
       return { success: false, error: "Profile not found" }
     }
+    
+    const userEmail = profile.email
 
     // Get the request and verify ownership
     const { data: request } = await supabase
@@ -112,7 +114,7 @@ export async function resendCertificateEmailAction(requestId: string): Promise<R
     // Send the email
     const patientData = request.patient as unknown as { id: string; full_name: string } | null
     const result = await sendMedCertReadyEmail({
-      to: user.email!,
+      to: userEmail!,
       patientName: patientData?.full_name || "there",
       pdfUrl: document.pdf_url,
       requestId,
@@ -126,7 +128,7 @@ export async function resendCertificateEmailAction(requestId: string): Promise<R
     // Log the email send
     await supabase.from("email_logs").insert({
       request_id: requestId,
-      recipient_email: user.email,
+      recipient_email: userEmail,
       template_type: "request_approved",
       subject: "Your Medical Certificate (Resent)",
       metadata: { resend: true, documentId: document.id },

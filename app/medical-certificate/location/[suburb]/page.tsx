@@ -488,7 +488,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "What does it cost?",
-                    a: "Medical certificates start from $24.95. One flat fee, no hidden costs. If your request isn't approved, you'll receive a refund minus a small admin fee.",
+                    a: "Medical certificates start from $19.95. One flat fee, no hidden costs. If your request isn't approved, you'll receive a refund minus a small admin fee.",
                   },
                 ].map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-background">
@@ -513,7 +513,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground">From $24.95 • Valid for all employers</p>
+              <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
             </div>
           </section>
 

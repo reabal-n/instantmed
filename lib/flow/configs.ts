@@ -718,7 +718,7 @@ export const serviceCategories = [
     slug: 'medical-certificate',
     name: 'Medical Certificate',
     description: 'Sick leave, carer\'s leave, or fitness certificates',
-    price: '$24.95',
+    price: '$29.95',
     time: '~15 mins',
     icon: 'FileText',
     popular: true,

@@ -209,9 +209,9 @@ export default function TradiesPage() {
               <h2 className="text-xl font-bold mb-6 text-center">What you can get</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: "From $24.95" },
-                  { title: "Carer's Leave Cert", desc: "Looking after sick family", price: "From $24.95" },
-                  { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $19.95" },
+                  { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: "From $19.95" },
+                  { title: "Carer's Leave Cert", desc: "Looking after sick family", price: "From $19.95" },
+                  { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $29.95" },
                 ].map((item) => (
                   <div key={item.title} className="p-5 rounded-xl border bg-card text-center">
                     <Wrench className="h-8 w-8 mx-auto mb-3 text-amber-500" />
@@ -248,7 +248,7 @@ export default function TradiesPage() {
                   },
                   {
                     q: "What's it cost?",
-                    a: "Med certs from $24.95. Scripts from $19.95. One flat fee, no surprises.",
+                    a: "Med certs from $19.95. Scripts from $29.95. One flat fee, no surprises.",
                   },
                 ].map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-background">
@@ -273,7 +273,7 @@ export default function TradiesPage() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground">From $24.95 • Valid for all employers</p>
+              <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
             </div>
           </section>
 

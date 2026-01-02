@@ -4,6 +4,7 @@ import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { logger } from "@/lib/logger"
 
 interface CreateCheckoutInput {
   category: ServiceCategory

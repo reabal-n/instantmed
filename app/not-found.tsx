@@ -23,8 +23,7 @@ export default function NotFound() {
           </h1>
           <div className="absolute inset-0 flex items-center justify-center">
             <div 
-              className="bg-card/80 backdrop-blur-md rounded-3xl px-8 py-6 border border-border/50 shadow-2xl shadow-primary/5"
-              style={{ animation: "float 4s ease-in-out infinite" }}
+              className="bg-card/80 backdrop-blur-md rounded-3xl px-8 py-6 border border-border/50 shadow-2xl shadow-primary/5 animate-bounce"
             >
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Zap className="h-7 w-7 text-white" aria-hidden="true" />
@@ -82,14 +81,6 @@ export default function NotFound() {
           </div>
         </nav>
       </div>
-      
-      {/* Float animation keyframes */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(2deg); }
-        }
-      `}</style>
     </main>
   )
 }

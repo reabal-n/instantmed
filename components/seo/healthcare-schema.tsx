@@ -45,7 +45,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       "Medical Certificate",
       "Online Prescription"
     ],
-    priceRange: "$24.95 - $49.95",
+    priceRange: "$19.95 - $49.95",
     currenciesAccepted: "AUD",
     paymentAccepted: ["Credit Card", "Debit Card"],
     openingHoursSpecification: {

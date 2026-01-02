@@ -153,7 +153,7 @@ export const REPEAT_RX_COPY = {
   payment: {
     title: "Complete your request",
     subtitle: "You'll only be charged if your prescription is approved",
-    price: "$19.95",
+    price: "$29.95",
     includes: [
       "GP review within 2 hours (8am-10pm AEST)",
       "E-script sent to your phone",

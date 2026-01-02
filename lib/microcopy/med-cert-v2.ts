@@ -148,8 +148,8 @@ export const MED_CERT_COPY = {
     subtitle: "Pay securely to submit for review",
     
     // Pricing
-    price: "$24.95",
-    priceExtended: "$34.95", // For >3 days or backdated
+    price: "$19.95",
+    priceExtended: "$29.95", // For >3 days or backdated
     
     // What's included
     includes: [

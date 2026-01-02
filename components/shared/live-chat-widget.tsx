@@ -25,7 +25,7 @@ const smartResponses: Record<string, { match: RegExp; response: string }[]> = {
     {
       match: /price|cost|fee|how much|pay/i,
       response:
-        "Med certs are $19.95, scripts are $24.95. If we can't help, full refund. No forms, no drama.",
+        "Med certs are $19.95, scripts are $29.95. If we can't help, full refund. No forms, no drama.",
     },
   ],
   status: [
