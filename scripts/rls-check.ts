@@ -70,7 +70,7 @@ async function testDenied(
       results.push({ name, passed: false, expected: "deny", actual: "allowed" })
       log(`FAIL (should be denied but was ALLOWED): ${name}`, "fail")
     }
-  } catch (error) {
+  } catch (_error) {
     // Thrown error also means denial
     results.push({ name, passed: true, expected: "deny", actual: "denied" })
     log(`PASS (denied with exception): ${name}`, "pass")

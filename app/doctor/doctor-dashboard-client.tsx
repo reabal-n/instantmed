@@ -13,6 +13,7 @@ import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditC
 import type { RequestWithPatient } from "@/types/db"
 import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
+import { logger } from "@/lib/logger"
 
 interface DoctorDashboardClientProps {
   pendingRequests: RequestWithPatient[]
@@ -137,7 +138,7 @@ export function DoctorDashboardClient({
   }) => {
     // Defensive null check for patient data
     if (!request.patient) {
-      console.warn("[RequestCard] Missing patient data for request:", request.id)
+      logger.warn("[RequestCard] Missing patient data for request:", { requestId: request.id })
       return null
     }
     

@@ -7,6 +7,7 @@ import { FieldRenderer } from '../field-renderer'
 import { useFlowStore, useFlowAnswers } from '@/lib/flow'
 import type { FlowConfig, QuestionGroup, FieldConfig } from '@/lib/flow'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface UnifiedQuestionsStepProps {
   config: FlowConfig
@@ -167,7 +168,7 @@ export function UnifiedQuestionsStep({
       onComplete?.()
       nextStep()
     } catch (error) {
-      console.error('Error completing questions:', error)
+      logger.error('Error completing questions:', { error })
     } finally {
       setIsSubmitting(false)
     }

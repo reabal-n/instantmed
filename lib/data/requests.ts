@@ -462,7 +462,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
 /**
  * Create a document for a request (e.g., prescription, certificate).
  */
-export async function createDocument(requestId: string, documentType: string, content: string): Promise<boolean> {
+export async function createDocument(requestId: string, documentType: string, _content: string): Promise<boolean> {
   // TODO: Implement when documents table is created
   logger.info("createDocument called", { requestId, documentType })
   return false
@@ -541,7 +541,7 @@ export async function saveDoctorNotes(requestId: string, notes: string): Promise
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error saving doctor notes:", error)
+    logger.error("Error saving doctor notes:", { error })
     return false
   }
 
@@ -564,7 +564,7 @@ export async function flagForFollowup(requestId: string, reason: string): Promis
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error flagging for followup:", error)
+    logger.error("Error flagging for followup:", { error })
     return false
   }
 

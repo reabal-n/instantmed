@@ -186,7 +186,7 @@ export function TestimonialMarquee() {
             { icon: Award, value: "4.9", label: "Average rating", showStars: true },
             { icon: Users, value: "10k+", label: "Happy patients" },
             { icon: Clock, value: "<15min", label: "Typical response" },
-          ].map((stat, index) => (
+          ].map((stat, _index) => (
             <motion.div 
               key={stat.label}
               className="text-center"

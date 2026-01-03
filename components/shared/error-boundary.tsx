@@ -6,6 +6,7 @@ import { Component, type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw, Home, Copy, Check, MessageSquare, ChevronDown } from "lucide-react"
 import Link from "next/link"
+import { logger } from "@/lib/logger"
 
 interface Props {
   children: ReactNode
@@ -39,10 +40,7 @@ async function reportError(error: Error, errorInfo: React.ErrorInfo): Promise<vo
 
     // Log to console in development
     if (process.env.NODE_ENV === "development") {
-      console.group("🚨 Error Report")
-      console.error("Error:", error)
-      console.error("Component Stack:", errorInfo.componentStack)
-      console.groupEnd()
+      logger.error("🚨 Error Report", { error, componentStack: errorInfo.componentStack })
     }
 
     // In production, send to your error tracking endpoint
@@ -122,7 +120,7 @@ Time: ${new Date().toISOString()}
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Fallback for older browsers
-      console.log(details)
+      logger.debug("Error details copied to clipboard", { details })
     }
   }
 

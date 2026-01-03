@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { CreditCard, Loader2 } from "lucide-react"
 import { retryPaymentForRequestAction } from "@/lib/stripe/checkout"
 import { toast } from "sonner"
+import { logger } from "@/lib/logger"
 
 interface RetryPaymentButtonProps {
   requestId: string
@@ -34,7 +35,7 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
         window.location.href = result.checkoutUrl
       }
     } catch (error) {
-      console.error("Retry payment error:", error)
+      logger.error("Retry payment error:", { error })
       toast.error("Failed to initiate payment. Please try again.")
       setIsLoading(false)
       setHasClicked(false) // Allow retry on error

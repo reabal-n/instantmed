@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Loader2, Shield, CheckCircle } from "lucide-react"
+import { logger } from "@/lib/logger"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -65,7 +66,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
             router.refresh()
           }
         } catch (err) {
-          console.error("Error completing auth:", err)
+          logger.error("Error completing auth:", { error: err })
           setError("Failed to complete authentication")
         } finally {
           setIsLoading(false)

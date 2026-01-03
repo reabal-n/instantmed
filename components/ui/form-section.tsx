@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { stagger, spring } from '@/lib/motion'
+import { spring } from '@/lib/motion'
 
 // =============================================================================
 // FORM SECTION - GlassCard wrapper for form groups

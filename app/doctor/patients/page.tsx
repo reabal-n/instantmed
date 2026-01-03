@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { PatientsListClient } from "./patients-list-client"
+import { logger } from "@/lib/logger"
 
 async function getAllPatients() {
   const supabase = await createClient()
@@ -13,7 +14,7 @@ async function getAllPatients() {
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching patients:", error)
+    logger.error("Error fetching patients:", { error })
     return []
   }
 
