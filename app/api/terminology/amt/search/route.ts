@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { logger } from "@/lib/observability/logger"
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
 const NCTS_FHIR_BASE = "https://tx.ontoserver.csiro.au/fhir"
@@ -17,7 +18,7 @@ function getSupabaseClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
   if (!supabaseUrl || !serviceKey) {
-    console.error("[AMT Cache] Missing Supabase credentials")
+    logger.error("AMT Cache: Missing Supabase credentials")
     return null
   }
   
@@ -75,7 +76,9 @@ async function setCachedResult(queryNorm: string, results: unknown): Promise<voi
         { onConflict: "query_norm" }
       )
   } catch (err) {
-    console.error("[AMT Cache] Error setting cache:", err)
+    logger.error("AMT Cache: Error setting cache", {
+      error: err instanceof Error ? err.message : String(err),
+    })
   }
 }
 
@@ -216,7 +219,10 @@ export async function GET(request: NextRequest) {
     clearTimeout(timeoutId)
 
     if (!response.ok) {
-      console.error("[AMT Search] NCTS FHIR error:", response.status)
+      logger.error("AMT Search: NCTS FHIR error", {
+        status: response.status,
+        query,
+      })
       // If we have stale cache, return it as fallback
       if (cached) {
         return NextResponse.json({ ...(cached.results as object), stale: true })
@@ -262,7 +268,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Handle timeout specifically
     if (error instanceof Error && error.name === "AbortError") {
-      console.error("[AMT Search] NCTS timeout after", NCTS_TIMEOUT_MS, "ms")
+      logger.error("AMT Search: NCTS timeout", {
+        timeoutMs: NCTS_TIMEOUT_MS,
+        query,
+      })
       // If we have stale cache, return it as fallback
       if (cached) {
         return NextResponse.json({ ...(cached.results as object), stale: true })
@@ -274,7 +283,10 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    console.error("[AMT Search] Error:", error)
+    logger.error("AMT Search: Error", {
+      error: error instanceof Error ? error.message : String(error),
+      query,
+    })
     // If we have stale cache, return it as fallback
     if (cached) {
       return NextResponse.json({ ...(cached.results as object), stale: true })

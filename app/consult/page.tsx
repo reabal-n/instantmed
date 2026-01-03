@@ -15,6 +15,9 @@ import {
   FileText,
 } from "lucide-react"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "General Consult | Online Doctor Consultation | InstantMed",
   description:

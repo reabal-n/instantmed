@@ -6,6 +6,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 // Suburb/City data for "medical certificate online [location]" SEO
 const suburbs: Record<
   string,

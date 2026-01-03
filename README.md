@@ -38,8 +38,15 @@ An asynchronous telehealth platform for medical certificates and prescriptions b
 
 ### 1. Environment Variables
 
-Create a `.env.local` file:
+Create a `.env.local` file based on `.env.example`:
 
+```bash
+cp .env.example .env.local
+```
+
+Then fill in your credentials. See `.env.example` for detailed documentation of each variable.
+
+Required variables:
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
