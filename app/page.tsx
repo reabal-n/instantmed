@@ -24,9 +24,6 @@ export default function HomePage() {
         {/* Hero with main value prop */}
         <Hero />
         
-        {/* Trustpilot reviews - authentic social proof */}
-        <TrustpilotReviews />
-        
         {/* Trust badges - compact strip */}
         <TrustBadgeSlider />
         
@@ -38,6 +35,9 @@ export default function HomePage() {
         
         {/* How it works - 3 steps */}
         <HowItWorks />
+        
+        {/* Trustpilot reviews - authentic social proof (moved lower) */}
+        <TrustpilotReviews />
         
         {/* Platform performance stats */}
         <PlatformStats />

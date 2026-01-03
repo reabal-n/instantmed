@@ -14,18 +14,13 @@ import {
   CreditCard,
   Settings,
   Plus,
-  Filter,
   Search,
   ChevronRight,
-  Eye,
   Printer,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Button, Input, Badge } from "@/components/uix"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 
 interface Request {
   id: string
@@ -313,7 +308,7 @@ export function PatientDashboard({
                               </div>
                             </div>
                             <div className="text-right">
-                              <Badge variant={rx.status === "active" ? "default" : "secondary"}>
+                              <Badge color={rx.status === "active" ? "success" : "default"}>
                                 {rx.status === "active" ? "Active" : "Expired"}
                               </Badge>
                               {rx.status === "active" && (
@@ -355,7 +350,7 @@ export function PatientDashboard({
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">${(invoice.total / 100).toFixed(2)}</p>
-                            <Badge className="mt-2" variant={invoice.status === "paid" ? "default" : "secondary"}>
+                            <Badge className="mt-2" color={invoice.status === "paid" ? "success" : "warning"}>
                               {invoice.status === "paid" ? "Paid" : "Pending"}
                             </Badge>
                           </div>

@@ -56,3 +56,21 @@ export { GlassCard } from "./glass-card"
 
 // Marquee animations
 export { Marquee, VerticalMarquee, LogoTicker, TextTicker } from "./marquee"
+
+// Confetti
+export { useConfetti, Confetti } from "./confetti"
+
+// Scroll reveal animations
+export { ScrollReveal, ScrollRevealList, AnimatedCounter as ScrollAnimatedCounter } from "./scroll-reveal"
+
+// Form validation animations
+export { ShakeAnimation, ShakeInput, AnimatedErrorMessage } from "./shake-animation"
+
+// Micro-interactions
+export { RippleButton, AnimatedCheckbox, AnimatedRadio, AnimatedSwitch } from "./micro-interactions"
+
+// Mobile gesture support
+export { Swipeable, SwipeableTabs, SwipeableCarousel } from "./swipeable"
+
+// Page transitions
+export { PageTransition, FadeTransition, SlideTransition, ScaleTransition } from "./page-transition"
