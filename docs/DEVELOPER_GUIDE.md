@@ -230,6 +230,9 @@ stripe trigger checkout.session.completed
 ```bash
 # Push migrations to production
 supabase db push --linked
+
+# For medical certificates, ensure med_cert_drafts table exists
+psql $SUPABASE_DB_URL -f scripts/024_med_cert_drafts.sql
 ```
 
 ---

@@ -303,7 +303,11 @@ export default function PatientRequestDetailPageClient({
             <div className="flex flex-col gap-2 w-full sm:w-auto">
               <div className="flex gap-2">
                 <Button asChild className="rounded-xl btn-glow flex-1 sm:flex-none">
-                  <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={`/api/patient/documents/${request.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Download
                   </a>
@@ -312,11 +316,15 @@ export default function PatientRequestDetailPageClient({
                   variant="outline"
                   className="rounded-xl bg-transparent"
                   onClick={() => {
-                    window.open(document.pdf_url, "_blank")
+                    window.open(`/api/patient/documents/${request.id}/download`, "_blank")
                   }}
                   asChild
                 >
-                  <a href={document.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={`/api/patient/documents/${request.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Printer className="h-4 w-4" />
                     <span className="sr-only">Print</span>
                   </a>

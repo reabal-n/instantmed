@@ -163,6 +163,17 @@ export interface MedCertDraftData {
   doctor_name: string
   provider_number: string
   created_date: string // YYYY-MM-DD
+
+  // New schema-aligned fields (used by med_cert_drafts table)
+  patient_full_name?: string | null
+  patient_dob?: string | null
+  certificate_type?: MedicalCertificateSubtype | null
+  reason_summary?: string | null
+  doctor_typed_name?: string | null
+  doctor_ahpra?: string | null
+  provider_name?: string | null
+  provider_address?: string | null
+  signature_asset_url?: string | null
 }
 
 // Pathology draft data structure

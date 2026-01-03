@@ -14,6 +14,19 @@ import type { MedCertDraftData } from "@/types/db"
 import { getLogoUrl, getSignatureUrl } from "@/lib/assets/asset-urls"
 import { logger } from "@/lib/logger"
 
+// Normalize legacy and new draft shapes
+function getPatientName(data: MedCertDraftData): string {
+  return data.patient_full_name ?? data.patient_name ?? "the patient"
+}
+
+function getDob(data: MedCertDraftData): string | null {
+  return data.patient_dob ?? data.dob ?? null
+}
+
+function getReason(data: MedCertDraftData): string | null {
+  return data.reason_summary ?? data.reason ?? null
+}
+
 // PDF Styles
 const styles = StyleSheet.create({
   page: {
@@ -192,10 +205,10 @@ function getCertTitle(subtype: string): string {
  * Get medical statement text based on certificate subtype
  */
 function getStatementText(data: MedCertDraftData, subtype: string): string {
-  const patientName = data.patient_name || "the patient"
+  const patientName = getPatientName(data)
   const dateFrom = formatDate(data.date_from)
   const dateTo = formatDate(data.date_to)
-  const reason = data.reason || "a medical condition"
+  const reason = getReason(data) || "a medical condition"
 
   switch (subtype) {
     case "uni":
@@ -251,11 +264,11 @@ function MedCertDocument({
           <Text style={styles.sectionTitle}>Patient Details</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Full Name:</Text>
-            <Text style={styles.value}>{data.patient_name || "Not provided"}</Text>
+            <Text style={styles.value}>{getPatientName(data) || "Not provided"}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Date of Birth:</Text>
-            <Text style={styles.value}>{formatDate(data.dob)}</Text>
+            <Text style={styles.value}>{formatDate(getDob(data))}</Text>
           </View>
         </View>
 
@@ -354,7 +367,7 @@ export async function generateMedCertPdfFactory(
   logger.info(`[pdf-factory] Generating med cert PDF for request ${requestId}`, {
     certId,
     subtype: validatedSubtype,
-    patientName: data.patient_name,
+    patientName: getPatientName(data),
   })
 
   try {

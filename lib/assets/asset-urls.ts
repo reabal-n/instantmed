@@ -17,7 +17,7 @@ export function getAssetUrl(path: string): string {
  * Used in PDF headers and email templates
  */
 export function getLogoUrl(): string {
-  return getAssetUrl("/branding/instantmed-logo.png")
+  return getAssetUrl("/branding/instantmed-logo.svg")
 }
 
 /**
@@ -25,7 +25,7 @@ export function getLogoUrl(): string {
  * Used in PDF signature area
  */
 export function getSignatureUrl(): string {
-  return getAssetUrl("/branding/dr-reabal-signature.png")
+  return getAssetUrl("/branding/dr-reabal-signature.svg")
 }
 
 /**
