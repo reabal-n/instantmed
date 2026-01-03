@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import confetti from "canvas-confetti"
@@ -476,6 +476,19 @@ export function EnhancedIntakeFlow({
         : [...prev.symptoms, symptom],
     }))
   }, [])
+
+  // Auto-advance when service is selected on first step
+  useEffect(() => {
+    if (step === "service" && state.service) {
+      const timer = setTimeout(() => {
+        const nextStep = steps[steps.indexOf("service") + 1]
+        if (nextStep) {
+          setStep([nextStep, 1])
+        }
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [step, state.service, steps])
 
   // Check red flags
   const symptomCheckResult = useMemo(() => {
