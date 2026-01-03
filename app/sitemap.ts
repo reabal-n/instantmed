@@ -4,6 +4,7 @@ import { getAllMedicationSlugs } from "@/lib/seo/medications"
 import { getAllIntentSlugs } from "@/lib/seo/intents"
 import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
 import { getAllComparisonSlugs } from "@/lib/seo/comparisons"
+import { logger } from "@/lib/logger"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -112,7 +113,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     benefitSlugs = getAllSlugs('benefits')
     resourceSlugs = getAllSlugs('resources')
   } catch (error) {
-    console.error('Error loading legacy SEO slugs for sitemap', error)
+    logger.error('Error loading legacy SEO slugs for sitemap', { error })
   }
   
   const certificateRoutes = certificateSlugs.map((slug) => ({
