@@ -248,11 +248,5 @@ export function DetailsLoadingSkeleton() {
   )
 }
 
-export {
-  Skeleton,
-  DashboardLoadingSkeleton,
-  FormLoadingSkeleton,
-  ListLoadingSkeleton,
-  MarketingLoadingSkeleton,
-  DetailsLoadingSkeleton,
-}
+// Skeleton is not exported inline, so we export it here
+export { Skeleton }
