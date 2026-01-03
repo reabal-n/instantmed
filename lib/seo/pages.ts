@@ -1270,10 +1270,10 @@ export function getPageCount() {
 
 export function getAllSlugs(pageType: 'conditions' | 'certificates' | 'benefits' | 'resources') {
   const pages = getAllPages()
-  return pages[pageType].map((p: any) => p.slug)
+  return pages[pageType].map((p: ConditionPage | CertificatePage | BenefitPage | ResourcePage) => p.slug)
 }
 
 export function getPageBySlug(slug: string, pageType: 'conditions' | 'certificates' | 'benefits' | 'resources') {
   const pages = getAllPages()
-  return pages[pageType].find((p: any) => p.slug === slug)
+  return pages[pageType].find((p: ConditionPage | CertificatePage | BenefitPage | ResourcePage) => p.slug === slug)
 }
