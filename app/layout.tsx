@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
+import { ParallaxBackground } from "@/components/shared/parallax-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
@@ -187,9 +188,10 @@ export default function RootLayout({
           <OrganizationSchema />
           <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
         </head>
-        <body className="font-sans antialiased">
+        <body className="font-sans antialiased bg-background text-foreground">
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <HeroUIProviderWrapper>
+              <ParallaxBackground />
               <SkipToContent />
               <div id="main-content" className="page-enter relative">
                 {children}

@@ -136,6 +136,10 @@
   --color-3: 280 68% 60%;
   --color-4: 330 81% 60%;
   --color-5: 25 95% 53%;
+  
+  /* Light mode gradient orbs for parallax */
+  --gradient-orb-1: rgba(99, 102, 241, 0.08);
+  --gradient-orb-2: rgba(139, 92, 246, 0.06);
 }
 
 /* Test mode banner active state */
@@ -145,33 +149,47 @@
 
 .dark {
   /* Dark theme: maintain soft, calm aesthetic */
-  --background: #0f0f0f;
+  --background: #0a0a0b;
   --foreground: #fafafa;
-  --card: #1a1a1a;
+  --card: #141416;
   --card-foreground: #fafafa;
-  --popover: #1a1a1a;
+  --popover: #141416;
   --popover-foreground: #fafafa;
-  --primary: #60a5fa;
-  --primary-foreground: #0f0f0f;
-  --secondary: #2a2a2a;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #1f1f23;
   --secondary-foreground: #fafafa;
-  --muted: #2a2a2a;
-  --muted-foreground: #999999;
+  --muted: #1f1f23;
+  --muted-foreground: #a1a1aa;
   --accent: #a78bfa;
-  --accent-foreground: #0f0f0f;
+  --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --destructive-foreground: #0f0f0f;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #1a1a1a;
-  --ring: #60a5fa;
-  --sidebar: #0f0f0f;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #141416;
+  --ring: #6366f1;
+  --sidebar: #0a0a0b;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #60a5fa;
-  --sidebar-primary-foreground: #0f0f0f;
-  --sidebar-accent: #2a2a2a;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1f1f23;
   --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #60a5fa;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #6366f1;
+  
+  /* Dark mode shadows - softer with color */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.7), 0 12px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.25);
+  --shadow-glow-lg: 0 0 48px rgba(99, 102, 241, 0.35);
+  
+  /* Dark mode gradient orbs */
+  --gradient-orb-1: rgba(99, 102, 241, 0.15);
+  --gradient-orb-2: rgba(167, 139, 250, 0.12);
 }
 
 @theme inline {
@@ -490,6 +508,120 @@
   ::selection {
     background: rgba(99, 102, 241, 0.2);
     color: var(--foreground);
+  }
+}
+
+/* ================================
+   DARK MODE SPECIFIC OVERRIDES
+   Ensure all components work in dark mode
+   ================================ */
+
+.dark {
+  /* Dark mode card styling */
+  .card,
+  [class*="card"],
+  [class*="Card"] {
+    background: var(--card);
+    border-color: var(--border);
+  }
+  
+  /* Dark mode input styling */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    background: var(--input);
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-foreground);
+  }
+  
+  /* Dark mode text colors */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--foreground);
+  }
+  
+  p, span, label {
+    color: var(--foreground);
+  }
+  
+  /* Dark mode links */
+  a {
+    color: var(--primary);
+  }
+  
+  a:hover {
+    color: var(--accent);
+  }
+  
+  /* Dark mode badges and chips */
+  .badge,
+  .chip {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: var(--border);
+  }
+  
+  /* Dark mode borders */
+  hr,
+  .border,
+  [class*="border"] {
+    border-color: var(--border);
+  }
+  
+  /* Dark mode tables */
+  table {
+    color: var(--foreground);
+  }
+  
+  th {
+    color: var(--foreground);
+    background: var(--secondary);
+  }
+  
+  td {
+    color: var(--foreground);
+    border-color: var(--border);
+  }
+  
+  /* Dark mode code blocks */
+  pre, code {
+    background: var(--secondary);
+    color: var(--foreground);
+  }
+  
+  /* Dark mode blockquotes */
+  blockquote {
+    border-left-color: var(--primary);
+    background: var(--secondary);
+    color: var(--foreground);
+  }
+  
+  /* Dark mode lists */
+  ul, ol {
+    color: var(--foreground);
+  }
+  
+  li::marker {
+    color: var(--muted-foreground);
+  }
+  
+  /* Dark mode selection */
+  ::selection {
+    background: rgba(99, 102, 241, 0.4);
+    color: var(--foreground);
+  }
+  
+  /* Dark mode scrollbar */
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 }
 
