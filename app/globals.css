@@ -389,8 +389,8 @@
      Soft, elevated, modern
      ================================ */
   .card,
-  [class*="card"],
-  [class*="Card"] {
+  [data-slot="base"],
+  .glass-card {
     @apply bg-card text-card-foreground;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -399,8 +399,8 @@
   }
   
   .card:hover,
-  [class*="card"]:hover,
-  [class*="Card"]:hover {
+  [data-slot="base"]:hover,
+  .glass-card:hover {
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
   }
@@ -517,10 +517,10 @@
    ================================ */
 
 .dark {
-  /* Dark mode card styling */
+  /* Dark mode card styling - using specific data attributes and classes */
   .card,
-  [class*="card"],
-  [class*="Card"] {
+  [data-slot="base"],
+  .glass-card {
     background: var(--card);
     border-color: var(--border);
   }

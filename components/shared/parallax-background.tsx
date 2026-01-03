@@ -3,6 +3,9 @@
 import { useEffect, useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 
+// Noise texture SVG as a constant for maintainability
+const NOISE_TEXTURE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+
 interface ParallaxBackgroundProps {
   className?: string
   /** Enable animated gradient orbs */
@@ -133,7 +136,7 @@ export function ParallaxBackground({
         <div
           className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] mix-blend-overlay transition-opacity duration-500"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            backgroundImage: NOISE_TEXTURE_SVG,
           }}
         />
       )}
@@ -172,9 +175,15 @@ export function ParallaxSection({
 }) {
   const [offset, setOffset] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
+  const lastScrollTime = useRef(0)
 
   useEffect(() => {
     const handleScroll = () => {
+      // Throttle to ~60fps
+      const now = Date.now()
+      if (now - lastScrollTime.current < 16) return
+      lastScrollTime.current = now
+
       if (!sectionRef.current) return
       const rect = sectionRef.current.getBoundingClientRect()
       const scrollProgress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height)
