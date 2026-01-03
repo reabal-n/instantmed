@@ -544,6 +544,172 @@ export const intentPages: IntentPage[] = [
       ctaUrl: '/prescriptions?condition=emergency-contraception&priority=true',
     },
   },
+
+  {
+    slug: 'hair-loss-treatment-online',
+    type: 'intent',
+    title: 'Hair Loss Treatment Online Australia | Finasteride & Minoxidil | InstantMed',
+    description: 'Get hair loss treatment online from Australian doctors. Finasteride prescriptions for men, minoxidil guidance for all. From $34.95.',
+    h1: 'Hair Loss Treatment Online — Stop Thinning, Start Regrowing',
+    content: {
+      intro: 'Experiencing hair thinning or male pattern baldness? Get evidence-based hair loss treatment online. Our Australian doctors can prescribe finasteride for men and provide guidance on minoxidil for anyone experiencing pattern hair loss.',
+      uniqueBlocks: [
+        {
+          id: 'treatment-options',
+          type: 'list',
+          content: [
+            'Finasteride (men only): Oral medication that blocks DHT. Stops loss in 90%, regrows hair in 65%.',
+            'Minoxidil (men & women): Topical treatment. Improves blood flow to follicles. Available OTC.',
+            'Combination therapy: Many men use both together for best results.',
+            'Works best when started early, before significant loss',
+            'Results take 6-12 months — hair grows slowly',
+          ],
+        },
+        {
+          id: 'online-process',
+          type: 'text',
+          content: 'Complete a quick questionnaire about your hair loss pattern, health history, and expectations. Upload photos of your hair (top and crown views helpful). Our doctor reviews and assesses whether treatment is appropriate. If suitable, an e-script for finasteride is sent to your phone, or we provide guidance on obtaining minoxidil over-the-counter.',
+        },
+        {
+          id: 'realistic-expectations',
+          type: 'callout',
+          content: 'Hair loss treatment requires commitment. Results take 6-12 months of daily use. Treatment must continue indefinitely — benefits reverse if you stop. Best results when started early. Not everyone responds, but most see at least some benefit.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'hair loss treatment online',
+        'finasteride online australia',
+        'hair loss doctor online',
+        'male pattern baldness treatment',
+        'online hair loss prescription',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I get finasteride prescribed online?',
+          answer: 'Yes — our Australian doctors can prescribe finasteride online after assessing your suitability. We discuss how it works, potential side effects, and realistic expectations before prescribing.',
+        },
+        {
+          question: 'Do hair loss treatments really work?',
+          answer: 'Yes — finasteride and minoxidil are proven effective. Finasteride stops further loss in ~90% of men and regrows hair in ~65%. Minoxidil works for about 60% of users. Results vary, but most people see some benefit.',
+        },
+        {
+          question: 'How long until I see results?',
+          answer: 'Most people notice reduced shedding within 3 months. Visible regrowth typically appears after 6-12 months. Maximum benefit is usually seen after 2 years of consistent use.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'finasteride', title: 'Finasteride Information' },
+        { type: 'medication', slug: 'minoxidil', title: 'Minoxidil Information' },
+        { type: 'symptom', slug: 'hair-thinning', title: 'Hair Thinning Causes' },
+      ],
+    },
+    intent: {
+      searchQuery: 'hair loss treatment online',
+      alternateQueries: [
+        'finasteride online',
+        'hair loss doctor online',
+        'male pattern baldness treatment',
+        'online hair loss prescription',
+        'propecia online',
+      ],
+      userNeed: 'Get prescription hair loss treatment conveniently',
+      urgency: 'flexible',
+      serviceType: 'prescription',
+    },
+    conversion: {
+      primaryCTA: 'Get Hair Loss Treatment',
+      ctaUrl: '/mens-health?condition=hairloss',
+    },
+  },
+
+  {
+    slug: 'flu-certificate-online',
+    type: 'intent',
+    title: 'Flu Certificate Online Australia | Medical Certificate for Flu | InstantMed',
+    description: 'Need a medical certificate for flu or cold? Get one online within hours from Australian doctors. Employer-accepted. From $19.95.',
+    h1: 'Flu & Cold Certificate Online — Too Sick to Work',
+    content: {
+      intro: 'Got the flu or a bad cold and need to stay home? Get a medical certificate online without dragging yourself to a clinic. Our AHPRA-registered doctors issue valid certificates for work or uni, delivered straight to your email.',
+      uniqueBlocks: [
+        {
+          id: 'common-symptoms',
+          type: 'text',
+          content: 'Flu and cold symptoms include fever, sore throat, cough, runny nose, body aches, headache, and fatigue. If you\'re experiencing these symptoms and aren\'t fit for work, our doctors can assess you online and issue a medical certificate. Most colds need 2-3 days rest, while flu can require 5-7 days recovery.',
+        },
+        {
+          id: 'what-we-need',
+          type: 'list',
+          content: [
+            'Description of your symptoms (fever, cough, etc.)',
+            'When symptoms started',
+            'How many days off work you need',
+            'Any complications (chest pain, difficulty breathing)',
+            'Photos not required for straightforward flu/cold',
+          ],
+        },
+        {
+          id: 'when-to-see-gp',
+          type: 'callout',
+          content: 'Seek in-person care if you have: severe difficulty breathing, chest pain, confusion, blue lips, severe dehydration, or symptoms lasting >10 days without improvement. These may indicate complications like pneumonia.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'flu certificate online',
+        'cold certificate online',
+        'sick certificate flu',
+        'medical certificate for flu',
+        'flu sick leave certificate',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I get a certificate if I just have a cold?',
+          answer: 'Yes — if you\'re too unwell to work, you can get a certificate for a cold. Most employers accept certificates for any illness that prevents you from working safely.',
+        },
+        {
+          question: 'How many days can I get certified off for flu?',
+          answer: 'Typically 2-3 days for a cold, 5-7 days for flu. Your doctor will determine appropriate duration based on your symptoms and job requirements.',
+        },
+        {
+          question: 'Do I need a doctor\'s note for flu?',
+          answer: 'Many employers require a medical certificate if you\'re absent for more than 2-3 days or if you\'ve used all casual sick leave. Check your workplace policy.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'condition', slug: 'cold-and-flu', title: 'Cold & Flu Information' },
+        { type: 'intent', slug: 'same-day-medical-certificate', title: 'Same Day Medical Certificates' },
+      ],
+    },
+    intent: {
+      searchQuery: 'flu certificate online',
+      alternateQueries: [
+        'cold certificate online',
+        'sick certificate flu',
+        'medical certificate for flu',
+        'flu sick leave online',
+      ],
+      userNeed: 'Get medical certificate for flu/cold without clinic visit',
+      urgency: 'same-day',
+      serviceType: 'medical-certificate',
+    },
+    conversion: {
+      primaryCTA: 'Get Flu Certificate',
+      ctaUrl: '/medical-certificate/new?reason=flu',
+    },
+  },
 ]
 
 // ============================================

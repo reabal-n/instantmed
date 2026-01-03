@@ -584,9 +584,406 @@ export const medications: MedicationPage[] = [
       requiresFollowUp: false,
     },
   },
+
+  // ============================================
+  // WOMEN'S HEALTH - EMERGENCY CONTRACEPTION
+  // ============================================
+  
+  {
+    slug: 'levonorgestrel',
+    type: 'medication',
+    title: 'Levonorgestrel Online Australia | Plan B | Emergency Contraception | InstantMed',
+    description: 'Get levonorgestrel (Plan B, morning after pill) prescribed online fast. Prevent pregnancy after unprotected sex. E-script within 30 minutes. From $29.95.',
+    h1: 'Levonorgestrel (Plan B) — Emergency Contraception',
+    content: {
+      intro: 'Levonorgestrel is the most commonly used emergency contraceptive pill in Australia (also known as Plan B or the "morning after pill"). It can prevent pregnancy if taken within 72 hours of unprotected sex or contraceptive failure.',
+      uniqueBlocks: [
+        {
+          id: 'how-it-works',
+          type: 'text',
+          content: 'Levonorgestrel works primarily by delaying or preventing ovulation. If you haven\'t ovulated yet, it stops the egg being released. It may also make it harder for sperm to reach an egg or for a fertilized egg to implant. It is NOT an abortion pill — it won\'t work if you\'re already pregnant. The sooner you take it after unprotected sex, the more effective it is.',
+        },
+        {
+          id: 'effectiveness',
+          type: 'text',
+          content: 'When taken within 24 hours, levonorgestrel is about 95% effective at preventing pregnancy. Between 24-48 hours, effectiveness drops to 85%. Between 48-72 hours, it\'s about 58% effective. While it can be used up to 72 hours (3 days), don\'t wait — earlier is better. If you\'re over 72 hours, ask about ulipristal (EllaOne) which works up to 120 hours (5 days).',
+        },
+        {
+          id: 'what-to-expect',
+          type: 'list',
+          content: [
+            'Take one 1.5mg tablet as soon as possible',
+            'Can be taken with or without food',
+            'May cause temporary nausea (take with food if concerned)',
+            'Your next period may be earlier, later, or heavier than usual',
+            'If you vomit within 2 hours of taking it, you need another dose',
+            'Take a pregnancy test if your period is more than 7 days late',
+          ],
+        },
+        {
+          id: 'important-info',
+          type: 'callout',
+          content: 'Levonorgestrel is for emergency use only — it\'s not suitable as regular contraception. If you have unprotected sex repeatedly, speak to a doctor about ongoing contraceptive options like the pill, IUD, or implant. Emergency contraception is less effective if you weigh over 70kg — ulipristal may be better.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: ['levonorgestrel online', 'plan b australia', 'morning after pill online', 'emergency contraception online', 'levonorgestrel prescription'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'How quickly can I get emergency contraception online?',
+          answer: 'We prioritize emergency contraception requests. E-scripts are typically sent within 30-60 minutes. You can then pick up from most pharmacies immediately (also available over-the-counter at pharmacies without prescription).',
+        },
+        {
+          question: 'Can I take Plan B multiple times?',
+          answer: 'Yes, you can take levonorgestrel more than once if needed, even in the same cycle. However, it\'s not designed for regular use and is less effective than ongoing contraception. If you need emergency contraception often, consider regular birth control.',
+        },
+        {
+          question: 'Will emergency contraception affect my fertility?',
+          answer: 'No — levonorgestrel has no long-term effects on your fertility. You can get pregnant again immediately after taking it, so use regular contraception if you have sex again.',
+        },
+        {
+          question: 'What are the side effects?',
+          answer: 'Common: nausea, fatigue, headache, dizziness, breast tenderness, irregular bleeding. Most side effects are mild and short-lived. Your next period may be different than usual (earlier, later, or heavier).',
+        },
+        {
+          question: 'Is it too late after 3 days?',
+          answer: 'Levonorgestrel works best within 72 hours. After that, ask about ulipristal (EllaOne) which is more effective and works up to 120 hours (5 days) after unprotected sex.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'intent', slug: 'emergency-contraception-online', title: 'Get Emergency Contraception Fast' },
+        { type: 'condition', slug: 'contraception', title: 'Regular Contraception Options' },
+        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
+      ],
+    },
+    medication: {
+      genericName: 'levonorgestrel',
+      brandNames: ['Postinor', 'Levonelle', 'Plan B'],
+      category: 'womens-health',
+      schedule: 'S3',
+      dosageForms: ['Tablet'],
+      commonDosages: ['1.5mg single dose'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Emergency contraception after unprotected sex',
+        'Emergency contraception after contraceptive failure (e.g., condom broke)',
+      ],
+      howItWorks: 'Delays or prevents ovulation. May also prevent fertilization or implantation. Does NOT cause abortion.',
+      eligibility: [
+        'Women and people who can become pregnant',
+        'Had unprotected sex within 72 hours',
+        'Not already pregnant',
+        'Age 18+ (available OTC at pharmacies without age restriction)',
+      ],
+      contraindications: [
+        'Known pregnancy (it won\'t work and won\'t harm pregnancy)',
+        'Allergy to levonorgestrel',
+      ],
+      commonSideEffects: [
+        'Nausea (10-20% of users)',
+        'Fatigue',
+        'Headache',
+        'Dizziness',
+        'Breast tenderness',
+        'Irregular bleeding or spotting',
+        'Changes to next period timing',
+      ],
+      seriousSideEffects: [
+        'Severe abdominal pain (possible ectopic pregnancy)',
+        'Severe allergic reaction (very rare)',
+      ],
+      interactions: [
+        'Enzyme-inducing medications (e.g., some epilepsy meds) may reduce effectiveness',
+        'May be less effective if BMI >26 or weight >70kg',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Quick questionnaire about timing of unprotected sex',
+        'Pregnancy possibility check',
+        'Weight and medication questions',
+        'E-script sent within 30-60 minutes if appropriate',
+        'Available OTC at pharmacies (no prescription needed in Australia)',
+      ],
+      turnaroundTime: '30-60 minutes (priority)',
+      pricing: '$29.95 consultation + prescription (also available OTC ~$20-35)',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+  },
+
+  // ============================================
+  // HAIR LOSS
+  // ============================================
+  
+  {
+    slug: 'minoxidil',
+    type: 'medication',
+    title: 'Minoxidil Online Australia | Hair Loss Treatment | InstantMed',
+    description: 'Get minoxidil for hair loss. Works for men and women. Topical treatment stimulates hair growth. Available over-the-counter. From $29.95 for guidance.',
+    h1: 'Minoxidil for Hair Loss — Men & Women',
+    content: {
+      intro: 'Minoxidil is a topical treatment (foam or solution) that can slow hair loss and stimulate regrowth in both men and women with pattern hair loss. It\'s one of only two treatments approved for hair loss in Australia (the other being finasteride for men only).',
+      uniqueBlocks: [
+        {
+          id: 'how-it-works',
+          type: 'text',
+          content: 'Minoxidil widens blood vessels in the scalp, improving blood flow to hair follicles. This extended growth phase means hairs grow longer before falling out, and miniaturized follicles can become thicker. The exact mechanism isn\'t fully understood, but it\'s proven to work. It must be applied directly to the scalp twice daily for best results.',
+        },
+        {
+          id: 'men-vs-women',
+          type: 'text',
+          content: 'Men typically use the 5% strength, while women usually start with 2% (though 5% can be more effective, it may cause more side effects like unwanted facial hair). Both genders should apply it to dry scalp twice daily. Results take time — most people see less shedding within 2-3 months, with visible regrowth appearing after 4-6 months of consistent use.',
+        },
+        {
+          id: 'realistic-expectations',
+          type: 'list',
+          content: [
+            'First 2-4 weeks: Possible increased shedding (temporary, normal)',
+            'Months 2-3: Reduced hair loss, existing hair may look thicker',
+            'Months 4-6: Visible new hair growth in most users',
+            'Peak effect: 12-18 months of continuous use',
+            'Maintenance: Must continue indefinitely — benefits reverse if stopped',
+          ],
+        },
+        {
+          id: 'important-info',
+          type: 'callout',
+          content: 'Minoxidil is available over-the-counter in Australia (no prescription needed). It must be used consistently — twice daily, every day. If you stop using it, you\'ll lose any regrown hair within 6-12 months. It works best when started early, before significant hair loss has occurred.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: ['minoxidil online', 'minoxidil australia', 'rogaine', 'hair loss treatment', 'minoxidil for women', 'minoxidil men'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Does minoxidil really work for hair loss?',
+          answer: 'Yes — clinical studies show minoxidil works for about 60% of users. It\'s more effective at slowing hair loss than regrowing hair, and works best when started early. Results vary, but most users see some benefit.',
+        },
+        {
+          question: 'Can women use minoxidil?',
+          answer: 'Yes — minoxidil is safe and effective for women with pattern hair loss. Women usually start with 2% strength. Unlike finasteride (men only), minoxidil is the main treatment option for female hair loss.',
+        },
+        {
+          question: 'What happens if I stop using minoxidil?',
+          answer: 'If you stop, you\'ll gradually lose any hair that was maintained or regrown by minoxidil, typically within 6-12 months. You\'ll return to the hair loss pattern you would have had without treatment.',
+        },
+        {
+          question: 'Do I need a prescription for minoxidil in Australia?',
+          answer: 'No — minoxidil is available over-the-counter at pharmacies and online. However, a consultation can help determine if it\'s right for you and how to use it effectively.',
+        },
+        {
+          question: 'Can I use minoxidil with finasteride?',
+          answer: 'Yes — many men use both together. Finasteride works internally (blocks DHT), while minoxidil works externally (improves blood flow). They have different mechanisms and can complement each other.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'finasteride', title: 'Finasteride for Hair Loss (Men)', description: 'Oral treatment, blocks DHT' },
+        { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment Options' },
+        { type: 'symptom', slug: 'hair-thinning', title: 'Hair Thinning Information' },
+      ],
+    },
+    medication: {
+      genericName: 'minoxidil',
+      brandNames: ['Rogaine', 'Regaine'],
+      category: 'general',
+      schedule: 'OTC',
+      dosageForms: ['Topical solution', 'Topical foam'],
+      commonDosages: ['2% twice daily (women)', '5% twice daily (men or women)'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Male pattern hair loss (androgenetic alopecia)',
+        'Female pattern hair loss',
+      ],
+      howItWorks: 'Widens blood vessels in scalp, improves blood flow to follicles, extends hair growth phase.',
+      eligibility: [
+        'Adults with pattern hair loss',
+        'Healthy scalp (no inflammation or infection)',
+        'Willing to commit to twice-daily application',
+        'Realistic expectations about results and timeline',
+      ],
+      contraindications: [
+        'Scalp infection or inflammation',
+        'Other causes of hair loss (alopecia areata, scarring alopecia)',
+        'Pregnancy or breastfeeding (not studied)',
+        'Children under 18',
+      ],
+      commonSideEffects: [
+        'Scalp irritation or itching (solution more than foam)',
+        'Increased facial or body hair (especially in women using 5%)',
+        'Temporary increased shedding (first 2-4 weeks)',
+        'Dryness or flaking',
+      ],
+      seriousSideEffects: [
+        'Severe scalp irritation or allergic reaction',
+        'Unwanted hair growth on face/body',
+        'Rapid heartbeat (if absorbed systemically)',
+        'Chest pain (very rare)',
+      ],
+      interactions: [
+        'No significant drug interactions',
+        'Absorption may increase with damaged or inflamed scalp',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Assessment of hair loss pattern',
+        'Discussion of 2% vs 5% strength',
+        'Application technique guidance',
+        'Timeline and expectations explained',
+        'Follow-up photos recommended at 6 and 12 months',
+      ],
+      turnaroundTime: 'OTC — no prescription needed. Consultation available for guidance.',
+      pricing: '$29.95 for consultation (product purchased separately OTC)',
+      requiresBloodTest: false,
+      requiresFollowUp: true,
+    },
+  },
+
+  {
+    slug: 'nitrofurantoin',
+    type: 'medication',
+    title: 'Nitrofurantoin Online Australia | UTI Antibiotic | InstantMed',
+    description: 'Get nitrofurantoin prescribed online for urinary tract infections. Australian doctors assess symptoms. Alternative to trimethoprim. From $29.95.',
+    h1: 'Nitrofurantoin for UTI — Antibiotic Alternative',
+    content: {
+      intro: 'Nitrofurantoin is another effective antibiotic for treating uncomplicated urinary tract infections (UTIs). It\'s often used as an alternative to trimethoprim, especially if you have trimethoprim-resistant bacteria or allergies.',
+      uniqueBlocks: [
+        {
+          id: 'how-different',
+          type: 'text',
+          content: 'Unlike trimethoprim which works throughout your body, nitrofurantoin concentrates specifically in the urine, making it very effective for bladder infections but not suitable for kidney infections. This targeted action also means it has fewer effects on your gut bacteria compared to other antibiotics, reducing the risk of thrush or diarrhea.',
+        },
+        {
+          id: 'how-to-use',
+          type: 'text',
+          content: 'Nitrofurantoin is usually taken as 100mg twice daily for 3 days for straightforward UTIs, or 5-7 days for more persistent infections. Always take it with food to improve absorption and reduce nausea. Some people notice their urine turns a dark yellow or brown color — this is harmless and normal.',
+        },
+        {
+          id: 'when-its-used',
+          type: 'list',
+          content: [
+            'First-line treatment if trimethoprim-resistant bacteria suspected',
+            'Alternative if allergic to or can\'t tolerate trimethoprim',
+            'Recurrent UTIs (can be used for prevention)',
+            'Pregnancy (safer than some other antibiotics)',
+            'NOT for kidney infections (doesn\'t reach high enough levels)',
+          ],
+        },
+        {
+          id: 'important-info',
+          type: 'callout',
+          content: 'Take nitrofurantoin with food or milk to reduce nausea. Don\'t worry if your urine turns dark yellow or brown — this is normal and harmless. Contact your doctor if you develop a cough or breathing difficulties (rare lung reaction).',
+        },
+      ],
+    },
+    metadata: {
+      keywords: ['nitrofurantoin online', 'UTI antibiotic online', 'nitrofurantoin prescription', 'UTI treatment australia', 'macrobid australia'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Is nitrofurantoin better than trimethoprim for UTI?',
+          answer: 'They\'re both effective. Nitrofurantoin may be preferred if you have trimethoprim-resistant bacteria, allergies, or recurrent UTIs. Your doctor can advise which is best for your situation.',
+        },
+        {
+          question: 'Why did my urine turn brown?',
+          answer: 'This is a harmless side effect of nitrofurantoin. Your urine may turn dark yellow, brown, or rust-colored. It will return to normal once you finish the medication.',
+        },
+        {
+          question: 'Can I take nitrofurantoin during pregnancy?',
+          answer: 'Nitrofurantoin is generally safe in pregnancy except near term (last few weeks). It\'s often preferred over other antibiotics for pregnant women with UTIs.',
+        },
+        {
+          question: 'What if I have kidney problems?',
+          answer: 'Nitrofurantoin is not suitable if you have moderate to severe kidney disease (eGFR <60). It concentrates in urine and won\'t work properly if your kidneys aren\'t functioning well.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'trimethoprim', title: 'Trimethoprim for UTI', description: 'Alternative first-line treatment' },
+        { type: 'condition', slug: 'uti', title: 'UTI Treatment Information' },
+        { type: 'symptom', slug: 'burning-when-urinating', title: 'UTI Symptoms' },
+      ],
+    },
+    medication: {
+      genericName: 'nitrofurantoin',
+      brandNames: ['Macrobid', 'Macrodantin'],
+      category: 'general',
+      schedule: 'S4',
+      dosageForms: ['Capsule', 'Tablet'],
+      commonDosages: ['100mg twice daily for 3-7 days'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Uncomplicated urinary tract infections (UTIs)',
+        'Bladder infections (cystitis)',
+        'UTI prevention (lower dose)',
+      ],
+      howItWorks: 'Damages bacterial DNA and other processes. Concentrates in urine, providing high local concentration in the bladder.',
+      eligibility: [
+        'Adults with UTI symptoms',
+        'Normal kidney function (eGFR >60)',
+        'Not allergic to nitrofurantoin',
+        'No lung disease',
+      ],
+      contraindications: [
+        'Significant kidney impairment (eGFR <60)',
+        'End of pregnancy (after 38 weeks)',
+        'G6PD deficiency',
+        'Infants under 1 month',
+        'Known hypersensitivity',
+      ],
+      commonSideEffects: [
+        'Nausea or upset stomach (take with food)',
+        'Headache',
+        'Dark yellow or brown urine (harmless)',
+        'Loss of appetite',
+      ],
+      seriousSideEffects: [
+        'Lung problems (cough, shortness of breath) — rare',
+        'Liver problems (jaundice) — rare',
+        'Nerve problems with long-term use — rare',
+        'Severe allergic reaction',
+      ],
+      interactions: [
+        'Antacids containing magnesium — may reduce absorption',
+        'Probenecid — increases levels',
+        'Some quinolone antibiotics — avoid combination',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'UTI symptom questionnaire',
+        'Kidney function and allergy questions',
+        'Doctor assesses suitability vs trimethoprim',
+        'E-script sent if appropriate',
+        'Instructions to take with food',
+      ],
+      turnaroundTime: '1-3 hours (same day)',
+      pricing: '$29.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+  },
   
   // Continue with more medications...
-  // TODO: Add minoxidil, levonorgestrel (Plan B), OCPs, etc.
+  // TODO: Add OCPs, propranolol, etc.
 ]
 
 // ============================================

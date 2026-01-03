@@ -314,6 +314,281 @@ export const symptomPages: SymptomPage[] = [
       ctaUrl: '/mens-health?condition=hairloss',
     },
   },
+
+  {
+    slug: 'chest-pain',
+    type: 'symptom',
+    title: 'Chest Pain | When to Seek Emergency Care | InstantMed',
+    description: 'Experiencing chest pain? Learn about causes (heart attack, anxiety, reflux), emergency warning signs, and when to call 000 vs see a GP.',
+    h1: 'Chest Pain — What It Means & When to Get Help',
+    content: {
+      intro: 'Chest pain is one of the most concerning symptoms because it can indicate a heart attack or other serious conditions. However, many cases of chest pain are not life-threatening. Knowing the warning signs helps you decide when to seek emergency care versus when to see a GP.',
+      uniqueBlocks: [
+        {
+          id: 'heart-attack-vs-other',
+          type: 'text',
+          content: 'Heart attack chest pain is typically described as heavy pressure, tightness, or squeezing in the center of your chest that lasts more than a few minutes. It may spread to your arm, jaw, or back. You might also feel sweaty, nauseous, short of breath, or lightheaded. Other causes include anxiety (sharp, stabbing pain that comes and goes), reflux (burning pain after eating), muscle strain (tender to touch), or lung problems.',
+        },
+        {
+          id: 'red-flags',
+          type: 'list',
+          content: [
+            'Pressure or squeezing in chest lasting >5 minutes',
+            'Pain spreading to arm, jaw, neck, or back',
+            'Sweating, nausea, or vomiting with chest pain',
+            'Shortness of breath or difficulty breathing',
+            'Feeling like you might pass out',
+            'Chest pain with fast or irregular heartbeat',
+          ],
+        },
+        {
+          id: 'important',
+          type: 'callout',
+          content: 'If you think you might be having a heart attack, call 000 immediately. Do NOT drive yourself to hospital. Chew an aspirin (if not allergic) while waiting for ambulance. Time is critical — "time is heart muscle." Better to be checked and sent home than to delay and have permanent heart damage.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'chest pain',
+        'chest pain causes',
+        'heart attack symptoms',
+        'chest pain emergency',
+        'when to worry about chest pain',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'How do I know if chest pain is serious?',
+          answer: 'Serious chest pain is typically: heavy/pressure-like, lasts >5 minutes, comes with sweating/nausea/breathlessness, or spreads to arm/jaw. When in doubt, call 000 — it\'s better to be safe.',
+        },
+        {
+          question: 'Can anxiety cause chest pain?',
+          answer: 'Yes — anxiety and panic attacks commonly cause chest pain. It\'s usually sharp, stabbing, comes and goes quickly, and gets worse when you\'re stressed. However, if you\'re not sure, get it checked.',
+        },
+        {
+          question: 'What about heartburn vs heart attack?',
+          answer: 'Heartburn typically causes burning pain behind the breastbone, gets worse lying down or after eating, and responds to antacids. Heart attack pain is more pressure-like and doesn\'t improve with antacids. If unsure, seek emergency care.',
+        },
+        {
+          question: 'When can I see a GP instead of going to emergency?',
+          answer: 'See a GP for: mild pain that comes and goes, pain that\'s clearly muscular (tender to touch), pain only when breathing deeply (possible costochondritis), or recurring reflux symptoms. Always err on the side of caution.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'condition', slug: 'acid-reflux', title: 'Acid Reflux Treatment' },
+        { type: 'condition', slug: 'anxiety', title: 'Anxiety Management' },
+      ],
+    },
+    symptom: {
+      commonName: 'chest pain',
+      medicalTerm: 'chest pain',
+      severity: 'emergency',
+      bodySystem: 'general',
+    },
+    causes: {
+      common: [
+        'Anxiety or panic attack — sharp, stabbing pain',
+        'Acid reflux (GERD) — burning pain after eating',
+        'Muscle strain — tender to touch, worse with movement',
+        'Costochondritis — inflammation of rib cartilage',
+      ],
+      lessCommon: [
+        'Lung infection (pneumonia, pleurisy)',
+        'Pulmonary embolism (blood clot in lung)',
+        'Pericarditis (heart lining inflammation)',
+        'Aortic dissection (tear in major blood vessel)',
+      ],
+      emergency: [
+        'Heart attack (myocardial infarction)',
+        'Unstable angina',
+        'Aortic dissection',
+        'Pulmonary embolism',
+        'Tension pneumothorax',
+      ],
+    },
+    selfCare: [
+      'DO NOT self-treat if you think it might be cardiac',
+      'For anxiety-related pain: Deep breathing, relaxation techniques',
+      'For reflux: Antacids, avoid lying down after eating',
+      'For muscle strain: Rest, ice, anti-inflammatories',
+      'Keep aspirin on hand if you have heart disease risk factors',
+    ],
+    whenToSeekHelp: {
+      seeGPIf: [
+        'Recurring chest pain episodes',
+        'Chest pain with reflux symptoms',
+        'Chest wall tenderness (possible costochondritis)',
+        'Persistent cough with chest discomfort',
+        'History of anxiety with typical panic symptoms',
+      ],
+      emergency: [
+        'Pressure, tightness, or squeezing in chest',
+        'Pain lasting >5 minutes or getting worse',
+        'Pain spreading to arm, jaw, neck, or back',
+        'Sweating, nausea, or shortness of breath',
+        'Feeling like you might faint',
+        'Any chest pain if you have heart disease risk factors',
+      ],
+    },
+    onlineTreatment: {
+      canHelpWith: [
+        'Follow-up for diagnosed reflux',
+        'Anxiety management strategies',
+        'Recurrent costochondritis',
+        'General health checks for prevention',
+      ],
+      whatWeOffer: [
+        'NOT suitable for acute chest pain assessment',
+        'Follow-up after emergency department visit',
+        'Anxiety treatment and management',
+        'Reflux medication prescriptions',
+        'Preventive cardiovascular health advice',
+      ],
+      ctaText: 'Get Follow-Up Care',
+      ctaUrl: '/prescriptions',
+    },
+  },
+
+  {
+    slug: 'frequent-urination',
+    type: 'symptom',
+    title: 'Frequent Urination | Causes & When to Seek Help | InstantMed',
+    description: 'Peeing frequently? Learn about causes (UTI, diabetes, prostate, anxiety), when to see a doctor, and how to get online treatment.',
+    h1: 'Frequent Urination — Why It Happens & What To Do',
+    content: {
+      intro: 'Needing to urinate more often than usual (frequency) or feeling an urgent need to go even when you just went can be frustrating and disruptive. While often caused by simple issues like drinking too much fluid or a bladder infection, it can sometimes indicate underlying conditions that need treatment.',
+      uniqueBlocks: [
+        {
+          id: 'common-patterns',
+          type: 'text',
+          content: 'Normal is about 6-8 times per day. Frequent urination means going more often than this, including waking at night (nocturia). The pattern matters: If you\'re also experiencing burning, pain, or urgency, it\'s likely a UTI. If you\'re drinking a lot and urinating large volumes, consider diabetes. Men over 50 with weak stream and difficulty starting may have prostate issues. Anxiety can also cause frequent urination without infection.',
+        },
+        {
+          id: 'gender-differences',
+          type: 'list',
+          content: [
+            'Women: UTIs are most common cause. Pregnancy increases frequency. Overactive bladder is common.',
+            'Men: Prostate enlargement (BPH) is common over age 50. Prostatitis can cause frequency + pain.',
+            'Anyone: Diabetes, excessive caffeine, anxiety, certain medications, or overactive bladder.',
+          ],
+        },
+        {
+          id: 'self-assessment',
+          type: 'callout',
+          content: 'Keep a bladder diary for 2-3 days: note how much you drink, how often you pee, and how much each time. Also note any pain, urgency, or leakage. This helps your doctor identify patterns and diagnose the cause.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'frequent urination',
+        'peeing a lot',
+        'frequent urination causes',
+        'frequent urination women',
+        'frequent urination men',
+        'overactive bladder',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Is frequent urination a sign of diabetes?',
+          answer: 'It can be. If you\'re peeing frequently AND drinking a lot, feeling thirsty all the time, losing weight, or feeling tired, get your blood sugar checked. Type 2 diabetes often starts with these symptoms.',
+        },
+        {
+          question: 'How often is too often to urinate?',
+          answer: 'More than 8 times during the day or waking 2+ times at night is considered frequent. However, "normal" varies — some people naturally go more than others.',
+        },
+        {
+          question: 'Can anxiety cause frequent urination?',
+          answer: 'Yes — anxiety activates your fight-or-flight response, which can increase urination. You may feel like you need to go even with an empty bladder. Treating the anxiety often helps.',
+        },
+        {
+          question: 'When should I see a doctor about frequent urination?',
+          answer: 'See a doctor if: it\'s sudden and persistent, you have pain/burning, there\'s blood in urine, you\'re very thirsty, or it\'s disrupting your life. Also if you\'re male and having difficulty starting or weak stream.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'symptom', slug: 'burning-when-urinating', title: 'Burning When Urinating' },
+        { type: 'condition', slug: 'uti', title: 'UTI Treatment' },
+      ],
+    },
+    symptom: {
+      commonName: 'frequent urination',
+      medicalTerm: 'urinary frequency',
+      severity: 'moderate',
+      bodySystem: 'urinary',
+    },
+    causes: {
+      common: [
+        'Urinary tract infection (UTI) — especially if pain/burning too',
+        'Drinking too much fluid (especially coffee, tea, alcohol)',
+        'Pregnancy — uterus presses on bladder',
+        'Anxiety or stress',
+        'Overactive bladder syndrome',
+      ],
+      lessCommon: [
+        'Type 2 diabetes — high blood sugar',
+        'Prostate enlargement (BPH) in men over 50',
+        'Medications (diuretics, blood pressure meds)',
+        'Interstitial cystitis (chronic bladder pain)',
+        'Neurological conditions',
+      ],
+      emergency: [
+        'Unable to urinate at all (acute retention)',
+        'Fever + back pain + frequency (possible kidney infection)',
+        'Blood in urine + severe pain',
+      ],
+    },
+    selfCare: [
+      'Keep a bladder diary for 2-3 days',
+      'Reduce caffeine and alcohol intake',
+      'Avoid drinking large amounts before bed',
+      'Practice bladder training (gradually increase time between bathroom visits)',
+      'Pelvic floor exercises (Kegels) can help',
+      'Manage stress and anxiety',
+    ],
+    whenToSeekHelp: {
+      seeGPIf: [
+        'Frequency is new and persistent',
+        'Waking 2+ times per night to urinate',
+        'Excessive thirst and urination together',
+        'Weak urine stream or difficulty starting (men)',
+        'Leaking urine',
+        'Pain or discomfort',
+      ],
+      emergency: [
+        'Complete inability to urinate',
+        'Severe pain with frequency',
+        'Fever and back pain (possible kidney infection)',
+        'Blood in urine with severe symptoms',
+      ],
+    },
+    onlineTreatment: {
+      canHelpWith: [
+        'Straightforward UTI causing frequency',
+        'Recurrent UTIs',
+        'Need for diabetes screening',
+        'Overactive bladder management',
+      ],
+      whatWeOffer: [
+        'UTI assessment and antibiotics if appropriate',
+        'Bladder diary review and advice',
+        'Referral for further testing if needed',
+        'Lifestyle modification guidance',
+      ],
+      ctaText: 'Get Assessed Online',
+      ctaUrl: '/prescriptions?condition=uti',
+    },
+  },
 ]
 
 // ============================================
