@@ -992,6 +992,563 @@ export const medications: MedicationPage[] = [
 
 export function getMedicationBySlug(slug: string): MedicationPage | undefined {
   return medications.find(m => m.slug === slug)
+  },
+
+  // ============================================
+  // ANXIETY & STRESS
+  // ============================================
+  {
+    slug: 'propranolol',
+    title: 'Propranolol Online | Performance Anxiety & Stage Fright Treatment',
+    description: 'Get propranolol (beta blocker) prescribed online for performance anxiety, public speaking, and situational stress. Australian doctors available.',
+    keywords: ['propranolol', 'beta blocker', 'performance anxiety', 'stage fright', 'public speaking anxiety'],
+    type: 'medication',
+    medication: {
+      genericName: 'propranolol',
+      brandNames: ['Inderal'],
+      category: 'anxiety',
+      schedule: 'S4',
+      dosageForms: ['tablets'],
+      commonDosages: ['10mg', '20mg', '40mg'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Performance anxiety (public speaking, presentations)',
+        'Situational anxiety (exams, interviews)',
+        'Social anxiety in specific situations',
+        'Stage fright for performers',
+      ],
+      howItWorks: 'Propranolol is a beta blocker that works by blocking the physical symptoms of anxiety - racing heart, trembling hands, sweaty palms. It does not affect your mental state, only the physical response.',
+      eligibility: [
+        'Adults aged 18-65',
+        'Experiencing performance anxiety or situational stress',
+        'No heart or lung conditions',
+        'Not taking other blood pressure medications',
+        'No history of asthma',
+      ],
+      contraindications: [
+        'Asthma or COPD',
+        'Heart failure or heart block',
+        'Low blood pressure',
+        'Bradycardia (slow heart rate)',
+        'Peripheral vascular disease',
+        'Diabetes (can mask hypoglycemia symptoms)',
+      ],
+      commonSideEffects: [
+        'Feeling tired or dizzy',
+        'Cold hands and feet',
+        'Difficulty sleeping',
+        'Upset stomach',
+      ],
+      seriousSideEffects: [
+        'Very slow heart rate',
+        'Severe dizziness or fainting',
+        'Breathing difficulties',
+        'Swelling of hands/feet',
+      ],
+      interactions: [
+        'Other blood pressure medications',
+        'Diabetes medications',
+        'Asthma medications',
+        'Some antidepressants',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Questions about your anxiety triggers',
+        'Medical history assessment',
+        'Heart and blood pressure history',
+        'Current medications review',
+        'Discussion of when to take it (1-2 hours before event)',
+      ],
+      turnaroundTime: '30 minutes (priority) or 24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+    content: {
+      intro: 'Propranolol is a beta blocker medication commonly prescribed for performance anxiety and situational stress. Unlike anti-anxiety medications that affect your mental state, propranolol works by blocking the physical symptoms of anxiety.',
+      sections: [
+        {
+          heading: 'What is propranolol used for?',
+          content: 'Propranolol is primarily used for performance anxiety - situations where you feel physically anxious but want to maintain mental clarity. This includes public speaking, presentations, job interviews, exams, musical performances, and other high-pressure situations.',
+        },
+        {
+          heading: 'How does it work?',
+          content: 'Propranolol blocks beta receptors in your body, preventing adrenaline from causing physical anxiety symptoms. It stops your heart from racing, reduces trembling, and prevents sweaty palms - but does not make you drowsy or affect your cognitive function.',
+        },
+        {
+          heading: 'When to take propranolol',
+          content: 'Take propranolol 1-2 hours before your anxiety-inducing event. It typically lasts 3-4 hours. Do not take daily unless specifically instructed by your doctor. This is a situational medication, not for long-term anxiety management.',
+        },
+        {
+          heading: 'Can InstantMed prescribe propranolol?',
+          content: 'Yes, our Australian doctors can prescribe propranolol for performance anxiety after an online consultation. We assess your medical history, current medications, and ensure it is safe for you. Not suitable if you have asthma or certain heart conditions.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Will propranolol make me drowsy or affect my performance?',
+        answer: 'No. Unlike benzodiazepines or other anti-anxiety medications, propranolol does not affect your mental state. You will remain alert and clear-headed. It only blocks the physical symptoms of anxiety.',
+      },
+      {
+        question: 'Can I take propranolol daily?',
+        answer: 'Propranolol prescribed by InstantMed is for situational use only (e.g., before presentations). If you need daily medication for ongoing anxiety, you should see your regular GP for comprehensive mental health care.',
+      },
+      {
+        question: 'How long before an event should I take it?',
+        answer: 'Take propranolol 1-2 hours before your anxiety-inducing event. The effect peaks around 1-2 hours after taking it and lasts 3-4 hours.',
+      },
+      {
+        question: 'Can I use propranolol if I have asthma?',
+        answer: 'No. Propranolol can trigger asthma symptoms and is contraindicated if you have asthma or COPD. There are alternative options your GP can discuss with you.',
+      },
+      {
+        question: 'Is propranolol addictive?',
+        answer: 'No, propranolol is not addictive and has no potential for abuse. It is a beta blocker, not a controlled substance.',
+      },
+    ],
+  },
+
+  // ============================================
+  // WOMEN'S HEALTH
+  // ============================================
+  {
+    slug: 'combined-oral-contraceptive',
+    title: 'Birth Control Pill Online | Oral Contraceptive Prescription Australia',
+    description: 'Get the combined oral contraceptive pill (OCP) prescribed online. Australian doctors can renew your script or prescribe if you have used it before.',
+    keywords: ['birth control pill', 'oral contraceptive', 'OCP', 'contraception', 'the pill'],
+    type: 'medication',
+    medication: {
+      genericName: 'combined oral contraceptive',
+      brandNames: ['Microgynon', 'Levlen', 'Diane', 'Yaz', 'Yasmin'],
+      category: 'womens-health',
+      schedule: 'S4',
+      dosageForms: ['tablets'],
+      commonDosages: ['varies by formulation'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Contraception (pregnancy prevention)',
+        'Menstrual cycle regulation',
+        'Reducing heavy or painful periods',
+        'Acne management (some formulations)',
+      ],
+      howItWorks: 'The combined pill contains two hormones (estrogen and progestin) that prevent ovulation, thicken cervical mucus, and thin the uterine lining. When taken correctly, it is over 99% effective at preventing pregnancy.',
+      eligibility: [
+        'Women aged 18-50',
+        'Previously prescribed the pill (repeat prescription)',
+        'No history of blood clots or stroke',
+        'Non-smoker (or under 35 if smoker)',
+        'Blood pressure within normal range',
+      ],
+      contraindications: [
+        'History of blood clots (DVT, PE)',
+        'Smoker over age 35',
+        'High blood pressure (uncontrolled)',
+        'History of stroke or heart attack',
+        'Migraine with aura',
+        'Breast cancer or hormone-sensitive cancer',
+        'Pregnancy or breastfeeding (first 6 months)',
+      ],
+      commonSideEffects: [
+        'Mild nausea (first few weeks)',
+        'Breast tenderness',
+        'Headaches',
+        'Mood changes',
+        'Spotting between periods (first 3 months)',
+      ],
+      seriousSideEffects: [
+        'Leg pain or swelling (DVT)',
+        'Chest pain or shortness of breath',
+        'Severe headache or vision changes',
+        'Severe abdominal pain',
+      ],
+      interactions: [
+        'Some antibiotics (rifampicin)',
+        'Anti-seizure medications',
+        'St Johns Wort',
+        'Some antiretrovirals',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Confirmation that you have used this pill before',
+        'Blood pressure and weight check recommendation',
+        'Smoking status and cardiovascular risk factors',
+        'Discussion of missed pill protocol',
+        'Reminder about STI protection (pill does not protect)',
+      ],
+      turnaroundTime: '24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: true,
+    },
+    content: {
+      intro: 'The combined oral contraceptive pill (OCP) is a highly effective form of contraception containing two hormones: estrogen and progestin. InstantMed can prescribe the pill if you have used it before and have had recent blood pressure checks.',
+      sections: [
+        {
+          heading: 'What is the combined pill?',
+          content: 'The combined pill is a daily tablet containing estrogen and progestin. It prevents pregnancy by stopping ovulation, thickening cervical mucus, and thinning the uterine lining. When taken correctly, it is over 99% effective.',
+        },
+        {
+          heading: 'Can InstantMed prescribe the pill?',
+          content: 'Yes, but only if you have been on the pill before and have had a blood pressure check in the last 6-12 months. We cannot prescribe the pill for the first time online - this requires an in-person GP visit with blood pressure monitoring.',
+        },
+        {
+          heading: 'What if I miss a pill?',
+          content: 'If you miss one pill, take it as soon as you remember (even if it means taking two pills in one day) and continue as normal. If you miss two or more pills, use backup contraception for 7 days and refer to your pill packet instructions.',
+        },
+        {
+          heading: 'Does the pill protect against STIs?',
+          content: 'No. The pill prevents pregnancy but does not protect against sexually transmitted infections. Use condoms for STI protection.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Can I get the pill for the first time through InstantMed?',
+        answer: 'No. If you have never taken the pill before, you need an in-person GP visit for blood pressure monitoring and comprehensive counseling. InstantMed can prescribe repeat prescriptions only.',
+      },
+      {
+        question: 'How often do I need blood pressure checks?',
+        answer: 'Blood pressure should be checked every 6-12 months while on the pill. You can get this done at a pharmacy or your local GP.',
+      },
+      {
+        question: 'Can I skip my period on the pill?',
+        answer: 'Yes, with most combined pills you can skip the sugar pills and start a new pack immediately to skip your period. Discuss this with your doctor first.',
+      },
+      {
+        question: 'What if I vomit or have diarrhea after taking the pill?',
+        answer: 'If you vomit within 2 hours of taking the pill, take another pill. Severe diarrhea can also affect absorption. Use backup contraception for 7 days.',
+      },
+    ],
+  },
+
+  // ============================================
+  // GENERAL HEALTH
+  // ============================================
+  {
+    slug: 'doxycycline',
+    title: 'Doxycycline Online | Antibiotic for Acne, UTI, Respiratory Infections',
+    description: 'Get doxycycline prescribed online for bacterial infections, acne treatment, and respiratory infections. Australian doctor consultation available.',
+    keywords: ['doxycycline', 'antibiotic', 'acne treatment', 'bacterial infection', 'respiratory infection'],
+    type: 'medication',
+    medication: {
+      genericName: 'doxycycline',
+      brandNames: ['Doryx', 'Doxy-50', 'Doxyhexal'],
+      category: 'general',
+      schedule: 'S4',
+      dosageForms: ['capsules', 'tablets'],
+      commonDosages: ['50mg', '100mg'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Acne treatment (moderate to severe)',
+        'Urinary tract infections',
+        'Respiratory tract infections',
+        'Skin and soft tissue infections',
+        'Certain sexually transmitted infections',
+      ],
+      howItWorks: 'Doxycycline is a tetracycline antibiotic that stops bacteria from growing by interfering with their protein production. It also has anti-inflammatory properties useful for acne.',
+      eligibility: [
+        'Adults and children over 12',
+        'Confirmed or suspected bacterial infection',
+        'No allergy to tetracycline antibiotics',
+        'Not pregnant or breastfeeding',
+      ],
+      contraindications: [
+        'Pregnancy (causes permanent tooth discoloration in fetus)',
+        'Breastfeeding',
+        'Children under 12 (can affect bone and tooth development)',
+        'Allergy to tetracyclines',
+      ],
+      commonSideEffects: [
+        'Nausea or upset stomach',
+        'Sensitivity to sunlight',
+        'Diarrhea',
+        'Vaginal thrush',
+      ],
+      seriousSideEffects: [
+        'Severe skin reaction with sun exposure',
+        'Severe diarrhea (may indicate C. diff)',
+        'Difficulty swallowing or chest pain (esophagitis)',
+        'Signs of liver problems',
+      ],
+      interactions: [
+        'Antacids (reduce absorption)',
+        'Iron supplements',
+        'Oral contraceptives (may reduce effectiveness)',
+        'Warfarin (blood thinner)',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Description of your symptoms',
+        'Previous antibiotic use and allergies',
+        'Pregnancy status check (women)',
+        'Sun exposure and lifestyle questions',
+        'Instructions to take with food and plenty of water',
+      ],
+      turnaroundTime: '30 minutes (priority) or 24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+    content: {
+      intro: 'Doxycycline is a versatile antibiotic used to treat various bacterial infections including acne, respiratory infections, and UTIs. It is also used as a preventive treatment for malaria.',
+      sections: [
+        {
+          heading: 'What is doxycycline used for?',
+          content: 'Doxycycline treats bacterial infections including moderate to severe acne, respiratory infections, urinary tract infections, and some sexually transmitted infections. For acne, it is typically used for 3-6 months.',
+        },
+        {
+          heading: 'How to take doxycycline',
+          content: 'Take doxycycline with a full glass of water and food to reduce stomach upset. Sit upright for at least 30 minutes after taking to prevent esophageal irritation. Avoid taking with dairy products, antacids, or iron supplements.',
+        },
+        {
+          heading: 'Sun sensitivity',
+          content: 'Doxycycline can make your skin very sensitive to sunlight. Use SPF 50+ sunscreen, wear protective clothing, and avoid prolonged sun exposure while taking this medication.',
+        },
+        {
+          heading: 'When will it work?',
+          content: 'For infections, improvement is usually seen within 2-3 days. For acne, it takes 6-12 weeks to see significant improvement. Do not stop early even if you feel better.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Can I take doxycycline if I am pregnant?',
+        answer: 'No. Doxycycline is not safe during pregnancy as it can cause permanent tooth discoloration and affect bone development in the fetus. Tell your doctor immediately if you become pregnant while taking it.',
+      },
+      {
+        question: 'Will doxycycline affect my birth control pill?',
+        answer: 'Possibly. While evidence is mixed, doxycycline may reduce the effectiveness of oral contraceptives. Use backup contraception during treatment and for 7 days after.',
+      },
+      {
+        question: 'Why do I need to stay upright after taking it?',
+        answer: 'Doxycycline can cause esophageal irritation if it gets stuck in your esophagus. Taking it with plenty of water and staying upright for 30 minutes helps the tablet reach your stomach.',
+      },
+      {
+        question: 'How long do I need to take it for acne?',
+        answer: 'Acne treatment typically requires 3-6 months of doxycycline. Your doctor will review after 3 months to assess effectiveness and plan next steps.',
+      },
+    ],
+  },
+
+  {
+    slug: 'ondansetron',
+    title: 'Ondansetron Online | Anti-Nausea Medication for Vomiting & Morning Sickness',
+    description: 'Get ondansetron (Zofran) prescribed online for severe nausea and vomiting. Fast relief for gastro, food poisoning, and morning sickness.',
+    keywords: ['ondansetron', 'Zofran', 'anti-nausea', 'vomiting', 'morning sickness', 'gastro'],
+    type: 'medication',
+    medication: {
+      genericName: 'ondansetron',
+      brandNames: ['Zofran'],
+      category: 'general',
+      schedule: 'S4',
+      dosageForms: ['tablets', 'wafers (dissolve on tongue)'],
+      commonDosages: ['4mg', '8mg'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Severe nausea and vomiting',
+        'Gastroenteritis (gastro)',
+        'Food poisoning',
+        'Morning sickness (pregnancy)',
+        'Post-operative nausea',
+      ],
+      howItWorks: 'Ondansetron is a 5-HT3 receptor antagonist that blocks serotonin receptors in the gut and brain that trigger nausea and vomiting. It is highly effective and fast-acting.',
+      eligibility: [
+        'Adults aged 18+',
+        'Experiencing severe nausea or vomiting',
+        'Unable to keep fluids down',
+        'No heart rhythm problems',
+      ],
+      contraindications: [
+        'Allergy to ondansetron',
+        'Congenital long QT syndrome',
+        'Taking apomorphine',
+      ],
+      commonSideEffects: [
+        'Headache',
+        'Constipation',
+        'Dizziness',
+        'Fatigue',
+      ],
+      seriousSideEffects: [
+        'Irregular heartbeat',
+        'Severe allergic reaction',
+        'Serotonin syndrome (if combined with certain medications)',
+      ],
+      interactions: [
+        'Medications that prolong QT interval',
+        'Tramadol (opioid pain reliever)',
+        'SSRIs (antidepressants)',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Questions about your symptoms and severity',
+        'Duration of nausea/vomiting',
+        'Ability to keep fluids down (dehydration check)',
+        'Current medications and heart history',
+        'Instructions on when to go to hospital if worsening',
+      ],
+      turnaroundTime: '30 minutes (priority) or 24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+    content: {
+      intro: 'Ondansetron (Zofran) is a powerful anti-nausea medication used to treat severe vomiting from gastro, food poisoning, morning sickness, or other causes. It works quickly and is available in wafer form that dissolves on your tongue.',
+      sections: [
+        {
+          heading: 'What is ondansetron used for?',
+          content: 'Ondansetron is used for severe nausea and vomiting that prevents you from keeping fluids or food down. It is commonly prescribed for gastroenteritis, food poisoning, morning sickness during pregnancy, or post-operative nausea.',
+        },
+        {
+          heading: 'How quickly does it work?',
+          content: 'Ondansetron works within 30 minutes to 1 hour. The wafer form (dissolves on tongue) may work slightly faster than tablets. Effects last 8-12 hours.',
+        },
+        {
+          heading: 'Is it safe in pregnancy?',
+          content: 'Yes. Ondansetron is commonly prescribed for severe morning sickness and is considered safe during pregnancy. It is particularly useful when nausea prevents you from eating or drinking.',
+        },
+        {
+          heading: 'When should I go to hospital instead?',
+          content: 'Seek emergency care if you have: blood in vomit, severe abdominal pain, signs of dehydration (dark urine, dizziness), inability to keep any fluids down for 24+ hours, or vomiting with severe headache.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Can I take ondansetron if I am pregnant?',
+        answer: 'Yes. Ondansetron is commonly prescribed for morning sickness and hyperemesis gravidarum. Studies show it is safe to use during pregnancy when needed.',
+      },
+      {
+        question: 'Will it make me drowsy?',
+        answer: 'Some people feel mildly drowsy, but ondansetron is generally well-tolerated and does not cause significant sedation like older anti-nausea medications.',
+      },
+      {
+        question: 'Can I take it for motion sickness?',
+        answer: 'Ondansetron can help with motion sickness but is not typically first-line treatment. Medications like hyoscine (Kwells) are usually preferred for motion sickness prevention.',
+      },
+      {
+        question: 'How often can I take it?',
+        answer: 'Typically 8mg every 8-12 hours as needed. Maximum 24mg per day. Follow your doctor\'s instructions.',
+      },
+    ],
+  },
+
+  {
+    slug: 'omeprazole',
+    title: 'Omeprazole Online | Reflux, Heartburn & Stomach Acid Treatment',
+    description: 'Get omeprazole prescribed online for acid reflux, heartburn, and GERD. Proton pump inhibitor available through Australian telehealth.',
+    keywords: ['omeprazole', 'reflux', 'heartburn', 'GERD', 'acid', 'PPI'],
+    type: 'medication',
+    medication: {
+      genericName: 'omeprazole',
+      brandNames: ['Losec', 'Acimax'],
+      category: 'general',
+      schedule: 'S3',
+      dosageForms: ['capsules'],
+      commonDosages: ['20mg', '40mg'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Gastroesophageal reflux disease (GERD)',
+        'Heartburn',
+        'Stomach ulcers',
+        'Acid-related stomach pain',
+        'Prevention of NSAID-induced ulcers',
+      ],
+      howItWorks: 'Omeprazole is a proton pump inhibitor (PPI) that reduces stomach acid production by blocking the enzyme system responsible for acid secretion in the stomach lining.',
+      eligibility: [
+        'Adults aged 18+',
+        'Diagnosed with reflux, heartburn, or ulcers',
+        'Symptoms not controlled by antacids',
+        'No signs of serious stomach conditions',
+      ],
+      contraindications: [
+        'Allergy to omeprazole or PPIs',
+        'Taking rilpivirine or nelfinavir (HIV medications)',
+      ],
+      commonSideEffects: [
+        'Headache',
+        'Nausea or diarrhea',
+        'Stomach pain',
+        'Constipation',
+        'Gas',
+      ],
+      seriousSideEffects: [
+        'Severe diarrhea (may indicate C. diff)',
+        'Bone fractures (with long-term use)',
+        'Low magnesium (with long-term use)',
+        'Kidney problems',
+      ],
+      interactions: [
+        'Clopidogrel (blood thinner)',
+        'Certain antifungals',
+        'Some HIV medications',
+        'Warfarin',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Description of reflux or heartburn symptoms',
+        'Frequency and severity',
+        'Trigger foods or situations',
+        'Previous treatments tried',
+        'Warning signs check (weight loss, difficulty swallowing)',
+      ],
+      turnaroundTime: '24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: true,
+    },
+    content: {
+      intro: 'Omeprazole is a proton pump inhibitor (PPI) that reduces stomach acid production. It is used to treat acid reflux, heartburn, GERD, and stomach ulcers. Omeprazole is more effective than antacids for ongoing symptoms.',
+      sections: [
+        {
+          heading: 'What is omeprazole used for?',
+          content: 'Omeprazole treats gastroesophageal reflux disease (GERD), frequent heartburn, stomach ulcers, and acid-related stomach pain. It is also used to prevent ulcers in people taking NSAIDs long-term.',
+        },
+        {
+          heading: 'How to take omeprazole',
+          content: 'Take omeprazole once daily in the morning, 30-60 minutes before breakfast. Swallow the capsule whole - do not crush or chew. It takes 2-3 days to reach full effect.',
+        },
+        {
+          heading: 'How long should I take it?',
+          content: 'Most people take omeprazole for 4-8 weeks for symptom relief. Some require longer-term treatment. Do not stop suddenly if you have been on it for months - taper off gradually with your doctor\'s guidance.',
+        },
+        {
+          heading: 'Lifestyle changes for reflux',
+          content: 'Omeprazole works best combined with lifestyle changes: avoid trigger foods (spicy, fatty, acidic), eat smaller meals, don\'t lie down within 3 hours of eating, elevate head of bed, lose weight if overweight.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Can I take omeprazole every day?',
+        answer: 'Omeprazole is safe for daily use, but long-term use (>1 year) requires monitoring for potential side effects like low magnesium, vitamin B12 deficiency, and bone health.',
+      },
+      {
+        question: 'Why do I need to take it before breakfast?',
+        answer: 'Omeprazole works best when taken on an empty stomach 30-60 minutes before your first meal. This is when the proton pumps in your stomach are most active.',
+      },
+      {
+        question: 'Can I take omeprazole if I am pregnant?',
+        answer: 'Omeprazole is generally considered safe during pregnancy and is commonly prescribed for pregnancy-related reflux. Discuss with your doctor to weigh benefits and risks.',
+      },
+      {
+        question: 'Will omeprazole cure my reflux?',
+        answer: 'Omeprazole treats symptoms but does not cure the underlying cause of reflux. Lifestyle changes and weight loss (if applicable) are important for long-term management.',
+      },
+    ],
+  },
+
 }
 
 export function getMedicationsByCategory(category: string): MedicationPage[] {

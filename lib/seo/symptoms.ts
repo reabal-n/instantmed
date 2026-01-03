@@ -610,3 +610,318 @@ export function getSymptomsByBodySystem(system: string): SymptomPage[] {
 export function getSymptomsBySeverity(severity: 'mild' | 'moderate' | 'urgent' | 'emergency'): SymptomPage[] {
   return symptomPages.filter(p => p.symptom.severity === severity)
 }
+
+// NEW SYMPTOM PAGES
+
+symptomPages.push(
+  {
+    slug: 'persistent-cough',
+    title: 'Persistent Cough | Causes, When to See Doctor & Online Treatment',
+    description: 'Understanding persistent cough - common causes including post-viral, asthma, reflux. When to see a doctor and online treatment options.',
+    keywords: ['persistent cough', 'chronic cough', 'cough won\'t go away', 'lingering cough'],
+    type: 'symptom',
+    symptom: {
+      name: 'Persistent Cough',
+      commonName: 'cough that won\'t go away',
+      bodySystem: 'respiratory',
+      severity: 'moderate',
+      description: 'A cough lasting more than 3 weeks (post-viral) or 8 weeks (chronic)',
+    },
+    content: {
+      intro: 'A persistent cough is one that lasts more than 3 weeks. While most coughs from colds and flu resolve within 2-3 weeks, a cough that lingers may indicate post-viral inflammation, asthma, reflux, or other conditions.',
+      commonCauses: [
+        'Post-viral cough (inflammation after cold/flu)',
+        'Asthma or reactive airways',
+        'Gastroesophageal reflux (GERD)',
+        'Post-nasal drip',
+        'Chronic bronchitis (smokers)',
+        'Medications (ACE inhibitors for blood pressure)',
+      ],
+      lessCommonCauses: [
+        'Whooping cough (pertussis)',
+        'Lung infection or pneumonia',
+        'Chronic sinus infection',
+        'Allergies',
+      ],
+      emergencyCauses: [
+        'Lung cancer (smokers, weight loss, blood in sputum)',
+        'Tuberculosis (travel history, night sweats)',
+        'Heart failure (shortness of breath, ankle swelling)',
+        'Pulmonary embolism (sudden onset, chest pain)',
+      ],
+      sections: [
+        {
+          heading: 'When is a cough considered persistent?',
+          content: 'A cough is considered persistent when it lasts more than 3 weeks after a cold or flu. A chronic cough is defined as lasting more than 8 weeks. Most viral coughs resolve within 2-3 weeks.',
+        },
+        {
+          heading: 'What causes post-viral cough?',
+          content: 'After a respiratory infection, airways can remain inflamed and sensitive for weeks, triggering coughing. This usually resolves on its own within 6-8 weeks.',
+        },
+        {
+          heading: 'Self-care for persistent cough',
+          content: 'Stay hydrated, use honey (adults), try cough lozenges, avoid irritants (smoke, perfume), elevate head when sleeping (if reflux-related), use a humidifier.',
+        },
+        {
+          heading: 'When to see a GP',
+          content: 'See a GP if: cough lasts >3 weeks, coughing up blood, shortness of breath, chest pain, unexplained weight loss, night sweats, or you are a smoker over 50.',
+        },
+        {
+          heading: 'Can InstantMed help?',
+          content: 'InstantMed doctors can assess persistent cough, prescribe treatments for post-viral cough or reflux-related cough, and refer for investigations if needed. Complex cases require in-person GP assessment.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'How long should a cough last after a cold?',
+        answer: 'Most coughs resolve within 2-3 weeks. A cough lasting 3-8 weeks is usually post-viral inflammation and not concerning. Coughs lasting >8 weeks need investigation.',
+      },
+      {
+        question: 'Could my cough be asthma?',
+        answer: 'Yes. Asthma can present as a persistent dry cough, especially at night or with exercise. If you have never been diagnosed with asthma, see a GP for spirometry (breathing test).',
+      },
+      {
+        question: 'Can reflux cause a cough?',
+        answer: 'Yes. Acid reflux can irritate the throat and trigger chronic cough, especially when lying down. This is called laryngopharyngeal reflux (LPR).',
+      },
+      {
+        question: 'Should I get a chest X-ray?',
+        answer: 'A chest X-ray is recommended if you are a smoker over 50, have blood in your sputum, unexplained weight loss, or symptoms lasting >8 weeks despite treatment.',
+      },
+    ],
+  },
+  {
+    slug: 'night-sweats',
+    title: 'Night Sweats | Causes, When to Worry & Treatment Options',
+    description: 'Understanding night sweats - causes including menopause, infections, medications. When night sweats are serious and online GP consultation.',
+    keywords: ['night sweats', 'sweating at night', 'menopause sweats', 'drenching sweats'],
+    type: 'symptom',
+    symptom: {
+      name: 'Night Sweats',
+      commonName: 'sweating heavily at night',
+      bodySystem: 'general',
+      severity: 'moderate',
+      description: 'Excessive sweating during sleep that soaks sheets and clothing',
+    },
+    content: {
+      intro: 'Night sweats are episodes of excessive sweating during sleep, often soaking sheets and pajamas. While often benign (menopause, medications), they can occasionally indicate serious conditions.',
+      commonCauses: [
+        'Menopause or perimenopause (women 45-55)',
+        'Medications (antidepressants, hormone therapy)',
+        'Room too hot or too many blankets',
+        'Anxiety or stress',
+        'Low blood sugar (diabetes medications)',
+        'Alcohol or spicy foods before bed',
+      ],
+      lessCommonCauses: [
+        'Infections (flu, COVID-19, mononucleosis)',
+        'Hyperthyroidism (overactive thyroid)',
+        'Sleep apnea',
+        'Gastroesophageal reflux (GERD)',
+      ],
+      emergencyCauses: [
+        'Tuberculosis (with cough, weight loss)',
+        'Lymphoma (with swollen lymph nodes, weight loss)',
+        'HIV/AIDS',
+        'Carcinoid syndrome (rare hormone-secreting tumor)',
+      ],
+      sections: [
+        {
+          heading: 'When are night sweats normal?',
+          content: 'Night sweats are common in menopause, with certain medications, or if your room is too warm. They are usually not concerning if you feel well otherwise.',
+        },
+        {
+          heading: 'Menopause night sweats',
+          content: 'Hot flashes and night sweats affect 75% of menopausal women. They can last for years. Treatment options include lifestyle changes, hormone replacement therapy (HRT), or non-hormonal medications.',
+        },
+        {
+          heading: 'Self-care for night sweats',
+          content: 'Keep bedroom cool (18°C), use breathable cotton sheets, wear light pajamas, avoid alcohol and spicy foods before bed, stay hydrated, manage stress.',
+        },
+        {
+          heading: 'When to see a doctor',
+          content: 'See a GP if you have: night sweats with unexplained weight loss, fever, swollen lymph nodes, persistent cough, or night sweats that started suddenly without clear cause.',
+        },
+        {
+          heading: 'Can InstantMed help?',
+          content: 'InstantMed doctors can assess night sweats, prescribe treatment for menopause symptoms, review medications, and order investigations if concerning features are present.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'Are night sweats a sign of cancer?',
+        answer: 'Rarely. While some cancers (lymphoma) can cause night sweats, most night sweats are due to benign causes like menopause or medications. See a GP if you have weight loss or other concerning symptoms.',
+      },
+      {
+        question: 'Can anxiety cause night sweats?',
+        answer: 'Yes. Anxiety and stress can trigger night sweats. If you have daytime anxiety symptoms, this may be the cause.',
+      },
+      {
+        question: 'What medications cause night sweats?',
+        answer: 'Common culprits: antidepressants (SSRIs), tamoxifen, steroids, diabetes medications (if blood sugar drops), and some blood pressure medications.',
+      },
+      {
+        question: 'How are menopausal night sweats treated?',
+        answer: 'Treatment options include hormone replacement therapy (HRT), non-hormonal medications (SSRIs, gabapentin), lifestyle changes, and cognitive behavioral therapy.',
+      },
+    ],
+  },
+  {
+    slug: 'headache',
+    title: 'Headache | Types, Causes, When to Seek Emergency Care',
+    description: 'Understanding headaches - tension headaches, migraines, cluster headaches. Warning signs of serious causes and online doctor consultation.',
+    keywords: ['headache', 'migraine', 'tension headache', 'severe headache'],
+    type: 'symptom',
+    symptom: {
+      name: 'Headache',
+      commonName: 'head pain',
+      bodySystem: 'neurological',
+      severity: 'moderate',
+      description: 'Pain in the head, scalp, or neck',
+    },
+    content: {
+      intro: 'Headaches are extremely common and usually benign. The three main types are tension headaches, migraines, and cluster headaches. However, certain headache characteristics require emergency evaluation.',
+      commonCauses: [
+        'Tension headache (stress, muscle tension)',
+        'Migraine (throbbing, one-sided, with nausea)',
+        'Dehydration',
+        'Caffeine withdrawal',
+        'Eye strain or poor posture',
+        'Lack of sleep',
+      ],
+      lessCommonCauses: [
+        'Sinus infection (with facial pain, nasal congestion)',
+        'Medication overuse headache (frequent painkiller use)',
+        'High blood pressure',
+        'Temporal arteritis (over age 50)',
+      ],
+      emergencyCauses: [
+        'Subarachnoid hemorrhage (worst headache of your life)',
+        'Meningitis (with fever, stiff neck, rash)',
+        'Stroke (sudden onset with weakness/confusion)',
+        'Brain tumor (progressive, worse in morning)',
+        'Carbon monoxide poisoning',
+      ],
+      sections: [
+        {
+          heading: 'Types of headaches',
+          content: 'Tension headaches: band-like pressure around head. Migraines: throbbing, one-sided, with nausea/light sensitivity, lasting 4-72 hours. Cluster headaches: severe one-sided pain around eye, with tearing/nasal congestion.',
+        },
+        {
+          heading: 'Red flag headache symptoms (call 000)',
+          content: 'Sudden severe headache (worst ever), headache with fever and stiff neck, headache with confusion or loss of consciousness, headache after head injury, sudden headache with vision loss or double vision.',
+        },
+        {
+          heading: 'Self-care for common headaches',
+          content: 'Rest in dark quiet room, hydrate, over-the-counter painkillers (paracetamol, ibuprofen), cold or warm compress, caffeine (for some people), avoid triggers.',
+        },
+        {
+          heading: 'When to see a GP',
+          content: 'See a GP if: headaches are increasing in frequency or severity, new type of headache after age 50, headaches wake you from sleep, headache with vision changes, headaches not responding to over-the-counter medication.',
+        },
+        {
+          heading: 'Can InstantMed help?',
+          content: 'InstantMed doctors can assess tension headaches and migraines, prescribe preventive or acute treatment, and refer for investigation if red flags are present. Severe or emergency headaches need immediate in-person care.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'When is a headache an emergency?',
+        answer: 'Call 000 if: sudden severe headache (thunderclap), headache with fever and stiff neck, headache with confusion or seizure, sudden headache with vision loss, or worst headache of your life.',
+      },
+      {
+        question: 'How do I know if it is a migraine?',
+        answer: 'Migraines are typically throbbing, one-sided, last 4-72 hours, worsen with movement, and are accompanied by nausea, vomiting, or sensitivity to light/sound. Some people have visual aura before headache.',
+      },
+      {
+        question: 'Can I take painkillers every day for headaches?',
+        answer: 'No. Taking painkillers more than 10-15 days per month can cause medication overuse headache (rebound headache). See a GP for preventive treatment instead.',
+      },
+      {
+        question: 'What triggers migraines?',
+        answer: 'Common triggers: stress, lack of sleep, dehydration, skipping meals, alcohol (especially red wine), aged cheese, chocolate, weather changes, bright lights, strong smells, hormonal changes (menstruation).',
+      },
+    ],
+  },
+  {
+    slug: 'skin-rash',
+    title: 'Skin Rash | Causes, Types, Treatment & When to See Doctor',
+    description: 'Understanding skin rashes - common causes including allergies, infections, eczema. When rashes are serious and online dermatology consultation.',
+    keywords: ['skin rash', 'rash causes', 'itchy rash', 'body rash', 'allergic rash'],
+    type: 'symptom',
+    symptom: {
+      name: 'Skin Rash',
+      commonName: 'rash or skin irritation',
+      bodySystem: 'dermatological',
+      severity: 'mild',
+      description: 'Changes in skin color, texture, or appearance',
+    },
+    content: {
+      intro: 'Skin rashes are extremely common and have many causes including allergies, infections, inflammatory conditions, and medication reactions. Most rashes are benign but some require medical attention.',
+      commonCauses: [
+        'Contact dermatitis (allergic reaction to substance)',
+        'Eczema (atopic dermatitis)',
+        'Heat rash',
+        'Insect bites',
+        'Viral rash (roseola, viral exanthem)',
+        'Fungal infection (tinea, candida)',
+      ],
+      lessCommonCauses: [
+        'Psoriasis',
+        'Shingles (herpes zoster)',
+        'Urticaria (hives)',
+        'Drug reaction',
+        'Scabies',
+      ],
+      emergencyCauses: [
+        'Meningococcal rash (non-blanching, with fever)',
+        'Stevens-Johnson syndrome (drug reaction with blistering)',
+        'Anaphylaxis (rash with swelling, breathing difficulty)',
+        'Cellulitis (spreading, painful, with fever)',
+      ],
+      sections: [
+        {
+          heading: 'Types of rashes',
+          content: 'Macular (flat red spots), papular (raised bumps), vesicular (fluid-filled blisters), pustular (pus-filled), scaling, petechial (tiny purple spots that don\'t blanch).',
+        },
+        {
+          heading: 'Red flag rash symptoms (call 000)',
+          content: 'Rash with difficulty breathing or swelling of lips/tongue, rash with high fever and confusion, purple or dark red spots that don\'t blanch when pressed (glass test), rapidly spreading painful rash.',
+        },
+        {
+          heading: 'Self-care for mild rashes',
+          content: 'Avoid scratching, moisturize with fragrance-free cream, cool compress, oatmeal bath, antihistamine for itching, avoid triggers/irritants, wear loose cotton clothing.',
+        },
+        {
+          heading: 'When to see a doctor',
+          content: 'See a GP if: rash is painful or rapidly spreading, rash with fever, blistering or oozing, rash lasting >2 weeks, rash not responding to over-the-counter treatment, concern about infection.',
+        },
+        {
+          heading: 'Can InstantMed help?',
+          content: 'InstantMed doctors can assess photos of rashes, diagnose common conditions (eczema, contact dermatitis, fungal infections), prescribe treatment, and refer to dermatologist if needed. Severe or concerning rashes need in-person assessment.',
+        },
+      ],
+    },
+    faqs: [
+      {
+        question: 'How do I know if a rash is serious?',
+        answer: 'Serious signs: rash with difficulty breathing, rash with high fever, purple spots that don\'t blanch when pressed, rapidly spreading painful rash, blistering, or rash with joint pain.',
+      },
+      {
+        question: 'What is the glass test for meningococcal rash?',
+        answer: 'Press a clear glass firmly against the rash. If the spots do not fade or blanch, this may be a meningococcal rash (medical emergency). Call 000 immediately.',
+      },
+      {
+        question: 'Can stress cause a rash?',
+        answer: 'Yes. Stress can trigger or worsen eczema, psoriasis, hives, and other inflammatory skin conditions. Stress management can help.',
+      },
+      {
+        question: 'How long does a viral rash last?',
+        answer: 'Most viral rashes last 3-7 days and resolve on their own. Examples include roseola, hand-foot-mouth disease, and non-specific viral exanthems.',
+      },
+    ],
+  },
+)
