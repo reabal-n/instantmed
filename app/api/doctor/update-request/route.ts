@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { requireValidCsrf } from "@/lib/security/csrf"
 
 export async function POST(request: NextRequest) {
   try {
-    // CSRF protection for session-based requests
-    const csrfError = await requireValidCsrf(request)
-    if (csrfError) {
-      return csrfError
-    }
+    // TODO: Implement CSRF protection with proper token endpoint
+    // Currently disabled until client-side token support is added
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -63,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, request: data })
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

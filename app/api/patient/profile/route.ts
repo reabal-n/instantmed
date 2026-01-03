@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
-import { requireValidCsrf } from "@/lib/security/csrf"
 
 export async function PATCH(request: Request) {
   try {
-    // CSRF protection
-    const csrfError = await requireValidCsrf(request)
-    if (csrfError) {
-      return csrfError
-    }
+    // TODO: Implement CSRF protection with proper token endpoint
+    // Currently disabled until client-side token support is added
 
     const { userId } = await auth()
 

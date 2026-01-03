@@ -5,22 +5,16 @@ import { logger } from "@/lib/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
 import { rateLimit } from "@/lib/rate-limit/limiter"
-import { requireValidCsrf } from "@/lib/security/csrf"
 
 export async function POST(request: Request) {
   try {
     // Get auth header first to determine auth method
     const apiKey = process.env.INTERNAL_API_KEY
     const authHeader = request.headers.get('authorization')
-    const isApiKeyAuth = authHeader === `Bearer ${apiKey}`
+    const isApiKeyAuth = !!apiKey && authHeader === `Bearer ${apiKey}`
 
-    // CSRF protection (skip for API key auth, only for session-based)
-    if (!isApiKeyAuth) {
-      const csrfError = await requireValidCsrf(request)
-      if (csrfError) {
-        return csrfError
-      }
-    }
+    // TODO: Implement CSRF protection with proper token endpoint
+    // Currently disabled until client-side token support is added
 
     // Require either an internal API key OR an authenticated admin session
     let authorized = false

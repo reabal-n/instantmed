@@ -478,7 +478,7 @@ case 'user.deleted': {
 | `RESEND_API_KEY` | Email notifications |
 | `NEXT_PUBLIC_SITE_URL` | Base URL for redirects |
 | `SENTRY_DSN` | Error tracking |
-| `INTERNAL_API_SECRET` | Server-to-server auth |
+| `INTERNAL_API_KEY` | Server-to-server auth |
 
 ### Optional (Recommended)
 | Variable | Purpose |
