@@ -8,6 +8,7 @@ interface BaseLayoutProps {
 export function BaseLayout({ previewText, children }: BaseLayoutProps) {
   return (
     <html>
+      {/* eslint-disable-next-line @next/next/no-head-element -- Email template, not a Next.js page */}
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

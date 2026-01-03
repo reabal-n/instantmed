@@ -33,7 +33,7 @@ function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
-    console.warn("[FeatureFlags] Missing Supabase credentials")
+    logger.warn("[FeatureFlags] Missing Supabase credentials")
     return null
   }
   return createClient(url, key)
@@ -45,7 +45,7 @@ function getServiceClient() {
 async function fetchFlagsFromDB(): Promise<FeatureFlags> {
   const supabase = getServiceClient()
   if (!supabase) {
-    console.warn("[FeatureFlags] No service client, using defaults")
+    logger.warn("[FeatureFlags] No service client, using defaults")
     return DEFAULT_FLAGS
   }
 
@@ -55,7 +55,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
       .select("key, value")
 
     if (error) {
-      console.error("[FeatureFlags] DB error:", error.message)
+      logger.error("[FeatureFlags] DB error:", { error: error.message })
       return DEFAULT_FLAGS
     }
 
@@ -79,7 +79,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
 
     return flags
   } catch (error) {
-    console.error("[FeatureFlags] Unexpected error:", error)
+    logger.error("[FeatureFlags] Unexpected error:", { error })
     return DEFAULT_FLAGS
   }
 }
@@ -188,7 +188,7 @@ export async function updateFeatureFlag(
       .eq("key", key)
 
     if (error) {
-      console.error("[FeatureFlags] Update error:", error)
+      logger.error("[FeatureFlags] Update error:", { error })
       return { success: false, error: error.message }
     }
 

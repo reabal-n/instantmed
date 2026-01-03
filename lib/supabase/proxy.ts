@@ -6,11 +6,12 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server"
+import { logger } from "@/lib/logger"
 
 /**
  * @deprecated Use Clerk middleware instead - see middleware.ts
  */
 export async function updateSession(_request: NextRequest) {
-  console.warn("[DEPRECATED] lib/supabase/proxy.ts is deprecated. Use Clerk middleware instead.")
+  logger.warn("[DEPRECATED] lib/supabase/proxy.ts is deprecated. Use Clerk middleware instead.")
   return NextResponse.next()
 }

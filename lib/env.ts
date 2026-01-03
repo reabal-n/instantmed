@@ -1,4 +1,5 @@
 import "server-only"
+import { logger } from "@/lib/logger"
 
 /**
  * Environment variable validation and access
@@ -27,7 +28,7 @@ import "server-only"
 export function getResendApiKey(): string {
   const key = process.env.RESEND_API_KEY
   if (!key) {
-    console.warn("[env] RESEND_API_KEY not set - emails will be logged only")
+    logger.warn("[env] RESEND_API_KEY not set - emails will be logged only")
     return ""
   }
   return key
@@ -80,7 +81,7 @@ export function getStripeWebhookSecret(): string {
 export function getVercelAIGatewayApiKey(): string {
   const key = process.env.VERCEL_AI_GATEWAY_API_KEY
   if (!key) {
-    console.warn("[env] VERCEL_AI_GATEWAY_API_KEY not set - AI features will not work")
+    logger.warn("[env] VERCEL_AI_GATEWAY_API_KEY not set - AI features will not work")
     return ""
   }
   return key

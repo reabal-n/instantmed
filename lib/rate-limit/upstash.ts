@@ -1,8 +1,8 @@
-/* eslint-disable no-console -- Rate limiting needs console as fallback */
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import { NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { logger } from "@/lib/logger"
 
 // Rate limiter configurations for different endpoints
 const rateLimiters = {
@@ -78,7 +78,7 @@ export async function checkRateLimit(
 ): Promise<NextResponse | null> {
   // Skip rate limiting if Upstash is not configured
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn("Rate limiting disabled: Upstash Redis not configured")
+    logger.warn("Rate limiting disabled: Upstash Redis not configured")
     return null
   }
 
@@ -110,7 +110,7 @@ export async function checkRateLimit(
     return null
   } catch (error) {
     // If rate limiting fails, allow the request but log the error
-    console.error("Rate limit check failed:", error)
+    logger.error("Rate limit check failed:", { error })
     return null
   }
 }

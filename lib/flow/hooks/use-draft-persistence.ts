@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useFlowStore, useFlowSync, useFlowDraft, useFlowService } from '../store'
-import { saveLocalDraft, loadLocalDraft, getSessionId } from '../draft/storage'
+import { saveLocalDraft } from '../draft/storage'
 import { getServiceName, calculateProgress } from '../draft/types'
 
 interface UseDraftPersistenceOptions {
@@ -45,7 +45,7 @@ export function useDraftPersistence(
   } = options
 
   const { syncStatus, pendingChanges, lastSyncError } = useFlowSync()
-  const { draftId, sessionId } = useFlowDraft()
+  const { draftId, sessionId: _sessionId } = useFlowDraft()
   const serviceSlug = useFlowService()
   const { forceSave, clearDraft, saveDraft } = useFlowStore()
   const lastSavedAt = useFlowStore((s) => s.lastSavedAt)

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { format, addDays, startOfWeek, isSameDay, isToday, isBefore } from "date-fns"
+import { logger } from "@/lib/logger"
 
 interface TimeSlot {
   time: string
@@ -80,7 +81,7 @@ export function AppointmentScheduler({
       await onSchedule(selectedDate, selectedTime)
       setScheduled(true)
     } catch (error) {
-      console.error("Scheduling error:", error)
+      logger.error("Scheduling error:", { error })
     } finally {
       setIsScheduling(false)
     }

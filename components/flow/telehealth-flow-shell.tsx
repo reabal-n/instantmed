@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable react-hooks/set-state-in-effect -- Reading localStorage and syncing to local state is valid */
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
@@ -10,10 +11,8 @@ import {
   Lock,
   BadgeCheck,
   Phone,
-  ArrowLeft,
   ArrowRight,
   Loader2,
-  FileText,
   RotateCcw,
 } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"

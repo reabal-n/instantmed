@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { logger } from "@/lib/logger"
 import { 
   Search, 
   FileText, 
@@ -83,7 +84,7 @@ export function GlobalSearch({ variant = "doctor" }: GlobalSearchProps) {
         setResults(data.results || [])
       }
     } catch (error) {
-      console.error("Search error:", error)
+      logger.error("Search error:", { error })
     } finally {
       setIsLoading(false)
     }

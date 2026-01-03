@@ -11,7 +11,7 @@ const simplifiedSteps: FlowStep[] = [
 ]
 
 // For services that need service selection first
-const withServiceStep: FlowStep[] = [
+const _withServiceStep: FlowStep[] = [
   { id: 'service', label: 'Select service', shortLabel: 'Service' },
   ...simplifiedSteps,
 ]

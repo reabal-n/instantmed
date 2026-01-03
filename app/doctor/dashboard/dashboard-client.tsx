@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { logger } from "@/lib/logger"
 import {
   Select,
   SelectContent,
@@ -172,7 +173,7 @@ export function DoctorDashboardClient({
       setBulkNotes("")
       toast.success(`${updated} requests ${action === "approve" ? "approved" : "rejected"}`)
     } catch (error) {
-      console.error("Bulk action error:", error)
+      logger.error("Bulk action error:", { error })
       toast.error("Failed to process bulk action")
     }
   }
@@ -205,7 +206,7 @@ export function DoctorDashboardClient({
       setSelectedRequest(null)
       toast.success(`Request ${action === "approve" ? "approved" : "rejected"}`)
     } catch (error) {
-      console.error("Update error:", error)
+      logger.error("Update error:", { error })
       toast.error("Failed to update request")
     }
   }
@@ -230,7 +231,7 @@ export function DoctorDashboardClient({
 
       toast.success("Request assigned to you")
     } catch (error) {
-      console.error("Assign error:", error)
+      logger.error("Assign error:", { error })
       toast.error("Failed to assign request")
     }
   }

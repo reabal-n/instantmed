@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
+import { logger } from "@/lib/logger"
 
 // Type for the raw Supabase response (patient is an array from join)
 interface RequestRow {
@@ -112,7 +113,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("Export error:", error)
+    logger.error("Export error:", { error })
     return NextResponse.json({ error: "Export failed" }, { status: 500 })
   }
 }

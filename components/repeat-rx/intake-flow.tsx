@@ -446,7 +446,7 @@ export function RepeatRxIntakeFlow({
 }: RepeatRxIntakeProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  const _supabase = createClient()
   const { openSignIn } = useClerk()
   const { user, isSignedIn } = useUser()
   
@@ -665,7 +665,6 @@ export function RepeatRxIntakeFlow({
     if (user && isSignedIn) {
       setupProfile()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, goToStep, user, isSignedIn])
   
   // ============================================================================

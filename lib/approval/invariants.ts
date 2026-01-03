@@ -1,6 +1,7 @@
 import "server-only"
 
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 import { isPermanentStorageUrl } from "../storage/documents"
 
 /**
@@ -82,7 +83,7 @@ export async function verifyDocumentExists(requestId: string): Promise<boolean> 
     .eq("request_id", requestId)
 
   if (error) {
-    console.error("[verifyDocumentExists] Error:", error)
+    logger.error("[verifyDocumentExists] Error:", { error })
     return false
   }
 
@@ -166,6 +167,6 @@ export async function assertApprovalInvariants(
 
   // Log warnings
   if (result.warnings.length > 0) {
-    console.warn("[ApprovalInvariants] Warnings:", result.warnings)
+    logger.warn("[ApprovalInvariants] Warnings:", { warnings: result.warnings })
   }
 }

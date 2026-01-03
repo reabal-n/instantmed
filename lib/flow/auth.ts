@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { logger } from '@/lib/logger'
 
 /**
  * Flow Authentication Utilities
@@ -35,7 +36,7 @@ export async function getFlowSession(): Promise<FlowSession> {
   // Clerk auth is managed via hooks (useUser, useAuth)
   // This function cannot access Clerk state since it's not a hook
   // Components should use useUser() directly instead
-  console.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
+  logger.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
   
   return {
     user: null,
@@ -56,7 +57,7 @@ export function subscribeToFlowAuth(
 ): () => void {
   // Clerk doesn't use subscriptions - it uses React context
   // Components should use useUser() hook which automatically updates
-  console.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
+  logger.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
   
   // Call callback with unauthenticated state
   callback({
@@ -110,7 +111,7 @@ export async function createDraft(
 
     return { draftId: data.id }
   } catch (err) {
-    console.error('Error creating draft:', err)
+    logger.error('Error creating draft:', { error: err })
     return {
       draftId: '',
       error: err instanceof Error ? err.message : 'Failed to create draft',
@@ -164,7 +165,7 @@ export async function loadDraft(
       isOwner: true,
     }
   } catch (err) {
-    console.error('Error loading draft:', err)
+    logger.error('Error loading draft:', { error: err })
     return {
       data: null,
       isOwner: false,
@@ -195,7 +196,7 @@ export async function saveDraft(
 
     return { success: true }
   } catch (err) {
-    console.error('Error saving draft:', err)
+    logger.error('Error saving draft:', { error: err })
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to save draft',
@@ -226,7 +227,7 @@ export async function claimDraft(
 
     return { success: true }
   } catch (err) {
-    console.error('Error claiming draft:', err)
+    logger.error('Error claiming draft:', { error: err })
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to claim draft',
@@ -275,7 +276,7 @@ export async function getUserDrafts(
       })),
     }
   } catch (err) {
-    console.error('Error getting user drafts:', err)
+    logger.error('Error getting user drafts:', { error: err })
     return {
       drafts: [],
       error: err instanceof Error ? err.message : 'Failed to get drafts',

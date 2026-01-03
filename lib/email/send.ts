@@ -148,7 +148,7 @@ export async function sendStateTransitionEmail(
     .single()
 
   if (!request || !request.patient) {
-    console.error("Could not fetch request details for email")
+    logger.error("Could not fetch request details for email")
     return
   }
 
@@ -157,7 +157,7 @@ export async function sendStateTransitionEmail(
   const email = authUser?.user?.email
 
   if (!email) {
-    console.error("Could not find patient email")
+    logger.error("Could not find patient email")
     return
   }
 

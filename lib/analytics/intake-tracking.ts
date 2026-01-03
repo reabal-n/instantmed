@@ -1,5 +1,7 @@
 "use client"
 
+import { logger } from "@/lib/logger"
+
 // Analytics tracking for intake flow conversion comparison
 // Tracks events for both old and new flows to measure improvement
 
@@ -25,7 +27,7 @@ export function trackIntakeEvent(event: IntakeEvent) {
 
   // Log to console in development
   if (process.env.NODE_ENV === "development") {
-    console.log("[Intake Analytics]", eventData)
+    logger.debug("[Intake Analytics]", eventData)
   }
 
   // Send to analytics provider (Google Analytics, Mixpanel, etc.)

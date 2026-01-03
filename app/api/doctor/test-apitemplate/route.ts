@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { testApiTemplateConnection } from "@/lib/documents/apitemplate"
+import { logger } from "@/lib/logger"
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error("[v0] Error testing APITemplate connection:", error)
+    logger.error("[v0] Error testing APITemplate connection:", { error })
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 },

@@ -1,6 +1,7 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 interface RefillRequest {
   prescription_id: string
@@ -9,6 +10,12 @@ interface RefillRequest {
 
 export async function POST(request: Request) {
   try {
+    // CSRF protection
+    const csrfError = await requireValidCsrf(request)
+    if (csrfError) {
+      return csrfError
+    }
+
     const authUser = await getAuthenticatedUserWithProfile()
 
     if (!authUser || authUser.profile.role !== "patient") {

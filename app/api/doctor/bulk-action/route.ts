@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       updated: successful,
     })
   } catch (error) {
-    console.error("Bulk action error:", error)
+    logger.error("Bulk action error:", { error })
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
