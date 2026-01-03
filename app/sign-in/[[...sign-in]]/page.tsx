@@ -1,3 +1,5 @@
+"use client"
+
 import { SignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle } from 'lucide-react'
