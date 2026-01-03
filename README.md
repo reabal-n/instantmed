@@ -2,12 +2,17 @@
 
 An asynchronous telehealth platform for medical certificates and prescriptions built for the Australian healthcare market.
 
+> **📢 Project Status:** All feature branches have been consolidated into `main`. See [PROJECT_IMPROVEMENTS.md](./PROJECT_IMPROVEMENTS.md) for details on the merge and suggested improvements.
+
 ## Tech Stack
 
-- **Frontend:** Next.js 14+ (App Router), Tailwind CSS, shadcn/ui, Lucide React icons
-- **Backend/Auth:** Supabase (Auth, Postgres Database with RLS)
+- **Frontend:** Next.js 16+ (App Router), Tailwind CSS, shadcn/ui, Lucide React icons
+- **Backend/Auth:** Clerk Authentication + Supabase (Postgres Database with RLS)
 - **Forms:** React Hook Form + Zod (strict validation)
 - **Payments:** Stripe (Payment Intents)
+- **Email:** Resend
+- **Monitoring:** Sentry (optional)
+- **Rate Limiting:** Upstash Redis (recommended for production)
 
 ## Features
 
@@ -28,23 +33,52 @@ An asynchronous telehealth platform for medical certificates and prescriptions b
 - Intake data review with red flag keyword highlighting
 - Approve/Decline actions with Supabase integration
 
+### SEO & Content (NEW)
+- **77+ Programmatic SEO Pages:**
+  - 13 intent pages (e.g., "get medical certificate online")
+  - 13 medication pages (e.g., antibiotics, pain relief)
+  - 8 symptom pages (e.g., cold, flu, UTI)
+  - 3 comparison pages
+- Dynamic routes: `/telehealth/[slug]` and `/symptoms/[slug]`
+- Automated metadata generation with schema.org
+- Internal linking engine for SEO
+
 ### Compliance & Security
 - AHPRA-compliant telehealth flow
 - Medicare number validation (Luhn check)
 - Row Level Security (RLS) on all tables
+- CSRF protection on sensitive API routes
 - Stripe webhook handling for payment status
+- Structured logging system (no console.log in production)
 
 ## Setup
 
 ### 1. Environment Variables
 
-Create a `.env.local` file:
+Copy `.env.example` to `.env.local` and fill in your values:
 
+```bash
+cp .env.example .env.local
+```
+
+See [.env.example](./.env.example) for the complete list of required and optional environment variables, including:
+- Clerk Authentication (required)
+- Supabase Database (required)
+- Stripe Payments (required)
+- Resend Email (required)
+- Sentry Error Tracking (optional)
+- Upstash Redis Rate Limiting (optional)
+
+**Quick Start (Minimum Required):**
 ```env
+# Clerk Auth
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -53,6 +87,12 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Email
+RESEND_API_KEY=re_...
+
+# Security
+INTERNAL_API_SECRET=your-secure-random-string
 ```
 
 ### 2. Database Setup
@@ -65,16 +105,9 @@ The database schema is already applied via Supabase migrations. Key tables:
 - `payments` - Stripe payment records
 - `admin_emails` - Whitelist for admin dashboard access
 
-### 3. Admin Access
+### 3. Webhooks Setup
 
-Add your email to the `admin_emails` table to access `/admin/dashboard`:
-
-```sql
-INSERT INTO admin_emails (email) VALUES ('your-email@example.com');
-```
-
-### 4. Stripe Webhooks
-
+#### Stripe Webhooks
 Configure your Stripe webhook to point to:
 ```
 https://your-domain.com/api/webhooks/stripe
@@ -84,38 +117,66 @@ Events to handle:
 - `payment_intent.succeeded`
 - `payment_intent.payment_failed`
 
-### 5. Run Development Server
+#### Clerk Webhooks
+Configure your Clerk webhook to point to:
+```
+https://your-domain.com/api/webhooks/clerk
+```
+
+Events to handle:
+- `user.created`
+- `user.updated`
+- `user.deleted`
+
+### 4. Run Development Server
 
 ```bash
-npm install
-npm run dev
+# Install dependencies (using pnpm recommended)
+pnpm install
+
+# Run development server
+pnpm run dev
 ```
+
+Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Project Structure
 
 ```
-src/
+instantmed/
 ├── app/
-│   ├── admin/dashboard/    # Doctor review panel
-│   ├── api/
-│   │   ├── create-payment-intent/
-│   │   └── webhooks/stripe/
-│   ├── auth/callback/      # Supabase auth callback
-│   ├── checkout/           # Stripe checkout
-│   ├── dashboard/          # Patient dashboard
-│   ├── login/              # Authentication
-│   └── start/              # Onboarding wizard
+│   ├── api/                    # API routes (payments, webhooks, CRUD)
+│   ├── doctor/                 # Doctor dashboard and request management
+│   ├── patient/                # Patient dashboard and request tracking
+│   ├── telehealth/[slug]/      # SEO intent pages (13 pages)
+│   ├── symptoms/[slug]/        # SEO symptom pages (8 pages)
+│   ├── robots.ts               # Search engine crawling directives
+│   └── sitemap.ts              # Dynamic sitemap (77+ pages)
 ├── components/
-│   ├── onboarding/         # Multi-step wizard components
-│   │   ├── EmergencyAlert.tsx
-│   │   ├── StepIndicator.tsx
-│   │   └── steps/
-│   └── ui/                 # shadcn/ui components
-└── lib/
-    ├── supabase/           # Supabase client setup
-    ├── types.ts            # TypeScript types
-    ├── utils.ts            # Utility functions
-    └── validations.ts      # Zod schemas
+│   ├── flow/                   # Multi-step intake form components
+│   ├── marketing/              # Landing page components
+│   ├── ui/                     # shadcn/ui components
+│   └── shared/                 # Shared components (auth, errors, etc.)
+├── lib/
+│   ├── seo/                    # SEO system (NEW)
+│   │   ├── registry.ts         # Centralized SEO content registry
+│   │   ├── medications.ts      # 13 medication pages
+│   │   ├── symptoms.ts         # 8 symptom pages
+│   │   ├── intents.ts          # 13 intent pages
+│   │   ├── comparisons.ts      # 3 comparison pages
+│   │   ├── linking.ts          # Internal linking engine
+│   │   └── metadata-generator.ts # Automated metadata
+│   ├── rate-limit/             # Rate limiting with CSRF protection
+│   ├── supabase/               # Supabase client and utilities
+│   ├── flow/                   # Intake flow logic
+│   └── analytics/              # Analytics and tracking
+├── docs/
+│   ├── COMPREHENSIVE_AUDIT_2026.md          # Security audit report
+│   ├── COMPREHENSIVE_SYSTEM_MAP.md          # System architecture
+│   ├── PRE_LAUNCH_IMPROVEMENTS.md           # Pre-launch checklist
+│   └── PROJECT_IMPROVEMENTS.md              # Branch merge summary
+├── .env.example                # Environment variable template
+└── package.json                # Dependencies
 ```
 
 ## Pricing
@@ -131,6 +192,18 @@ src/
 - Sticky bottom navigation on mobile
 - Toast notifications via Sonner
 - Responsive design throughout
+
+## Documentation
+
+- **[PROJECT_IMPROVEMENTS.md](./PROJECT_IMPROVEMENTS.md)** - Branch consolidation summary and suggested improvements
+- **[PRE_LAUNCH_IMPROVEMENTS.md](./PRE_LAUNCH_IMPROVEMENTS.md)** - Production readiness checklist
+- **[COMPREHENSIVE_AUDIT_2026.md](./COMPREHENSIVE_AUDIT_2026.md)** - Security and code quality audit
+- **[COMPREHENSIVE_SYSTEM_MAP.md](./COMPREHENSIVE_SYSTEM_MAP.md)** - System architecture overview
+- **[.env.example](./.env.example)** - Environment variable template
+
+## Contributing
+
+This is a private project. All feature branches have been consolidated into `main` as of January 3, 2026.
 
 ## License
 
