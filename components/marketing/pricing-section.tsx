@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Check, FileText, Pill, Stethoscope } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { pricingTiers } from '@/lib/marketing/homepage'
 

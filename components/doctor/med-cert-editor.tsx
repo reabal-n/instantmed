@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useTransition, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
