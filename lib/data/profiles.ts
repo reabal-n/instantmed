@@ -101,13 +101,13 @@ export async function createProfile(profile: {
   date_of_birth: string
   role: "patient" | "doctor"
 }): Promise<Profile | null> {
-  console.warn("[DEPRECATED] createProfile called - use ensureProfile server action instead")
+  logger.warn("[DEPRECATED] createProfile called - use ensureProfile server action instead")
   const supabase = await createClient()
 
   const { data, error } = await supabase.from("profiles").insert(profile).select().single()
 
   if (error || !data) {
-    console.error("Error creating profile:", error)
+    logger.error("Error creating profile:", { error })
     return null
   }
 
@@ -131,7 +131,7 @@ export async function updateProfile(
     .single()
 
   if (error || !data) {
-    console.error("Error updating profile:", error)
+    logger.error("Error updating profile:", { error })
     return null
   }
 
@@ -165,7 +165,7 @@ export async function completeOnboarding(profileId: string, data: OnboardingData
     .single()
 
   if (error || !profile) {
-    console.error("Error completing onboarding:", error)
+    logger.error("Error completing onboarding:", { error })
     return null
   }
 

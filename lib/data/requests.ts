@@ -541,7 +541,7 @@ export async function saveDoctorNotes(requestId: string, notes: string): Promise
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error saving doctor notes:", error)
+    logger.error("Error saving doctor notes:", { error })
     return false
   }
 
@@ -564,7 +564,7 @@ export async function flagForFollowup(requestId: string, reason: string): Promis
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error flagging for followup:", error)
+    logger.error("Error flagging for followup:", { error })
     return false
   }
 

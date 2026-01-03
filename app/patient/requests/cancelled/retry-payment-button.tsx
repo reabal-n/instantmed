@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Loader2 } from "lucide-react"
 import { retryPaymentForRequestAction } from "@/lib/stripe/checkout"
+import { logger } from "@/lib/logger"
 
 interface RetryPaymentButtonProps {
   requestId: string
@@ -32,7 +33,7 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
         setHasClicked(false) // Allow retry on error
       }
     } catch (err) {
-      console.error("Error retrying payment:", err)
+      logger.error("Error retrying payment:", { error: err })
       setError("An unexpected error occurred. Please try again.")
       setIsLoading(false)
       setHasClicked(false) // Allow retry on error
