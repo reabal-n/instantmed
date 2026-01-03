@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable react-hooks/set-state-in-effect -- Reading localStorage and syncing to local state is valid */
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
@@ -239,7 +240,6 @@ export function useDraftPersistence<T extends Record<string, unknown>>(
   const [step, setStep] = useState(initialStep)
 
   // Check for existing draft on mount
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Reading localStorage and syncing to local state is valid
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey)

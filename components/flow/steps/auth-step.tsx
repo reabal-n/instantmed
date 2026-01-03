@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react-hooks/set-state-in-effect -- Syncing Clerk auth state to local state is valid */
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -48,7 +49,6 @@ export function AuthStep({
   const [error, setError] = useState('')
 
   // Check for existing session on mount - use Clerk
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing Clerk auth state to local state
   useEffect(() => {
     if (isSignedIn && user) {
       // User is already authenticated via Clerk
