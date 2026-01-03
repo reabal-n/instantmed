@@ -308,7 +308,7 @@ export function PatientDashboard({
                               </div>
                             </div>
                             <div className="text-right">
-                              <Badge variant={rx.status === "active" ? "default" : "secondary"}>
+                              <Badge color={rx.status === "active" ? "success" : "default"}>
                                 {rx.status === "active" ? "Active" : "Expired"}
                               </Badge>
                               {rx.status === "active" && (
@@ -350,7 +350,7 @@ export function PatientDashboard({
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">${(invoice.total / 100).toFixed(2)}</p>
-                            <Badge className="mt-2" variant={invoice.status === "paid" ? "default" : "secondary"}>
+                            <Badge className="mt-2" color={invoice.status === "paid" ? "success" : "warning"}>
                               {invoice.status === "paid" ? "Paid" : "Pending"}
                             </Badge>
                           </div>
