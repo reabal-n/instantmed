@@ -981,18 +981,6 @@ export const medications: MedicationPage[] = [
       requiresFollowUp: false,
     },
   },
-  
-  // Continue with more medications...
-  // TODO: Add OCPs, propranolol, etc.
-]
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
-export function getMedicationBySlug(slug: string): MedicationPage | undefined {
-  return medications.find(m => m.slug === slug)
-  },
 
   // ============================================
   // ANXIETY & STRESS
@@ -1548,7 +1536,14 @@ export function getMedicationBySlug(slug: string): MedicationPage | undefined {
       },
     ],
   },
+]
 
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+export function getMedicationBySlug(slug: string): MedicationPage | undefined {
+  return medications.find(m => m.slug === slug)
 }
 
 export function getMedicationsByCategory(category: string): MedicationPage[] {
