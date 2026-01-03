@@ -318,9 +318,275 @@ export const medications: MedicationPage[] = [
       requiresFollowUp: false,
     },
   },
+
+  {
+    slug: 'tadalafil',
+    type: 'medication',
+    title: 'Tadalafil Online Australia | Cialis Alternative | InstantMed',
+    description: 'Get tadalafil (generic Cialis) prescribed online. Longer-lasting ED treatment. Australian doctors assess suitability. From $34.95.',
+    h1: 'Tadalafil (Cialis) — Longer-Lasting ED Treatment',
+    content: {
+      intro: 'Tadalafil is the generic version of Cialis, used to treat erectile dysfunction. Unlike other ED medications, tadalafil can work for up to 36 hours, giving you more spontaneity and flexibility.',
+      uniqueBlocks: [
+        {
+          id: 'how-different',
+          type: 'text',
+          content: 'The main difference between tadalafil and sildenafil (Viagra) is duration. Tadalafil works for up to 36 hours, while sildenafil lasts about 4-5 hours. This means you don\'t need to time intimacy as precisely. Many men prefer tadalafil for weekend use or for more natural spontaneity.',
+        },
+        {
+          id: 'how-it-works',
+          type: 'text',
+          content: 'Like sildenafil, tadalafil is a PDE5 inhibitor that increases blood flow to the penis when sexually aroused. It typically starts working within 30-60 minutes and reaches peak effectiveness around 2 hours. The effects can last up to 36 hours, but this doesn\'t mean a 36-hour erection — you still need sexual stimulation.',
+        },
+        {
+          id: 'dosing-options',
+          type: 'list',
+          content: [
+            '10mg or 20mg: Standard "as-needed" dose, taken before sexual activity',
+            '2.5mg or 5mg: Daily low-dose option for men who are sexually active regularly',
+            'Daily dosing provides continuous readiness without planning',
+            'As-needed dosing is more economical if you\'re less frequently active',
+          ],
+        },
+        {
+          id: 'important-safety',
+          type: 'callout',
+          content: 'Never take tadalafil with nitrate medications (GTN, isosorbide) or riociguat. The combination can cause dangerous blood pressure drops. Always tell your doctor about all medications you take.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: ['tadalafil online', 'cialis australia', 'tadalafil prescription', 'cialis generic online', 'long-lasting ED treatment'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'What\'s the difference between tadalafil and Viagra?',
+          answer: 'The main difference is duration. Tadalafil lasts up to 36 hours, while Viagra (sildenafil) lasts 4-5 hours. Tadalafil also offers a daily low-dose option for continuous readiness.',
+        },
+        {
+          question: 'Should I take 10mg or 20mg?',
+          answer: 'Most men start with 10mg taken as needed. If this doesn\'t work well enough, your doctor may increase to 20mg. Some men prefer a daily 5mg dose instead.',
+        },
+        {
+          question: 'Can I take tadalafil with alcohol?',
+          answer: 'Small amounts of alcohol (1-2 drinks) are usually fine. Heavy drinking can make it harder to get an erection and may increase side effects like dizziness.',
+        },
+        {
+          question: 'Is generic tadalafil as good as Cialis?',
+          answer: 'Yes — generic tadalafil contains the same active ingredient at the same strength. It works identically to branded Cialis but costs much less.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'sildenafil', title: 'Sildenafil (Viagra)', description: 'Shorter-acting alternative' },
+        { type: 'condition', slug: 'erectile-dysfunction', title: 'Erectile Dysfunction' },
+        { type: 'category', slug: 'mens-health', title: "Men's Health Services" },
+      ],
+    },
+    medication: {
+      genericName: 'tadalafil',
+      brandNames: ['Cialis'],
+      category: 'sexual-health',
+      schedule: 'S4',
+      dosageForms: ['Tablet'],
+      commonDosages: ['2.5mg daily', '5mg daily', '10mg as needed', '20mg as needed'],
+    },
+    clinicalInfo: {
+      uses: ['Erectile dysfunction (ED)', 'Benign prostatic hyperplasia (BPH)'],
+      howItWorks: 'PDE5 inhibitor — increases blood flow to penis during sexual arousal. Long half-life provides up to 36-hour window.',
+      eligibility: [
+        'Men aged 18+ with erectile dysfunction',
+        'Stable cardiovascular health',
+        'Blood pressure controlled',
+        'No recent heart attack or stroke',
+        'Not taking nitrates or riociguat',
+      ],
+      contraindications: [
+        'Nitrate medications (GTN, isosorbide)',
+        'Riociguat',
+        'Severe heart disease',
+        'Recent cardiovascular events (<3 months)',
+        'Uncontrolled blood pressure',
+        'Severe liver disease',
+      ],
+      commonSideEffects: [
+        'Headache',
+        'Indigestion',
+        'Back pain',
+        'Muscle aches',
+        'Flushing',
+        'Nasal congestion',
+      ],
+      seriousSideEffects: [
+        'Sudden vision loss (rare)',
+        'Sudden hearing loss (rare)',
+        'Priapism (erection >4 hours)',
+        'Severe chest pain',
+        'Severe allergic reaction',
+      ],
+      interactions: [
+        'Nitrates — DANGEROUS interaction',
+        'Riociguat — dangerous interaction',
+        'Alpha-blockers — may cause low blood pressure',
+        'Other PDE5 inhibitors — do not combine',
+        'Some antifungals and antibiotics — may increase levels',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Confidential questionnaire about ED and health history',
+        'Cardiovascular health questions',
+        'Doctor reviews and recommends dosing',
+        'E-script sent if approved',
+        'Discreet pharmacy collection or delivery',
+      ],
+      turnaroundTime: '1 hour (priority) or 24 hours (standard)',
+      pricing: '$34.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+  },
+
+  // ============================================
+  // UTI / WOMEN'S HEALTH
+  // ============================================
+  
+  {
+    slug: 'trimethoprim',
+    type: 'medication',
+    title: 'Trimethoprim Online Australia | UTI Antibiotic | InstantMed',
+    description: 'Get trimethoprim prescribed online for urinary tract infections. Australian doctors assess symptoms. E-script within hours. From $29.95.',
+    h1: 'Trimethoprim for UTI — Fast Online Prescription',
+    content: {
+      intro: 'Trimethoprim is a common first-line antibiotic for treating uncomplicated urinary tract infections (UTIs) in women. It\'s effective against the bacteria that typically cause UTIs and is usually well-tolerated.',
+      uniqueBlocks: [
+        {
+          id: 'how-it-works',
+          type: 'text',
+          content: 'Trimethoprim works by stopping bacteria from making folic acid, which they need to multiply and survive. This allows your immune system to clear the infection. Most UTIs are caused by E. coli bacteria, which trimethoprim effectively targets.',
+        },
+        {
+          id: 'when-its-used',
+          type: 'text',
+          content: 'Trimethoprim is typically used for straightforward UTIs in women with typical symptoms (burning when urinating, frequency, urgency). It\'s usually taken twice daily for 3 days. Most women feel relief within 24-48 hours, but it\'s crucial to complete the full course even if symptoms improve.',
+        },
+        {
+          id: 'typical-course',
+          type: 'list',
+          content: [
+            'Standard dose: 300mg twice daily for 3 days',
+            'Start feeling better within 24-48 hours',
+            'Complete the full 3-day course',
+            'Drink plenty of water to help flush bacteria',
+            'Avoid sexual activity until symptoms resolve',
+          ],
+        },
+        {
+          id: 'when-to-see-doctor',
+          type: 'callout',
+          content: 'See a doctor in person if you have: fever, blood in urine, severe back pain, vomiting, are pregnant, or have recurrent UTIs (3+ per year). These require further investigation.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: ['trimethoprim online', 'UTI antibiotic online', 'trimethoprim prescription', 'UTI treatment australia', 'bladder infection antibiotic'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'How quickly does trimethoprim work for UTI?',
+          answer: 'Most women start feeling relief within 24-48 hours of starting trimethoprim. However, you must complete the full 3-day course to fully clear the infection.',
+        },
+        {
+          question: 'Can I drink alcohol while taking trimethoprim?',
+          answer: 'It\'s best to avoid alcohol while taking antibiotics. Alcohol can reduce effectiveness and may increase side effects like nausea.',
+        },
+        {
+          question: 'What if my UTI comes back?',
+          answer: 'If you get recurrent UTIs (3+ per year), see a GP in person for investigation. You may need a urine culture, kidney ultrasound, or prevention strategies.',
+        },
+        {
+          question: 'Are there any food interactions?',
+          answer: 'No major food interactions, but take with food if it upsets your stomach. Avoid excessive folic acid supplements while on trimethoprim.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'condition', slug: 'uti', title: 'UTI Treatment & Information' },
+        { type: 'intent', slug: 'uti-treatment-online', title: 'Get UTI Treatment Online' },
+        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
+      ],
+    },
+    medication: {
+      genericName: 'trimethoprim',
+      brandNames: ['Triprim', 'Alprim'],
+      category: 'womens-health',
+      schedule: 'S4',
+      dosageForms: ['Tablet'],
+      commonDosages: ['300mg twice daily for 3 days'],
+    },
+    clinicalInfo: {
+      uses: [
+        'Uncomplicated urinary tract infections (UTIs)',
+        'Bladder infections (cystitis)',
+        'Some respiratory infections',
+      ],
+      howItWorks: 'Inhibits bacterial folic acid synthesis, stopping bacterial growth and allowing immune system to clear infection.',
+      eligibility: [
+        'Women with typical UTI symptoms',
+        'No kidney problems',
+        'Not pregnant or breastfeeding',
+        'No blood disorders',
+        'No severe allergies to sulfonamides',
+      ],
+      contraindications: [
+        'Pregnancy',
+        'Breastfeeding',
+        'Severe kidney disease',
+        'Blood disorders (e.g., megaloblastic anemia)',
+        'Known hypersensitivity to trimethoprim',
+      ],
+      commonSideEffects: [
+        'Nausea or upset stomach',
+        'Skin rash (mild)',
+        'Headache',
+        'Loss of appetite',
+      ],
+      seriousSideEffects: [
+        'Severe skin reactions (rare)',
+        'Blood disorders (very rare)',
+        'Severe allergic reaction',
+        'Liver problems (rare)',
+      ],
+      interactions: [
+        'Warfarin — may increase bleeding risk',
+        'Methotrexate — increased toxicity risk',
+        'Phenytoin — may increase levels',
+        'Digoxin — may increase levels',
+      ],
+    },
+    consultInfo: {
+      whatToExpect: [
+        'Describe your UTI symptoms',
+        'Questions about pregnancy, allergies, kidney health',
+        'Doctor assesses if trimethoprim is appropriate',
+        'E-script sent if symptoms match uncomplicated UTI',
+        'Pick up from any pharmacy',
+      ],
+      turnaroundTime: '1-3 hours (same day)',
+      pricing: '$29.95 consultation + prescription',
+      requiresBloodTest: false,
+      requiresFollowUp: false,
+    },
+  },
   
   // Continue with more medications...
-  // TODO: Add tadalafil, minoxidil, contraceptive pills, UTI antibiotics, etc.
+  // TODO: Add minoxidil, levonorgestrel (Plan B), OCPs, etc.
 ]
 
 // ============================================

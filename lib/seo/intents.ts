@@ -292,6 +292,258 @@ export const intentPages: IntentPage[] = [
       ctaUrl: '/start',
     },
   },
+
+  {
+    slug: 'repeat-prescription-online',
+    type: 'intent',
+    title: 'Repeat Prescription Online Australia | Renew Script Fast | InstantMed',
+    description: 'Need a repeat prescription? Get your script renewed online from Australian doctors. Same medication, no appointment needed. From $29.95.',
+    h1: 'Repeat Prescription Online — Quick & Easy Renewal',
+    content: {
+      intro: 'Running low on your regular medication? Get your repeat prescription online without visiting a clinic. Our Australian doctors can renew scripts for ongoing medications you\'re already taking.',
+      uniqueBlocks: [
+        {
+          id: 'what-we-can-renew',
+          type: 'list',
+          content: [
+            'Blood pressure medications (if stable)',
+            'Cholesterol medications (statins)',
+            'Contraceptive pill (same brand)',
+            'Thyroid medications (if stable)',
+            'Chronic condition medications',
+            'Regular medications you\'ve been taking for months',
+          ],
+        },
+        {
+          id: 'what-we-need',
+          type: 'text',
+          content: 'To renew your prescription, we need to know: what medication you\'re taking (name and dose), how long you\'ve been on it, when you last saw a doctor about it, and if you\'ve had any problems or side effects. If your condition is stable and you\'re due for a routine repeat, we can usually help.',
+        },
+        {
+          id: 'when-see-gp',
+          type: 'callout',
+          content: 'See your regular GP if: you need a dose change, you\'re experiencing side effects, your condition has changed, you\'re due for blood tests or reviews, or you haven\'t seen a doctor about this condition in over 12 months.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'repeat prescription online',
+        'renew prescription online',
+        'online script renewal',
+        'prescription refill online australia',
+        'repeat script online',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can you renew any prescription online?',
+          answer: 'We can renew most regular medications for stable conditions. We cannot prescribe new medications, Schedule 8 controlled substances, or medications that require physical examination or blood tests.',
+        },
+        {
+          question: 'Do I need to provide previous scripts?',
+          answer: 'Not necessarily, but it helps if you know the exact medication name, strength, and your current dosing schedule. Having a photo of your current medication is useful.',
+        },
+        {
+          question: 'How long does a repeat prescription take?',
+          answer: 'Most repeat prescriptions are reviewed within 1-3 hours. Priority review is available for urgent needs. Your e-script is sent via SMS.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'condition', slug: 'high-blood-pressure', title: 'Blood Pressure Medication Repeats' },
+        { type: 'condition', slug: 'high-cholesterol', title: 'Cholesterol Medication Repeats' },
+        { type: 'category', slug: 'prescriptions', title: 'Prescription Services' },
+      ],
+    },
+    intent: {
+      searchQuery: 'repeat prescription online',
+      alternateQueries: [
+        'renew prescription online',
+        'online script renewal',
+        'prescription refill online',
+        'repeat script online',
+        'renew script online',
+      ],
+      userNeed: 'Renew existing medication without GP visit',
+      urgency: 'same-day',
+      serviceType: 'prescription',
+    },
+    conversion: {
+      primaryCTA: 'Renew Prescription',
+      ctaUrl: '/prescriptions?type=repeat',
+    },
+  },
+
+  {
+    slug: 'work-certificate-online',
+    type: 'intent',
+    title: 'Work Certificate Online Australia | Sick Leave Certificate | InstantMed',
+    description: 'Need a work certificate for sick leave? Get one online within hours from Australian doctors. Employer-accepted. From $19.95.',
+    h1: 'Work Certificate Online — Valid for Sick Leave',
+    content: {
+      intro: 'Feeling too unwell to work? Get a medical certificate for sick leave without visiting a clinic. Our certificates are issued by AHPRA-registered doctors and meet Fair Work requirements.',
+      uniqueBlocks: [
+        {
+          id: 'fair-work-compliant',
+          type: 'text',
+          content: 'Under Fair Work regulations, medical certificates from telehealth doctors are just as valid as certificates from physical clinics. Our certificates include all required information: your name, dates of absence, doctor\'s details with AHPRA registration number, and medical practice information. Employers must accept them.',
+        },
+        {
+          id: 'common-reasons',
+          type: 'list',
+          content: [
+            'Cold, flu, or respiratory infection',
+            'Gastroenteritis (stomach bug)',
+            'Migraine or severe headache',
+            'Back pain or injury',
+            'Mental health day',
+            'Medical appointment',
+          ],
+        },
+        {
+          id: 'what-employers-need',
+          type: 'text',
+          content: 'Most employers require a medical certificate if you\'re absent for more than 2-3 days, or if you\'ve used all casual sick leave. Our certificates clearly state: dates you were unfit for work, that you were assessed by a registered doctor, and doctor\'s registration details. You can forward the PDF directly to your employer.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'work certificate online',
+        'sick leave certificate',
+        'medical certificate for work',
+        'work sick certificate online',
+        'employer medical certificate',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Will my employer accept an online medical certificate?',
+          answer: 'Yes — our certificates are issued by AHPRA-registered Australian doctors and meet all Fair Work requirements. They are legally valid for sick leave.',
+        },
+        {
+          question: 'Can I get a certificate for today?',
+          answer: 'Yes — we can issue certificates for the current day if you\'re currently unwell. Standard review is 1-3 hours, or choose priority for 30-60 minute turnaround.',
+        },
+        {
+          question: 'Can I backdate a work certificate?',
+          answer: 'Certificates can be backdated up to 3 days at no extra charge. Beyond 3 days may require a phone consultation to verify details.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'intent', slug: 'same-day-medical-certificate', title: 'Same Day Medical Certificates' },
+        { type: 'audience', slug: 'shift-workers', title: 'Certificates for Shift Workers' },
+        { type: 'condition', slug: 'cold-and-flu', title: 'Cold & Flu Certificates' },
+      ],
+    },
+    intent: {
+      searchQuery: 'work certificate online',
+      alternateQueries: [
+        'sick leave certificate',
+        'work sick certificate',
+        'medical certificate for work',
+        'employer medical certificate online',
+      ],
+      userNeed: 'Get valid sick leave certificate for employer',
+      urgency: 'same-day',
+      serviceType: 'medical-certificate',
+    },
+    conversion: {
+      primaryCTA: 'Get Work Certificate',
+      ctaUrl: '/medical-certificate/new',
+    },
+  },
+
+  {
+    slug: 'emergency-contraception-online',
+    type: 'intent',
+    title: 'Emergency Contraception Online Australia | Plan B | InstantMed',
+    description: 'Need emergency contraception (morning after pill)? Get it prescribed online fast. Australian doctors. E-script within hours.',
+    h1: 'Emergency Contraception — Fast Online Access',
+    content: {
+      intro: 'Emergency contraception (the "morning after pill") can prevent pregnancy after unprotected sex or contraceptive failure. Time is critical — it\'s most effective when taken as soon as possible.',
+      uniqueBlocks: [
+        {
+          id: 'how-it-works',
+          type: 'text',
+          content: 'Emergency contraceptive pills work by delaying or preventing ovulation. Levonorgestrel (Plan B) works best within 72 hours but can be used up to 120 hours (5 days) after unprotected sex. Ulipristal (EllaOne) is more effective and works up to 120 hours. The sooner you take it, the more effective it is.',
+        },
+        {
+          id: 'what-we-need-to-know',
+          type: 'list',
+          content: [
+            'When did unprotected sex occur? (time is critical)',
+            'Are you currently using any contraception?',
+            'When was your last period?',
+            'Any chance you might already be pregnant?',
+            'Any medications or health conditions?',
+          ],
+        },
+        {
+          id: 'important',
+          type: 'callout',
+          content: 'Emergency contraception is NOT an abortion pill — it won\'t work if you\'re already pregnant. It\'s also not suitable for regular use. If you need ongoing contraception, ask about regular contraceptive options.',
+        },
+      ],
+    },
+    metadata: {
+      keywords: [
+        'emergency contraception online',
+        'morning after pill online',
+        'plan b online australia',
+        'emergency contraceptive pill',
+        'levonorgestrel online',
+      ],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'How quickly can I get emergency contraception?',
+          answer: 'Priority review is available for emergency contraception requests. E-script is typically sent within 30-60 minutes. You can then pick up from most pharmacies immediately.',
+        },
+        {
+          question: 'Is it too late if it\'s been 3 days?',
+          answer: 'No — levonorgestrel works up to 72 hours (best) and ulipristal works up to 120 hours (5 days). However, effectiveness decreases with time, so take it as soon as possible.',
+        },
+        {
+          question: 'Will emergency contraception affect my period?',
+          answer: 'Your next period may be earlier, later, or heavier than usual. If your period is more than 7 days late, take a pregnancy test.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'condition', slug: 'contraception', title: 'Regular Contraception Options' },
+        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
+      ],
+    },
+    intent: {
+      searchQuery: 'emergency contraception online',
+      alternateQueries: [
+        'morning after pill online',
+        'plan b online',
+        'emergency contraceptive pill',
+        'levonorgestrel online',
+        'ella one online',
+      ],
+      userNeed: 'Get emergency contraception fast to prevent pregnancy',
+      urgency: 'immediate',
+      serviceType: 'prescription',
+    },
+    conversion: {
+      primaryCTA: 'Get Emergency Contraception',
+      ctaUrl: '/prescriptions?condition=emergency-contraception&priority=true',
+    },
+  },
 ]
 
 // ============================================

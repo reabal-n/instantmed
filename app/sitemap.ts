@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next"
 import { getAllSlugs } from "@/lib/seo/pages"
 import { getAllMedicationSlugs } from "@/lib/seo/medications"
 import { getAllIntentSlugs } from "@/lib/seo/intents"
+import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -42,7 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  // Medications (NEW - high-intent pages)
+  // Medications (5 pages now)
   const medicationSlugs = getAllMedicationSlugs()
   const medicationRoutes = medicationSlugs.map((slug) => ({
     url: `${baseUrl}/medications/${slug}`,
@@ -51,13 +52,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8, // Higher priority - high purchase intent
   }))
 
-  // Intent pages (NEW - search query targeting)
+  // Intent pages (6 pages now)
   const intentSlugs = getAllIntentSlugs()
   const intentRoutes = intentSlugs.map((slug) => ({
     url: `${baseUrl}/telehealth/${slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.9, // Highest priority - direct search intent match
+  }))
+
+  // Symptom pages (NEW - 2 pages)
+  const symptomSlugs = getAllSymptomSlugs()
+  const symptomRoutes = symptomSlugs.map((slug) => ({
+    url: `${baseUrl}/symptoms/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
   }))
 
   // Category hubs
@@ -112,6 +122,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...conditionRoutes,
     ...medicationRoutes,
     ...intentRoutes,
+    ...symptomRoutes,
     ...categoryRoutes,
     ...audienceRoutes,
     ...certificateRoutes,
