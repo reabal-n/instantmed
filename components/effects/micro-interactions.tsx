@@ -30,17 +30,24 @@ export function RippleButton({
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
+    // Calculate ripple size based on button dimensions
+    const size = Math.max(rect.width, rect.height) * 2
+
     const ripple = document.createElement("span")
-    ripple.style.position = "absolute"
-    ripple.style.left = `${x}px`
-    ripple.style.top = `${y}px`
-    ripple.style.width = "0"
-    ripple.style.height = "0"
-    ripple.style.borderRadius = "50%"
-    ripple.style.backgroundColor = rippleColor
-    ripple.style.transform = "translate(-50%, -50%)"
-    ripple.style.animation = "ripple 0.6s ease-out forwards"
-    ripple.style.pointerEvents = "none"
+    ripple.className = "ripple-effect"
+    ripple.style.cssText = `
+      position: absolute;
+      left: ${x}px;
+      top: ${y}px;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background-color: ${rippleColor};
+      transform: translate(-50%, -50%);
+      animation: ripple-animation 0.6s ease-out forwards;
+      pointer-events: none;
+      --ripple-size: ${size}px;
+    `
 
     button.appendChild(ripple)
 
@@ -62,15 +69,6 @@ export function RippleButton({
       )}
     >
       {children}
-      <style jsx>{`
-        @keyframes ripple {
-          to {
-            width: 300px;
-            height: 300px;
-            opacity: 0;
-          }
-        }
-      `}</style>
     </button>
   )
 }

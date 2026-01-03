@@ -2163,3 +2163,26 @@
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+
+/* ================================
+   RIPPLE ANIMATION FOR BUTTONS
+   ================================ */
+
+@keyframes ripple-animation {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: var(--ripple-size, 300px);
+    height: var(--ripple-size, 300px);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
