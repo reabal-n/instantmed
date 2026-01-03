@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * UIX Card - HeroUI Pro primary with shadcn-compatible API
- * Provides modernized glass-morphism design
+ * Premium glass-morphism design with soft radius
  */
 
 export interface CardProps {
@@ -15,14 +15,24 @@ export interface CardProps {
   isPressable?: boolean
   isHoverable?: boolean
   shadow?: "none" | "sm" | "md" | "lg"
+  /** Enable glass effect backdrop */
+  glass?: boolean
+  /** Enable subtle hover lift */
+  hoverable?: boolean
 }
 
-export function Card({ className, children, ...props }: CardProps) {
+export function Card({ className, children, glass = true, hoverable = true, ...props }: CardProps) {
   return (
     <HeroCard
-      className={cn("transition-all duration-200", className)}
+      className={cn("transition-all duration-300 ease-out", className)}
       classNames={{
-        base: "bg-background/80 backdrop-blur-xl border border-default-100 shadow-lg hover:shadow-xl",
+        base: cn(
+          "rounded-2xl overflow-hidden",
+          glass && "bg-background/90 backdrop-blur-xl backdrop-saturate-150",
+          "border border-default-100/50",
+          "shadow-[0_4px_24px_rgba(0,0,0,0.06)]",
+          hoverable && "hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1"
+        ),
       }}
       {...props}
     >
@@ -38,7 +48,7 @@ export interface CardHeaderProps {
 
 export function CardHeader({ className, children }: CardHeaderProps) {
   return (
-    <HeroCardHeader className={cn("flex flex-col gap-2", className)}>
+    <HeroCardHeader className={cn("flex flex-col gap-2 px-6 py-5", className)}>
       {children}
     </HeroCardHeader>
   )
@@ -51,7 +61,11 @@ export interface CardTitleProps {
 
 export function CardTitle({ className, children }: CardTitleProps) {
   return (
-    <h3 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>
+    <h3 className={cn(
+      "text-lg font-semibold leading-tight tracking-tight",
+      "text-foreground",
+      className
+    )}>
       {children}
     </h3>
   )
@@ -64,7 +78,7 @@ export interface CardDescriptionProps {
 
 export function CardDescription({ className, children }: CardDescriptionProps) {
   return (
-    <p className={cn("text-sm text-muted-foreground", className)}>
+    <p className={cn("text-sm text-muted-foreground leading-relaxed", className)}>
       {children}
     </p>
   )
@@ -90,7 +104,11 @@ export interface CardFooterProps {
 
 export function CardFooterWrapper({ className, children }: CardFooterProps) {
   return (
-    <CardFooter className={cn("flex items-center gap-2 px-6 py-4", className)}>
+    <CardFooter className={cn(
+      "flex items-center gap-3 px-6 py-4",
+      "border-t border-default-100/50",
+      className
+    )}>
       {children}
     </CardFooter>
   )

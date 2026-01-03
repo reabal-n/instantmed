@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * UIX Input - HeroUI Pro primary with shadcn-compatible API
- * Modernized input with enhanced focus states
+ * Premium input with enhanced focus states and soft radius
  */
 
 export interface InputProps extends Omit<HeroInputProps, "size"> {
@@ -31,14 +31,25 @@ export function Input({
       variant="bordered"
       classNames={{
         inputWrapper: cn(
-          "bg-background/50 backdrop-blur-sm",
-          "border-default-200 hover:border-primary",
-          "data-[focused=true]:border-primary data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
-          "transition-all duration-200"
+          "bg-background/60 backdrop-blur-sm",
+          "border-1.5 border-default-200/60",
+          "hover:border-primary/50",
+          "data-[focused=true]:border-primary",
+          "data-[focused=true]:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]",
+          "transition-all duration-200 ease-out",
+          "rounded-xl"
         ),
-        input: "text-foreground placeholder:text-default-400",
-        label: "text-foreground font-medium",
-        errorMessage: "text-danger text-sm",
+        input: cn(
+          "text-foreground placeholder:text-default-400",
+          "text-base"
+        ),
+        label: cn(
+          "text-foreground/90 font-medium text-sm",
+          "pb-1"
+        ),
+        description: "text-muted-foreground text-sm mt-1",
+        errorMessage: "text-danger text-sm mt-1",
+        helperWrapper: "p-0",
       }}
       className={cn(className)}
       {...props}

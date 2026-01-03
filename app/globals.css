@@ -3,7 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* InstantMed Premium Design System - Warm Indigo + Soft Violet */
+/* ================================
+   INSTANTMED PREMIUM DESIGN SYSTEM
+   Unified, Modern, Sleek Visual Style
+   ================================ */
+
 :root {
   /* Add test banner height variable */
   --test-banner-height: 0px;
@@ -49,8 +53,60 @@
   --chart-4: #f59e0b;
   --chart-5: #ef4444;
   
-  /* Radius */
-  --radius: 12px;
+  /* ================================
+     UNIFIED SOFT RADIUS SYSTEM
+     All corners have consistent softness
+     ================================ */
+  --radius: 16px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+  
+  /* ================================
+     UNIFIED TYPOGRAPHY SCALE
+     Premium, readable font sizing
+     ================================ */
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+  --font-size-5xl: 3rem;       /* 48px */
+  --font-size-6xl: 3.75rem;    /* 60px */
+  
+  /* ================================
+     UNIFIED SPACING SCALE
+     ================================ */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  
+  /* ================================
+     UNIFIED SHADOW SYSTEM
+     Premium soft shadows
+     ================================ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.16), 0 12px 24px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.15);
+  --shadow-glow-lg: 0 0 48px rgba(99, 102, 241, 0.25);
   
   /* Sidebar */
   --sidebar: #FFFFFF;
@@ -186,94 +242,275 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    font-size: var(--font-size-base);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  /* Lora for all headings - editorial feel, never bold-bold */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  
+  /* ================================
+     UNIFIED TYPOGRAPHY
+     Consistent, premium headings
+     ================================ */
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--foreground);
   }
-  h1 { @apply text-4xl font-medium; }
-  h2 { @apply text-3xl font-medium; }
-  h3 { @apply text-2xl font-medium; }
-  h4 { @apply text-xl font-medium; }
-  h5 { @apply text-lg font-medium; }
-  h6 { @apply text-base font-medium; }
   
-  /* Body text: readable like an article, not compressed like a dashboard */
+  h1 { 
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  h2 { 
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h3 { 
+    font-size: clamp(1.25rem, 3vw, 1.875rem);
+    font-weight: 500;
+  }
+  h4 { 
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+  }
+  h5 { 
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+  h6 { 
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Body text: readable like an article */
   p { 
     line-height: 1.75;
+    font-size: var(--font-size-base);
   }
   
-  /* Meta/labels: 400 weight with opacity, not size hacks */
+  /* Meta/labels: subtle, clean */
   label,
   .text-muted,
   .text-muted-foreground {
     font-weight: 400;
-    opacity: 0.7;
+    color: var(--muted-foreground);
+  }
+  
+  /* ================================
+     GLOBAL SOFT RADIUS FOR ALL ELEMENTS
+     Premium, modern feel
+     ================================ */
+  
+  /* All buttons get soft radius by default */
+  button,
+  [role="button"],
+  .btn,
+  [class*="Button"],
+  [class*="button"] {
+    border-radius: var(--radius-md) !important;
+  }
+  
+  /* Pill buttons for CTAs */
+  .btn-pill,
+  .rounded-full,
+  [class*="pill"] {
+    border-radius: var(--radius-full) !important;
+  }
+  
+  /* All inputs get soft radius */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  [class*="Input"],
+  [class*="input"] {
+    border-radius: var(--radius-sm) !important;
+  }
+  
+  /* All cards get soft radius */
+  [class*="Card"],
+  [class*="card"],
+  .card {
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  /* Badges and chips */
+  [class*="Badge"],
+  [class*="badge"],
+  [class*="Chip"],
+  [class*="chip"],
+  [class*="Tag"],
+  [class*="tag"] {
+    border-radius: var(--radius-full) !important;
+  }
+  
+  /* Modals and dialogs */
+  [role="dialog"],
+  [class*="Modal"],
+  [class*="modal"],
+  [class*="Dialog"],
+  [class*="dialog"] {
+    border-radius: var(--radius-xl) !important;
+  }
+  
+  /* Popovers and dropdowns */
+  [class*="Popover"],
+  [class*="popover"],
+  [class*="Dropdown"],
+  [class*="dropdown"],
+  [class*="Menu"]:not(nav):not([class*="MenuItem"]) {
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  /* Tooltips */
+  [role="tooltip"],
+  [class*="Tooltip"],
+  [class*="tooltip"] {
+    border-radius: var(--radius-sm) !important;
+  }
+  
+  /* Progress bars */
+  [class*="Progress"],
+  [class*="progress"] {
+    border-radius: var(--radius-full) !important;
+  }
+  
+  /* Avatars */
+  [class*="Avatar"],
+  [class*="avatar"] {
+    border-radius: var(--radius-full) !important;
   }
 }
 
 @layer components {
-  /* Soft card styling: sheets, not boxes */
+  /* ================================
+     PREMIUM CARD STYLING
+     Soft, elevated, modern
+     ================================ */
   .card,
   [class*="card"],
   [class*="Card"] {
     @apply bg-card text-card-foreground;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
-    /* Remove harsh borders */
-    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
-  /* Modal/popover softness */
+  .card:hover,
+  [class*="card"]:hover,
+  [class*="Card"]:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* ================================
+     PREMIUM MODAL/DIALOG STYLING
+     ================================ */
   [role="dialog"],
   .modal,
   .popover {
     @apply bg-popover text-popover-foreground;
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
-    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2xl);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  /* Input fields: calm, non-interrogating */
-  input,
+  /* ================================
+     PREMIUM INPUT STYLING
+     Calm, elegant, focused
+     ================================ */
+  input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
     @apply bg-input text-foreground;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(0, 0, 0, 0.08);
+    padding: 14px 18px;
     line-height: 1.5;
-    transition: all 0.15s ease-out;
+    font-size: var(--font-size-base);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-xs);
   }
   
   input:focus,
   textarea:focus,
   select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), var(--shadow-sm);
+    outline: none;
   }
   
-  /* Buttons: subtle, not showy */
-  button {
-    transition: all 0.15s ease-out;
+  /* ================================
+     PREMIUM BUTTON STYLING
+     Subtle, elegant, responsive
+     ================================ */
+  button,
+  [role="button"] {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-md);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
-  button:hover {
+  button:hover,
+  [role="button"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-md);
   }
   
-  button:active {
-    transform: translateY(0);
+  button:active,
+  [role="button"]:active {
+    transform: translateY(0) scale(0.98);
+  }
+  
+  /* Primary buttons - pill style with gradient */
+  button[class*="primary"],
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+    color: var(--primary-foreground);
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+  }
+  
+  button[class*="primary"]:hover,
+  .btn-primary:hover {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    transform: translateY(-3px);
+  }
+  
+  /* ================================
+     PREMIUM LINK STYLING
+     ================================ */
+  a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  a:hover {
+    color: var(--accent);
+  }
+  
+  /* ================================
+     PREMIUM FOCUS STATES
+     Accessibility with style
+     ================================ */
+  *:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  
+  /* ================================
+     PREMIUM SELECTION STYLING
+     ================================ */
+  ::selection {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--foreground);
   }
 }
 
