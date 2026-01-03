@@ -32,7 +32,7 @@ export function Input({
       classNames={{
         inputWrapper: cn(
           "bg-background/60 backdrop-blur-sm",
-          "border-1.5 border-default-200/60",
+          "border border-default-200/60",
           "hover:border-primary/50",
           "data-[focused=true]:border-primary",
           "data-[focused=true]:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]",

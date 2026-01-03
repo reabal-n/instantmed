@@ -309,80 +309,59 @@
   /* All buttons get soft radius by default */
   button,
   [role="button"],
-  .btn,
-  [class*="Button"],
-  [class*="button"] {
-    border-radius: var(--radius-md) !important;
+  .btn {
+    border-radius: var(--radius-md);
   }
   
   /* Pill buttons for CTAs */
   .btn-pill,
-  .rounded-full,
-  [class*="pill"] {
-    border-radius: var(--radius-full) !important;
+  .rounded-full {
+    border-radius: var(--radius-full);
   }
   
   /* All inputs get soft radius */
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
-  select,
-  [class*="Input"],
-  [class*="input"] {
-    border-radius: var(--radius-sm) !important;
+  select {
+    border-radius: var(--radius-sm);
   }
   
   /* All cards get soft radius */
-  [class*="Card"],
-  [class*="card"],
-  .card {
-    border-radius: var(--radius-lg) !important;
+  .card,
+  [data-slot="base"] {
+    border-radius: var(--radius-lg);
   }
   
   /* Badges and chips */
-  [class*="Badge"],
-  [class*="badge"],
-  [class*="Chip"],
-  [class*="chip"],
-  [class*="Tag"],
-  [class*="tag"] {
-    border-radius: var(--radius-full) !important;
+  .badge,
+  .chip,
+  .tag {
+    border-radius: var(--radius-full);
   }
   
   /* Modals and dialogs */
-  [role="dialog"],
-  [class*="Modal"],
-  [class*="modal"],
-  [class*="Dialog"],
-  [class*="dialog"] {
-    border-radius: var(--radius-xl) !important;
+  [role="dialog"] {
+    border-radius: var(--radius-xl);
   }
   
   /* Popovers and dropdowns */
-  [class*="Popover"],
-  [class*="popover"],
-  [class*="Dropdown"],
-  [class*="dropdown"],
-  [class*="Menu"]:not(nav):not([class*="MenuItem"]) {
-    border-radius: var(--radius-lg) !important;
+  [data-slot="content"] {
+    border-radius: var(--radius-lg);
   }
   
   /* Tooltips */
-  [role="tooltip"],
-  [class*="Tooltip"],
-  [class*="tooltip"] {
-    border-radius: var(--radius-sm) !important;
+  [role="tooltip"] {
+    border-radius: var(--radius-sm);
   }
   
   /* Progress bars */
-  [class*="Progress"],
-  [class*="progress"] {
-    border-radius: var(--radius-full) !important;
+  .progress {
+    border-radius: var(--radius-full);
   }
   
   /* Avatars */
-  [class*="Avatar"],
-  [class*="avatar"] {
-    border-radius: var(--radius-full) !important;
+  .avatar {
+    border-radius: var(--radius-full);
   }
 }
 
