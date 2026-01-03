@@ -10,10 +10,8 @@ import {
   Lock,
   BadgeCheck,
   Phone,
-  ArrowLeft,
   ArrowRight,
   Loader2,
-  FileText,
   RotateCcw,
 } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
@@ -241,6 +239,7 @@ export function useDraftPersistence<T extends Record<string, unknown>>(
   const [step, setStep] = useState(initialStep)
 
   // Check for existing draft on mount
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Reading localStorage and syncing to local state is valid
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey)

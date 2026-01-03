@@ -494,7 +494,7 @@ function FAQItem({
   accentColor: ServiceConfig['accentColor']
 }) {
   const [isOpen, setIsOpen] = useState(false)
-  const colors = colorClasses[accentColor]
+  const _colors = colorClasses[accentColor]
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
