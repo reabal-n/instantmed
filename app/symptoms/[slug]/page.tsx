@@ -61,7 +61,7 @@ export default async function SymptomPage({ params }: PageProps) {
           </div>
         </section>
         
-        {page.causes.emergency.length > 0 && (
+        {page.whenToSeekHelp?.emergency && page.whenToSeekHelp.emergency.length > 0 && (
           <section className="px-4 py-6 bg-red-50 border-y border-red-200">
             <div className="mx-auto max-w-4xl">
               <div className="flex items-start gap-3">

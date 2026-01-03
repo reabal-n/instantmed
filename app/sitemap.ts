@@ -4,6 +4,7 @@ import { getAllMedicationSlugs } from "@/lib/seo/medications"
 import { getAllIntentSlugs } from "@/lib/seo/intents"
 import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
 import { getAllComparisonSlugs } from "@/lib/seo/comparisons"
+import { logger } from "@/lib/logger"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -103,29 +104,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }))
 
   // Legacy paths (keep for backwards compatibility)
-  const certificateSlugs = getAllSlugs('certificates').catch(() => [])
-  const certificateRoutes = Array.isArray(certificateSlugs) ? certificateSlugs.map((slug) => ({
+  let certificateSlugs: string[] = []
+  let benefitSlugs: string[] = []
+  let resourceSlugs: string[] = []
+  
+  try {
+    certificateSlugs = getAllSlugs('certificates')
+    benefitSlugs = getAllSlugs('benefits')
+    resourceSlugs = getAllSlugs('resources')
+  } catch (error) {
+    logger.error('Error loading legacy SEO slugs for sitemap', { error })
+  }
+  
+  const certificateRoutes = certificateSlugs.map((slug) => ({
     url: `${baseUrl}/health/certificates/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
-  })) : []
+  }))
 
-  const benefitSlugs = getAllSlugs('benefits').catch(() => [])
-  const benefitRoutes = Array.isArray(benefitSlugs) ? benefitSlugs.map((slug) => ({
+  const benefitRoutes = benefitSlugs.map((slug) => ({
     url: `${baseUrl}/health/why-${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
-  })) : []
+  }))
 
-  const resourceSlugs = getAllSlugs('resources').catch(() => [])
-  const resourceRoutes = Array.isArray(resourceSlugs) ? resourceSlugs.map((slug) => ({
+  const resourceRoutes = resourceSlugs.map((slug) => ({
     url: `${baseUrl}/health/guides/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.5,
-  })) : []
+  }))
 
   return [
     ...routes,
