@@ -2,21 +2,67 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ArrowRight } from 'lucide-react'
+import { Menu, X, ArrowRight, FileText, Pill, Zap, Heart, Shield, Scale, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { siteConfig } from '@/lib/marketing/homepage'
 
+const services = [
+  {
+    label: 'Medical Certificates',
+    href: '/medical-certificate/request',
+    description: 'Work, uni & carer\'s leave',
+    icon: FileText,
+  },
+  {
+    label: 'Repeat Scripts',
+    href: '/prescriptions/request',
+    description: 'Medications you already take',
+    icon: Pill,
+  },
+  {
+    label: 'General Consult',
+    href: '/consult/request',
+    description: 'New prescriptions & dose changes',
+    icon: Zap,
+  },
+]
+
+const healthPrograms = [
+  {
+    label: 'Women\'s Health',
+    href: '/womens-health',
+    description: 'UTI, contraception & more',
+    icon: Heart,
+    color: 'text-pink-500',
+  },
+  {
+    label: 'Men\'s Health',
+    href: '/mens-health',
+    description: 'ED, hair loss & testing',
+    icon: Shield,
+    color: 'text-blue-500',
+  },
+  {
+    label: 'Weight Loss',
+    href: '/weight-loss',
+    description: 'Ozempic & Saxenda',
+    icon: Scale,
+    color: 'text-indigo-500',
+  },
+]
+
 const navLinks = [
-  { label: 'Services', href: '#services' },
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'FAQ', href: '#faq' },
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'FAQ', href: '/#faq' },
+  { label: 'About', href: '/about' },
 ]
 
 export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [showServicesDropdown, setShowServicesDropdown] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,78 +73,106 @@ export function MarketingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith('#')) {
-      e.preventDefault()
-      const element = document.querySelector(href)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
-      }
-      setIsMobileMenuOpen(false)
-    }
-  }
-
   return (
     <>
       <nav
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isScrolled 
-            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100" 
+            ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50" 
             : "bg-transparent"
         )}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <svg 
-                  className="w-5 h-5 text-white" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" 
-                  />
-                </svg>
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-all">
+                <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-xl font-bold text-foreground">
                 {siteConfig.name}
               </span>
             </Link>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-1">
+              {/* Services Dropdown */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setShowServicesDropdown(true)}
+                onMouseLeave={() => setShowServicesDropdown(false)}
+              >
+                <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted/50">
+                  Services
+                  <ChevronDown className={cn("h-4 w-4 transition-transform", showServicesDropdown && "rotate-180")} />
+                </button>
+                
+                {showServicesDropdown && (
+                  <div className="absolute top-full left-0 pt-2 w-80">
+                    <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground px-3 py-1">Core Services</p>
+                      {services.map((service) => (
+                        <Link
+                          key={service.href}
+                          href={service.href}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                            <service.icon className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{service.label}</p>
+                            <p className="text-xs text-muted-foreground">{service.description}</p>
+                          </div>
+                        </Link>
+                      ))}
+                      <div className="border-t border-border my-2" />
+                      <p className="text-xs font-medium text-muted-foreground px-3 py-1">Health Programs</p>
+                      {healthPrograms.map((program) => (
+                        <Link
+                          key={program.href}
+                          href={program.href}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group"
+                        >
+                          <div className="p-2 rounded-lg bg-muted group-hover:bg-muted/80 transition-colors">
+                            <program.icon className={cn("h-4 w-4", program.color)} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{program.label}</p>
+                            <p className="text-xs text-muted-foreground">{program.description}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.href}
                   href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted/50"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
 
             {/* Desktop CTAs */}
-            <div className="hidden md:flex items-center gap-4">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Sign in</Link>
+            <div className="hidden lg:flex items-center gap-3">
+              <Button asChild variant="ghost" size="sm" className="rounded-xl">
+                <Link href="/sign-in">Sign in</Link>
               </Button>
               <Button 
                 asChild 
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all"
               >
                 <Link href="/start">
                   Get started
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -106,12 +180,12 @@ export function MarketingNavbar() {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-100"
+              className="lg:hidden p-2 rounded-xl hover:bg-muted/50 transition-colors"
             >
               {isMobileMenuOpen ? (
-                <X className="h-6 w-6 text-slate-600" />
+                <X className="h-6 w-6 text-foreground" />
               ) : (
-                <Menu className="h-6 w-6 text-slate-600" />
+                <Menu className="h-6 w-6 text-foreground" />
               )}
             </button>
           </div>
@@ -120,28 +194,72 @@ export function MarketingNavbar() {
         {/* Mobile menu */}
         <div
           className={cn(
-            "md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg overflow-hidden transition-all duration-300",
-            isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            "lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-2xl overflow-hidden transition-all duration-300",
+            isMobileMenuOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="px-4 py-4 space-y-1">
+          <div className="px-4 py-6 space-y-2 max-h-[70vh] overflow-y-auto">
+            {/* Services section */}
+            <p className="text-xs font-medium text-muted-foreground px-4 pt-2">Services</p>
+            {services.map((service) => (
+              <Link
+                key={service.href}
+                href={service.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <service.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{service.label}</p>
+                  <p className="text-xs text-muted-foreground">{service.description}</p>
+                </div>
+              </Link>
+            ))}
+
+            <div className="border-t border-border my-4" />
+
+            {/* Health Programs */}
+            <p className="text-xs font-medium text-muted-foreground px-4">Health Programs</p>
+            {healthPrograms.map((program) => (
+              <Link
+                key={program.href}
+                href={program.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-muted">
+                  <program.icon className={cn("h-5 w-5", program.color)} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{program.label}</p>
+                  <p className="text-xs text-muted-foreground">{program.description}</p>
+                </div>
+              </Link>
+            ))}
+
+            <div className="border-t border-border my-4" />
+
+            {/* Navigation links */}
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className="block px-4 py-3 text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-4 py-3 text-base font-medium text-foreground hover:bg-muted/50 rounded-xl transition-colors"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
-            <div className="pt-4 border-t border-slate-100 space-y-2">
-              <Button asChild variant="outline" className="w-full justify-center">
-                <Link href="/login">Sign in</Link>
+
+            <div className="pt-4 border-t border-border space-y-3">
+              <Button asChild variant="outline" className="w-full justify-center rounded-xl">
+                <Link href="/sign-in">Sign in</Link>
               </Button>
               <Button 
                 asChild 
-                className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="w-full justify-center bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl"
               >
                 <Link href="/start">Get started</Link>
               </Button>
