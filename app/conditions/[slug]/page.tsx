@@ -6,6 +6,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey issues during build
+export const dynamic = "force-dynamic"
+
 // Condition Landing Pages Configuration - 15 conditions
 const conditions: Record<
   string,

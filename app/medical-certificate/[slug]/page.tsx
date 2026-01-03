@@ -6,6 +6,9 @@ import { ArrowRight, MapPin, Shield, Star, CheckCircle2, Zap } from "lucide-reac
 import Link from "next/link"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey issues during build
+export const dynamic = "force-dynamic"
+
 // ============================================
 // SUBTYPE DATA (work, uni, carer) - redirect to main request
 // ============================================
