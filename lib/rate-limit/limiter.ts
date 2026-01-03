@@ -1,7 +1,7 @@
-/* eslint-disable no-console -- Rate limiting needs console as fallback */
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { headers } from "next/headers"
+import { logger } from "@/lib/logger"
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -63,7 +63,7 @@ export async function checkRateLimit(
 
   if (error && error.code !== "PGRST116") {
     // PGRST116 = no rows found
-    console.error("Rate limit check error:", error)
+    logger.error("Rate limit check error:", { error })
   }
 
   const currentCount = data?.request_count || 0

@@ -91,7 +91,7 @@ export function useNotifications(): UseNotificationsReturn {
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       )
     } catch (err) {
-      console.error("Error marking notification as read:", err)
+      logger.error("Error marking notification as read:", { error: err })
     }
   }, [supabase])
 

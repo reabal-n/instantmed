@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import type { LocalDraft, DraftSummary } from './types'
 import { calculateProgress, getServiceName } from './types'
 
@@ -67,7 +68,7 @@ export function saveLocalDraft(draft: LocalDraft): void {
     // Also update the "current draft" pointer
     localStorage.setItem(STORAGE_KEYS.CURRENT_DRAFT, draft.sessionId)
   } catch (error) {
-    console.error('Failed to save draft to localStorage:', error)
+    logger.error('Failed to save draft to localStorage:', { error })
   }
 }
 
@@ -85,7 +86,7 @@ export function loadLocalDraft(sessionId: string): LocalDraft | null {
     
     return JSON.parse(data) as LocalDraft
   } catch (error) {
-    console.error('Failed to load draft from localStorage:', error)
+    logger.error('Failed to load draft from localStorage:', { error })
     return null
   }
 }
@@ -106,7 +107,7 @@ export function deleteLocalDraft(sessionId: string): void {
       localStorage.removeItem(STORAGE_KEYS.CURRENT_DRAFT)
     }
   } catch (error) {
-    console.error('Failed to delete draft from localStorage:', error)
+    logger.error('Failed to delete draft from localStorage:', { error })
   }
 }
 
@@ -154,7 +155,7 @@ export function getAllLocalDrafts(): DraftSummary[] {
       }
     }
   } catch (error) {
-    console.error('Failed to get local drafts:', error)
+    logger.error('Failed to get local drafts:', { error })
   }
 
   // Sort by most recently updated
@@ -216,7 +217,7 @@ export function savePendingFlow(state: Omit<PendingFlowState, 'savedAt'>): void 
     }
     localStorage.setItem(STORAGE_KEYS.PENDING_FLOW, JSON.stringify(data))
   } catch (error) {
-    console.error('Failed to save pending flow:', error)
+    logger.error('Failed to save pending flow:', { error })
   }
 }
 
@@ -243,7 +244,7 @@ export function loadPendingFlow(): PendingFlowState | null {
 
     return state
   } catch (error) {
-    console.error('Failed to load pending flow:', error)
+    logger.error('Failed to load pending flow:', { error })
     return null
   }
 }

@@ -9,6 +9,7 @@ import { FlowCTA } from './flow-cta'
 import { useFlowStore, useFlowProgress, useFlowUI } from '@/lib/flow'
 import type { FlowConfig, FlowState } from '@/lib/flow'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface FlowShellProps {
   config: FlowConfig
@@ -68,7 +69,7 @@ export function FlowShell({
       try {
         saveDraft().catch((err) => {
           // Silently handle save errors - draft will be in localStorage
-          console.warn('Auto-save failed:', err)
+          logger.warn('Auto-save failed:', { error: err })
         })
       } catch {
         // Ignore errors

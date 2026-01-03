@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Check, AlertCircle, Loader2 } from 'lucide-react'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'
@@ -11,6 +10,7 @@ import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import type { FlowConfig, IdentityData, ConsentType } from '@/lib/flow'
 import { cn } from '@/lib/utils'
 import { useUser, useClerk } from '@clerk/nextjs'
+import { logger } from '@/lib/logger'
 
 interface DetailsStepProps {
   config: FlowConfig
@@ -144,7 +144,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
       onComplete?.()
       nextStep()
     } catch (error) {
-      console.error('Error:', error)
+      logger.error('Error:', { error })
       setAuthError('An unexpected error occurred')
     } finally {
       setIsSubmitting(false)

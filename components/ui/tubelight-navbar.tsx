@@ -19,7 +19,7 @@ interface NavBarProps {
 
 export function TubelightNavBar({ items, className }: NavBarProps) {
   const [activeTab, setActiveTab] = useState(items[0].name)
-  const [isMobile, setIsMobile] = useState(false)
+  const [_isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {

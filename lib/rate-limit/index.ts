@@ -1,17 +1,34 @@
 /**
  * Rate Limiting Utilities
  * 
- * Simple in-memory rate limiter for API routes.
- * For production, use Redis or a dedicated service.
+ * @deprecated This in-memory rate limiter DOES NOT WORK in serverless environments.
+ * Each serverless function instance has its own memory, so rate limits are not shared.
+ * 
+ * Use instead:
+ * - `@/lib/rate-limit/limiter` - Database-backed (Supabase)
+ * - `@/lib/rate-limit/upstash` - Redis-backed (Upstash)
+ * 
+ * This file is kept for local development only.
  */
+
+import { logger } from "@/lib/logger"
 
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
 
-// In-memory store (use Redis in production)
+// In-memory store - WARNING: Does not work across serverless instances!
 const store = new Map<string, RateLimitEntry>()
+
+// Log deprecation warning once
+let deprecationWarned = false
+function warnDeprecation() {
+  if (!deprecationWarned) {
+    logger.warn("[DEPRECATED] In-memory rate limiter used. Use limiter.ts or upstash.ts for production.")
+    deprecationWarned = true
+  }
+}
 
 // Clean up expired entries periodically
 setInterval(() => {
@@ -39,11 +56,13 @@ interface RateLimitResult {
 
 /**
  * Check rate limit for a given identifier
+ * @deprecated Use limiter.ts or upstash.ts instead for production
  */
 export function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
 ): RateLimitResult {
+  warnDeprecation()
   const now = Date.now()
   const key = identifier
   

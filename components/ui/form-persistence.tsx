@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useRef } from 'react'
+import { logger } from '@/lib/logger'
 
 const DEBOUNCE_MS = 500
 
@@ -31,7 +32,7 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         }
       }
     } catch (e) {
-      console.warn('Failed to load form data:', e)
+      logger.warn('Failed to load form data:', { error: e })
     }
 
     initialized.current = true
@@ -46,7 +47,7 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         const toSave = { ...data, _timestamp: Date.now() }
         localStorage.setItem(`form_${key}`, JSON.stringify(toSave))
       } catch (e) {
-        console.warn('Failed to save form data:', e)
+        logger.warn('Failed to save form data:', { error: e })
       }
     }, DEBOUNCE_MS)
 

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 // ============================================
 // TYPES
@@ -85,13 +86,13 @@ export function MedicationSearch({
         })
 
         if (error) {
-          console.error('Search error:', error)
+          logger.error('Search error:', { error })
           setResults([])
         } else {
           setResults((data as MedicationResult[]) || [])
         }
       } catch (err) {
-        console.error('Search error:', err)
+        logger.error('Search error:', { error: err })
         setResults([])
       } finally {
         setIsSearching(false)

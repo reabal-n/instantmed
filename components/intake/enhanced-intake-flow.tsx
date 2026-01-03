@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { logger } from "@/lib/logger"
 import {
   SymptomChecker,
   checkSymptoms,
@@ -660,7 +661,7 @@ export function EnhancedIntakeFlow({
         setErrors({ agreedToTerms: result.error || "Something went wrong. Please try again." })
       }
     } catch (error) {
-      console.error("Submit error:", error)
+      logger.error("Submit error:", { error })
       setErrors({ agreedToTerms: "Something went wrong. Please try again." })
     } finally {
       setIsSubmitting(false)
