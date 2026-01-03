@@ -63,6 +63,17 @@ export {
   type CompactStepperProps 
 } from "./stepper"
 
+// Loading States
+export {
+  Skeleton as UIXSkeletonWrapper,
+  CardSkeleton,
+  ListItemSkeleton,
+  StatsSkeleton,
+  FormSkeleton,
+  TableSkeleton,
+  type SkeletonProps,
+} from "./skeleton"
+
 // Re-export commonly used HeroUI components directly for convenience
 export {
   Spinner,

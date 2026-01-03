@@ -14,18 +14,13 @@ import {
   CreditCard,
   Settings,
   Plus,
-  Filter,
   Search,
   ChevronRight,
-  Eye,
   Printer,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Button, Input, Badge } from "@/components/uix"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 
 interface Request {
   id: string
