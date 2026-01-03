@@ -2,6 +2,8 @@ import { SignUp } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle, Star } from 'lucide-react'
 
+export const dynamic = "force-dynamic"
+
 export default function SignUpPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -32,6 +34,7 @@ export default function SignUpPage() {
             </div>
             
             <SignUp 
+              signInUrl="/sign-in"
               appearance={{
                 elements: {
                   rootBox: "w-full",
