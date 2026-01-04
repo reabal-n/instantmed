@@ -172,7 +172,11 @@ export function DoctorDashboardClient({
       setBulkNotes("")
       toast.success(`${updated} requests ${action === "approve" ? "approved" : "rejected"}`)
     } catch (error) {
-      console.error("Bulk action error:", error)
+      // Client-side error logging - acceptable in development
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error("Bulk action error:", error)
+      }
       toast.error("Failed to process bulk action")
     }
   }
@@ -205,7 +209,10 @@ export function DoctorDashboardClient({
       setSelectedRequest(null)
       toast.success(`Request ${action === "approve" ? "approved" : "rejected"}`)
     } catch (error) {
-      console.error("Update error:", error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error("Update error:", error)
+      }
       toast.error("Failed to update request")
     }
   }
@@ -230,7 +237,10 @@ export function DoctorDashboardClient({
 
       toast.success("Request assigned to you")
     } catch (error) {
-      console.error("Assign error:", error)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error("Assign error:", error)
+      }
       toast.error("Failed to assign request")
     }
   }

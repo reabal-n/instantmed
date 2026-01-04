@@ -1,9 +1,10 @@
 "use server"
-import { logger } from "@/lib/logger"
-
-import { createClient } from "@/lib/supabase/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+import { clerkClient } from "@clerk/nextjs/server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("change-email")
 
 interface ChangeEmailResult {
   success: boolean
@@ -30,37 +31,42 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
       return { success: false, error: "New email must be different from your current email" }
     }
 
-    // Check if email is already in use
-    const adminClient = createServiceRoleClient()
-    const { data: existingUsers } = await adminClient.auth.admin.listUsers()
-    const emailInUse = existingUsers?.users.some(
-      (u) => u.email?.toLowerCase() === newEmail.toLowerCase() && u.id !== authUser.user.id
-    )
+    // Check if email is already in use via Clerk
+    const client = await clerkClient()
+    try {
+      const existingUsers = await client.users.getUserList({ emailAddress: [newEmail] })
+      const emailInUse = existingUsers.data.some((u) => u.id !== authUser.user.id)
 
-    if (emailInUse) {
-      return { success: false, error: "This email address is already in use" }
-    }
-
-    // Use Supabase Auth to update email (sends verification to new email)
-    const supabase = await createClient()
-    const { error } = await supabase.auth.updateUser({
-      email: newEmail,
-    })
-
-    if (error) {
-      logger.error("[ChangeEmail] Error", { error: String(error) })
-      if (error.message.includes("email")) {
-        return { success: false, error: "Unable to update email. Please try again." }
+      if (emailInUse) {
+        return { success: false, error: "This email address is already in use" }
       }
-      return { success: false, error: error.message }
+    } catch (err) {
+      log.warn("Error checking email availability", {}, err)
     }
+
+    // Use Clerk to update email (sends verification to new email)
+    try {
+      await client.users.updateUser(authUser.user.id, {
+        primaryEmailAddressID: newEmail,
+      })
+    } catch (error) {
+      log.error("Error updating email", { userId: authUser.user.id }, error)
+      return { success: false, error: "Unable to update email. Please try again." }
+    }
+
+    // Also update in profiles table
+    const supabase = createServiceRoleClient()
+    await supabase
+      .from("profiles")
+      .update({ email: newEmail })
+      .eq("clerk_user_id", authUser.user.id)
 
     return {
       success: true,
       message: `A verification email has been sent to ${newEmail}. Please click the link to confirm your new email address.`,
     }
   } catch (error) {
-    logger.error("[ChangeEmail] Unexpected error", { error: String(error) })
+    log.error("Unexpected error changing email", {}, error)
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -75,22 +81,25 @@ export async function resendEmailVerificationAction(): Promise<ChangeEmailResult
       return { success: false, error: "You must be logged in" }
     }
 
-    const supabase = await createClient()
-    const { error } = await supabase.auth.resend({
-      type: "email_change",
-      email: authUser.user.email!,
-    })
+    const client = await clerkClient()
+    try {
+      // Clerk handles email verification automatically
+      // Just need to trigger a new verification email via Clerk
+      await client.emailAddresses.createEmailAddress({
+        userId: authUser.user.id,
+        emailAddress: authUser.user.email!,
+      })
 
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    return {
-      success: true,
-      message: "Verification email resent. Please check your inbox.",
+      return {
+        success: true,
+        message: "Verification email resent. Please check your inbox.",
+      }
+    } catch (error) {
+      log.error("Error resending verification", { userId: authUser.user.id }, error)
+      return { success: false, error: "Failed to resend verification email" }
     }
   } catch (error) {
-    logger.error("[ResendVerification] Error", { error: String(error) })
+    log.error("Unexpected error resending verification", {}, error)
     return { success: false, error: "Failed to resend verification email" }
   }
 }

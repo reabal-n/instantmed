@@ -1,29 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { DoctorDashboardClient } from "./dashboard-client"
+import { requireAuth } from "@/lib/auth"
+import { DynamicDoctorDashboard } from "@/components/shared/dynamic-components"
 
 export const dynamic = "force-dynamic"
 
 export default async function DoctorDashboardPage() {
-  const supabase = await createClient()
+  // Use Clerk authentication with role check
+  const authUser = await requireAuth("doctor").catch(() => null)
   
-  // Check if user is authenticated and is a doctor
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
+  if (!authUser) {
     redirect("/sign-in?redirect_url=/doctor/dashboard")
   }
 
-  // Get doctor profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
-  if (!profile || profile.role !== "doctor") {
-    redirect("/")
-  }
+  const supabase = await createClient()
+  const profile = authUser.profile
+  const clerkUserId = authUser.user.id
 
   // Fetch all requests assigned to this doctor or unassigned
   const { data: requests } = await supabase
@@ -37,7 +29,7 @@ export default async function DoctorDashboardPage() {
         phone
       )
     `)
-    .or(`doctor_id.eq.${user.id},doctor_id.is.null`)
+    .or(`doctor_id.eq.${profile.id},doctor_id.is.null`)
     .order("created_at", { ascending: false })
     .limit(100)
 
@@ -45,24 +37,24 @@ export default async function DoctorDashboardPage() {
   const { count: totalRequests } = await supabase
     .from("requests")
     .select("*", { count: "exact", head: true })
-    .eq("doctor_id", user.id)
+    .eq("doctor_id", profile.id)
 
   const { count: pendingRequests } = await supabase
     .from("requests")
     .select("*", { count: "exact", head: true })
-    .eq("doctor_id", user.id)
+    .eq("doctor_id", profile.id)
     .eq("status", "submitted")
 
   const { count: approvedToday } = await supabase
     .from("requests")
     .select("*", { count: "exact", head: true })
-    .eq("doctor_id", user.id)
+    .eq("doctor_id", profile.id)
     .eq("status", "approved")
     .gte("updated_at", new Date().toISOString().split("T")[0])
 
   return (
-    <DoctorDashboardClient
-      doctorId={user.id}
+    <DynamicDoctorDashboard
+      doctorId={profile.id}
       doctorName={profile.full_name || "Doctor"}
       initialRequests={requests || []}
       stats={{

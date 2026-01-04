@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { uploadPdfBuffer } from "@/lib/storage/documents"
 import { createGeneratedDocument } from "@/lib/data/documents"
@@ -127,7 +128,7 @@ export async function PATCH(
         .eq("id", requestId)
 
       if (updateError) {
-        logger.error("Failed to reject med cert request", { error: updateError, requestId })
+        log.error("Failed to reject med cert request", { error: updateError, requestId })
         return NextResponse.json(
           { success: false, error: "Failed to update request" },
           { status: 500 }
@@ -162,7 +163,7 @@ export async function PATCH(
       .single()
 
     if (draftError || !draft) {
-      logger.warn("No med cert draft found for request", { requestId })
+      log.warn("No med cert draft found for request", { requestId })
       return NextResponse.json(
         { success: false, error: "Medical certificate draft not found. Doctor may need to create one." },
         { status: 400 }
@@ -179,7 +180,7 @@ export async function PATCH(
       await assertApprovalInvariants(requestId)
     } catch (invariantError) {
       if (invariantError instanceof ApprovalInvariantError) {
-        logger.warn("Approval invariant failed", { requestId, error: invariantError.message })
+        log.warn("Approval invariant failed", { requestId, error: invariantError.message })
         return NextResponse.json(
           { success: false, error: invariantError.message },
           { status: 400 }
@@ -199,7 +200,7 @@ export async function PATCH(
       })
 
       certId = pdfResult.certId
-      logger.info(`[decision] PDF generated: ${certId} (${pdfResult.size} bytes)`)
+      log.info(`[decision] PDF generated: ${certId} (${pdfResult.size} bytes)`)
 
       // Upload to Supabase Storage
       const uploadResult = await uploadPdfBuffer(
@@ -210,7 +211,7 @@ export async function PATCH(
       )
 
       if (!uploadResult.success || !uploadResult.permanentUrl) {
-        logger.error("Failed to upload PDF", { requestId, error: uploadResult.error })
+        log.error("Failed to upload PDF", { requestId, error: uploadResult.error })
         return NextResponse.json(
           { success: false, error: uploadResult.error || "Failed to upload certificate" },
           { status: 500 }
@@ -218,10 +219,10 @@ export async function PATCH(
       }
 
       pdfUrl = uploadResult.permanentUrl
-      logger.info(`[decision] PDF uploaded to ${pdfUrl}`)
+      log.info(`[decision] PDF uploaded to ${pdfUrl}`)
     } catch (pdfError) {
       const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
-      logger.error("PDF generation failed", { requestId, error: errorMessage })
+      log.error("PDF generation failed", { requestId, error: errorMessage })
       return NextResponse.json(
         { success: false, error: errorMessage },
         { status: 500 }
@@ -237,7 +238,7 @@ export async function PATCH(
     )
 
     if (!document) {
-      logger.error("Failed to create generated document record", { requestId })
+      log.error("Failed to create generated document record", { requestId })
       return NextResponse.json(
         { success: false, error: "Failed to save certificate record" },
         { status: 500 }
@@ -250,7 +251,7 @@ export async function PATCH(
       updatedRequest = await updateRequestStatus(requestId, "approved", profile.id)
     } catch (lifecycleError) {
       if (lifecycleError instanceof RequestLifecycleError) {
-        logger.warn("Lifecycle error on approval", { requestId, error: lifecycleError.message })
+        log.warn("Lifecycle error on approval", { requestId, error: lifecycleError.message })
         return NextResponse.json(
           { success: false, error: lifecycleError.message },
           { status: 400 }
@@ -260,7 +261,7 @@ export async function PATCH(
     }
 
     if (!updatedRequest) {
-      logger.error("Failed to update request status", { requestId })
+      log.error("Failed to update request status", { requestId })
       return NextResponse.json(
         { success: false, error: "Failed to update request status" },
         { status: 500 }
@@ -288,7 +289,7 @@ export async function PATCH(
     })
 
   } catch (error) {
-    logger.error("Med cert decision error", { error })
+    log.error("Med cert decision error", { error })
     return NextResponse.json(
       { success: false, error: "An unexpected error occurred" },
       { status: 500 }

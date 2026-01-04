@@ -1,6 +1,7 @@
 "use server"
 
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("signup")
 
 /**
  * Server-side signup action.
@@ -19,7 +20,7 @@ export async function signupAction(
   }
 ): Promise<{ userId: string | null; profileId: string | null; error: string | null }> {
   // Log deprecation warning
-  logger.warn("[Signup Action] This action is deprecated. Use Clerk sign-up flow instead.", { email })
+  log.warn("[Signup Action] This action is deprecated. Use Clerk sign-up flow instead.", { email })
   
   // Return error directing to Clerk
   return { 

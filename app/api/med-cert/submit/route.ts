@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"
 import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import { getApiAuth } from "@/lib/auth"
 import type { SymptomId } from "@/types/med-cert"
 
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
       .single()
 
     if (insertError) {
-      logger.error("Error creating med cert request", { error: insertError })
+      log.error("Error creating med cert request", { error: insertError })
       return NextResponse.json(
         { success: false, error: "Failed to create request" },
         { status: 500 }
@@ -207,7 +208,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
     })
 
   } catch (error) {
-    logger.error("Med cert submission error", { error })
+    log.error("Med cert submission error", { error })
     return NextResponse.json(
       { success: false, error: "An unexpected error occurred" },
       { status: 500 }

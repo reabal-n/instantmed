@@ -1,5 +1,6 @@
 "use server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("save-draft")
 
 import { createClient } from "@/lib/supabase/server"
 
@@ -53,7 +54,7 @@ export async function saveDraftToSupabase(
     return { success: true }
   } catch (error) {
     const dbError = error as DatabaseError
-    logger.error("Failed to save draft", { error: String(dbError) })
+    log.error("Failed to save draft", { error: String(dbError) })
     return { success: false, error: dbError.message }
   }
 }
@@ -79,7 +80,7 @@ export async function loadDraftFromSupabase(
     }
   } catch (error) {
     const dbError = error as DatabaseError
-    logger.error("Failed to load draft", { error: String(dbError) })
+    log.error("Failed to load draft", { error: String(dbError) })
     return { success: false, error: dbError.message }
   }
 }
@@ -95,7 +96,7 @@ export async function deleteDraft(patientId: string, flowType: string): Promise<
     return { success: true }
   } catch (error) {
     const dbError = error as DatabaseError
-    logger.error("Failed to delete draft", { error: String(dbError) })
+    log.error("Failed to delete draft", { error: String(dbError) })
     return { success: false, error: dbError.message }
   }
 }

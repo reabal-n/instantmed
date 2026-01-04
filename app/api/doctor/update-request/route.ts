@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("update-request")
 
 export async function POST(request: NextRequest) {
+  let userId: string | null = null
+  
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Use Clerk for authentication
+    const authResult = await auth()
+    userId = authResult.userId
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify user is a doctor
+    const supabase = await createClient()
+
+    // Verify user is a doctor using clerk_user_id
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("clerk_user_id", userId)
       .single()
 
-    if (!profile || profile.role !== "doctor") {
+    if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -57,6 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, request: data })
   } catch (error) {
+    log.error("Update request failed", { userId }, error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

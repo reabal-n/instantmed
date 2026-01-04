@@ -1,5 +1,6 @@
 "use server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("create-request")
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
@@ -125,7 +126,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       .single()
 
     if (requestError || !request) {
-      logger.error("[createRequestAction] Error creating request", { error: String(requestError) })
+      log.error("[createRequestAction] Error creating request", { error: String(requestError) })
 
       if (requestError?.code === "23503") {
         return {
@@ -157,7 +158,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     })
 
     if (answersError) {
-      logger.error("[createRequestAction] Error creating answers", { error: String(answersError) })
+      log.error("[createRequestAction] Error creating answers", { error: String(answersError) })
       // Don't fail - the request exists, answers are supplementary
     }
 
@@ -166,7 +167,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       requestId: request.id,
     }
   } catch (error) {
-    logger.error("[createRequestAction] Unexpected error", { error: String(error) })
+    log.error("[createRequestAction] Unexpected error", { error: String(error) })
     return {
       success: false,
       error: "An unexpected error occurred. Please try again or contact support at help@instantmed.com.au",
@@ -221,13 +222,13 @@ export async function updateDraftAction(
       })
 
     if (error) {
-      logger.error("[updateDraftAction] Error", { error: String(error) })
+      log.error("[updateDraftAction] Error", { error: String(error) })
       return { success: false, error: "Failed to update draft" }
     }
 
     return { success: true }
   } catch (error) {
-    logger.error("[updateDraftAction] Unexpected error", { error: String(error) })
+    log.error("[updateDraftAction] Unexpected error", { error: String(error) })
     return { success: false, error: "An unexpected error occurred" }
   }
 }

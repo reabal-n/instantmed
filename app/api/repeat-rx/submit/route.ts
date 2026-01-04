@@ -4,7 +4,8 @@ import { createServiceClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { auth } from "@clerk/nextjs/server"
 import { rateLimit } from "@/lib/rate-limit/limiter"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import type {
   ClinicalSummary,
   RepeatRxSubmitPayload,
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     const rateLimitKey = userId || `ip:${ipAddress}`
     const rateLimitResult = await rateLimit(rateLimitKey, '/api/repeat-rx/submit')
     if (!rateLimitResult.allowed) {
-      logger.warn("[Repeat Rx Submit] Rate limit exceeded", { rateLimitKey })
+      log.warn("[Repeat Rx Submit] Rate limit exceeded", { rateLimitKey })
       return NextResponse.json(
         { error: "Too many requests. Please wait a few minutes before trying again." },
         { status: 429, headers: { 'Retry-After': '300' } }

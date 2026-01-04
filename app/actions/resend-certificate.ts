@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { sendMedCertReadyEmail } from "@/lib/email/resend"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("resend-certificate")
 import { auth } from "@clerk/nextjs/server"
 
 const RESEND_LIMIT = 3 // Max resends per 24 hours
@@ -144,7 +145,7 @@ export async function resendCertificateEmailAction(requestId: string): Promise<R
     }
 
   } catch (error) {
-    logger.error("[resendCertificateEmailAction] Error: " + String(error), { error })
+    log.error("[resendCertificateEmailAction] Error: " + String(error), { error })
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -179,7 +180,7 @@ export async function getResendStatusAction(requestId: string): Promise<{
       lastSentAt: lastSent,
     }
   } catch (error) {
-    logger.error("[getResendStatusAction] Error: " + String(error), { error })
+    log.error("[getResendStatusAction] Error: " + String(error), { error })
     return { canResend: false, remainingResends: 0 }
   }
 }

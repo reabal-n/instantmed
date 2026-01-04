@@ -10,7 +10,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { getRequestWithDetails } from "@/lib/data/requests"
 import { getApiAuth } from "@/lib/auth"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
@@ -29,7 +30,7 @@ export async function GET(
     // Auth check - patients can only download their own documents
     const authResult = await getApiAuth()
     if (!authResult) {
-      logger.warn(`[document-download] Unauthenticated access attempt to ${requestId}`)
+      log.warn(`[document-download] Unauthenticated access attempt to ${requestId}`)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -37,29 +38,29 @@ export async function GET(
 
     // Validate UUID format
     if (!requestId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      logger.warn(`[document-download] Invalid request ID format: ${requestId}`)
+      log.warn(`[document-download] Invalid request ID format: ${requestId}`)
       return NextResponse.json({ error: "Invalid request ID" }, { status: 400 })
     }
 
-    logger.info(`[document-download] Download request for ${requestId} by user ${userId}`)
+    log.info(`[document-download] Download request for ${requestId} by user ${userId}`)
 
     // Fetch request to verify ownership and approval status
     const requestData = await getRequestWithDetails(requestId)
 
     if (!requestData) {
-      logger.warn(`[document-download] Request not found: ${requestId}`)
+      log.warn(`[document-download] Request not found: ${requestId}`)
       return NextResponse.json({ error: "Request not found" }, { status: 404 })
     }
 
     // Verify patient owns this request
     if (requestData.patient_id !== userId) {
-      logger.warn(`[document-download] User ${userId} attempted to download request owned by ${requestData.patient_id}`)
+      log.warn(`[document-download] User ${userId} attempted to download request owned by ${requestData.patient_id}`)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     // Verify request is approved (has generated document)
     if (requestData.status !== "approved") {
-      logger.warn(`[document-download] Attempted download of non-approved request ${requestId} (status: ${requestData.status})`)
+      log.warn(`[document-download] Attempted download of non-approved request ${requestId} (status: ${requestData.status})`)
       return NextResponse.json(
         { error: "Request not approved" },
         { status: 400 }
@@ -78,7 +79,7 @@ export async function GET(
       .single()
 
     if (docError || !doc?.pdf_url) {
-      logger.error(`[document-download] Document not found for ${requestId}`, { error: docError })
+      log.error(`[document-download] Document not found for ${requestId}`, { error: docError })
       return NextResponse.json(
         { error: "Document not available" },
         { status: 404 }
@@ -91,7 +92,7 @@ export async function GET(
     const pdfResponse = await fetch(doc.pdf_url)
 
     if (!pdfResponse.ok) {
-      logger.error(`[document-download] Failed to fetch PDF from storage`, {
+      log.error(`[document-download] Failed to fetch PDF from storage`, {
         status: pdfResponse.status,
         url: doc.pdf_url,
       })
@@ -104,7 +105,7 @@ export async function GET(
     // Get the PDF buffer
     const pdfBuffer = await pdfResponse.arrayBuffer()
 
-    logger.info(`[document-download] Successfully downloaded ${requestId} (${pdfBuffer.byteLength} bytes)`)
+    log.info(`[document-download] Successfully downloaded ${requestId} (${pdfBuffer.byteLength} bytes)`)
 
     // Return as downloadable PDF
     return new NextResponse(pdfBuffer, {
@@ -117,7 +118,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    logger.error(`[document-download] Unexpected error`, {
+    log.error(`[document-download] Unexpected error`, {
       error: error instanceof Error ? error.message : "unknown",
     })
     return NextResponse.json(

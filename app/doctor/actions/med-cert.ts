@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { getRequestWithDetails } from "@/lib/data/requests"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("med-cert")
 import type { MedCertDraft } from "@/types/db"
 
 /**
@@ -86,7 +87,7 @@ export async function getOrCreateMedCertDraft(
       .single()
 
     if (createError || !createdDraft) {
-      logger.error("Failed to create med cert draft", { error: createError, requestId })
+      log.error("Failed to create med cert draft", { error: createError, requestId })
       return { success: false, error: "Failed to create draft" }
     }
 
@@ -95,7 +96,7 @@ export async function getOrCreateMedCertDraft(
       data: createdDraft as MedCertDraft,
     }
   } catch (error) {
-    logger.error("Error in getOrCreateMedCertDraft", { error })
+    log.error("Error in getOrCreateMedCertDraft", { error })
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -144,13 +145,13 @@ export async function saveMedCertDraft(
       .eq("id", draftId)
 
     if (error) {
-      logger.error("Failed to save med cert draft", { error, draftId })
+      log.error("Failed to save med cert draft", { error, draftId })
       return { success: false, error: "Failed to save draft" }
     }
 
     return { success: true }
   } catch (error) {
-    logger.error("Error in saveMedCertDraft", { error })
+    log.error("Error in saveMedCertDraft", { error })
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -254,11 +255,11 @@ export async function issueMedCertificate(
 
       return { success: true, pdfUrl: result.pdfUrl }
     } catch (_error) {
-      logger.error("Failed to generate PDF", { error: _error })
+      log.error("Failed to generate PDF", { error: _error })
       return { success: false, error: "Failed to generate PDF" }
     }
   } catch (error) {
-    logger.error("Error in issueMedCertificate", { error })
+    log.error("Error in issueMedCertificate", { error })
     return { success: false, error: "An unexpected error occurred" }
   }
 }

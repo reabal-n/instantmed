@@ -2,7 +2,8 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import type { ClinicianDecision } from "@/types/repeat-rx"
 
 interface DecisionPayload {
@@ -167,11 +168,11 @@ export async function POST(
           newStatus: body.decision === "approved" ? "approved" : body.decision === "declined" ? "declined" : "pending",
           documentUrl: undefined, // PDF generated separately if approved
         })
-        logger.info("[Repeat Rx Decision] Patient notified", { requestId: id, decision: body.decision })
+        log.info("[Repeat Rx Decision] Patient notified", { requestId: id, decision: body.decision })
       }
     } catch (notifyError) {
       // Log but don't fail the request - notification is not critical
-      logger.error("[Repeat Rx Decision] Failed to notify patient", { 
+      log.error("[Repeat Rx Decision] Failed to notify patient", { 
         error: notifyError instanceof Error ? notifyError.message : "Unknown error",
         requestId: id 
       })

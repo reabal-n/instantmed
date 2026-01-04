@@ -1,5 +1,6 @@
 "use server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("amend-request")
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
@@ -86,7 +87,7 @@ export async function submitRequestAmendmentAction(
       .eq("request_id", requestId)
 
     if (updateError) {
-      logger.error("[AmendRequest] Error updating answers", { error: updateError.message })
+      log.error("[AmendRequest] Error updating answers", { error: updateError.message })
       return { success: false, error: "Failed to update your request. Please try again." }
     }
 
@@ -104,7 +105,7 @@ export async function submitRequestAmendmentAction(
       .eq("id", requestId)
 
     if (requestUpdateError) {
-      logger.error("[AmendRequest] Error updating request metadata", { error: requestUpdateError.message })
+      log.error("[AmendRequest] Error updating request metadata", { error: requestUpdateError.message })
       // Don't fail - the main update succeeded
     }
 
@@ -116,7 +117,7 @@ export async function submitRequestAmendmentAction(
       message: "Your request has been updated. The doctor will see your changes.",
     }
   } catch (error) {
-    logger.error("[AmendRequest] Unexpected error", { error: error instanceof Error ? error.message : String(error) })
+    log.error("[AmendRequest] Unexpected error", { error: error instanceof Error ? error.message : String(error) })
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",

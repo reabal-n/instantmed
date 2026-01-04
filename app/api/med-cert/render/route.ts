@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import type { MedCertDraft } from "@/types/db"
 
 /**
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    logger.info("Generating medical certificate PDF", {
+    log.info("Generating medical certificate PDF", {
       requestId,
       draftId,
       doctorId: profile.id,
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       requestId,
     })
 
-    logger.info("PDF generated successfully", {
+    log.info("PDF generated successfully", {
       requestId,
       certId: result.certId,
       size: result.size,
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (uploadError) {
-      logger.error("Failed to upload PDF to storage", {
+      log.error("Failed to upload PDF to storage", {
         error: uploadError,
         requestId,
         draftId,
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const pdfUrl = urlData.publicUrl
 
-    logger.info("PDF uploaded successfully", {
+    log.info("PDF uploaded successfully", {
       requestId,
       pdfUrl,
       path: uploadData.path,
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (docError) {
-      logger.error("Failed to create document record", {
+      log.error("Failed to create document record", {
         error: docError,
         requestId,
       })
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
       size: result.size,
     })
   } catch (error) {
-    logger.error("Error rendering medical certificate", { error })
+    log.error("Error rendering medical certificate", { error })
     return NextResponse.json(
       {
         success: false,

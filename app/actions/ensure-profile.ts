@@ -1,6 +1,10 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+
+const log = createLogger("ensure-profile")
 
 /**
  * Ensures a profile exists for an authenticated user.
@@ -44,9 +48,11 @@ export async function ensureProfile(
     }
 
     // Step 3: Profile doesn't exist - create it
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId)
+    // Get email using Clerk helpers (supports both clerk_user_id and auth_user_id)
+    const fetchedEmail = userEmail || await getUserEmailFromAuthUserId(userId)
     
-    if (authError || !authUser?.user) {
+    if (!fetchedEmail) {
+      log.error("Failed to get user email", { userId })
       return {
         profileId: null,
         error: "User not found. Please sign in again.",
@@ -55,14 +61,10 @@ export async function ensureProfile(
 
     const profileData = {
       auth_user_id: userId,
-      email: userEmail || authUser.user.email || "",
-      full_name: options?.fullName || 
-                 authUser.user.user_metadata?.full_name || 
-                 authUser.user.user_metadata?.name ||
-                 userEmail?.split("@")[0] || 
-                 "User",
-      date_of_birth: options?.dateOfBirth || authUser.user.user_metadata?.date_of_birth || null,
-      role: (authUser.user.user_metadata?.role as "patient" | "doctor") || "patient",
+      email: fetchedEmail,
+      full_name: options?.fullName || fetchedEmail.split("@")[0] || "User",
+      date_of_birth: options?.dateOfBirth || null,
+      role: "patient" as const,
       onboarding_completed: false,
     }
 
@@ -86,6 +88,7 @@ export async function ensureProfile(
         }
       }
 
+      log.error("Failed to create profile", { userId, code: insertError.code }, insertError)
       throw new Error(`Failed to create profile: ${insertError.message} (code: ${insertError.code})`)
     }
 

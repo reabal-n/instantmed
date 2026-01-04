@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { useConfetti } from "@/components/effects/confetti"
 import { useUser, useClerk } from "@clerk/nextjs"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("client")
 
 interface MedCertIntakeClientProps {
   subtype?: string
@@ -81,7 +82,7 @@ export function MedCertIntakeClient({
       .single()
 
     if (requestError || !request) {
-      logger.error("Failed to create request", { error: requestError })
+      log.error("Failed to create request", { error: requestError })
       throw new Error("Failed to create request. Please try again.")
     }
 

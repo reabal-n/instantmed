@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/send-status"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 
 /**
  * Internal API route for sending status change emails
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     const expectedSecret = process.env.INTERNAL_API_SECRET
     
     if (!expectedSecret) {
-      logger.error("[send-status-email] INTERNAL_API_SECRET not configured")
+      log.error("[send-status-email] INTERNAL_API_SECRET not configured")
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
     
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    logger.error("Error sending status email", { error })
+    log.error("Error sending status email", { error })
     return NextResponse.json(
       { error: "Failed to send email" },
       { status: 500 }

@@ -1,8 +1,10 @@
 "use server"
-import { logger } from "@/lib/logger"
-
+import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
+import { clerkClient } from "@clerk/nextjs/server"
 import { isTestMode } from "@/lib/test-mode"
+
+const log = createLogger("test-actions")
 
 interface TestRequestResult {
   success: boolean
@@ -37,7 +39,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
     .single()
 
   if (requestError || !request) {
-    logger.error("Error creating test request", { error: String(requestError) })
+    log.error("Error creating test request", { patientId }, requestError)
     return { success: false, error: requestError?.message || "Failed to create request" }
   }
 
@@ -54,7 +56,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
   })
 
   if (answersError) {
-    logger.error("Error creating test answers", { error: String(answersError) })
+    log.error("Error creating test answers", { requestId: request.id }, answersError)
   }
 
   // If paid, create a mock payment record
@@ -70,7 +72,7 @@ export async function createTestRequest(patientId: string, paid = false): Promis
     })
 
     if (paymentError) {
-      logger.error("Error creating test payment", { error: String(paymentError) })
+      log.error("Error creating test payment", { requestId: request.id }, paymentError)
     }
   }
 
@@ -99,7 +101,7 @@ export async function skipPaymentTestMode(requestId: string): Promise<TestReques
     .eq("id", requestId)
 
   if (updateError) {
-    logger.error("Error skipping payment", { error: String(updateError) })
+    log.error("Error skipping payment", { requestId }, updateError)
     return { success: false, error: updateError.message }
   }
 
@@ -115,7 +117,7 @@ export async function skipPaymentTestMode(requestId: string): Promise<TestReques
   })
 
   if (paymentError) {
-    logger.error("Error creating skip payment record", { error: String(paymentError) })
+    log.error("Error creating skip payment record", { requestId }, paymentError)
   }
 
   return { success: true, requestId }
@@ -133,22 +135,23 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
   const supabase = await createClient()
   const adminEmail = "me@reabal.ai"
 
-  // First, find if a profile exists with this email via auth
-  const { data: authUsers } = await supabase.auth.admin.listUsers()
-  const adminAuthUser = authUsers?.users?.find((u) => u.email === adminEmail)
+  // First, find if a user exists with this email via Clerk
+  const client = await clerkClient()
+  const users = await client.users.getUserList({ emailAddress: [adminEmail] })
+  const adminUser = users.data[0]
 
-  if (!adminAuthUser) {
+  if (!adminUser) {
     return {
       success: false,
-      message: `No auth user found with email ${adminEmail}. Please sign up first, then run bootstrap.`,
+      message: `No user found with email ${adminEmail}. Please sign up first, then run bootstrap.`,
     }
   }
 
-  // Check if profile exists
+  // Check if profile exists using clerk_user_id
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", adminAuthUser.id)
+    .eq("clerk_user_id", adminUser.id)
     .single()
 
   if (existingProfile) {
@@ -158,7 +161,7 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
       .update({
         role: "doctor",
       })
-      .eq("auth_user_id", adminAuthUser.id)
+      .eq("clerk_user_id", adminUser.id)
 
     if (updateError) {
       return { success: false, message: `Failed to update profile: ${updateError.message}` }
@@ -169,7 +172,8 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
 
   // Create profile if doesn't exist
   const { error: insertError } = await supabase.from("profiles").insert({
-    auth_user_id: adminAuthUser.id,
+    clerk_user_id: adminUser.id,
+    email: adminEmail,
     full_name: "Dr. Admin",
     role: "doctor",
     onboarding_completed: true,

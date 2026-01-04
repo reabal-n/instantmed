@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 
 export async function GET(request: NextRequest) {
   // Rate limiting using database
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   )
 
   if (!rateLimitResult.allowed) {
-    logger.warn('Rate limit exceeded for medications search', { ip })
+    log.warn('Rate limit exceeded for medications search', { ip })
     return NextResponse.json(
       {
         error: "Too many requests. Please try again later.",
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
-      logger.error("Medication search RPC error", { error, query })
+      log.error("Medication search RPC error", { error, query })
       // Fallback to direct query if RPC fails
       const { data: fallbackData, error: fallbackError } = await supabase
         .from("medications")
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
         .limit(15)
 
       if (fallbackError) {
-        logger.error("Medication search fallback error", { error: fallbackError, query })
+        log.error("Medication search fallback error", { error: fallbackError, query })
         throw fallbackError
       }
 
@@ -122,7 +123,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ medications })
   } catch (error) {
-    logger.error("Medication search error", {
+    log.error("Medication search error", {
       error: error instanceof Error ? error.message : String(error),
       query
     })

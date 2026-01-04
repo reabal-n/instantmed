@@ -2,20 +2,23 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { useSignIn } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Lock, Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { signIn, isLoaded } = useSignIn()
+  
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -23,49 +26,50 @@ export default function ResetPasswordPage() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  useEffect(() => {
-    // Check if we have access token in URL (Supabase magic link)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const accessToken = hashParams.get("access_token")
-
-    if (!accessToken) {
-      setError("Invalid or expired reset link. Please request a new one.")
-    }
-  }, [])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    if (!isLoaded) {
+      setError("Authentication not ready. Please try again.")
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters")
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters")
       return
     }
 
     setIsLoading(true)
 
     try {
-      const supabase = createClient()
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password,
-      })
-
-      if (updateError) {
-        setError(updateError.message)
-      } else {
-        setIsSuccess(true)
-        toast.success("Password reset successfully")
-        setTimeout(() => {
-          router.push("/auth/login")
-        }, 2000)
+      // Get the reset token from URL
+      const token = searchParams.get("__clerk_ticket")
+      
+      if (!token) {
+        setError("Invalid or expired reset link. Please request a new one.")
+        setIsLoading(false)
+        return
       }
-    } catch {
-      setError("An unexpected error occurred")
+
+      // Clerk's password reset requires using their built-in UI
+      // This is a simplified version - in production, use Clerk's <SignIn /> component
+      // with the resetPasswordMode prop, or redirect to Clerk's hosted pages
+      
+      // For now, redirect to sign-in and let them use "Forgot password?"
+      setError("Please use the 'Forgot password?' link on the sign-in page for password resets.")
+      setTimeout(() => {
+        router.push("/sign-in")
+      }, 3000)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred"
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -160,9 +164,17 @@ export default function ResetPasswordPage() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/auth/login" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary hover:underline">
                 Sign in
               </Link>
+            </p>
+            
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Note: Clerk manages password resets. If this page doesn&apos;t work, use the{" "}
+              <Link href="/sign-in" className="text-primary hover:underline">
+                sign-in page
+              </Link>
+              {" "}and click &quot;Forgot password?&quot;
             </p>
           </div>
         </div>

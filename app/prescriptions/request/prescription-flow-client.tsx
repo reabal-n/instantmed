@@ -41,7 +41,8 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/comp
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { AnimatedSelect } from "@/components/ui/animated-select"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("prescription-flow-client")
 
 // Draft persistence constants
 const STORAGE_KEY = "instantmed_rx_draft"
@@ -809,7 +810,7 @@ export function PrescriptionFlowClient({
           if (parsed.email) setEmail(parsed.email)
           sessionStorage.removeItem("rx_form_data")
         } catch (e) {
-          logger.error("Failed to restore form data", { error: e })
+          log.error("Failed to restore form data", { error: e })
         }
       }
     }

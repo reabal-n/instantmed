@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 
 /**
  * AI Clinical Note Generation
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     )
   } catch (error) {
-    logger.error("Error in clinical-note route", { error })
+    log.error("Error in clinical-note route", { error })
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 }

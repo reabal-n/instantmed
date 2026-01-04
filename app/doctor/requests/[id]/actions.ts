@@ -15,7 +15,8 @@ function isValidUUID(id: string): boolean {
 }
 
 import { getAppUrl, getInternalApiSecret } from "@/lib/env"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("actions")
 
 // Trigger email sending via internal API (avoids react-dom/server import in server action)
 async function triggerStatusEmail(
@@ -36,7 +37,7 @@ async function triggerStatusEmail(
     })
   } catch (error) {
     // Log but don't fail the status update if email fails
-    logger.error("Failed to trigger status email", { error, requestId, status })
+    log.error("Failed to trigger status email", { error, requestId, status })
   }
 }
 
@@ -262,7 +263,7 @@ export async function markEScriptSentAction(
       .eq("id", requestId)
 
     if (updateError) {
-      logger.error("Failed to mark eScript sent", { error: updateError, requestId })
+      log.error("Failed to mark eScript sent", { error: updateError, requestId })
       return { success: false, error: "Failed to update request" }
     }
 
@@ -290,7 +291,7 @@ export async function markEScriptSentAction(
 
     return { success: true }
   } catch (error) {
-    logger.error("Error marking eScript sent", { error, requestId })
+    log.error("Error marking eScript sent", { error, requestId })
     return { success: false, error: "An unexpected error occurred" }
   }
 }

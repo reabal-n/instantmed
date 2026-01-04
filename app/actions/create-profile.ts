@@ -1,7 +1,9 @@
 "use server"
-import { logger } from "@/lib/logger"
-
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+
+const log = createLogger("create-profile")
 
 export async function createOrGetProfile(
   authUserId: string,
@@ -13,7 +15,7 @@ export async function createOrGetProfile(
     try {
       supabase = createServiceRoleClient()
     } catch (clientError) {
-      logger.error("[Profile Action] Failed to create service role client", { error: String(clientError) })
+      log.error("Failed to create service role client", {}, clientError)
       return { profileId: null, error: "Server configuration error. Please contact support." }
     }
 
@@ -24,12 +26,10 @@ export async function createOrGetProfile(
       .maybeSingle()
 
     if (selectError) {
-      logger.error("[Profile Action] Error checking for existing profile:", {
+      log.error("Error checking for existing profile", {
         code: selectError.code,
-        message: selectError.message,
-        details: selectError.details,
-        hint: selectError.hint,
-      })
+        authUserId,
+      }, selectError)
       return { profileId: null, error: `Database error: ${selectError.message}` }
     }
 
@@ -53,10 +53,10 @@ export async function createOrGetProfile(
       return { profileId: existingProfile.id, error: null }
     }
 
-    const { data: authUser } = await supabase.auth.admin.getUserById(authUserId)
-    // Don't return error - user might be pending email confirmation
-
-    if (!authUser?.user) {
+    // Get user email from Clerk (supports both clerk_user_id and legacy auth_user_id)
+    const userEmail = await getUserEmailFromAuthUserId(authUserId)
+    
+    if (!userEmail) {
       return {
         profileId: null,
         error: "Please confirm your email before continuing. Check your inbox for a confirmation link.",
@@ -79,8 +79,9 @@ export async function createOrGetProfile(
 
     const profileData = {
       auth_user_id: authUserId,
-      full_name: fullName || authUser.user.user_metadata?.full_name || "User",
-      date_of_birth: dateOfBirth || authUser.user.user_metadata?.date_of_birth || null,
+      full_name: fullName || "User",
+      date_of_birth: dateOfBirth || null,
+      email: userEmail,
       role: "patient",
       onboarding_completed: false,
     }

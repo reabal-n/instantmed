@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import type { MedCertDraft } from "@/types/db"
 
 /**
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       url: dataUrl,
     })
   } catch (error) {
-    logger.error("Error generating preview PDF", { error })
+    log.error("Error generating preview PDF", { error })
     return NextResponse.json(
       { success: false, error: "Failed to generate preview PDF" },
       { status: 500 }

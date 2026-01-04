@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { sendViaResend } from "@/lib/email/resend"
+import { createLogger } from "@/lib/observability/logger"
+import { getUserEmailFromClerkId, getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+
+const log = createLogger("notifications-send")
 
 // Initialize service role client for server-side operations
 function getServiceClient() {
@@ -10,7 +14,19 @@ function getServiceClient() {
   return createClient(url, key)
 }
 
+interface NotificationBody {
+  userId: string
+  type: string
+  title: string
+  message: string
+  actionUrl?: string
+  metadata?: Record<string, unknown>
+  sendEmail?: boolean
+}
+
 export async function POST(request: Request) {
+  let body: NotificationBody | null = null
+  
   try {
     // Verify the request is from an authorized source (internal or webhook)
     const authHeader = request.headers.get("authorization")
@@ -20,7 +36,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
+    body = await request.json()
     const { 
       userId, 
       type, 
@@ -66,7 +82,7 @@ export async function POST(request: Request) {
       // Get user's email from profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("auth_user_id, notification_preferences")
+        .select("auth_user_id, clerk_user_id, notification_preferences")
         .eq("id", userId)
         .single()
 
@@ -76,9 +92,13 @@ export async function POST(request: Request) {
         const shouldSendEmail = prefs.email_request_updates !== false
 
         if (shouldSendEmail) {
-          // Get email from auth
-          const { data: authUser } = await supabase.auth.admin.getUserById(profile.auth_user_id)
-          const email = authUser?.user?.email
+          // Get email from Clerk (prefer clerk_user_id, fallback to auth_user_id)
+          let email: string | null = null
+          if (profile.clerk_user_id) {
+            email = await getUserEmailFromClerkId(profile.clerk_user_id)
+          } else if (profile.auth_user_id) {
+            email = await getUserEmailFromAuthUserId(profile.auth_user_id)
+          }
 
           if (email) {
             // Send email (fire and forget)
@@ -86,7 +106,9 @@ export async function POST(request: Request) {
               to: email,
               subject: title,
               html: generateEmailHtml(title, message, actionUrl),
-            }).catch(() => { /* fire and forget */ })
+            }).catch((err) => {
+              log.warn('Failed to send email notification', { userId, email }, err)
+            })
           }
         }
       }
@@ -96,7 +118,8 @@ export async function POST(request: Request) {
       success: true,
       notification,
     })
-  } catch {
+  } catch (error) {
+    log.error('Failed to send notification', { userId: body?.userId }, error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

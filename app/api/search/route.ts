@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("route")
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
 
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ results })
   } catch (error) {
-    logger.error("Search error", { error: String(error) })
+    log.error("Search error", { error: String(error) })
     return NextResponse.json({ error: "Search failed" }, { status: 500 })
   }
 }

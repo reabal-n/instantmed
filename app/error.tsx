@@ -5,7 +5,8 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const log = createLogger("error")
 
 export default function Error({
   error,
@@ -16,7 +17,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log error with structured context for observability
-    logger.error("[GlobalErrorBoundary]", {
+    log.error("[GlobalErrorBoundary]", {
       message: error.message,
       name: error.name,
       digest: error.digest,

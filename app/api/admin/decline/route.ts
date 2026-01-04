@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
-import { rateLimit } from "@/lib/rate-limit/limiter"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { auth } from "@clerk/nextjs/server"
+import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+
+const log = createLogger("admin-decline")
 
 export async function POST(request: Request) {
   try {
@@ -45,31 +48,19 @@ export async function POST(request: Request) {
           }
         }
       } catch (err) {
-        logger.warn('Admin auth check failed', { err })
+        log.warn('Admin auth check failed', {}, err)
       }
     }
 
     if (!authorized) {
-      logger.warn('Unauthorized admin decline attempt', { header: authHeader })
+      log.warn('Unauthorized admin decline attempt', { hasAuthHeader: !!authHeader })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting
-    const rateLimitResult = await rateLimit(clerkUserId, '/api/admin/decline')
-    if (!rateLimitResult.allowed) {
-      logger.warn('Rate limit exceeded for admin decline', { userId: clerkUserId })
-      return NextResponse.json(
-        {
-          error: 'Too many requests. Please try again later.',
-          retryAfter: rateLimitResult.retryAfter
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(rateLimitResult.retryAfter || 60)
-          }
-        }
-      )
+    const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId || undefined)
+    if (rateLimitResponse) {
+      return rateLimitResponse
     }
 
     const body = await request.json()
@@ -123,7 +114,7 @@ export async function POST(request: Request) {
       .single()
 
     if (updateError || !updated) {
-      logger.error('Failed to decline request', { requestId, error: updateError })
+      log.error('Failed to decline request', { requestId }, updateError)
       return NextResponse.json({ error: 'Failed to update request' }, { status: 500 })
     }
 
@@ -145,10 +136,7 @@ export async function POST(request: Request) {
       .single()
 
     if (patientFetchError || !requestWithPatient) {
-      logger.error('Failed to fetch patient for notification', {
-        error: patientFetchError,
-        requestId
-      })
+      log.error('Failed to fetch patient for notification', { requestId }, patientFetchError)
       return NextResponse.json({ success: true }) // Request was declined, just notification failed
     }
 
@@ -164,11 +152,12 @@ export async function POST(request: Request) {
     const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as PatientData | null
 
     if (!patient) {
-      logger.error('Patient data missing from request', { requestId })
+      log.error('Patient data missing from request', { requestId })
       return NextResponse.json({ success: true })
     }
 
-    const patientEmail = await getEmailForAuthUser(supabase, patient.auth_user_id)
+    // Get email using Clerk helper (supports both clerk_user_id and legacy auth_user_id)
+    const patientEmail = await getUserEmailFromAuthUserId(patient.auth_user_id)
 
     // Fire notifications
     await notifyRequestStatusChange({
@@ -181,34 +170,12 @@ export async function POST(request: Request) {
       documentUrl: undefined,
     })
 
-    logger.info('Request declined by admin', { requestId })
+    log.info('Request declined by admin', { requestId })
     return NextResponse.json({ success: true })
   } catch (err) {
-    logger.error('Unexpected error in admin decline', {
-      error: err instanceof Error ? err.message : String(err)
-    })
+    log.error('Unexpected error in admin decline', {}, err)
     return NextResponse.json({
       error: 'Failed to process decline. Please try again.'
     }, { status: 500 })
-  }
-}
-
-// Helper to retrieve email for an auth user
-async function getEmailForAuthUser(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  authUserId: string
-): Promise<string | null> {
-  try {
-    const { data: authUser, error } = await supabase.auth.admin.getUserById(authUserId)
-    if (error) {
-      logger.error('Failed to get user email', { error, authUserId })
-      return null
-    }
-    return authUser?.user?.email || null
-  } catch (error) {
-    logger.error('Exception getting user email', {
-      error: error instanceof Error ? error.message : String(error)
-    })
-    return null
   }
 }
