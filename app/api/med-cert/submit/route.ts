@@ -101,7 +101,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
     // Rate limiting with Upstash Redis (or fallback gracefully)
     const rateLimitResponse = await checkRateLimit("submit")
     if (rateLimitResponse) {
-      return rateLimitResponse
+      return rateLimitResponse as NextResponse<SubmitResponse>
     }
 
     // Auth using Clerk

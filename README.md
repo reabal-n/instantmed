@@ -55,7 +55,7 @@ An asynchronous telehealth platform for medical certificates and prescriptions b
 
 ### 1. Environment Variables
 
-Copy `.env.example` to `.env.local` and fill in your values:
+Create a `.env.local` file based on `.env.example`:
 
 ```bash
 cp .env.example .env.local
