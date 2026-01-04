@@ -141,6 +141,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
     // Calculate price
     const amountCents = needsEscalation ? 3495 : 2495 // $34.95 or $24.95
 
+    // Get IP and user agent for audit trail
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
+    const userAgent = request.headers.get("user-agent") || "unknown"
+
     // Insert request
     const { data: newRequest, error: insertError } = await supabase
       .from("med_cert_requests")
@@ -190,7 +194,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
         template_version: body.templateVersion,
       },
       ip_address: ip,
-      user_agent: headersList.get("user-agent"),
+      user_agent: userAgent,
     })
 
     return NextResponse.json({
