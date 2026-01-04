@@ -4,7 +4,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { AlertTriangle, Phone, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/uix"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,

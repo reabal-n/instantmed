@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { Button } from '@/components/ui/button'
+import { Button, Accordion, AccordionItem } from '@/components/uix'
 import {
   AlertCircle,
   Check,
@@ -16,7 +16,6 @@ import {
   FileCheck,
   Stethoscope,
 } from 'lucide-react'
-import { useState } from 'react'
 import type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from '@/lib/seo/pages'
 
 type PageUnion = ConditionPage | CertificatePage | BenefitPage | ResourcePage
@@ -27,8 +26,6 @@ interface SEOPageProps {
 }
 
 export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
-
   const isConditionPage = (p: PageUnion): p is ConditionPage => 'symptoms' in p
   const isCertificatePage = (p: PageUnion): p is CertificatePage => 'useCases' in p && 'howToUse' in p
   const isBenefitPage = (p: PageUnion): p is BenefitPage => 'sections' in p && pageType === 'benefit'
@@ -292,35 +289,19 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
               Frequently asked questions
             </h2>
 
-            <div className="space-y-4">
+            <Accordion variant="splitted" defaultExpandedKeys={["0"]}>
               {page.faqs.map((faq, idx) => (
-                <div
-                  key={idx}
-                  className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                <AccordionItem
+                  key={idx.toString()}
+                  aria-label={faq.q}
+                  title={faq.q}
                 >
-                  <button
-                    onClick={() =>
-                      setOpenFaqIndex(openFaqIndex === idx ? null : idx)
-                    }
-                    className="w-full px-6 py-4 text-left font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-between"
-                  >
-                    <span>{faq.q}</span>
-                    <ChevronRight
-                      className={`h-5 w-5 transition-transform text-slate-600 dark:text-slate-400 ${
-                        openFaqIndex === idx ? 'rotate-90' : ''
-                      }`}
-                    />
-                  </button>
-                  {openFaqIndex === idx && (
-                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {faq.a}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {faq.a}
+                  </p>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
           </div>
         </section>
       </main>

@@ -27,7 +27,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { MagneticCard, SpotlightReveal } from '@/components/ui/glowing-effect'
 import type { ServiceConfig } from '@/lib/marketing/services'

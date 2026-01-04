@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { generateReferralCode, getReferralStats } from "@/lib/referrals/referral-service"
-import { logger } from "@/lib/logger"
+
+
+import { logger } from "@/lib/observability/logger"
+
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -19,7 +22,14 @@ export async function GET(request: NextRequest) {
       ...stats,
     })
   } catch (error) {
+
     logger.error("Error fetching referral data:", { error })
+
+    logger.error("Error fetching referral data", {
+      patientId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+
     return NextResponse.json({ error: "Failed to fetch referral data" }, { status: 500 })
   }
 }

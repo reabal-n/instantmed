@@ -1545,6 +1545,7 @@ export const medications: MedicationPage[] = [
 export function getMedicationBySlug(slug: string): MedicationPage | undefined {
   return medications.find(m => m.slug === slug)
 }
+}
 
 export function getMedicationsByCategory(category: string): MedicationPage[] {
   return medications.filter(m => m.medication.category === category)

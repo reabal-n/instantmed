@@ -1,7 +1,7 @@
 "use client"
 import { useState, useCallback } from "react"
 import { Check, AlertCircle, Clock, Sparkles } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/uix"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { validateMedicareNumber, formatMedicareNumber } from "@/lib/validation/medicare"
