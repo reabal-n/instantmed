@@ -1056,21 +1056,25 @@ export const medications: MedicationPage[] = [
     },
     content: {
       intro: 'Propranolol is a beta blocker medication commonly prescribed for performance anxiety and situational stress. Unlike anti-anxiety medications that affect your mental state, propranolol works by blocking the physical symptoms of anxiety.',
-      sections: [
+      uniqueBlocks: [
         {
-          heading: 'What is propranolol used for?',
+          id: 'what-is-used-for',
+          type: 'text',
           content: 'Propranolol is primarily used for performance anxiety - situations where you feel physically anxious but want to maintain mental clarity. This includes public speaking, presentations, job interviews, exams, musical performances, and other high-pressure situations.',
         },
         {
-          heading: 'How does it work?',
+          id: 'how-it-works',
+          type: 'text',
           content: 'Propranolol blocks beta receptors in your body, preventing adrenaline from causing physical anxiety symptoms. It stops your heart from racing, reduces trembling, and prevents sweaty palms - but does not make you drowsy or affect your cognitive function.',
         },
         {
-          heading: 'When to take propranolol',
+          id: 'when-to-take',
+          type: 'text',
           content: 'Take propranolol 1-2 hours before your anxiety-inducing event. It typically lasts 3-4 hours. Do not take daily unless specifically instructed by your doctor. This is a situational medication, not for long-term anxiety management.',
         },
         {
-          heading: 'Can InstantMed prescribe propranolol?',
+          id: 'prescribing',
+          type: 'text',
           content: 'Yes, our Australian doctors can prescribe propranolol for performance anxiety after an online consultation. We assess your medical history, current medications, and ensure it is safe for you. Not suitable if you have asthma or certain heart conditions.',
         },
       ],

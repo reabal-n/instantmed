@@ -45,6 +45,7 @@ export const comparisonPages: ComparisonPage[] = [
     slug: 'tadalafil-vs-sildenafil',
     title: 'Tadalafil vs Sildenafil: Which ED Medication is Right for You?',
     description: 'Comparing tadalafil (Cialis) and sildenafil (Viagra) for erectile dysfunction. Differences in duration, onset, side effects, and cost.',
+    h1: 'Tadalafil vs Sildenafil: ED Medication Comparison',
     type: 'comparison',
     comparison: {
       itemA: {
@@ -126,30 +127,44 @@ export const comparisonPages: ComparisonPage[] = [
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Can I take tadalafil and sildenafil together?',
-        answer: 'No. Never take two ED medications at the same time. This increases risk of serious side effects including dangerous blood pressure drops.',
-      },
-      {
-        question: 'Which works faster?',
-        answer: 'Both work in about 30-60 minutes. Sildenafil may have a slightly faster onset for some men, but the difference is minimal.',
-      },
-      {
-        question: 'Does tadalafil work better because it lasts longer?',
-        answer: 'No. Longer duration does not mean stronger erection. Both provide similar quality of erection. Tadalafil just gives you a longer window of opportunity.',
-      },
-      {
-        question: 'Which should I try first?',
-        answer: 'Most men start with sildenafil due to familiarity (Viagra brand recognition). However, if you prefer spontaneity and flexibility, tadalafil may be a better first choice. Discuss with your doctor.',
-      },
-    ],
+    metadata: {
+      keywords: ['tadalafil vs sildenafil', 'cialis vs viagra', 'ED medication comparison', 'tadalafil sildenafil difference'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I take tadalafil and sildenafil together?',
+          answer: 'No. Never take two ED medications at the same time. This increases risk of serious side effects including dangerous blood pressure drops.',
+        },
+        {
+          question: 'Which works faster?',
+          answer: 'Both work in about 30-60 minutes. Sildenafil may have a slightly faster onset for some men, but the difference is minimal.',
+        },
+        {
+          question: 'Does tadalafil work better because it lasts longer?',
+          answer: 'No. Longer duration does not mean stronger erection. Both provide similar quality of erection. Tadalafil just gives you a longer window of opportunity.',
+        },
+        {
+          question: 'Which should I try first?',
+          answer: 'Most men start with sildenafil due to familiarity (Viagra brand recognition). However, if you prefer spontaneity and flexibility, tadalafil may be a better first choice. Discuss with your doctor.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'tadalafil', title: 'Tadalafil (Cialis)', description: 'Long-lasting ED treatment' },
+        { type: 'medication', slug: 'sildenafil', title: 'Sildenafil (Viagra)', description: 'Popular ED treatment' },
+        { type: 'category', slug: 'mens-health', title: "Men's Health Services" },
+      ],
+    },
   },
 
   {
     slug: 'finasteride-vs-minoxidil',
     title: 'Finasteride vs Minoxidil: Best Hair Loss Treatment Comparison',
     description: 'Comparing finasteride and minoxidil for hair loss treatment. Differences in how they work, effectiveness, side effects, and who can use them.',
+    h1: 'Finasteride vs Minoxidil: Hair Loss Treatment Comparison',
     type: 'comparison',
     comparison: {
       itemA: {
@@ -234,30 +249,44 @@ export const comparisonPages: ComparisonPage[] = [
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Which works faster?',
-        answer: 'Minoxidil may show initial results slightly faster (4-6 months vs 6-12 months for finasteride), but both require patience. Neither provides quick results.',
-      },
-      {
-        question: 'Is one safer than the other?',
-        answer: 'Both are safe when used correctly. Minoxidil has minimal side effects (local irritation). Finasteride has a small risk of sexual side effects (1-2%) which usually resolve after stopping.',
-      },
-      {
-        question: 'Can women use finasteride?',
-        answer: 'No. Finasteride is not safe for women of childbearing age due to risk of birth defects. Post-menopausal women may occasionally use it off-label under specialist guidance.',
-      },
-      {
-        question: 'Do I need both or just one?',
-        answer: 'You can use just one, but combination therapy gives better results. If you choose one, finasteride is generally more effective for male pattern hair loss.',
-      },
-    ],
+    metadata: {
+      keywords: ['finasteride vs minoxidil', 'hair loss treatment comparison', 'finasteride minoxidil difference', 'best hair loss treatment'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Which works faster?',
+          answer: 'Minoxidil may show initial results slightly faster (4-6 months vs 6-12 months for finasteride), but both require patience. Neither provides quick results.',
+        },
+        {
+          question: 'Is one safer than the other?',
+          answer: 'Both are safe when used correctly. Minoxidil has minimal side effects (local irritation). Finasteride has a small risk of sexual side effects (1-2%) which usually resolve after stopping.',
+        },
+        {
+          question: 'Can women use finasteride?',
+          answer: 'No. Finasteride is not safe for women of childbearing age due to risk of birth defects. Post-menopausal women may occasionally use it off-label under specialist guidance.',
+        },
+        {
+          question: 'Do I need both or just one?',
+          answer: 'You can use just one, but combination therapy gives better results. If you choose one, finasteride is generally more effective for male pattern hair loss.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'finasteride', title: 'Finasteride for Hair Loss', description: 'Oral DHT blocker' },
+        { type: 'medication', slug: 'minoxidil', title: 'Minoxidil for Hair Loss', description: 'Topical hair growth stimulant' },
+        { type: 'category', slug: 'mens-health', title: "Men's Health Services" },
+      ],
+    },
   },
 
   {
     slug: 'trimethoprim-vs-nitrofurantoin',
     title: 'Trimethoprim vs Nitrofurantoin: UTI Antibiotic Comparison',
     description: 'Comparing trimethoprim and nitrofurantoin for urinary tract infection treatment. Differences in effectiveness, side effects, and pregnancy safety.',
+    h1: 'Trimethoprim vs Nitrofurantoin: UTI Treatment Comparison',
     type: 'comparison',
     comparison: {
       itemA: {
@@ -337,24 +366,37 @@ export const comparisonPages: ComparisonPage[] = [
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Which works faster?',
-        answer: 'Both start working within 24-48 hours. You should feel significant improvement within 2-3 days. Complete the full course even if feeling better.',
-      },
-      {
-        question: 'Can I switch if one does not work?',
-        answer: 'Yes. If symptoms do not improve within 48-72 hours, contact your doctor. You may need a different antibiotic or further investigation.',
-      },
-      {
-        question: 'Why is my urine dark on nitrofurantoin?',
-        answer: 'Nitrofurantoin commonly causes dark yellow or brown urine. This is harmless and resolves after finishing the medication.',
-      },
-      {
-        question: 'Which should I avoid if I have kidney problems?',
-        answer: 'Avoid nitrofurantoin if you have moderate-severe kidney impairment. Trimethoprim can be used with dose adjustment. Discuss with your doctor.',
-      },
-    ],
+    metadata: {
+      keywords: ['trimethoprim vs nitrofurantoin', 'UTI antibiotic comparison', 'UTI treatment options', 'best antibiotic for UTI'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Which works faster?',
+          answer: 'Both start working within 24-48 hours. You should feel significant improvement within 2-3 days. Complete the full course even if feeling better.',
+        },
+        {
+          question: 'Can I switch if one does not work?',
+          answer: 'Yes. If symptoms do not improve within 48-72 hours, contact your doctor. You may need a different antibiotic or further investigation.',
+        },
+        {
+          question: 'Why is my urine dark on nitrofurantoin?',
+          answer: 'Nitrofurantoin commonly causes dark yellow or brown urine. This is harmless and resolves after finishing the medication.',
+        },
+        {
+          question: 'Which should I avoid if I have kidney problems?',
+          answer: 'Avoid nitrofurantoin if you have moderate-severe kidney impairment. Trimethoprim can be used with dose adjustment. Discuss with your doctor.',
+        },
+      ],
+    },
+    links: {
+      related: [
+        { type: 'medication', slug: 'trimethoprim', title: 'Trimethoprim for UTI', description: '3-day antibiotic course' },
+        { type: 'medication', slug: 'nitrofurantoin', title: 'Nitrofurantoin for UTI', description: 'Pregnancy-safe antibiotic' },
+        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
+      ],
+    },
   },
 ]
 
