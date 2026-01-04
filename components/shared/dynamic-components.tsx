@@ -37,31 +37,35 @@ const DashboardLoadingSkeleton = () => (
 )
 
 // PDF Document renderer (heavy @react-pdf/renderer dependency)
-export const DynamicPDFDocument = dynamic(
-  () => import('@/components/med-cert/pdf-document').then((mod) => ({ default: mod.MedicalCertificatePDF })),
-  {
-    loading: () => <PDFLoadingSkeleton />,
-    ssr: false, // PDFs should only render client-side
-  }
-)
+// TODO: Re-enable when pdf-document component is created
+// export const DynamicPDFDocument = dynamic(
+//   () => import('@/components/med-cert/pdf-document').then((mod) => ({ default: mod.MedicalCertificatePDF })),
+//   {
+//     loading: () => <PDFLoadingSkeleton />,
+//     ssr: false, // PDFs should only render client-side
+//   }
+// )
 
 // PDF Preview component
-export const DynamicPDFPreview = dynamic(
-  () => import('@/components/med-cert/pdf-preview').then((mod) => ({ default: mod.PDFPreview })),
-  {
-    loading: () => <PDFLoadingSkeleton />,
-    ssr: false,
-  }
-)
+// TODO: Re-enable when pdf-preview component is created
+// export const DynamicPDFPreview = dynamic(
+//   () => import('@/components/med-cert/pdf-preview').then((mod) => ({ default: mod.PDFPreview })),
+//   {
+//     loading: () => <PDFLoadingSkeleton />,
+//     ssr: false,
+//   }
+// )
 
-// Charts (recharts is heavy ~50KB)
-export const DynamicAnalyticsChart = dynamic(
-  () => import('@/components/doctor/analytics-chart').then((mod) => ({ default: mod.AnalyticsChart })),
-  {
-    loading: () => <ChartLoadingSkeleton />,
-    ssr: false,
-  }
-)
+// TODO: Re-enable these dynamic imports when the corresponding components are created
+
+// // Charts (recharts is heavy ~50KB)
+// export const DynamicAnalyticsChart = dynamic(
+//   () => import('@/components/doctor/analytics-chart').then((mod) => ({ default: mod.AnalyticsChart })),
+//   {
+//     loading: () => <ChartLoadingSkeleton />,
+//     ssr: false,
+//   }
+// )
 
 // Doctor Dashboard (loads heavy dependencies)
 export const DynamicDoctorDashboard = dynamic(
@@ -72,99 +76,99 @@ export const DynamicDoctorDashboard = dynamic(
   }
 )
 
-// Admin Dashboard
-export const DynamicAdminDashboard = dynamic(
-  () => import('@/app/admin/dashboard/admin-client').then((mod) => ({ default: mod.AdminDashboardClient })),
-  {
-    loading: () => <DashboardLoadingSkeleton />,
-    ssr: false,
-  }
-)
+// // Admin Dashboard
+// export const DynamicAdminDashboard = dynamic(
+//   () => import('@/app/admin/dashboard/admin-client').then((mod) => ({ default: mod.AdminDashboardClient })),
+//   {
+//     loading: () => <DashboardLoadingSkeleton />,
+//     ssr: false,
+//   }
+// )
 
-// Canvas Confetti (animation library)
-export const DynamicConfetti = dynamic(
-  () => import('@/components/effects/confetti-effect').then((mod) => ({ default: mod.ConfettiEffect })),
-  {
-    ssr: false,
-  }
-)
+// // Canvas Confetti (animation library)
+// export const DynamicConfetti = dynamic(
+//   () => import('@/components/effects/confetti-effect').then((mod) => ({ default: mod.ConfettiEffect })),
+//   {
+//     ssr: false,
+//   }
+// )
 
-// Rich text editor (if you add one)
-export const DynamicRichTextEditor = dynamic(
-  () => import('@/components/forms/rich-text-editor').then((mod) => ({ default: mod.RichTextEditor })),
-  {
-    loading: () => <Skeleton className="h-64 w-full" />,
-    ssr: false,
-  }
-)
+// // Rich text editor (if you add one)
+// export const DynamicRichTextEditor = dynamic(
+//   () => import('@/components/forms/rich-text-editor').then((mod) => ({ default: mod.RichTextEditor })),
+//   {
+//     loading: () => <Skeleton className="h-64 w-full" />,
+//     ssr: false,
+//   }
+// )
 
-// File uploader with preview
-export const DynamicFileUploader = dynamic(
-  () => import('@/components/forms/file-uploader').then((mod) => ({ default: mod.FileUploader })),
-  {
-    loading: () => <Skeleton className="h-32 w-full" />,
-    ssr: false,
-  }
-)
+// // File uploader with preview
+// export const DynamicFileUploader = dynamic(
+//   () => import('@/components/forms/file-uploader').then((mod) => ({ default: mod.FileUploader })),
+//   {
+//     loading: () => <Skeleton className="h-32 w-full" />,
+//     ssr: false,
+//   }
+// )
 
-// OCR component (tesseract.js is very heavy ~2MB)
-export const DynamicOCRScanner = dynamic(
-  () => import('@/components/intake/ocr-scanner').then((mod) => ({ default: mod.OCRScanner })),
-  {
-    loading: () => (
-      <div className="flex items-center justify-center p-8">
-        <p className="text-muted-foreground">Loading OCR scanner...</p>
-      </div>
-    ),
-    ssr: false,
-  }
-)
+// // OCR component (tesseract.js is very heavy ~2MB)
+// export const DynamicOCRScanner = dynamic(
+//   () => import('@/components/intake/ocr-scanner').then((mod) => ({ default: mod.OCRScanner })),
+//   {
+//     loading: () => (
+//       <div className="flex items-center justify-center p-8">
+//         <p className="text-muted-foreground">Loading OCR scanner...</p>
+//       </div>
+//     ),
+//     ssr: false,
+//   }
+// )
 
-// Lottie animations
-export const DynamicLottieAnimation = dynamic(
-  () => import('@/components/effects/lottie-animation').then((mod) => ({ default: mod.LottieAnimation })),
-  {
-    ssr: false,
-  }
-)
+// // Lottie animations
+// export const DynamicLottieAnimation = dynamic(
+//   () => import('@/components/effects/lottie-animation').then((mod) => ({ default: mod.LottieAnimation })),
+//   {
+//     ssr: false,
+//   }
+// )
 
-// Calendar/Date picker (if using a heavy library like react-big-calendar)
-export const DynamicCalendar = dynamic(
-  () => import('@/components/ui/calendar').then((mod) => ({ default: mod.Calendar })),
-  {
-    loading: () => <Skeleton className="h-64 w-full" />,
-  }
-)
+// // Calendar/Date picker (if using a heavy library like react-big-calendar)
+// export const DynamicCalendar = dynamic(
+//   () => import('@/components/ui/calendar').then((mod) => ({ default: mod.Calendar })),
+//   {
+//     loading: () => <Skeleton className="h-64 w-full" />,
+//   }
+// )
 
-// Complex form components
-export const DynamicMedicalCertForm = dynamic(
-  () => import('@/components/med-cert/med-cert-form').then((mod) => ({ default: mod.MedicalCertForm })),
-  {
-    loading: () => <DashboardLoadingSkeleton />,
-  }
-)
+// // Complex form components
+// export const DynamicMedicalCertForm = dynamic(
+//   () => import('@/components/med-cert/med-cert-form').then((mod) => ({ default: mod.MedicalCertForm })),
+//   {
+//     loading: () => <DashboardLoadingSkeleton />,
+//   }
+// )
 
-export const DynamicRepeatRxForm = dynamic(
-  () => import('@/components/repeat-rx/repeat-rx-form').then((mod) => ({ default: mod.RepeatRxForm })),
-  {
-    loading: () => <DashboardLoadingSkeleton />,
-  }
-)
+// export const DynamicRepeatRxForm = dynamic(
+//   () => import('@/components/repeat-rx/repeat-rx-form').then((mod) => ({ default: mod.RepeatRxForm })),
+//   {
+//     loading: () => <DashboardLoadingSkeleton />,
+//   }
+// )
 
-// Map component (Google Maps API)
-export const DynamicLocationMap = dynamic(
-  () => import('@/components/shared/location-map').then((mod) => ({ default: mod.LocationMap })),
-  {
-    loading: () => <Skeleton className="h-96 w-full" />,
-    ssr: false,
-  }
-)
+// // Map component (Google Maps API)
+// export const DynamicLocationMap = dynamic(
+//   () => import('@/components/shared/location-map').then((mod) => ({ default: mod.LocationMap })),
+//   {
+//     loading: () => <Skeleton className="h-96 w-full" />,
+//     ssr: false,
+//   }
+// )
 
-// Video player (if using react-player or similar)
-export const DynamicVideoPlayer = dynamic(
-  () => import('@/components/shared/video-player').then((mod) => ({ default: mod.VideoPlayer })),
-  {
-    loading: () => <Skeleton className="aspect-video w-full" />,
-    ssr: false,
-  }
-)
+// // Video player (if using react-player or similar)
+// export const DynamicVideoPlayer = dynamic(
+//   () => import('@/components/shared/video-player').then((mod) => ({ default: mod.VideoPlayer })),
+//   {
+//     loading: () => <Skeleton className="aspect-video w-full" />,
+//     ssr: false,
+//   }
+// )

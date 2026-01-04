@@ -103,29 +103,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }))
 
   // Legacy paths (keep for backwards compatibility)
-  const certificateSlugs = getAllSlugs('certificates').catch(() => [])
-  const certificateRoutes = Array.isArray(certificateSlugs) ? certificateSlugs.map((slug) => ({
+  const certificateSlugs = getAllSlugs('certificates')
+  const certificateRoutes = certificateSlugs.map((slug) => ({
     url: `${baseUrl}/health/certificates/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
-  })) : []
+  }))
 
-  const benefitSlugs = getAllSlugs('benefits').catch(() => [])
-  const benefitRoutes = Array.isArray(benefitSlugs) ? benefitSlugs.map((slug) => ({
+  const benefitSlugs = getAllSlugs('benefits')
+  const benefitRoutes = benefitSlugs.map((slug) => ({
     url: `${baseUrl}/health/why-${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
-  })) : []
+  }))
 
-  const resourceSlugs = getAllSlugs('resources').catch(() => [])
-  const resourceRoutes = Array.isArray(resourceSlugs) ? resourceSlugs.map((slug) => ({
+  const resourceSlugs = getAllSlugs('resources')
+  const resourceRoutes = resourceSlugs.map((slug) => ({
     url: `${baseUrl}/health/guides/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.5,
-  })) : []
+  }))
 
   return [
     ...routes,

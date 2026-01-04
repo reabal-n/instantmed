@@ -37,6 +37,11 @@ export async function POST(request: Request) {
     }
 
     body = await request.json()
+    
+    if (!body) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+    }
+    
     const { 
       userId, 
       type, 

@@ -86,7 +86,7 @@ export async function GET(
       )
     }
 
-    logger.debug(`[document-download] Fetching PDF from ${doc.pdf_url}`)
+    log.debug(`[document-download] Fetching PDF from ${doc.pdf_url}`)
 
     // Stream the PDF from Supabase Storage
     const pdfResponse = await fetch(doc.pdf_url)
