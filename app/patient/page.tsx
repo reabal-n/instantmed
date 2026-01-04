@@ -1,8 +1,17 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { getPatientRequests } from "@/lib/data/requests"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PatientDashboard } from "@/components/patient/enhanced-dashboard"
+import { PanelDashboard } from "@/components/patient/panel-dashboard"
+
+/**
+ * Patient Dashboard Page - Now panel-based
+ * 
+ * Changes:
+ * - Uses PanelDashboard (no tabs, single scroll)
+ * - Click request → DrawerPanel opens
+ * - Simpler, calmer interface
+ * - Removed invoices/payment methods from main view
+ */
 
 export default async function PatientDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
@@ -18,15 +27,15 @@ export default async function PatientDashboardPage() {
   const supabase = await createClient()
   const patientId = authUser.profile.id
 
-  // Fetch all dashboard data in parallel
-  const [requestsResult, prescriptionsResult, invoicesResult, paymentMethodsResult] = await Promise.all([
+  // Fetch only what's needed for the dashboard
+  const [requestsResult, prescriptionsResult] = await Promise.all([
     // Get patient requests
     supabase
       .from("requests")
       .select("*")
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(10),
 
     // Get patient prescriptions
     supabase
@@ -34,33 +43,14 @@ export default async function PatientDashboardPage() {
       .select("*")
       .eq("patient_id", patientId)
       .order("issued_date", { ascending: false })
-      .limit(50),
-
-    // Get patient invoices
-    supabase
-      .from("invoices")
-      .select("*")
-      .eq("customer_id", patientId)
-      .order("created_at", { ascending: false })
-      .limit(50),
-
-    // Get payment methods (stored via Stripe integration)
-    supabase
-      .from("payment_methods")
-      .select("*")
-      .eq("customer_id", patientId)
-      .eq("deleted", false)
       .limit(10),
   ])
 
   return (
-    <PatientDashboard
+    <PanelDashboard
       fullName={authUser.profile.full_name || "Patient"}
-      email={authUser.user.email || ""}
       requests={requestsResult.data || []}
       prescriptions={prescriptionsResult.data || []}
-      invoices={invoicesResult.data || []}
-      paymentMethods={paymentMethodsResult.data || []}
     />
   )
 }

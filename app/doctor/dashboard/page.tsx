@@ -1,9 +1,20 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { DynamicDoctorDashboard } from "@/components/shared/dynamic-components"
+import { DoctorShell } from "./doctor-shell"
+import { PanelDoctorDashboard } from "@/components/doctor/panel-dashboard"
 
 export const dynamic = "force-dynamic"
+
+/**
+ * Doctor Dashboard Page - Now uses panel-based system
+ * 
+ * Changes:
+ * - Uses DoctorShell with left rail
+ * - Uses PanelDoctorDashboard (cards not table)
+ * - DrawerPanel for request details
+ * - FloatingActionBar for bulk actions
+ */
 
 export default async function DoctorDashboardPage() {
   // Use Clerk authentication with role check
@@ -15,7 +26,6 @@ export default async function DoctorDashboardPage() {
 
   const supabase = await createClient()
   const profile = authUser.profile
-  const clerkUserId = authUser.user.id
 
   // Fetch all requests assigned to this doctor or unassigned
   const { data: requests } = await supabase
@@ -53,15 +63,22 @@ export default async function DoctorDashboardPage() {
     .gte("updated_at", new Date().toISOString().split("T")[0])
 
   return (
-    <DynamicDoctorDashboard
-      doctorId={profile.id}
-      doctorName={profile.full_name || "Doctor"}
-      initialRequests={requests || []}
-      stats={{
-        total: totalRequests || 0,
-        pending: pendingRequests || 0,
-        approvedToday: approvedToday || 0,
+    <DoctorShell
+      user={{
+        id: profile.id,
+        name: profile.full_name || "Doctor",
+        email: authUser.user.email ?? '',
       }}
-    />
+    >
+      <PanelDoctorDashboard
+        doctorId={profile.id}
+        initialRequests={requests || []}
+        stats={{
+          total: totalRequests || 0,
+          pending: pendingRequests || 0,
+          approvedToday: approvedToday || 0,
+        }}
+      />
+    </DoctorShell>
   )
 }

@@ -23,6 +23,7 @@ import {
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
+import { SessionProgress } from "@/components/shell"
 
 // Flow steps for general consult
 type FlowStep =
@@ -398,7 +399,7 @@ export function ConsultFlowClient({
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-violet-50/50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border/40">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
@@ -409,50 +410,20 @@ export function ConsultFlowClient({
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Stethoscope className="w-5 h-5 text-violet-600" />
+            <Stethoscope className="w-5 h-5 text-primary" />
             <span className="font-semibold text-sm">General Consult</span>
           </div>
           <div className="w-9" />
         </div>
       </header>
 
-      {/* Progress - Animated Dots */}
-      <div className="max-w-lg mx-auto px-4 pt-4">
-        <nav aria-label="Progress" className="w-full mb-6">
-          <div className="flex flex-col items-center gap-2">
-            {/* Animated dots */}
-            <div className="flex items-center gap-3 relative">
-              {PROGRESS_STAGES.map((stage, i) => {
-                const isComplete = i < getProgressIndex()
-                const isCurrent = i === getProgressIndex()
-                return (
-                  <div
-                    key={stage.label}
-                    className={`w-2.5 h-2.5 rounded-full relative z-10 transition-all duration-300 ${
-                      isComplete ? "bg-primary scale-100" : isCurrent ? "bg-primary/80 scale-110" : "bg-muted-foreground/30"
-                    }`}
-                    role="progressbar"
-                    aria-valuenow={isComplete ? 100 : isCurrent ? 50 : 0}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={`${stage.label}: ${isComplete ? "Complete" : isCurrent ? "In progress" : "Not started"}`}
-                  />
-                )
-              })}
-              {/* Animated progress line */}
-              <div 
-                className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary/20 rounded-full transition-all duration-500 ease-out"
-                style={{ 
-                  width: `${Math.max(10, (getProgressIndex() / (PROGRESS_STAGES.length - 1)) * 100)}%`,
-                }}
-              />
-            </div>
-            {/* Step label */}
-            <p className="text-xs text-muted-foreground">
-              Step {getProgressIndex() + 1} of {PROGRESS_STAGES.length}: <span className="font-medium text-foreground">{PROGRESS_STAGES[getProgressIndex()]?.label}</span>
-            </p>
-          </div>
-        </nav>
+      {/* Progress */}
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-4">
+        <SessionProgress 
+          currentStep={getProgressIndex()} 
+          totalSteps={PROGRESS_STAGES.length}
+          stepLabel={PROGRESS_STAGES[getProgressIndex()]?.label}
+        />
       </div>
 
       {/* Content */}
@@ -489,7 +460,7 @@ export function ConsultFlowClient({
                     }}
                     className={`w-full p-4 rounded-xl border text-left transition-all ${
                       consultReason === reason.id
-                        ? "border-violet-500 bg-violet-50"
+                        ? "border-primary bg-primary/5"
                         : "border-border/60 hover:border-border"
                     }`}
                   >
@@ -603,7 +574,7 @@ export function ConsultFlowClient({
                         onClick={() => setIrn(n)}
                         className={`flex-1 h-12 rounded-xl border text-lg font-medium transition-all ${
                           irn === n
-                            ? "border-violet-500 bg-violet-50 text-violet-700"
+                            ? "border-primary bg-primary/5 text-primary"
                             : "border-border/60 hover:border-border"
                         }`}
                       >
@@ -631,8 +602,8 @@ export function ConsultFlowClient({
             <div className="space-y-4">
               {showEmailConfirm ? (
                 <div className="text-center space-y-4 py-8">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-violet-100 flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-violet-600" />
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-primary" />
                   </div>
                   <h2 className="text-lg font-semibold">Check your email</h2>
                   <p className="text-sm text-muted-foreground">
@@ -671,7 +642,7 @@ export function ConsultFlowClient({
                   </div>
 
                   <Button
-                    className="w-full h-11 bg-violet-600 hover:bg-violet-700"
+                    className="w-full h-11 bg-primary hover:bg-primary/90"
                     onClick={handleGoogleAuth}
                   >
                     Sign in with email
@@ -770,7 +741,7 @@ export function ConsultFlowClient({
         <div className="max-w-lg mx-auto">
           {step === "payment" ? (
             <Button
-              className="w-full h-12 text-base bg-violet-600 hover:bg-violet-700"
+              className="w-full h-12 text-base bg-primary hover:bg-primary/90"
               disabled={isSubmitting}
               onClick={handleSubmit}
             >
@@ -785,7 +756,7 @@ export function ConsultFlowClient({
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (
             <Button
-              className="w-full h-12 text-base bg-violet-600 hover:bg-violet-700"
+              className="w-full h-12 text-base bg-primary hover:bg-primary/90"
               disabled={!canContinue()}
               onClick={() => {
                 if (step === "safety" && checkSafetyKnockout()) {

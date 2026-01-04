@@ -43,6 +43,7 @@ import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { useUser, useClerk } from "@clerk/nextjs"
+import { SessionProgress } from "@/components/shell"
 
 // Storage key for form persistence
 const STORAGE_KEY = "instantmed_medcert_draft"
@@ -1725,7 +1726,12 @@ export function MedCertFlowClient({
                 <span>{MICROCOPY.turnaround}</span>
               </div>
             </div>
-            <ProgressIndicator steps={progressSteps} currentIndex={currentProgressIndex} />
+            <SessionProgress 
+              currentStep={currentProgressIndex} 
+              totalSteps={progressSteps.length}
+              stepLabel={progressSteps[currentProgressIndex]}
+              className="mb-2"
+            />
             {/* Trust indicators */}
             <TrustStrip />
           </div>
