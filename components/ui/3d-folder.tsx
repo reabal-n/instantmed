@@ -220,7 +220,6 @@ function ImageLightbox({
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [internalIndex, _setInternalIndex] = useState(currentIndex);
-  const [isSliding, setIsSliding] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const totalProjects = projects.length;
@@ -281,7 +280,7 @@ function ImageLightbox({
           e.stopPropagation();
           if (hasPrev) onNavigate(internalIndex - 1);
         }}
-        disabled={!hasPrev || isSliding}
+        disabled={!hasPrev}
         className={cn(
           "absolute left-4 md:left-8 z-50",
           "w-12 h-12 flex items-center justify-center",
@@ -300,7 +299,7 @@ function ImageLightbox({
           e.stopPropagation();
           if (hasNext) onNavigate(internalIndex + 1);
         }}
-        disabled={!hasNext || isSliding}
+        disabled={!hasNext}
         className={cn(
           "absolute right-4 md:right-8 z-50",
           "w-12 h-12 flex items-center justify-center",
