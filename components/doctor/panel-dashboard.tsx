@@ -25,6 +25,8 @@ import { FloatingActionBar, FloatingActionBarContent } from "@/components/shell"
 import { BUTTON_COPY, FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { TiltCard } from "@/components/shared/tilt-card"
+import { EmptyState } from "@/components/ui/empty-state"
 
 type RequestStatus = "submitted" | "in_review" | "approved" | "rejected" | "requires_info"
 type RequestType = "medical_certificate" | "prescription" | "consult"
@@ -128,14 +130,28 @@ export function PanelDoctorDashboard({
     })
   }
 
-  // Bulk approve
+  // Bulk approve - WITH OPTIMISTIC UPDATE
   const handleBulkApprove = async () => {
+    const selectedIds = Array.from(selectedRequests)
+    const previousRequests = [...requests]
+    
+    // OPTIMISTIC UPDATE - Update UI immediately
+    setRequests(prev =>
+      prev.map(req =>
+        selectedRequests.has(req.id) ? { ...req, status: "approved" as RequestStatus } : req
+      )
+    )
+    setSelectedRequests(new Set())
+    toast.success(`${selectedIds.length} requests approved`, {
+      description: "Saving changes..."
+    })
+
     try {
       const response = await fetch("/api/doctor/bulk-action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_ids: Array.from(selectedRequests),
+          request_ids: selectedIds,
           action: "approve",
           notes: "",
           doctor_id: doctorId,
@@ -144,27 +160,42 @@ export function PanelDoctorDashboard({
 
       if (!response.ok) throw new Error("Failed")
 
-      setRequests(prev =>
-        prev.map(req =>
-          selectedRequests.has(req.id) ? { ...req, status: "approved" as RequestStatus } : req
-        )
-      )
-
-      setSelectedRequests(new Set())
-      toast.success(`${selectedRequests.size} requests approved`)
-    } catch {
-      toast.error("That didn't work. Try again.")
+      // Success - already updated optimistically
+      toast.success(`${selectedIds.length} requests approved`, {
+        description: "Changes saved ✓"
+      })
+    } catch (error) {
+      // ROLLBACK on error
+      setRequests(previousRequests)
+      setSelectedRequests(new Set(selectedIds))
+      toast.error("That didn't save properly. Give it another go.", {
+        description: "Your changes weren't saved"
+      })
     }
   }
 
-  // Bulk reject
+  // Bulk reject - WITH OPTIMISTIC UPDATE
   const handleBulkReject = async () => {
+    const selectedIds = Array.from(selectedRequests)
+    const previousRequests = [...requests]
+    
+    // OPTIMISTIC UPDATE - Update UI immediately
+    setRequests(prev =>
+      prev.map(req =>
+        selectedRequests.has(req.id) ? { ...req, status: "rejected" as RequestStatus } : req
+      )
+    )
+    setSelectedRequests(new Set())
+    toast.success(`${selectedIds.length} requests declined`, {
+      description: "Saving changes..."
+    })
+
     try {
       const response = await fetch("/api/doctor/bulk-action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_ids: Array.from(selectedRequests),
+          request_ids: selectedIds,
           action: "reject",
           notes: "Declined",
           doctor_id: doctorId,
@@ -173,26 +204,33 @@ export function PanelDoctorDashboard({
 
       if (!response.ok) throw new Error("Failed")
 
-      setRequests(prev =>
-        prev.map(req =>
-          selectedRequests.has(req.id) ? { ...req, status: "rejected" as RequestStatus } : req
-        )
-      )
-
-      setSelectedRequests(new Set())
-      toast.success(`${selectedRequests.size} requests declined`)
-    } catch {
-      toast.error("That didn't work. Try again.")
+      // Success - already updated optimistically
+      toast.success(`${selectedIds.length} requests declined`, {
+        description: "Changes saved ✓"
+      })
+    } catch (error) {
+      // ROLLBACK on error
+      setRequests(previousRequests)
+      setSelectedRequests(new Set(selectedIds))
+      toast.error("That didn't save properly. Give it another go.", {
+        description: "Your changes weren't saved"
+      })
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
+      {/* Stats - Enhanced with TiltCard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Total Requests" value={stats.total} icon={FileText} color="blue" />
-        <StatCard label="Pending Review" value={stats.pending} icon={Clock} color="yellow" />
-        <StatCard label="Approved Today" value={stats.approvedToday} icon={TrendingUp} color="green" />
+        <TiltCard tiltAmount={5}>
+          <StatCard label="Total Requests" value={stats.total} icon={FileText} color="blue" />
+        </TiltCard>
+        <TiltCard tiltAmount={5}>
+          <StatCard label="Pending Review" value={stats.pending} icon={Clock} color="yellow" />
+        </TiltCard>
+        <TiltCard tiltAmount={5}>
+          <StatCard label="Approved Today" value={stats.approvedToday} icon={TrendingUp} color="green" />
+        </TiltCard>
       </div>
 
       {/* Filters */}
@@ -204,7 +242,7 @@ export function PanelDoctorDashboard({
               placeholder="Search by patient name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 input-glow"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -266,11 +304,11 @@ export function PanelDoctorDashboard({
           label={`${selectedRequests.size} selected`}
           actions={
             <>
-              <Button onClick={handleBulkApprove}>
+              <Button onClick={handleBulkApprove} className="btn-premium glow-pulse">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 {BUTTON_COPY.approve}
               </Button>
-              <Button variant="destructive" onClick={handleBulkReject}>
+              <Button variant="destructive" onClick={handleBulkReject} className="scale-spring">
                 <XCircle className="w-4 h-4 mr-2" />
                 {BUTTON_COPY.reject}
               </Button>
@@ -301,13 +339,13 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 hover-lift card-shine">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">{label}</p>
           <p className="text-3xl font-semibold text-gray-900">{value}</p>
         </div>
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", colors[color])}>
+        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center icon-spin-hover", colors[color])}>
           <Icon className="w-6 h-6" />
         </div>
       </div>
@@ -363,7 +401,7 @@ function RequestCard({
 
             <div className="flex items-center gap-3 shrink-0">
               <div className="text-right">
-                <div className={cn("px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium whitespace-nowrap", STATUS_CONFIG[request.status].color)}>
+                <div className={cn("interactive-pill px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium whitespace-nowrap", STATUS_CONFIG[request.status].color)}>
                   <StatusIcon className="w-4 h-4" />
                   {STATUS_CONFIG[request.status].label}
                 </div>
@@ -395,7 +433,23 @@ function RequestDetailDrawer({
   const { closePanel } = usePanel()
 
   const handleAction = async (action: "approve" | "reject") => {
+    const previousStatus = request.status
+    const previousNotes = request.doctor_notes
+    
     setIsSubmitting(true)
+    
+    // OPTIMISTIC UPDATE - Update immediately
+    const optimisticUpdate = {
+      ...request,
+      status: (action === "approve" ? "approved" : "rejected") as RequestStatus,
+      doctor_notes: notes
+    }
+    onUpdate(optimisticUpdate)
+    
+    toast.success(`Request ${action === "approve" ? "approved" : "declined"}`, {
+      description: "Saving changes..."
+    })
+
     try {
       const response = await fetch("/api/doctor/update-request", {
         method: "POST",
@@ -408,14 +462,29 @@ function RequestDetailDrawer({
         }),
       })
 
-      if (!response.ok) throw new Error("Failed")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to update request")
+      }
 
-      const updated = { ...request, status: (action === "approve" ? "approved" : "rejected") as RequestStatus, doctor_notes: notes }
-      onUpdate(updated)
+      // Success - close panel after optimistic update
       closePanel()
-      toast.success(`Request ${action === "approve" ? "approved" : "declined"}`)
-    } catch {
-      toast.error("That didn't work. Try again.")
+      toast.success(`Request ${action === "approve" ? "approved" : "declined"}`, {
+        description: "Changes saved ✓"
+      })
+    } catch (error) {
+      // ROLLBACK on error
+      const rollback = {
+        ...request,
+        status: previousStatus,
+        doctor_notes: previousNotes
+      }
+      onUpdate(rollback)
+      
+      const errorMessage = error instanceof Error ? error.message : "That didn't save properly. Give it another go."
+      toast.error(errorMessage, {
+        description: "Your changes weren't saved"
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -462,7 +531,7 @@ function RequestDetailDrawer({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add your notes..."
           rows={4}
-          className="resize-none"
+          className="resize-none input-glow"
         />
       </div>
 
@@ -472,7 +541,7 @@ function RequestDetailDrawer({
           variant="destructive"
           onClick={() => handleAction("reject")}
           disabled={isSubmitting || !notes}
-          className="flex-1"
+          className="flex-1 scale-spring"
         >
           <XCircle className="w-4 h-4 mr-2" />
           {BUTTON_COPY.reject}
@@ -480,7 +549,7 @@ function RequestDetailDrawer({
         <Button
           onClick={() => handleAction("approve")}
           disabled={isSubmitting}
-          className="flex-1"
+          className="flex-1 btn-premium glow-pulse"
         >
           <CheckCircle className="w-4 h-4 mr-2" />
           {BUTTON_COPY.approve}
