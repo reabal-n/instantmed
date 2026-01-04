@@ -73,7 +73,7 @@ export interface Breadcrumb {
 }
 
 export interface RelatedLink {
-  type: 'condition' | 'medication' | 'symptom' | 'audience' | 'category' | 'intent'
+  type: 'condition' | 'medication' | 'symptom' | 'audience' | 'category'
   slug: string
   title: string
   description?: string

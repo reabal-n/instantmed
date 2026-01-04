@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { logger } from "@/lib/observability/logger"
 
 
 import { logger } from "@/lib/observability/logger"
@@ -22,7 +23,11 @@ function getSupabaseClient() {
   
   if (!supabaseUrl || !serviceKey) {
 
+
     logger.error("[AMT Cache] Missing Supabase credentials")
+
+    logger.error("AMT Cache: Missing Supabase credentials")
+
 
     logger.error("AMT Cache: Missing Supabase credentials")
 
@@ -84,7 +89,13 @@ async function setCachedResult(queryNorm: string, results: unknown): Promise<voi
       )
   } catch (err) {
 
+
     logger.error("[AMT Cache] Error setting cache:", { error: err })
+
+    logger.error("AMT Cache: Error setting cache", {
+      error: err instanceof Error ? err.message : String(err),
+    })
+
 
     logger.error("AMT Cache: Error setting cache", {
       error: err instanceof Error ? err.message : String(err),
@@ -231,12 +242,18 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
 
+
       logger.error("[AMT Search] NCTS FHIR error:", { status: response.status })
+
+
 
       logger.error("AMT Search: NCTS FHIR error", {
         status: response.status,
         query,
       })
+
+
+
 
       // If we have stale cache, return it as fallback
       if (cached) {
@@ -284,12 +301,18 @@ export async function GET(request: NextRequest) {
     // Handle timeout specifically
     if (error instanceof Error && error.name === "AbortError") {
 
+
       logger.error("[AMT Search] NCTS timeout after", { timeoutMs: NCTS_TIMEOUT_MS })
+
+
 
       logger.error("AMT Search: NCTS timeout", {
         timeoutMs: NCTS_TIMEOUT_MS,
         query,
       })
+
+
+
 
       // If we have stale cache, return it as fallback
       if (cached) {
@@ -303,12 +326,18 @@ export async function GET(request: NextRequest) {
     }
 
 
+
     logger.error("[AMT Search] Error:", { error })
+
+
 
     logger.error("AMT Search: Error", {
       error: error instanceof Error ? error.message : String(error),
       query,
     })
+
+
+
 
     // If we have stale cache, return it as fallback
     if (cached) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
+import { logger } from "@/lib/observability/logger"
 
 
 import { logger } from "@/lib/observability/logger"
@@ -117,7 +118,13 @@ export async function GET() {
     })
   } catch (error) {
 
+
     logger.error("Export error:", { error })
+
+    logger.error("Export error", {
+      error: error instanceof Error ? error.message : String(error),
+    })
+
 
     logger.error("Export error", {
       error: error instanceof Error ? error.message : String(error),

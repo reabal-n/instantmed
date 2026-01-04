@@ -26,7 +26,6 @@ export interface ComparisonPage extends Omit<SEOPage, 'type'> {
   }
   content: {
     intro: string
-    uniqueBlocks: never[] // Comparisons use keyDifferences instead
     keyDifferences: {
       heading: string
       itemA: string

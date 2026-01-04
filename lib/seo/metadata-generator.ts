@@ -83,6 +83,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   condition: (page) => {
+    const firstSymptom = page.content.uniqueBlocks.find(b => b.type === 'list')
     return `${page.content.intro.substring(0, 120)}... Online treatment from Australian doctors. Same-day assessment available.`
   },
   

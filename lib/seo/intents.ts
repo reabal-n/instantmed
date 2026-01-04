@@ -738,7 +738,7 @@ intentPages.push(
     keywords: ['online doctor prescription', 'telehealth prescription', 'repeat script online', 'e-prescription'],
     type: 'intent',
     intent: {
-      searchQuery: 'online doctor prescription',
+      primaryQuery: 'online doctor prescription',
       alternateQueries: [
         'get prescription online',
         'telehealth prescription',
@@ -752,21 +752,18 @@ intentPages.push(
     },
     content: {
       intro: 'Get prescriptions online from Australian doctors through InstantMed. Perfect for repeat scripts, ongoing medications, or new prescriptions for common conditions. E-prescriptions sent directly to your phone.',
-      uniqueBlocks: [
+      sections: [
         {
-          type: 'text',
           heading: 'What can be prescribed online?',
-          body: 'Australian doctors can prescribe most non-controlled medications online including repeat prescriptions, antibiotics for UTIs, contraceptive pills, hair loss treatments, reflux medications, and more. Schedule 8 medications (opioids, stimulants) cannot be prescribed via telehealth.',
+          content: 'Australian doctors can prescribe most non-controlled medications online including repeat prescriptions, antibiotics for UTIs, contraceptive pills, hair loss treatments, reflux medications, and more. Schedule 8 medications (opioids, stimulants) cannot be prescribed via telehealth.',
         },
         {
-          type: 'text',
           heading: 'How does it work?',
-          body: '1) Complete online consultation (medical history and symptoms), 2) Australian doctor reviews within 30 minutes to 24 hours, 3) Prescription sent as e-prescription (SMS/email) or traditional paper script, 4) Take to any pharmacy in Australia.',
+          content: '1) Complete online consultation (medical history and symptoms), 2) Australian doctor reviews within 30 minutes to 24 hours, 3) Prescription sent as e-prescription (SMS/email) or traditional paper script, 4) Take to any pharmacy in Australia.',
         },
         {
-          type: 'text',
           heading: 'Is the prescription valid?',
-          body: 'Yes. Online prescriptions from InstantMed are written by registered Australian doctors and are legally valid at all Australian pharmacies. E-prescriptions can be used immediately.',
+          content: 'Yes. Online prescriptions from InstantMed are written by registered Australian doctors and are legally valid at all Australian pharmacies. E-prescriptions can be used immediately.',
         },
       ],
     },
