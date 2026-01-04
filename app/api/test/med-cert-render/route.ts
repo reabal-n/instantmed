@@ -38,6 +38,14 @@ const SAMPLE_DRAFT: MedCertDraft = {
 }
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Disable test endpoints in production
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "Not available in production" },
+      { status: 404 }
+    )
+  }
+
   try {
     // Get certificate type from query param (default: work)
     const certTypeParam = request.nextUrl.searchParams.get("type")

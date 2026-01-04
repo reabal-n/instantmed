@@ -2,9 +2,16 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { checkRateLimit } from "@/lib/rate-limit/upstash"
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting
+    const rateLimitResponse = await checkRateLimit("submit")
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     // CSRF protection
     const csrfError = await requireValidCsrf(request)
     if (csrfError) {

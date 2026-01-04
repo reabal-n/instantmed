@@ -4,6 +4,14 @@ import { testApiTemplateConnection } from "@/lib/documents/apitemplate"
 import { logger } from "@/lib/logger"
 
 export async function GET() {
+  // SECURITY: Disable test endpoints in production
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "Not available in production" },
+      { status: 404 }
+    )
+  }
+
   try {
     // Verify doctor auth
     const { profile } = await requireAuth("doctor")

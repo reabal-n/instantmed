@@ -2,6 +2,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { checkRateLimit } from "@/lib/rate-limit/upstash"
 
 interface RetryPaymentRequest {
   invoiceId: string
@@ -9,6 +10,12 @@ interface RetryPaymentRequest {
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting for payment operations
+    const rateLimitResponse = await checkRateLimit("payment")
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     // CSRF protection
     const csrfError = await requireValidCsrf(request)
     if (csrfError) {

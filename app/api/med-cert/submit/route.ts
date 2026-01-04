@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { headers } from "next/headers"
-import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
+import { checkRateLimit } from "@/lib/rate-limit/upstash"
 import { logger } from "@/lib/logger"
 import { getApiAuth } from "@/lib/auth"
 import type { SymptomId } from "@/types/med-cert"
@@ -99,16 +98,10 @@ function validateSubmission(body: Partial<SubmitRequestBody>): { valid: boolean;
 
 export async function POST(request: NextRequest): Promise<NextResponse<SubmitResponse>> {
   try {
-    // Rate limiting
-    const headersList = await headers()
-    const ip = headersList.get("x-forwarded-for") || "unknown"
-    const rateLimitResult = checkRateLimit(`med-cert-submit:${ip}`, RATE_LIMIT_SENSITIVE)
-    
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { success: false, error: "Too many requests. Please wait before submitting again." },
-        { status: 429 }
-      )
+    // Rate limiting with Upstash Redis (or fallback gracefully)
+    const rateLimitResponse = await checkRateLimit("submit")
+    if (rateLimitResponse) {
+      return rateLimitResponse
     }
 
     // Auth using Clerk

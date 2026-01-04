@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { checkRateLimit } from "@/lib/rate-limit/upstash"
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting for admin operations
+    const rateLimitResponse = await checkRateLimit("admin")
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     // CSRF protection for session-based requests
     const csrfError = await requireValidCsrf(request)
     if (csrfError) {
