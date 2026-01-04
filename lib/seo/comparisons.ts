@@ -45,7 +45,6 @@ export const comparisonPages: ComparisonPage[] = [
     slug: 'tadalafil-vs-sildenafil',
     title: 'Tadalafil vs Sildenafil: Which ED Medication is Right for You?',
     description: 'Comparing tadalafil (Cialis) and sildenafil (Viagra) for erectile dysfunction. Differences in duration, onset, side effects, and cost.',
-    keywords: ['tadalafil vs sildenafil', 'Cialis vs Viagra', 'ED medication comparison', 'tadalafil or sildenafil'],
     type: 'comparison',
     comparison: {
       itemA: {
@@ -151,7 +150,6 @@ export const comparisonPages: ComparisonPage[] = [
     slug: 'finasteride-vs-minoxidil',
     title: 'Finasteride vs Minoxidil: Best Hair Loss Treatment Comparison',
     description: 'Comparing finasteride and minoxidil for hair loss treatment. Differences in how they work, effectiveness, side effects, and who can use them.',
-    keywords: ['finasteride vs minoxidil', 'hair loss treatment comparison', 'Propecia vs Rogaine', 'finasteride or minoxidil'],
     type: 'comparison',
     comparison: {
       itemA: {
@@ -260,7 +258,6 @@ export const comparisonPages: ComparisonPage[] = [
     slug: 'trimethoprim-vs-nitrofurantoin',
     title: 'Trimethoprim vs Nitrofurantoin: UTI Antibiotic Comparison',
     description: 'Comparing trimethoprim and nitrofurantoin for urinary tract infection treatment. Differences in effectiveness, side effects, and pregnancy safety.',
-    keywords: ['trimethoprim vs nitrofurantoin', 'UTI antibiotic comparison', 'best antibiotic for UTI'],
     type: 'comparison',
     comparison: {
       itemA: {
