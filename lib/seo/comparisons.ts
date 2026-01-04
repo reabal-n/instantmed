@@ -26,6 +26,7 @@ export interface ComparisonPage extends Omit<SEOPage, 'type'> {
   }
   content: {
     intro: string
+    uniqueBlocks: any[] // Required by SEOPage but not used in comparisons
     keyDifferences: {
       heading: string
       itemA: string
@@ -62,6 +63,7 @@ export const comparisonPages: ComparisonPage[] = [
     },
     content: {
       intro: 'Tadalafil (Cialis) and sildenafil (Viagra) are both highly effective medications for erectile dysfunction (ED). The main difference is duration: tadalafil lasts up to 36 hours while sildenafil lasts 4-5 hours. Your choice depends on lifestyle, frequency of sexual activity, and personal preference.',
+      uniqueBlocks: [],
       keyDifferences: [
         {
           heading: 'Duration of Action',
@@ -167,6 +169,7 @@ export const comparisonPages: ComparisonPage[] = [
     },
     content: {
       intro: 'Finasteride and minoxidil are the two most effective treatments for male pattern hair loss. Finasteride is an oral medication that blocks DHT (the hormone causing hair loss), while minoxidil is a topical solution that stimulates hair growth. Many men use both together for maximum results.',
+      uniqueBlocks: [],
       keyDifferences: [
         {
           heading: 'How They Work',
@@ -275,6 +278,7 @@ export const comparisonPages: ComparisonPage[] = [
     },
     content: {
       intro: 'Trimethoprim and nitrofurantoin are both first-line antibiotics for uncomplicated urinary tract infections (UTIs) in Australia. The main difference is pregnancy safety: nitrofurantoin is safe in pregnancy while trimethoprim is not recommended in first trimester.',
+      uniqueBlocks: [],
       keyDifferences: [
         {
           heading: 'Pregnancy Safety',
