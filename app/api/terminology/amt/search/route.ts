@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/observability/logger"
 
-
-import { logger } from "@/lib/observability/logger"
-
-
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
 const NCTS_FHIR_BASE = "https://tx.ontoserver.csiro.au/fhir"
 const AMT_VALUE_SET = "http://snomed.info/sct?fhir_vs=ecl/%5E929360071000036103" // AMT Medicinal Product Pack

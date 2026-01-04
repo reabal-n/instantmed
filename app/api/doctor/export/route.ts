@@ -3,10 +3,6 @@ import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
 import { logger } from "@/lib/observability/logger"
 
-
-import { logger } from "@/lib/observability/logger"
-
-
 // Type for the raw Supabase response (patient is an array from join)
 interface RequestRow {
   id: string

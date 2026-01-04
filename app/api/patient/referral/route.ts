@@ -2,10 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { generateReferralCode, getReferralStats } from "@/lib/referrals/referral-service"
 import { logger } from "@/lib/observability/logger"
 
-
-import { logger } from "@/lib/observability/logger"
-
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const patientId = searchParams.get("patientId")
