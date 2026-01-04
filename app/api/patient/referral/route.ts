@@ -19,20 +19,10 @@ export async function GET(request: NextRequest) {
       ...stats,
     })
   } catch (error) {
-
-
-    logger.error("Error fetching referral data:", { error })
-
-
-
     logger.error("Error fetching referral data", {
       patientId,
       error: error instanceof Error ? error.message : String(error),
     })
-
-
-
-
     return NextResponse.json({ error: "Failed to fetch referral data" }, { status: 500 })
   }
 }

@@ -113,19 +113,9 @@ export async function GET() {
       },
     })
   } catch (error) {
-
-
-    logger.error("Export error:", { error })
-
     logger.error("Export error", {
       error: error instanceof Error ? error.message : String(error),
     })
-
-
-    logger.error("Export error", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-
     return NextResponse.json({ error: "Export failed" }, { status: 500 })
   }
 }
