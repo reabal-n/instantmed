@@ -596,7 +596,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                     <Label>Decision reason *</Label>
                     <Textarea
                       value={decisionReason}
-                      onChange={(e) => setDecisionReason(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDecisionReason(e.target.value)}
                       placeholder="Explain your decision..."
                       className="min-h-[80px]"
                     />
@@ -608,7 +608,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                       <Label>Red flag review *</Label>
                       <Textarea
                         value={redFlagReview}
-                        onChange={(e) => setRedFlagReview(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRedFlagReview(e.target.value)}
                         placeholder="Document your review of the flagged issues..."
                         className="min-h-[80px]"
                       />
@@ -642,7 +642,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                             min="1"
                             max="10"
                             value={packQuantity}
-                            onChange={(e) => setPackQuantity(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPackQuantity(e.target.value)}
                           />
                         </div>
                         <div className="space-y-2">
@@ -652,7 +652,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                             min="0"
                             max="1"
                             value={repeatsGranted}
-                            onChange={(e) => setRepeatsGranted(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRepeatsGranted(e.target.value)}
                           />
                         </div>
                       </div>
@@ -661,7 +661,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                         <Label>Dose/frequency</Label>
                         <Input
                           value={doseInstructions}
-                          onChange={(e) => setDoseInstructions(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDoseInstructions(e.target.value)}
                           placeholder="e.g., 10mg once daily"
                         />
                       </div>
@@ -673,7 +673,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                     <Label>Clinical notes (optional)</Label>
                     <Textarea
                       value={clinicalNotes}
-                      onChange={(e) => setClinicalNotes(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClinicalNotes(e.target.value)}
                       placeholder="Any additional notes..."
                     />
                   </div>

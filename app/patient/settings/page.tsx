@@ -2,6 +2,9 @@ import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { PatientSettingsClient } from "./settings-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Settings | InstantMed",
   description: "Manage your profile and account settings",

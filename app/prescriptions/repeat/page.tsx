@@ -5,6 +5,9 @@ import { auth } from "@clerk/nextjs/server"
 import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
 // SEO Metadata
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Repeat Prescription | InstantMed",
   description:

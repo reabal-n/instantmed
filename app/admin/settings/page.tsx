@@ -6,6 +6,9 @@ import { Footer } from "@/components/shared/footer"
 import { FeatureFlagsClient } from "./feature-flags-client"
 import { isAdminEmail } from "@/lib/env"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function AdminSettingsPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 

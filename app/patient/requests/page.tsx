@@ -6,6 +6,9 @@ import { getPatientRequests, formatRequestType } from "@/lib/data/requests"
 import { redirect } from "next/navigation"
 import { RequestsListClient } from "./requests-list-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function PatientRequestsPage({
   searchParams,
 }: {

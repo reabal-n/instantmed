@@ -2,6 +2,9 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { MedCertIntakeClient } from "./client"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Get Medical Certificate | InstantMed",
   description: "Get a legitimate medical certificate online in minutes. Reviewed by Australian-registered doctors. Fast, secure, and convenient.",

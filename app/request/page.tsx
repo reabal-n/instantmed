@@ -2,6 +2,9 @@ import type { Metadata } from "next"
 import { getCurrentUser, getUserProfile } from "@/lib/auth"
 import { UnifiedFlowClient } from "./unified-flow-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "New Request | InstantMed",
   description:

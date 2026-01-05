@@ -8,19 +8,38 @@ import {
 } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface SelectProps extends Omit<HeroSelectProps, "children"> {
+export interface SelectProps extends Omit<HeroSelectProps, "children" | "selectedKeys" | "onSelectionChange"> {
   children?: React.ReactNode
+  // Support shadcn/ui API
+  value?: string
+  onValueChange?: (value: string) => void
+  // Support HeroUI API
+  selectedKeys?: string[] | Set<string>
+  onSelectionChange?: (keys: any) => void
 }
 
 function Select({
   className,
   children,
+  value,
+  onValueChange,
+  selectedKeys,
+  onSelectionChange,
   ...props
 }: SelectProps) {
+  // Map shadcn/ui API to HeroUI API
+  const heroSelectedKeys = selectedKeys ?? (value ? [value] : undefined)
+  const heroOnSelectionChange = onSelectionChange ?? (onValueChange ? (keys: any) => {
+    const selected = Array.from(keys)[0] as string
+    onValueChange(selected)
+  } : undefined)
+
   return (
     <HeroSelect
       radius="lg"
       variant="bordered"
+      selectedKeys={heroSelectedKeys}
+      onSelectionChange={heroOnSelectionChange as any}
       classNames={{
         trigger: "bg-background/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
         value: "text-foreground",
@@ -28,7 +47,7 @@ function Select({
       className={className}
       {...props}
     >
-      {children}
+      {children as any}
     </HeroSelect>
   )
 }
@@ -82,13 +101,24 @@ function SelectLabel({
   )
 }
 
+interface SelectItemProps extends Omit<React.ComponentProps<typeof HeroSelectItem>, "key"> {
+  value?: string
+  key?: string
+}
+
 function SelectItem({
   className,
   children,
+  value,
+  key,
   ...props
-}: React.ComponentProps<typeof HeroSelectItem>) {
+}: SelectItemProps) {
+  // Map shadcn/ui API (value) to HeroUI API (key)
+  const itemKey = key ?? value
+  
   return (
     <HeroSelectItem
+      key={itemKey}
       className={className}
       {...props}
     >

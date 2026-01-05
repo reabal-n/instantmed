@@ -21,9 +21,9 @@ export interface SheetProps extends Omit<HeroModalProps, "children" | "isOpen" |
 
 const placementMap: Record<string, HeroModalProps["placement"]> = {
   top: "top",
-  right: "right",
+  right: "center",
   bottom: "bottom",
-  left: "left",
+  left: "center",
 }
 
 function Sheet({

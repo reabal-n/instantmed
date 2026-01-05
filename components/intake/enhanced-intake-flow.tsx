@@ -1148,9 +1148,9 @@ export function EnhancedIntakeFlow({
                   >
                     <Textarea
                       value={state.symptomDetails}
-                      onChange={(e) => updateField("symptomDetails", e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("symptomDetails", e.target.value)}
                       placeholder="Additional details for the doctor..."
-                      rows={2}
+                      minRows={2}
                       className="resize-none touch-target"
                     />
                   </FormField>

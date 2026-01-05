@@ -1,6 +1,9 @@
 import type { Metadata } from "next"
 import { ReviewsClientPageComponent as ReviewsClientPage } from "./reviewsClientPage"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Patient Reviews | InstantMed",
   description:

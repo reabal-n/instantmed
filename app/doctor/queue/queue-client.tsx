@@ -403,7 +403,7 @@ export function QueueClient({
                           <Textarea
                             placeholder="Add clinical notes (private, not shared with patient)..."
                             value={doctorNotes[request.id] || ""}
-                            onChange={(e) =>
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                               setDoctorNotes((prev) => ({
                                 ...prev,
                                 [request.id]: e.target.value,
@@ -502,7 +502,7 @@ export function QueueClient({
           <Textarea
             placeholder="Reason for escalation..."
             value={escalateReason}
-            onChange={(e) => setEscalateReason(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEscalateReason(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
@@ -526,7 +526,7 @@ export function QueueClient({
           <Textarea
             placeholder="Follow-up reason..."
             value={flagReason}
-            onChange={(e) => setFlagReason(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlagReason(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>

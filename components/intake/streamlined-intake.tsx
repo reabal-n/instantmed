@@ -630,7 +630,7 @@ export function StreamlinedIntake({
               <Textarea
                 placeholder="E.g., ongoing condition, specific requirements..."
                 value={formData.additionalNotes}
-                onChange={(e) => updateField("additionalNotes", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("additionalNotes", e.target.value)}
                 className="min-h-20 rounded-xl resize-none"
               />
             </FormField>

@@ -13,6 +13,9 @@ import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { UnifiedBackground } from '@/components/effects/unified-background'
 import { Navbar } from '@/components/shared/navbar'
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-premium-warm overflow-x-hidden">

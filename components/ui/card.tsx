@@ -1,17 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { Card as HeroCard, CardHeader, CardBody, CardFooter } from "@heroui/react"
+import { Card as HeroCard } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface CardProps extends React.ComponentProps<typeof HeroCard> {
+export interface CardProps {
   children?: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
 }
 
-function Card({ className, children, ...props }: CardProps) {
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, children, style, ...props }, ref) => {
   return (
     <HeroCard
+      ref={ref}
       className={cn("bg-card text-card-foreground", className)}
+      style={style}
       classNames={{
         base: "bg-background/60 backdrop-blur-xl border border-default-100 shadow-lg rounded-xl",
       }}
@@ -20,11 +24,13 @@ function Card({ className, children, ...props }: CardProps) {
       {children}
     </HeroCard>
   )
-}
+})
+
+Card.displayName = "Card"
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <HeroCard.Header
+    <div
       className={cn(
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
         className
@@ -69,7 +75,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <HeroCard.Body
+    <div
       className={cn("px-6", className)}
       {...props}
     />
@@ -78,7 +84,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <HeroCard.Footer
+    <div
       className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
       {...props}
     />

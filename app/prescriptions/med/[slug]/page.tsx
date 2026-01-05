@@ -70,6 +70,9 @@ function getContraindications(med: Medication): string[] {
   return contraindications
 }
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const med = getMedicationBySlug(slug)

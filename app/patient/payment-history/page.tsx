@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { PaymentHistoryContent } from "@/components/patient/payment-history-content"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Payment History | InstantMed",
   description: "View your payment history and invoices",

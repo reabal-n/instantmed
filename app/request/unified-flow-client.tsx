@@ -949,12 +949,12 @@ export function UnifiedFlowClient({
               <p className="text-xs text-muted-foreground">{COPY.notes.subtitle}</p>
               <Textarea
                 value={notes}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setNotes(e.target.value)
                   setForm({ ...form, notes: e.target.value })
                 }}
                 placeholder={COPY.notes.placeholder}
-                rows={3}
+                minRows={3}
                 className="resize-none"
               />
             </div>
@@ -1093,12 +1093,12 @@ export function UnifiedFlowClient({
               <Label className="text-sm font-medium">{COPY.notes.heading}</Label>
               <Textarea
                 value={notes}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setNotes(e.target.value)
                   setForm({ ...form, notes: e.target.value })
                 }}
                 placeholder={COPY.notes.placeholder}
-                rows={3}
+                minRows={3}
                 className="resize-none"
               />
             </div>

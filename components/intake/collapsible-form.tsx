@@ -209,7 +209,7 @@ function QuestionField({
           {isMultiline ? (
             <Textarea
               value={typeof value === 'string' ? value : ""}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
               placeholder={question.placeholder}
               className="min-h-20"
             />

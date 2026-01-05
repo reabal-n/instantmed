@@ -3,6 +3,9 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { CompleteAccountForm } from "./complete-account-form"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Complete Your Account | InstantMed",
   description: "Create your account to access your medical certificate",

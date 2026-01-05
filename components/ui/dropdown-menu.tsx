@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 import {
   Dropdown,
   DropdownTrigger,
@@ -10,7 +11,7 @@ import {
 } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface DropdownMenuProps extends HeroDropdownProps {
+export interface DropdownMenuProps extends Omit<HeroDropdownProps, "children"> {
   children?: React.ReactNode
 }
 
@@ -27,7 +28,7 @@ function DropdownMenu({
       }}
       {...props}
     >
-      {children}
+      {React.Children.toArray(children)}
     </Dropdown>
   )
 }
@@ -36,40 +37,82 @@ function DropdownMenuPortal({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+interface DropdownMenuTriggerProps extends React.ComponentProps<"button"> {
+  asChild?: boolean
+}
+
 function DropdownMenuTrigger({
   children,
+  asChild,
   ...props
-}: React.ComponentProps<"button">) {
+}: DropdownMenuTriggerProps) {
+  if (asChild && React.isValidElement(children)) {
+    return (
+      <DropdownTrigger {...props}>
+        <Slot>{children}</Slot>
+      </DropdownTrigger>
+    )
+  }
   return <DropdownTrigger {...props}>{children}</DropdownTrigger>
+}
+
+interface DropdownMenuContentProps extends React.ComponentProps<"div"> {
+  align?: "start" | "end" | "center"
 }
 
 function DropdownMenuContent({
   children,
+  align,
   ...props
-}: React.ComponentProps<"div">) {
-  return <HeroDropdownMenu {...props}>{children}</HeroDropdownMenu>
+}: DropdownMenuContentProps) {
+  // Note: HeroUI handles placement on the Dropdown component, not the content
+  // The align prop is accepted for API compatibility but placement should be set on DropdownMenu
+  return <HeroDropdownMenu {...(props as any)}>{children as any}</HeroDropdownMenu>
 }
 
 function DropdownMenuGroup({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+interface DropdownMenuItemProps extends Omit<React.ComponentProps<typeof DropdownItem>, "key" | "isDisabled" | "variant"> {
+  variant?: "default" | "destructive"
+  key?: string | number
+  asChild?: boolean
+  // Support shadcn/ui API
+  disabled?: boolean
+  // Support HeroUI API
+  isDisabled?: boolean
+}
+
 function DropdownMenuItem({
   className,
   variant = "default",
   children,
+  asChild,
+  disabled,
+  isDisabled,
   ...props
-}: React.ComponentProps<typeof DropdownItem> & {
-  variant?: "default" | "destructive"
-}) {
+}: DropdownMenuItemProps) {
+  // HeroUI requires a key prop, so we generate one from children if not provided
+  const itemKey = (props as any).key || String(children) || Math.random().toString()
+  
+  // Map shadcn/ui API to HeroUI API
+  const heroIsDisabled = isDisabled ?? disabled
+  
+  // If asChild, wrap children with Slot
+  const content = asChild && React.isValidElement(children) ? (
+    <Slot>{children}</Slot>
+  ) : children
+  
   return (
     <DropdownItem
-      key={String(props.key || children)}
+      key={itemKey}
       color={variant === "destructive" ? "danger" : "default"}
+      isDisabled={heroIsDisabled}
       className={className}
       {...props}
     >
-      {children}
+      {content}
     </DropdownItem>
   )
 }
@@ -79,11 +122,12 @@ function DropdownMenuCheckboxItem({
   checked,
   ...props
 }: React.ComponentProps<typeof DropdownItem> & { checked?: boolean }) {
+  const { key: itemKey, ...restProps } = props as any
   return (
     <DropdownItem
-      key={String(props.key || children)}
+      key={String(itemKey || children)}
       startContent={checked ? "✓" : ""}
-      {...props}
+      {...restProps}
     >
       {children}
     </DropdownItem>
@@ -98,10 +142,11 @@ function DropdownMenuRadioItem({
   children,
   ...props
 }: React.ComponentProps<typeof DropdownItem>) {
+  const { key: itemKey, ...restProps } = props as any
   return (
     <DropdownItem
-      key={String(props.key || children)}
-      {...props}
+      key={String(itemKey || children)}
+      {...restProps}
     >
       {children}
     </DropdownItem>
@@ -152,10 +197,11 @@ function DropdownMenuSubTrigger({
   children,
   ...props
 }: React.ComponentProps<typeof DropdownItem>) {
+  const { key: itemKey, ...restProps } = props as any
   return (
     <DropdownItem
-      key={String(props.key || children)}
-      {...props}
+      key={String(itemKey || children)}
+      {...restProps}
     >
       {children}
     </DropdownItem>

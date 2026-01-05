@@ -16,6 +16,9 @@ import {
   Heart,
 } from "lucide-react"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Why Trust InstantMed? | AHPRA Registered Doctors",
   description:

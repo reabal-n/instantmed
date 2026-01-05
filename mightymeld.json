@@ -1,0 +1,30 @@
+{
+  "run_prettier": true,
+  "include": [
+    ".",
+    ".clerk",
+    ".cursor",
+    ".git",
+    ".github",
+    ".next",
+    ".storybook",
+    ".vscode",
+    ".windsurf",
+    "__tests__",
+    "app",
+    "components",
+    "docs",
+    "hooks",
+    "lib",
+    "public",
+    "scripts",
+    "stories",
+    "styles",
+    "supabase",
+    "types"
+  ],
+  "web_server_url": "http://localhost:3000",
+  "editor": "url:cursor://file/%FILENAME:%LINE:%COLUMN",
+  "run": "npm run dev",
+  "tailwind": true
+}

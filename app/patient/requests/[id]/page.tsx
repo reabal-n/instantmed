@@ -5,6 +5,9 @@ import { getLatestDocumentForRequest, getMedCertCertificateForRequest } from "@/
 import PatientRequestDetailPageClient from "./client"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   return {

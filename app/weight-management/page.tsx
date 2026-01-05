@@ -5,6 +5,9 @@ import { ArrowRight, Shield, CheckCircle2, Zap, MessageSquare, Target, TrendingD
 import Link from "next/link"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Telehealth Weight Management Australia | Doctor-Guided | InstantMed",
   description: "Work with Australian doctors on a medically supervised weight management program. Assessment in 15 minutes. Personalised plans, ongoing support, medication if appropriate.",

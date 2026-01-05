@@ -5,6 +5,9 @@ import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Ho
 import Link from "next/link"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Medical Certificates for Shift Workers | 24/7 Available | InstantMed",
   description: "Get a medical certificate any time of day or night. 15-minute turnaround. Perfect for nurses, hospitality, retail, and anyone working outside 9-5. Valid for all employers.",

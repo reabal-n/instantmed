@@ -197,7 +197,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="text"
               value={draft.patient_full_name ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setDraft({ ...draft, patient_full_name: e.target.value })
               }
               className="w-full"
@@ -210,7 +210,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="date"
               value={draft.patient_dob ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setDraft({ ...draft, patient_dob: e.target.value })
               }
               className="w-full"
@@ -253,7 +253,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="date"
               value={draft.date_from ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setDraft({ ...draft, date_from: e.target.value })
               }
               className="w-full"
@@ -266,7 +266,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="date"
               value={draft.date_to ?? ""}
-              onChange={(e) => setDraft({ ...draft, date_to: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraft({ ...draft, date_to: e.target.value })}
               className="w-full"
             />
           </div>
@@ -278,11 +278,11 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
           </label>
           <Textarea
             value={draft.reason_summary ?? ""}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDraft({ ...draft, reason_summary: e.target.value })
             }
             placeholder="E.g., Acute gastroenteritis, advised rest and hydration"
-            rows={3}
+            minRows={3}
             className="w-full"
           />
         </div>
@@ -299,7 +299,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="text"
               value={draft.doctor_typed_name ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setDraft({ ...draft, doctor_typed_name: e.target.value })
               }
             />
@@ -311,7 +311,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
             <Input
               type="text"
               value={draft.doctor_ahpra ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setDraft({ ...draft, doctor_ahpra: e.target.value })
               }
             />
@@ -325,7 +325,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
           <Input
             type="text"
             value={draft.signature_asset_url ?? ""}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDraft({ ...draft, signature_asset_url: e.target.value })
             }
             placeholder={`${process.env.NEXT_PUBLIC_APP_URL}/images/signature.png`}
@@ -346,7 +346,7 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
           <Input
             type="text"
             value={draft.provider_name ?? ""}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDraft({ ...draft, provider_name: e.target.value })
             }
           />
@@ -357,10 +357,10 @@ export function MedCertEditor({ request, existingDraft }: MedCertEditorProps) {
           </label>
           <Textarea
             value={draft.provider_address ?? ""}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDraft({ ...draft, provider_address: e.target.value })
             }
-            rows={2}
+            minRows={2}
           />
         </div>
       </div>

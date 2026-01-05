@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Textarea as HeroTextarea, type TextareaProps as HeroTextareaProps } from "@heroui/react"
+import { Textarea as HeroTextarea, type TextAreaProps as HeroTextareaProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
 export interface TextareaProps extends Omit<HeroTextareaProps, "size"> {

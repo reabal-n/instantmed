@@ -7,6 +7,9 @@ interface PageProps {
   params: Promise<{ requestId: string }>
 }
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Track Your Request | InstantMed",
   description: "Track the real-time status of your medical request",

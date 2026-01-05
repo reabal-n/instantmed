@@ -741,7 +741,7 @@ export function RequestDetailClient({
           </div>
           <Textarea
             value={clinicalNote}
-            onChange={(e) => setClinicalNote(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClinicalNote(e.target.value)}
             placeholder="Add internal notes about this request... or click 'Generate SOAP Note' for AI assistance"
             className="min-h-[150px] rounded-xl font-mono text-sm"
           />
@@ -968,7 +968,7 @@ export function RequestDetailClient({
               <label className="text-sm font-medium mb-2 block">Message to Patient <span className="text-red-500">*</span></label>
               <Textarea
                 value={declineReason}
-                onChange={(e) => setDeclineReason(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeclineReason(e.target.value)}
                 placeholder="Enter a compassionate explanation for the patient. This will be sent via email."
                 className="min-h-[120px] rounded-xl text-sm"
               />

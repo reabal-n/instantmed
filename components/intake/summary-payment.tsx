@@ -120,7 +120,7 @@ export function SummaryPayment({
         <label className="text-sm font-medium">Anything else the doctor should know?</label>
         <Textarea
           value={additionalNotes}
-          onChange={(e) => setAdditionalNotes(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalNotes(e.target.value)}
           placeholder="Optional — add any extra details here..."
           className="min-h-20"
         />

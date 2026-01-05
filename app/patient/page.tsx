@@ -13,6 +13,9 @@ import { PanelDashboard } from "@/components/patient/panel-dashboard"
  * - Removed invoices/payment methods from main view
  */
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function PatientDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 

@@ -5,6 +5,9 @@ import { Pill, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Medications Directory | Online Prescriptions | InstantMed",
   description:

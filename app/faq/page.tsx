@@ -7,6 +7,9 @@ import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { MessageCircle, HelpCircle } from "lucide-react"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "FAQs | InstantMed",
   description:

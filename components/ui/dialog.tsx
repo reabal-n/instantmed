@@ -72,12 +72,6 @@ function DialogContent({
   return (
     <ModalContent
       className={cn("bg-background border border-default-100", className)}
-      classNames={{
-        backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-background border border-default-100",
-        header: "border-b border-default-100",
-        footer: "border-t border-default-100",
-      }}
       {...props}
     >
       {children}

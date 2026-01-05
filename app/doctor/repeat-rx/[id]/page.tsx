@@ -6,6 +6,9 @@ import { auth } from "@clerk/nextjs/server"
 import { RepeatRxReviewClient } from "./review-client"
 
 // Generate metadata for SEO
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export async function generateMetadata({ 
   params 
 }: { 

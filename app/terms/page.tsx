@@ -2,6 +2,9 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Terms of Service | InstantMed",
   description: "Terms and conditions for using InstantMed telehealth services.",

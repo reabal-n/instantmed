@@ -7,6 +7,9 @@ import { TiltCard } from "@/components/shared/tilt-card"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Pricing | InstantMed",
   description: "Simple, transparent pricing for online medical consultations. No hidden fees, no subscriptions.",

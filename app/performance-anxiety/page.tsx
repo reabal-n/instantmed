@@ -19,6 +19,9 @@ import {
 } from "lucide-react"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Performance Anxiety Treatment Online | Propranolol Australia | InstantMed",
   description:

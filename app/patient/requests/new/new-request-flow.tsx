@@ -353,7 +353,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   id="main_concern"
                   placeholder="Describe your main health concern or reason for this request..."
                   value={formData.main_concern}
-                  onChange={(e) => handleInputChange("main_concern", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("main_concern", e.target.value)}
                   className="min-h-[100px] rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
                   required
                 />
@@ -368,7 +368,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   id="symptom_duration"
                   placeholder="e.g., 2 days, 1 week, 3 months"
                   value={formData.symptom_duration}
-                  onChange={(e) => handleInputChange("symptom_duration", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("symptom_duration", e.target.value)}
                   className="rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors"
                 />
               </div>
@@ -382,7 +382,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   id="current_medications"
                   placeholder="List any medications you are currently taking..."
                   value={formData.current_medications}
-                  onChange={(e) => handleInputChange("current_medications", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("current_medications", e.target.value)}
                   className="min-h-20 rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
                 />
               </div>
@@ -396,7 +396,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                   id="allergies"
                   placeholder="List any known allergies (medications, foods, etc.)..."
                   value={formData.allergies}
-                  onChange={(e) => handleInputChange("allergies", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("allergies", e.target.value)}
                   className="min-h-20 rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors resize-none"
                 />
               </div>
@@ -411,7 +411,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                     id="hair_loss_pattern"
                     placeholder="e.g., receding hairline, crown thinning, diffuse thinning"
                     value={formData.hair_loss_pattern || ""}
-                    onChange={(e) => handleInputChange("hair_loss_pattern", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("hair_loss_pattern", e.target.value)}
                     className="rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors"
                   />
                 </div>
@@ -426,7 +426,7 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
                     id="ed_frequency"
                     placeholder="e.g., occasionally, frequently, always"
                     value={formData.ed_frequency || ""}
-                    onChange={(e) => handleInputChange("ed_frequency", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("ed_frequency", e.target.value)}
                     className="rounded-xl border-white/30 bg-white/50 focus:bg-white/70 transition-colors"
                   />
                 </div>

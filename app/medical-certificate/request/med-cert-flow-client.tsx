@@ -1171,7 +1171,7 @@ export function MedCertFlowClient({
               <Textarea
                 id="notes"
                 value={formData.additionalNotes}
-                onChange={(e) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
                 placeholder={needsDetailedNotes 
                   ? "Please describe your condition and why you need more than 2 days..." 
                   : "e.g. symptoms started yesterday, feeling worse today..."}

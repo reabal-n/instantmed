@@ -86,9 +86,9 @@ export function AmendmentForm({ requestId, canAmend, className }: AmendmentFormP
 
       <Textarea
         value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
         placeholder="e.g., I forgot to mention that I also have..."
-        rows={3}
+        minRows={3}
         className="resize-none text-sm"
         disabled={isPending}
       />

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 import {
   Modal as HeroModal,
   ModalContent,
@@ -37,10 +38,18 @@ function AlertDialog({
   )
 }
 
+interface AlertDialogTriggerProps extends React.ComponentProps<"button"> {
+  asChild?: boolean
+}
+
 function AlertDialogTrigger({
   children,
+  asChild,
   ...props
-}: React.ComponentProps<"button">) {
+}: AlertDialogTriggerProps) {
+  if (asChild && React.isValidElement(children)) {
+    return <Slot {...props}>{children}</Slot>
+  }
   return <button {...props}>{children}</button>
 }
 
@@ -60,12 +69,6 @@ function AlertDialogContent({
   return (
     <ModalContent
       className={cn("bg-background border border-default-100", className)}
-      classNames={{
-        backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-background border border-default-100",
-        header: "border-b border-default-100",
-        footer: "border-t border-default-100",
-      }}
       {...props}
     >
       {children}

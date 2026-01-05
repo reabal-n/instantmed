@@ -6,6 +6,9 @@ import { ArrowRight, Clock, Briefcase, Heart, Calendar, Zap, HelpCircle } from "
 import { ContextualSocialProof, ServiceStats } from "@/components/shared/contextual-social-proof"
 import { DoctorsOnline, CompletionTime } from "@/components/shared/urgency-indicators"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Online Medical Certificate Australia | Same Day Sick Note | InstantMed",
   description:

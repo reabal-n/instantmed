@@ -176,8 +176,8 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           <Textarea
             placeholder="Enter blocked medication terms, one per line...&#10;Example:&#10;oxycodone&#10;fentanyl&#10;alprazolam"
             value={blockedTermsText}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBlockedTermsText(e.target.value)}
-            rows={8}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBlockedTermsText(e.target.value)}
+            minRows={8}
             className="font-mono text-sm"
           />
           <div className="flex items-center justify-between">

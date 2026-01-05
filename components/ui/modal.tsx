@@ -93,17 +93,16 @@ function ModalContent({
   showClose = true,
   size = "md",
   ...props
-}: React.ComponentProps<typeof HeroModalContent> & {
+}: Omit<React.ComponentProps<typeof HeroModalContent>, "size"> & {
   showClose?: boolean
   size?: "sm" | "md" | "lg" | "xl" | "full"
 }) {
   return (
     <HeroModalContent
-      size={sizeMap[size]}
       className={cn("bg-background border border-default-100", className)}
       {...props}
     >
-      {children}
+      {children as any}
       {showClose && <ModalClose />}
     </HeroModalContent>
   )

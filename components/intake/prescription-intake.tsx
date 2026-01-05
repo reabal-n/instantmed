@@ -787,7 +787,7 @@ export function PrescriptionIntake({
               <Textarea
                 placeholder="E.g., dosage, frequency, any concerns..."
                 value={formData.additionalNotes}
-                onChange={(e) => updateField("additionalNotes", e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("additionalNotes", e.target.value)}
                 className="min-h-20 rounded-xl resize-none"
               />
             </FormField>

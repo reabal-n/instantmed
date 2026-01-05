@@ -2,6 +2,9 @@ import Link from "next/link"
 import { WifiOff, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Offline | InstantMed",
 }

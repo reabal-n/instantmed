@@ -11,6 +11,9 @@ import {
   getAllSlugs,
 } from '@/lib/seo/pages'
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 interface PageProps {
   params: Promise<{ slug: string }>
 }

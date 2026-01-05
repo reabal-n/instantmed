@@ -32,6 +32,9 @@ function TrendIndicator({ value, suffix = "" }: { value: number; suffix?: string
   )
 }
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Analytics | InstantMed Doctor Portal",
 }

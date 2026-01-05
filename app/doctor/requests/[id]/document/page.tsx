@@ -4,6 +4,9 @@ import { getRequestWithDetails } from "@/lib/data/requests"
 import { getOrCreateMedCertDraftForRequest, getLatestDocumentForRequest } from "@/lib/data/documents"
 import { DocumentBuilderClient } from "./document-builder-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function DocumentBuilderPage({
   params,
 }: {

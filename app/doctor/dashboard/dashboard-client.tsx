@@ -458,9 +458,9 @@ export function DoctorDashboardClient({
               </label>
               <Textarea
                 value={bulkNotes}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkNotes(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBulkNotes(e.target.value)}
                 placeholder="Add notes for these requests..."
-                rows={4}
+                minRows={4}
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -638,9 +638,9 @@ function RequestDetailDialog({
             <label className="font-semibold mb-2 block">Doctor Notes</label>
             <Textarea
               value={notes}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
-              rows={4}
+              minRows={4}
             />
           </div>
 

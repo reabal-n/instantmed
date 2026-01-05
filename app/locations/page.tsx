@@ -4,6 +4,9 @@ import { MapPin, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Online Doctor Australia | All Locations | InstantMed",
   description:

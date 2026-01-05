@@ -823,7 +823,7 @@ export function RepeatRxIntakeFlow({
                 >
                   <Input
                     value={prescriber}
-                    onChange={(e) => setPrescriber(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrescriber(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.prescriberPlaceholder}
                     className="h-12 rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                   />
@@ -836,7 +836,7 @@ export function RepeatRxIntakeFlow({
                 >
                   <Input
                     value={indication}
-                    onChange={(e) => setIndication(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndication(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.indicationPlaceholder}
                     className="h-12 rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                   />
@@ -849,7 +849,7 @@ export function RepeatRxIntakeFlow({
                 >
                   <Input
                     value={currentDose}
-                    onChange={(e) => setCurrentDose(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentDose(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.currentDosePlaceholder}
                     className="h-12 rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                   />
@@ -913,7 +913,7 @@ export function RepeatRxIntakeFlow({
                   >
                     <Textarea
                       value={sideEffectsDetails}
-                      onChange={(e) => setSideEffectsDetails(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSideEffectsDetails(e.target.value)}
                       placeholder={REPEAT_RX_COPY.steps.safety.sideEffectsPlaceholder}
                       className="min-h-[100px] rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                     />
@@ -947,7 +947,7 @@ export function RepeatRxIntakeFlow({
                 >
                   <Input
                     value={allergyDetails}
-                    onChange={(e) => setAllergyDetails(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAllergyDetails(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.safety.allergyPlaceholder}
                     className="h-12 rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                   />
@@ -991,7 +991,7 @@ export function RepeatRxIntakeFlow({
                 {pmhxFlags.otherSignificant && (
                   <Input
                     value={pmhxFlags.otherDetails}
-                    onChange={(e) => setPmhxFlags(prev => ({
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPmhxFlags(prev => ({
                       ...prev,
                       otherDetails: e.target.value,
                     }))}
@@ -1007,7 +1007,7 @@ export function RepeatRxIntakeFlow({
               >
                 <Textarea
                   value={otherMedsInput}
-                  onChange={(e) => setOtherMedsInput(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherMedsInput(e.target.value)}
                   placeholder={REPEAT_RX_COPY.steps.medical_history.otherMedsPlaceholder}
                   className="min-h-[100px] rounded-xl bg-[#F9FAFB] border-transparent focus:border-primary/10 focus:ring-2 focus:ring-primary/10"
                 />

@@ -330,7 +330,7 @@ export function DocumentBuilderClient({
                 <Input
                   id="patient_name"
                   value={formData.patient_name}
-                  onChange={(e) => updateField("patient_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("patient_name", e.target.value)}
                   className="rounded-xl"
                 />
               </div>
@@ -340,7 +340,7 @@ export function DocumentBuilderClient({
                   id="dob"
                   type="date"
                   value={formData.dob || ""}
-                  onChange={(e) => updateField("dob", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("dob", e.target.value)}
                   className="rounded-xl"
                 />
               </div>
@@ -361,7 +361,7 @@ export function DocumentBuilderClient({
                     id="date_from"
                     type="date"
                     value={formData.date_from || ""}
-                    onChange={(e) => updateField("date_from", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("date_from", e.target.value)}
                     className="rounded-xl"
                   />
                 </div>
@@ -371,7 +371,7 @@ export function DocumentBuilderClient({
                     id="date_to"
                     type="date"
                     value={formData.date_to || ""}
-                    onChange={(e) => updateField("date_to", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("date_to", e.target.value)}
                     className="rounded-xl"
                   />
                 </div>
@@ -381,7 +381,7 @@ export function DocumentBuilderClient({
                 <Textarea
                   id="reason"
                   value={formData.reason || ""}
-                  onChange={(e) => updateField("reason", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("reason", e.target.value)}
                   placeholder="Medical condition requiring absence..."
                   className="rounded-xl min-h-20"
                 />
@@ -414,7 +414,7 @@ export function DocumentBuilderClient({
                 <Textarea
                   id="notes"
                   value={formData.notes || ""}
-                  onChange={(e) => updateField("notes", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("notes", e.target.value)}
                   placeholder="Any additional notes..."
                   className="rounded-xl min-h-[60px]"
                 />
@@ -434,7 +434,7 @@ export function DocumentBuilderClient({
                 <Input
                   id="doctor_name"
                   value={formData.doctor_name}
-                  onChange={(e) => updateField("doctor_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("doctor_name", e.target.value)}
                   className="rounded-xl"
                 />
               </div>
@@ -443,7 +443,7 @@ export function DocumentBuilderClient({
                 <Input
                   id="provider_number"
                   value={formData.provider_number}
-                  onChange={(e) => updateField("provider_number", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("provider_number", e.target.value)}
                   className="rounded-xl"
                 />
               </div>

@@ -323,7 +323,7 @@ export function PathologyDocumentBuilderClient({
                 <Input
                   id="patient_name"
                   value={formData.patient_name}
-                  onChange={(e) => updateField("patient_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("patient_name", e.target.value)}
                   className="rounded-xl"
                 />
               </div>
@@ -334,7 +334,7 @@ export function PathologyDocumentBuilderClient({
                     id="dob"
                     type="date"
                     value={formData.dob || ""}
-                    onChange={(e) => updateField("dob", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("dob", e.target.value)}
                     className="rounded-xl"
                   />
                 </div>
@@ -343,7 +343,7 @@ export function PathologyDocumentBuilderClient({
                   <Input
                     id="medicare_number"
                     value={formData.medicare_number || ""}
-                    onChange={(e) => updateField("medicare_number", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("medicare_number", e.target.value)}
                     placeholder="1234 56789 0"
                     className="rounded-xl"
                   />
@@ -368,7 +368,7 @@ export function PathologyDocumentBuilderClient({
                 <Textarea
                   id="tests_requested"
                   value={formData.tests_requested}
-                  onChange={(e) => updateField("tests_requested", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("tests_requested", e.target.value)}
                   placeholder={isBloodTest ? "FBC, U&E, LFTs, Lipids..." : "X-ray chest, Ultrasound abdomen..."}
                   className="rounded-xl min-h-20"
                 />
@@ -378,7 +378,7 @@ export function PathologyDocumentBuilderClient({
                 <Textarea
                   id="clinical_indication"
                   value={formData.clinical_indication || ""}
-                  onChange={(e) => updateField("clinical_indication", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("clinical_indication", e.target.value)}
                   placeholder="Reason for investigation..."
                   className="rounded-xl min-h-20"
                 />
@@ -389,7 +389,7 @@ export function PathologyDocumentBuilderClient({
                   <Input
                     id="symptom_duration"
                     value={formData.symptom_duration || ""}
-                    onChange={(e) => updateField("symptom_duration", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("symptom_duration", e.target.value)}
                     placeholder="e.g. 2 weeks"
                     className="rounded-xl"
                   />
@@ -399,7 +399,7 @@ export function PathologyDocumentBuilderClient({
                   <Input
                     id="severity"
                     value={formData.severity || ""}
-                    onChange={(e) => updateField("severity", e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("severity", e.target.value)}
                     placeholder="e.g. Moderate"
                     className="rounded-xl"
                   />
@@ -427,7 +427,7 @@ export function PathologyDocumentBuilderClient({
                 <Textarea
                   id="previous_tests"
                   value={formData.previous_tests || ""}
-                  onChange={(e) => updateField("previous_tests", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("previous_tests", e.target.value)}
                   placeholder="Any relevant previous investigations..."
                   className="rounded-xl min-h-[60px]"
                 />
@@ -447,7 +447,7 @@ export function PathologyDocumentBuilderClient({
                 <Input
                   id="doctor_name"
                   value={formData.doctor_name}
-                  onChange={(e) => updateField("doctor_name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("doctor_name", e.target.value)}
                   className="rounded-xl"
                 />
               </div>
@@ -456,7 +456,7 @@ export function PathologyDocumentBuilderClient({
                 <Input
                   id="provider_number"
                   value={formData.provider_number}
-                  onChange={(e) => updateField("provider_number", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("provider_number", e.target.value)}
                   className="rounded-xl"
                 />
               </div>

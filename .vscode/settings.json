@@ -1,3 +1,96 @@
 {
-    "claudeCodeChat.permissions.yoloMode": true
+    "claudeCodeChat.permissions.yoloMode": true,
+    "piny.project_settings": {
+        "open-pages": [
+            "pinyfakepage.html"
+        ],
+        "component-settings": {
+            "components/ui/tooltip.tsx:::Temp": {
+                "route": "/"
+            },
+            "app/prescriptions/%5Bsubtype%5D/prescription-flow-client.tsx:::Temp": {
+                "route": "/"
+            }
+        },
+        "app-routes": {
+            "routes": [
+                "/",
+                "/about",
+                "/account",
+                "/admin",
+                "/admin/bootstrap",
+                "/admin/settings",
+                "/auth/complete-account",
+                "/auth/forgot-password",
+                "/auth/login",
+                "/auth/register",
+                "/auth/reset-password",
+                "/blog",
+                "/common-scripts",
+                "/conditions",
+                "/consult",
+                "/consult/request",
+                "/contact",
+                "/doctor",
+                "/doctor/admin",
+                "/doctor/analytics",
+                "/doctor/dashboard",
+                "/doctor/patients",
+                "/doctor/queue",
+                "/faq",
+                "/for/corporate",
+                "/for/shift-workers",
+                "/for/students",
+                "/for/tradies",
+                "/gp-consult",
+                "/hair-loss",
+                "/how-it-works",
+                "/locations",
+                "/login",
+                "/medical-certificate",
+                "/medical-certificate/new",
+                "/medical-certificate/request",
+                "/medical-certificates",
+                "/medications",
+                "/mens-health",
+                "/offline",
+                "/patient",
+                "/patient/notifications",
+                "/patient/onboarding",
+                "/patient/payment-history",
+                "/patient/requests",
+                "/patient/requests/cancelled",
+                "/patient/requests/new",
+                "/patient/requests/success",
+                "/patient/settings",
+                "/performance-anxiety",
+                "/prescriptions",
+                "/prescriptions/new",
+                "/prescriptions/repeat",
+                "/prescriptions/request",
+                "/pricing",
+                "/privacy",
+                "/repeat-prescription",
+                "/request",
+                "/reviews",
+                "/start",
+                "/terms",
+                "/trust",
+                "/weight-loss",
+                "/weight-management",
+                "/womens-health"
+            ],
+            "current_route": "/"
+        },
+        "urls": {
+            "pinyfakepage.html": {
+                "open-page-views": [
+                    {
+                        "w": 660,
+                        "h": 0
+                    }
+                ]
+            }
+        }
+    }
 }

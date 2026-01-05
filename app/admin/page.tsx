@@ -7,6 +7,9 @@ import { getDashboardAnalytics } from "@/lib/data/analytics"
 import { AdminClient } from "./admin-client"
 import { isAdminEmail } from "@/lib/env"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function AdminDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 

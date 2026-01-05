@@ -8,22 +8,27 @@ export interface TabsProps extends Omit<HeroTabsProps, "selectedKey" | "onSelect
   className?: string
   // Support shadcn/ui API
   value?: string
+  defaultValue?: string
   onValueChange?: ((value: string) => void) | React.Dispatch<React.SetStateAction<string>>
   // Support HeroUI API
   selectedKey?: string
+  defaultSelectedKey?: string
   onSelectionChange?: (key: React.Key) => void
 }
 
 function Tabs({
   className,
   value,
+  defaultValue,
   onValueChange,
   selectedKey,
+  defaultSelectedKey,
   onSelectionChange,
   ...props
 }: TabsProps) {
   // Map shadcn/ui API to HeroUI API
-  const heroSelectedKey = selectedKey ?? value
+  // Use defaultValue/defaultSelectedKey for initial state, value/selectedKey for controlled
+  const heroSelectedKey = selectedKey ?? value ?? defaultSelectedKey ?? defaultValue
   const heroOnSelectionChange = onSelectionChange ?? (onValueChange ? (key: React.Key) => onValueChange(String(key)) : undefined)
 
   return (
@@ -53,7 +58,7 @@ function TabsTrigger({
 }: React.ComponentProps<typeof Tab>) {
   return (
     <Tab
-      key={value}
+      key={value as any}
       value={value}
       {...props}
     >

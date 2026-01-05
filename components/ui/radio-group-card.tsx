@@ -20,11 +20,13 @@ const RadioGroup = React.forwardRef<
 ))
 RadioGroup.displayName = "RadioGroup"
 
-export interface RadioCardProps extends React.ComponentProps<typeof Radio> {
+export interface RadioCardProps {
   title: string
   description?: string
   icon?: React.ReactNode
   value: string
+  className?: string
+  isSelected?: boolean
 }
 
 const RadioCard = React.forwardRef<

@@ -2,6 +2,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Home, ArrowRight, FileText, Pill, HelpCircle, Zap } from "lucide-react"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export default function NotFound() {
   return (
     <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden" role="main">

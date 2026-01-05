@@ -8,22 +8,30 @@ import {
 } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-export interface AccordionProps extends HeroAccordionProps {
+export interface AccordionProps extends Omit<HeroAccordionProps, "selectionMode" | "children"> {
   children?: React.ReactNode
+  // Support shadcn/ui API
+  type?: "single" | "multiple"
+  collapsible?: boolean
 }
 
 function Accordion({
   children,
+  type = "multiple",
+  collapsible = false,
   ...props
 }: AccordionProps) {
+  // Map shadcn/ui API to HeroUI API
+  const selectionMode = type === "single" ? "single" : "multiple"
+  
   return (
     <HeroAccordion
       variant="bordered"
-      selectionMode="multiple"
+      selectionMode={selectionMode}
       className={cn("w-full", props.className)}
       {...props}
     >
-      {children}
+      {children as any}
     </HeroAccordion>
   )
 }

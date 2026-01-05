@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 import {
   Tooltip as HeroTooltip,
   type TooltipProps as HeroTooltipProps,
@@ -36,17 +37,32 @@ function Tooltip({
   )
 }
 
+interface TooltipTriggerProps extends React.ComponentProps<"div"> {
+  asChild?: boolean
+}
+
 function TooltipTrigger({
   children,
+  asChild,
   ...props
-}: React.ComponentProps<"div">) {
+}: TooltipTriggerProps) {
+  if (asChild && React.isValidElement(children)) {
+    return <Slot {...props}>{children}</Slot>
+  }
   return <div {...props}>{children}</div>
+}
+
+interface TooltipContentProps extends React.ComponentProps<"div"> {
+  side?: "top" | "right" | "bottom" | "left"
 }
 
 function TooltipContent({
   children,
+  side,
   ...props
-}: React.ComponentProps<"div">) {
+}: TooltipContentProps) {
+  // Note: HeroUI handles placement on the Tooltip component, not the content
+  // The side prop is accepted for API compatibility but placement should be set on Tooltip
   return <div {...props}>{children}</div>
 }
 

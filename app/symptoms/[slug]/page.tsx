@@ -14,6 +14,9 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const page = getSymptomPageBySlug(slug)

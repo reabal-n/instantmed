@@ -1085,7 +1085,7 @@ export function MedCertForm({
             <div className="space-y-2">
               <Textarea
                 value={formData.additionalNotes}
-                onChange={(e) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
                 placeholder="e.g. symptoms started yesterday evening..."
                 className="min-h-[120px] resize-none rounded-xl"
                 maxLength={500}

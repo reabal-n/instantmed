@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server"
 import { auth } from "@clerk/nextjs/server"
 import { NotificationsClient } from "./notifications-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Notifications",
   description: "View your notifications and updates",

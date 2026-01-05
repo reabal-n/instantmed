@@ -538,9 +538,9 @@ function RequestDetailDrawer({
         <label className="text-sm text-gray-600 mb-2 block">Doctor Notes</label>
         <Textarea
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
           placeholder="Add your notes..."
-          rows={4}
+          minRows={4}
           className="resize-none input-glow"
         />
       </div>

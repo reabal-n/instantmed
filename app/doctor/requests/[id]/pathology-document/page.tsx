@@ -8,6 +8,9 @@ interface PathologyDocumentPageProps {
   params: Promise<{ id: string }>
 }
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function PathologyDocumentPage({ params }: PathologyDocumentPageProps) {
   const { id } = await params
 

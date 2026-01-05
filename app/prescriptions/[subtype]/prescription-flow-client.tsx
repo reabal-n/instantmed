@@ -762,7 +762,7 @@ export function PrescriptionFlowClient({
           <Label className="text-sm font-medium">Additional notes (optional)</Label>
           <Textarea
             value={additionalNotes}
-            onChange={(e) => setAdditionalNotes(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalNotes(e.target.value)}
             placeholder="Any other relevant information for the doctor..."
             className="rounded-xl bg-white/50 border-white/40 focus:border-primary/40 min-h-20 resize-none"
           />

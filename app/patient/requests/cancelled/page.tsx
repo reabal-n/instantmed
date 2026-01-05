@@ -4,6 +4,9 @@ import { XCircle, ArrowLeft } from "lucide-react"
 import { RetryPaymentButton } from "./retry-payment-button"
 import { PaymentCancelledTracker } from "./payment-cancelled-tracker"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function PaymentCancelledPage({
   searchParams,
 }: {

@@ -4,6 +4,9 @@ import { getRequestWithDetails, getPatientRequests } from "@/lib/data/requests"
 import { getLatestDocumentForRequest } from "@/lib/data/documents"
 import { RequestDetailClient } from "./request-detail-client"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export default async function DoctorRequestDetailPage({
   params,
   searchParams,

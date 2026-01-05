@@ -7,6 +7,9 @@ import { Footer } from "@/components/shared/footer"
 import type { Metadata } from "next"
 import Script from "next/script"
 
+// Prevent static generation to avoid Clerk publishableKey build errors
+
+export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Book a General Consult Online | Australian GP | InstantMed",
   description:
