@@ -68,7 +68,7 @@ export function BootstrapClient() {
                 {hasOverride ? "Manual override active" : `Default: ${envTestMode ? "On" : "Off"}`}
               </p>
             </div>
-            <Switch id="test-mode" checked={testModeEnabled} onCheckedChange={handleToggleTestMode} />
+            <Switch id="test-mode" isSelected={testModeEnabled} onValueChange={handleToggleTestMode} />
           </div>
 
           {hasOverride && (

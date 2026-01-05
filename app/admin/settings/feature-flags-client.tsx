@@ -102,9 +102,9 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
               )}
               <Switch
                 id="disable_med_cert"
-                checked={flags.disable_med_cert}
-                onCheckedChange={() => handleToggle("DISABLE_MED_CERT", flags.disable_med_cert)}
-                disabled={isPending}
+                isSelected={flags.disable_med_cert}
+                onValueChange={() => handleToggle("DISABLE_MED_CERT", flags.disable_med_cert)}
+                isDisabled={isPending}
               />
             </div>
           </div>
@@ -127,9 +127,9 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
               )}
               <Switch
                 id="disable_repeat_scripts"
-                checked={flags.disable_repeat_scripts}
-                onCheckedChange={() => handleToggle("DISABLE_REPEAT_SCRIPTS", flags.disable_repeat_scripts)}
-                disabled={isPending}
+                isSelected={flags.disable_repeat_scripts}
+                onValueChange={() => handleToggle("DISABLE_REPEAT_SCRIPTS", flags.disable_repeat_scripts)}
+                isDisabled={isPending}
               />
             </div>
           </div>
@@ -152,9 +152,9 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
               )}
               <Switch
                 id="disable_consults"
-                checked={flags.disable_consults}
-                onCheckedChange={() => handleToggle("DISABLE_CONSULTS", flags.disable_consults)}
-                disabled={isPending}
+                isSelected={flags.disable_consults}
+                onValueChange={() => handleToggle("DISABLE_CONSULTS", flags.disable_consults)}
+                isDisabled={isPending}
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           <Textarea
             placeholder="Enter blocked medication terms, one per line...&#10;Example:&#10;oxycodone&#10;fentanyl&#10;alprazolam"
             value={blockedTermsText}
-            onChange={(e) => setBlockedTermsText(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBlockedTermsText(e.target.value)}
             rows={8}
             className="font-mono text-sm"
           />

@@ -50,21 +50,24 @@ export function CompleteAccountForm({
   // If already signed in, show success message
   if (isLoaded && isSignedIn) {
     return (
-      <Card className="p-8 glass-card">
-        <div className="text-center">
+      <div className="p-8 glass-card">
+        <Card>
+          <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
             <Check className="w-8 h-8 text-emerald-500" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
           <p className="text-muted-foreground">Redirecting to your request...</p>
           <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="p-8 glass-card">
+    <div className="p-8 glass-card">
+      <Card>
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
           <Check className="w-8 h-8 text-emerald-500" />
@@ -97,6 +100,7 @@ export function CompleteAccountForm({
           Sign in
         </a>
       </p>
-    </Card>
+      </Card>
+    </div>
   )
 }

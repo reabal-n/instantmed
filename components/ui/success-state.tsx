@@ -1,101 +1,202 @@
 "use client"
 
-import { CheckCircle, Clock } from "lucide-react"
-import { Button } from "./button"
+import { motion } from "framer-motion"
+import { CheckCircle, Clock, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useEffect } from "react"
-import confetti from "canvas-confetti"
+import Link from "next/link"
 
 interface SuccessStateProps {
+  /** Main success message */
   title: string
-  description: string
-  timelineInfo?: {
-    icon?: React.ComponentType<{ className?: string }>
-    text: string
+  /** Optional subtitle/description */
+  description?: string
+  /** Optional next steps message */
+  nextSteps?: string
+  /** Primary action button */
+  primaryAction?: {
+    label: string
+    href?: string
+    onClick?: () => void
   }
-  actions?: {
-    primary?: {
-      label: string
-      onClick: () => void
-    }
-    secondary?: {
-      label: string
-      onClick: () => void
-    }
+  /** Secondary action button */
+  secondaryAction?: {
+    label: string
+    href?: string
+    onClick?: () => void
   }
-  showConfetti?: boolean
+  /** Show timing information */
+  showTiming?: boolean
+  /** Custom icon (defaults to CheckCircle) */
+  icon?: React.ComponentType<{ className?: string }>
+  /** Additional className */
   className?: string
+  /** Show confetti animation */
+  showConfetti?: boolean
 }
 
 export function SuccessState({
   title,
   description,
-  timelineInfo,
-  actions,
-  showConfetti = true,
+  nextSteps,
+  primaryAction,
+  secondaryAction,
+  showTiming = false,
+  icon: Icon = CheckCircle,
   className,
+  showConfetti = false,
 }: SuccessStateProps) {
-  const TimelineIcon = timelineInfo?.icon || Clock
-
-  useEffect(() => {
-    if (showConfetti) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { x: 0.5, y: 0.6 },
-        colors: ["#2563EB", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
-      })
-    }
-  }, [showConfetti])
-
   return (
-    <div className={cn("text-center py-12 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500", className)}>
-      {/* Animated success icon */}
-      <div className="relative w-20 h-20 mx-auto mb-6">
-        <div className="absolute inset-0 rounded-full bg-green-100 animate-in zoom-in duration-300" />
-        <div className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-500 delay-100">
-          <CheckCircle className="w-10 h-10 text-green-600" />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className={cn("text-center py-12 px-4", className)}
+    >
+      {/* Confetti effect */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                backgroundColor: ["#2563EB", "#8b5cf6", "#22c55e", "#f59e0b"][
+                  Math.floor(Math.random() * 4)
+                ],
+              }}
+              initial={{ opacity: 0, y: -20, scale: 0 }}
+              animate={{
+                opacity: [0, 1, 0],
+                y: [0, 100],
+                scale: [0, 1, 0],
+                rotate: [0, 360],
+              }}
+              transition={{
+                duration: 2,
+                delay: Math.random() * 0.5,
+                ease: "easeOut",
+              }}
+            />
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* Title and description */}
-      <h2 className="text-2xl font-bold mb-2 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
+      {/* Success icon with animation */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 15,
+          delay: 0.1,
+        }}
+        className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+            delay: 0.2,
+          }}
+        >
+          <Icon className="w-10 h-10 text-green-600" />
+        </motion.div>
+      </motion.div>
+
+      {/* Title */}
+      <motion.h2
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-2xl font-bold mb-2"
+      >
         {title}
-      </h2>
-      <p className="text-muted-foreground mb-6 max-w-md mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
-        {description}
-      </p>
+      </motion.h2>
 
-      {/* Timeline info */}
-      {timelineInfo && (
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-sm text-primary mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300">
-          <TimelineIcon className="w-4 h-4" />
-          <span>{timelineInfo.text}</span>
-        </div>
+      {/* Description */}
+      {description && (
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed"
+        >
+          {description}
+        </motion.p>
+      )}
+
+      {/* Timing info */}
+      {showTiming && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-sm text-blue-700 mb-6"
+        >
+          <Clock className="w-4 h-4" />
+          <span>{nextSteps || "You'll receive an email when it's ready"}</span>
+        </motion.div>
+      )}
+
+      {/* Next steps message */}
+      {nextSteps && !showTiming && (
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-sm text-muted-foreground mb-6"
+        >
+          {nextSteps}
+        </motion.p>
       )}
 
       {/* Actions */}
-      {actions && (
-        <div className="space-y-2 max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400">
-          {actions.primary && (
-            <Button 
-              onClick={actions.primary.onClick} 
-              className="w-full h-12 bg-primary hover:bg-primary/90"
-            >
-              {actions.primary.label}
-            </Button>
-          )}
-          {actions.secondary && (
+      {(primaryAction || secondaryAction) && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-md mx-auto"
+        >
+          {primaryAction && (
             <Button
-              onClick={actions.secondary.onClick}
-              variant="ghost"
-              className="w-full h-12"
+              className="w-full sm:w-auto min-w-[200px] h-12"
+              onClick={primaryAction.onClick}
+              asChild={!!primaryAction.href}
             >
-              {actions.secondary.label}
+              {primaryAction.href ? (
+                <Link href={primaryAction.href}>
+                  {primaryAction.label}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              ) : (
+                primaryAction.label
+              )}
             </Button>
           )}
-        </div>
+          {secondaryAction && (
+            <Button
+              variant="ghost"
+              className="w-full sm:w-auto"
+              onClick={secondaryAction.onClick}
+              asChild={!!secondaryAction.href}
+            >
+              {secondaryAction.href ? (
+                <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
+              ) : (
+                secondaryAction.label
+              )}
+            </Button>
+          )}
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

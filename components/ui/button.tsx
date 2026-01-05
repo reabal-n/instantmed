@@ -62,6 +62,12 @@ function Button({
       isIconOnly={isIconOnly}
       className={cn(
         variant === "link" && "bg-transparent hover:bg-transparent underline-offset-4 hover:underline",
+        // Micro-interactions: subtle scale and shadow on hover/active
+        "transition-all duration-200",
+        "hover:scale-[1.02] hover:shadow-soft-md",
+        "active:scale-[0.98]",
+        // Ensure minimum touch target on mobile
+        "min-h-[44px] md:min-h-0",
         className
       )}
       {...props}

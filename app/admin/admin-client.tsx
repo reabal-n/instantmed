@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Eye,
@@ -413,17 +413,23 @@ export function AdminClient({
                     className="pl-10 rounded-xl bg-white/50 border-white/40"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[160px] rounded-xl bg-white/50 border-white/40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="awaiting_prescribe">Awaiting eScript</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="declined">Declined</SelectItem>
-                  </SelectContent>
+                <Select
+                  selectedKeys={statusFilter ? [statusFilter] : []}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string
+                    setStatusFilter(selected || "all")
+                  }}
+                  placeholder="Status"
+                  className="w-[160px]"
+                  classNames={{
+                    trigger: "rounded-xl bg-white/50 border-white/40",
+                  }}
+                >
+                  <SelectItem key="all">All Status</SelectItem>
+                  <SelectItem key="pending">Pending</SelectItem>
+                  <SelectItem key="awaiting_prescribe">Awaiting eScript</SelectItem>
+                  <SelectItem key="approved">Approved</SelectItem>
+                  <SelectItem key="declined">Declined</SelectItem>
                 </Select>
               </div>
               <div className="mt-4 text-sm text-muted-foreground">
@@ -456,19 +462,14 @@ export function AdminClient({
                             <TableCell>
                               {showScriptCheckbox && (
                                 <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="flex items-center justify-center">
-                                        <Checkbox
-                                          checked={request.script_sent}
-                                          onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                          className="data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
-                                        />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {request.script_sent ? "Script sent" : "Mark as sent"}
-                                    </TooltipContent>
+                                  <Tooltip content={request.script_sent ? "Script sent" : "Mark script as sent"}>
+                                    <div className="flex items-center justify-center">
+                                      <Checkbox
+                                        isSelected={request.script_sent}
+                                        onValueChange={() => handleScriptSentToggle(request.id, request.script_sent)}
+                                        className="data-[selected=true]:bg-indigo-500 data-[selected=true]:border-indigo-500"
+                                      />
+                                    </div>
                                   </Tooltip>
                                 </TooltipProvider>
                               )}
@@ -515,47 +516,37 @@ export function AdminClient({
                                 {request.status === "pending" && request.payment_status === "paid" && request.category !== "medical_certificate" && (
                                   <>
                                     <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleApprove(request.id)}
-                                            disabled={loadingActions.has(request.id)}
-                                            className="h-8 w-8 p-0 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-50"
-                                          >
-                                            {loadingActions.has(request.id) ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <CheckCircle className="h-4 w-4" />
-                                            )}
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          {loadingActions.has(request.id) ? "Processing..." : "Approve"}
-                                        </TooltipContent>
+                                      <Tooltip content={loadingActions.has(request.id) ? "Processing..." : "Approve"}>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleApprove(request.id)}
+                                          disabled={loadingActions.has(request.id)}
+                                          className="h-8 w-8 p-0 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-50"
+                                        >
+                                          {loadingActions.has(request.id) ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <CheckCircle className="h-4 w-4" />
+                                          )}
+                                        </Button>
                                       </Tooltip>
                                     </TooltipProvider>
                                     <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDecline(request.id)}
-                                            disabled={loadingActions.has(request.id)}
-                                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                                          >
-                                            {loadingActions.has(request.id) ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <XCircle className="h-4 w-4" />
-                                            )}
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          {loadingActions.has(request.id) ? "Processing..." : "Decline"}
-                                        </TooltipContent>
+                                      <Tooltip content={loadingActions.has(request.id) ? "Processing..." : "Decline"}>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDecline(request.id)}
+                                          disabled={loadingActions.has(request.id)}
+                                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                                        >
+                                          {loadingActions.has(request.id) ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <XCircle className="h-4 w-4" />
+                                          )}
+                                        </Button>
                                       </Tooltip>
                                     </TooltipProvider>
                                   </>
