@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectItem } from "@/components/ui/select"
 import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle } from "lucide-react"
 import type { Profile } from "@/types/db"
 
@@ -121,29 +121,41 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
           </div>
 
           <div className="flex gap-3">
-            <Select value={stateFilter} onValueChange={setStateFilter}>
-              <SelectTrigger className="w-[120px] rounded-xl bg-white/50 border-white/40">
-                <SelectValue placeholder="State" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                {states.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+            <Select
+              selectedKeys={stateFilter ? [stateFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setStateFilter(selected || "all")
+              }}
+              placeholder="State"
+              className="w-[120px]"
+              classNames={{
+                trigger: "rounded-xl bg-white/50 border-white/40",
+              }}
+            >
+              <SelectItem key="all">All States</SelectItem>
+              {states.map((state) => (
+                <SelectItem key={state}>
+                  {state}
+                </SelectItem>
+              ))}
             </Select>
 
-            <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
-              <SelectTrigger className="w-[150px] rounded-xl bg-white/50 border-white/40">
-                <SelectValue placeholder="Onboarding" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="complete">Onboarded</SelectItem>
-                <SelectItem value="incomplete">Incomplete</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={onboardingFilter ? [onboardingFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setOnboardingFilter(selected || "all")
+              }}
+              placeholder="Onboarding"
+              className="w-[150px]"
+              classNames={{
+                trigger: "rounded-xl bg-white/50 border-white/40",
+              }}
+            >
+              <SelectItem key="all">All</SelectItem>
+              <SelectItem key="complete">Onboarded</SelectItem>
+              <SelectItem key="incomplete">Incomplete</SelectItem>
             </Select>
           </div>
         </div>

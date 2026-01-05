@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search, Bell, Wifi, WifiOff, RefreshCw } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
@@ -177,13 +177,8 @@ export function DoctorDashboardClient({
               )}
               {notePreview && (
                 <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <StickyNote className="h-3.5 w-3.5 text-amber-500" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-sm">{notePreview}</p>
-                    </TooltipContent>
+                  <Tooltip content={notePreview}>
+                    <StickyNote className="h-3.5 w-3.5 text-amber-500" />
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -203,56 +198,47 @@ export function DoctorDashboardClient({
           ) : showActions ? (
             <>
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all hover:scale-105"
-                    >
-                      <Link href={`/doctor/requests/${request.id}`}>
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">Review</span>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Review details</TooltipContent>
+                <Tooltip content="Review details">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="rounded-xl bg-white/50 hover:bg-white/80 border-white/40 transition-all hover:scale-105"
+                  >
+                    <Link href={`/doctor/requests/${request.id}`}>
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">Review</span>
+                    </Link>
+                  </Button>
                 </Tooltip>
               </TooltipProvider>
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      asChild
-                      className="rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
-                    >
-                      <Link href={`/doctor/requests/${request.id}?action=approve`}>
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="sr-only">Quick Approve</span>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Quick approve</TooltipContent>
+                <Tooltip content="Quick approve">
+                  <Button
+                    size="sm"
+                    asChild
+                    className="rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
+                  >
+                    <Link href={`/doctor/requests/${request.id}?action=approve`}>
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="sr-only">Quick Approve</span>
+                    </Link>
+                  </Button>
                 </Tooltip>
               </TooltipProvider>
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="rounded-xl bg-white/50 hover:bg-red-50 border-white/40 hover:border-red-200 text-muted-foreground hover:text-red-600 transition-all"
-                    >
-                      <Link href={`/doctor/requests/${request.id}?action=decline`}>
-                        <XCircle className="h-4 w-4" />
-                        <span className="sr-only">Decline</span>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Unable to approve</TooltipContent>
+                <Tooltip content="Unable to approve">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="rounded-xl bg-white/50 hover:bg-red-50 border-white/40 hover:border-red-200 text-muted-foreground hover:text-red-600 transition-all"
+                  >
+                    <Link href={`/doctor/requests/${request.id}?action=decline`}>
+                      <XCircle className="h-4 w-4" />
+                      <span className="sr-only">Decline</span>
+                    </Link>
+                  </Button>
                 </Tooltip>
               </TooltipProvider>
             </>

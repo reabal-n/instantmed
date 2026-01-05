@@ -25,10 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
   Select,
-  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
 import {
   DropdownMenu,
@@ -302,31 +299,41 @@ export function DoctorDashboardClient({
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="submitted">New</SelectItem>
-                <SelectItem value="in_review">Reviewing</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="requires_info">Requires Info</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={statusFilter ? [statusFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setStatusFilter(selected || "all")
+              }}
+              placeholder="Filter by status"
+              className="w-full md:w-48"
+              classNames={{
+                trigger: "w-full md:w-48",
+              }}
+            >
+              <SelectItem key="all">All Statuses</SelectItem>
+              <SelectItem key="submitted">New</SelectItem>
+              <SelectItem key="in_review">Reviewing</SelectItem>
+              <SelectItem key="approved">Approved</SelectItem>
+              <SelectItem key="rejected">Rejected</SelectItem>
+              <SelectItem key="requires_info">Requires Info</SelectItem>
             </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="medical_certificate">Med Cert</SelectItem>
-                <SelectItem value="prescription">Prescription</SelectItem>
-                <SelectItem value="consult">Consult</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={typeFilter ? [typeFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setTypeFilter(selected || "all")
+              }}
+              placeholder="Filter by type"
+              className="w-full md:w-48"
+              classNames={{
+                trigger: "w-full md:w-48",
+              }}
+            >
+              <SelectItem key="all">All Types</SelectItem>
+              <SelectItem key="medical_certificate">Med Cert</SelectItem>
+              <SelectItem key="prescription">Prescription</SelectItem>
+              <SelectItem key="consult">Consult</SelectItem>
             </Select>
           </div>
         </div>
@@ -451,7 +458,7 @@ export function DoctorDashboardClient({
               </label>
               <Textarea
                 value={bulkNotes}
-                onChange={(e) => setBulkNotes(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBulkNotes(e.target.value)}
                 placeholder="Add notes for these requests..."
                 rows={4}
               />
@@ -631,7 +638,7 @@ function RequestDetailDialog({
             <label className="font-semibold mb-2 block">Doctor Notes</label>
             <Textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
               rows={4}
             />

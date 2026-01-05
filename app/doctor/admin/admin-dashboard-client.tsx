@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Select, SelectItem } from "@/components/ui/select"
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Eye, Clock, CheckCircle, FileText, Search, Send, Calendar, AlertTriangle, FlaskConical } from "lucide-react"
 import type { RequestWithPatient } from "@/types/db"
 import { toast } from "sonner"
@@ -260,40 +260,58 @@ export function AdminDashboardClient({
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] rounded-xl bg-white/50 border-white/40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
-                <SelectItem value="needs_follow_up">Follow-up</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={statusFilter ? [statusFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setStatusFilter(selected || "all")
+              }}
+              placeholder="Status"
+              className="w-[140px]"
+              classNames={{
+                trigger: "rounded-xl bg-white/50 border-white/40",
+              }}
+            >
+              <SelectItem key="all">All Status</SelectItem>
+              <SelectItem key="pending">Pending</SelectItem>
+              <SelectItem key="approved">Approved</SelectItem>
+              <SelectItem key="declined">Declined</SelectItem>
+              <SelectItem key="needs_follow_up">Follow-up</SelectItem>
             </Select>
 
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[150px] rounded-xl bg-white/50 border-white/40">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="medical_certificate">Med Cert</SelectItem>
-                <SelectItem value="prescription">Prescription</SelectItem>
-                <SelectItem value="referral">Referral</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={categoryFilter ? [categoryFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setCategoryFilter(selected || "all")
+              }}
+              placeholder="Category"
+              className="w-[150px]"
+              classNames={{
+                trigger: "rounded-xl bg-white/50 border-white/40",
+              }}
+            >
+              <SelectItem key="all">All Categories</SelectItem>
+              <SelectItem key="medical_certificate">Med Cert</SelectItem>
+              <SelectItem key="prescription">Prescription</SelectItem>
+              <SelectItem key="referral">Referral</SelectItem>
             </Select>
 
-            <Select value={scriptSentFilter} onValueChange={setScriptSentFilter}>
-              <SelectTrigger className="w-[150px] rounded-xl bg-white/50 border-white/40">
-                <SelectValue placeholder="Script Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Scripts</SelectItem>
-                <SelectItem value="pending">Pending Send</SelectItem>
-                <SelectItem value="sent">Already Sent</SelectItem>
-              </SelectContent>
+            <Select
+              selectedKeys={scriptSentFilter ? [scriptSentFilter] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string
+                setScriptSentFilter(selected || "all")
+              }}
+              placeholder="Script Status"
+              className="w-[150px]"
+              classNames={{
+                trigger: "rounded-xl bg-white/50 border-white/40",
+              }}
+            >
+              <SelectItem key="all">All Scripts</SelectItem>
+              <SelectItem key="pending">Pending Send</SelectItem>
+              <SelectItem key="sent">Already Sent</SelectItem>
             </Select>
           </div>
         </div>
@@ -337,18 +355,15 @@ export function AdminDashboardClient({
                         {showScriptCheckbox && (
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <Tooltip content={request.script_sent ? "Script sent via external platform" : "Mark as sent"}>
                                 <div className="flex items-center justify-center">
                                   <Checkbox
-                                    checked={request.script_sent}
-                                    onCheckedChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                    className="data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
+                                    isSelected={request.script_sent}
+                                    onValueChange={() => handleScriptSentToggle(request.id, request.script_sent)}
+                                    className="data-[selected=true]:bg-indigo-500 data-[selected=true]:border-indigo-500"
                                   />
                                 </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {request.script_sent ? "Script sent via external platform" : "Mark as sent"}
-                              </TooltipContent>
+                              </Tooltip>
                             </Tooltip>
                           </TooltipProvider>
                         )}
@@ -386,16 +401,14 @@ export function AdminDashboardClient({
                           {getStatusBadge(request.status)}
                           {request.script_sent && (
                             <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Send className="h-3.5 w-3.5 text-indigo-500" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  Sent{" "}
-                                  {request.script_sent_at
+                              <Tooltip
+                                content={`Sent ${
+                                  request.script_sent_at
                                     ? new Date(request.script_sent_at).toLocaleDateString("en-AU")
-                                    : ""}
-                                </TooltipContent>
+                                    : ""
+                                }`}
+                              >
+                                <Send className="h-3.5 w-3.5 text-indigo-500" />
                               </Tooltip>
                             </TooltipProvider>
                           )}

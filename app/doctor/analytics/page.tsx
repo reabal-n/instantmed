@@ -200,46 +200,53 @@ export default async function AnalyticsPage() {
 
       {/* Key Metrics - Enhanced with more metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-        <Card
+        <div
           className="glass-card p-5 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Total Requests</span>
             <FileText className="w-4 h-4 text-muted-foreground" />
           </div>
           <p className="text-3xl font-semibold text-foreground">{analytics.totalRequests}</p>
           <TrendIndicator value={analytics.requestsTrend} suffix="% this week" />
-        </Card>
+          </Card>
+        </div>
 
-        <Card
+        <div
           className="glass-card p-5 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Total Patients</span>
             <Users className="w-4 h-4 text-muted-foreground" />
           </div>
           <p className="text-3xl font-semibold text-foreground">{analytics.totalPatients}</p>
           <TrendIndicator value={analytics.patientTrend} suffix="% growth" />
-        </Card>
+          </Card>
+        </div>
 
-        <Card
+        <div
           className="glass-card p-5 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.22s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Weekly Revenue</span>
             <DollarSign className="w-4 h-4 text-emerald-500" />
           </div>
           <p className="text-3xl font-semibold text-foreground">${analytics.recentRevenue.toFixed(0)}</p>
           <TrendIndicator value={analytics.revenueTrend} suffix="% vs last week" />
-        </Card>
+          </Card>
+        </div>
 
-        <Card
+        <div
           className="glass-card p-5 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Avg. Response</span>
             <Clock className="w-4 h-4 text-muted-foreground" />
@@ -248,12 +255,14 @@ export default async function AnalyticsPage() {
           <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
             <span>Average turnaround</span>
           </div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card
+        <div
           className="glass-card p-5 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Approval Rate</span>
             <CheckCircle className="w-4 h-4 text-emerald-500" />
@@ -268,16 +277,18 @@ export default async function AnalyticsPage() {
             <TrendingUp className="w-3 h-3" />
             <span>Approved requests</span>
           </div>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Category Breakdown */}
-        <Card
+        <div
           className="glass-card p-6 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center gap-2 mb-6">
             <PieChart className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-semibold text-foreground">Requests by Category</h3>
@@ -307,13 +318,15 @@ export default async function AnalyticsPage() {
               })}
             </div>
           )}
-        </Card>
+          </Card>
+        </div>
 
         {/* Status Breakdown */}
-        <Card
+        <div
           className="glass-card p-6 rounded-2xl animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
         >
+          <Card>
           <div className="flex items-center gap-2 mb-6">
             <BarChart3 className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-semibold text-foreground">Requests by Status</h3>
@@ -336,14 +349,16 @@ export default async function AnalyticsPage() {
               <p className="text-sm text-primary">Follow-up</p>
             </div>
           </div>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       {/* Daily Activity */}
-      <Card
+      <div
         className="glass-card p-6 rounded-2xl animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.45s", animationFillMode: "forwards" }}
       >
+        <Card>
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold text-foreground">Daily Activity (Last 7 Days)</h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -370,12 +385,14 @@ export default async function AnalyticsPage() {
             )
           })}
         </div>
-      </Card>
+        </Card>
+      </div>
 
-      <Card
+      <div
         className="glass-card p-6 rounded-2xl animate-fade-in-up opacity-0"
         style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}
       >
+        <Card>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Total Revenue (All Time)</p>
@@ -387,7 +404,8 @@ export default async function AnalyticsPage() {
             <DollarSign className="w-6 h-6 text-emerald-600" />
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

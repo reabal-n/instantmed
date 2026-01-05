@@ -85,13 +85,10 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
-  value,
   ...props
 }: React.ComponentProps<typeof HeroSelectItem>) {
   return (
     <HeroSelectItem
-      key={value}
-      value={value}
       className={className}
       {...props}
     >

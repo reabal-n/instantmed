@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectItem } from "@/components/ui/select"
 import {
   ArrowLeft,
   Save,
@@ -395,19 +395,18 @@ export function DocumentBuilderClient({
                       : "Work Capacity"}
                 </Label>
                 <Select
-                  value={formData.work_capacity || capacityOptions[0].value}
-                  onValueChange={(value) => updateField("work_capacity", value)}
+                  selectedKeys={formData.work_capacity ? [formData.work_capacity] : [capacityOptions[0].value]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string
+                    updateField("work_capacity", selected)
+                  }}
+                  className="rounded-xl"
                 >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {capacityOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                  {capacityOptions.map((option) => (
+                    <SelectItem key={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </Select>
               </div>
               <div className="space-y-2">

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectItem } from "@/components/ui/select"
 import {
   ArrowLeft,
   FileText,
@@ -407,17 +407,19 @@ export function PathologyDocumentBuilderClient({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="urgency">Urgency</Label>
-                <Select value={formData.urgency || "Routine"} onValueChange={(value) => updateField("urgency", value)}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {urgencyOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select
+                  selectedKeys={formData.urgency ? [formData.urgency] : ["Routine"]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string
+                    updateField("urgency", selected)
+                  }}
+                  className="rounded-xl"
+                >
+                  {urgencyOptions.map((option) => (
+                    <SelectItem key={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </Select>
               </div>
               <div className="space-y-2">

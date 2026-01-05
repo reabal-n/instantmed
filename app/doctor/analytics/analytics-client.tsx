@@ -114,7 +114,8 @@ export function AnalyticsClient({ analytics }: AnalyticsClientProps) {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="overflow-hidden">
+          <div key={stat.title} className="overflow-hidden">
+            <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -126,7 +127,8 @@ export function AnalyticsClient({ analytics }: AnalyticsClientProps) {
                 </div>
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </div>
         ))}
       </div>
 
