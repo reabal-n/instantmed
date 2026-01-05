@@ -137,9 +137,9 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         </div>
 
         <Link href="/start" className="block mt-6">
-          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+          <Button className="w-full magnetic-button glow-pulse bg-green-600 hover:bg-green-700 text-white">
             Get Started
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <ArrowRight className="h-4 w-4 ml-2 icon-spin-hover" />
           </Button>
         </Link>
       </motion.div>
@@ -202,10 +202,10 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         <Link href="/prescriptions/new" className="block mt-6">
           <Button
             variant="outline"
-            className="w-full border-primary text-primary hover:bg-blue-100 dark:border-primary dark:text-blue-300"
+            className="w-full magnetic-button scale-spring border-primary text-primary hover:bg-blue-100 dark:border-primary dark:text-blue-300"
           >
             Request New Script
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <ArrowRight className="h-4 w-4 ml-2 icon-spin-hover" />
           </Button>
         </Link>
       </motion.div>

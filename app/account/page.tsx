@@ -22,6 +22,8 @@ import { Chip, Spinner } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
+import { TiltCard } from '@/components/shared/tilt-card'
+import { GlassCard } from '@/components/effects/glass-card'
 // Client-side component - use console for logging (wrapped in dev check)
 
 interface Profile {
@@ -174,7 +176,7 @@ export default function AccountPage() {
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h1 className="text-xl font-semibold text-slate-900 mb-2">Unable to load account</h1>
             <p className="text-slate-600 mb-4">{error || 'Please try again later'}</p>
-            <Button onClick={() => window.location.reload()}>
+            <Button onClick={() => window.location.reload()} className="magnetic-button">
               Retry
             </Button>
           </div>
@@ -185,7 +187,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-premium-subtle">
       <Navbar variant="marketing" />
       
       <main className="pt-24 pb-16">
@@ -197,7 +199,8 @@ export default function AccountPage() {
           </div>
 
           {/* Profile Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+          <TiltCard tiltAmount={5} className="mb-6">
+            <div className="card-premium-bg rounded-2xl shadow-premium border border-slate-100 p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -218,7 +221,7 @@ export default function AccountPage() {
             </div>
 
             <div className="mt-6 pt-6 border-t border-slate-100 flex gap-4">
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" className="magnetic-button">
                 <Link href="/patient/settings">
                   Edit profile
                 </Link>
@@ -227,19 +230,21 @@ export default function AccountPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="magnetic-button text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign out
               </Button>
             </div>
-          </div>
+            </div>
+          </TiltCard>
 
           {/* Recent Requests */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          <GlassCard hover className="mb-6">
+            <div className="card-premium-bg rounded-2xl shadow-premium border border-slate-100 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Recent Requests</h3>
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="scale-spring">
                 <Link href="/patient/requests">
                   View all
                   <ChevronRight className="h-4 w-4 ml-1" />
@@ -251,7 +256,7 @@ export default function AccountPage() {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500">No requests yet</p>
-                <Button asChild className="mt-4 bg-emerald-600 hover:bg-emerald-700">
+                <Button asChild className="mt-4 magnetic-button glow-pulse bg-emerald-600 hover:bg-emerald-700">
                   <Link href="/start">
                     Start a new request
                   </Link>
@@ -260,11 +265,12 @@ export default function AccountPage() {
             ) : (
               <div className="space-y-4">
                 {requests.map((request) => (
-                  <Link
-                    key={request.id}
-                    href={`/patient/requests/${request.id}`}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
-                  >
+                  <div className="hover-lift card-shine">
+                    <Link
+                      key={request.id}
+                      href={`/patient/requests/${request.id}`}
+                      className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                    >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
                         <FileText className="h-5 w-5 text-slate-500" />
@@ -284,18 +290,21 @@ export default function AccountPage() {
                       {getStatusBadge(request.status)}
                       <ExternalLink className="h-4 w-4 text-slate-400" />
                     </div>
-                  </Link>
+                    </Link>
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </GlassCard>
 
           {/* Quick Actions */}
           <div className="mt-6 grid sm:grid-cols-2 gap-4">
-            <Link
-              href="/start"
-              className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
-            >
+            <TiltCard tiltAmount={3} className="hover-lift">
+              <Link
+                href="/start"
+                className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+              >
               <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <FileText className="h-5 w-5 text-emerald-600" />
               </div>
@@ -303,11 +312,13 @@ export default function AccountPage() {
                 <div className="font-medium text-slate-900">New Request</div>
                 <div className="text-sm text-slate-500">Start a medical certificate, script, or referral</div>
               </div>
-            </Link>
-            <Link
-              href="/contact"
-              className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
-            >
+              </Link>
+            </TiltCard>
+            <TiltCard tiltAmount={3} className="hover-lift">
+              <Link
+                href="/contact"
+                className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+              >
               <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
                 <Mail className="h-5 w-5 text-slate-500" />
               </div>
@@ -315,7 +326,8 @@ export default function AccountPage() {
                 <div className="font-medium text-slate-900">Contact Support</div>
                 <div className="text-sm text-slate-500">Get help with your requests</div>
               </div>
-            </Link>
+              </Link>
+            </TiltCard>
           </div>
         </div>
       </main>

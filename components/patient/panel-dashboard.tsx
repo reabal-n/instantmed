@@ -171,7 +171,7 @@ export function PanelDashboard({
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary hover:shadow-sm transition-all"
+                  className="card-premium-bg rounded-xl border border-gray-200 p-4 hover:border-primary hover:shadow-premium transition-all hover-lift card-shine"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -189,7 +189,7 @@ export function PanelDashboard({
                       </div>
                     </div>
                     <Link href="/repeat-prescription/request">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="magnetic-button">
                         <Pill className="w-4 h-4 mr-2" />
                         Request renewal
                       </Button>
@@ -222,7 +222,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 hover-lift card-shine">
+    <div className="card-premium-bg rounded-xl border border-gray-200 p-6 hover-lift card-shine shadow-premium">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">{label}</p>
@@ -255,7 +255,7 @@ function RequestCard({
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-xl border border-gray-200 p-5 hover:border-primary hover:shadow-md transition-all text-left group"
+      className="w-full bg-white rounded-xl border border-gray-200 p-5 hover:border-primary hover:shadow-md transition-all text-left group hover-lift card-shine"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">

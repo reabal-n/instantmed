@@ -31,7 +31,7 @@ const itemVariants = {
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden">
+    <section id="how-it-works" className="py-20 lg:py-28 scroll-mt-20 relative overflow-hidden section-premium">
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 
@@ -50,7 +50,7 @@ export function HowItWorks() {
             <span className="text-sm font-medium text-foreground/80">How it works</span>
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight spacing-premium">
             Three steps. Done in minutes.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

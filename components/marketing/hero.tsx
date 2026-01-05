@@ -45,24 +45,24 @@ export function Hero() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                 </span>
-                <span className="text-sm font-medium text-foreground/80">Australia&apos;s fastest online GP</span>
+                <span className="text-sm font-medium text-foreground/80 spacing-premium">Australia&apos;s fastest online GP</span>
               </div>
             </motion.div>
 
             {/* Headline */}
             <motion.h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 spacing-premium"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <span>Your{' '}</span>
-              <span className="text-primary">
+              <span className="text-premium-gradient">
                 <RotatingText texts={heroRotatingTexts} />
               </span>
               <br className="hidden sm:block" />
               <span className="text-foreground/90"> — sorted in </span>
-              <span className="text-primary font-bold">15 minutes</span>
+              <span className="text-premium-gradient font-bold">15 minutes</span>
               <span className="text-foreground/90">.</span>
             </motion.h1>
 

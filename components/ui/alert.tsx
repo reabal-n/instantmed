@@ -1,25 +1,14 @@
-import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { AlertCircle, CheckCircle2, Info, XCircle, AlertTriangle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+"use client"
 
-const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
-  {
-    variants: {
-      variant: {
-        default: 'bg-background text-foreground',
-        info: 'border-primary bg-blue-50 text-blue-900 dark:border-primary dark:bg-blue-950 dark:text-blue-100 [&>svg]:text-primary dark:[&>svg]:text-blue-400',
-        success: 'border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-100 [&>svg]:text-green-600 dark:[&>svg]:text-green-400',
-        warning: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400',
-        destructive: 'border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100 [&>svg]:text-red-600 dark:[&>svg]:text-red-400',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  }
-)
+import * as React from "react"
+import { AlertCircle, CheckCircle2, Info, XCircle, AlertTriangle } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "info" | "success" | "warning" | "destructive"
+  icon?: React.ReactNode
+  showIcon?: boolean
+}
 
 const iconMap = {
   default: Info,
@@ -29,27 +18,34 @@ const iconMap = {
   destructive: XCircle,
 }
 
-interface AlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof alertVariants> {
-  icon?: React.ReactNode
-  showIcon?: boolean
+const variantStyles = {
+  default: "bg-background text-foreground border-default-200",
+  info: "border-primary bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
+  success: "border-success bg-success/10 text-success dark:bg-success/20 dark:text-success",
+  warning: "border-warning bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning",
+  destructive: "border-danger bg-danger/10 text-danger dark:bg-danger/20 dark:text-danger",
 }
 
 function Alert({
   className,
-  variant = 'default',
+  variant = "default",
   icon,
   showIcon = true,
   children,
   ...props
 }: AlertProps) {
-  const IconComponent = iconMap[variant || 'default']
+  const IconComponent = iconMap[variant || "default"]
 
   return (
     <div
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      className={cn(
+        "relative w-full rounded-lg border p-4",
+        "[&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px]",
+        "[&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+        variantStyles[variant],
+        className
+      )}
       {...props}
     >
       {showIcon && (icon || <IconComponent className="size-4" />)}
@@ -64,7 +60,7 @@ function AlertTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h5
-      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+      className={cn("mb-1 font-medium leading-none tracking-tight", className)}
       {...props}
     />
   )
@@ -76,10 +72,19 @@ function AlertDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <div
-      className={cn('text-sm [&_p]:leading-relaxed', className)}
+      className={cn("text-sm [&_p]:leading-relaxed", className)}
       {...props}
     />
   )
+}
+
+// Export alertVariants for backward compatibility
+const alertVariants = {
+  default: "default",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  destructive: "destructive",
 }
 
 export { Alert, AlertTitle, AlertDescription, alertVariants }

@@ -5,33 +5,38 @@ import { ArrowRight, Check } from 'lucide-react'
 import { Button, Chip } from '@heroui/react'
 import { featuredServices } from '@/lib/marketing/homepage'
 import { SectionPill } from '@/components/ui/section-pill'
+import { TiltCard } from '@/components/shared/tilt-card'
+import { BlurFade } from '@/components/ui/blur-fade'
 
 export function ServicesSection() {
   return (
     <section id="services" className="py-20 lg:py-28 scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <SectionPill 
-            emoji="🏥" 
-            text="What we do" 
-            hoverText="Same-day healthcare"
-            className="mb-4"
-          />
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Healthcare that respects your time
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Medical certificates and prescriptions — reviewed by real Australian GPs, delivered same-day.
-          </p>
-        </div>
+        <BlurFade delay={0.1}>
+          <div className="text-center mb-16">
+            <SectionPill 
+              emoji="🏥" 
+              text="What we do" 
+              hoverText="Same-day healthcare"
+              className="mb-4"
+            />
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 spacing-premium">
+              Healthcare that respects your time
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Medical certificates and prescriptions — reviewed by real Australian GPs, delivered same-day.
+            </p>
+          </div>
+        </BlurFade>
 
         {/* Featured services grid */}
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 mb-12">
-          {featuredServices.map((service) => (
-            <div 
-              key={service.title}
-              className="group relative bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 p-6 lg:p-8 hover:shadow-lg dark:hover:bg-white/10 transition-all duration-300 shadow-sm"
-            >
+          {featuredServices.map((service, index) => (
+            <BlurFade key={service.title} delay={0.2 + index * 0.1}>
+              <TiltCard tiltAmount={8}>
+                <div 
+                  className="group relative card-premium-bg dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 p-6 lg:p-8 hover:shadow-premium-lg dark:hover:bg-white/10 transition-all duration-300 shadow-premium h-full hover-lift card-shine"
+                >
               <div className="flex flex-col h-full">
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -61,13 +66,16 @@ export function ServicesSection() {
                     href={service.href}
                     variant="light"
                     color="primary"
-                    endContent={<ArrowRight className="h-4 w-4" />}
+                    className="magnetic-button scale-spring"
+                    endContent={<ArrowRight className="h-4 w-4 icon-spin-hover" />}
                   >
                     Get started
                   </Button>
                 </div>
               </div>
-            </div>
+                </div>
+              </TiltCard>
+            </BlurFade>
           ))}
         </div>
 

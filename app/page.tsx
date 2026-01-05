@@ -15,12 +15,12 @@ import { Navbar } from '@/components/shared/navbar'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-transparent overflow-x-hidden">
+    <div className="min-h-screen bg-premium-warm overflow-x-hidden">
       <UnifiedBackground />
       
       <Navbar variant="marketing" />
       
-      <main>
+      <main className="relative">
         {/* Hero with main value prop */}
         <Hero />
         

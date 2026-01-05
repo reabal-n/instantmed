@@ -1,105 +1,129 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import * as SheetPrimitive from '@radix-ui/react-dialog'
-import { XIcon } from 'lucide-react'
+import * as React from "react"
+import {
+  Modal as HeroModal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  type ModalProps as HeroModalProps,
+} from "@heroui/react"
+import { XIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-import { cn } from '@/lib/utils'
+export interface SheetProps extends Omit<HeroModalProps, "children" | "isOpen" | "onClose"> {
+  children?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  side?: "top" | "right" | "bottom" | "left"
+}
 
-function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+const placementMap: Record<string, HeroModalProps["placement"]> = {
+  top: "top",
+  right: "right",
+  bottom: "bottom",
+  left: "left",
+}
+
+function Sheet({
+  open,
+  onOpenChange,
+  children,
+  side = "right",
+  ...props
+}: SheetProps) {
+  return (
+    <HeroModal
+      isOpen={open}
+      onClose={() => onOpenChange?.(false)}
+      placement={placementMap[side]}
+      scrollBehavior="inside"
+      classNames={{
+        backdrop: "bg-black/80 backdrop-blur-sm",
+        base: "bg-background border border-default-100",
+        header: "border-b border-default-100",
+        footer: "border-t border-default-100",
+      }}
+      {...props}
+    >
+      {children}
+    </HeroModal>
+  )
 }
 
 function SheetTrigger({
+  children,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+}: React.ComponentProps<"button">) {
+  return <button {...props}>{children}</button>
 }
 
 function SheetClose({
+  children,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Close>) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
-}
-
-function SheetPortal({
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Portal>) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
-}
-
-function SheetOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Overlay>) {
+}: React.ComponentProps<"button">) {
   return (
-    <SheetPrimitive.Overlay
-      data-slot="sheet-overlay"
-      className={cn(
-        'fixed inset-0 z-101 bg-black/80 backdrop-blur-sm',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out',
-        'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        className,
-      )}
+    <button
+      className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-lg outline-offset-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none"
       {...props}
-    />
+    >
+      {children || (
+        <>
+          <XIcon className="size-4 opacity-60 transition-opacity group-hover:opacity-100" />
+          <span className="sr-only">Close</span>
+        </>
+      )}
+    </button>
   )
+}
+
+function SheetPortal({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+
+function SheetOverlay({ className }: { className?: string }) {
+  return null // Handled by HeroUI Modal
 }
 
 function SheetContent({
   className,
   children,
-  side = 'right',
+  side = "right",
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Content> & {
-  side?: 'top' | 'right' | 'bottom' | 'left'
+}: React.ComponentProps<typeof ModalContent> & {
+  side?: "top" | "right" | "bottom" | "left"
 }) {
   return (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content
-        data-slot="sheet-content"
-        className={cn(
-          'fixed z-101 flex flex-col gap-4 bg-background shadow-lg shadow-black/5',
-          'transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
-          'data-[state=open]:animate-in data-[state=closed]:animate-out',
-          side === 'right' &&
-            'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
-          side === 'left' &&
-            'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
-          side === 'top' &&
-            'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
-          side === 'bottom' &&
-            'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        <SheetPrimitive.Close className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-lg outline-offset-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none">
-          <XIcon className="size-4 opacity-60 transition-opacity group-hover:opacity-100" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
-      </SheetPrimitive.Content>
-    </SheetPortal>
+    <ModalContent
+      className={cn(
+        "flex flex-col gap-4 bg-background shadow-lg",
+        side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
+        side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
+        side === "top" && "inset-x-0 top-0 h-auto border-b",
+        side === "bottom" && "inset-x-0 bottom-0 h-auto border-t",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </ModalContent>
   )
 }
 
-function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
+function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="sheet-header"
-      className={cn('flex flex-col gap-1.5 p-4', className)}
+    <ModalHeader
+      className={cn("flex flex-col gap-1.5 p-4", className)}
       {...props}
     />
   )
 }
 
-function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
+function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="sheet-footer"
-      className={cn('mt-auto flex flex-col gap-2 p-4', className)}
+    <ModalFooter
+      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
       {...props}
     />
   )
@@ -108,11 +132,10 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
 function SheetTitle({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Title>) {
+}: React.ComponentProps<"h2">) {
   return (
-    <SheetPrimitive.Title
-      data-slot="sheet-title"
-      className={cn('text-foreground font-semibold', className)}
+    <h2
+      className={cn("text-foreground font-semibold", className)}
       {...props}
     />
   )
@@ -121,11 +144,10 @@ function SheetTitle({
 function SheetDescription({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Description>) {
+}: React.ComponentProps<"p">) {
   return (
-    <SheetPrimitive.Description
-      data-slot="sheet-description"
-      className={cn('text-muted-foreground text-sm', className)}
+    <p
+      className={cn("text-default-500 text-sm", className)}
       {...props}
     />
   )

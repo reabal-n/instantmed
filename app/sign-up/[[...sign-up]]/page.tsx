@@ -37,6 +37,9 @@ export default function SignUpPage() {
             
             <SignUp 
               signInUrl="/sign-in"
+              routing="path"
+              path="/sign-up"
+              forceRedirectUrl="/"
               appearance={{
                 elements: {
                   rootBox: "w-full",
@@ -48,11 +51,15 @@ export default function SignUpPage() {
                   footerActionLink: "text-primary hover:text-primary/80",
                   dividerLine: "bg-border",
                   dividerText: "text-muted-foreground",
-                  socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl",
-                  socialButtonsBlockButtonText: "text-foreground",
+                  socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl h-11 text-base",
+                  socialButtonsBlockButtonText: "text-foreground font-medium",
                   identityPreviewEditButton: "text-primary",
                   formFieldLabel: "text-foreground",
                   footerActionText: "text-muted-foreground",
+                },
+                layout: {
+                  socialButtonsPlacement: "top",
+                  socialButtonsVariant: "blockButton",
                 }
               }}
             />

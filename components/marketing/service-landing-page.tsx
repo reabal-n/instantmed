@@ -179,18 +179,18 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                 <Button
                   asChild
                   size="lg"
-                  className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl shadow-lg transition-all', colors.button)}
+                  className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl shadow-lg transition-all magnetic-button glow-pulse', colors.button)}
                 >
                   <Link href={config.flowSlug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}>
                     Get started
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-5 w-5 icon-spin-hover" />
                   </Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-12 text-base rounded-xl border-slate-200 hover:bg-slate-50"
+                  className="h-12 text-base rounded-xl border-slate-200 hover:bg-slate-50 magnetic-button scale-spring"
                 >
                   <Link href="#how-it-works">
                     How it works

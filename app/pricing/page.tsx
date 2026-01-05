@@ -56,7 +56,7 @@ const faqs = [
 
 export default function PricingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-hero">
+    <div className="flex min-h-screen flex-col bg-premium-warm">
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-24">
@@ -65,12 +65,12 @@ export default function PricingPage() {
           <div className="hero-orb hero-orb-mint w-[500px] h-[500px] -top-[200px] left-1/2 -translate-x-1/2 opacity-40" />
 
           <div className="relative mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 bg-[#00E2B5]/10 text-[#00E2B5] border-0 text-sm font-medium">Simple pricing</Badge>
+            <Badge className="mb-4 badge-premium text-[#00E2B5] text-sm font-medium spacing-premium">Simple pricing</Badge>
             <h1
               className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl animate-fade-in-up opacity-0"
               style={{ animationDelay: "0.1s", animationFillMode: "forwards", fontFamily: "var(--font-display)" }}
             >
-              Pay per consult. <span className="text-gradient-mint">No subscriptions.</span>
+              Pay per consult. <span className="text-premium-gradient">No subscriptions.</span>
             </h1>
             <p
               className="mx-auto mt-4 max-w-xl text-pretty text-lg text-muted-foreground animate-fade-in-up opacity-0"
@@ -82,14 +82,14 @@ export default function PricingPage() {
         </section>
 
         {/* Pricing Cards */}
-        <section className="px-4 py-12 sm:px-6 bg-mesh">
+        <section className="px-4 py-12 sm:px-6 section-premium">
           <div className="mx-auto max-w-5xl">
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {services.map((service, index) => (
                 <TiltCard
                   key={service.name}
-                  className={`glass-card rounded-3xl p-8 animate-fade-in-up opacity-0 relative ${
-                    service.popular ? "ring-2 ring-[#00E2B5] shadow-xl shadow-[#00E2B5]/10" : ""
+                  className={`card-premium rounded-3xl p-8 animate-fade-in-up opacity-0 relative ${
+                    service.popular ? "ring-2 ring-[#00E2B5] shadow-premium-xl" : "shadow-premium-lg"
                   }`}
                   style={{ animationDelay: `${0.1 + index * 0.1}s`, animationFillMode: "forwards" }}
                 >
@@ -132,15 +132,15 @@ export default function PricingPage() {
 
                   <Button
                     asChild
-                    className={`w-full rounded-xl h-12 font-medium ${
+                    className={`w-full rounded-xl h-12 font-medium magnetic-button ${
                       service.popular
-                        ? "btn-premium text-[#0A0F1C] shadow-lg shadow-[#00E2B5]/20"
+                        ? "btn-premium text-[#0A0F1C] shadow-lg shadow-[#00E2B5]/20 glow-pulse"
                         : "bg-[#0A0F1C] hover:bg-[#0A0F1C]/90 text-white"
                     }`}
                   >
                     <Link href={service.href}>
                       Get started
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" />
                     </Link>
                   </Button>
                 </TiltCard>

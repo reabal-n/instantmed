@@ -83,10 +83,10 @@ export default function ContactPage() {
                 Thanks for reaching out. We typically respond within a few hours during business days. Keep an eye on
                 your inbox!
               </p>
-              <Button asChild className="rounded-full btn-premium text-[#0A0F1C]">
+              <Button asChild className="rounded-full btn-premium magnetic-button text-[#0A0F1C]">
                 <Link href="/">
                   Back to Home
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" aria-hidden="true" />
                 </Link>
               </Button>
             </TiltCard>
@@ -98,10 +98,10 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-premium-subtle">
       <Navbar variant="marketing" />
 
-      <main className="flex-1 bg-background">
+      <main className="flex-1 bg-premium-subtle">
         {/* Hero */}
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
@@ -112,14 +112,14 @@ export default function ContactPage() {
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4">
+              <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4 badge-premium spacing-premium">
                 Contact Us
               </Chip>
               <h1
                 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                Got a question? <span className="text-gradient-mint">Let&apos;s chat.</span>
+                Got a question? <span className="text-premium-gradient">Let&apos;s chat.</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
                 We&apos;re real humans who actually read and reply to every message. Usually within a few hours, always
@@ -210,10 +210,10 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Check our FAQ — most questions are already answered there.
                   </p>
-                  <Button variant="outline" asChild className="rounded-full w-full bg-transparent">
+                  <Button variant="outline" asChild className="rounded-full w-full bg-transparent magnetic-button scale-spring">
                     <Link href="/faq">
                       View FAQ
-                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                      <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" aria-hidden="true" />
                     </Link>
                   </Button>
                 </TiltCard>
@@ -264,7 +264,7 @@ export default function ContactPage() {
                         placeholder="John Smith"
                         required
                         autoComplete="name"
-                        className="rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -276,7 +276,7 @@ export default function ContactPage() {
                         placeholder="john@example.com"
                         required
                         autoComplete="email"
-                        className="rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
                       />
                     </div>
                   </div>
@@ -288,7 +288,7 @@ export default function ContactPage() {
                       name="subject"
                       placeholder="How can we help?"
                       required
-                      className="rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                      className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
                     />
                   </div>
 
@@ -300,14 +300,14 @@ export default function ContactPage() {
                       placeholder="Tell us more about your inquiry..."
                       rows={5}
                       required
-                      className="rounded-xl bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20 resize-none"
+                      className="input-glow rounded-xl bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20 resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-full btn-premium text-[#0A0F1C] font-semibold"
+                    className="w-full h-12 rounded-full btn-premium magnetic-button glow-pulse text-[#0A0F1C] font-semibold"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">

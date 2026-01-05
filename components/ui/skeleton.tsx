@@ -1,24 +1,22 @@
-import { cn } from '@/lib/utils'
+"use client"
+
+import * as React from "react"
+import { Skeleton as HeroSkeleton, type SkeletonProps as HeroSkeletonProps } from "@heroui/react"
+import { cn } from "@/lib/utils"
 
 // =============================================================================
 // BASE SKELETON
 // =============================================================================
 
+export interface SkeletonProps extends HeroSkeletonProps {}
+
 function Skeleton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: SkeletonProps) {
   return (
-    <div
-      className={cn(
-        'animate-pulse rounded-lg bg-muted',
-        // Premium shimmer effect
-        'relative overflow-hidden',
-        'after:absolute after:inset-0',
-        'after:bg-linear-to-r after:from-transparent after:via-white/10 after:to-transparent',
-        'after:animate-shimmer',
-        className
-      )}
+    <HeroSkeleton
+      className={cn("rounded-lg", className)}
       {...props}
     />
   )

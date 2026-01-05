@@ -234,7 +234,7 @@ export function PanelDoctorDashboard({
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="card-premium-bg rounded-xl border border-gray-200 p-4 shadow-premium">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -339,7 +339,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 hover-lift card-shine">
+    <div className="card-premium-bg rounded-xl border border-gray-200 p-6 hover-lift card-shine shadow-premium">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">{label}</p>
@@ -371,7 +371,7 @@ function RequestCard({
     <div
       className={cn(
         "bg-white rounded-xl border border-gray-200 p-5 transition-all group",
-        "hover:border-primary hover:shadow-md cursor-pointer",
+        "hover:border-primary hover:shadow-md cursor-pointer hover-lift card-shine",
         isSelected && "border-primary bg-blue-50"
       )}
     >
