@@ -125,7 +125,7 @@ export default async function SymptomPage({ params }: PageProps) {
             <div className="space-y-3">
               {page.selfCare.map((step, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <CheckCircle2 className="h-5 w-5 text-[#00E2B5] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-5 w-5 text-[#2563EB] shrink-0 mt-0.5" />
                   <span className="text-sm">{step}</span>
                 </div>
               ))}
@@ -149,10 +149,10 @@ export default async function SymptomPage({ params }: PageProps) {
           </div>
         </section>
         
-        <section className="px-4 py-12 bg-[#00E2B5]/5">
+        <section className="px-4 py-12 bg-[#2563EB]/5">
           <div className="mx-auto max-w-4xl">
             <div className="text-center mb-6">
-              <Shield className="h-12 w-12 text-[#00E2B5] mx-auto mb-4" />
+              <Shield className="h-12 w-12 text-[#2563EB] mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-3">Online Treatment Available</h2>
               <p className="text-muted-foreground mb-6">
                 Our Australian doctors can help with:
@@ -161,14 +161,14 @@ export default async function SymptomPage({ params }: PageProps) {
             <div className="grid gap-4 md:grid-cols-2 mb-8">
               {page.onlineTreatment.canHelpWith.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-background">
-                  <CheckCircle2 className="h-5 w-5 text-[#00E2B5] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-5 w-5 text-[#2563EB] shrink-0 mt-0.5" />
                   <span className="text-sm">{item}</span>
                 </div>
               ))}
             </div>
             <div className="text-center">
               <Link href={page.onlineTreatment.ctaUrl}>
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                   {page.onlineTreatment.ctaText}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

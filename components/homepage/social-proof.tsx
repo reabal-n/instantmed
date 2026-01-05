@@ -73,9 +73,9 @@ export function LiveActivityCounter() {
         }`}
       >
         {toast && (
-          <div className="glass-card rounded-lg px-3 py-2 shadow-lg border border-[#00E2B5]/20 flex items-center gap-2 max-w-[280px]">
-            <div className="shrink-0 h-7 w-7 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+          <div className="glass-card rounded-lg px-3 py-2 shadow-lg border border-[#2563EB]/20 flex items-center gap-2 max-w-[280px]">
+            <div className="shrink-0 h-7 w-7 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium truncate">
@@ -89,7 +89,7 @@ export function LiveActivityCounter() {
 
       {/* Requests today counter - shown in stats bar */}
       <div className="flex items-center gap-1.5 whitespace-nowrap">
-        <TrendingUp className="h-4 w-4 text-[#00E2B5]" />
+        <TrendingUp className="h-4 w-4 text-[#2563EB]" />
         <span className="text-sm font-medium">
           <span className="tabular-nums">{todayCount}</span> requests today
         </span>
@@ -124,7 +124,7 @@ export function StatsBar() {
           <span className="text-sm font-medium">4.9 star rating</span>
         </div>
         <div className="flex items-center gap-2 whitespace-nowrap">
-          <CheckCircle2 className="h-4 w-4 text-[#06B6D4]" />
+          <CheckCircle2 className="h-4 w-4 text-[#4f46e5]" />
           <span className="text-sm font-medium">10,000+ helped</span>
         </div>
       </div>
@@ -224,10 +224,10 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
                     : "rgba(139, 92, 246, 0.1)",
               color:
                 testimonial.service === "Medical Certificate"
-                  ? "#00E2B5"
+                  ? "#2563EB"
                   : testimonial.service === "Prescription"
-                    ? "#06B6D4"
-                    : "#8B5CF6",
+                    ? "#4f46e5"
+                    : "#4f46e5",
             }}
           >
             {testimonial.service}
@@ -247,7 +247,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
         {/* Author */}
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-[#00E2B5]/30 shadow-sm">
+          <div className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-[#2563EB]/30 shadow-sm">
             <Image
               src={testimonial.avatar}
               alt={testimonial.name}
@@ -259,7 +259,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             <div className="flex items-center gap-1.5">
               <p className="text-sm font-semibold text-foreground">{testimonial.name}</p>
               {testimonial.verified && (
-                <div className="w-4 h-4 rounded-full bg-[#00E2B5] flex items-center justify-center">
+                <div className="w-4 h-4 rounded-full bg-[#2563EB] flex items-center justify-center">
                   <CheckCircle2 className="h-3 w-3 text-white" />
                 </div>
               )}

@@ -311,7 +311,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4 font-semibold">Feature</th>
-                      <th className="text-center py-3 px-4 font-semibold text-[#00E2B5]">InstantMed</th>
+                      <th className="text-center py-3 px-4 font-semibold text-[#2563EB]">InstantMed</th>
                       <th className="text-center py-3 px-4 font-semibold">{comparison.alternative.name}</th>
                     </tr>
                   </thead>
@@ -334,7 +334,7 @@ export default async function ComparisonPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl grid gap-8 md:grid-cols-2">
               {/* InstantMed */}
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-[#00E2B5]">InstantMed</h2>
+                <h2 className="text-xl font-bold text-[#2563EB]">InstantMed</h2>
 
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
@@ -455,7 +455,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 For quick, simple health needs — we&apos;re here when you need us.
               </p>
               <Link href="/request">
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                   Get Started
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -472,7 +472,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                   .filter(([s]) => s !== slug)
                   .map(([s, c], i, arr) => (
                     <span key={s}>
-                      <Link href={`/compare/${s}`} className="text-[#00E2B5] hover:underline">
+                      <Link href={`/compare/${s}`} className="text-[#2563EB] hover:underline">
                         {c.h1}
                       </Link>
                       {i < arr.length - 1 && " • "}

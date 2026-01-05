@@ -67,7 +67,7 @@ export function ContactClient() {
           <div className="mx-auto max-w-lg text-center">
             <TiltCard className="p-10 animate-scale-in">
               <div
-                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mb-6 animate-success-bounce"
+                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-[#2563EB] to-[#00C9A0] flex items-center justify-center mb-6 animate-success-bounce"
                 role="img"
                 aria-label="Success"
               >
@@ -106,7 +106,7 @@ export function ContactClient() {
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
           <div
-            className="absolute top-20 right-1/4 w-72 h-72 bg-[#00E2B5]/10 rounded-full blur-3xl"
+            className="absolute top-20 right-1/4 w-72 h-72 bg-[#2563EB]/10 rounded-full blur-3xl"
             aria-hidden="true"
           />
 
@@ -150,36 +150,36 @@ export function ContactClient() {
                   </h3>
                   <address className="space-y-5 not-italic">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
-                        <Mail className="h-5 w-5 text-[#00E2B5]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                        <Mail className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <a
                           href="mailto:support@instantmed.com.au"
-                          className="text-sm text-muted-foreground hover:text-[#00E2B5] transition-colors"
+                          className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
                         >
                           support@instantmed.com.au
                         </a>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
-                        <Phone className="h-5 w-5 text-[#00E2B5]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                        <Phone className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Phone</p>
                         <a
                           href="tel:1300123456"
-                          className="text-sm text-muted-foreground hover:text-[#00E2B5] transition-colors"
+                          className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
                         >
                           1300 123 456
                         </a>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
-                        <MapPin className="h-5 w-5 text-[#00E2B5]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                        <MapPin className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Location</p>
@@ -187,8 +187,8 @@ export function ContactClient() {
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
-                        <Clock className="h-5 w-5 text-[#00E2B5]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                        <Clock className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Business Hours</p>
@@ -244,7 +244,7 @@ export function ContactClient() {
                           onClick={() => setSelectedReason(reason.id)}
                           className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                             selectedReason === reason.id
-                              ? "bg-[#00E2B5] text-[#0A0F1C] shadow-lg"
+                              ? "bg-[#2563EB] text-[#0A0F1C] shadow-lg"
                               : "bg-[#0A0F1C]/5 text-muted-foreground hover:bg-[#0A0F1C]/10"
                           }`}
                         >
@@ -264,7 +264,7 @@ export function ContactClient() {
                         placeholder="John Smith"
                         required
                         autoComplete="name"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -276,7 +276,7 @@ export function ContactClient() {
                         placeholder="john@example.com"
                         required
                         autoComplete="email"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
                       />
                     </div>
                   </div>
@@ -288,7 +288,7 @@ export function ContactClient() {
                       name="subject"
                       placeholder="How can we help?"
                       required
-                      className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20"
+                      className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
                     />
                   </div>
 
@@ -300,7 +300,7 @@ export function ContactClient() {
                       placeholder="Tell us more about your inquiry..."
                       minRows={5}
                       required
-                      className="input-glow rounded-xl bg-white/50 border-[#0A0F1C]/10 focus:border-[#00E2B5] focus:ring-[#00E2B5]/20 resize-none"
+                      className="input-glow rounded-xl bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20 resize-none"
                     />
                   </div>
 

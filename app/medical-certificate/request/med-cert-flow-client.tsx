@@ -81,9 +81,9 @@ const CERT_TYPES = [
 // Duration options with icons for AnimatedSelect
 const DURATION_OPTIONS = [
   { value: "1", label: MICROCOPY.duration.options["1"], icon: CalendarDays, color: "#10B981" },
-  { value: "2", label: MICROCOPY.duration.options["2"], icon: CalendarDays, color: "#06B6D4" },
+  { value: "2", label: MICROCOPY.duration.options["2"], icon: CalendarDays, color: "#4f46e5" },
   { value: "3", label: MICROCOPY.duration.options["3"], icon: CalendarDays, color: "#3B82F6" },
-  { value: "4-7", label: MICROCOPY.duration.options["4-7"], icon: CalendarRange, color: "#8B5CF6" },
+  { value: "4-7", label: MICROCOPY.duration.options["4-7"], icon: CalendarRange, color: "#4f46e5" },
   { value: "1-2weeks", label: MICROCOPY.duration.options["1-2weeks"], icon: CalendarRange, color: "#EC4899" },
   { value: "specific", label: MICROCOPY.duration.options["specific"], icon: CalendarClock, color: "#F59E0B" },
 ] as const
@@ -868,7 +868,7 @@ export function MedCertFlowClient({
       particleCount: 100,
       spread: 70,
       origin: { x: 0.5, y: 0.6 },
-      colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+      colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
     })
 
     setIsSubmitting(true)

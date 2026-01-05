@@ -451,7 +451,7 @@ export interface GradientBorderChaseProps {
 
 export function GradientBorderChase({
   children,
-  colors = ['#00E2B5', '#06B6D4', '#8B5CF6', '#EC4899', '#00E2B5'],
+  colors = ['#2563EB', '#4f46e5', '#4f46e5', '#EC4899', '#2563EB'],
   duration = 4,
   borderWidth = 2,
   borderRadius = '1rem',
@@ -523,7 +523,7 @@ export interface SpotlightRevealProps {
 
 export function SpotlightReveal({
   children,
-  color = '#00E2B5',
+  color = '#2563EB',
   size = 400,
   borderRadius = '1rem',
   className,
@@ -614,7 +614,7 @@ export interface NeonGlowProps {
 
 export function NeonGlow({
   children,
-  color = '#00E2B5',
+  color = '#2563EB',
   intensity = 'medium',
   borderRadius = '1rem',
   className,

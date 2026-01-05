@@ -121,7 +121,7 @@ export function PremiumSuccessState({
     const duration = 2000
     const end = Date.now() + duration
 
-    const colors = ["#22c55e", "#06B6D4", "#8B5CF6"]
+    const colors = ["#22c55e", "#4f46e5", "#4f46e5"]
     
     const frame = () => {
       confetti({

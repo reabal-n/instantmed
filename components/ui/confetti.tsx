@@ -28,7 +28,7 @@ export function Confetti({
   trigger = false,
   duration = 3000,
   particleCount = 100,
-  colors = ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+  colors = ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
   onComplete,
 }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -150,7 +150,7 @@ export function ConfettiButton({
         type="button"
         onClick={handleClick}
         disabled={disabled}
-        className={`inline-flex items-center justify-center rounded-xl bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-[#0A0F1C] font-semibold shadow-lg shadow-[#00E2B5]/20 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
+        className={`inline-flex items-center justify-center rounded-xl bg-linear-to-r from-[#2563EB] to-[#4f46e5] text-[#0A0F1C] font-semibold shadow-lg shadow-[#2563EB]/20 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${className || ""}`}
         {...props}
       >
         {children}
@@ -158,7 +158,7 @@ export function ConfettiButton({
       <Confetti
         trigger={showConfetti}
         particleCount={options?.particleCount || 100}
-        colors={options?.colors || ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"]}
+        colors={options?.colors || ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"]}
         onComplete={() => setShowConfetti(false)}
       />
     </>

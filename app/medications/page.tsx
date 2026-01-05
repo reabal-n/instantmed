@@ -75,8 +75,8 @@ export default function MedicationsPage() {
       <main className="flex-1 pt-24">
         {/* Hero */}
         <section className="px-4 py-12 text-center">
-          <div className="h-14 w-14 rounded-xl bg-[#00E2B5]/10 flex items-center justify-center mx-auto mb-4">
-            <Pill className="h-7 w-7 text-[#00E2B5]" />
+          <div className="h-14 w-14 rounded-xl bg-[#2563EB]/10 flex items-center justify-center mx-auto mb-4">
+            <Pill className="h-7 w-7 text-[#2563EB]" />
           </div>
           <h1 className="text-3xl font-bold sm:text-4xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
             Medications Directory

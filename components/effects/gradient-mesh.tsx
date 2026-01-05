@@ -18,7 +18,7 @@ export function GradientMesh({
   children,
   className,
   interactive = true,
-  colors = ["#00E2B5", "#06B6D4", "#8B5CF6", "#EC4899"],
+  colors = ["#2563EB", "#4f46e5", "#4f46e5", "#EC4899"],
   speed = 20,
   blur = 100,
 }: GradientMeshProps) {
@@ -177,7 +177,7 @@ export function GradientBorder({
   className,
   borderWidth = 2,
   borderRadius = 16,
-  colors = ["#00E2B5", "#06B6D4", "#8B5CF6", "#EC4899", "#00E2B5"],
+  colors = ["#2563EB", "#4f46e5", "#4f46e5", "#EC4899", "#2563EB"],
   animationDuration = 3,
 }: GradientBorderProps) {
   return (

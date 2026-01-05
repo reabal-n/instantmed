@@ -122,7 +122,7 @@ export function ServicePicker() {
                     className="h-full"
                   >
                     <GradientBorderChase
-                      colors={[colors.accent, '#06B6D4', '#8B5CF6', colors.accent]}
+                      colors={[colors.accent, '#4f46e5', '#4f46e5', colors.accent]}
                       duration={3}
                       borderRadius="1rem"
                       className="h-full"

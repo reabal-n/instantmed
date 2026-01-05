@@ -32,24 +32,24 @@ export function CountdownBanner() {
   return (
     <div className="bg-linear-to-r from-[#0A0F1C] to-[#1e293b] text-white py-2.5 px-4 relative overflow-hidden">
       {/* Animated background */}
-      <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-transparent to-[#00E2B5]/10 animate-gradient-shift" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#2563EB]/10 via-transparent to-[#2563EB]/10 animate-gradient-shift" />
 
       <div className="container mx-auto flex items-center justify-center gap-4 text-sm relative">
-        <Zap className="w-4 h-4 text-[#00E2B5] animate-pulse" />
+        <Zap className="w-4 h-4 text-[#2563EB] animate-pulse" />
         <span className="font-medium">
           <span className="hidden sm:inline">Limited time: </span>
-          <span className="text-[#00E2B5]">20% OFF</span> your first consult
+          <span className="text-[#2563EB]">20% OFF</span> your first consult
         </span>
         <div className="flex items-center gap-1 font-mono text-xs bg-white/10 rounded-lg px-2 py-1">
-          <span className="bg-[#00E2B5]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.hours)}</span>
-          <span className="text-[#00E2B5]">:</span>
-          <span className="bg-[#00E2B5]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.minutes)}</span>
-          <span className="text-[#00E2B5]">:</span>
-          <span className="bg-[#00E2B5]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.seconds)}</span>
+          <span className="bg-[#2563EB]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.hours)}</span>
+          <span className="text-[#2563EB]">:</span>
+          <span className="bg-[#2563EB]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.minutes)}</span>
+          <span className="text-[#2563EB]">:</span>
+          <span className="bg-[#2563EB]/20 px-1.5 py-0.5 rounded">{pad(timeLeft.seconds)}</span>
         </div>
         <Link
           href="/medical-certificate"
-          className="hidden sm:inline-flex items-center gap-1 text-[#00E2B5] hover:underline font-medium"
+          className="hidden sm:inline-flex items-center gap-1 text-[#2563EB] hover:underline font-medium"
         >
           Claim now
           <span className="animate-bounce-gentle">→</span>

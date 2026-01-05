@@ -50,7 +50,7 @@ export function ExitIntentPopup() {
         </button>
 
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#00E2B5] to-[#00C9A0] flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
+          <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#2563EB] to-[#00C9A0] flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
             <Gift className="w-8 h-8 text-[#0A0F1C]" />
           </div>
 
@@ -59,7 +59,7 @@ export function ExitIntentPopup() {
           </h2>
 
           <p className="text-muted-foreground mb-6">
-            Get <span className="text-[#00E2B5] font-semibold">20% off</span> your first consultation. Because feeling
+            Get <span className="text-[#2563EB] font-semibold">20% off</span> your first consultation. Because feeling
             sick AND broke is no fun.
           </p>
 
@@ -80,7 +80,7 @@ export function ExitIntentPopup() {
           </div>
 
           <p className="text-xs text-muted-foreground mt-6">
-            Code <span className="font-mono bg-[#00E2B5]/10 px-1.5 py-0.5 rounded">WELCOME20</span> applied at checkout
+            Code <span className="font-mono bg-[#2563EB]/10 px-1.5 py-0.5 rounded">WELCOME20</span> applied at checkout
           </p>
         </div>
       </div>

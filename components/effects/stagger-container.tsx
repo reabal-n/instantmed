@@ -259,7 +259,7 @@ interface ListRevealProps {
 export function ListReveal({
   children,
   className,
-  lineColor = "#00E2B5",
+  lineColor = "#2563EB",
 }: ListRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })

@@ -328,9 +328,9 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#00E2B5]/5 to-transparent">
+          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#2563EB]/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00E2B5]/10 text-[#00E2B5] text-sm mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 text-[#2563EB] text-sm mb-6">
                 <MapPin className="h-4 w-4" />
                 {data.name}, {data.stateShort}
               </div>
@@ -343,7 +343,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               </p>
 
               <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C] text-base px-8">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C] text-base px-8">
                   Get Certificate Now
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -352,15 +352,15 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               {/* Speed-focused trust badges */}
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
-                  <Zap className="h-4 w-4 text-[#00E2B5]" />
+                  <Zap className="h-4 w-4 text-[#2563EB]" />
                   <span className="font-medium">15 min turnaround</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
-                  <Shield className="h-4 w-4 text-[#00E2B5]" />
+                  <Shield className="h-4 w-4 text-[#2563EB]" />
                   <span>AHPRA doctors</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
-                  <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                  <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                   <span>Employer accepted</span>
                 </div>
               </div>
@@ -372,15 +372,15 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
-                  <div className="text-4xl font-bold text-[#00E2B5] mb-1">2 min</div>
+                  <div className="text-4xl font-bold text-[#2563EB] mb-1">2 min</div>
                   <div className="text-sm text-white/70">to complete questionnaire</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold text-[#00E2B5] mb-1">15 min</div>
+                  <div className="text-4xl font-bold text-[#2563EB] mb-1">15 min</div>
                   <div className="text-sm text-white/70">typical doctor review</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold text-[#00E2B5] mb-1">Instant</div>
+                  <div className="text-4xl font-bold text-[#2563EB] mb-1">Instant</div>
                   <div className="text-sm text-white/70">PDF delivery to email</div>
                 </div>
               </div>
@@ -399,7 +399,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   { icon: Clock, label: "Shift workers", desc: "24/7 availability" },
                 ].map((item) => (
                   <div key={item.label} className="text-center p-4 rounded-xl bg-muted/30">
-                    <item.icon className="h-8 w-8 mx-auto mb-2 text-[#00E2B5]" />
+                    <item.icon className="h-8 w-8 mx-auto mb-2 text-[#2563EB]" />
                     <div className="font-semibold">{item.label}</div>
                     <div className="text-xs text-muted-foreground">{item.desc}</div>
                   </div>
@@ -451,12 +451,12 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                 ].map((item) => (
                   <div key={item.step} className="text-center p-4">
-                    <div className="h-12 w-12 rounded-full bg-[#00E2B5]/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-xl text-[#00E2B5]">{item.step}</span>
+                    <div className="h-12 w-12 rounded-full bg-[#2563EB]/10 flex items-center justify-center mx-auto mb-3">
+                      <span className="font-bold text-xl text-[#2563EB]">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground mb-2">{item.desc}</p>
-                    <span className="inline-block text-xs bg-[#00E2B5]/10 text-[#00E2B5] px-2 py-0.5 rounded-full">
+                    <span className="inline-block text-xs bg-[#2563EB]/10 text-[#2563EB] px-2 py-0.5 rounded-full">
                       {item.time}
                     </span>
                   </div>
@@ -511,7 +511,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Join thousands of {data.name} residents who skip the waiting room with InstantMed.
               </p>
               <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -530,7 +530,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   .slice(0, 6)
                   .map(([key, s], i, arr) => (
                     <span key={key}>
-                      <Link href={`/medical-certificate/${key}`} className="text-[#00E2B5] hover:underline">
+                      <Link href={`/medical-certificate/${key}`} className="text-[#2563EB] hover:underline">
                         {s.name}
                       </Link>
                       {i < arr.length - 1 && " • "}

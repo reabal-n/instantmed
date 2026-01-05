@@ -151,7 +151,7 @@ function generateEmailHtml(title: string, message: string, actionUrl?: string): 
       
       ${actionUrl ? `
         <p>
-          <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #00E2B5, #00C9A7); color: #0A0F1C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
+          <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #2563EB, #00C9A7); color: #0A0F1C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
             View Details
           </a>
         </p>

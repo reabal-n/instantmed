@@ -24,7 +24,7 @@ const services = [
     popular: true,
     href: "/medical-certificate",
     iconType: "medCert" as const,
-    color: "#00E2B5",
+    color: "#2563EB",
   },
   {
     name: "Prescription",
@@ -34,7 +34,7 @@ const services = [
     popular: false,
     href: "/prescriptions",
     iconType: "pill" as const,
-    color: "#06B6D4",
+    color: "#4f46e5",
   },
 ]
 
@@ -68,7 +68,7 @@ export default function PricingPage() {
           <div className="hero-orb hero-orb-mint w-[500px] h-[500px] -top-[200px] left-1/2 -translate-x-1/2 opacity-40" />
 
           <div className="relative mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 badge-premium text-[#00E2B5] text-sm font-medium spacing-premium">Simple pricing</Badge>
+            <Badge className="mb-4 badge-premium text-[#2563EB] text-sm font-medium spacing-premium">Simple pricing</Badge>
             <h1
               className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl animate-fade-in-up opacity-0"
               style={{ animationDelay: "0.1s", animationFillMode: "forwards", fontFamily: "var(--font-display)" }}
@@ -92,12 +92,12 @@ export default function PricingPage() {
                 <TiltCard
                   key={service.name}
                   className={`card-premium rounded-3xl p-8 animate-fade-in-up opacity-0 relative ${
-                    service.popular ? "ring-2 ring-[#00E2B5] shadow-premium-xl" : "shadow-premium-lg"
+                    service.popular ? "ring-2 ring-[#2563EB] shadow-premium-xl" : "shadow-premium-lg"
                   }`}
                   style={{ animationDelay: `${0.1 + index * 0.1}s`, animationFillMode: "forwards" }}
                 >
                   {service.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#00E2B5] text-[#0A0F1C] shadow-lg font-medium">
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2563EB] text-[#0A0F1C] shadow-lg font-medium">
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       Most Popular
                     </Badge>
@@ -137,7 +137,7 @@ export default function PricingPage() {
                     asChild
                     className={`w-full rounded-xl h-12 font-medium magnetic-button ${
                       service.popular
-                        ? "btn-premium text-[#0A0F1C] shadow-lg shadow-[#00E2B5]/20 glow-pulse"
+                        ? "btn-premium text-[#0A0F1C] shadow-lg shadow-[#2563EB]/20 glow-pulse"
                         : "bg-[#0A0F1C] hover:bg-[#0A0F1C]/90 text-white"
                     }`}
                   >
@@ -153,15 +153,15 @@ export default function PricingPage() {
             {/* Trust badges */}
             <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Shield className="w-4 h-4 text-[#00E2B5]" />
+                <Shield className="w-4 h-4 text-[#2563EB]" />
                 <span>AHPRA registered doctors</span>
               </div>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Clock className="w-4 h-4 text-[#06B6D4]" />
+                <Clock className="w-4 h-4 text-[#4f46e5]" />
                 <span>Same-day response</span>
               </div>
               <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Zap className="w-4 h-4 text-[#8B5CF6]" />
+                <Zap className="w-4 h-4 text-[#4f46e5]" />
                 <span>100% refund guarantee</span>
               </div>
             </div>
@@ -193,9 +193,9 @@ export default function PricingPage() {
         <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <TiltCard className="glass-card rounded-3xl p-10 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-[#00E2B5]/10 via-transparent to-[#06B6D4]/10 pointer-events-none" />
+              <div className="absolute inset-0 bg-linear-to-br from-[#2563EB]/10 via-transparent to-[#4f46e5]/10 pointer-events-none" />
               <div className="relative">
-                <BadgeCheck className="h-12 w-12 text-[#00E2B5] mx-auto mb-4" />
+                <BadgeCheck className="h-12 w-12 text-[#2563EB] mx-auto mb-4" />
                 <h2 className="text-2xl font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>
                   Ready to skip the waiting room?
                 </h2>

@@ -242,7 +242,7 @@ export function DocumentBuilderClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className="bg-[#00E2B5]/10 text-[#00E2B5] border-0">{formatCategory(request.category)}</Badge>
+          <Badge className="bg-[#2563EB]/10 text-[#2563EB] border-0">{formatCategory(request.category)}</Badge>
           <Badge variant="outline" className="flex items-center gap-1">
             {getSubtypeIcon(certSubtype)}
             {formatSubtype(certSubtype)}
@@ -297,9 +297,9 @@ export function DocumentBuilderClient({
 
       {/* Already generated notice */}
       {generatedPdfUrl && !savedMessage && (
-        <div className="flex items-center justify-between p-4 rounded-xl bg-[#00E2B5]/10 border border-[#00E2B5]/20">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20">
           <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-[#00E2B5]" />
+            <CheckCircle className="h-5 w-5 text-[#2563EB]" />
             <span className="text-sm font-medium">Certificate has been generated</span>
           </div>
           <Button
@@ -321,7 +321,7 @@ export function DocumentBuilderClient({
           {/* Patient Details */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <User className="h-5 w-5 text-[#00E2B5]" />
+              <User className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Patient Details</h2>
             </div>
             <div className="space-y-4">
@@ -350,7 +350,7 @@ export function DocumentBuilderClient({
           {/* Certificate Details */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-5 w-5 text-[#00E2B5]" />
+              <FileText className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Certificate Details</h2>
             </div>
             <div className="space-y-4">
@@ -425,7 +425,7 @@ export function DocumentBuilderClient({
           {/* Doctor Details */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Stethoscope className="h-5 w-5 text-[#00E2B5]" />
+              <Stethoscope className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Doctor Details</h2>
             </div>
             <div className="space-y-4">

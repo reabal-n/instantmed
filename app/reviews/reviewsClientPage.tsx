@@ -303,7 +303,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
               onClick={() => setFilter(filterOption)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 filter === filterOption
-                  ? "bg-[#00E2B5] text-[#0A0F1C]"
+                  ? "bg-[#2563EB] text-[#0A0F1C]"
                   : "bg-white/60 text-muted-foreground hover:bg-white/80"
               }`}
             >
@@ -340,13 +340,13 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-[#00E2B5]/20">
+                <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-[#2563EB]/20">
                   <Image src={review.avatar || "/placeholder.svg"} alt={review.name} fill className="object-cover" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-semibold">{review.name}</p>
-                    {review.verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#00E2B5]" />}
+                    {review.verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB]" />}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
@@ -355,7 +355,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 </div>
               </div>
               <div className="text-right">
-                <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-[#00E2B5]/10 text-[#00E2B5]">
+                <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-[#2563EB]/10 text-[#2563EB]">
                   {review.service}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">{review.date}</p>
@@ -413,7 +413,7 @@ export function ReviewsClientPageComponent() {
               <TiltCard className="glass-card rounded-2xl p-6 lg:min-w-[280px]">
                 <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <p className="text-4xl font-bold text-[#00E2B5]" style={{ fontFamily: "var(--font-mono)" }}>
+                    <p className="text-4xl font-bold text-[#2563EB]" style={{ fontFamily: "var(--font-mono)" }}>
                       {avgRating}
                     </p>
                     <div className="flex gap-0.5 mt-1 justify-center">

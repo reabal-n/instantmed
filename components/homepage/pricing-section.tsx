@@ -64,11 +64,11 @@ export function PricingSection() {
               <HolographicCard
                 hover
                 intensity={plan.popular ? "high" : "medium"}
-                className={`p-6 relative ${plan.popular ? "ring-2 ring-[#00E2B5]/50" : ""}`}
+                className={`p-6 relative ${plan.popular ? "ring-2 ring-[#2563EB]/50" : ""}`}
               >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] text-white text-xs font-semibold px-3 py-1 rounded-full">
                     Most Popular
                   </span>
                 </div>
@@ -84,7 +84,7 @@ export function PricingSection() {
                 <ul className="space-y-2 flex-1">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-[#00E2B5] shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-[#2563EB] shrink-0 mt-0.5" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}

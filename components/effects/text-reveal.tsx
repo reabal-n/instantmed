@@ -203,7 +203,7 @@ export function TextRevealGradient({
         }}
         className="bg-clip-text text-transparent bg-size-[200%_auto]"
         style={{
-          backgroundImage: "linear-gradient(to right, #00E2B5, #06B6D4, #8B5CF6, #06B6D4, #00E2B5)",
+          backgroundImage: "linear-gradient(to right, #2563EB, #4f46e5, #6366f1, #4f46e5, #2563EB)",
         }}
       >
         {children}

@@ -783,12 +783,12 @@ export default async function ConditionPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#00E2B5]/5 to-transparent">
+          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#2563EB]/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">{condition.h1}</h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">{condition.heroSubhead}</p>
               <Link href={condition.ctaHref}>
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C] text-base px-8">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C] text-base px-8">
                   {condition.ctaText}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -803,13 +803,13 @@ export default async function ConditionPage({ params }: PageProps) {
           <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Stethoscope className="h-5 w-5 text-[#00E2B5]" />
+                <Stethoscope className="h-5 w-5 text-[#2563EB]" />
                 Common Symptoms
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {condition.symptoms.map((symptom, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-[#00E2B5] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-[#2563EB] shrink-0 mt-0.5" />
                     <span className="text-sm">{symptom}</span>
                   </div>
                 ))}
@@ -824,8 +824,8 @@ export default async function ConditionPage({ params }: PageProps) {
               <div className="grid gap-4 sm:grid-cols-2">
                 {condition.howWeHelp.map((step, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-background border">
-                    <div className="h-7 w-7 rounded-full bg-[#00E2B5]/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-bold text-[#00E2B5]">{i + 1}</span>
+                    <div className="h-7 w-7 rounded-full bg-[#2563EB]/10 flex items-center justify-center shrink-0">
+                      <span className="text-sm font-bold text-[#2563EB]">{i + 1}</span>
                     </div>
                     <span className="text-sm">{step}</span>
                   </div>
@@ -833,11 +833,11 @@ export default async function ConditionPage({ params }: PageProps) {
               </div>
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#00E2B5]" />
+                  <Clock className="h-4 w-4 text-[#2563EB]" />
                   <span>Usually under 1 hour</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Shield className="h-4 w-4 text-[#00E2B5]" />
+                  <Shield className="h-4 w-4 text-[#2563EB]" />
                   <span>AHPRA-registered doctors</span>
                 </div>
               </div>
@@ -888,7 +888,7 @@ export default async function ConditionPage({ params }: PageProps) {
               <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
               <p className="text-muted-foreground mb-6">{condition.pricing.price} — reviewed by Australian doctors</p>
               <Link href={condition.ctaHref}>
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                   {condition.ctaText}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -904,7 +904,7 @@ export default async function ConditionPage({ params }: PageProps) {
                   Related:{" "}
                   {condition.relatedConditions.map((slug, i) => (
                     <span key={slug}>
-                      <Link href={`/conditions/${slug}`} className="text-[#00E2B5] hover:underline">
+                      <Link href={`/conditions/${slug}`} className="text-[#2563EB] hover:underline">
                         {conditions[slug]?.name || slug}
                       </Link>
                       {i < condition.relatedConditions.length - 1 && " • "}

@@ -442,7 +442,7 @@ export function RequestDetailClient({
           <p className="text-sm text-muted-foreground mt-1">Submitted {formatDate(request.created_at)}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge className="bg-[#00E2B5]/10 text-[#00E2B5] border-0">{formatCategory(request.category)}</Badge>
+          <Badge className="bg-[#2563EB]/10 text-[#2563EB] border-0">{formatCategory(request.category)}</Badge>
           <Badge variant="outline">{formatSubtype(request.subtype)}</Badge>
           <Badge
             className={
@@ -495,9 +495,9 @@ export function RequestDetailClient({
       )}
 
       {existingDocument && (
-        <div className="flex items-center justify-between p-4 rounded-xl bg-[#00E2B5]/10 border border-[#00E2B5]/20">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20">
           <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-[#00E2B5]" />
+            <CheckCircle className="h-5 w-5 text-[#2563EB]" />
             <span className="text-sm font-medium">Certificate has been generated</span>
           </div>
           <Button
@@ -515,7 +515,7 @@ export function RequestDetailClient({
       {/* Patient Summary Card */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <User className="h-5 w-5 text-[#00E2B5]" />
+          <User className="h-5 w-5 text-[#2563EB]" />
           <h2 className="text-lg font-semibold">Patient Summary</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -622,7 +622,7 @@ export function RequestDetailClient({
       {/* Request Answers */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <FileText className="h-5 w-5 text-[#00E2B5]" />
+          <FileText className="h-5 w-5 text-[#2563EB]" />
           <h2 className="text-lg font-semibold">Questionnaire Responses</h2>
         </div>
         <div className="space-y-6">
@@ -705,7 +705,7 @@ export function RequestDetailClient({
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-[#00E2B5]" />
+            <MessageSquare className="h-5 w-5 text-[#2563EB]" />
             <h2 className="text-lg font-semibold">Clinical Notes</h2>
             <span className="text-xs text-muted-foreground">(Private - not visible to patient)</span>
           </div>

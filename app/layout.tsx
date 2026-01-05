@@ -169,7 +169,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <html
         lang="en"
         className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}

@@ -81,7 +81,7 @@ const colorConfig: Record<string, {
     chipColor: 'danger'
   },
   violet: { 
-    accent: '#8B5CF6', 
+    accent: '#4f46e5', 
     light: 'rgba(139, 92, 246, 0.06)', 
     gradient: 'from-violet-400 to-purple-500',
     chipColor: 'secondary'

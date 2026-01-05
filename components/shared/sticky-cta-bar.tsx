@@ -62,7 +62,7 @@ export function StickyCTABar() {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white flex items-center gap-1.5 truncate">
-              <Zap className="w-4 h-4 text-[#00E2B5] shrink-0" />
+              <Zap className="w-4 h-4 text-[#2563EB] shrink-0" />
               {config.name}
             </p>
             <p className="text-xs text-white/60">From {config.price} · Under 1 hour</p>

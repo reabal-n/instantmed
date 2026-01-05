@@ -10,13 +10,13 @@ const stats = [
     icon: Users,
     value: "10,000+",
     label: "Aussies helped",
-    color: "#00E2B5",
+    color: "#2563EB",
   },
   {
     icon: Clock,
     value: "45 min",
     label: "Average response",
-    color: "#06B6D4",
+    color: "#4f46e5",
   },
   {
     icon: Star,
@@ -44,7 +44,7 @@ export function StatsSection() {
   return (
     <section className="px-4 py-16 sm:py-24 relative overflow-hidden">
       {/* Background with gradient */}
-      <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/5 via-transparent to-[#8B5CF6]/5" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#2563EB]/5 via-transparent to-[#4f46e5]/5" />
       
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -133,7 +133,7 @@ export function StatsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Trusted by{" "}
-                <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
                   thousands
                 </span>{" "}
                 of Australians
@@ -181,7 +181,7 @@ export function StatsSection() {
                       className="rounded-full border-2 border-white dark:border-gray-800 shadow-sm"
                     />
                   ))}
-                  <div className="w-10 h-10 rounded-full bg-[#00E2B5] flex items-center justify-center border-2 border-white dark:border-gray-800 text-white text-xs font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center border-2 border-white dark:border-gray-800 text-white text-xs font-bold">
                     +2k
                   </div>
                 </div>

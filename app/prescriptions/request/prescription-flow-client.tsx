@@ -94,10 +94,10 @@ const RX_TYPES = [
 
 // Conditions with icons for AnimatedSelect
 const CONDITIONS = [
-  { id: "mental_health", label: "Mental health", icon: Brain, color: "#8B5CF6" },
+  { id: "mental_health", label: "Mental health", icon: Brain, color: "#4f46e5" },
   { id: "cardiovascular", label: "Blood pressure / heart", icon: Heart, color: "#EF4444" },
   { id: "diabetes", label: "Diabetes", icon: Droplets, color: "#3B82F6" },
-  { id: "respiratory", label: "Asthma / respiratory", icon: Wind, color: "#06B6D4" },
+  { id: "respiratory", label: "Asthma / respiratory", icon: Wind, color: "#4f46e5" },
   { id: "contraceptive", label: "Contraception", icon: Shield, color: "#EC4899" },
   { id: "infection", label: "Infection", icon: Bug, color: "#F59E0B" },
   { id: "skin", label: "Skin condition", icon: Sparkles, color: "#10B981" },
@@ -738,7 +738,7 @@ export function PrescriptionFlowClient({
       particleCount: 100,
       spread: 70,
       origin: { x: 0.5, y: 0.6 },
-      colors: ["#00E2B5", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981"],
+      colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
     })
 
     setIsSubmitting(true)

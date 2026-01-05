@@ -209,7 +209,7 @@ export function PathologyDocumentBuilderClient({
           <p className="text-sm text-muted-foreground mt-1">Build and preview the referral form before generating</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className="bg-[#00E2B5]/10 text-[#00E2B5] border-0">{formatCategory(request.category)}</Badge>
+          <Badge className="bg-[#2563EB]/10 text-[#2563EB] border-0">{formatCategory(request.category)}</Badge>
           <Badge variant="outline" className="flex items-center gap-1">
             {isBloodTest ? <FlaskConical className="h-3 w-3" /> : <ScanLine className="h-3 w-3" />}
             {isBloodTest ? "Blood Tests" : "Imaging"}
@@ -264,9 +264,9 @@ export function PathologyDocumentBuilderClient({
 
       {/* Already generated notice */}
       {generatedPdfUrl && !savedMessage && (
-        <div className="flex items-center justify-between p-4 rounded-xl bg-[#00E2B5]/10 border border-[#00E2B5]/20">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20">
           <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-[#00E2B5]" />
+            <CheckCircle className="h-5 w-5 text-[#2563EB]" />
             <span className="text-sm font-medium">Referral form has been generated</span>
           </div>
           <Button
@@ -288,7 +288,7 @@ export function PathologyDocumentBuilderClient({
           {/* Referral Type Toggle */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-5 w-5 text-[#00E2B5]" />
+              <FileText className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Referral Type</h2>
             </div>
             <div className="flex gap-2">
@@ -314,7 +314,7 @@ export function PathologyDocumentBuilderClient({
           {/* Patient Details */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <User className="h-5 w-5 text-[#00E2B5]" />
+              <User className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Patient Details</h2>
             </div>
             <div className="space-y-4">
@@ -356,9 +356,9 @@ export function PathologyDocumentBuilderClient({
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
               {isBloodTest ? (
-                <FlaskConical className="h-5 w-5 text-[#00E2B5]" />
+                <FlaskConical className="h-5 w-5 text-[#2563EB]" />
               ) : (
-                <ScanLine className="h-5 w-5 text-[#00E2B5]" />
+                <ScanLine className="h-5 w-5 text-[#2563EB]" />
               )}
               <h2 className="text-lg font-semibold">{isBloodTest ? "Pathology Details" : "Imaging Details"}</h2>
             </div>
@@ -438,7 +438,7 @@ export function PathologyDocumentBuilderClient({
           {/* Doctor Details */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Stethoscope className="h-5 w-5 text-[#00E2B5]" />
+              <Stethoscope className="h-5 w-5 text-[#2563EB]" />
               <h2 className="text-lg font-semibold">Doctor Details</h2>
             </div>
             <div className="space-y-4">

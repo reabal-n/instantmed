@@ -24,7 +24,7 @@ const conditions: Condition[] = [
     tagline: "For when you're actually sick.",
     price: "$29",
     href: "/medical-certificate",
-    color: "#00E2B5",
+    color: "#2563EB",
     popular: true,
   },
   {
@@ -44,7 +44,7 @@ const conditions: Condition[] = [
     tagline: "Feeling like garbage? Same.",
     price: "$39",
     href: "/prescriptions",
-    color: "#06B6D4",
+    color: "#4f46e5",
   },
   {
     id: "uti",
@@ -71,7 +71,7 @@ const conditions: Condition[] = [
     tagline: "Fighting the inevitable.",
     price: "$39",
     href: "/mens-health?condition=hair-loss",
-    color: "#8B5CF6",
+    color: "#4f46e5",
   },
   {
     id: "contraception",

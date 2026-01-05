@@ -177,7 +177,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 Back to Blog
               </Link>
 
-              <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-[#00E2B5]/10 text-[#00E2B5] mb-4">
+              <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB] mb-4">
                 {post.category}
               </span>
 

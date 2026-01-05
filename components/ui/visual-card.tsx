@@ -75,7 +75,7 @@ interface DonutVisualProps {
 
 export function DonutVisual({
   mainColor = "#8b5cf6",
-  secondaryColor = "#00E2B5",
+  secondaryColor = "#2563EB",
   gridColor = "#80808015",
   label = "Data Visualization",
   sublabel = "Displaying stats",

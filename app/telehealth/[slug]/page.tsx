@@ -51,7 +51,7 @@ export default async function IntentPage({ params }: PageProps) {
             <h1 className="text-4xl font-bold mb-4">{page.h1}</h1>
             <p className="text-lg text-muted-foreground mb-8">{page.content.intro}</p>
             <Link href={page.conversion.ctaUrl}>
-              <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+              <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                 {page.conversion.primaryCTA}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>

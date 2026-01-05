@@ -7,19 +7,19 @@ const securityCerts = [
     icon: Shield,
     label: "AES-256",
     sublabel: "Encryption",
-    color: "#00E2B5",
+    color: "#2563EB",
   },
   {
     icon: Lock,
     label: "Australian",
     sublabel: "Privacy Act",
-    color: "#06B6D4",
+    color: "#4f46e5",
   },
   {
     icon: Server,
     label: "AU Servers",
     sublabel: "Only",
-    color: "#8B5CF6",
+    color: "#4f46e5",
   },
   {
     icon: FileText,

@@ -11,19 +11,19 @@ const benefits = [
     icon: Clock,
     title: "Done in under an hour",
     description: "Most requests approved within 45 minutes.",
-    color: "#00E2B5",
+    color: "#2563EB",
   },
   {
     icon: PhoneOff,
     title: "No awkward calls",
     description: "Text-based. No video. No phone calls.",
-    color: "#06B6D4",
+    color: "#4f46e5",
   },
   {
     icon: Shield,
     title: "Real Aussie doctors",
     description: "100% AHPRA registered GPs.",
-    color: "#8B5CF6",
+    color: "#4f46e5",
   },
   {
     icon: Smartphone,
@@ -64,7 +64,7 @@ export function BenefitsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Healthcare that{" "}
-                <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
                   fits your life
                 </span>
               </h2>
@@ -114,7 +114,7 @@ export function BenefitsSection() {
                     {/* App content */}
                     <div className="pt-14 px-4 pb-4 h-full overflow-hidden">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-[#00E2B5] flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center">
                           <Zap className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -152,8 +152,8 @@ export function BenefitsSection() {
                       {/* Mock service cards */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="w-8 h-8 rounded-lg bg-[#00E2B5]/10 flex items-center justify-center">
-                            <Smartphone className="h-4 w-4 text-[#00E2B5]" />
+                          <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 flex items-center justify-center">
+                            <Smartphone className="h-4 w-4 text-[#2563EB]" />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium">Prescription</p>
@@ -162,8 +162,8 @@ export function BenefitsSection() {
                           <CheckCircle2 className="h-5 w-5 text-green-500" />
                         </div>
                         <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="w-8 h-8 rounded-lg bg-[#06B6D4]/10 flex items-center justify-center">
-                            <Shield className="h-4 w-4 text-[#06B6D4]" />
+                          <div className="w-8 h-8 rounded-lg bg-[#4f46e5]/10 flex items-center justify-center">
+                            <Shield className="h-4 w-4 text-[#4f46e5]" />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium">Med Certificate</p>
@@ -182,7 +182,7 @@ export function BenefitsSection() {
                   className="absolute -top-4 -right-8 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-xl"
                 >
                   <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-[#00E2B5]" />
+                    <Clock className="h-5 w-5 text-[#2563EB]" />
                     <span className="text-sm font-semibold">45 min avg</span>
                   </div>
                 </motion.div>

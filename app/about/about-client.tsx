@@ -75,13 +75,13 @@ export function AboutClient() {
                   icon: Zap,
                   title: "Speed",
                   description: "We believe healthcare should be fast. Most requests are reviewed within an hour.",
-                  color: "#00E2B5",
+                  color: "#2563EB",
                 },
                 {
                   icon: Shield,
                   title: "Trust",
                   description: "All our doctors are AHPRA-registered and fully licensed to practice in Australia.",
-                  color: "#06B6D4",
+                  color: "#4f46e5",
                 },
                 {
                   icon: Heart,
@@ -138,7 +138,7 @@ export function AboutClient() {
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
                   <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                    <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                     AHPRA-Registered Doctors
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -148,7 +148,7 @@ export function AboutClient() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                    <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                     Australian-Based
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ export function AboutClient() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                    <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                     Privacy-First
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -166,7 +166,7 @@ export function AboutClient() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                    <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                     Patient-Focused
                   </h3>
                   <p className="text-sm text-muted-foreground">

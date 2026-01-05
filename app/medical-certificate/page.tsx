@@ -92,8 +92,8 @@ export default function MedicalCertificatePage() {
         {/* Hero */}
         <section className="relative px-4 py-20 sm:py-28 overflow-hidden">
           {/* Premium gradient orbs */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3" style={{ background: 'radial-gradient(circle, rgba(0,226,181,0.12) 0%, transparent 70%)' }} />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)' }} />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3" style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%)' }} />
 
           <div className="relative mx-auto max-w-4xl text-center">
             <div className="flex items-center justify-center gap-3 mb-6 animate-slide-up">
@@ -145,12 +145,12 @@ export default function MedicalCertificatePage() {
                   href={cert.href}
                   className="group block"
                 >
-                  <div className="glass-card relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-2" style={{ boxShadow: '0 4px 24px rgba(0,226,181,0.08)' }}>
+                  <div className="glass-card relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-2" style={{ boxShadow: '0 4px 24px rgba(37,99,235,0.08)' }}>
                     {/* Top accent */}
-                    <div className="absolute top-0 left-0 right-0 h-1 opacity-60 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(90deg, transparent, #00E2B5, transparent)' }} />
+                    <div className="absolute top-0 left-0 right-0 h-1 opacity-60 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(90deg, transparent, #2563EB, transparent)' }} />
                     
                     {cert.popular && (
-                      <span className="absolute -top-3 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg" style={{ boxShadow: '0 4px 12px rgba(0,226,181,0.3)' }}>
+                      <span className="absolute -top-3 left-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg" style={{ boxShadow: '0 4px 12px rgba(37,99,235,0.3)' }}>
                         Most popular
                       </span>
                     )}

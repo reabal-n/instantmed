@@ -97,9 +97,9 @@ export function DynamicSocialProof() {
         }`}
       >
         {toast && (
-          <div className="glass-card rounded-lg px-3 py-2.5 shadow-lg border border-[#00E2B5]/20 flex items-center gap-2.5 max-w-[300px]">
-            <div className="shrink-0 h-8 w-8 rounded-full bg-[#00E2B5]/10 flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+          <div className="glass-card rounded-lg px-3 py-2.5 shadow-lg border border-[#2563EB]/20 flex items-center gap-2.5 max-w-[300px]">
+            <div className="shrink-0 h-8 w-8 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">
@@ -132,7 +132,7 @@ export function DynamicStatsBar() {
     <section className="px-4 py-3 sm:px-6 bg-[#0A0F1C] overflow-hidden">
       <div className="flex items-center justify-center gap-6 sm:gap-12 text-white/90">
         <div className="flex items-center gap-1.5 whitespace-nowrap">
-          <TrendingUp className="h-4 w-4 text-[#00E2B5]" />
+          <TrendingUp className="h-4 w-4 text-[#2563EB]" />
           <span className="text-sm font-medium">
             <span className="tabular-nums">{todayCount}</span> requests today
           </span>
@@ -142,7 +142,7 @@ export function DynamicStatsBar() {
           <span className="text-sm font-medium">4.9 star rating</span>
         </div>
         <div className="flex items-center gap-2 whitespace-nowrap">
-          <CheckCircle2 className="h-4 w-4 text-[#06B6D4]" />
+          <CheckCircle2 className="h-4 w-4 text-[#4f46e5]" />
           <span className="text-sm font-medium">10,000+ helped</span>
         </div>
       </div>

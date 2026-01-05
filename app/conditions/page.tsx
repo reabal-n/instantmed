@@ -85,7 +85,7 @@ export default function ConditionsPage() {
                       <Link
                         key={condition.slug}
                         href={`/conditions/${condition.slug}`}
-                        className="flex items-center justify-between p-4 rounded-xl border bg-card hover:border-[#00E2B5] transition-colors"
+                        className="flex items-center justify-between p-4 rounded-xl border bg-card hover:border-[#2563EB] transition-colors"
                       >
                         <span className="font-medium">{condition.name}</span>
                         <ArrowRight className="h-4 w-4 text-muted-foreground" />

@@ -15,9 +15,9 @@ interface ConfettiPiece {
 }
 
 const COLORS = [
-  "#00E2B5", // Primary teal
-  "#8B5CF6", // Purple
-  "#06B6D4", // Cyan
+  "#2563EB", // Primary teal
+  "#4f46e5", // Purple
+  "#4f46e5", // Cyan
   "#F59E0B", // Amber
   "#EC4899", // Pink
   "#10B981", // Emerald

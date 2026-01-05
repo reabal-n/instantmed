@@ -134,11 +134,11 @@ export default function FAQPage() {
         {/* Hero */}
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="absolute top-20 left-1/4 w-72 h-72 bg-[#00E2B5]/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-1/4 w-72 h-72 bg-[#2563EB]/10 rounded-full blur-3xl" />
 
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-4 bg-[#00E2B5]/10 text-[#00E2B5] border-0 px-4 py-1.5">
+              <Badge className="mb-4 bg-[#2563EB]/10 text-[#2563EB] border-0 px-4 py-1.5">
                 <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
                 Help Centre
               </Badge>
@@ -150,7 +150,7 @@ export default function FAQPage() {
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
                 Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
-                <Link href="/contact" className="text-[#00E2B5] hover:underline">
+                <Link href="/contact" className="text-[#2563EB] hover:underline">
                   Hit us up
                 </Link>
               </p>

@@ -21,8 +21,8 @@ const services = [
     popular: true,
     features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
-    color: "#00E2B5",
-    gradient: "from-[#00E2B5]/20 to-[#10B981]/20",
+    color: "#2563EB",
+    gradient: "from-[#2563EB]/20 to-[#10B981]/20",
   },
   {
     id: "prescription",
@@ -35,8 +35,8 @@ const services = [
     popular: false,
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
-    color: "#8B5CF6",
-    gradient: "from-[#8B5CF6]/20 to-[#EC4899]/20",
+    color: "#4f46e5",
+    gradient: "from-[#4f46e5]/20 to-[#EC4899]/20",
   },
 ]
 
@@ -52,8 +52,8 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
         
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-[#00E2B5]/20 to-[#06B6D4]/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-[#2563EB]/20 to-[#4f46e5]/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-[#4f46e5]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -64,7 +64,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
-              <span className="bg-linear-to-r from-[#00E2B5] to-[#8B5CF6] bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
                 need?
               </span>
             </h1>
@@ -85,12 +85,12 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Shield className="h-4 w-4 text-[#00E2B5]" />
+                <Shield className="h-4 w-4 text-[#2563EB]" />
                 <span>AHPRA registered</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-[#06B6D4]" />
+                <Clock className="h-4 w-4 text-[#4f46e5]" />
                 <span>45 min average</span>
               </div>
             </div>
@@ -120,7 +120,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           
                           {/* Popular badge */}
                           {service.popular && (
-                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#2563EB] to-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                               <Sparkles className="h-3 w-3" />
                               Most Popular
                             </div>
@@ -183,7 +183,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
           {/* Help Text */}
           <BlurFade delay={0.5}>
             <div className="mt-12 relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-[#10B981]/10 to-[#8B5CF6]/10" />
+              <div className="absolute inset-0 bg-linear-to-r from-[#2563EB]/10 via-[#10B981]/10 to-[#4f46e5]/10" />
               <div className="relative z-10 p-8 text-center">
                 <p className="text-muted-foreground mb-4">
                   Not sure which service you need?

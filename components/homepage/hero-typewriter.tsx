@@ -57,8 +57,8 @@ export function HeroTypewriter() {
     <div className="relative mx-auto max-w-3xl text-center">
       <div className="inline-flex items-center gap-2 rounded-full backdrop-blur-xl bg-white/60 dark:bg-black/40 border border-white/40 dark:border-white/10 px-4 py-1.5 text-xs font-medium mb-6 animate-fade-in">
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E2B5] opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E2B5]" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2563EB] opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2563EB]" />
         </span>
         <span className="text-foreground">Doctors online now</span>
       </div>
@@ -117,8 +117,8 @@ export function HeroTypewriter() {
                   <span className="relative inline-block mr-2">
                     <SparklesText
                       text={part.text}
-                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-linear-to-r from-[#00e2b5] via-[#06B6D4] to-[#8B5CF6] bg-clip-text text-transparent"
-                      colors={{ first: "#00e2b5", second: "#8B5CF6" }}
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold bg-linear-to-r from-[#00e2b5] via-[#4f46e5] to-[#4f46e5] bg-clip-text text-transparent"
+                      colors={{ first: "#00e2b5", second: "#4f46e5" }}
                       sparklesCount={6}
                     />
                   </span>
@@ -146,13 +146,13 @@ export function HeroTypewriter() {
         >
           <Search className="h-5 w-5 text-muted-foreground/60" />
           <span className="text-muted-foreground text-left flex-1">What do you need help with today?</span>
-          <ArrowRight className="h-4 w-4 text-[#00E2B5] group-hover:translate-x-1 transition-all" />
+          <ArrowRight className="h-4 w-4 text-[#2563EB] group-hover:translate-x-1 transition-all" />
         </Link>
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground animate-fade-in-up stagger-3">
         <span className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-[#00E2B5]" />
+          <Sparkles className="h-3.5 w-3.5 text-[#2563EB]" />
           AHPRA-registered doctors
         </span>
         <span className="hidden sm:inline text-border">•</span>

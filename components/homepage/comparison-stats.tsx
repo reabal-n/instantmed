@@ -81,7 +81,7 @@ const ComparisonStats = () => {
             style={{ fontFamily: "var(--font-display)" }}
           >
             Why Aussies choose{" "}
-            <span className="bg-linear-to-r from-[#00E2B5] to-[#06B6D4] bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
               InstantMed
             </span>
           </h2>

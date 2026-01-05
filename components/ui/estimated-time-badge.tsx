@@ -98,8 +98,8 @@ export function EstimatedTimeBadge({
           />
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00E2B5" />
-              <stop offset="100%" stopColor="#06B6D4" />
+              <stop offset="0%" stopColor="#2563EB" />
+              <stop offset="100%" stopColor="#4f46e5" />
             </linearGradient>
           </defs>
         </svg>

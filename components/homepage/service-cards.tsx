@@ -25,7 +25,7 @@ const services: ServiceCard[] = [
     price: "$29",
     time: "~1 hour",
     icon: "medCert",
-    color: "#00E2B5",
+    color: "#2563EB",
     colorLight: "rgba(0, 226, 181, 0.1)",
     badge: "popular",
   },
@@ -36,7 +36,7 @@ const services: ServiceCard[] = [
     price: "$39",
     time: "~1 hour",
     icon: "pill",
-    color: "#06B6D4",
+    color: "#4f46e5",
     colorLight: "rgba(6, 182, 212, 0.1)",
   },
 ]
@@ -68,7 +68,7 @@ export function ServiceCards() {
     <section id="services" className="px-4 py-12 sm:py-16 lg:py-20 bg-mesh">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-10">
-          <span className="inline-block text-xs font-medium text-[#00E2B5] mb-2 uppercase tracking-wide">
+          <span className="inline-block text-xs font-medium text-[#2563EB] mb-2 uppercase tracking-wide">
             Our Services
           </span>
           <h2

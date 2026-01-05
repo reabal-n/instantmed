@@ -275,13 +275,13 @@ export default function PatientRequestDetailPageClient({
 
       {request.status === "approved" && document && (
         <div
-          className="glass-card rounded-2xl p-6 border-2 border-[#00E2B5]/30 bg-[#00E2B5]/5 animate-fade-in-up opacity-0"
+          className="glass-card rounded-2xl p-6 border-2 border-[#2563EB]/30 bg-[#2563EB]/5 animate-fade-in-up opacity-0"
           style={{ animationDelay: "0.18s", animationFillMode: "forwards" }}
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/20">
-                <FileText className="h-6 w-6 text-[#00E2B5]" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/20">
+                <FileText className="h-6 w-6 text-[#2563EB]" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">
@@ -397,7 +397,7 @@ export default function PatientRequestDetailPageClient({
                 <div
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all",
-                    step.completed ? "border-[#00E2B5] bg-[#00E2B5]" : "border-[#0A0F1C]/20 bg-white",
+                    step.completed ? "border-[#2563EB] bg-[#2563EB]" : "border-[#0A0F1C]/20 bg-white",
                   )}
                 >
                   {step.completed ? (
@@ -407,7 +407,7 @@ export default function PatientRequestDetailPageClient({
                   )}
                 </div>
                 {index < timelineSteps.length - 1 && (
-                  <div className={cn("w-0.5 flex-1 mt-2", step.completed ? "bg-[#00E2B5]" : "bg-[#0A0F1C]/10")} />
+                  <div className={cn("w-0.5 flex-1 mt-2", step.completed ? "bg-[#2563EB]" : "bg-[#0A0F1C]/10")} />
                 )}
               </div>
               {/* Content */}
@@ -511,8 +511,8 @@ export default function PatientRequestDetailPageClient({
         style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
       >
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#00E2B5]/10">
-            <MessageSquare className="h-6 w-6 text-[#00E2B5]" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+            <MessageSquare className="h-6 w-6 text-[#2563EB]" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-foreground">Need help?</h3>

@@ -173,9 +173,9 @@ export default async function CityPage({ params }: PageProps) {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#00E2B5]/5 to-transparent">
+          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-[#2563EB]/5 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00E2B5]/10 text-[#00E2B5] text-sm mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 text-[#2563EB] text-sm mb-6">
                 <MapPin className="h-4 w-4" />
                 Serving {cityData.name}, {cityData.state}
               </div>
@@ -189,7 +189,7 @@ export default async function CityPage({ params }: PageProps) {
               </p>
 
               <Link href="/request">
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C] text-base px-8">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C] text-base px-8">
                   Get Started
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -197,15 +197,15 @@ export default async function CityPage({ params }: PageProps) {
 
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#00E2B5]" />
+                  <Clock className="h-4 w-4 text-[#2563EB]" />
                   <span>Usually under 1 hour</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Shield className="h-4 w-4 text-[#00E2B5]" />
+                  <Shield className="h-4 w-4 text-[#2563EB]" />
                   <span>AHPRA-registered</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 text-[#00E2B5]" />
+                  <Star className="h-4 w-4 text-[#2563EB]" />
                   <span>4.9/5 rating</span>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export default async function CityPage({ params }: PageProps) {
               <div className="grid gap-4 sm:grid-cols-2">
                 {services.map((service) => (
                   <Link key={service.href} href={service.href}>
-                    <div className="p-5 rounded-xl border bg-card hover:border-[#00E2B5] transition-colors">
+                    <div className="p-5 rounded-xl border bg-card hover:border-[#2563EB] transition-colors">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-semibold">{service.name}</h3>
@@ -270,8 +270,8 @@ export default async function CityPage({ params }: PageProps) {
                   { step: "3", title: "Get your result", desc: "Certificate, script, or referral sent to your phone" },
                 ].map((item) => (
                   <div key={item.step} className="text-center p-4">
-                    <div className="h-10 w-10 rounded-full bg-[#00E2B5]/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-[#00E2B5]">{item.step}</span>
+                    <div className="h-10 w-10 rounded-full bg-[#2563EB]/10 flex items-center justify-center mx-auto mb-3">
+                      <span className="font-bold text-[#2563EB]">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
@@ -295,7 +295,7 @@ export default async function CityPage({ params }: PageProps) {
                   "Reviewed by real Australian doctors",
                 ].map((benefit, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background">
-                    <CheckCircle2 className="h-5 w-5 text-[#00E2B5] shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-[#2563EB] shrink-0" />
                     <span className="text-sm">{benefit}</span>
                   </div>
                 ))}
@@ -311,7 +311,7 @@ export default async function CityPage({ params }: PageProps) {
                 Join thousands of {cityData.name} residents who trust InstantMed for their telehealth needs.
               </p>
               <Link href="/request">
-                <Button size="lg" className="bg-[#00E2B5] hover:bg-[#00E2B5]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                   Start Your Request
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -329,7 +329,7 @@ export default async function CityPage({ params }: PageProps) {
                   .slice(0, 5)
                   .map((c, i, arr) => (
                     <span key={c.slug}>
-                      <Link href={`/locations/${c.slug}`} className="text-[#00E2B5] hover:underline">
+                      <Link href={`/locations/${c.slug}`} className="text-[#2563EB] hover:underline">
                         {c.name}
                       </Link>
                       {i < arr.length - 1 && " • "}

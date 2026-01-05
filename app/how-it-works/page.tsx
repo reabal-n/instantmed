@@ -35,7 +35,7 @@ const steps = [
     description:
       "Pick your service and answer a few quick questions. We collect the information a doctor needs to properly assess your request.",
     icon: ClipboardList,
-    color: "from-blue-500 to-cyan-500",
+    color: "from-blue-500 to-blue-600",
     emoji: "📝",
   },
   {
@@ -45,7 +45,7 @@ const steps = [
     description:
       "An Australian GP reviews your request and medical history. If they need more information, they'll reach out to you directly.",
     icon: UserCheck,
-    color: "from-purple-500 to-pink-500",
+    color: "from-blue-600 to-indigo-600",
     emoji: "👨‍⚕️",
   },
   {
@@ -55,7 +55,7 @@ const steps = [
     description:
       "If approved: Med cert emailed as PDF. Script sent as e-prescription to any pharmacy. If not approved, you get a full refund.",
     icon: FileCheck,
-    color: "from-indigo-500 to-violet-500",
+    color: "from-indigo-600 to-blue-600",
     emoji: "✅",
   },
 ]

@@ -37,7 +37,7 @@ export function CTASection() {
         >
           <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
             <GradientBorderChase 
-              colors={['#00E2B5', '#06B6D4', '#8B5CF6', '#EC4899', '#00E2B5']}
+              colors={['#2563EB', '#4f46e5', '#4f46e5', '#EC4899', '#2563EB']}
               duration={4}
               borderWidth={2}
               borderRadius="1.5rem"

@@ -14,8 +14,8 @@ export function GlassCard({ children, className, hover = true }: GlassCardProps)
         "relative rounded-2xl backdrop-blur-xl",
         "bg-white/10 dark:bg-black/20",
         "border border-white/20 dark:border-white/10",
-        "shadow-[0_8px_32px_0_rgba(139,92,246,0.1)]",
-        hover && "transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_32px_0_rgba(139,92,246,0.2)]",
+        "shadow-[0_8px_32px_0_rgba(79,70,229,0.1)]",
+        hover && "transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_32px_0_rgba(79,70,229,0.2)]",
         className,
       )}
     >

@@ -18,8 +18,8 @@ const services = [
     icon: FileText,
     title: "Medical Certificate",
     description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
-    color: "#00E2B5",
-    gradient: "from-[#00E2B5]/20 to-[#06B6D4]/20",
+    color: "#2563EB",
+    gradient: "from-[#2563EB]/20 to-[#4f46e5]/20",
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     href: "/medical-certificate",
     price: "$29",
@@ -28,8 +28,8 @@ const services = [
     icon: Pill,
     title: "Prescription",
     description: "Need your regular medications? We&apos;ll send a script to your pharmacy.",
-    color: "#06B6D4",
-    gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
+    color: "#4f46e5",
+    gradient: "from-[#4f46e5]/20 to-[#4f46e5]/20",
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
     href: "/prescriptions",
     price: "$39",
@@ -47,7 +47,7 @@ export function FeaturesSection() {
       
       {/* Animated background blobs */}
       <motion.div
-        className="absolute top-0 right-0 w-[500px] h-[500px] bg-linear-to-br from-[#00E2B5]/10 to-[#06B6D4]/10 rounded-full blur-3xl"
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-linear-to-br from-[#2563EB]/10 to-[#4f46e5]/10 rounded-full blur-3xl"
         animate={{
           x: [0, 50, 0],
           y: [0, -30, 0],
@@ -56,7 +56,7 @@ export function FeaturesSection() {
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-linear-to-br from-[#8B5CF6]/10 to-[#EC4899]/10 rounded-full blur-3xl"
+        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-linear-to-br from-[#4f46e5]/10 to-[#EC4899]/10 rounded-full blur-3xl"
         animate={{
           x: [0, -30, 0],
           y: [0, 50, 0],
@@ -83,7 +83,7 @@ export function FeaturesSection() {
               <SparklesText
                 text="What you get"
                 className="text-3xl sm:text-4xl lg:text-5xl"
-                colors={{ first: "#00E2B5", second: "#8B5CF6" }}
+                colors={{ first: "#2563EB", second: "#4f46e5" }}
                 sparklesCount={8}
               />
             </TextRevealLine>
@@ -154,11 +154,11 @@ export function FeaturesSection() {
                           
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1.5">
-                              <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                               1 hour approval
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <CheckCircle2 className="h-4 w-4 text-[#00E2B5]" />
+                              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
                               No calls needed
                             </span>
                           </div>
