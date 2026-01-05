@@ -13,6 +13,11 @@ const prefersReducedMotion =
     ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
     : false
 
+// Helper function for reduced motion check
+function getPrefersReducedMotion(): boolean {
+  return prefersReducedMotion
+}
+
 // Duration constants
 export const durations = {
   fast: 0.15, // 150ms - snappy interactions

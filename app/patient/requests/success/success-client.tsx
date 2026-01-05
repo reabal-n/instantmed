@@ -37,7 +37,7 @@ export function SuccessPageClient({ requestId, children }: SuccessPageClientProp
 
   return (
     <>
-      <Confetti trigger={showConfetti} duration={2500} particleCount={80} />
+      <Confetti trigger={showConfetti} options={{ particleCount: 80 }} />
 
       <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-3xl p-8 text-center shadow-lg">
         {/* Animated checkmark */}

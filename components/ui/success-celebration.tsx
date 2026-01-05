@@ -44,7 +44,7 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
 
   return (
     <>
-      {showConfetti && <Confetti trigger={confettiTrigger} duration={1500} particleCount={30} />}
+      {showConfetti && <Confetti trigger={confettiTrigger} options={{ particleCount: 30 }} />}
 
       <div className="max-w-md mx-auto text-center">
         {/* Animated checkmark */}
