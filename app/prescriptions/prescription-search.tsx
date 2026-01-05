@@ -36,7 +36,7 @@ export function PrescriptionSearch() {
   }, [])
 
   const handleSelect = (med: Medication) => {
-    router.push(`/prescriptions/med/${med.slug}`)
+    router.push(`/prescriptions/med/${med.id}`)
     setIsOpen(false)
     setQuery("")
   }
@@ -90,7 +90,7 @@ export function PrescriptionSearch() {
         <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-xl shadow-lg overflow-hidden z-50">
           {results.map((med, i) => (
             <button
-              key={med.slug}
+              key={med.id}
               onClick={() => handleSelect(med)}
               className={`w-full flex items-center gap-3 p-3 text-left hover:bg-muted transition-colors ${
                 i === selectedIndex ? "bg-muted" : ""
