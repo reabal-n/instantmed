@@ -70,23 +70,19 @@ function DialogContent({
 }: React.ComponentProps<typeof ModalContent> & {
   showCloseButton?: boolean
 }) {
-  const isOpen = props.isOpen ?? false
-  
   return (
-    <FocusTrap active={isOpen} onEscape={() => props.onClose?.()}>
-      <ModalContent
-        className={cn(
-          "bg-background border border-default-100",
-          // Mobile optimizations
-          "max-h-[90vh] overflow-y-auto",
-          "md:rounded-2xl",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </ModalContent>
-    </FocusTrap>
+    <ModalContent
+      className={cn(
+        "bg-background border border-default-100",
+        // Mobile optimizations
+        "max-h-[90vh] overflow-y-auto",
+        "md:rounded-2xl",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </ModalContent>
   )
 }
 

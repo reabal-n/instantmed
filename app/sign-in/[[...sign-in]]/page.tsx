@@ -3,8 +3,61 @@
 import { SignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle } from 'lucide-react'
+import { Suspense } from 'react'
 
 export const dynamic = "force-dynamic"
+
+function SignInForm() {
+  return (
+    <div className="w-full min-h-[400px] flex items-center justify-center">
+      <SignIn 
+        signUpUrl="/sign-up"
+        routing="path"
+        path="/sign-in"
+        appearance={{
+          elements: {
+            rootBox: "w-full",
+            card: "shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl",
+            headerTitle: "text-foreground",
+            headerSubtitle: "text-muted-foreground",
+            formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11",
+            formFieldInput: "rounded-xl border-border focus:border-primary focus:ring-primary",
+            footerActionLink: "text-primary hover:text-primary/80",
+            dividerLine: "bg-border",
+            dividerText: "text-muted-foreground",
+            socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl h-11 text-base",
+            socialButtonsBlockButtonText: "text-foreground font-medium",
+            identityPreviewEditButton: "text-primary",
+            formFieldLabel: "text-foreground",
+            footerActionText: "text-muted-foreground",
+          },
+          layout: {
+            socialButtonsPlacement: "top",
+            socialButtonsVariant: "blockButton",
+          }
+        }}
+      />
+    </div>
+  )
+}
+
+function SignInLoading() {
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded-lg w-3/4"></div>
+          <div className="h-4 bg-muted rounded-lg w-1/2"></div>
+          <div className="space-y-3 pt-4">
+            <div className="h-11 bg-muted rounded-xl"></div>
+            <div className="h-11 bg-muted rounded-xl"></div>
+            <div className="h-11 bg-muted rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function SignInPage() {
   return (
@@ -68,33 +121,9 @@ export default function SignInPage() {
               </Link>
             </div>
             
-            <SignIn 
-              signUpUrl="/sign-up"
-              routing="path"
-              path="/sign-in"
-              appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  card: "shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl",
-                  headerTitle: "text-foreground",
-                  headerSubtitle: "text-muted-foreground",
-                  formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11",
-                  formFieldInput: "rounded-xl border-border focus:border-primary focus:ring-primary",
-                  footerActionLink: "text-primary hover:text-primary/80",
-                  dividerLine: "bg-border",
-                  dividerText: "text-muted-foreground",
-                  socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl h-11 text-base",
-                  socialButtonsBlockButtonText: "text-foreground font-medium",
-                  identityPreviewEditButton: "text-primary",
-                  formFieldLabel: "text-foreground",
-                  footerActionText: "text-muted-foreground",
-                },
-                layout: {
-                  socialButtonsPlacement: "top",
-                  socialButtonsVariant: "blockButton",
-                }
-              }}
-            />
+            <Suspense fallback={<SignInLoading />}>
+              <SignInForm />
+            </Suspense>
             
             {/* Mobile trust strip */}
             <div className="lg:hidden mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground">

@@ -4,8 +4,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardBody, CardFooter, Chip } from '@heroui/react'
-import { SpotlightReveal, NeonGlow } from '@/components/ui/glowing-effect'
-import { GlowCard } from '@/components/ui/spotlight-card'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 
@@ -158,15 +156,10 @@ export function HealthCategories() {
             return (
               <motion.div key={category.id} variants={itemVariants}>
                 <Link href={category.href} className="group block h-full">
-                  <GlowCard
-                    glowColor={category.color === 'blue' ? 'blue' : category.color === 'pink' ? 'red' : category.color === 'violet' ? 'purple' : category.color === 'teal' ? 'green' : 'purple'}
-                    customSize={true}
-                    className="h-full w-full"
-                  >
                     <Card 
                       isHoverable
                       isPressable
-                      className="h-full bg-content1 border border-divider overflow-hidden hover:border-transparent"
+                      className="h-full bg-content1 border border-divider overflow-hidden hover:border-primary/50 transition-colors"
                       shadow="sm"
                     >
                         <CardBody className="p-0">
@@ -223,7 +216,6 @@ export function HealthCategories() {
                           </motion.div>
                         </CardFooter>
                       </Card>
-                    </GlowCard>
                 </Link>
               </motion.div>
             )

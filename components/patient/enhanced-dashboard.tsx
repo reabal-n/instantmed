@@ -21,6 +21,7 @@ import {
 import { Button, Input, Badge } from "@/components/uix"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EmptyState as EnhancedEmptyState } from "@/components/ui/empty-state"
+import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Request {
@@ -522,7 +523,7 @@ function EmptyState({
 }: {
   title: string
   description?: string
-  icon: React.ElementType
+  icon: LucideIcon
 }) {
   return (
     <EnhancedEmptyState

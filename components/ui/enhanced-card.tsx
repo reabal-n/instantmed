@@ -2,7 +2,6 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { GlowCard } from "@/components/ui/glow-card";
 import { Spotlight } from "@/components/ui/glowing-effect";
 
 interface EnhancedCardProps {
@@ -36,14 +35,6 @@ export function EnhancedCard({
       {children}
     </div>
   );
-
-  if (useGlowCard) {
-    return (
-      <GlowCard glowColor={glowColor} customSize className={className}>
-        {children}
-      </GlowCard>
-    );
-  }
 
   if (useSpotlight) {
     const spotlightColors = {

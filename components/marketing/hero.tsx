@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Shield, Lock, DollarSign, Clock, ArrowRight, FileText, Stethoscope, CheckCircle, Pill } from 'lucide-react'
 import { Button } from "@heroui/react"
 import { RotatingText } from './rotating-text'
@@ -51,7 +52,7 @@ export function Hero() {
 
             {/* Headline */}
             <motion.h1 
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 spacing-premium"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-3 leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -68,7 +69,7 @@ export function Hero() {
 
             {/* Subtext */}
             <motion.p 
-              className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+              className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -127,83 +128,66 @@ export function Hero() {
             </motion.div>
           </div>
 
-          {/* Right side - Visual */}
+          {/* Right side - Visual with authentic image */}
           <motion.div 
             className="relative hidden lg:block"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className="relative w-full aspect-square max-w-[480px] mx-auto">
-              {/* Background gradient */}
-              <div className="absolute inset-12 rounded-full bg-linear-to-br from-primary/10 via-secondary/5 to-primary/10" />
-              
-              {/* Floating cards */}
-              <motion.div 
-                className="absolute top-8 left-0"
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <HolographicCard borderRadius="1rem" intensity={0.6}>
-                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Request submitted</p>
-                        <p className="text-xs text-muted-foreground">Just now</p>
-                      </div>
-                    </div>
-                  </div>
-                </HolographicCard>
-              </motion.div>
-              
-              <motion.div 
-                className="absolute top-1/3 right-0"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              >
-                <HolographicCard borderRadius="1rem" intensity={0.6}>
-                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border border-divider">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                        <Stethoscope className="w-5 h-5 text-secondary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">GP reviewing</p>
-                        <p className="text-xs text-muted-foreground">Dr. Sarah M.</p>
+            <div className="relative w-full aspect-square max-w-[500px] mx-auto">
+              {/* Main hero image */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20">
+                <Image
+                  src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=600&fit=crop&q=80"
+                  alt="Healthcare professional reviewing medical documents on tablet"
+                  width={600}
+                  height={600}
+                  className="w-full h-full object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-900/20 via-transparent to-transparent" />
+                
+                {/* Overlay cards for context */}
+                <motion.div 
+                  className="absolute top-6 left-6"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <HolographicCard borderRadius="1rem" intensity={0.6}>
+                    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-white/20">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-slate-900">Request submitted</p>
+                          <p className="text-xs text-slate-600">Just now</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </HolographicCard>
-              </motion.div>
-              
-              <motion.div 
-                className="absolute bottom-12 left-8"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              >
-                <PulseGlow color="#22c55e" duration={2} scale={1.03}>
-                  <div className="bg-content1 rounded-2xl p-4 shadow-xl border-2 border-success">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-success" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-success">Approved ✓</p>
-                        <p className="text-xs text-muted-foreground">12 min total</p>
+                  </HolographicCard>
+                </motion.div>
+                
+                <motion.div 
+                  className="absolute bottom-6 right-6"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                >
+                  <PulseGlow color="#22c55e" duration={2} scale={1.03}>
+                    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border-2 border-emerald-500">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-emerald-700">Approved ✓</p>
+                          <p className="text-xs text-slate-600">12 min total</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </PulseGlow>
-              </motion.div>
-              
-              {/* Center icon */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-2xl shadow-primary/30">
-                  <Pill className="w-10 h-10 text-white" />
-                </div>
+                  </PulseGlow>
+                </motion.div>
               </div>
             </div>
           </motion.div>

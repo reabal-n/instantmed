@@ -6,8 +6,6 @@ import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
-import { GradientBorderChase, MagneticCard } from '@/components/ui/glowing-effect'
-import { GlowCard } from '@/components/ui/spotlight-card'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -116,15 +114,10 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
-                  <GlowCard
-                    glowColor={service.color === 'emerald' ? 'green' : service.color === 'cyan' ? 'blue' : 'purple'}
-                    customSize={true}
-                    className="h-full w-full"
-                  >
                     <Card 
                       isHoverable
                       isPressable
-                      className="h-full bg-content1 border-0 overflow-hidden"
+                      className="h-full bg-content1 border border-divider overflow-hidden hover:border-primary/50 transition-colors"
                       shadow="sm"
                     >
                     <CardBody className="p-0">
@@ -204,7 +197,6 @@ export function ServicePicker() {
                       </motion.div>
                     </CardFooter>
                   </Card>
-                  </GlowCard>
                 </Link>
               </motion.div>
             )

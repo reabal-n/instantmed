@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface LiveRegionProps {
@@ -56,9 +56,11 @@ export function LiveRegion({
  */
 export function useAnnouncement() {
   const [announcement, setAnnouncement] = useState<string | undefined>()
+  const [priority, setPriority] = useState<"polite" | "assertive">("polite")
 
-  const announce = useCallback((message: string, priority: "polite" | "assertive" = "polite") => {
+  const announce = useCallback((message: string, messagePriority: "polite" | "assertive" = "polite") => {
     setAnnouncement(message)
+    setPriority(messagePriority)
     // Clear after announcement
     setTimeout(() => setAnnouncement(undefined), 1000)
   }, [])

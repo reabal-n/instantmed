@@ -42,6 +42,7 @@ import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("prescription-flow-client")
 

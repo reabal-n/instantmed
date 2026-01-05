@@ -76,8 +76,8 @@ export const medicalCertificatesConfig: ServiceConfig = {
   
   heroTitle: 'Get a medical certificate without the waiting room',
   heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email — typically within an hour.',
-  heroImage: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&h=500&fit=crop',
-  heroImageAlt: 'Person receiving medical certificate on laptop',
+  heroImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=500&fit=crop&q=80',
+  heroImageAlt: 'Healthcare professional reviewing medical documents on tablet',
   
   proofMetrics: [
     { label: 'Typical turnaround', value: '< 1 hour', icon: 'Zap' },
@@ -178,8 +178,8 @@ export const weightLossConfig: ServiceConfig = {
   
   heroTitle: 'A doctor-guided approach to weight management',
   heroSubtitle: 'Complete a comprehensive health assessment, and a doctor will review your goals. If suitable, you\'ll receive a personalised plan — which may include medication, lifestyle guidance, or both.',
-  heroImage: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=500&fit=crop',
-  heroImageAlt: 'Person tracking health goals on phone',
+  heroImage: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=500&fit=crop&q=80',
+  heroImageAlt: 'Doctor and patient discussing health and wellness plan',
   
   proofMetrics: [
     { label: 'Initial consult', value: '~2 hours', icon: 'Clock' },
@@ -278,8 +278,8 @@ export const mensHealthConfig: ServiceConfig = {
   
   heroTitle: 'Discreet men\'s health care, from home',
   heroSubtitle: 'Complete a confidential questionnaire, and a doctor reviews your request. If treatment is appropriate, prescriptions are sent directly to your pharmacy — discreetly packaged.',
-  heroImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=500&fit=crop',
-  heroImageAlt: 'Man using telehealth on phone',
+  heroImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=600&h=500&fit=crop&q=80',
+  heroImageAlt: 'Healthcare professional providing confidential consultation',
   
   proofMetrics: [
     { label: 'Turnaround', value: '~1 hour', icon: 'Clock' },
@@ -380,8 +380,8 @@ export const commonScriptsConfig: ServiceConfig = {
   
   heroTitle: 'Renew your prescription from home',
   heroSubtitle: 'Tell us about your medication, answer a few safety questions, and a doctor reviews your request. If appropriate, your script is sent straight to your pharmacy.',
-  heroImage: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&h=500&fit=crop',
-  heroImageAlt: 'Prescription being sent to pharmacy',
+  heroImage: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=500&fit=crop&q=80',
+  heroImageAlt: 'Pharmacist preparing prescription medication',
   
   proofMetrics: [
     { label: 'Turnaround', value: '~1 hour', icon: 'Clock' },

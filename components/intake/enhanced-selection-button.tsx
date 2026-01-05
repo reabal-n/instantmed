@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 interface EnhancedSelectionButtonProps {
   selected: boolean
   onClick: () => void
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
   variant?: "default" | "chip" | "card" | "option"
   icon?: React.ElementType

@@ -1721,7 +1721,7 @@ export function EnhancedIntakeFlow({
 
   // Announce validation errors
   useEffect(() => {
-    const errorKeys = Object.keys(errors)
+    const errorKeys = Object.keys(errors) as Array<keyof IntakeState>
     if (errorKeys.length > 0) {
       const firstError = errors[errorKeys[0]]
       if (firstError) {
