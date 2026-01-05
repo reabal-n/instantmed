@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { XCircle, ArrowLeft } from "lucide-react"
 import { RetryPaymentButton } from "./retry-payment-button"
+import { PaymentCancelledTracker } from "./payment-cancelled-tracker"
 
 export default async function PaymentCancelledPage({
   searchParams,
@@ -13,6 +14,8 @@ export default async function PaymentCancelledPage({
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
+      {/* Track payment cancelled event */}
+      <PaymentCancelledTracker requestId={requestId} />
       <div className="max-w-lg mx-auto px-4">
         <div className="glass-card rounded-3xl p-8 text-center">
           {/* Cancelled Icon */}

@@ -22,6 +22,7 @@ import {
   useHydrateFlowStore,
 } from '@/lib/flow'
 import type { FlowConfig, FlowStepId } from '@/lib/flow'
+import posthog from 'posthog-js'
 
 function StartFlowContent() {
   const router = useRouter()
@@ -94,6 +95,13 @@ function StartFlowContent() {
   const [eligibilityReason, setEligibilityReason] = useState('')
 
   const handleEligibilityFail = (reason: string) => {
+    // Track eligibility failure in PostHog
+    posthog.capture('eligibility_failed', {
+      service_slug: serviceSlug,
+      service_name: config?.serviceName,
+      failure_reason: reason,
+    })
+
     setEligibilityReason(reason)
     setShowEligibilityFail(true)
   }

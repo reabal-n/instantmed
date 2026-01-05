@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Sparkles,
 } from "lucide-react"
+import posthog from "posthog-js"
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare, emoji: "💬" },
@@ -38,9 +39,21 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
+
+    const formData = new FormData(e.currentTarget)
+
+    // Track contact form submission in PostHog
+    posthog.capture('contact_form_submitted', {
+      contact_reason: selectedReason,
+      has_name: !!formData.get('name'),
+      has_email: !!formData.get('email'),
+      has_subject: !!formData.get('subject'),
+      has_message: !!formData.get('message'),
+    })
+
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setIsSubmitting(false)
     setIsSubmitted(true)

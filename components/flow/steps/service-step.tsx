@@ -5,6 +5,7 @@ import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight } fr
 import { FlowContent } from '../flow-content'
 import { useFlowStore, useFlowService, serviceCategories } from '@/lib/flow'
 import { cn } from '@/lib/utils'
+import posthog from 'posthog-js'
 
 // Icon mapping
 const ICONS: Record<string, React.ElementType> = {
@@ -41,9 +42,20 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
   const { setServiceSlug, nextStep } = useFlowStore()
 
   const handleSelect = (slug: string) => {
+    const selectedService = serviceCategories.find(s => s.slug === slug)
+
+    // Track service selection in PostHog
+    posthog.capture('service_selected', {
+      service_slug: slug,
+      service_name: selectedService?.name,
+      service_price: selectedService?.price,
+      service_category: selectedService?.slug,
+      is_popular: selectedService?.popular ?? false,
+    })
+
     setServiceSlug(slug)
     onServiceSelect?.(slug)
-    
+
     // Auto-advance after brief delay
     setTimeout(() => {
       nextStep()

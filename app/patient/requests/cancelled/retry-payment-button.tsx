@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Loader2 } from "lucide-react"
 import { retryPaymentForRequestAction } from "@/lib/stripe/checkout"
+import posthog from "posthog-js"
 
 interface RetryPaymentButtonProps {
   requestId: string
@@ -16,6 +17,11 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
 
   const handleRetryPayment = async () => {
     if (hasClicked) return
+
+    // Track retry payment click in PostHog
+    posthog.capture('retry_payment_clicked', {
+      request_id: requestId,
+    })
 
     setIsLoading(true)
     setHasClicked(true)

@@ -7,6 +7,7 @@ import { FieldRenderer } from '../field-renderer'
 import { useFlowStore, useFlowAnswers } from '@/lib/flow'
 import type { FlowConfig, QuestionGroup, FieldConfig } from '@/lib/flow'
 import { cn } from '@/lib/utils'
+import posthog from 'posthog-js'
 
 interface UnifiedQuestionsStepProps {
   config: FlowConfig
@@ -162,14 +163,23 @@ export function UnifiedQuestionsStep({
     }
     
     setIsSubmitting(true)
-    
+
     try {
+      // Track questionnaire completion in PostHog
+      posthog.capture('questionnaire_completed', {
+        service_category: config.category,
+        total_sections: totalGroups,
+        completed_sections: completedGroups,
+        questions_answered: Object.keys(answers).length,
+      })
+
       onComplete?.()
       nextStep()
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error completing questions:', error)
       }
+      posthog.captureException(error)
     } finally {
       setIsSubmitting(false)
     }

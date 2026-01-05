@@ -28,6 +28,7 @@ import { PDFPreviewInline } from "@/components/ui/pdf-preview"
 import { AmendmentForm } from "@/components/patient/amendment-form"
 import type { Request, GeneratedDocument } from "@/types/db"
 import { formatRequestType } from "@/lib/format-utils"
+import posthog from "posthog-js"
 
 interface PatientRequestDetailPageProps {
   request: Request
@@ -307,6 +308,15 @@ export default function PatientRequestDetailPageClient({
                     href={`/api/patient/documents/${request.id}/download`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      // Track document download in PostHog
+                      posthog.capture('document_downloaded', {
+                        request_id: request.id,
+                        request_type: request.type,
+                        document_type: document?.type,
+                        document_subtype: document?.subtype,
+                      })
+                    }}
                   >
                     <Download className="mr-2 h-4 w-4" />
                     Download

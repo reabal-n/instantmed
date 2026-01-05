@@ -54,6 +54,7 @@ import {
   formFieldEntrance,
 } from "@/lib/motion"
 import { validators } from "@/lib/form-validation"
+import posthog from 'posthog-js'
 
 // ============================================
 // TYPES & CONSTANTS
@@ -796,6 +797,16 @@ export function MedCertForm({
     setIsSubmitting(true)
     setError(null)
     setErrorType(null)
+
+    // Track checkout initiation in PostHog
+    posthog.capture('checkout_initiated', {
+      service_category: 'medical_certificate',
+      certificate_type: formData.certType,
+      duration_days: formData.duration,
+      is_carer_certificate: isCarer,
+      is_authenticated: isAuthenticated,
+      has_patient_id: !!patientId,
+    })
 
     const dates = getDateRange()
 

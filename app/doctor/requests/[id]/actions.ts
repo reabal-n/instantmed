@@ -7,6 +7,7 @@ import { RequestLifecycleError } from "../../../../lib/data/request-lifecycle"
 import { refundIfEligible, type RefundResult } from "@/lib/stripe/refunds"
 import type { RequestStatus, DeclineReasonCode } from "@/types/db"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import { getPostHogClient } from "@/lib/posthog-server"
 
 // UUID validation helper
 function isValidUUID(id: string): boolean {
@@ -79,6 +80,31 @@ export async function updateStatusAction(
 
     if (!result) {
       return { success: false, error: "Failed to update status" }
+    }
+
+    // Track request approval/decline in PostHog (server-side)
+    const posthog = getPostHogClient()
+    if (status === "approved") {
+      posthog.capture({
+        distinctId: profile.id,
+        event: 'request_approved',
+        properties: {
+          request_id: requestId,
+          doctor_id: profile.id,
+          doctor_name: profile.full_name,
+        },
+      })
+    } else if (status === "declined") {
+      posthog.capture({
+        distinctId: profile.id,
+        event: 'request_declined',
+        properties: {
+          request_id: requestId,
+          doctor_id: profile.id,
+          doctor_name: profile.full_name,
+          decline_reason_code: declineData?.reasonCode,
+        },
+      })
     }
 
     // If declining, update the decline fields

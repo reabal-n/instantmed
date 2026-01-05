@@ -7,6 +7,7 @@
  */
 
 import { logger } from './logger'
+import posthog from 'posthog-js'
 
 interface ErrorContext {
   /** User ID if authenticated */
@@ -100,12 +101,26 @@ export function captureException(
   
   // Log locally
   logger.error(`Exception captured: ${error.message}`, { errorId }, error)
-  
+
+  // Capture error in PostHog
+  if (typeof window !== 'undefined') {
+    posthog.capture('error_captured', {
+      error_id: errorId,
+      error_name: error.name,
+      error_message: error.message,
+      user_id: context?.userId,
+      route: context?.route,
+      tags: context?.tags,
+    })
+    // Also use PostHog's built-in exception tracking
+    posthog.captureException(error)
+  }
+
   // In production, send to error tracking service
   if (process.env.NODE_ENV === 'production') {
     sendToErrorService(report)
   }
-  
+
   return errorId
 }
 

@@ -9,6 +9,7 @@ import { Confetti } from "@/components/ui/confetti"
 import { Button } from "@/components/ui/button"
 import { SUCCESS, TIME, BUTTONS } from "@/lib/microcopy/style-guide"
 import Link from "next/link"
+import posthog from "posthog-js"
 
 interface SuccessCelebrationProps {
   type?: "request" | "payment" | "account"
@@ -23,15 +24,21 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
   const [expandedFaq, setExpandedFaq] = useState(false)
 
   useEffect(() => {
+    // Track payment success in PostHog
+    posthog.capture('payment_success', {
+      request_id: requestId,
+      celebration_type: type,
+    })
+
     if (!showConfetti) return
-    
+
     const t1 = setTimeout(() => setConfettiTrigger(true), 100)
     const t2 = setTimeout(() => setShowContent(true), 300)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [showConfetti])
+  }, [showConfetti, requestId, type])
 
   const content = type === "request" ? SUCCESS.requestSubmitted : SUCCESS.requestSubmitted
 
