@@ -130,7 +130,9 @@ export function useFormAutosave<T extends Record<string, any>>(
       onLoad?.(parsed)
       return parsed as T
     } catch (error) {
-      logger.error('Form load error', { error })
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Form load error', error)
+      }
       onError?.(error as Error)
       return null
     }
