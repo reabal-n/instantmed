@@ -486,3 +486,25 @@ export const CATEGORY_ICONS: Record<MedicationCategory, string> = {
   skin: "✨",
   other: "📦",
 }
+
+/**
+ * Get popular medications (commonly requested medications)
+ * Returns medications that don't require a call and are frequently requested
+ */
+export function getPopularMedications(): Medication[] {
+  // Popular medications are those that don't require a call
+  // and are in common categories
+  const popularCategories: MedicationCategory[] = [
+    "cholesterol",
+    "blood-pressure",
+    "diabetes",
+    "thyroid",
+    "contraception",
+    "allergy",
+    "gastrointestinal",
+  ]
+
+  return AUSTRALIAN_MEDICATIONS.filter(
+    (med) => !med.requiresCall && popularCategories.includes(med.category)
+  )
+}
