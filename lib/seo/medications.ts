@@ -989,7 +989,7 @@ export const medications: MedicationPage[] = [
     slug: 'propranolol',
     title: 'Propranolol Online | Performance Anxiety & Stage Fright Treatment',
     description: 'Get propranolol (beta blocker) prescribed online for performance anxiety, public speaking, and situational stress. Australian doctors available.',
-    keywords: ['propranolol', 'beta blocker', 'performance anxiety', 'stage fright', 'public speaking anxiety'],
+    h1: 'Propranolol Online for Performance Anxiety',
     type: 'medication',
     medication: {
       genericName: 'propranolol',
@@ -1079,9 +1079,14 @@ export const medications: MedicationPage[] = [
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Will propranolol make me drowsy or affect my performance?',
+    metadata: {
+      keywords: ['propranolol', 'beta blocker', 'performance anxiety', 'stage fright', 'public speaking anxiety'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Will propranolol make me drowsy or affect my performance?',
         answer: 'No. Unlike benzodiazepines or other anti-anxiety medications, propranolol does not affect your mental state. You will remain alert and clear-headed. It only blocks the physical symptoms of anxiety.',
       },
       {
@@ -1101,6 +1106,10 @@ export const medications: MedicationPage[] = [
         answer: 'No, propranolol is not addictive and has no potential for abuse. It is a beta blocker, not a controlled substance.',
       },
     ],
+    },
+    links: {
+      related: [],
+    },
   },
 
   // ============================================
@@ -1110,7 +1119,7 @@ export const medications: MedicationPage[] = [
     slug: 'combined-oral-contraceptive',
     title: 'Birth Control Pill Online | Oral Contraceptive Prescription Australia',
     description: 'Get the combined oral contraceptive pill (OCP) prescribed online. Australian doctors can renew your script or prescribe if you have used it before.',
-    keywords: ['birth control pill', 'oral contraceptive', 'OCP', 'contraception', 'the pill'],
+    h1: 'Birth Control Pill Online Prescription',
     type: 'medication',
     medication: {
       genericName: 'combined oral contraceptive',
@@ -1179,28 +1188,37 @@ export const medications: MedicationPage[] = [
     },
     content: {
       intro: 'The combined oral contraceptive pill (OCP) is a highly effective form of contraception containing two hormones: estrogen and progestin. InstantMed can prescribe the pill if you have used it before and have had recent blood pressure checks.',
-      sections: [
+      uniqueBlocks: [
         {
-          heading: 'What is the combined pill?',
-          content: 'The combined pill is a daily tablet containing estrogen and progestin. It prevents pregnancy by stopping ovulation, thickening cervical mucus, and thinning the uterine lining. When taken correctly, it is over 99% effective.',
+          id: 'what-is-combined-pill',
+          type: 'text',
+          content: 'What is the combined pill? The combined pill is a daily tablet containing estrogen and progestin. It prevents pregnancy by stopping ovulation, thickening cervical mucus, and thinning the uterine lining. When taken correctly, it is over 99% effective.',
         },
         {
-          heading: 'Can InstantMed prescribe the pill?',
-          content: 'Yes, but only if you have been on the pill before and have had a blood pressure check in the last 6-12 months. We cannot prescribe the pill for the first time online - this requires an in-person GP visit with blood pressure monitoring.',
+          id: 'can-instantmed-prescribe',
+          type: 'text',
+          content: 'Can InstantMed prescribe the pill? Yes, but only if you have been on the pill before and have had a blood pressure check in the last 6-12 months. We cannot prescribe the pill for the first time online - this requires an in-person GP visit with blood pressure monitoring.',
         },
         {
-          heading: 'What if I miss a pill?',
-          content: 'If you miss one pill, take it as soon as you remember (even if it means taking two pills in one day) and continue as normal. If you miss two or more pills, use backup contraception for 7 days and refer to your pill packet instructions.',
+          id: 'missed-pill',
+          type: 'text',
+          content: 'What if I miss a pill? If you miss one pill, take it as soon as you remember (even if it means taking two pills in one day) and continue as normal. If you miss two or more pills, use backup contraception for 7 days and refer to your pill packet instructions.',
         },
         {
-          heading: 'Does the pill protect against STIs?',
-          content: 'No. The pill prevents pregnancy but does not protect against sexually transmitted infections. Use condoms for STI protection.',
+          id: 'sti-protection',
+          type: 'text',
+          content: 'Does the pill protect against STIs? No. The pill prevents pregnancy but does not protect against sexually transmitted infections. Use condoms for STI protection.',
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Can I get the pill for the first time through InstantMed?',
+    metadata: {
+      keywords: ['birth control pill', 'oral contraceptive', 'OCP', 'contraception', 'the pill'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I get the pill for the first time through InstantMed?',
         answer: 'No. If you have never taken the pill before, you need an in-person GP visit for blood pressure monitoring and comprehensive counseling. InstantMed can prescribe repeat prescriptions only.',
       },
       {
@@ -1216,6 +1234,10 @@ export const medications: MedicationPage[] = [
         answer: 'If you vomit within 2 hours of taking the pill, take another pill. Severe diarrhea can also affect absorption. Use backup contraception for 7 days.',
       },
     ],
+    },
+    links: {
+      related: [],
+    },
   },
 
   // ============================================
@@ -1225,7 +1247,7 @@ export const medications: MedicationPage[] = [
     slug: 'doxycycline',
     title: 'Doxycycline Online | Antibiotic for Acne, UTI, Respiratory Infections',
     description: 'Get doxycycline prescribed online for bacterial infections, acne treatment, and respiratory infections. Australian doctor consultation available.',
-    keywords: ['doxycycline', 'antibiotic', 'acne treatment', 'bacterial infection', 'respiratory infection'],
+    h1: 'Doxycycline Online Prescription',
     type: 'medication',
     medication: {
       genericName: 'doxycycline',
@@ -1290,28 +1312,37 @@ export const medications: MedicationPage[] = [
     },
     content: {
       intro: 'Doxycycline is a versatile antibiotic used to treat various bacterial infections including acne, respiratory infections, and UTIs. It is also used as a preventive treatment for malaria.',
-      sections: [
+      uniqueBlocks: [
         {
-          heading: 'What is doxycycline used for?',
-          content: 'Doxycycline treats bacterial infections including moderate to severe acne, respiratory infections, urinary tract infections, and some sexually transmitted infections. For acne, it is typically used for 3-6 months.',
+          id: 'what-is-used-for',
+          type: 'text',
+          content: 'What is doxycycline used for? Doxycycline treats bacterial infections including moderate to severe acne, respiratory infections, urinary tract infections, and some sexually transmitted infections. For acne, it is typically used for 3-6 months.',
         },
         {
-          heading: 'How to take doxycycline',
-          content: 'Take doxycycline with a full glass of water and food to reduce stomach upset. Sit upright for at least 30 minutes after taking to prevent esophageal irritation. Avoid taking with dairy products, antacids, or iron supplements.',
+          id: 'how-to-take',
+          type: 'text',
+          content: 'How to take doxycycline: Take doxycycline with a full glass of water and food to reduce stomach upset. Sit upright for at least 30 minutes after taking to prevent esophageal irritation. Avoid taking with dairy products, antacids, or iron supplements.',
         },
         {
-          heading: 'Sun sensitivity',
-          content: 'Doxycycline can make your skin very sensitive to sunlight. Use SPF 50+ sunscreen, wear protective clothing, and avoid prolonged sun exposure while taking this medication.',
+          id: 'sun-sensitivity',
+          type: 'text',
+          content: 'Sun sensitivity: Doxycycline can make your skin very sensitive to sunlight. Use SPF 50+ sunscreen, wear protective clothing, and avoid prolonged sun exposure while taking this medication.',
         },
         {
-          heading: 'When will it work?',
-          content: 'For infections, improvement is usually seen within 2-3 days. For acne, it takes 6-12 weeks to see significant improvement. Do not stop early even if you feel better.',
+          id: 'when-will-it-work',
+          type: 'text',
+          content: 'When will it work? For infections, improvement is usually seen within 2-3 days. For acne, it takes 6-12 weeks to see significant improvement. Do not stop early even if you feel better.',
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Can I take doxycycline if I am pregnant?',
+    metadata: {
+      keywords: ['doxycycline', 'antibiotic', 'acne treatment', 'bacterial infection', 'respiratory infection'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I take doxycycline if I am pregnant?',
         answer: 'No. Doxycycline is not safe during pregnancy as it can cause permanent tooth discoloration and affect bone development in the fetus. Tell your doctor immediately if you become pregnant while taking it.',
       },
       {
@@ -1327,13 +1358,17 @@ export const medications: MedicationPage[] = [
         answer: 'Acne treatment typically requires 3-6 months of doxycycline. Your doctor will review after 3 months to assess effectiveness and plan next steps.',
       },
     ],
+    },
+    links: {
+      related: [],
+    },
   },
 
   {
     slug: 'ondansetron',
     title: 'Ondansetron Online | Anti-Nausea Medication for Vomiting & Morning Sickness',
     description: 'Get ondansetron (Zofran) prescribed online for severe nausea and vomiting. Fast relief for gastro, food poisoning, and morning sickness.',
-    keywords: ['ondansetron', 'Zofran', 'anti-nausea', 'vomiting', 'morning sickness', 'gastro'],
+    h1: 'Ondansetron Online for Nausea & Vomiting',
     type: 'medication',
     medication: {
       genericName: 'ondansetron',
@@ -1395,28 +1430,37 @@ export const medications: MedicationPage[] = [
     },
     content: {
       intro: 'Ondansetron (Zofran) is a powerful anti-nausea medication used to treat severe vomiting from gastro, food poisoning, morning sickness, or other causes. It works quickly and is available in wafer form that dissolves on your tongue.',
-      sections: [
+      uniqueBlocks: [
         {
-          heading: 'What is ondansetron used for?',
-          content: 'Ondansetron is used for severe nausea and vomiting that prevents you from keeping fluids or food down. It is commonly prescribed for gastroenteritis, food poisoning, morning sickness during pregnancy, or post-operative nausea.',
+          id: 'what-is-used-for',
+          type: 'text',
+          content: 'What is ondansetron used for? Ondansetron is used for severe nausea and vomiting that prevents you from keeping fluids or food down. It is commonly prescribed for gastroenteritis, food poisoning, morning sickness during pregnancy, or post-operative nausea.',
         },
         {
-          heading: 'How quickly does it work?',
-          content: 'Ondansetron works within 30 minutes to 1 hour. The wafer form (dissolves on tongue) may work slightly faster than tablets. Effects last 8-12 hours.',
+          id: 'how-quickly-works',
+          type: 'text',
+          content: 'How quickly does it work? Ondansetron works within 30 minutes to 1 hour. The wafer form (dissolves on tongue) may work slightly faster than tablets. Effects last 8-12 hours.',
         },
         {
-          heading: 'Is it safe in pregnancy?',
-          content: 'Yes. Ondansetron is commonly prescribed for severe morning sickness and is considered safe during pregnancy. It is particularly useful when nausea prevents you from eating or drinking.',
+          id: 'safe-in-pregnancy',
+          type: 'text',
+          content: 'Is it safe in pregnancy? Yes. Ondansetron is commonly prescribed for severe morning sickness and is considered safe during pregnancy. It is particularly useful when nausea prevents you from eating or drinking.',
         },
         {
-          heading: 'When should I go to hospital instead?',
-          content: 'Seek emergency care if you have: blood in vomit, severe abdominal pain, signs of dehydration (dark urine, dizziness), inability to keep any fluids down for 24+ hours, or vomiting with severe headache.',
+          id: 'when-to-go-hospital',
+          type: 'text',
+          content: 'When should I go to hospital instead? Seek emergency care if you have: blood in vomit, severe abdominal pain, signs of dehydration (dark urine, dizziness), inability to keep any fluids down for 24+ hours, or vomiting with severe headache.',
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Can I take ondansetron if I am pregnant?',
+    metadata: {
+      keywords: ['ondansetron', 'Zofran', 'anti-nausea', 'vomiting', 'morning sickness', 'gastro'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I take ondansetron if I am pregnant?',
         answer: 'Yes. Ondansetron is commonly prescribed for morning sickness and hyperemesis gravidarum. Studies show it is safe to use during pregnancy when needed.',
       },
       {
@@ -1432,13 +1476,17 @@ export const medications: MedicationPage[] = [
         answer: 'Typically 8mg every 8-12 hours as needed. Maximum 24mg per day. Follow your doctor\'s instructions.',
       },
     ],
+    },
+    links: {
+      related: [],
+    },
   },
 
   {
     slug: 'omeprazole',
     title: 'Omeprazole Online | Reflux, Heartburn & Stomach Acid Treatment',
     description: 'Get omeprazole prescribed online for acid reflux, heartburn, and GERD. Proton pump inhibitor available through Australian telehealth.',
-    keywords: ['omeprazole', 'reflux', 'heartburn', 'GERD', 'acid', 'PPI'],
+    h1: 'Omeprazole Online for Reflux & Heartburn',
     type: 'medication',
     medication: {
       genericName: 'omeprazole',
@@ -1502,28 +1550,37 @@ export const medications: MedicationPage[] = [
     },
     content: {
       intro: 'Omeprazole is a proton pump inhibitor (PPI) that reduces stomach acid production. It is used to treat acid reflux, heartburn, GERD, and stomach ulcers. Omeprazole is more effective than antacids for ongoing symptoms.',
-      sections: [
+      uniqueBlocks: [
         {
-          heading: 'What is omeprazole used for?',
-          content: 'Omeprazole treats gastroesophageal reflux disease (GERD), frequent heartburn, stomach ulcers, and acid-related stomach pain. It is also used to prevent ulcers in people taking NSAIDs long-term.',
+          id: 'what-is-used-for',
+          type: 'text',
+          content: 'What is omeprazole used for? Omeprazole treats gastroesophageal reflux disease (GERD), frequent heartburn, stomach ulcers, and acid-related stomach pain. It is also used to prevent ulcers in people taking NSAIDs long-term.',
         },
         {
-          heading: 'How to take omeprazole',
-          content: 'Take omeprazole once daily in the morning, 30-60 minutes before breakfast. Swallow the capsule whole - do not crush or chew. It takes 2-3 days to reach full effect.',
+          id: 'how-to-take',
+          type: 'text',
+          content: 'How to take omeprazole: Take omeprazole once daily in the morning, 30-60 minutes before breakfast. Swallow the capsule whole - do not crush or chew. It takes 2-3 days to reach full effect.',
         },
         {
-          heading: 'How long should I take it?',
-          content: 'Most people take omeprazole for 4-8 weeks for symptom relief. Some require longer-term treatment. Do not stop suddenly if you have been on it for months - taper off gradually with your doctor\'s guidance.',
+          id: 'how-long-to-take',
+          type: 'text',
+          content: 'How long should I take it? Most people take omeprazole for 4-8 weeks for symptom relief. Some require longer-term treatment. Do not stop suddenly if you have been on it for months - taper off gradually with your doctor\'s guidance.',
         },
         {
-          heading: 'Lifestyle changes for reflux',
-          content: 'Omeprazole works best combined with lifestyle changes: avoid trigger foods (spicy, fatty, acidic), eat smaller meals, don\'t lie down within 3 hours of eating, elevate head of bed, lose weight if overweight.',
+          id: 'lifestyle-changes',
+          type: 'text',
+          content: 'Lifestyle changes for reflux: Omeprazole works best combined with lifestyle changes: avoid trigger foods (spicy, fatty, acidic), eat smaller meals, don\'t lie down within 3 hours of eating, elevate head of bed, lose weight if overweight.',
         },
       ],
     },
-    faqs: [
-      {
-        question: 'Can I take omeprazole every day?',
+    metadata: {
+      keywords: ['omeprazole', 'reflux', 'heartburn', 'GERD', 'acid', 'PPI'],
+      lastModified: new Date('2026-01-03'),
+    },
+    structured: {
+      faqs: [
+        {
+          question: 'Can I take omeprazole every day?',
         answer: 'Omeprazole is safe for daily use, but long-term use (>1 year) requires monitoring for potential side effects like low magnesium, vitamin B12 deficiency, and bone health.',
       },
       {
@@ -1539,6 +1596,10 @@ export const medications: MedicationPage[] = [
         answer: 'Omeprazole treats symptoms but does not cure the underlying cause of reflux. Lifestyle changes and weight loss (if applicable) are important for long-term management.',
       },
     ],
+    },
+    links: {
+      related: [],
+    },
   },
 ]
 
