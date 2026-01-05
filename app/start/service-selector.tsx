@@ -22,7 +22,7 @@ const services = [
     features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     color: "#00E2B5",
-    gradient: "from-[#00E2B5]/20 to-[#06B6D4]/20",
+    gradient: "from-[#00E2B5]/20 to-[#10B981]/20",
   },
   {
     id: "prescription",
@@ -35,8 +35,8 @@ const services = [
     popular: false,
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
-    color: "#06B6D4",
-    gradient: "from-[#06B6D4]/20 to-[#8B5CF6]/20",
+    color: "#8B5CF6",
+    gradient: "from-[#8B5CF6]/20 to-[#EC4899]/20",
   },
 ]
 
@@ -120,7 +120,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           
                           {/* Popular badge */}
                           {service.popular && (
-                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#06B6D4] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#00E2B5] to-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                               <Sparkles className="h-3 w-3" />
                               Most Popular
                             </div>
@@ -183,7 +183,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
           {/* Help Text */}
           <BlurFade delay={0.5}>
             <div className="mt-12 relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-[#06B6D4]/10 to-[#8B5CF6]/10" />
+              <div className="absolute inset-0 bg-linear-to-r from-[#00E2B5]/10 via-[#10B981]/10 to-[#8B5CF6]/10" />
               <div className="relative z-10 p-8 text-center">
                 <p className="text-muted-foreground mb-4">
                   Not sure which service you need?

@@ -8,10 +8,24 @@ interface StepProgressProps {
   totalSteps: number
   steps?: string[]
   className?: string
+  showTimeEstimate?: boolean
+  timeEstimates?: number[] // minutes per step
 }
 
-export function StepProgress({ currentStep, totalSteps, steps, className }: StepProgressProps) {
+export function StepProgress({ 
+  currentStep, 
+  totalSteps, 
+  steps, 
+  className,
+  showTimeEstimate = false,
+  timeEstimates = []
+}: StepProgressProps) {
   const progress = ((currentStep - 1) / (totalSteps - 1)) * 100
+  
+  // Calculate remaining time
+  const remainingTime = showTimeEstimate && timeEstimates.length > 0
+    ? timeEstimates.slice(currentStep - 1).reduce((sum, time) => sum + time, 0)
+    : null
 
   return (
     <div className={cn("w-full", className)}>
@@ -54,7 +68,7 @@ export function StepProgress({ currentStep, totalSteps, steps, className }: Step
 
       {/* Step labels */}
       {steps && steps.length > 0 && (
-        <div className="flex justify-between">
+        <div className="flex justify-between mb-1">
           {steps.map((step, index) => {
             const stepNumber = index + 1
             const isCompleted = stepNumber < currentStep
@@ -64,11 +78,12 @@ export function StepProgress({ currentStep, totalSteps, steps, className }: Step
               <span
                 key={index}
                 className={cn(
-                  "text-xs transition-colors text-center max-w-[80px]",
+                  "text-xs transition-colors text-center max-w-[80px] truncate",
                   isCompleted && "text-primary",
                   isCurrent && "text-foreground font-medium",
                   !isCompleted && !isCurrent && "text-muted-foreground"
                 )}
+                title={step}
               >
                 {step}
               </span>
@@ -77,10 +92,20 @@ export function StepProgress({ currentStep, totalSteps, steps, className }: Step
         </div>
       )}
 
+      {/* Time estimate */}
+      {showTimeEstimate && remainingTime !== null && remainingTime > 0 && (
+        <div className="flex justify-center mt-1">
+          <span className="text-xs text-muted-foreground">
+            ~{remainingTime} min remaining
+          </span>
+        </div>
+      )}
+
       {/* Simple step counter for mobile */}
       <div className="flex justify-center mt-2 sm:hidden">
         <span className="text-xs text-muted-foreground">
           Step {currentStep} of {totalSteps}
+          {remainingTime !== null && remainingTime > 0 && ` • ~${remainingTime} min left`}
         </span>
       </div>
     </div>

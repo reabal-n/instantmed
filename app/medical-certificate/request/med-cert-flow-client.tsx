@@ -44,6 +44,7 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { SessionProgress } from "@/components/shell"
+import posthog from "posthog-js"
 
 // Storage key for form persistence
 const STORAGE_KEY = "instantmed_medcert_draft"
@@ -490,6 +491,12 @@ export function MedCertFlowClient({
         const draft = JSON.parse(saved)
         setFormData(draft.formData)
         setStep(draft.step)
+
+        // PostHog: Track draft recovery
+        posthog.capture("draft_recovered", {
+          draft_step: draft.step,
+          cert_type: draft.formData?.certType,
+        })
       }
     } catch {
       // Ignore errors
@@ -563,11 +570,30 @@ export function MedCertFlowClient({
     setError(null)
     const currentIndex = STEPS.indexOf(step)
 
+    // PostHog: Track step-specific events
+    if (step === "type" && formData.certType) {
+      posthog.capture("med_cert_type_selected", {
+        cert_type: formData.certType,
+        is_authenticated: isAuthenticated,
+      })
+    } else if (step === "duration" && formData.duration) {
+      posthog.capture("med_cert_duration_selected", {
+        duration_days: formData.duration,
+        cert_type: formData.certType,
+      })
+    } else if (step === "symptoms") {
+      posthog.capture("med_cert_symptoms_entered", {
+        symptoms_count: formData.selectedSymptoms.length,
+        has_custom_details: !!formData.otherSymptom,
+        safety_confirmed: formData.safetyAnswers.notEmergency === true,
+      })
+    }
+
     // Simple navigation - just go to next step
     if (currentIndex < STEPS.length - 1) {
       setStep(STEPS[currentIndex + 1])
     }
-  }, [step])
+  }, [step, formData, isAuthenticated])
 
   const goBack = useCallback(() => {
     setError(null)
@@ -764,6 +790,14 @@ export function MedCertFlowClient({
     setIsSubmitting(true)
     setError(null)
 
+    // PostHog: Track checkout initiated (guest)
+    posthog.capture("med_cert_checkout_initiated", {
+      checkout_type: "guest",
+      cert_type: formData.certType,
+      duration_days: formData.duration,
+      symptoms_count: formData.selectedSymptoms.length,
+    })
+
     const dates = getDateRange()
 
     try {
@@ -820,6 +854,14 @@ export function MedCertFlowClient({
       setStep("patientDetails")
       return
     }
+
+    // PostHog: Track checkout initiated (authenticated)
+    posthog.capture("med_cert_checkout_initiated", {
+      checkout_type: "authenticated",
+      cert_type: formData.certType,
+      duration_days: formData.duration,
+      symptoms_count: formData.selectedSymptoms.length,
+    })
 
     // Trigger confetti on submission
     confetti({

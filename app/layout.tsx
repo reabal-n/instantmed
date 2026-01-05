@@ -12,6 +12,7 @@ import { ParallaxBackground } from "@/components/shared/parallax-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import Script from "next/script"
 import "./globals.css"
 
@@ -205,6 +206,7 @@ export default function RootLayout({
               <StickyCTABar />
               <Analytics />
               <WebVitalsReporter />
+              <PostHogIdentify />
             </HeroUIProviderWrapper>
           </ThemeProvider>
         </body>

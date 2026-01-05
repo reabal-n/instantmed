@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import type { RequestType } from "@/types/db"
 import { createRequestAction } from "./actions"
+import posthog from "posthog-js"
 
 interface RequestTypeOption {
   id: RequestType
@@ -143,6 +144,14 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
   const hasRedFlags = Object.values(redFlagValues).some((v) => v)
 
   const handleTypeSelect = (type: RequestType) => {
+    const typeInfo = requestTypes.find((t) => t.id === type)
+
+    // PostHog: Track request type selection
+    posthog.capture("request_type_selected", {
+      request_type: type,
+      request_title: typeInfo?.title,
+    })
+
     setSelectedType(type)
     setStep(2)
     setError(null)
@@ -166,6 +175,12 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
   const handleSubmit = async () => {
     if (!selectedType || hasRedFlags) return
 
+    // PostHog: Track request submission
+    posthog.capture("request_submitted", {
+      request_type: selectedType,
+      has_red_flags: hasRedFlags,
+    })
+
     setIsSubmitting(true)
     setError(null)
 
@@ -180,9 +195,16 @@ export function NewRequestFlow({ patientId }: { patientId: string }) {
       if (result.success) {
         router.push("/patient/requests?success=true")
       } else {
+        // PostHog: Track submission error
+        posthog.capture("request_submission_error", {
+          request_type: selectedType,
+          error_message: result.error,
+        })
         setError(result.error || "Failed to submit request. Please try again.")
       }
-    } catch {
+    } catch (error) {
+      // PostHog: Track submission exception
+      posthog.captureException(error)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)

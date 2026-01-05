@@ -1,28 +1,39 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
+import { useState, useEffect, useRef, type ReactNode } from "react"
 import { Confetti } from "@/components/ui/confetti"
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 import { cn } from "@/lib/utils"
+import posthog from "posthog-js"
 
 interface SuccessPageClientProps {
   requestId?: string
   children: ReactNode
 }
 
-export function SuccessPageClient({ children }: SuccessPageClientProps) {
+export function SuccessPageClient({ requestId, children }: SuccessPageClientProps) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [showContent, setShowContent] = useState(false)
+  const hasTracked = useRef(false)
 
   useEffect(() => {
     // Small delay before triggering animations
     const t1 = setTimeout(() => setShowConfetti(true), 100)
     const t2 = setTimeout(() => setShowContent(true), 600)
+
+    // PostHog: Track payment success viewed (only once)
+    if (!hasTracked.current) {
+      hasTracked.current = true
+      posthog.capture("payment_success_viewed", {
+        request_id: requestId,
+      })
+    }
+
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
     }
-  }, [])
+  }, [requestId])
 
   return (
     <>

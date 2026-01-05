@@ -22,12 +22,24 @@ import {
   PhoneOff,
   Star,
   Phone,
+  Edit2,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Zap,
+  TrendingUp,
 } from "lucide-react"
 import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { StepProgress } from "@/components/intake/step-progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Info, CheckCircle2 } from "lucide-react"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   SymptomChecker,
   checkSymptoms,
@@ -38,6 +50,20 @@ import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
 import { MedicationSearch } from "@/components/medication/medication-search"
 import type { Medication } from "@/lib/data/medications"
+import posthog from "posthog-js"
+
+// ============================================
+// UTILITIES
+// ============================================
+
+function formatTimeAgo(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+  
+  if (seconds < 60) return "just now"
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hour${Math.floor(seconds / 3600) > 1 ? "s" : ""} ago`
+  return `${Math.floor(seconds / 86400)} day${Math.floor(seconds / 86400) > 1 ? "s" : ""} ago`
+}
 
 // ============================================
 // TYPES
@@ -95,6 +121,8 @@ interface EnhancedIntakeFlowProps {
   isAuthenticated?: boolean
   userEmail?: string
   userName?: string
+  userPhone?: string
+  userDob?: string
   onComplete?: (state: IntakeState) => Promise<void>
 }
 
@@ -190,33 +218,7 @@ const cardVariants = {
 // SUB-COMPONENTS
 // ============================================
 
-function ProgressIndicator({
-  steps,
-  currentStep,
-  className,
-}: {
-  steps: string[]
-  currentStep: number
-  className?: string
-}) {
-  return (
-    <div className={cn("flex items-center justify-center gap-2", className)}>
-      {steps.map((_, index) => (
-        <div
-          key={index}
-          className={cn(
-            "h-1.5 rounded-full transition-all duration-300",
-            index === currentStep
-              ? "w-8 bg-primary"
-              : index < currentStep
-              ? "w-2 bg-primary/60"
-              : "w-2 bg-muted"
-          )}
-        />
-      ))}
-    </div>
-  )
-}
+// Progress indicator is now using StepProgress component
 
 function ServiceCard({
   service,
@@ -231,18 +233,27 @@ function ServiceCard({
     <motion.button
       type="button"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onClick()
+        }
+      }}
       variants={cardVariants}
       initial="initial"
       animate="animate"
       whileTap="tap"
+      whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "relative w-full p-5 rounded-2xl border-2 text-left transition-all",
+        "relative w-full p-5 rounded-2xl border-2 text-left transition-all touch-target",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
-          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 ring-2 ring-primary/20"
           : "border-border bg-white hover:border-primary/40 hover:shadow-md"
       )}
+      aria-pressed={selected}
+      aria-label={`Select ${service.title} service`}
     >
       {/* Popular badge */}
       {service.popular && (
@@ -313,8 +324,9 @@ function SelectableChip({
       onClick={onClick}
       whileTap={{ scale: 0.95 }}
       className={cn(
-        "px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+        "px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "touch-target", // Mobile-friendly touch target
         selected
           ? "bg-primary text-white shadow-md"
           : "bg-white border border-border hover:border-primary/40 hover:shadow-sm",
@@ -345,8 +357,9 @@ function OptionCard({
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
       className={cn(
-        "w-full p-4 rounded-xl border-2 flex items-center gap-4 text-left transition-all",
+        "w-full p-4 min-h-[80px] rounded-xl border-2 flex items-center gap-4 text-left transition-all",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "touch-target", // Mobile-friendly touch target
         selected
           ? "border-primary bg-primary/5 shadow-sm"
           : "border-border bg-white hover:border-primary/40"
@@ -354,19 +367,19 @@ function OptionCard({
     >
       <div
         className={cn(
-          "w-11 h-11 rounded-lg flex items-center justify-center transition-colors",
+          "w-11 h-11 rounded-lg flex items-center justify-center transition-colors shrink-0",
           selected ? "bg-primary text-white" : "bg-muted text-muted-foreground"
         )}
       >
         <Icon className="w-5 h-5" />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <span className="font-medium text-sm block">{label}</span>
         {description && (
           <span className="text-xs text-muted-foreground">{description}</span>
         )}
       </div>
-      {selected && <Check className="w-5 h-5 text-primary" />}
+      {selected && <Check className="w-5 h-5 text-primary shrink-0" />}
     </motion.button>
   )
 }
@@ -377,22 +390,68 @@ function FormField({
   error,
   children,
   className,
+  hint,
+  helpText,
+  example,
+  showSuccess,
 }: {
   label: string
   required?: boolean
   error?: string
   children: React.ReactNode
   className?: string
+  hint?: string
+  helpText?: string
+  example?: string
+  showSuccess?: boolean
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label className="text-sm font-medium">
-        {label}
-        {required && <span className="text-destructive ml-0.5">*</span>}
-      </Label>
-      {children}
+      <div className="flex items-center gap-2">
+        <Label className="text-sm font-medium">
+          {label}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </Label>
+        {helpText && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="More information"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-sm">{helpText}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+      {hint && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
+      {example && (
+        <p className="text-xs text-muted-foreground italic">e.g., {example}</p>
+      )}
+      <div className="relative">
+        {children}
+        {showSuccess && !error && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+          </div>
+        )}
+        {error && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+          </div>
+        )}
+      </div>
       {error && (
-        <p className="text-xs text-destructive flex items-center gap-1">
+        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
           <AlertTriangle className="w-3 h-3" />
           {error}
         </p>
@@ -410,6 +469,9 @@ export function EnhancedIntakeFlow({
   isAuthenticated = false,
   userEmail,
   userName,
+  patientId,
+  userPhone,
+  userDob,
 }: EnhancedIntakeFlowProps) {
   const router = useRouter()
   const [[step, direction], setStep] = useState<[IntakeStep, number]>([
@@ -417,11 +479,26 @@ export function EnhancedIntakeFlow({
     0,
   ])
 
-  // Form state
+  // Load saved preferences from localStorage
+  const [savedPreferences, setSavedPreferences] = useState<{
+    lastService?: ServiceType
+    lastCertType?: "work" | "study" | "carer"
+    lastDuration?: "1" | "2" | "3"
+    lastPharmacy?: string
+  }>(() => {
+    try {
+      const saved = localStorage.getItem("intake_preferences")
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  // Form state with smart defaults
   const [state, setState] = useState<IntakeState>({
-    service: initialService || null,
-    certType: null,
-    duration: null,
+    service: initialService || savedPreferences.lastService || null,
+    certType: savedPreferences.lastCertType || null,
+    duration: savedPreferences.lastDuration || null,
     startDate: new Date().toISOString().split("T")[0],
     symptoms: [],
     symptomDetails: "",
@@ -430,20 +507,34 @@ export function EnhancedIntakeFlow({
     medicationName: "",
     medicationDosage: "",
     lastPrescribed: "",
-    pharmacyPreference: "",
+    pharmacyPreference: savedPreferences.lastPharmacy || "",
     consultReason: "",
     safetyConfirmed: false,
     hasEmergencySymptoms: false,
     firstName: userName?.split(" ")[0] || "",
     lastName: userName?.split(" ").slice(1).join(" ") || "",
     email: userEmail || "",
-    phone: "",
-    dob: "",
+    phone: userPhone || "",
+    dob: userDob || "",
     agreedToTerms: false,
   })
 
+  // Save preferences when they change
+  useEffect(() => {
+    const prefs = {
+      lastService: state.service,
+      lastCertType: state.certType || undefined,
+      lastDuration: state.duration || undefined,
+      lastPharmacy: state.pharmacyPreference || undefined,
+    }
+    localStorage.setItem("intake_preferences", JSON.stringify(prefs))
+  }, [state.service, state.certType, state.duration, state.pharmacyPreference])
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof IntakeState, string>>>({})
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editingSection, setEditingSection] = useState<string | null>(null)
 
   // Determine steps based on service
   const steps = useMemo(() => {
@@ -459,13 +550,175 @@ export function EnhancedIntakeFlow({
   const isFirstStep = stepIndex === 0
   const isLastStep = stepIndex === steps.length - 1
 
-  // Update field
+  // Step labels for progress indicator
+  const stepLabels = useMemo(() => {
+    const labels: string[] = []
+    steps.forEach((step) => {
+      switch (step) {
+        case "service":
+          labels.push("Service")
+          break
+        case "details":
+          labels.push("Details")
+          break
+        case "safety":
+          labels.push("Safety")
+          break
+        case "account":
+          labels.push("Account")
+          break
+        case "review":
+          labels.push("Review")
+          break
+      }
+    })
+    return labels
+  }, [steps])
+
+  // Time estimates per step (in minutes)
+  const timeEstimates = useMemo(() => {
+    return steps.map((step) => {
+      switch (step) {
+        case "service":
+          return 1
+        case "details":
+          return 2
+        case "safety":
+          return 1
+        case "account":
+          return 2
+        case "review":
+          return 1
+        default:
+          return 1
+      }
+    })
+  }, [steps])
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    if (step === "service" && !state.service) return
+    
+    setIsSaving(true)
+    const timer = setTimeout(() => {
+      try {
+        const draft = {
+          ...state,
+          step,
+          savedAt: new Date().toISOString(),
+        }
+        localStorage.setItem("intake_flow_draft", JSON.stringify(draft))
+        setLastSavedAt(new Date())
+        setIsSaving(false)
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Auto-save error:", error)
+        }
+        setIsSaving(false)
+      }
+    }, 2000) // Debounce 2 seconds
+
+    return () => clearTimeout(timer)
+  }, [state, step])
+
+  // Real-time validation
+  const validateField = useCallback(<K extends keyof IntakeState>(
+    field: K,
+    value: IntakeState[K]
+  ): string | undefined => {
+    switch (field) {
+      case "certType":
+        if (!value && step === "details" && state.service === "med-cert") {
+          return "Please select a certificate type"
+        }
+        break
+      case "duration":
+        if (!value && step === "details" && state.service === "med-cert") {
+          return "Please select duration"
+        }
+        break
+      case "symptoms":
+        if (Array.isArray(value) && value.length === 0 && step === "details" && state.service === "med-cert") {
+          return "Please select at least one symptom"
+        }
+        break
+      case "medicationName":
+        if (!value && step === "details" && (state.service === "repeat-script" || state.service === "new-script")) {
+          return "Please enter medication name"
+        }
+        break
+      case "firstName":
+        if (!value && step === "account") {
+          return "First name is required"
+        }
+        break
+      case "lastName":
+        if (!value && step === "account") {
+          return "Last name is required"
+        }
+        break
+      case "email":
+        if (!value && step === "account") {
+          return "Email is required"
+        } else if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value as string)) {
+          return "Please enter a valid email address"
+        }
+        break
+      case "phone":
+        if (!value && step === "account") {
+          return "Phone number is required"
+        } else if (value && !/^04\d{8}$/.test((value as string).replace(/\s/g, ""))) {
+          return "Please enter a valid Australian mobile number (04XX XXX XXX)"
+        }
+        break
+      case "dob":
+        if (!value && step === "account") {
+          return "Date of birth is required"
+        } else if (value) {
+          const dob = new Date(value as string)
+          const today = new Date()
+          if (dob > today) {
+            return "Date of birth cannot be in the future"
+          }
+          const age = today.getFullYear() - dob.getFullYear()
+          if (age < 18) {
+            return "You must be 18 or older to use this service"
+          }
+        }
+        break
+    }
+    return undefined
+  }, [step, state.service])
+
+  // Update field with real-time validation
   const updateField = useCallback(
     <K extends keyof IntakeState>(field: K, value: IntakeState[K]) => {
       setState((prev) => ({ ...prev, [field]: value }))
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      
+      // Real-time validation
+      const error = validateField(field, value)
+      if (error) {
+        setErrors((prev) => ({ ...prev, [field]: error }))
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev }
+          delete newErrors[field]
+          return newErrors
+        })
+      }
+
+      // PostHog: Track service selection
+      if (field === "service" && value) {
+        const selectedService = SERVICES.find(s => s.id === value)
+        posthog.capture("service_selected", {
+          service_type: value,
+          service_title: selectedService?.title,
+          service_price: selectedService?.price,
+          is_authenticated: isAuthenticated,
+        })
+      }
     },
-    []
+    [isAuthenticated, validateField]
   )
 
   // Toggle symptom
@@ -548,13 +801,22 @@ export function EnhancedIntakeFlow({
   const goNext = useCallback(() => {
     if (!validateStep()) return
 
+    // PostHog: Track step completion
+    posthog.capture("intake_step_completed", {
+      step_name: step,
+      step_number: stepIndex + 1,
+      total_steps: steps.length,
+      service_type: state.service,
+      is_authenticated: isAuthenticated,
+    })
+
     if (isLastStep) {
       handleSubmit()
     } else {
       const nextStep = steps[stepIndex + 1]
       setStep([nextStep, 1])
     }
-  }, [validateStep, isLastStep, stepIndex, steps])
+  }, [validateStep, isLastStep, stepIndex, steps, step, state.service, isAuthenticated])
 
   const goBack = useCallback(() => {
     if (isFirstStep) {
@@ -611,12 +873,20 @@ export function EnhancedIntakeFlow({
     if (isSubmitting) return
     setIsSubmitting(true)
 
+    // PostHog: Track checkout started
+    posthog.capture("checkout_started", {
+      service_type: state.service,
+      cert_type: state.certType,
+      medication_name: state.medicationName,
+      is_authenticated: isAuthenticated,
+    })
+
     try {
       const category = getStripeCategory()
-      const subtype = state.service === "med-cert" 
+      const subtype = state.service === "med-cert"
         ? (state.certType || "sick_leave")
-        : state.service === "repeat-script" 
-          ? "repeat" 
+        : state.service === "repeat-script"
+          ? "repeat"
           : "new"
       const answers = buildAnswersPayload()
 
@@ -657,10 +927,17 @@ export function EnhancedIntakeFlow({
         // Redirect to Stripe checkout
         window.location.href = result.checkoutUrl
       } else {
+        // PostHog: Track checkout error
+        posthog.capture("checkout_error", {
+          service_type: state.service,
+          error_message: result.error,
+        })
         // Show error
         setErrors({ agreedToTerms: result.error || "Something went wrong. Please try again." })
       }
     } catch (error) {
+      // PostHog: Track checkout exception
+      posthog.captureException(error)
       if (process.env.NODE_ENV === 'development') {
         console.error("Submit error:", error)
       }
@@ -704,6 +981,14 @@ export function EnhancedIntakeFlow({
       case "service":
         return (
           <motion.div className="space-y-4">
+            {/* Urgency messaging */}
+            <Alert variant="info" className="border-primary/20 bg-primary/5">
+              <Clock className="w-4 h-4" />
+              <AlertDescription className="text-xs">
+                Most requests reviewed within 1 hour • Doctors online now
+              </AlertDescription>
+            </Alert>
+
             {SERVICES.map((service) => (
               <ServiceCard
                 key={service.id}
@@ -725,11 +1010,22 @@ export function EnhancedIntakeFlow({
         if (state.service === "med-cert") {
           return (
             <motion.div className="space-y-6">
+              {/* Trust indicator */}
+              <Alert variant="info" className="border-primary/20 bg-primary/5">
+                <Shield className="w-4 h-4" />
+                <AlertDescription className="text-xs">
+                  All certificates are reviewed by AHPRA-registered Australian doctors
+                </AlertDescription>
+              </Alert>
+
               {/* Certificate type */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block">
-                  Certificate type
-                </Label>
+              <FormField
+                label="Certificate type"
+                required
+                error={errors.certType}
+                hint="Choose the type that matches your situation"
+                helpText="Select Work for employer, Study for university/school, or Carer's leave to care for someone"
+              >
                 <div className="grid grid-cols-3 gap-2">
                   {CERT_TYPES.map((type) => (
                     <OptionCard
@@ -741,74 +1037,125 @@ export function EnhancedIntakeFlow({
                     />
                   ))}
                 </div>
-                {errors.certType && (
-                  <p className="text-xs text-destructive mt-1">{errors.certType}</p>
-                )}
-              </div>
+              </FormField>
 
               {/* Duration */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block">
-                  How many days?
-                </Label>
+              <FormField
+                label="How many days?"
+                required
+                error={errors.duration}
+                hint="Select the number of days you need off"
+                helpText="Most employers accept 1-3 days. If you need more, contact us."
+              >
                 <div className="flex gap-2">
                   {["1", "2", "3"].map((d) => (
                     <SelectableChip
                       key={d}
                       selected={state.duration === d}
                       onClick={() => updateField("duration", d as "1" | "2" | "3")}
-                      className="flex-1"
+                      className="flex-1 touch-target"
                     >
                       {d} day{d !== "1" ? "s" : ""}
                     </SelectableChip>
                   ))}
                 </div>
-                {errors.duration && (
-                  <p className="text-xs text-destructive mt-1">{errors.duration}</p>
-                )}
-              </div>
+              </FormField>
 
-              {/* Start date */}
-              <FormField label="Start date" required>
-                <Input
-                  type="date"
-                  value={state.startDate}
-                  onChange={(e) => updateField("startDate", e.target.value)}
-                  className="h-11"
-                />
+              {/* Start date with warning for backdating */}
+              <FormField
+                label="Start date"
+                required
+                error={errors.startDate}
+                hint="When does your absence start?"
+                helpText="You can select today or a past date. Future dates may require additional verification."
+                showSuccess={!!state.startDate && !errors.startDate}
+              >
+                <div className="space-y-2">
+                  <Input
+                    type="date"
+                    value={state.startDate}
+                    onChange={(e) => {
+                      const selectedDate = new Date(e.target.value)
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
+                      
+                      updateField("startDate", e.target.value)
+                      
+                      // Show warning for backdating more than 3 days
+                      if (daysDiff > 3) {
+                        // This could trigger a dialog or alert
+                      }
+                    }}
+                    className="h-11 touch-target"
+                    max={new Date().toISOString().split("T")[0]}
+                    aria-label="Select start date for absence"
+                  />
+                  {(() => {
+                    const selectedDate = new Date(state.startDate)
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
+                    
+                    if (daysDiff > 3 && state.startDate) {
+                      return (
+                        <Alert variant="warning" className="py-2">
+                          <AlertTriangle className="w-3 h-3" />
+                          <AlertDescription className="text-xs">
+                            Backdating more than 3 days may incur additional fees (+$10)
+                          </AlertDescription>
+                        </Alert>
+                      )
+                    }
+                    return null
+                  })()}
+                </div>
               </FormField>
 
               {/* Symptoms - Multi-select chips */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block">
-                  What symptoms do you have?
-                </Label>
+              <FormField
+                label="What symptoms do you have?"
+                required
+                error={errors.symptoms}
+                hint="Select all that apply"
+                helpText="This helps our doctors understand your condition and provide appropriate care"
+              >
                 <div className="flex flex-wrap gap-2">
                   {SYMPTOMS_LIST.map((symptom) => (
                     <SelectableChip
                       key={symptom}
                       selected={state.symptoms.includes(symptom)}
                       onClick={() => toggleSymptom(symptom)}
+                      className="touch-target"
                     >
                       {symptom}
                     </SelectableChip>
                   ))}
                 </div>
-                {errors.symptoms && (
-                  <p className="text-xs text-destructive mt-1">{errors.symptoms}</p>
-                )}
-              </div>
-
-              {/* Brief details */}
-              <FormField label="Anything else? (optional)">
-                <Textarea
-                  value={state.symptomDetails}
-                  onChange={(e) => updateField("symptomDetails", e.target.value)}
-                  placeholder="Additional details for the doctor..."
-                  rows={2}
-                  className="resize-none"
-                />
               </FormField>
+
+              {/* Brief details - Progressive disclosure */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-target mb-2">
+                  <span>Add additional details (optional)</span>
+                  <ChevronDown className="w-4 h-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <FormField
+                    label="Anything else?"
+                    hint="Any additional information that might help"
+                    example="e.g., Started feeling unwell yesterday evening, have been resting since"
+                  >
+                    <Textarea
+                      value={state.symptomDetails}
+                      onChange={(e) => updateField("symptomDetails", e.target.value)}
+                      placeholder="Additional details for the doctor..."
+                      rows={2}
+                      className="resize-none touch-target"
+                    />
+                  </FormField>
+                </CollapsibleContent>
+              </Collapsible>
             </motion.div>
           )
         }
@@ -912,18 +1259,14 @@ export function EnhancedIntakeFlow({
       case "safety":
         return (
           <motion.div className="space-y-6">
-            {/* Emergency warning */}
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <div className="flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium text-amber-800">Important</p>
-                  <p className="text-amber-700">
-                    If you&apos;re experiencing a medical emergency, call 000.
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Emergency warning - Enhanced */}
+            <Alert variant="warning" role="alert">
+              <AlertTriangle className="w-5 h-5" />
+              <AlertTitle className="font-medium">Important</AlertTitle>
+              <AlertDescription>
+                If you&apos;re experiencing a medical emergency, call 000 immediately.
+              </AlertDescription>
+            </Alert>
 
             {/* Integrated symptom checker */}
             <SymptomChecker
@@ -999,32 +1342,70 @@ export function EnhancedIntakeFlow({
               </FormField>
             </div>
 
-            <FormField label="Email" required error={errors.email}>
+            <FormField
+              label="Email"
+              required
+              error={errors.email}
+              hint="We'll send your certificate here"
+              example="you@example.com"
+              showSuccess={!!state.email && !errors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)}
+            >
               <Input
                 type="email"
                 value={state.email}
                 onChange={(e) => updateField("email", e.target.value)}
                 placeholder="you@example.com"
-                className="h-11"
+                className="h-11 touch-target"
+                autoComplete="email"
               />
             </FormField>
 
-            <FormField label="Mobile number" required error={errors.phone}>
+            <FormField
+              label="Mobile number"
+              required
+              error={errors.phone}
+              hint="Australian mobile number"
+              example="0412 345 678"
+              helpText="We may need to contact you if the doctor has questions"
+              showSuccess={!!state.phone && !errors.phone && /^04\d{8}$/.test(state.phone.replace(/\s/g, ""))}
+            >
               <Input
                 type="tel"
                 value={state.phone}
-                onChange={(e) => updateField("phone", e.target.value)}
+                onChange={(e) => {
+                  // Format phone number as user types
+                  const value = e.target.value.replace(/\D/g, "")
+                  if (value.length <= 10) {
+                    const formatted = value.length > 6
+                      ? `${value.slice(0, 4)} ${value.slice(4, 7)} ${value.slice(7)}`
+                      : value.length > 4
+                      ? `${value.slice(0, 4)} ${value.slice(4)}`
+                      : value
+                    updateField("phone", formatted.trim())
+                  }
+                }}
                 placeholder="04XX XXX XXX"
-                className="h-11"
+                className="h-11 touch-target"
+                autoComplete="tel"
+                maxLength={12}
               />
             </FormField>
 
-            <FormField label="Date of birth" required error={errors.dob}>
+            <FormField
+              label="Date of birth"
+              required
+              error={errors.dob}
+              hint="Required for medical records"
+              helpText="You must be 18 or older to use this service"
+              showSuccess={!!state.dob && !errors.dob}
+            >
               <Input
                 type="date"
                 value={state.dob}
                 onChange={(e) => updateField("dob", e.target.value)}
-                className="h-11"
+                className="h-11 touch-target"
+                max={new Date().toISOString().split("T")[0]}
+                autoComplete="bday"
               />
             </FormField>
           </motion.div>
@@ -1033,19 +1414,49 @@ export function EnhancedIntakeFlow({
       // ======= REVIEW =======
       case "review":
         const selectedService = SERVICES.find((s) => s.id === state.service)
+        
         return (
-          <motion.div className="space-y-6">
-            {/* Summary card */}
-            <div className="p-5 bg-slate-50 rounded-2xl space-y-4">
+          <motion.div className="space-y-6" data-intake-form>
+            {/* Trust indicators at top */}
+            <div className="flex flex-wrap items-center justify-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4 text-green-700" />
+                <span className="text-green-800 font-medium">AHPRA Registered</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Users className="w-4 h-4 text-green-700" />
+                <span className="text-green-800 font-medium">10,000+ Patients</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Star className="w-4 h-4 text-green-700 fill-green-700" />
+                <span className="text-green-800 font-medium">4.9/5 Rating</span>
+              </div>
+            </div>
+
+            {/* Urgency messaging */}
+            <Alert variant="info" className="border-primary/20 bg-primary/5">
+              <Zap className="w-4 h-4" />
+              <AlertTitle className="text-sm font-medium">Usually reviewed within 1 hour</AlertTitle>
+              <AlertDescription className="text-xs text-muted-foreground mt-1">
+                Our doctors are online now. Most requests are completed quickly.
+              </AlertDescription>
+            </Alert>
+
+            {/* Summary card - Enhanced with edit capability */}
+            <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {selectedService && (
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <selectedService.icon className="w-5 h-5 text-primary" />
-                    </div>
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    >
+                      <selectedService.icon className="w-6 h-6 text-primary" />
+                    </motion.div>
                   )}
                   <div>
-                    <p className="font-semibold">{selectedService?.title}</p>
+                    <p className="font-semibold text-lg">{selectedService?.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {state.service === "med-cert" && state.certType
                         ? `${state.duration} day${state.duration !== "1" ? "s" : ""} • ${CERT_TYPES.find((t) => t.id === state.certType)?.label}`
@@ -1053,17 +1464,20 @@ export function EnhancedIntakeFlow({
                     </p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-primary">
-                  {selectedService?.price}
-                </span>
+                <div className="text-right">
+                  <span className="text-2xl font-bold text-primary">
+                    {selectedService?.price}
+                  </span>
+                  <p className="text-xs text-muted-foreground">One-time payment</p>
+                </div>
               </div>
 
-              {/* ETA */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>
-                  Estimated time:{" "}
-                  <strong className="text-foreground">
+              {/* ETA with urgency */}
+              <div className="flex items-center gap-2 text-sm p-3 bg-white rounded-lg border border-slate-200">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">
+                  Estimated completion:{" "}
+                  <strong className="text-foreground font-semibold">
                     {selectedService?.time}
                   </strong>
                 </span>
@@ -1071,62 +1485,234 @@ export function EnhancedIntakeFlow({
 
               {/* No call badge */}
               {selectedService?.noCall && (
-                <div className="flex items-center gap-2 text-sm text-green-700">
+                <motion.div 
+                  className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-lg"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
                   <PhoneOff className="w-4 h-4" />
-                  <span>No phone call required</span>
+                  <span className="font-medium">No phone call required</span>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Patient info - Editable */}
+            <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Sending to:</p>
+                <button
+                  onClick={() => setEditingSection(editingSection === "patient" ? null : "patient")}
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors touch-target"
+                  aria-label="Edit patient details"
+                >
+                  <Edit2 className="w-3 h-3" />
+                  <span>Edit</span>
+                </button>
+              </div>
+              {editingSection === "patient" ? (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField label="First name" required>
+                      <Input
+                        value={state.firstName}
+                        onChange={(e) => updateField("firstName", e.target.value)}
+                        className="h-10 touch-target"
+                      />
+                    </FormField>
+                    <FormField label="Last name" required>
+                      <Input
+                        value={state.lastName}
+                        onChange={(e) => updateField("lastName", e.target.value)}
+                        className="h-10 touch-target"
+                      />
+                    </FormField>
+                  </div>
+                  <FormField label="Email" required>
+                    <Input
+                      type="email"
+                      value={state.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                      className="h-10 touch-target"
+                    />
+                  </FormField>
+                  <FormField label="Phone" required>
+                    <Input
+                      type="tel"
+                      value={state.phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "")
+                        if (value.length <= 10) {
+                          const formatted = value.length > 6
+                            ? `${value.slice(0, 4)} ${value.slice(4, 7)} ${value.slice(7)}`
+                            : value.length > 4
+                            ? `${value.slice(0, 4)} ${value.slice(4)}`
+                            : value
+                          updateField("phone", formatted.trim())
+                        }
+                      }}
+                      className="h-10 touch-target"
+                      maxLength={12}
+                    />
+                  </FormField>
+                  <Button
+                    onClick={() => setEditingSection(null)}
+                    className="w-full touch-target"
+                    size="sm"
+                  >
+                    Done
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {state.firstName} {state.lastName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{state.email}</p>
+                  <p className="text-sm text-muted-foreground">{state.phone}</p>
                 </div>
               )}
             </div>
 
-            {/* Patient info */}
-            <div className="p-4 bg-white border rounded-xl space-y-2">
-              <p className="text-sm font-medium">Sending to:</p>
-              <p className="text-sm text-muted-foreground">
-                {state.firstName} {state.lastName}
-              </p>
-              <p className="text-sm text-muted-foreground">{state.email}</p>
-              <p className="text-sm text-muted-foreground">{state.phone}</p>
+            {/* Service details - Editable */}
+            {state.service === "med-cert" && (
+              <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Service details:</p>
+                  <button
+                    onClick={() => setEditingSection(editingSection === "details" ? null : "details")}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors touch-target"
+                    aria-label="Edit service details"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+                {editingSection === "details" ? (
+                  <div className="space-y-3 pt-2 border-t">
+                    <FormField label="Certificate type" required>
+                      <div className="grid grid-cols-3 gap-2">
+                        {CERT_TYPES.map((type) => (
+                          <OptionCard
+                            key={type.id}
+                            selected={state.certType === type.id}
+                            onClick={() => updateField("certType", type.id as "work" | "study" | "carer")}
+                            icon={type.icon}
+                            label={type.label}
+                          />
+                        ))}
+                      </div>
+                    </FormField>
+                    <FormField label="Duration" required>
+                      <div className="flex gap-2">
+                        {["1", "2", "3"].map((d) => (
+                          <SelectableChip
+                            key={d}
+                            selected={state.duration === d}
+                            onClick={() => updateField("duration", d as "1" | "2" | "3")}
+                            className="flex-1 touch-target"
+                          >
+                            {d} day{d !== "1" ? "s" : ""}
+                          </SelectableChip>
+                        ))}
+                      </div>
+                    </FormField>
+                    <Button
+                      onClick={() => setEditingSection(null)}
+                      className="w-full touch-target"
+                      size="sm"
+                    >
+                      Done
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Type:</span> {CERT_TYPES.find((t) => t.id === state.certType)?.label}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Duration:</span> {state.duration} day{state.duration !== "1" ? "s" : ""}
+                    </p>
+                    {state.symptoms.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Symptoms:</span> {state.symptoms.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* What happens next timeline */}
+            <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                What happens next?
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <p className="text-muted-foreground">You&apos;ll receive a confirmation email</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <p className="text-muted-foreground">A doctor reviews your request (usually within 1 hour)</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <p className="text-muted-foreground">You&apos;ll receive the result via email</p>
+                </div>
+              </div>
             </div>
 
             {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex items-start gap-3 cursor-pointer p-4 bg-slate-50 rounded-xl border-2 border-transparent hover:border-primary/20 transition-colors touch-target">
               <input
                 type="checkbox"
                 checked={state.agreedToTerms}
                 onChange={(e) => updateField("agreedToTerms", e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                aria-label="Agree to terms and conditions"
               />
               <span className="text-sm text-muted-foreground">
                 I agree to the{" "}
-                <a href="/terms" className="text-primary underline">
+                <a href="/terms" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
                   Terms of Service
                 </a>{" "}
                 and{" "}
-                <a href="/privacy" className="text-primary underline">
+                <a href="/privacy" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
                   Privacy Policy
                 </a>
               </span>
             </label>
             {errors.agreedToTerms && (
-              <p className="text-xs text-destructive">{errors.agreedToTerms}</p>
+              <Alert variant="destructive">
+                <AlertTriangle className="w-4 h-4" />
+                <AlertDescription className="text-xs">{errors.agreedToTerms}</AlertDescription>
+              </Alert>
             )}
 
-            {/* Trust badges */}
-            <div className="flex flex-wrap gap-2 justify-center text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5" />
-                AHPRA Verified
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Star className="w-3.5 h-3.5" />
-                4.9/5 Rating
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5" />
-                98% Approval
-              </span>
+            {/* Trust badges - Enhanced */}
+            <div className="flex flex-wrap gap-3 justify-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-1.5 text-xs">
+                <Shield className="w-4 h-4 text-green-600" />
+                <span className="font-medium text-foreground">AHPRA Verified</span>
+              </div>
+              <span className="text-muted-foreground">•</span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-medium text-foreground">4.9/5 Rating</span>
+              </div>
+              <span className="text-muted-foreground">•</span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="font-medium text-foreground">98% Approval</span>
+              </div>
             </div>
           </motion.div>
         )
@@ -1137,21 +1723,92 @@ export function EnhancedIntakeFlow({
   // MAIN RENDER
   // ==========================================
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape key to go back
+      if (e.key === "Escape" && stepIndex > 0) {
+        goBack()
+      }
+      // Enter key to continue (when button is enabled)
+      if (e.key === "Enter" && step !== "service" && Object.keys(errors).length === 0) {
+        const continueButton = document.querySelector('[aria-label*="Continue"]') as HTMLButtonElement
+        if (continueButton && !continueButton.disabled) {
+          e.preventDefault()
+          continueButton.click()
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [stepIndex, step, errors, goBack])
+
+  // Screen reader announcements
+  useEffect(() => {
+    const announcement = document.getElementById("sr-announcement")
+    if (announcement) {
+      announcement.textContent = `Step ${stepIndex + 1} of ${steps.length}: ${title}`
+    }
+  }, [stepIndex, steps.length, title])
+
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 to-white flex flex-col">
+      {/* Screen reader announcements */}
+      <div id="sr-announcement" className="sr-only" aria-live="polite" aria-atomic="true" />
+      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={goBack}
-            className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                goBack()
+              }
+            }}
+            className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            aria-label={stepIndex > 0 ? `Go back to ${stepLabels[stepIndex - 1] || "previous"} step` : "Go back"}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           </button>
 
-          <ProgressIndicator steps={steps} currentStep={stepIndex} />
+          <div className="flex-1 mx-4">
+            <StepProgress
+              currentStep={stepIndex + 1}
+              totalSteps={steps.length}
+              steps={stepLabels}
+              showTimeEstimate={true}
+              timeEstimates={timeEstimates}
+            />
+          </div>
 
-          <div className="w-9" /> {/* Spacer */}
+          {/* Auto-save indicator */}
+          <div className="w-9 flex items-center justify-end">
+            {lastSavedAt && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {isSaving ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      {isSaving 
+                        ? "Saving..." 
+                        : `Saved ${formatTimeAgo(lastSavedAt)}`}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1185,15 +1842,21 @@ export function EnhancedIntakeFlow({
       </main>
 
       {/* Footer CTA */}
-      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
+      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 pb-safe">
         <div className="max-w-lg mx-auto flex gap-3">
           {/* Back button */}
           {stepIndex > 0 && (
             <Button
               variant="ghost"
               onClick={goBack}
-              className="h-12 px-4 rounded-xl"
-              aria-label="Go back"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  goBack()
+                }
+              }}
+              className="h-12 min-w-[48px] px-4 rounded-xl touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label={`Go back to ${stepLabels[stepIndex - 1] || "previous"} step`}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -1207,26 +1870,34 @@ export function EnhancedIntakeFlow({
           ) : (
             <Button
               onClick={goNext}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  goNext()
+                }
+              }}
               disabled={
                 isSubmitting ||
-                (step === "safety" && symptomCheckResult.severity === "critical")
+                (step === "safety" && symptomCheckResult.severity === "critical") ||
+                Object.keys(errors).length > 0
               }
-              className="flex-1 h-12 text-base font-medium rounded-xl"
+              className="flex-1 h-12 min-h-[48px] text-base font-medium rounded-xl touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label={isLastStep ? `Pay ${SERVICES.find((s) => s.id === state.service)?.price}` : "Continue to next step"}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                  <span>Processing...</span>
                 </>
               ) : isLastStep ? (
                 <>
                   Pay {SERVICES.find((s) => s.id === state.service)?.price}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
                 </>
               ) : (
                 <>
                   Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
                 </>
               )}
             </Button>
