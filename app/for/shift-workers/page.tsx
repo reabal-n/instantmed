@@ -64,46 +64,47 @@ export default function ShiftWorkersPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-purple-500/10 to-transparent">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-600 text-sm mb-6">
-                <Moon className="h-4 w-4" />
-                For Shift Workers
+          <ParallaxSection speed={0.1}>
+            <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-purple-500/10 to-transparent">
+              <div className="mx-auto max-w-3xl text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-600 text-sm mb-6">
+                  <Moon className="h-4 w-4" />
+                  For Shift Workers
+                </div>
+
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+                  Medical Certificates When GPs Are Closed
+                </h1>
+                <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-4">
+                  Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong> — anytime between 8am-10pm, 7 days a week.
+                </p>
+                <p className="text-sm text-muted-foreground mb-8">
+                  Works around your roster • All employers accept • AHPRA doctors
+                </p>
+
+                <Link href="/medical-certificate/request">
+                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-base px-8">
+                    Get Certificate Now
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+
+                {/* Trust badges */}
+                <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                    <Clock className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium">8am-10pm, 7 days</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                    <Zap className="h-4 w-4 text-purple-600" />
+                    <span>15 min turnaround</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
+                    <Shield className="h-4 w-4 text-purple-600" />
+                    <span>All employers</span>
+                  </div>
+                </div>
               </div>
-
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Medical Certificates When GPs Are Closed
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-4">
-                Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong> — anytime between 8am-10pm, 7 days a week.
-              </p>
-              <p className="text-sm text-muted-foreground mb-8">
-                Works around your roster • All employers accept • AHPRA doctors
-              </p>
-
-              <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-base px-8">
-                  Get Certificate Now
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-
-              {/* Trust badges */}
-              <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Clock className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium">8am-10pm, 7 days</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Zap className="h-4 w-4 text-purple-600" />
-                  <span>15 min turnaround</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Shield className="h-4 w-4 text-purple-600" />
-                  <span>All employers</span>
-                </div>
-              </div>
-            </div>
             </section>
           </ParallaxSection>
 
@@ -305,41 +306,43 @@ export default function ShiftWorkersPage() {
               </div>
             </div>
           </section>
+          </ParallaxSection>
 
           {/* FAQs */}
-          <section className="px-4 py-12">
-            <div className="mx-auto max-w-2xl">
-              <h2 className="text-xl font-bold text-center mb-8">Quick answers</h2>
-              <div className="space-y-4">
-                {[
-                  {
-                    q: "What are your hours?",
-                    a: "We're available 8am-10pm AEST, 7 days a week including public holidays. Most certificates are issued within 15 minutes during these hours.",
-                  },
-                  {
-                    q: "I work nights — can I get a cert after 10pm?",
-                    a: "Submissions received after 10pm will be processed from 8am the next morning. You can submit anytime, but review happens during operating hours.",
-                  },
-                  {
-                    q: "Will my employer accept this?",
-                    a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers — hospitals, retail chains, agencies, everyone.",
-                  },
-                  {
-                    q: "Can I get a cert for a shift I already missed?",
-                    a: "We can backdate certificates up to 48 hours if clinically appropriate. Just indicate the dates when you were unwell.",
-                  },
-                  {
-                    q: "What does it cost?",
-                    a: "Medical certificates are $19.95. One flat fee, no hidden costs. Scripts from $29.95.",
-                  },
-                ].map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-muted/30">
-                    <h3 className="font-semibold mb-2">{faq.q}</h3>
-                    <p className="text-sm text-muted-foreground">{faq.a}</p>
-                  </div>
-                ))}
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12">
+              <div className="mx-auto max-w-2xl">
+                <h2 className="text-xl font-bold text-center mb-8">Quick answers</h2>
+                <div className="space-y-4">
+                  {[
+                    {
+                      q: "What are your hours?",
+                      a: "We're available 8am-10pm AEST, 7 days a week including public holidays. Most certificates are issued within 15 minutes during these hours.",
+                    },
+                    {
+                      q: "I work nights — can I get a cert after 10pm?",
+                      a: "Submissions received after 10pm will be processed from 8am the next morning. You can submit anytime, but review happens during operating hours.",
+                    },
+                    {
+                      q: "Will my employer accept this?",
+                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers — hospitals, retail chains, agencies, everyone.",
+                    },
+                    {
+                      q: "Can I get a cert for a shift I already missed?",
+                      a: "We can backdate certificates up to 48 hours if clinically appropriate. Just indicate the dates when you were unwell.",
+                    },
+                    {
+                      q: "What does it cost?",
+                      a: "Medical certificates are $19.95. One flat fee, no hidden costs. Scripts from $29.95.",
+                    },
+                  ].map((faq, i) => (
+                    <div key={i} className="p-5 rounded-xl bg-muted/30">
+                      <h3 className="font-semibold mb-2">{faq.q}</h3>
+                      <p className="text-sm text-muted-foreground">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
             </section>
           </ParallaxSection>
 
