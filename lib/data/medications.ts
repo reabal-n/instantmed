@@ -428,3 +428,61 @@ export function isControlledMedication(medicationId: string): boolean {
   const med = getMedicationById(medicationId)
   return med?.schedule === 8
 }
+
+/**
+ * Get medication by slug (slug is the id)
+ */
+export function getMedicationBySlug(slug: string): Medication | undefined {
+  return getMedicationById(slug)
+}
+
+/**
+ * Get all unique categories
+ */
+export function getAllCategories(): MedicationCategory[] {
+  const categories = new Set<MedicationCategory>()
+  AUSTRALIAN_MEDICATIONS.forEach((med) => {
+    categories.add(med.category)
+  })
+  return Array.from(categories)
+}
+
+/**
+ * Category labels for display
+ */
+export const CATEGORY_LABELS: Record<MedicationCategory, string> = {
+  cardiovascular: "Cardiovascular",
+  diabetes: "Diabetes",
+  "mental-health": "Mental Health",
+  "pain-relief": "Pain Relief",
+  antibiotics: "Antibiotics",
+  thyroid: "Thyroid",
+  gastrointestinal: "Gastrointestinal",
+  respiratory: "Respiratory",
+  contraception: "Contraception",
+  cholesterol: "Cholesterol",
+  "blood-pressure": "Blood Pressure",
+  allergy: "Allergy",
+  skin: "Skin Conditions",
+  other: "Other",
+}
+
+/**
+ * Category icons (using emoji for simplicity)
+ */
+export const CATEGORY_ICONS: Record<MedicationCategory, string> = {
+  cardiovascular: "❤️",
+  diabetes: "🩺",
+  "mental-health": "🧠",
+  "pain-relief": "💊",
+  antibiotics: "🦠",
+  thyroid: "🦋",
+  gastrointestinal: "🤢",
+  respiratory: "🫁",
+  contraception: "💕",
+  cholesterol: "🩸",
+  "blood-pressure": "📊",
+  allergy: "🤧",
+  skin: "✨",
+  other: "📦",
+}

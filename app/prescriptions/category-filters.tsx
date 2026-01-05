@@ -45,12 +45,14 @@ export function CategoryFilters() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {getMedicationsByCategory(activeCategory).map((med) => (
               <Link
-                key={med.slug}
-                href={`/prescriptions/med/${med.slug}`}
+                key={med.id}
+                href={`/prescriptions/med/${med.id}`}
                 className="p-3 rounded-lg hover:bg-muted transition-colors text-sm"
               >
                 <div className="font-medium">{med.name}</div>
-                <div className="text-xs text-muted-foreground">${med.price}</div>
+                <div className="text-xs text-muted-foreground">
+                  {med.requiresCall ? "From $49" : "From $39"}
+                </div>
               </Link>
             ))}
           </div>
