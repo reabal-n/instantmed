@@ -135,7 +135,7 @@ export function AddressAutocomplete({
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const autocompleteRef = useRef<any>(null)
 
   const initAutocomplete = useCallback(() => {
     const win = window as unknown as GoogleMapsWindow
