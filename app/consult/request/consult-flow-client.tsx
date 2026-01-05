@@ -519,7 +519,7 @@ export function ConsultFlowClient({
                   <div key={q.id} className="p-4 rounded-xl border border-border/60 space-y-3">
                     <p className="text-sm font-medium mb-2">{q.question}</p>
                     <CinematicSwitch
-                      value={safetyAnswers[q.id]}
+                      value={safetyAnswers[q.id] ?? undefined}
                       onChange={(value) => {
                         setSafetyAnswers((prev) => ({ ...prev, [q.id]: value }))
                         if (q.knockout && value) {

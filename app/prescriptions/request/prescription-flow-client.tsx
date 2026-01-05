@@ -1222,7 +1222,7 @@ export function PrescriptionFlowClient({
                   <div key={q.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60">
                     <p className="text-sm pr-4 flex-1">{q.label}</p>
                     <CinematicSwitch
-                      value={safetyAnswers[q.id]}
+                      value={safetyAnswers[q.id] ?? undefined}
                       onChange={(value) => setSafetyAnswers((prev) => ({ ...prev, [q.id]: value }))}
                       onLabel="YES"
                       offLabel="NO"
