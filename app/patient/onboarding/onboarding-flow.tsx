@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
+import {
   ArrowLeft, 
   ArrowRight, 
   Check, 
@@ -15,8 +15,8 @@ import {
   CreditCard, 
   Shield, 
   AlertTriangle,
-  Loader2 
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { completeOnboardingAction } from "./actions"
 import type { AustralianState } from "@/types/db"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
@@ -530,7 +530,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ButtonSpinner />
                     Saving...
                   </span>
                 ) : (

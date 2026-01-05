@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Spinner, LoadingState as UnifiedLoadingState, ButtonSpinner } from '@/components/ui/unified-skeleton'
 
 interface PageLoadingProps {
   message?: string
@@ -24,13 +24,10 @@ export function PageLoading({ message = 'Loading...', className }: PageLoadingPr
         className
       )}
     >
-      <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-      <p className="text-muted-foreground">{message}</p>
-      {showSlowMessage && (
-        <p className="text-sm text-muted-foreground mt-2">
-          This is taking longer than usual...
-        </p>
-      )}
+      <UnifiedLoadingState 
+        message={message}
+        submessage={showSlowMessage ? "This is taking longer than usual..." : undefined}
+      />
     </div>
   )
 }
@@ -38,7 +35,7 @@ export function PageLoading({ message = 'Loading...', className }: PageLoadingPr
 export function InlineLoading({ message }: { message?: string }) {
   return (
     <div className="flex items-center gap-2 text-muted-foreground">
-      <Loader2 className="w-4 h-4 animate-spin" />
+      <Spinner size="sm" />
       {message && <span className="text-sm">{message}</span>}
     </div>
   )
@@ -47,7 +44,7 @@ export function InlineLoading({ message }: { message?: string }) {
 export function ButtonLoading({ children }: { children?: React.ReactNode }) {
   return (
     <span className="flex items-center gap-2">
-      <Loader2 className="w-4 h-4 animate-spin" />
+      <ButtonSpinner />
       {children || 'Loading...'}
     </span>
   )
@@ -57,7 +54,7 @@ export function ButtonLoading({ children }: { children?: React.ReactNode }) {
 export function SuspenseFallback() {
   return (
     <div className="w-full h-32 flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <Spinner size="md" />
     </div>
   )
 }

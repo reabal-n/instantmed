@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Pill, Loader2, X, ChevronRight, AlertCircle, Plus } from 'lucide-react'
+import { Search, Pill, X, ChevronRight, AlertCircle, Plus } from 'lucide-react'
+import { Spinner } from '@/components/ui/unified-skeleton'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
@@ -296,7 +297,7 @@ export function MedicationSearch({
           )}
         />
         {isSearching && (
-          <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 animate-spin" />
+          <Spinner size="sm" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
         )}
       </div>
 

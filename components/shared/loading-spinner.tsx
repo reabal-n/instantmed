@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { useMemo } from "react"
-import { Loader2 } from "lucide-react"
+import { Spinner, LoadingState as UnifiedLoadingState } from "@/components/ui/unified-skeleton"
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg"
@@ -19,7 +19,7 @@ const sizes = {
 export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
   return (
     <div className={cn("flex items-center justify-center gap-2", className)}>
-      <Loader2 className={cn(sizes[size], "animate-spin text-primary")} />
+      <Spinner size={size} />
       {text && <span className="text-sm text-muted-foreground">{text}</span>}
     </div>
   )
@@ -32,10 +32,7 @@ interface FullPageLoaderProps {
 export function FullPageLoader({ text = "Loading..." }: FullPageLoaderProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <LoadingSpinner size="lg" className="mb-4" />
-        <p className="text-muted-foreground text-sm animate-pulse-soft">{text}</p>
-      </div>
+      <UnifiedLoadingState message={text} />
     </div>
   )
 }

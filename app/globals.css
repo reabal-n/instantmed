@@ -2265,6 +2265,78 @@ body {
   }
 }
 
+/* Mobile-first improvements */
+@media (max-width: 767px) {
+  /* Ensure all interactive elements meet touch target requirements */
+  button,
+  [role="button"],
+  a[href],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  label[for] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent zoom on input focus (iOS Safari) */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Better tap feedback */
+  button:active,
+  [role="button"]:active,
+  a:active {
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+  }
+
+  /* Larger form inputs on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  textarea {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover,
+  .hover\:shadow-lg:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Ripple effect animation */
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 600ms ease-out;
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ripple {
+    animation: none;
+  }
+}
+
 /* Screen reader only content */
 .sr-only {
   position: absolute;

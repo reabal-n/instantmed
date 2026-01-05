@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Check, AlertCircle, Loader2 } from 'lucide-react'
+import { Check, AlertCircle } from 'lucide-react'
+import { ButtonSpinner, Spinner } from '@/components/ui/unified-skeleton'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -157,7 +158,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
     return (
       <FlowContent title="Loading..." description="">
         <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <Spinner size="lg" className="text-emerald-500" />
         </div>
       </FlowContent>
     )
@@ -315,7 +316,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <ButtonSpinner className="mr-2" />
               Processing...
             </>
           ) : (

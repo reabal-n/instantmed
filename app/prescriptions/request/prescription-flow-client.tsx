@@ -1413,7 +1413,7 @@ export function PrescriptionFlowClient({
                       className="w-full h-11"
                     >
                       {authLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <ButtonSpinner />
                       ) : isSignUp ? (
                         "Create account"
                       ) : (
@@ -1548,7 +1548,7 @@ export function PrescriptionFlowClient({
                   <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-12 rounded-xl">
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <ButtonSpinner className="mr-2" />
                         {RX_MICROCOPY.payment.processing}
                       </>
                     ) : (

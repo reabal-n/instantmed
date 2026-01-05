@@ -8,7 +8,6 @@ import confetti from "canvas-confetti"
 import {
   ArrowRight,
   ArrowLeft,
-  Loader2,
   Clock,
   CheckCircle,
   AlertTriangle,
@@ -28,6 +27,7 @@ import {
   RefreshCw,
   LogIn,
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -471,7 +471,7 @@ function SignInDialog({
             className="w-full h-11 rounded-xl gap-2"
           >
             {isGoogleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ButtonSpinner />
             ) : (
               <LogIn className="w-4 h-4" />
             )}
@@ -1181,7 +1181,7 @@ export function MedCertForm({
                       className="flex-1 h-9 rounded-lg gap-1.5 text-xs"
                     >
                       {isGoogleLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <ButtonSpinner className="w-3.5 h-3.5" />
                       ) : (
                         <GoogleIcon className="w-3.5 h-3.5" />
                       )}
@@ -1437,7 +1437,7 @@ export function MedCertForm({
                     className="w-full h-10 rounded-lg gap-2 bg-white hover:bg-gray-50 border-border"
                   >
                     {isGoogleLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <ButtonSpinner />
                     ) : (
                       <GoogleIcon className="w-4 h-4" />
                     )}
@@ -1615,7 +1615,7 @@ export function MedCertForm({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <ButtonSpinner className="w-5 h-5" />
                   Processing...
                 </>
               ) : (

@@ -4,11 +4,14 @@ import * as React from "react"
 import { Button as HeroButton, type ButtonProps as HeroButtonProps } from "@heroui/react"
 import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
+import { RippleEffect } from "./ripple-effect"
 
 export interface ButtonProps extends Omit<HeroButtonProps, "variant" | "size" | "color"> {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg"
   asChild?: boolean
+  /** Enable ripple effect on click */
+  ripple?: boolean
 }
 
 const variantMap: Record<string, HeroButtonProps["variant"]> = {
@@ -42,6 +45,7 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  ripple = true,
   className,
   children,
   ...props
@@ -53,7 +57,7 @@ function Button({
   const isIconOnly = size?.startsWith("icon")
   const heroSize = sizeMap[size || "default"]
 
-  return (
+  const buttonContent = (
     <HeroButton
       variant={variantMap[variant]}
       color={colorMap[variant]}
@@ -69,7 +73,11 @@ function Button({
         // Glow effect for primary buttons
         variant === "default" && "hover:ring-2 hover:ring-primary/20",
         // Ensure minimum touch target on mobile (accessibility)
-        "min-h-[44px] md:min-h-0",
+        "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0",
+        // Better mobile tap feedback
+        "active:opacity-80 md:active:opacity-100",
+        // Prevent text selection on mobile
+        "select-none",
         // Smooth transform origin
         "origin-center",
         // Accessibility: Focus visible styles
@@ -81,6 +89,19 @@ function Button({
       {children}
     </HeroButton>
   )
+
+  if (ripple && variant !== "link") {
+    return (
+      <RippleEffect
+        enabled={ripple}
+        color={variant === "default" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.1)"}
+      >
+        {buttonContent}
+      </RippleEffect>
+    )
+  }
+
+  return buttonContent
 }
 
 // Export buttonVariants for backward compatibility

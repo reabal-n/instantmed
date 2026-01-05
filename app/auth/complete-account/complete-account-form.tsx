@@ -2,12 +2,12 @@
 
 import type React from "react"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Check, Loader2 } from "lucide-react"
 import { useClerk, useUser } from "@clerk/nextjs"
-import confetti from "canvas-confetti"
+import { Confetti } from "@/components/ui/confetti"
 
 export function CompleteAccountForm({
   requestId,
@@ -22,14 +22,12 @@ export function CompleteAccountForm({
   const { openSignUp } = useClerk()
   const { isSignedIn, isLoaded } = useUser()
 
+  const [showConfetti, setShowConfetti] = useState(false)
+  
   useEffect(() => {
     // If already signed in, redirect to success
     if (isLoaded && isSignedIn && requestId) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { x: 0.5, y: 0.6 },
-      })
+      setShowConfetti(true)
       
       setTimeout(() => {
         router.push(`/patient/requests/success?request_id=${requestId}`)
@@ -50,18 +48,21 @@ export function CompleteAccountForm({
   // If already signed in, show success message
   if (isLoaded && isSignedIn) {
     return (
-      <div className="p-8 glass-card">
-        <Card>
-          <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
-            <Check className="w-8 h-8 text-emerald-500" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
-          <p className="text-muted-foreground">Redirecting to your request...</p>
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
-          </div>
-        </Card>
-      </div>
+      <>
+        <Confetti trigger={showConfetti} />
+        <div className="p-8 glass-card">
+          <Card>
+            <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-4">
+              <Check className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
+            <p className="text-muted-foreground">Redirecting to your request...</p>
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mt-4 text-primary" />
+            </div>
+          </Card>
+        </div>
+      </>
     )
   }
 

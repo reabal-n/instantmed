@@ -6,7 +6,7 @@
  */
 
 import dynamic from 'next/dynamic'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton, RequestListSkeleton, PageSkeleton } from '@/components/ui/unified-skeleton'
 
 // Loading skeleton for PDF viewers
 const PDFLoadingSkeleton = () => (

@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { Button, Input, Badge } from "@/components/uix"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { EmptyState as EnhancedEmptyState } from "@/components/ui/empty-state"
 import { cn } from "@/lib/utils"
 
 interface Request {
@@ -524,13 +525,16 @@ function EmptyState({
   icon: React.ElementType
 }) {
   return (
-    <div className="text-center py-12">
-      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-4">
-        <Icon className="w-6 h-6 text-slate-400" />
-      </div>
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-    </div>
+    <EnhancedEmptyState
+      icon={Icon}
+      title={title}
+      description={description || ""}
+      tips={[
+        "Most requests are reviewed within 15 minutes",
+        "You can save drafts and complete later",
+        "All your documents are stored securely"
+      ]}
+    />
   )
 }
 

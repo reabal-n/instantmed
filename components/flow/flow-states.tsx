@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { fadeIn } from '@/components/ui/animations'
 
 // ============================================
 // ERROR STATE

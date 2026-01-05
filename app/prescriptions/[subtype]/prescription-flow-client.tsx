@@ -14,12 +14,12 @@ import {
   Pill,
   CheckCircle,
   AlertTriangle,
-  Loader2,
   RefreshCw,
   ClipboardList,
   CreditCard,
   User,
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
@@ -836,7 +836,7 @@ export function PrescriptionFlowClient({
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <ButtonSpinner className="mr-2" />
               Processing...
             </>
           ) : !isAuthenticated ? (

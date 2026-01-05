@@ -36,6 +36,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
       richColors
       closeButton
       duration={4000}
+      toastOptions={{
+        ...props.toastOptions,
+        classNames: {
+          ...props.toastOptions?.classNames,
+          toast: 'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-xl group-[.toaster]:rounded-2xl group-[.toaster]:backdrop-blur-xl group-[.toaster]:border group-[.toaster]:animate-in group-[.toaster]:slide-in-from-right group-[.toaster]:duration-300',
+        },
+      }}
       {...props}
     />
   )

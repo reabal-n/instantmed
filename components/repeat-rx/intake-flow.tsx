@@ -12,7 +12,6 @@ import confetti from "canvas-confetti"
 import {
   ArrowLeft,
   ArrowRight,
-  Loader2,
   CheckCircle,
   X,
   Check,
@@ -25,6 +24,7 @@ import {
   Pill,
   RefreshCw,
 } from "lucide-react"
+import { ButtonSpinner, Spinner } from "@/components/ui/unified-skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
@@ -252,7 +252,7 @@ function AuthStep({
             className="w-full h-12 rounded-xl"
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              <ButtonSpinner className="mr-2" />
             ) : null}
             {REPEAT_RX_COPY.auth.signInButton}
           </Button>
@@ -1226,7 +1226,7 @@ export function RepeatRxIntakeFlow({
                         {item.status === "complete" ? (
                           <Check className="w-4 h-4 text-green-600" />
                         ) : item.status === "current" ? (
-                          <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                          <ButtonSpinner className="text-primary" />
                         ) : (
                           <Clock className="w-4 h-4 text-muted-foreground" />
                         )}
@@ -1303,7 +1303,7 @@ export function RepeatRxIntakeFlow({
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        <ButtonSpinner className="mr-2" />
                         {REPEAT_RX_COPY.payment.processing}
                       </>
                     ) : (
@@ -1321,7 +1321,7 @@ export function RepeatRxIntakeFlow({
                   >
                     {isCheckingEligibility ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        <ButtonSpinner className="mr-2" />
                         {REPEAT_RX_COPY.eligibility.checking}
                       </>
                     ) : (

@@ -1,16 +1,22 @@
-import { LucideIcon, Plus, Lightbulb, Sparkles } from "lucide-react"
+"use client"
+
+import { motion } from "framer-motion"
+import { LucideIcon, FileText, Plus, Lightbulb, Sparkles } from "lucide-react"
 import { Button } from "./button"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
 import { fadeIn, slideUp } from "./animations"
 import Link from "next/link"
 
-interface EmptyStateProps {
-  icon: LucideIcon
+interface EnhancedEmptyStateProps {
+  /** Icon to display */
+  icon?: LucideIcon
+  /** Title text */
   title: string
+  /** Description text */
   description: string
   /** Optional illustration component */
   illustration?: React.ReactNode
+  /** Primary action */
   action?: {
     label: string
     onClick?: () => void
@@ -30,11 +36,17 @@ interface EmptyStateProps {
     description: string
     onClick?: () => void
   }>
+  /** Custom className */
   className?: string
 }
 
-export function EmptyState({
-  icon: Icon,
+/**
+ * Enhanced Empty State Component
+ * 
+ * More engaging empty states with illustrations, tips, and examples
+ */
+export function EnhancedEmptyState({
+  icon: Icon = FileText,
   title,
   description,
   illustration,
@@ -43,7 +55,7 @@ export function EmptyState({
   tips,
   examples,
   className,
-}: EmptyStateProps) {
+}: EnhancedEmptyStateProps) {
   return (
     <motion.div
       initial="initial"
@@ -174,7 +186,7 @@ export function EmptyState({
               <button
                 key={index}
                 onClick={example.onClick}
-                className="p-4 text-left rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:border-primary/50 transition-all cursor-pointer min-h-[44px] touch-target"
+                className="p-4 text-left rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:border-primary/50 transition-all cursor-pointer"
               >
                 <h4 className="font-medium text-sm text-foreground mb-1">{example.title}</h4>
                 <p className="text-xs text-muted-foreground">{example.description}</p>
@@ -186,3 +198,4 @@ export function EmptyState({
     </motion.div>
   )
 }
+

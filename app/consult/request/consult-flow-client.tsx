@@ -12,7 +12,6 @@ import {
 import confetti from "canvas-confetti"
 import {
   ArrowLeft,
-  Loader2,
   CheckCircle,
   AlertTriangle,
   Eye,
@@ -20,6 +19,7 @@ import {
   Pencil,
   Stethoscope,
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
@@ -734,7 +734,7 @@ export function ConsultFlowClient({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <ButtonSpinner className="mr-2" />
                   Processing...
                 </>
               ) : (

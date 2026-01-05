@@ -11,6 +11,7 @@ import {
   type ModalProps as HeroModalProps,
 } from "@heroui/react"
 import { cn } from "@/lib/utils"
+import { FocusTrap } from "./focus-trap"
 
 export interface DialogProps extends Omit<HeroModalProps, "children" | "isOpen" | "onClose"> {
   children?: React.ReactNode
@@ -69,13 +70,23 @@ function DialogContent({
 }: React.ComponentProps<typeof ModalContent> & {
   showCloseButton?: boolean
 }) {
+  const isOpen = props.isOpen ?? false
+  
   return (
-    <ModalContent
-      className={cn("bg-background border border-default-100", className)}
-      {...props}
-    >
-      {children}
-    </ModalContent>
+    <FocusTrap active={isOpen} onEscape={() => props.onClose?.()}>
+      <ModalContent
+        className={cn(
+          "bg-background border border-default-100",
+          // Mobile optimizations
+          "max-h-[90vh] overflow-y-auto",
+          "md:rounded-2xl",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </ModalContent>
+    </FocusTrap>
   )
 }
 

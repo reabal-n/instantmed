@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { FocusTrap } from "@/components/ui/focus-trap"
 
 interface IntakeModalProps {
   isOpen: boolean
@@ -78,21 +79,22 @@ export function IntakeModal({
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 z-[101] overflow-hidden">
-            <div className="flex min-h-full items-center justify-center p-0 sm:p-4">
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className={cn(
-                  "relative w-full bg-white shadow-2xl",
-                  "sm:max-w-2xl sm:rounded-2xl",
-                  "h-full sm:h-auto sm:max-h-[90vh]",
-                  "flex flex-col"
-                )}
-                onClick={(e) => e.stopPropagation()}
-              >
+          <FocusTrap active={isOpen} onEscape={handleClose}>
+            <div className="fixed inset-0 z-[101] overflow-hidden">
+              <div className="flex min-h-full items-center justify-center p-0 sm:p-4">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className={cn(
+                    "relative w-full bg-white shadow-2xl",
+                    "sm:max-w-2xl sm:rounded-2xl",
+                    "h-full sm:h-auto sm:max-h-[90vh]",
+                    "flex flex-col"
+                  )}
+                  onClick={(e) => e.stopPropagation()}
+                >
                 {/* Header */}
                 {title && (
                   <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-4 sm:rounded-t-2xl">
@@ -107,13 +109,14 @@ export function IntakeModal({
                   </div>
                 )}
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto">
-                  {children}
-                </div>
-              </motion.div>
+                  {/* Content */}
+                  <div className="flex-1 overflow-y-auto">
+                    {children}
+                  </div>
+                </motion.div>
+              </div>
             </div>
-          </div>
+          </FocusTrap>
 
           {/* Confirmation Dialog */}
           <AnimatePresence>

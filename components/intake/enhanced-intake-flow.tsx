@@ -7,7 +7,6 @@ import confetti from "canvas-confetti"
 import {
   ArrowRight,
   ArrowLeft,
-  Loader2,
   Clock,
   CheckCircle,
   AlertTriangle,
@@ -29,6 +28,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -45,6 +45,7 @@ import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-i
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useAnnouncement } from "@/components/ui/live-region"
 import {
   SymptomChecker,
   checkSymptoms,
@@ -1712,17 +1713,27 @@ export function EnhancedIntakeFlow({
   }, [stepIndex, step, errors, goBack])
 
   // Screen reader announcements
+  const { announce, LiveRegion } = useAnnouncement()
+  
   useEffect(() => {
-    const announcement = document.getElementById("sr-announcement")
-    if (announcement) {
-      announcement.textContent = `Step ${stepIndex + 1} of ${steps.length}: ${title}`
+    announce(`Step ${stepIndex + 1} of ${steps.length}: ${title}`, "polite")
+  }, [stepIndex, steps.length, title, announce])
+
+  // Announce validation errors
+  useEffect(() => {
+    const errorKeys = Object.keys(errors)
+    if (errorKeys.length > 0) {
+      const firstError = errors[errorKeys[0]]
+      if (firstError) {
+        announce(`Validation error: ${firstError}`, "assertive")
+      }
     }
-  }, [stepIndex, steps.length, title])
+  }, [errors, announce])
 
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 to-white flex flex-col">
       {/* Screen reader announcements */}
-      <div id="sr-announcement" className="sr-only" aria-live="polite" aria-atomic="true" />
+      <LiveRegion />
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
@@ -1759,7 +1770,7 @@ export function EnhancedIntakeFlow({
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       {isSaving ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <ButtonSpinner className="w-3 h-3" />
                       ) : (
                         <CheckCircle2 className="w-3 h-3 text-green-600" />
                       )}

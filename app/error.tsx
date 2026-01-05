@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
+import { fadeIn, slideUp } from "@/components/ui/animations"
 const log = createLogger("error")
 
 export default function Error({
@@ -60,8 +61,9 @@ export default function Error({
 
         <motion.h1
           className="text-2xl sm:text-3xl font-bold mb-4 text-foreground"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial="initial"
+          animate="animate"
+          variants={slideUp}
           transition={{ delay: 0.2 }}
         >
           Something went wrong
@@ -69,8 +71,9 @@ export default function Error({
         
         <motion.p
           className="text-muted-foreground mb-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial="initial"
+          animate="animate"
+          variants={slideUp}
           transition={{ delay: 0.3 }}
         >
           We hit an unexpected bump. Don&apos;t worry — your data is safe.
@@ -79,8 +82,9 @@ export default function Error({
         {error.digest && (
           <motion.p
             className="text-xs text-muted-foreground/60 mb-8 font-mono bg-muted/30 rounded-lg px-3 py-1.5 inline-block"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial="initial"
+            animate="animate"
+            variants={fadeIn}
             transition={{ delay: 0.4 }}
           >
             Error ID: {error.digest}
@@ -89,15 +93,16 @@ export default function Error({
 
         <motion.div
           className="flex flex-col sm:flex-row items-center justify-center gap-3"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial="initial"
+          animate="animate"
+          variants={slideUp}
           transition={{ delay: 0.5 }}
         >
-          <Button onClick={reset} className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto">
+          <Button onClick={reset} className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto min-h-[44px] touch-target">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Try Again
           </Button>
-          <Button variant="outline" asChild className="rounded-xl w-full sm:w-auto">
+          <Button variant="outline" asChild className="rounded-xl w-full sm:w-auto min-h-[44px] touch-target">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" aria-hidden="true" />
               Go Home
@@ -108,8 +113,9 @@ export default function Error({
         {/* Help Link */}
         <motion.div
           className="mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial="initial"
+          animate="animate"
+          variants={fadeIn}
           transition={{ delay: 0.7 }}
         >
           <Link

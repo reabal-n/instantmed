@@ -30,9 +30,16 @@ function Input({
           "transition-all duration-300",
           "hover:border-primary/50 hover:shadow-sm hover:shadow-primary/5",
           "data-[focused=true]:border-primary data-[focused=true]:shadow-md data-[focused=true]:shadow-primary/10",
-          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20"
+          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
+          "data-[focused=true]:scale-[1.01]", // Subtle scale on focus
+          // Mobile optimizations
+          "min-h-[48px] md:min-h-0", // Larger touch target on mobile
+          "text-base md:text-sm" // Prevent zoom on iOS (16px minimum)
         ),
-        input: "text-foreground placeholder:text-default-400",
+        input: cn(
+          "text-foreground placeholder:text-default-400",
+          "text-base md:text-sm" // Prevent zoom on iOS
+        ),
       }}
       className={className}
       {...props}

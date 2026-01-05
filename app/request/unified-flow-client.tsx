@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
   ArrowLeft,
-  Loader2,
   FileText,
   Pill,
   Check,
@@ -20,6 +19,7 @@ import {
   AlertTriangle,
   ExternalLink,
 } from "lucide-react"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
@@ -1354,7 +1354,7 @@ export function UnifiedFlowClient({
             <Button className="w-full h-12 text-base" onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <ButtonSpinner className="mr-2" />
                   {COPY.payment.processing}
                 </>
               ) : (
