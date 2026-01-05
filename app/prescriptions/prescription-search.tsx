@@ -8,6 +8,11 @@ import { Search, Pill, ArrowRight, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { searchMedications, type Medication, CATEGORY_LABELS } from "@/lib/data/medications"
 
+// Helper function to get medication price
+function getMedicationPrice(med: Medication): number {
+  return med.requiresCall ? 49 : 39
+}
+
 export function PrescriptionSearch() {
   const [query, setQuery] = useState("")
   const [isOpen, setIsOpen] = useState(false)
@@ -106,7 +111,7 @@ export function PrescriptionSearch() {
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="font-semibold">${med.price}</div>
+                <div className="font-semibold">${getMedicationPrice(med)}</div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
               </div>
             </button>
