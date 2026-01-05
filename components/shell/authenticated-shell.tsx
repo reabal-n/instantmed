@@ -36,7 +36,7 @@ export function AuthenticatedShell({
 }: AuthenticatedShellProps) {
   return (
     <PanelProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         {/* Left Rail - Always visible, dimmed when panel active */}
         <LeftRail 
           userName={userName} 
@@ -71,7 +71,7 @@ export function AuthenticatedShellMinimal({
 }) {
   return (
     <PanelProvider>
-      <div className={cn("min-h-screen bg-gray-50", className)}>
+      <div className={cn("min-h-screen bg-background", className)}>
         {children}
       </div>
     </PanelProvider>

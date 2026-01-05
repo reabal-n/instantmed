@@ -5,6 +5,8 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
+import { GlowCard } from "@/components/ui/spotlight-card"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
 
 // Prevent static generation to avoid Clerk publishableKey build errors
@@ -59,12 +61,13 @@ const faqs = [
 
 export default function PricingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-premium-warm">
+    <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-24">
         {/* Hero */}
-        <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
+        <ParallaxSection speed={0.2}>
+          <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
           <div className="hero-orb hero-orb-mint w-[500px] h-[500px] -top-[200px] left-1/2 -translate-x-1/2 opacity-40" />
 
           <div className="relative mx-auto max-w-3xl text-center">
@@ -82,15 +85,19 @@ export default function PricingPage() {
               Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help.
             </p>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* Pricing Cards */}
-        <section className="px-4 py-12 sm:px-6 section-premium">
+        <ParallaxSection speed={0.25}>
+          <section className="px-4 py-12 sm:px-6 section-premium">
           <div className="mx-auto max-w-5xl">
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {services.map((service, index) => (
-                <TiltCard
+                <GlowCard
                   key={service.name}
+                  glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}
+                  customSize={true}
                   className={`card-premium rounded-3xl p-8 animate-fade-in-up opacity-0 relative ${
                     service.popular ? "ring-2 ring-[#2563EB] shadow-premium-xl" : "shadow-premium-lg"
                   }`}
@@ -146,7 +153,7 @@ export default function PricingPage() {
                       <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" />
                     </Link>
                   </Button>
-                </TiltCard>
+                </GlowCard>
               ))}
             </div>
 
@@ -166,31 +173,37 @@ export default function PricingPage() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* FAQ */}
-        <section className="px-4 py-16 sm:px-6">
+        <ParallaxSection speed={0.2}>
+          <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-2xl">
             <h2 className="text-2xl font-semibold text-center mb-8" style={{ fontFamily: "var(--font-display)" }}>
               Common questions
             </h2>
             <div className="space-y-4">
               {faqs.map((faq, index) => (
-                <TiltCard
+                <GlowCard
                   key={index}
+                  glowColor={index % 2 === 0 ? 'blue' : 'purple'}
+                  customSize={true}
                   className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
                   style={{ animationDelay: `${0.4 + index * 0.1}s`, animationFillMode: "forwards" }}
                 >
                   <h3 className="font-medium">{faq.q}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{faq.a}</p>
-                </TiltCard>
+                </GlowCard>
               ))}
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* CTA */}
-        <section className="px-4 py-16 sm:px-6">
+        <ParallaxSection speed={0.15}>
+          <section className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <TiltCard className="glass-card rounded-3xl p-10 relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-br from-[#2563EB]/10 via-transparent to-[#4f46e5]/10 pointer-events-none" />
@@ -213,7 +226,8 @@ export default function PricingPage() {
               </div>
             </TiltCard>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
       </main>
 
       <Footer />

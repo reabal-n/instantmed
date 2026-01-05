@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Card, CardBody, CardFooter, Chip } from '@heroui/react'
 import { SpotlightReveal, NeonGlow } from '@/components/ui/glowing-effect'
+import { GlowCard } from '@/components/ui/spotlight-card'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 
@@ -157,14 +158,17 @@ export function HealthCategories() {
             return (
               <motion.div key={category.id} variants={itemVariants}>
                 <Link href={category.href} className="group block h-full">
-                  <NeonGlow color={colors.accent} intensity="low" borderRadius="1rem">
-                    <SpotlightReveal color={colors.accent} size={300} borderRadius="1rem">
-                      <Card 
-                        isHoverable
-                        isPressable
-                        className="h-full bg-content1 border border-divider overflow-hidden hover:border-transparent"
-                        shadow="sm"
-                      >
+                  <GlowCard
+                    glowColor={category.color === 'blue' ? 'blue' : category.color === 'pink' ? 'red' : category.color === 'violet' ? 'purple' : category.color === 'teal' ? 'green' : 'purple'}
+                    customSize={true}
+                    className="h-full w-full"
+                  >
+                    <Card 
+                      isHoverable
+                      isPressable
+                      className="h-full bg-content1 border border-divider overflow-hidden hover:border-transparent"
+                      shadow="sm"
+                    >
                         <CardBody className="p-0">
                           {/* Gradient strip */}
                           <div className={`h-1 w-full bg-linear-to-r ${colors.gradient}`} />
@@ -219,8 +223,7 @@ export function HealthCategories() {
                           </motion.div>
                         </CardFooter>
                       </Card>
-                    </SpotlightReveal>
-                  </NeonGlow>
+                    </GlowCard>
                 </Link>
               </motion.div>
             )

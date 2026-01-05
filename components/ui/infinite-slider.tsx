@@ -1,69 +1,115 @@
-"use client"
+'use client';
+import { cn } from '@/lib/utils';
+import { useMotionValue, animate, motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import useMeasure from 'react-use-measure';
 
-import { cn } from "@/lib/utils"
-import { useEffect, useRef, useState } from "react"
-
-interface InfiniteSliderProps {
-  children: React.ReactNode
-  gap?: number
-  speed?: number
-  speedOnHover?: number
-  reverse?: boolean
-  className?: string
-}
+type InfiniteSliderProps = {
+  children: React.ReactNode;
+  gap?: number;
+  duration?: number;
+  durationOnHover?: number;
+  direction?: 'horizontal' | 'vertical';
+  reverse?: boolean;
+  className?: string;
+  speed?: number; // Legacy prop for compatibility
+  speedOnHover?: number; // Legacy prop for compatibility
+};
 
 export function InfiniteSlider({
   children,
-  gap = 24,
-  speed = 50,
-  speedOnHover = 20,
+  gap = 16,
+  duration = 25,
+  durationOnHover,
+  direction = 'horizontal',
   reverse = false,
   className,
+  speed, // Legacy support
+  speedOnHover, // Legacy support
 }: InfiniteSliderProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const scrollerRef = useRef<HTMLDivElement>(null)
-  const hasAnimated = useRef(false)
+  // Support legacy speed props
+  const actualDuration = speed ? 100 / (speed / 50) : duration;
+  const actualDurationOnHover = speedOnHover ? 100 / (speedOnHover / 50) : durationOnHover;
+
+  const [currentDuration, setCurrentDuration] = useState(actualDuration);
+  const [ref, { width, height }] = useMeasure();
+  const translation = useMotionValue(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
-    if (hasAnimated.current) return
-    
-    if (scrollerRef.current) {
-      const scrollerContent = Array.from(scrollerRef.current.children)
-      
-      scrollerContent.forEach((item) => {
-        const duplicatedItem = item.cloneNode(true)
-        if (scrollerRef.current) {
-          scrollerRef.current.appendChild(duplicatedItem)
-        }
-      })
-      
-      hasAnimated.current = true
-    }
-  }, [])
+    let controls: ReturnType<typeof animate> | undefined;
+    const size = direction === 'horizontal' ? width : height;
+    const contentSize = size + gap;
+    const from = reverse ? -contentSize / 2 : 0;
+    const to = reverse ? 0 : -contentSize / 2;
 
-  const currentSpeed = isHovered ? speedOnHover : speed
-  const duration = `${100 / (currentSpeed / 50)}s`
+    if (isTransitioning) {
+      controls = animate(translation, [translation.get(), to], {
+        ease: 'linear',
+        duration:
+          currentDuration * Math.abs((translation.get() - to) / contentSize),
+        onComplete: () => {
+          setIsTransitioning(false);
+          setKey((prevKey) => prevKey + 1);
+        },
+      });
+    } else {
+      controls = animate(translation, [from, to], {
+        ease: 'linear',
+        duration: currentDuration,
+        repeat: Infinity,
+        repeatType: 'loop',
+        repeatDelay: 0,
+        onRepeat: () => {
+          translation.set(from);
+        },
+      });
+    }
+
+    return controls?.stop;
+  }, [
+    key,
+    translation,
+    currentDuration,
+    width,
+    height,
+    gap,
+    isTransitioning,
+    direction,
+    reverse,
+  ]);
+
+  const hoverProps = actualDurationOnHover
+    ? {
+        onHoverStart: () => {
+          setIsTransitioning(true);
+          setCurrentDuration(actualDurationOnHover);
+        },
+        onHoverEnd: () => {
+          setIsTransitioning(true);
+          setCurrentDuration(actualDuration);
+        },
+      }
+    : {};
 
   return (
-    <div
-      className={cn("overflow-hidden", className)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div
-        ref={scrollerRef}
-        className={cn(
-          "flex w-max animate-scroll",
-          reverse && "direction-reverse"
-        )}
+    <div className={cn('overflow-hidden', className)}>
+      <motion.div
+        className='flex w-max'
         style={{
+          ...(direction === 'horizontal'
+            ? { x: translation }
+            : { y: translation }),
           gap: `${gap}px`,
-          animationDuration: duration,
-          animationPlayState: "running",
+          flexDirection: direction === 'horizontal' ? 'row' : 'column',
         }}
+        ref={ref}
+        {...hoverProps}
       >
         {children}
-      </div>
+        {children}
+      </motion.div>
     </div>
-  )
+  );
 }

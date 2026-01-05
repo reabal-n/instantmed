@@ -98,10 +98,10 @@ export function ContactClient() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-premium-subtle">
+    <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
-      <main className="flex-1 bg-premium-subtle">
+      <main className="flex-1">
         {/* Hero */}
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />

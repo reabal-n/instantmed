@@ -57,7 +57,7 @@ const posts = [
 
 export default function BlogPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-hero">
+    <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-24">
@@ -72,7 +72,7 @@ export default function BlogPage() {
         </section>
 
         {/* Posts Grid */}
-        <section className="px-4 py-12 bg-mesh">
+        <section className="px-4 py-12">
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (

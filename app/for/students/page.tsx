@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { GlowCard } from "@/components/ui/spotlight-card"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOpen, FileText, Calendar } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -62,7 +64,8 @@ export default function StudentsPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-indigo-500/10 to-transparent">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-indigo-500/10 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 text-sm mb-6">
                 <GraduationCap className="h-4 w-4" />
@@ -102,10 +105,12 @@ export default function StudentsPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Speed Stats */}
-          <section className="px-4 py-8 bg-indigo-600 text-white">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-8 bg-indigo-600 text-white">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
@@ -122,10 +127,12 @@ export default function StudentsPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Universities */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-xl font-bold mb-6">Accepted by all Australian universities</h2>
               <p className="text-muted-foreground mb-8">
@@ -151,10 +158,12 @@ export default function StudentsPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Use Cases */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">What you can use it for</h2>
               <div className="grid gap-4 sm:grid-cols-3">
@@ -174,19 +183,26 @@ export default function StudentsPage() {
                     title: "Assignment Extensions",
                     desc: "Documentation for late submission without penalty",
                   },
-                ].map((item) => (
-                  <div key={item.title} className="text-center p-5 rounded-xl bg-background">
+                ].map((item, index) => (
+                  <GlowCard
+                    key={item.title}
+                    glowColor={index === 0 ? 'blue' : index === 1 ? 'purple' : 'green'}
+                    customSize={true}
+                    className="text-center p-5"
+                  >
                     <item.icon className="h-8 w-8 mx-auto mb-3 text-indigo-600" />
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Why Students Use This */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">Why students use InstantMed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -211,21 +227,28 @@ export default function StudentsPage() {
                     title: "Legit certificate",
                     desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
                   },
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-4 p-4 rounded-xl bg-muted/30">
+                ].map((item, index) => (
+                  <GlowCard
+                    key={item.title}
+                    glowColor={index % 4 === 0 ? 'blue' : index % 4 === 1 ? 'purple' : index % 4 === 2 ? 'green' : 'orange'}
+                    customSize={true}
+                    className="flex gap-4 p-4"
+                  >
                     <item.icon className="h-6 w-6 text-indigo-600 shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.desc}</p>
                     </div>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Testimonials */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold text-center mb-8">What students say</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -265,10 +288,12 @@ export default function StudentsPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* FAQs */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-2xl">
               <h2 className="text-xl font-bold text-center mb-8">FAQ for students</h2>
               <div className="space-y-4">
@@ -301,10 +326,12 @@ export default function StudentsPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* CTA */}
-          <section className="px-4 py-16 bg-muted/30">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-16 bg-muted/30">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Get your certificate in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
@@ -318,7 +345,8 @@ export default function StudentsPage() {
               </Link>
               <p className="mt-4 text-xs text-muted-foreground">$19.95 • Accepted by all unis</p>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Related */}
           <section className="px-4 py-8 border-t">

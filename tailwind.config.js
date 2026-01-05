@@ -1,5 +1,9 @@
 import { heroui } from "@heroui/theme"
 
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
+
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
@@ -37,6 +41,8 @@ const config = {
         scroll: "scroll linear infinite",
         "fade-in": "fadeIn 200ms ease-out forwards",
         "slide-up": "slideUp 200ms ease-out forwards",
+        aurora: "aurora 60s linear infinite",
+        shimmer: "shimmer 2s infinite",
       },
       keyframes: {
         scroll: {
@@ -57,11 +63,20 @@ const config = {
             transform: "translateY(0)"
           },
         },
+        aurora: {
+          from: {
+            backgroundPosition: "50% 50%, 50% 50%",
+          },
+          to: {
+            backgroundPosition: "350% 50%, 350% 50%",
+          },
+        },
       },
     },
   },
   darkMode: "class",
   plugins: [
+    addVariablesForColors,
     heroui({
       themes: {
         light: {
@@ -144,6 +159,18 @@ const config = {
       },
     }),
   ],
+}
+
+// This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
+function addVariablesForColors({ addBase, theme }) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+
+  addBase({
+    ":root": newVars,
+  });
 }
 
 export default config

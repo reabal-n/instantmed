@@ -4,6 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ================================
+   SEAMLESS SCROLLING
+   ================================ */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scroll for all scrollable containers */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Parallax performance optimization */
+[class*="parallax"],
+[data-parallax] {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* ================================
    INSTANTMED PREMIUM DESIGN SYSTEM
    Unified, Modern, Sleek Visual Style
    ================================ */
@@ -11,6 +39,10 @@
 :root {
   /* Add test banner height variable */
   --test-banner-height: 0px;
+
+  /* Seamless scrolling */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 
   /* InstantMed Design System: Light, airy, slightly warm - not sterile */
   /* Backgrounds */
@@ -140,6 +172,16 @@
   /* Light mode gradient orbs for parallax */
   --gradient-orb-1: rgba(37, 99, 235, 0.08);
   --gradient-orb-2: rgba(79, 70, 229, 0.06);
+  
+  /* Aurora background color variables */
+  --white: #ffffff;
+  --black: #000000;
+  --transparent: transparent;
+  --blue-500: #3b82f6;
+  --indigo-300: #a5b4fc;
+  --blue-300: #93c5fd;
+  --violet-200: #ddd6fe;
+  --blue-400: #60a5fa;
 }
 
 /* Test mode banner active state */
@@ -170,6 +212,16 @@
   --ring: #6366f1;
   --sidebar: #0a0a0b;
   --sidebar-foreground: #fafafa;
+  
+  /* Aurora background color variables (dark mode) */
+  --white: #ffffff;
+  --black: #000000;
+  --transparent: transparent;
+  --blue-500: #3b82f6;
+  --indigo-300: #818cf8;
+  --blue-300: #60a5fa;
+  --violet-200: #c4b5fd;
+  --blue-400: #93c5fd;
   --sidebar-primary: #6366f1;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1f1f23;
@@ -442,6 +494,13 @@
     outline: none;
   }
   
+  /* Enhanced dark mode input focus */
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), var(--shadow-sm);
+  }
+  
   /* ================================
      PREMIUM BUTTON STYLING
      Subtle, elegant, responsive
@@ -463,6 +522,12 @@
   button:active,
   [role="button"]:active {
     transform: translateY(0) scale(0.98);
+  }
+  
+  /* Enhanced dark mode button hover */
+  .dark button:hover,
+  .dark [role="button"]:hover {
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
   }
   
   /* Primary buttons - pill style with gradient */
@@ -607,6 +672,14 @@
   
   li::marker {
     color: var(--muted-foreground);
+  }
+  
+  /* Enhanced card hover effects for dark mode */
+  .card:hover,
+  [data-slot="base"]:hover,
+  .glass-card:hover {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
   }
   
   /* Dark mode selection */
@@ -971,6 +1044,15 @@
 }
 
 /* Button shimmer sweep */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes shimmer-sweep {
   0% {
     transform: translateX(-100%);

@@ -1,6 +1,6 @@
 "use client"
 
-import { InfiniteSlider } from "@/components/ui/infinite-slider"
+import { LogoCloud } from "@/components/ui/logo-cloud-3"
 import { cn } from "@/lib/utils"
 import { 
   LegitScriptLogo, 
@@ -29,27 +29,25 @@ interface TrustBadgeSliderProps {
 }
 
 export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
+  // Convert trust badges to LogoCloud format
+  const logos = trustBadges.map((badge) => ({
+    alt: `${badge.name} - ${badge.label}`,
+    Component: badge.Logo,
+  }))
+
   return (
-    <section className={cn("py-6 bg-content2/30 border-y border-divider", className)}>
-      <div
-        className={cn(
-          "overflow-hidden mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
-        )}
-      >
-        <InfiniteSlider gap={48} speed={35} speedOnHover={18}>
-          {trustBadges.map((badge) => (
-            <div
-              key={badge.name}
-              className="flex items-center gap-2.5 opacity-80 hover:opacity-100 transition-all duration-300 scale-spring cursor-default px-3 py-2 rounded-xl hover:bg-background/60 hover:shadow-sm"
-            >
-              <badge.Logo className="w-7 h-7 shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-foreground leading-tight">{badge.name}</span>
-                <span className="text-[10px] text-muted-foreground leading-tight">{badge.label}</span>
-              </div>
-            </div>
-          ))}
-        </InfiniteSlider>
+    <section className={cn("py-8 bg-content2/30 border-y border-divider", className)}>
+      <div className="relative mx-auto max-w-6xl px-4">
+        <h2 className="mb-5 text-center font-medium text-foreground text-xl tracking-tight md:text-2xl">
+          <span className="text-muted-foreground">Trusted by experts.</span>
+          <br />
+          <span className="font-semibold">Used by the leaders.</span>
+        </h2>
+        <div className="mx-auto my-5 h-px max-w-sm bg-border [mask-image:linear-gradient(to_right,transparent,black,transparent)]" />
+        
+        <LogoCloud logos={logos} />
+        
+        <div className="mt-5 h-px bg-border [mask-image:linear-gradient(to_right,transparent,black,transparent)]" />
       </div>
     </section>
   )

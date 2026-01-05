@@ -25,7 +25,13 @@ function Textarea({
       radius="lg"
       variant="bordered"
       classNames={{
-        inputWrapper: "bg-background/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+        inputWrapper: cn(
+          "bg-background/50 backdrop-blur-sm border-default-200",
+          "transition-all duration-300",
+          "hover:border-primary/50 hover:shadow-sm hover:shadow-primary/5",
+          "data-[focused=true]:border-primary data-[focused=true]:shadow-md data-[focused=true]:shadow-primary/10",
+          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20"
+        ),
         input: "text-foreground placeholder:text-default-400",
       }}
       className={className}

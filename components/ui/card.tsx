@@ -17,7 +17,12 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, children,
       className={cn("bg-card text-card-foreground", className)}
       style={style}
       classNames={{
-        base: "bg-background/60 backdrop-blur-xl border border-default-100 shadow-lg rounded-xl",
+        base: cn(
+          "bg-background/60 backdrop-blur-xl border border-default-100 shadow-lg rounded-xl",
+          "transition-all duration-300",
+          "hover:shadow-xl hover:-translate-y-0.5",
+          "dark:bg-background/40 dark:border-default-800"
+        ),
       }}
       {...props}
     >

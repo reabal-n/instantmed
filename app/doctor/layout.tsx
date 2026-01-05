@@ -30,7 +30,7 @@ export default async function DoctorLayout({
   const stats = await getDoctorDashboardStats()
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-subtle">
+    <div className="flex min-h-screen flex-col">
       <Navbar variant="doctor" userName={authUser.profile.full_name} />
       <div className="flex-1 pb-24">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

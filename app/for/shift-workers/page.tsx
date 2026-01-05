@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { GlowCard } from "@/components/ui/spotlight-card"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Hospital } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -102,10 +104,12 @@ export default function ShiftWorkersPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Availability Bar */}
-          <section className="px-4 py-8 bg-purple-600 text-white">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-8 bg-purple-600 text-white">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-4 text-center">
                 <div className="flex flex-col items-center">
@@ -130,35 +134,44 @@ export default function ShiftWorkersPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Industries */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">Popular with shift workers in</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  { icon: Hospital, title: "Healthcare", examples: "Nurses, aged care, hospital staff" },
-                  { icon: Coffee, title: "Hospitality", examples: "Chefs, waitstaff, hotel workers" },
-                  { icon: Clock, title: "Retail", examples: "Supermarkets, shops, warehouse" },
-                  { icon: Moon, title: "Security", examples: "Guards, patrol, monitoring" },
-                  { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery" },
-                  { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
+                  { icon: Hospital, title: "Healthcare", examples: "Nurses, aged care, hospital staff", color: 'blue' as const },
+                  { icon: Coffee, title: "Hospitality", examples: "Chefs, waitstaff, hotel workers", color: 'purple' as const },
+                  { icon: Clock, title: "Retail", examples: "Supermarkets, shops, warehouse", color: 'green' as const },
+                  { icon: Moon, title: "Security", examples: "Guards, patrol, monitoring", color: 'purple' as const },
+                  { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery", color: 'blue' as const },
+                  { icon: Sun, title: "Manufacturing", examples: "Factory workers, production", color: 'orange' as const },
                 ].map((item) => (
-                  <div key={item.title} className="flex gap-4 p-4 rounded-xl bg-muted/30">
+                  <GlowCard
+                    key={item.title}
+                    glowColor={item.color}
+                    customSize={true}
+                    className="flex gap-4 p-4"
+                  >
                     <item.icon className="h-6 w-6 text-purple-600 shrink-0" />
                     <div>
                       <h3 className="font-semibold">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.examples}</p>
                     </div>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Why Shift Workers Use This */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">Why shift workers choose InstantMed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -166,31 +179,42 @@ export default function ShiftWorkersPage() {
                   {
                     title: "GPs don&apos;t work your hours",
                     desc: "Finish a night shift at 6am and can&apos;t see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
+                    color: 'blue' as const,
                   },
                   {
                     title: "No time to wait",
                     desc: "You're already exhausted from your shift. Skip the waiting room and get your cert in 15 minutes from your phone.",
+                    color: 'purple' as const,
                   },
                   {
                     title: "Before your next roster",
                     desc: "Need documentation before your manager schedules the next shift? Get sorted same-day.",
+                    color: 'green' as const,
                   },
                   {
                     title: "Any employer accepts it",
                     desc: "Hospitals, retail chains, agencies — they all accept our certificates. AHPRA-registered, legally valid.",
+                    color: 'orange' as const,
                   },
                 ].map((item) => (
-                  <div key={item.title} className="p-5 rounded-xl bg-background">
+                  <GlowCard
+                    key={item.title}
+                    glowColor={item.color}
+                    customSize={true}
+                    className="p-5"
+                  >
                     <h3 className="font-semibold mb-2">{item.title}</h3>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Testimonials */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold text-center mb-8">What shift workers say</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -230,10 +254,12 @@ export default function ShiftWorkersPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* How It Works */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">How it works</h2>
               <div className="grid gap-6 sm:grid-cols-3">
@@ -243,21 +269,29 @@ export default function ShiftWorkersPage() {
                     title: "Quick questionnaire",
                     desc: "Tell us why you need a certificate. Takes 2 minutes on your phone.",
                     time: "2 min",
+                    color: 'blue' as const,
                   },
                   {
                     step: "2",
                     title: "Doctor reviews",
                     desc: "An AHPRA-registered GP assesses your request.",
                     time: "~15 min",
+                    color: 'purple' as const,
                   },
                   {
                     step: "3",
                     title: "Certificate delivered",
                     desc: "Secure PDF sent to your email. Forward to your manager.",
                     time: "Instant",
+                    color: 'green' as const,
                   },
                 ].map((item) => (
-                  <div key={item.step} className="text-center p-4 bg-background rounded-xl">
+                  <GlowCard
+                    key={item.step}
+                    glowColor={item.color}
+                    customSize={true}
+                    className="text-center p-4"
+                  >
                     <div className="h-12 w-12 rounded-full bg-purple-600/10 flex items-center justify-center mx-auto mb-3">
                       <span className="font-bold text-xl text-purple-600">{item.step}</span>
                     </div>
@@ -266,7 +300,7 @@ export default function ShiftWorkersPage() {
                     <span className="inline-block text-xs bg-purple-600/10 text-purple-600 px-2 py-0.5 rounded-full">
                       {item.time}
                     </span>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
@@ -306,10 +340,12 @@ export default function ShiftWorkersPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* CTA */}
-          <section className="px-4 py-16 bg-muted/30">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-16 bg-muted/30">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Get your certificate in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
@@ -323,7 +359,8 @@ export default function ShiftWorkersPage() {
               </Link>
               <p className="mt-4 text-xs text-muted-foreground">$19.95 • 8am-10pm, 7 days</p>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Related */}
           <section className="px-4 py-8 border-t">

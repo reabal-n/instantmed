@@ -93,7 +93,7 @@ export function DashboardSidebar({
                   "group flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
                   isActive
                     ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/10",
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-white/10 hover:scale-[1.02] hover:shadow-sm",
                 )}
               >
                 <span className="flex items-center gap-3">

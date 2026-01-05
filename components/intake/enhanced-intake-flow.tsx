@@ -29,14 +29,19 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react"
-import { Button, Input } from "@/components/uix"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { EnhancedTextarea } from "@/components/ui/enhanced-textarea"
+import { ValidatedInput, validationRules } from "@/components/ui/validated-input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { StepProgress } from "@/components/intake/step-progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, CheckCircle2 } from "lucide-react"
+import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
+import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -230,80 +235,57 @@ function ServiceCard({
   onClick: () => void
 }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onClick()
-        }
-      }}
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      whileTap="tap"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        "relative w-full p-5 rounded-2xl border-2 text-left transition-all touch-target",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        selected
-          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 ring-2 ring-primary/20"
-          : "border-border bg-white hover:border-primary/40 hover:shadow-md"
-      )}
-      aria-pressed={selected}
-      aria-label={`Select ${service.title} service`}
-    >
+    <div className="relative">
       {/* Popular badge */}
       {service.popular && (
-        <Badge className="absolute -top-2.5 right-3 bg-green-500 text-white text-[10px]">
+        <Badge className="absolute -top-2.5 right-3 z-10 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[10px] shadow-lg">
           Most Popular
         </Badge>
       )}
-
-      <div className="flex items-start gap-4">
-        <div
-          className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-            selected ? "bg-primary text-white" : "bg-primary/10 text-primary"
-          )}
-        >
-          <service.icon className="w-6 h-6" />
-        </div>
-
+      <EnhancedSelectionButton
+        variant="card"
+        selected={selected}
+        onClick={onClick}
+        icon={service.icon}
+        gradient={service.popular ? "teal-emerald" : "blue-purple"}
+        className="relative w-full p-5 touch-target"
+        aria-label={`Select ${service.title} service`}
+      >
+        <div className="flex items-start gap-4 w-full">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-foreground">{service.title}</h3>
+              <h3 className={cn("font-semibold", selected ? "text-white" : "text-foreground")}>
+                {service.title}
+              </h3>
             {service.noCall && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
+                <span className={cn(
+                  "inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full",
+                  selected 
+                    ? "text-white/90 bg-white/20 backdrop-blur-sm"
+                    : "text-green-700 bg-green-100"
+                )}>
                 <PhoneOff className="w-2.5 h-2.5" />
                 No call
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{service.subtitle}</p>
+            <p className={cn("text-sm", selected ? "text-white/90" : "text-muted-foreground")}>
+              {service.subtitle}
+            </p>
 
           <div className="flex items-center gap-3 mt-3 text-xs">
-            <span className="font-semibold text-primary">{service.price}</span>
-            <span className="text-muted-foreground flex items-center gap-1">
+              <span className={cn("font-semibold", selected ? "text-white" : "text-primary")}>
+                {service.price}
+              </span>
+              <span className={cn("flex items-center gap-1", selected ? "text-white/80" : "text-muted-foreground")}>
               <Clock className="w-3 h-3" />
               {service.time}
             </span>
           </div>
         </div>
-
-        {selected && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
-          >
-            <Check className="w-4 h-4 text-white" />
-          </motion.div>
-        )}
       </div>
-    </motion.button>
+      </EnhancedSelectionButton>
+    </div>
   )
 }
 
@@ -312,29 +294,24 @@ function SelectableChip({
   onClick,
   children,
   className,
+  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
   className?: string
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
-    <motion.button
-      type="button"
+    <EnhancedSelectionButton
+      variant="chip"
+      selected={selected}
       onClick={onClick}
-      whileTap={{ scale: 0.95 }}
-      className={cn(
-        "px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium transition-all",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        "touch-target", // Mobile-friendly touch target
-        selected
-          ? "bg-primary text-white shadow-md"
-          : "bg-white border border-border hover:border-primary/40 hover:shadow-sm",
-        className
-      )}
+      gradient={gradient}
+      className={cn("touch-target", className)}
     >
       {children}
-    </motion.button>
+    </EnhancedSelectionButton>
   )
 }
 
@@ -344,43 +321,26 @@ function OptionCard({
   icon: Icon,
   label,
   description,
+  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   icon: React.ElementType
   label: string
   description?: string
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
-    <motion.button
-      type="button"
+    <EnhancedSelectionButton
+      variant="option"
+      selected={selected}
       onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-      className={cn(
-        "w-full p-4 min-h-[80px] rounded-xl border-2 flex items-center gap-4 text-left transition-all",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        "touch-target", // Mobile-friendly touch target
-        selected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border bg-white hover:border-primary/40"
-      )}
-    >
-      <div
-        className={cn(
-          "w-11 h-11 rounded-lg flex items-center justify-center transition-colors shrink-0",
-          selected ? "bg-primary text-white" : "bg-muted text-muted-foreground"
-        )}
-      >
-        <Icon className="w-5 h-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <span className="font-medium text-sm block">{label}</span>
-        {description && (
-          <span className="text-xs text-muted-foreground">{description}</span>
-        )}
-      </div>
-      {selected && <Check className="w-5 h-5 text-primary shrink-0" />}
-    </motion.button>
+      icon={Icon}
+      label={label}
+      description={description}
+      gradient={gradient}
+      className="touch-target"
+    />
   )
 }
 
@@ -731,19 +691,6 @@ export function EnhancedIntakeFlow({
     }))
   }, [])
 
-  // Auto-advance when service is selected on first step
-  useEffect(() => {
-    if (step === "service" && state.service) {
-      const timer = setTimeout(() => {
-        const nextStep = steps[steps.indexOf("service") + 1]
-        if (nextStep) {
-          setStep([nextStep, 1])
-        }
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [step, state.service, steps])
-
   // Check red flags
   const symptomCheckResult = useMemo(() => {
     return checkSymptoms(state.symptoms, state.symptomDetails)
@@ -1027,13 +974,14 @@ export function EnhancedIntakeFlow({
                 helpText="Select Work for employer, Study for university/school, or Carer's leave to care for someone"
               >
                 <div className="grid grid-cols-3 gap-2">
-                  {CERT_TYPES.map((type) => (
+                  {CERT_TYPES.map((type, index) => (
                     <OptionCard
                       key={type.id}
                       selected={state.certType === type.id}
                       onClick={() => updateField("certType", type.id as "work" | "study" | "carer")}
                       icon={type.icon}
                       label={type.label}
+                      gradient={index === 0 ? "blue-purple" : index === 1 ? "purple-pink" : "teal-emerald"}
                     />
                   ))}
                 </div>
@@ -1121,12 +1069,17 @@ export function EnhancedIntakeFlow({
                 helpText="This helps our doctors understand your condition and provide appropriate care"
               >
                 <div className="flex flex-wrap gap-2">
-                  {SYMPTOMS_LIST.map((symptom) => (
+                  {SYMPTOMS_LIST.map((symptom, index) => (
                     <SelectableChip
                       key={symptom}
                       selected={state.symptoms.includes(symptom)}
                       onClick={() => toggleSymptom(symptom)}
                       className="touch-target"
+                      gradient={
+                        index % 4 === 0 ? "blue-purple" :
+                        index % 4 === 1 ? "purple-pink" :
+                        index % 4 === 2 ? "teal-emerald" : "orange-red"
+                      }
                     >
                       {symptom}
                     </SelectableChip>
@@ -1146,12 +1099,16 @@ export function EnhancedIntakeFlow({
                     hint="Any additional information that might help"
                     example="e.g., Started feeling unwell yesterday evening, have been resting since"
                   >
-                    <Textarea
+                    <EnhancedTextarea
+                      label=""
                       value={state.symptomDetails}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("symptomDetails", e.target.value)}
+                      onChange={(value) => updateField("symptomDetails", value)}
                       placeholder="Additional details for the doctor..."
                       minRows={2}
                       className="resize-none touch-target"
+                      maxLength={500}
+                      showCharacterCounter={true}
+                      helperText="Optional: Add any additional details that might help the doctor"
                     />
                   </FormField>
                 </CollapsibleContent>
@@ -1350,13 +1307,17 @@ export function EnhancedIntakeFlow({
               example="you@example.com"
               showSuccess={!!state.email && !errors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)}
             >
-              <Input
+              <ValidatedInput
                 type="email"
+                label=""
                 value={state.email}
-                onChange={(e) => updateField("email", e.target.value)}
+                onChange={(value) => updateField("email", value)}
                 placeholder="you@example.com"
                 className="h-11 touch-target"
                 autoComplete="email"
+                helperText="We'll send your certificate here"
+                validationRules={[validationRules.email]}
+                showSuccessIndicator={true}
               />
             </FormField>
 
@@ -1369,18 +1330,19 @@ export function EnhancedIntakeFlow({
               helpText="We may need to contact you if the doctor has questions"
               showSuccess={!!state.phone && !errors.phone && /^04\d{8}$/.test(state.phone.replace(/\s/g, ""))}
             >
-              <Input
+              <ValidatedInput
                 type="tel"
+                label=""
                 value={state.phone}
-                onChange={(e) => {
+                onChange={(value) => {
                   // Format phone number as user types
-                  const value = e.target.value.replace(/\D/g, "")
-                  if (value.length <= 10) {
-                    const formatted = value.length > 6
-                      ? `${value.slice(0, 4)} ${value.slice(4, 7)} ${value.slice(7)}`
-                      : value.length > 4
-                      ? `${value.slice(0, 4)} ${value.slice(4)}`
-                      : value
+                  const digits = value.replace(/\D/g, "")
+                  if (digits.length <= 10) {
+                    const formatted = digits.length > 6
+                      ? `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
+                      : digits.length > 4
+                      ? `${digits.slice(0, 4)} ${digits.slice(4)}`
+                      : digits
                     updateField("phone", formatted.trim())
                   }
                 }}
@@ -1388,6 +1350,11 @@ export function EnhancedIntakeFlow({
                 className="h-11 touch-target"
                 autoComplete="tel"
                 maxLength={12}
+                formatHint="04XX XXX XXX"
+                helperText="We may need to contact you if the doctor has questions"
+                validationRules={[validationRules.phoneAU]}
+                showFormatHintOnFocus={true}
+                showSuccessIndicator={true}
               />
             </FormField>
 
@@ -1842,66 +1809,29 @@ export function EnhancedIntakeFlow({
       </main>
 
       {/* Footer CTA */}
-      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 pb-safe">
-        <div className="max-w-lg mx-auto flex gap-3">
-          {/* Back button */}
-          {stepIndex > 0 && (
-            <Button
-              variant="ghost"
-              onClick={goBack}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  goBack()
-                }
-              }}
-              className="h-12 min-w-[48px] px-4 rounded-xl touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              aria-label={`Go back to ${stepLabels[stepIndex - 1] || "previous"} step`}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          )}
-          
-          {/* Step-specific CTAs */}
-          {step === "service" ? (
-            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
-              <span>Tap a service to continue</span>
-            </div>
-          ) : (
-            <Button
-              onClick={goNext}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  goNext()
-                }
-              }}
-              disabled={
-                isSubmitting ||
-                (step === "safety" && symptomCheckResult.severity === "critical") ||
-                Object.keys(errors).length > 0
-              }
-              className="flex-1 h-12 min-h-[48px] text-base font-medium rounded-xl touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              aria-label={isLastStep ? `Pay ${SERVICES.find((s) => s.id === state.service)?.price}` : "Continue to next step"}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                  <span>Processing...</span>
-                </>
-              ) : isLastStep ? (
-                <>
-                  Pay {SERVICES.find((s) => s.id === state.service)?.price}
-                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
-                </>
-              )}
-            </Button>
-          )}
+      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-6 pb-safe">
+        <div className="max-w-lg mx-auto">
+          <UnifiedProgressIndicator
+            currentStep={stepIndex + 1}
+            totalSteps={steps.length}
+            onContinue={goNext}
+            onBack={stepIndex > 0 ? goBack : undefined}
+            isExpanded={stepIndex === 0}
+            isLastStep={isLastStep}
+            disabled={
+              isSubmitting ||
+              (step === "service" && !state.service) ||
+              (step === "safety" && symptomCheckResult.severity === "critical") ||
+              Object.keys(errors).length > 0
+            }
+            continueLabel={
+              isSubmitting
+                ? "Processing..."
+                : isLastStep
+                  ? `Pay ${SERVICES.find((s) => s.id === state.service)?.price}`
+                  : "Continue"
+            }
+          />
         </div>
 
         {step === "service" && (

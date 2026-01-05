@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
+import { GlowCard } from "@/components/ui/spotlight-card"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import { ArrowRight, Shield, Zap, HardHat, Clock, Smartphone, Star, Wrench, Building } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -62,7 +64,8 @@ export default function TradiesPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-amber-500/10 to-transparent">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-amber-500/10 to-transparent">
             <div className="mx-auto max-w-3xl text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-sm mb-6">
                 <HardHat className="h-4 w-4" />
@@ -102,10 +105,12 @@ export default function TradiesPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Speed Stats */}
-          <section className="px-4 py-8 bg-amber-500 text-white">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-8 bg-amber-500 text-white">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
@@ -122,10 +127,12 @@ export default function TradiesPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Why Tradies Use This */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-8 text-center">Why tradies use InstantMed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -150,21 +157,28 @@ export default function TradiesPage() {
                     title: "Works on your phone",
                     desc: "No computer needed. PDF delivered to your email, ready to forward.",
                   },
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-4 p-4 rounded-xl bg-muted/30">
+                ].map((item, index) => (
+                  <GlowCard
+                    key={item.title}
+                    glowColor={index % 4 === 0 ? 'orange' : index % 4 === 1 ? 'red' : index % 4 === 2 ? 'green' : 'blue'}
+                    customSize={true}
+                    className="flex gap-4 p-4"
+                  >
                     <item.icon className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-semibold mb-1">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.desc}</p>
                     </div>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Testimonials */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold text-center mb-8">What tradies say</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -204,10 +218,12 @@ export default function TradiesPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* What You Can Get */}
-          <section className="px-4 py-12">
+          <ParallaxSection speed={0.25}>
+            <section className="px-4 py-12">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-xl font-bold mb-6 text-center">What you can get</h2>
               <div className="grid gap-4 sm:grid-cols-3">
@@ -215,20 +231,27 @@ export default function TradiesPage() {
                   { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: "From $19.95" },
                   { title: "Carer's Leave Cert", desc: "Looking after sick family", price: "From $19.95" },
                   { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $29.95" },
-                ].map((item) => (
-                  <div key={item.title} className="p-5 rounded-xl border bg-card text-center">
+                ].map((item, index) => (
+                  <GlowCard
+                    key={item.title}
+                    glowColor={index === 0 ? 'orange' : index === 1 ? 'red' : 'green'}
+                    customSize={true}
+                    className="p-5 text-center"
+                  >
                     <Wrench className="h-8 w-8 mx-auto mb-3 text-amber-500" />
                     <h3 className="font-semibold mb-1">{item.title}</h3>
                     <p className="text-sm text-muted-foreground mb-2">{item.desc}</p>
                     <span className="text-xs text-amber-600 font-medium">{item.price}</span>
-                  </div>
+                  </GlowCard>
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* FAQs */}
-          <section className="px-4 py-12 bg-muted/30">
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-2xl">
               <h2 className="text-xl font-bold text-center mb-8">Quick answers</h2>
               <div className="space-y-4">
@@ -261,10 +284,12 @@ export default function TradiesPage() {
                 ))}
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* CTA */}
-          <section className="px-4 py-16">
+          <ParallaxSection speed={0.15}>
+            <section className="px-4 py-16">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Sorted in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
@@ -278,7 +303,8 @@ export default function TradiesPage() {
               </Link>
               <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
 
           {/* Related */}
           <section className="px-4 py-8 border-t">

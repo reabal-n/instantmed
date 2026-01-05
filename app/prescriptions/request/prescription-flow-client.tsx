@@ -41,6 +41,7 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/comp
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { AnimatedSelect } from "@/components/ui/animated-select"
+import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("prescription-flow-client")
 
@@ -1219,25 +1220,15 @@ export function PrescriptionFlowClient({
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
                   <div key={q.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60">
-                    <p className="text-sm pr-4">{q.label}</p>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [q.id]: false }))}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                          safetyAnswers[q.id] === false ? "bg-primary text-primary-foreground" : "bg-muted"
-                        }`}
-                      >
-                        No
-                      </button>
-                      <button
-                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [q.id]: true }))}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                          safetyAnswers[q.id] === true ? "bg-amber-500 text-white" : "bg-muted"
-                        }`}
-                      >
-                        Yes
-                      </button>
-                    </div>
+                    <p className="text-sm pr-4 flex-1">{q.label}</p>
+                    <CinematicSwitch
+                      value={safetyAnswers[q.id]}
+                      onChange={(value) => setSafetyAnswers((prev) => ({ ...prev, [q.id]: value }))}
+                      onLabel="YES"
+                      offLabel="NO"
+                      variant="safety"
+                      className="shrink-0"
+                    />
                   </div>
                 ))}
               </div>

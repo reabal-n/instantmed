@@ -24,6 +24,7 @@ import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
+import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 
 // Flow steps for general consult
 type FlowStep =
@@ -516,34 +517,20 @@ export function ConsultFlowClient({
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
                   <div key={q.id} className="p-4 rounded-xl border border-border/60 space-y-3">
-                    <p className="text-sm font-medium">{q.question}</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSafetyAnswers((prev) => ({ ...prev, [q.id]: true }))
-                          if (q.knockout) {
-                            setIsKnockedOut(true)
-                          }
-                        }}
-                        className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-all ${
-                          safetyAnswers[q.id] === true
-                            ? "border-red-500 bg-red-50 text-red-700"
-                            : "border-border/60 hover:border-border"
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        onClick={() => setSafetyAnswers((prev) => ({ ...prev, [q.id]: false }))}
-                        className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-all ${
-                          safetyAnswers[q.id] === false
-                            ? "border-green-500 bg-green-50 text-green-700"
-                            : "border-border/60 hover:border-border"
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
+                    <p className="text-sm font-medium mb-2">{q.question}</p>
+                    <CinematicSwitch
+                      value={safetyAnswers[q.id]}
+                      onChange={(value) => {
+                        setSafetyAnswers((prev) => ({ ...prev, [q.id]: value }))
+                        if (q.knockout && value) {
+                          setIsKnockedOut(true)
+                        }
+                      }}
+                      onLabel="YES"
+                      offLabel="NO"
+                      variant="safety"
+                      className="w-full justify-between"
+                    />
                   </div>
                 ))}
               </div>

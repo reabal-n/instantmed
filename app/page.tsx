@@ -10,46 +10,62 @@ import {
 } from '@/components/marketing'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
-import { UnifiedBackground } from '@/components/effects/unified-background'
 import { Navbar } from '@/components/shared/navbar'
+import { ParallaxSection } from '@/components/ui/parallax-section'
 
 // Prevent static generation to avoid Clerk publishableKey build errors
 export const dynamic = "force-dynamic"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-premium-warm overflow-x-hidden">
-      <UnifiedBackground />
-      
+    <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
       
       <main className="relative">
         {/* Hero with main value prop */}
-        <Hero />
+        <ParallaxSection speed={0.2}>
+          <Hero />
+        </ParallaxSection>
         
         {/* Trust badges - compact strip */}
-        <TrustBadgeSlider />
+        <ParallaxSection speed={0.15}>
+          <TrustBadgeSlider />
+        </ParallaxSection>
         
         {/* Core services - what we offer */}
-        <ServicePicker />
+        <ParallaxSection speed={0.25}>
+          <ServicePicker />
+        </ParallaxSection>
         
         {/* Specialized health verticals */}
-        <HealthCategories />
+        <ParallaxSection speed={0.3}>
+          <HealthCategories />
+        </ParallaxSection>
         
         {/* How it works - 3 steps */}
-        <HowItWorks />
+        <ParallaxSection speed={0.2}>
+          <HowItWorks />
+        </ParallaxSection>
         
         {/* Trustpilot reviews - authentic social proof (moved lower) */}
-        <TrustpilotReviews />
+        <ParallaxSection speed={0.25}>
+          <TrustpilotReviews />
+        </ParallaxSection>
         
         {/* Platform performance stats */}
-        <PlatformStats />
+        <ParallaxSection speed={0.2}>
+          <PlatformStats />
+        </ParallaxSection>
         
         {/* FAQs */}
-        <FAQSection />
+        <ParallaxSection speed={0.15}>
+          <FAQSection />
+        </ParallaxSection>
         
         {/* Final CTA */}
-        <CTASection />
+        <ParallaxSection speed={0.2}>
+          <CTASection />
+        </ParallaxSection>
       </main>
       
       <MarketingFooter />

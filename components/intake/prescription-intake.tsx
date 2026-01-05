@@ -2,9 +2,11 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Button, Input } from "@/components/uix"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import {
   Check,
   ChevronRight,
@@ -286,29 +288,14 @@ function SafetyQuestion({
   return (
     <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-border">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
-      <div className="flex gap-2">
-        {[
-          { label: "No", val: false },
-          { label: "Yes", val: true },
-        ].map(({ label, val }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onChange(val)}
-            className={cn(
-              "min-w-[52px] min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-              value === val
-                ? val
-                  ? "bg-amber-500 text-white"
-                  : "bg-primary text-white"
-                : "bg-muted hover:bg-muted/80"
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <CinematicSwitch
+        value={value}
+        onChange={onChange}
+        onLabel="YES"
+        offLabel="NO"
+        variant="safety"
+        className="shrink-0"
+      />
     </div>
   )
 }

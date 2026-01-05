@@ -46,6 +46,7 @@ import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 import { cn } from "@/lib/utils"
+import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { useUser, useClerk } from "@clerk/nextjs"
 import { 
   cardInteractive, 
@@ -339,30 +340,14 @@ function SafetyQuestion({
   return (
     <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-border">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
-      <div className="flex gap-2" role="radiogroup" aria-label={question}>
-        {[
-          { label: "No", val: false },
-          { label: "Yes", val: true },
-        ].map(({ label, val }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onChange(val)}
-            aria-pressed={value === val}
-            className={cn(
-              "min-w-[52px] min-h-[40px] px-4 py-2 rounded-lg text-sm font-medium transition-all",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-              value === val
-                ? val
-                  ? "bg-destructive text-destructive-foreground"
-                  : "bg-primary text-primary-foreground"
-                : "bg-muted hover:bg-muted/80"
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <CinematicSwitch
+        value={value}
+        onChange={onChange}
+        onLabel="YES"
+        offLabel="NO"
+        variant="safety"
+        className="shrink-0"
+      />
     </div>
   )
 }

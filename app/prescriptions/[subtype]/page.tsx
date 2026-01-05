@@ -44,7 +44,7 @@ export default async function PrescriptionSubtypePage({
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant={authUser ? "patient" : "marketing"} userName={authUser?.profile.full_name} />
-      <main className="flex-1 px-4 py-16 sm:px-6 lg:px-8 bg-gradient-subtle">
+      <main className="flex-1 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <PrescriptionFlowClient
             category="prescription"

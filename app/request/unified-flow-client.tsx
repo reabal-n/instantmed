@@ -27,6 +27,10 @@ import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { isTestMode, TEST_DATA } from "@/lib/test-mode"
 import { skipPaymentTestMode } from "@/app/actions/test-actions"
 import { PriorityUpsell } from "@/components/checkout/priority-upsell"
+import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
+import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
+import { CinematicSwitch } from "@/components/ui/cinematic-switch"
+import { cn } from "@/lib/utils"
 
 // Types
 type Service = "medcert" | "prescription" | "referral"
@@ -130,29 +134,24 @@ function SelectCard({
   onClick,
   children,
   className = "",
+  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
   className?: string
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
-    <button
-      type="button"
+    <EnhancedSelectionButton
+      variant="card"
+      selected={selected}
       onClick={onClick}
-      className={`
-        relative p-4 rounded-xl border-2 text-left transition-all duration-150
-        ${selected ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/50 hover:bg-muted/50"}
-        active:scale-[0.98] ${className}
-      `}
+      gradient={gradient}
+      className={cn("relative", className)}
     >
-      {selected && (
-        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-          <Check className="w-3 h-3 text-primary-foreground" />
-        </div>
-      )}
       {children}
-    </button>
+    </EnhancedSelectionButton>
   )
 }
 
@@ -161,23 +160,23 @@ function Chip({
   selected,
   onClick,
   children,
+  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
-    <button
-      type="button"
+    <EnhancedSelectionButton
+      variant="chip"
+      selected={selected}
       onClick={onClick}
-      className={`
-        px-3 py-2 rounded-full text-sm font-medium transition-all duration-150
-        ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-muted/80"}
-        active:scale-95
-      `}
+      gradient={gradient}
+      className="rounded-full"
     >
       {children}
-    </button>
+    </EnhancedSelectionButton>
   )
 }
 
@@ -409,11 +408,11 @@ export function UnifiedFlowClient({
     if (idx > 0) goTo(steps[idx - 1])
   }, [steps, step, goTo])
 
-  // Auto-advance on service selection
+  // Service selection handler
   const selectService = (s: Service) => {
     setService(s)
     setForm({ ...form, service: s })
-    setTimeout(() => goTo("clinical"), 200)
+    // User must click Continue button to proceed
   }
 
   // Medicare validation
@@ -789,14 +788,15 @@ export function UnifiedFlowClient({
             </div>
             <div className="grid gap-3">
               {[
-                { id: "medcert" as Service, icon: FileText, label: COPY.services.options.medcert.label, description: COPY.services.options.medcert.description },
-                { id: "prescription" as Service, icon: Pill, label: COPY.services.options.prescription.label, description: COPY.services.options.prescription.description },
+                { id: "medcert" as Service, icon: FileText, label: COPY.services.options.medcert.label, description: COPY.services.options.medcert.description, gradient: "blue-purple" as const },
+                { id: "prescription" as Service, icon: Pill, label: COPY.services.options.prescription.label, description: COPY.services.options.prescription.description, gradient: "purple-pink" as const },
               ].map((opt) => (
                 <SelectCard
                   key={opt.id}
                   selected={service === opt.id}
                   onClick={() => selectService(opt.id)}
                   className="flex items-center gap-4"
+                  gradient={opt.gradient}
                 >
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <opt.icon className="w-6 h-6 text-primary" />
@@ -838,7 +838,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.medcert.duration.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.medcert.duration.options.map((opt) => (
+                {COPY.medcert.duration.options.map((opt, index) => (
                   <Chip
                     key={opt}
                     selected={duration === opt}
@@ -846,6 +846,7 @@ export function UnifiedFlowClient({
                       setDuration(opt)
                       setForm({ ...form, duration: opt })
                     }}
+                    gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                   >
                     {opt}
                   </Chip>
@@ -1014,7 +1015,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.prescription.condition.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.prescription.condition.options.map((c) => (
+                {COPY.prescription.condition.options.map((c, index) => (
                   <Chip
                     key={c.id}
                     selected={condition === c.id}
@@ -1022,6 +1023,7 @@ export function UnifiedFlowClient({
                       setCondition(c.id)
                       setForm({ ...form, clinicalReason: c.id })
                     }}
+                    gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                   >
                     {c.label}
                   </Chip>
@@ -1035,7 +1037,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.duration.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.duration.options.map((d) => (
+                    {COPY.prescription.duration.options.map((d, index) => (
                       <Chip
                         key={d.id}
                         selected={rxDuration === d.id}
@@ -1043,6 +1045,7 @@ export function UnifiedFlowClient({
                           setRxDuration(d.id)
                           setForm({ ...form, duration: d.id })
                         }}
+                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {d.label}
                       </Chip>
@@ -1053,7 +1056,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.control.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.control.options.map((c) => (
+                    {COPY.prescription.control.options.map((c, index) => (
                       <Chip
                         key={c.id}
                         selected={rxControl === c.id}
@@ -1061,6 +1064,7 @@ export function UnifiedFlowClient({
                           setRxControl(c.id)
                           setForm({ ...form, urgency: c.id })
                         }}
+                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {c.label}
                       </Chip>
@@ -1071,7 +1075,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.sideEffects.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.sideEffects.options.map((s) => (
+                    {COPY.prescription.sideEffects.options.map((s, index) => (
                       <Chip
                         key={s.id}
                         selected={rxSideEffects === s.id}
@@ -1079,6 +1083,7 @@ export function UnifiedFlowClient({
                           setRxSideEffects(s.id)
                           setForm({ ...form, notes: s.id }) // Mapping side effects to notes for now
                         }}
+                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {s.label}
                       </Chip>
@@ -1128,27 +1133,18 @@ export function UnifiedFlowClient({
               <div className="space-y-3">
                 {Object.entries(COPY.safety.questions).map(([key, label]) => (
                   <div key={key} className="flex items-center justify-between p-4 rounded-xl border bg-card">
-                    <span className="text-sm font-medium pr-4">{label}</span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSafetyAnswers((prev) => ({ ...prev, [key]: false }))
-                          setForm({ ...form, safetyAnswers: { ...form.safetyAnswers, [key]: false } })
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!safetyAnswers[key as keyof typeof safetyAnswers] ? "bg-primary text-primary-foreground" : "bg-muted"}`}
-                      >
-                        {COPY.safety.labels.no}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSafetyAnswers((prev) => ({ ...prev, [key]: true }))
-                          setForm({ ...form, safetyAnswers: { ...form.safetyAnswers, [key]: true } })
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${safetyAnswers[key as keyof typeof safetyAnswers] ? "bg-destructive text-destructive-foreground" : "bg-muted"}`}
-                      >
-                        {COPY.safety.labels.yes}
-                      </button>
-                    </div>
+                    <span className="text-sm font-medium pr-4 flex-1">{label}</span>
+                    <CinematicSwitch
+                      value={safetyAnswers[key as keyof typeof safetyAnswers]}
+                      onChange={(value) => {
+                        setSafetyAnswers((prev) => ({ ...prev, [key]: value }))
+                        setForm({ ...form, safetyAnswers: { ...form.safetyAnswers, [key]: value } })
+                      }}
+                      onLabel="YES"
+                      offLabel="NO"
+                      variant="safety"
+                      className="shrink-0"
+                    />
                   </div>
                 ))}
               </div>
@@ -1383,18 +1379,23 @@ export function UnifiedFlowClient({
       </div>
 
       {/* Footer navigation */}
-      {step !== "service" && step !== "account" && step !== "review" && !hasSafetyRisk && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-4">
+      {step !== "account" && step !== "review" && !hasSafetyRisk && (
+        <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-4 pb-safe">
           <div className="max-w-lg mx-auto">
-            <Button
-              className="w-full h-12"
-              onClick={goNext}
+            <UnifiedProgressIndicator
+              currentStep={steps.indexOf(step) + 1}
+              totalSteps={steps.length}
+              onContinue={goNext}
+              onBack={steps.indexOf(step) > 0 ? goBack : undefined}
+              isExpanded={steps.indexOf(step) === 0}
+              isLastStep={steps.indexOf(step) === steps.length - 1}
               disabled={
-                (step === "clinical" && !canContinueClinical) || (step === "medicare" && !medicareValid && !irn)
+                (step === "service" && !service) ||
+                (step === "clinical" && !canContinueClinical) || 
+                (step === "medicare" && !medicareValid && !irn)
               }
-            >
-              {COPY.nav.next}
-            </Button>
+              continueLabel={COPY.nav.next}
+            />
           </div>
         </footer>
       )}

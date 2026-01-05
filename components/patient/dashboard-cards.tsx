@@ -75,7 +75,8 @@ export function PremiumStatCard({
         <div
           className={cn(
             "relative rounded-2xl p-5 border transition-all duration-300",
-            "hover:shadow-lg hover:-translate-y-0.5",
+            "hover:shadow-xl hover:-translate-y-1 hover:shadow-primary/10",
+            "dark:hover:shadow-primary/20",
             styles.bg
           )}
         >

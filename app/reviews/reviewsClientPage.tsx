@@ -5,6 +5,7 @@ import { ArrowLeft, Star, MapPin, CheckCircle2, Filter, ArrowRight } from "lucid
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
+import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { useState } from "react"
 
 interface ReviewItem {
@@ -380,7 +381,7 @@ export function ReviewsClientPageComponent() {
   const totalReviews = reviewsData.length
 
   return (
-    <div className="flex min-h-screen flex-col bg-hero">
+    <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-24">
@@ -437,8 +438,30 @@ export function ReviewsClientPageComponent() {
           </div>
         </section>
 
-        {/* Reviews Grid */}
-        <section className="px-4 py-12 sm:px-6 lg:py-16 bg-mesh">
+        {/* Featured Testimonials Columns */}
+        <section className="px-4 py-12 sm:px-6 lg:py-16">
+          <div className="mx-auto max-w-7xl">
+            <TestimonialsColumnsWrapper
+              testimonials={reviewsData.slice(0, 9).map((r) => ({
+                text: `"${r.quote}"`,
+                image: r.avatar?.startsWith('http') 
+                  ? r.avatar 
+                  : r.avatar?.startsWith('/')
+                    ? r.avatar
+                    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.name.replace(/[^a-zA-Z0-9]/g, '')}`,
+                name: r.name,
+                role: `${r.service} • ${r.location}`,
+              }))}
+              title="What our patients say"
+              subtitle="Real feedback from real Australians. No cherry-picking, no fake reviews."
+              badgeText="Patient Reviews"
+              className="mb-16"
+            />
+          </div>
+        </section>
+
+        {/* All Reviews Grid */}
+        <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="mx-auto max-w-5xl">
             <ReviewsGrid reviews={reviewsData} />
           </div>

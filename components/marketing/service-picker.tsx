@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { GradientBorderChase, MagneticCard } from '@/components/ui/glowing-effect'
+import { GlowCard } from '@/components/ui/spotlight-card'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -115,24 +116,17 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
-                  <MagneticCard 
-                    intensity={8}
-                    scale={1.02}
-                    borderRadius="1rem"
-                    className="h-full"
+                  <GlowCard
+                    glowColor={service.color === 'emerald' ? 'green' : service.color === 'cyan' ? 'blue' : 'purple'}
+                    customSize={true}
+                    className="h-full w-full"
                   >
-                    <GradientBorderChase
-                      colors={[colors.accent, '#4f46e5', '#4f46e5', colors.accent]}
-                      duration={3}
-                      borderRadius="1rem"
-                      className="h-full"
+                    <Card 
+                      isHoverable
+                      isPressable
+                      className="h-full bg-content1 border-0 overflow-hidden"
+                      shadow="sm"
                     >
-                      <Card 
-                        isHoverable
-                        isPressable
-                        className="h-full bg-content1 border-0 overflow-hidden"
-                        shadow="sm"
-                      >
                     <CardBody className="p-0">
                       {/* Gradient header strip */}
                       <div className={`h-1.5 w-full bg-linear-to-r ${colors.gradient}`} />
@@ -210,8 +204,7 @@ export function ServicePicker() {
                       </motion.div>
                     </CardFooter>
                   </Card>
-                    </GradientBorderChase>
-                  </MagneticCard>
+                  </GlowCard>
                 </Link>
               </motion.div>
             )

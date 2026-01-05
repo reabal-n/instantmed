@@ -3,6 +3,7 @@
 import { Star, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Spotlight } from '@/components/ui/glowing-effect'
+import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 
 const reviews = [
   {
@@ -77,6 +78,14 @@ const reviews = [
   },
 ]
 
+// Convert reviews to column format
+const reviewsForColumns = reviews.map((r) => ({
+  text: `"${r.text}"`,
+  image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.name.replace(/[^a-zA-Z0-9]/g, '')}`,
+  name: r.name,
+  role: r.location,
+}))
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-px">
@@ -147,29 +156,14 @@ export function TrustpilotReviews() {
         </div>
       </div>
 
-      {/* Marquee container */}
-      <div className="relative">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
-        
-        {/* Scrolling track */}
-        <div className="flex animate-marquee hover:paused">
-          {[...reviews, ...reviews].map((review, index) => (
-            <ReviewCard key={`${review.name}-${index}`} review={review} />
-          ))}
-        </div>
-      </div>
-      
-      <style jsx>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 40s linear infinite;
-        }
-      `}</style>
+      {/* Testimonials Columns */}
+      <TestimonialsColumnsWrapper
+        testimonials={reviewsForColumns}
+        title="What our customers say"
+        subtitle="See what our customers have to say about us."
+        badgeText="Trustpilot Reviews"
+        className="py-0 my-0"
+      />
     </section>
   )
 }

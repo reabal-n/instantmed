@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Input, InputProps } from "@heroui/react"
-import { Check, AlertCircle, Info } from "lucide-react"
+import { Check, AlertCircle, Info, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ValidationRule {
@@ -10,7 +10,7 @@ interface ValidationRule {
   message: string
 }
 
-interface ValidatedInputProps extends Omit<InputProps, "onChange"> {
+interface EnhancedValidatedInputProps extends Omit<InputProps, "onChange"> {
   value: string
   onChange: (value: string) => void
   validationRules?: ValidationRule[]
@@ -25,7 +25,7 @@ interface ValidatedInputProps extends Omit<InputProps, "onChange"> {
   type?: "text" | "email" | "tel" | "password" | "number"
 }
 
-export function ValidatedInput({
+export function EnhancedValidatedInput({
   value,
   onChange,
   validationRules = [],
@@ -40,11 +40,13 @@ export function ValidatedInput({
   type = "text",
   className,
   ...props
-}: ValidatedInputProps) {
+}: EnhancedValidatedInputProps) {
   const [touched, setTouched] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [hasInteracted, setHasInteracted] = useState(false)
 
-  // Compute validation state directly instead of storing in state
+  // Compute validation state
   const validationState = (() => {
     if (!validateOnChange || !touched) {
       return { error: null, isValid: false }
@@ -61,6 +63,8 @@ export function ValidatedInput({
   })()
 
   const { error, isValid } = validationState
+  const characterCount = value.length
+  const remainingChars = maxLength ? maxLength - characterCount : null
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
@@ -70,6 +74,7 @@ export function ValidatedInput({
     }
     onChange(newValue)
     if (!touched) setTouched(true)
+    if (!hasInteracted) setHasInteracted(true)
   }
 
   const handleBlur = () => {
@@ -79,6 +84,7 @@ export function ValidatedInput({
 
   const handleFocus = () => {
     setFocused(true)
+    if (!hasInteracted) setHasInteracted(true)
   }
 
   // Format phone number display (Australian format)
@@ -91,15 +97,14 @@ export function ValidatedInput({
   }
 
   const displayValue = type === "tel" && formatHint ? formatPhoneDisplay(value) : value
-  const characterCount = value.length
-  const remainingChars = maxLength ? maxLength - characterCount : null
+  const inputType = type === "password" ? (showPassword ? "text" : "password") : type
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="relative">
         <Input
           {...props}
-          type={type}
+          type={inputType}
           label={label}
           value={displayValue}
           onChange={handleChange}
@@ -109,14 +114,14 @@ export function ValidatedInput({
           className={cn(
             "transition-all duration-200",
             error && touched && "border-red-500 focus:border-red-500",
-            isValid && touched && "border-green-500 focus:border-green-500",
+            isValid && touched && !error && "border-green-500 focus:border-green-500",
             focused && !error && !isValid && "border-primary focus:border-primary",
             className
           )}
           classNames={{
             input: cn(
               error && touched && "text-red-700 dark:text-red-400",
-              isValid && touched && "text-green-700 dark:text-green-400"
+              isValid && touched && !error && "text-green-700 dark:text-green-400"
             ),
             inputWrapper: cn(
               error && touched && "border-red-500 focus-within:border-red-500",
@@ -139,6 +144,22 @@ export function ValidatedInput({
                 >
                   {characterCount}/{maxLength}
                 </span>
+              )}
+              
+              {/* Password Toggle */}
+              {type === "password" && (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               )}
               
               {/* Success/Error Indicator */}
@@ -197,8 +218,8 @@ export function ValidatedInput({
   )
 }
 
-// Common validation rules
-export const validationRules = {
+// Enhanced validation rules with better messages
+export const enhancedValidationRules = {
   email: {
     validate: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
     message: "That doesn't look quite right. Mind checking it once more?",
@@ -211,9 +232,16 @@ export const validationRules = {
     validate: (value: string) => value.length >= min,
     message: `Please enter at least ${min} characters`,
   }),
+  maxLength: (max: number) => ({
+    validate: (value: string) => value.length <= max,
+    message: `Please enter no more than ${max} characters`,
+  }),
   phone: {
-    validate: (value: string) => /^(\+?61|0)[2-478]( ?\d){8}$/.test(value.replace(/\s/g, "")),
-    message: "Please enter a valid Australian phone number",
+    validate: (value: string) => {
+      const digits = value.replace(/\s/g, "")
+      return /^(\+?61|0)[2-478]( ?\d){8}$/.test(digits)
+    },
+    message: "That number doesn't look right. Check and try again.",
   },
   phoneAU: {
     validate: (value: string) => {
@@ -231,6 +259,22 @@ export const validationRules = {
       const sum = weights.reduce((acc, w, i) => acc + w * Number.parseInt(digits[i], 10), 0)
       return sum % 10 === Number.parseInt(digits[8], 10)
     },
-    message: "Please check your Medicare number",
+    message: "That Medicare number doesn't check out. Mind double-checking?",
+  },
+  password: {
+    validate: (value: string) => value.length >= 8,
+    message: "That password's a bit short. Try at least 8 characters.",
+  },
+  passwordStrong: {
+    validate: (value: string) => {
+      return (
+        value.length >= 8 &&
+        /[A-Z]/.test(value) &&
+        /[a-z]/.test(value) &&
+        /[0-9]/.test(value)
+      )
+    },
+    message: "Password needs uppercase, lowercase, and a number",
   },
 }
+

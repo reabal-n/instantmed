@@ -62,12 +62,18 @@ function Button({
       isIconOnly={isIconOnly}
       className={cn(
         variant === "link" && "bg-transparent hover:bg-transparent underline-offset-4 hover:underline",
-        // Micro-interactions: subtle scale and shadow on hover/active
-        "transition-all duration-200",
-        "hover:scale-[1.02] hover:shadow-soft-md",
+        // Enhanced micro-interactions: magnetic effect with glow
+        "transition-all duration-300 ease-out",
+        "hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20",
         "active:scale-[0.98]",
-        // Ensure minimum touch target on mobile
+        // Glow effect for primary buttons
+        variant === "default" && "hover:ring-2 hover:ring-primary/20",
+        // Ensure minimum touch target on mobile (accessibility)
         "min-h-[44px] md:min-h-0",
+        // Smooth transform origin
+        "origin-center",
+        // Accessibility: Focus visible styles
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         className
       )}
       {...props}

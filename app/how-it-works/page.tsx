@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
+import { GlowCard } from "@/components/ui/spotlight-card"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import {
   ClipboardList,
   UserCheck,
@@ -111,7 +113,8 @@ export default function HowItWorksPage() {
 
       <main className="flex-1 bg-background">
         {/* Hero */}
-        <section className="relative pt-32 pb-20 overflow-hidden">
+        <ParallaxSection speed={0.2}>
+          <section className="relative pt-32 pb-20 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" />
           <div className="absolute top-20 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
@@ -150,10 +153,12 @@ export default function HowItWorksPage() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* Steps */}
-        <section className="py-20 bg-gradient-subtle">
+        <ParallaxSection speed={0.25}>
+          <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-16">
@@ -186,7 +191,11 @@ export default function HowItWorksPage() {
                       </div>
 
                       {/* Content */}
-                      <TiltCard className="flex-1 w-full">
+                      <GlowCard
+                        glowColor={index === 0 ? 'blue' : index === 1 ? 'purple' : 'green'}
+                        customSize={true}
+                        className="flex-1 w-full"
+                      >
                         <div className="p-6">
                           <div className="flex items-center gap-3 mb-2">
                             <span className="text-xs font-mono text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
@@ -197,17 +206,19 @@ export default function HowItWorksPage() {
                           <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
                           <p className="text-muted-foreground">{step.description}</p>
                         </div>
-                      </TiltCard>
+                      </GlowCard>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* Features Grid */}
-        <section className="py-20">
+        <ParallaxSection speed={0.2}>
+          <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2
@@ -220,8 +231,10 @@ export default function HowItWorksPage() {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {features.map((feature, index) => (
-                <TiltCard
+                <GlowCard
                   key={feature.title}
+                  glowColor={index % 4 === 0 ? 'blue' : index % 4 === 1 ? 'purple' : index % 4 === 2 ? 'green' : 'orange'}
+                  customSize={true}
                   className="animate-fade-in-up opacity-0"
                   style={{ animationDelay: `${0.5 + index * 0.1}s`, animationFillMode: "forwards" }}
                 >
@@ -230,14 +243,16 @@ export default function HowItWorksPage() {
                     <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </div>
-                </TiltCard>
+                </GlowCard>
               ))}
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* Use Cases */}
-        <section className="py-20 bg-gradient-subtle">
+        <ParallaxSection speed={0.25}>
+          <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
@@ -252,8 +267,10 @@ export default function HowItWorksPage() {
 
               <div className="space-y-4">
                 {useCases.map((useCase, index) => (
-                  <TiltCard
+                  <GlowCard
                     key={index}
+                    glowColor={index === 0 ? 'blue' : 'purple'}
+                    customSize={true}
                     className="animate-fade-in-up opacity-0"
                     style={{ animationDelay: `${0.8 + index * 0.1}s`, animationFillMode: "forwards" }}
                   >
@@ -268,15 +285,17 @@ export default function HowItWorksPage() {
                         <span className="text-indigo-600 font-medium">{useCase.time}</span>
                       </div>
                     </div>
-                  </TiltCard>
+                  </GlowCard>
                 ))}
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
 
         {/* CTA */}
-        <section className="py-20">
+        <ParallaxSection speed={0.15}>
+          <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <TiltCard className="p-10 md:p-12">
@@ -303,7 +322,8 @@ export default function HowItWorksPage() {
               </TiltCard>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
       </main>
 
       <Footer />

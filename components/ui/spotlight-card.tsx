@@ -1,16 +1,13 @@
-"use client";
-
 import React, { useEffect, useRef, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 
 interface GlowCardProps {
   children: ReactNode;
   className?: string;
-  glowColor?: 'blue' | 'purple' | 'green' | 'red' | 'orange' | 'primary';
+  glowColor?: 'blue' | 'purple' | 'green' | 'red' | 'orange';
   size?: 'sm' | 'md' | 'lg';
   width?: string | number;
   height?: string | number;
-  customSize?: boolean;
+  customSize?: boolean; // When true, ignores size prop and uses width/height or className
 }
 
 const glowColorMap = {
@@ -18,8 +15,7 @@ const glowColorMap = {
   purple: { base: 280, spread: 300 },
   green: { base: 120, spread: 200 },
   red: { base: 0, spread: 200 },
-  orange: { base: 30, spread: 200 },
-  primary: { base: 160, spread: 200 }, // Teal/medical theme
+  orange: { base: 30, spread: 200 }
 };
 
 const sizeMap = {
@@ -31,7 +27,7 @@ const sizeMap = {
 const GlowCard: React.FC<GlowCardProps> = ({ 
   children, 
   className = '', 
-  glowColor = 'primary',
+  glowColor = 'blue',
   size = 'md',
   width,
   height,
@@ -58,20 +54,21 @@ const GlowCard: React.FC<GlowCardProps> = ({
 
   const { base, spread } = glowColorMap[glowColor];
 
+  // Determine sizing
   const getSizeClasses = () => {
     if (customSize) {
-      return '';
+      return ''; // Let className or inline styles handle sizing
     }
     return sizeMap[size];
   };
 
-  const getInlineStyles = (): React.CSSProperties & Record<string, string | number> => {
-    const baseStyles: React.CSSProperties & Record<string, string | number> = {
+  const getInlineStyles = () => {
+    const baseStyles = {
       '--base': base,
       '--spread': spread,
       '--radius': '14',
       '--border': '3',
-      '--backdrop': 'hsl(var(--muted) / 0.12)',
+      '--backdrop': 'hsl(0 0% 60% / 0.12)',
       '--backup-border': 'var(--backdrop)',
       '--size': '200',
       '--outer': '1',
@@ -93,6 +90,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       touchAction: 'none' as const,
     };
 
+    // Add width and height if provided
     if (width !== undefined) {
       baseStyles.width = typeof width === 'number' ? `${width}px` : width;
     }
@@ -166,20 +164,19 @@ const GlowCard: React.FC<GlowCardProps> = ({
         ref={cardRef}
         data-glow
         style={getInlineStyles()}
-        className={cn(
-          getSizeClasses(),
-          !customSize && 'aspect-[3/4]',
-          'rounded-2xl',
-          'relative',
-          'grid',
-          'grid-rows-[1fr_auto]',
-          'shadow-[0_1rem_2rem_-1rem_rgba(0,0,0,0.2)] dark:shadow-[0_1rem_2rem_-1rem_black]',
-          'p-4',
-          'gap-4',
-          'backdrop-blur-[5px]',
-          'bg-card/80 dark:bg-card/60',
-          className
-        )}
+        className={`
+          ${getSizeClasses()}
+          ${!customSize ? 'aspect-[3/4]' : ''}
+          rounded-2xl 
+          relative 
+          grid 
+          grid-rows-[1fr_auto] 
+          shadow-[0_1rem_2rem_-1rem_black] 
+          p-4 
+          gap-4 
+          backdrop-blur-[5px]
+          ${className}
+        `}
       >
         <div ref={innerRef} data-glow></div>
         {children}
@@ -188,4 +185,4 @@ const GlowCard: React.FC<GlowCardProps> = ({
   );
 };
 
-export { GlowCard };
+export { GlowCard }

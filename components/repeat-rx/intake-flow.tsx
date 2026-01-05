@@ -36,6 +36,8 @@ import type {
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
 import { useUser, useClerk } from "@clerk/nextjs"
+import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
+import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 
 // ============================================================================
 // CONSTANTS
@@ -373,25 +375,23 @@ function PillButton({
   selected,
   onClick,
   children,
+  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
-    <button
-      type="button"
+    <EnhancedSelectionButton
+      variant="chip"
+      selected={selected}
       onClick={onClick}
-      className={cn(
-        "px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
-        "hover:scale-105 active:scale-95",
-        selected
-          ? "bg-primary text-primary-foreground shadow-md"
-          : "bg-muted hover:bg-muted/80 border border-border/40"
-      )}
+      gradient={gradient}
+      className="rounded-full"
     >
       {children}
-    </button>
+    </EnhancedSelectionButton>
   )
 }
 
@@ -785,11 +785,12 @@ export function RepeatRxIntakeFlow({
                   required
                 >
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(REPEAT_RX_COPY.steps.history.lastPrescribedOptions).map(([key, label]) => (
+                    {Object.entries(REPEAT_RX_COPY.steps.history.lastPrescribedOptions).map(([key, label], index) => (
                       <PillButton
                         key={key}
                         selected={lastPrescribed === key}
                         onClick={() => setLastPrescribed(key)}
+                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {label}
                       </PillButton>
@@ -804,11 +805,12 @@ export function RepeatRxIntakeFlow({
                   hint={REPEAT_RX_COPY.steps.history.stabilityNote}
                 >
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(REPEAT_RX_COPY.steps.history.stabilityOptions).map(([key, label]) => (
+                    {Object.entries(REPEAT_RX_COPY.steps.history.stabilityOptions).map(([key, label], index) => (
                       <PillButton
                         key={key}
                         selected={stability === key}
                         onClick={() => setStability(key)}
+                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {label}
                       </PillButton>

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Star, Quote, Users, Clock, Award } from "lucide-react"
 import { Card, CardBody, Chip } from "@heroui/react"
+import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 
 interface Testimonial {
   id: number
@@ -62,7 +63,39 @@ const testimonials: Testimonial[] = [
     text: "Incredibly convenient. Had my certificate emailed to me and my employer within the hour.",
     service: "med-cert",
   },
+  {
+    id: 7,
+    name: "Sophie H.",
+    location: "Canberra",
+    rating: 5,
+    text: "Real Australian doctors, not some overseas call centre. Actually listened to my concerns.",
+    service: "prescription",
+  },
+  {
+    id: 8,
+    name: "Chris B.",
+    location: "Newcastle",
+    rating: 5,
+    text: "Pricing upfront, no hidden fees. Wish my regular GP was this transparent.",
+    service: "med-cert",
+  },
+  {
+    id: 9,
+    name: "Lisa M.",
+    location: "Hobart",
+    rating: 5,
+    text: "Got a sick note for work while lying in bed with the flu. This is how healthcare should work.",
+    service: "med-cert",
+  },
 ]
+
+// Convert testimonials to column format
+const testimonialsForColumns = testimonials.map((t) => ({
+  text: `"${t.text}"`,
+  image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${t.name.replace(/[^a-zA-Z0-9]/g, '')}`,
+  name: t.name,
+  role: `${t.service === "med-cert" ? "Medical Certificate" : "Prescription"} • ${t.location}`,
+}))
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
@@ -121,57 +154,15 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 }
 
 export function TestimonialMarquee() {
-  const doubledTestimonials = [...testimonials, ...testimonials]
-
   return (
-    <section className="py-16 lg:py-20 overflow-hidden bg-content2/30">
-      {/* Section Header */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground/80">Trusted by thousands</span>
-          </div>
-          
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
-            What our patients say
-          </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Join thousands of Australians who trust InstantMed for their healthcare needs.
-          </p>
-        </motion.div>
-      </div>
-
-      {/* Scrolling testimonials */}
-      <div className="relative mb-6">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-linear-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-linear-to-l from-background to-transparent z-10 pointer-events-none" />
-        
-        <motion.div
-          className="flex"
-          animate={{
-            x: [0, -324 * testimonials.length],
-          }}
-          transition={{
-            x: {
-              duration: 40,
-              repeat: Infinity,
-              ease: "linear",
-            },
-          }}
-        >
-          {doubledTestimonials.map((testimonial, index) => (
-            <TestimonialCard key={`${testimonial.id}-${index}`} testimonial={testimonial} />
-          ))}
-        </motion.div>
-      </div>
+    <>
+      <TestimonialsColumnsWrapper
+        testimonials={testimonialsForColumns}
+        title="What our patients say"
+        subtitle="Join thousands of Australians who trust InstantMed for their healthcare needs."
+        badgeText="Trusted by thousands"
+        className="py-16 lg:py-20 bg-content2/30"
+      />
 
       {/* Stats */}
       <motion.div
@@ -179,7 +170,7 @@ export function TestimonialMarquee() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.2 }}
-        className="max-w-3xl mx-auto mt-12 px-4"
+        className="max-w-3xl mx-auto mt-12 px-4 pb-16"
       >
         <div className="grid grid-cols-3 gap-6">
           {[
@@ -206,6 +197,6 @@ export function TestimonialMarquee() {
           ))}
         </div>
       </motion.div>
-    </section>
+    </>
   )
 }
