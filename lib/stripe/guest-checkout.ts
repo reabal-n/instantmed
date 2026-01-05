@@ -3,6 +3,7 @@
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createClient } from "@supabase/supabase-js"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import { getAppUrl } from "@/lib/env"
 
 interface GuestCheckoutInput {
   category: ServiceCategory
@@ -33,17 +34,8 @@ function getServiceClient() {
 }
 
 function getBaseUrl(): string {
-  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-
-  if (!baseUrl && process.env.VERCEL_URL) {
-    baseUrl = `https://${process.env.VERCEL_URL}`
-  }
-
-  if (!baseUrl) {
-    baseUrl = "http://localhost:3000"
-  }
-
-  return baseUrl.replace(/\/$/, "")
+  // Use centralized env function which handles validation and fallbacks properly
+  return getAppUrl()
 }
 
 /**

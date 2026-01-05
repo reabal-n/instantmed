@@ -4,7 +4,9 @@ import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("stripe-checkout")
+import { getAppUrl } from "@/lib/env"
 
 interface CreateCheckoutInput {
   category: ServiceCategory
@@ -22,21 +24,8 @@ interface CheckoutResult {
 }
 
 function getBaseUrl(): string {
-  // Try NEXT_PUBLIC_SITE_URL first
-  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-
-  // Fallback to VERCEL_URL for Vercel deployments
-  if (!baseUrl && process.env.VERCEL_URL) {
-    baseUrl = `https://${process.env.VERCEL_URL}`
-  }
-
-  // Final fallback to localhost
-  if (!baseUrl) {
-    baseUrl = "http://localhost:3000"
-  }
-
-  // Ensure URL doesn't have trailing slash
-  return baseUrl.replace(/\/$/, "")
+  // Use centralized env function which handles validation and fallbacks properly
+  return getAppUrl()
 }
 
 function isValidUrl(url: string): boolean {
@@ -188,8 +177,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       // Answers are critical for clinical review - rollback the request
       logger.error("[Stripe Checkout] Failed to save answers, rolling back request", {
         requestId: request.id,
-        error: answersError.message,
-      })
+      }, new Error(answersError.message))
       await supabase.from("requests").delete().eq("id", request.id)
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }

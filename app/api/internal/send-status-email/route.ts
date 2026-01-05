@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    log.error("Error sending status email", { error })
+    log.error("Error sending status email", {}, error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       { error: "Failed to send email" },
       { status: 500 }

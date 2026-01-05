@@ -8,7 +8,8 @@ import { RequestApprovedEmail } from "./templates/request-approved"
 import { NeedsMoreInfoEmail } from "./templates/needs-more-info"
 import { RequestDeclinedEmail } from "./templates/request-declined"
 import { sendViaResend } from "./resend"
-import { logger } from "../logger"
+import { createLogger } from "../observability/logger"
+const logger = createLogger("email-send")
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -115,14 +116,14 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     }
 
     if (!result.success) {
-      logger.warn(`[Email] Failed to send to ${to}: ${result.error}`, { subject, template })
+      logger.warn(`[Email] Failed to send to ${to}: ${result.error}`, { subject, template, to })
       return { success: false, error: result.error }
     }
 
     logger.info(`[Email] Sent to ${to}`, { subject, template, resendId: result.id })
     return { success: true }
   } catch (error) {
-    logger.error("Error sending email: " + String(error), { error })
+    logger.error("Error sending email", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: String(error) }
   }
 }
@@ -148,7 +149,7 @@ export async function sendStateTransitionEmail(
     .single()
 
   if (!request || !request.patient) {
-    console.error("Could not fetch request details for email")
+    logger.error("Could not fetch request details for email", { requestId })
     return
   }
 
@@ -157,7 +158,7 @@ export async function sendStateTransitionEmail(
   const email = authUser?.user?.email
 
   if (!email) {
-    console.error("Could not find patient email")
+    logger.error("Could not find patient email", { requestId, patientId: request.patient.id })
     return
   }
 

@@ -102,7 +102,11 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code",
+    // Google Search Console verification code
+    // Get it from: https://search.google.com/search-console
+    // Property Settings → Ownership verification → HTML tag method
+    // Copy the content value from the meta tag
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
   },
   generator: "v0.app",
 }

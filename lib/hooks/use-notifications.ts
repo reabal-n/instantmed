@@ -71,7 +71,9 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(data || [])
     } catch (err) {
-      logger.error("Error fetching notifications:", { error: err })
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error fetching notifications:", err)
+      }
       setError(err instanceof Error ? err.message : "Failed to load notifications")
     } finally {
       setLoading(false)
@@ -117,7 +119,9 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (err) {
-      logger.error("Error marking all notifications as read:", { error: err })
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error marking all notifications as read:", err)
+      }
     }
   }, [supabase, clerkUser])
 

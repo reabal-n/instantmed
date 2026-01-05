@@ -85,13 +85,17 @@ export function MedicationSearch({
         })
 
         if (error) {
-          console.error('Search error:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Search error:', error)
+          }
           setResults([])
         } else {
           setResults((data as MedicationResult[]) || [])
         }
       } catch (err) {
-        console.error('Search error:', err)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Search error:', err)
+        }
         setResults([])
       } finally {
         setIsSearching(false)

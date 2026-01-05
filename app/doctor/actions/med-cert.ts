@@ -205,7 +205,8 @@ export async function issueMedCertificate(
 
     // Call the render function to generate PDF
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      const { getAppUrl } = await import("@/lib/env")
+      const baseUrl = getAppUrl()
       const response = await fetch(`${baseUrl}/api/med-cert/render`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

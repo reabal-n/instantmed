@@ -4,7 +4,10 @@ import Stripe from "stripe"
 // Validate required environment variables
 if (!process.env.STRIPE_SECRET_KEY) {
   // Allow build to proceed without Stripe key (it will be provided at runtime)
-  console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
+  // Note: This warning is acceptable at module load time
+  if (process.env.NODE_ENV === 'development') {
+    console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
+  }
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder')

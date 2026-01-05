@@ -68,7 +68,9 @@ export function FlowShell({
       try {
         saveDraft().catch((err) => {
           // Silently handle save errors - draft will be in localStorage
-          console.warn('Auto-save failed:', err)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Auto-save failed:', err)
+          }
         })
       } catch {
         // Ignore errors

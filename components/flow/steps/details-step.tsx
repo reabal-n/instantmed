@@ -144,7 +144,9 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
       onComplete?.()
       nextStep()
     } catch (error) {
-      console.error('Error:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error:', error)
+      }
       setAuthError('An unexpected error occurred')
     } finally {
       setIsSubmitting(false)

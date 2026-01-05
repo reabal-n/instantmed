@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { logger } from "@/lib/observability/logger"
+import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { auth } from "@clerk/nextjs/server"
+const logger = createLogger("amt-search")
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)
 const NCTS_FHIR_BASE = "https://tx.ontoserver.csiro.au/fhir"
@@ -170,6 +173,16 @@ function parseAMTDisplay(display: string): { medicationName: string; strength: s
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const { userId } = await auth()
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
+  const rateLimitKey = userId || `ip:${ip}`
+  
+  const rateLimitResponse = await applyRateLimit(request, 'standard', rateLimitKey)
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+  
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()
 
@@ -284,9 +297,8 @@ export async function GET(request: NextRequest) {
     }
 
     logger.error("AMT Search: Error", {
-      error: error instanceof Error ? error.message : String(error),
       query,
-    })
+    }, error instanceof Error ? error : new Error(String(error)))
     // If we have stale cache, return it as fallback
     if (cached) {
       return NextResponse.json({ ...(cached.results as object), stale: true })

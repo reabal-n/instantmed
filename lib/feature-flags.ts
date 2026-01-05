@@ -2,7 +2,8 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { unstable_cache } from "next/cache"
 import { logAuditEvent } from "@/lib/security/audit-log"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("feature-flags")
 
 // Feature flag keys
 export const FLAG_KEYS = {
@@ -33,7 +34,7 @@ function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
-    console.warn("[FeatureFlags] Missing Supabase credentials")
+    logger.warn("Missing Supabase credentials")
     return null
   }
   return createClient(url, key)
@@ -45,7 +46,7 @@ function getServiceClient() {
 async function fetchFlagsFromDB(): Promise<FeatureFlags> {
   const supabase = getServiceClient()
   if (!supabase) {
-    console.warn("[FeatureFlags] No service client, using defaults")
+    logger.warn("No service client, using defaults")
     return DEFAULT_FLAGS
   }
 
@@ -55,7 +56,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
       .select("key, value")
 
     if (error) {
-      console.error("[FeatureFlags] DB error:", error.message)
+      logger.error("DB error", {}, new Error(error.message))
       return DEFAULT_FLAGS
     }
 
@@ -79,7 +80,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
 
     return flags
   } catch (error) {
-    console.error("[FeatureFlags] Unexpected error:", error)
+    logger.error("Unexpected error", {}, error instanceof Error ? error : new Error(String(error)))
     return DEFAULT_FLAGS
   }
 }
@@ -188,7 +189,7 @@ export async function updateFeatureFlag(
       .eq("key", key)
 
     if (error) {
-      console.error("[FeatureFlags] Update error:", error)
+      logger.error("Update error", {}, error instanceof Error ? error : new Error(String(error)))
       return { success: false, error: error.message }
     }
 
@@ -209,7 +210,7 @@ export async function updateFeatureFlag(
 
     return { success: true }
   } catch (error) {
-    logger.error("[FeatureFlags] Unexpected error", { error })
+    logger.error("Unexpected error", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: "Unexpected error" }
   }
 }

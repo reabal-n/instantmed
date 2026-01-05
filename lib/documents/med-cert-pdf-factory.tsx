@@ -12,7 +12,8 @@ import "server-only"
 import { renderToBuffer, Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
 import type { MedCertDraftData } from "@/types/db"
 import { getLogoUrl, getSignatureUrl } from "@/lib/assets/asset-urls"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("med-cert-pdf")
 
 // Normalize legacy and new draft shapes
 function getPatientName(data: MedCertDraftData): string {
@@ -398,9 +399,8 @@ export async function generateMedCertPdfFactory(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
     logger.error(`[pdf-factory] PDF generation failed for ${requestId}`, {
-      error: errorMessage,
       certId,
-    })
+    }, error instanceof Error ? error : new Error(errorMessage))
     throw new Error(`PDF generation failed: ${errorMessage}`)
   }
 }

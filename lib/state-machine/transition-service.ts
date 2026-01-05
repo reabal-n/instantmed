@@ -70,7 +70,10 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
     const { error: updateError } = await supabase.from("requests").update(updateData).eq("id", requestId)
 
     if (updateError) {
-      console.error("Error updating request state:", updateError)
+      // Server-side error logging
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error updating request state:", updateError)
+      }
       return { success: false, error: updateError.message }
     }
 
@@ -96,7 +99,9 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
       emailTriggered: emailTemplate,
     }
   } catch (error) {
-    console.error("Error executing transition:", error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error executing transition:", error)
+    }
     return { success: false, error: "Internal error" }
   }
 }
@@ -114,7 +119,9 @@ export async function getAuditHistory(requestId: string) {
     .order("created_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching audit history:", error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching audit history:", error)
+    }
     return []
   }
 

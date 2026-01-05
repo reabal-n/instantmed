@@ -546,8 +546,9 @@ export function MedCertFlowV2({
       }
 
       // TODO: Submit to API
-      // eslint-disable-next-line no-console
-      console.log("Submitting med cert request:", auditPayload)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Submitting med cert request:", auditPayload)
+      }
 
       // Success - show confetti and go to confirmation
       confetti({

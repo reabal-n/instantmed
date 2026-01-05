@@ -25,14 +25,29 @@ interface AddressAutocompleteProps {
   disabled?: boolean
 }
 
+// Google Maps types are complex - using any is acceptable here with eslint-disable
 /* eslint-disable @typescript-eslint/no-explicit-any */
+interface GoogleMapsWindow extends Window {
+  google?: {
+    maps?: {
+      places?: {
+        Autocomplete: new (input: HTMLInputElement, options: unknown) => {
+          addListener: (event: string, callback: () => void) => void
+          getPlace: () => google.maps.places.PlaceResult
+        }
+      }
+    }
+  }
+  initGooglePlaces?: () => void
+}
+
 let isScriptLoaded = false
 let isScriptLoading = false
 const callbacks: (() => void)[] = []
 
 function loadGooglePlacesScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const win = window as any
+    const win = window as unknown as GoogleMapsWindow
     if (isScriptLoaded && win.google?.maps?.places) {
       resolve()
       return
@@ -120,10 +135,10 @@ export function AddressAutocomplete({
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<any>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
 
   const initAutocomplete = useCallback(() => {
-    const win = window as any
+    const win = window as unknown as GoogleMapsWindow
     if (!inputRef.current || !win.google?.maps?.places) return
 
     autocompleteRef.current = new win.google.maps.places.Autocomplete(inputRef.current, {

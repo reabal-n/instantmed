@@ -1,6 +1,7 @@
 import { createClient } from "../supabase/server"
 import { createServiceRoleClient } from "../supabase/service-role"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("data-profiles")
 import { currentUser } from "@clerk/nextjs/server"
 import type { Profile, AustralianState } from "../../types/db"
 
@@ -193,7 +194,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     .single()
 
   if (requestError || !request || !request.patient) {
-    logger.error("Error fetching request for email lookup", { error: requestError })
+    logger.error("Error fetching request for email lookup", {}, requestError instanceof Error ? requestError : new Error(String(requestError)))
     return null
   }
 
@@ -213,7 +214,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
   const { data: authUser, error: authError } = await serviceClient.auth.admin.getUserById(authUserId)
 
   if (authError || !authUser?.user?.email) {
-    logger.error("Error fetching auth user email", { error: authError })
+    logger.error("Error fetching auth user email", {}, authError instanceof Error ? authError : new Error(String(authError)))
     return null
   }
 

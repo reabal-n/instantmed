@@ -22,7 +22,7 @@ import { Chip, Spinner } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { logger } from '@/lib/logger'
+// Client-side component - use console for logging (wrapped in dev check)
 
 interface Profile {
   id: string
@@ -113,7 +113,9 @@ export default function AccountPage() {
           })))
         }
       } catch (err) {
-        logger.error('Error loading account:', { error: err })
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error loading account:', err)
+        }
         setError('Failed to load account data')
       } finally {
         setIsLoading(false)

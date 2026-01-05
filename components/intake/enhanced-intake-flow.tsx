@@ -661,7 +661,9 @@ export function EnhancedIntakeFlow({
         setErrors({ agreedToTerms: result.error || "Something went wrong. Please try again." })
       }
     } catch (error) {
-      console.error("Submit error:", error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Submit error:", error)
+      }
       setErrors({ agreedToTerms: "Something went wrong. Please try again." })
     } finally {
       setIsSubmitting(false)

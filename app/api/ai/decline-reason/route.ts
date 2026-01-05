@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { auth } from "@clerk/nextjs/server"
 const log = createLogger("route")
 
 /**
@@ -17,6 +19,15 @@ export async function POST(request: NextRequest) {
   void request;
   
   try {
+    // Rate limiting
+    const { userId } = await auth()
+    if (userId) {
+      const rateLimitResponse = await applyRateLimit(request, 'sensitive', userId)
+      if (rateLimitResponse) {
+        return rateLimitResponse
+      }
+    }
+    
     // Require doctor authentication even for disabled feature
     const { profile } = await requireAuth("doctor")
     if (!profile) {

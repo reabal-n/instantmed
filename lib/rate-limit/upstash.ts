@@ -78,7 +78,10 @@ export async function checkRateLimit(
 ): Promise<NextResponse | null> {
   // Skip rate limiting if Upstash is not configured
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn("Rate limiting disabled: Upstash Redis not configured")
+    // Warning is acceptable - rate limiting falls back to in-memory
+    if (process.env.NODE_ENV === 'development') {
+      console.warn("Rate limiting disabled: Upstash Redis not configured")
+    }
     return null
   }
 
@@ -110,7 +113,9 @@ export async function checkRateLimit(
     return null
   } catch (error) {
     // If rate limiting fails, allow the request but log the error
-    console.error("Rate limit check failed:", error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Rate limit check failed:", error)
+    }
     return null
   }
 }

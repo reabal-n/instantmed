@@ -31,7 +31,9 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         }
       }
     } catch (e) {
-      console.warn('Failed to load form data:', e)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to load form data:', e)
+      }
     }
 
     initialized.current = true
@@ -46,7 +48,9 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         const toSave = { ...data, _timestamp: Date.now() }
         localStorage.setItem(`form_${key}`, JSON.stringify(toSave))
       } catch (e) {
-        console.warn('Failed to save form data:', e)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to save form data:', e)
+        }
       }
     }, DEBOUNCE_MS)
 

@@ -65,7 +65,9 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
             router.refresh()
           }
         } catch (err) {
-          console.error("Error completing auth:", err)
+          if (process.env.NODE_ENV === 'development') {
+            console.error("Error completing auth:", err)
+          }
           setError("Failed to complete authentication")
         } finally {
           setIsLoading(false)

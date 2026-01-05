@@ -2,7 +2,8 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createNotification } from "@/lib/notifications/service"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("refill-reminders")
 import { addDays, differenceInDays, parseISO } from "date-fns"
 
 interface PrescriptionRefillConfig {
@@ -64,7 +65,7 @@ export async function getPrescriptionsNeedingReminders(): Promise<RefillReminder
       .gte("updated_at", ninetyDaysAgo.toISOString())
 
     if (error) {
-      logger.error("Failed to fetch prescriptions for reminders", { error: error.message })
+      logger.error("Failed to fetch prescriptions for reminders", {}, new Error(error.message))
       return []
     }
 
@@ -98,7 +99,7 @@ export async function getPrescriptionsNeedingReminders(): Promise<RefillReminder
 
     return reminders
   } catch (err) {
-    logger.error("Error checking prescription reminders", { error: err })
+    logger.error("Error checking prescription reminders", {}, err instanceof Error ? err : new Error(String(err)))
     return []
   }
 }
@@ -145,7 +146,7 @@ export async function sendRefillReminder(reminder: RefillReminder): Promise<bool
 
     return result.success
   } catch (err) {
-    logger.error("Failed to send refill reminder", { error: err, patientId, medicationName })
+    logger.error("Failed to send refill reminder", { patientId, medicationName }, err instanceof Error ? err : new Error(String(err)))
     return false
   }
 }
@@ -228,7 +229,7 @@ export async function getUpcomingRefillsForPatient(patientId: string): Promise<{
 
     return upcomingRefills.sort((a, b) => a.daysRemaining - b.daysRemaining)
   } catch (err) {
-    logger.error("Error fetching upcoming refills", { error: err, patientId })
+    logger.error("Error fetching upcoming refills", { patientId }, err instanceof Error ? err : new Error(String(err)))
     return []
   }
 }

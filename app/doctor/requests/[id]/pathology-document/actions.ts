@@ -10,6 +10,9 @@ import {
   type PathologyDraftData,
   type PathologySubtype,
 } from "@/lib/documents/apitemplate"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("pathology-document-actions")
 
 export async function savePathologyDraftAction(
   draftId: string,
@@ -30,7 +33,7 @@ export async function savePathologyDraftAction(
 
     return { success: true }
   } catch (error) {
-    console.error("Error saving pathology draft:", error)
+    log.error("Error saving pathology draft", { draftId }, error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -63,7 +66,7 @@ export async function generatePathologyPdfAndApproveAction(
     try {
       pdfUrl = await generatePathologyReferralPdfFromDraft(subtype, data)
     } catch (pdfError) {
-      console.error("Pathology PDF generation error:", pdfError)
+      log.error("Pathology PDF generation error", { draftId, subtype }, pdfError)
       const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to generate PDF"
       return { success: false, error: errorMessage }
     }
@@ -72,7 +75,7 @@ export async function generatePathologyPdfAndApproveAction(
     const document = await createGeneratedDocument(draft.request_id, "referral", subtype, pdfUrl)
 
     if (!document) {
-      console.error("Failed to save pathology document record")
+      log.error("Failed to save pathology document record", { draftId, requestId: draft.request_id })
       return { success: false, error: "PDF generated but failed to save document record" }
     }
 
@@ -80,7 +83,7 @@ export async function generatePathologyPdfAndApproveAction(
     const updatedRequest = await updateRequestStatus(draft.request_id, "approved")
 
     if (!updatedRequest) {
-      console.error("Failed to update pathology request status")
+      log.error("Failed to update pathology request status", { draftId, requestId: draft.request_id })
       return { success: false, error: "PDF generated but failed to update request status" }
     }
 
@@ -92,7 +95,7 @@ export async function generatePathologyPdfAndApproveAction(
 
     return { success: true, pdfUrl }
   } catch (error) {
-    console.error("Error in generatePathologyPdfAndApproveAction:", error)
+    log.error("Error in generatePathologyPdfAndApproveAction", { draftId, subtype }, error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -106,7 +109,7 @@ export async function testApiConnectionAction(): Promise<{ success: boolean; err
 
     return await testApiTemplateConnection()
   } catch (error) {
-    console.error("Error testing API connection:", error)
+    log.error("Error testing API connection", {}, error)
     return { success: false, error: "Failed to test connection" }
   }
 }
@@ -132,7 +135,7 @@ export async function approvePathologyWithoutPdfAction(
 
     return { success: true }
   } catch (error) {
-    console.error("Error approving pathology request:", error)
+    log.error("Error approving pathology request", { requestId }, error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }

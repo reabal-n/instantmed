@@ -32,7 +32,9 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
         setHasClicked(false) // Allow retry on error
       }
     } catch (err) {
-      console.error("Error retrying payment:", err)
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error retrying payment:", err)
+      }
       setError("An unexpected error occurred. Please try again.")
       setIsLoading(false)
       setHasClicked(false) // Allow retry on error

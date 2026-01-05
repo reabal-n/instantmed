@@ -34,7 +34,10 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
         window.location.href = result.checkoutUrl
       }
     } catch (error) {
-      console.error("Retry payment error:", error)
+      // Log error in development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Retry payment error:", error)
+      }
       toast.error("Failed to initiate payment. Please try again.")
       setIsLoading(false)
       setHasClicked(false) // Allow retry on error

@@ -1,6 +1,7 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("audit-log")
 
 export type AuditAction =
   | "login"

@@ -10,7 +10,8 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
+import { createLogger } from '@/lib/observability/logger'
+const logger = createLogger('clerk-webhook')
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       'svix-signature': svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    logger.error('Error verifying webhook', { error: err })
+    logger.error('Error verifying webhook', {}, err instanceof Error ? err : new Error(String(err)))
     return new Response('Error: Webhook verification failed', { status: 400 })
   }
 
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
         })
 
         if (error) {
-          logger.error('Error creating profile', { error, clerkUserId: id })
+          logger.error('Error creating profile', { clerkUserId: id }, error instanceof Error ? error : new Error(String(error)))
           return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
         }
 
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
           .eq('clerk_user_id', id)
 
         if (error) {
-          logger.error('Error updating profile', { error, clerkUserId: id })
+          logger.error('Error updating profile', { clerkUserId: id }, error instanceof Error ? error : new Error(String(error)))
           return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
         }
 
@@ -137,7 +138,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    logger.error('Webhook handler error', { error })
+    logger.error('Webhook handler error', {}, error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }

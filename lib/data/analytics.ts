@@ -22,7 +22,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
     .order("created_at", { ascending: true })
 
   if (requestsError) {
-    logger.error("Error fetching requests for analytics", { error: requestsError })
+    logger.error("Error fetching requests for analytics", {}, requestsError instanceof Error ? requestsError : new Error(String(requestsError)))
   }
 
   const requests = monthRequests || []

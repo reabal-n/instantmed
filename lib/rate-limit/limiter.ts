@@ -63,7 +63,9 @@ export async function checkRateLimit(
 
   if (error && error.code !== "PGRST116") {
     // PGRST116 = no rows found
-    console.error("Rate limit check error:", error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Rate limit check error:", error)
+    }
   }
 
   const currentCount = data?.request_count || 0

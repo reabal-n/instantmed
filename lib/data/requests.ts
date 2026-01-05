@@ -1,6 +1,7 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("data-requests")
 import type {
   Request,
   RequestWithPatient,
@@ -40,7 +41,7 @@ export async function getPatientRequests(patientId: string, status?: RequestStat
   const { data, error } = await query
 
   if (error) {
-    logger.error("Error fetching patient requests", { error })
+    logger.error("Error fetching patient requests", {}, error instanceof Error ? error : new Error(String(error)))
     return []
   }
 
@@ -63,7 +64,7 @@ export async function getPatientRequestStats(patientId: string): Promise<{
   const { data, error } = await supabase.from("requests").select("status, payment_status").eq("patient_id", patientId)
 
   if (error || !data) {
-    logger.error("Error fetching request stats", { error })
+    logger.error("Error fetching request stats", {}, error instanceof Error ? error : new Error(String(error)))
     return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0, awaiting_payment: 0 }
   }
 
@@ -93,7 +94,7 @@ export async function getRequestForPatient(requestId: string, patientId: string)
     .single()
 
   if (error || !data) {
-    logger.error("Error fetching request", { error })
+    logger.error("Error fetching request", {}, error instanceof Error ? error : new Error(String(error)))
     return null
   }
 
@@ -120,7 +121,7 @@ export async function getAllRequestsByStatus(status: RequestStatus): Promise<Req
     .order("created_at", { ascending: false })
 
   if (error) {
-    logger.error("Error fetching requests by status", { error })
+    logger.error("Error fetching requests by status", {}, error instanceof Error ? error : new Error(String(error)))
     return []
   }
 
@@ -150,7 +151,7 @@ export async function getRequestsAwaitingPayment(): Promise<RequestWithPatient[]
     .order("created_at", { ascending: false })
 
   if (error) {
-    logger.error("Error fetching requests awaiting payment", { error })
+    logger.error("Error fetching requests awaiting payment", {}, error instanceof Error ? error : new Error(String(error)))
     return []
   }
 
@@ -198,7 +199,7 @@ export async function getRequestWithDetails(requestId: string): Promise<RequestW
     .single()
 
   if (error || !data) {
-    logger.error("Error fetching request details", { error })
+    logger.error("Error fetching request details", {}, error instanceof Error ? error : new Error(String(error)))
     return null
   }
 
@@ -245,7 +246,7 @@ export async function createRequest(
     .single()
 
   if (requestError || !createdRequest) {
-    logger.error("Error creating request", { error: requestError })
+    logger.error("Error creating request", {}, requestError instanceof Error ? requestError : new Error(String(requestError)))
     return null
   }
 
@@ -255,7 +256,7 @@ export async function createRequest(
   })
 
   if (answersError) {
-    logger.error("Error creating request answers", { error: answersError })
+    logger.error("Error creating request answers", {}, answersError instanceof Error ? answersError : new Error(String(answersError)))
   }
 
   return createdRequest as unknown as Request
@@ -290,7 +291,7 @@ export async function updateRequestStatus(
     .single()
 
   if (fetchError || !currentRequest) {
-    logger.error("[updateRequestStatus] Failed to fetch current state", { requestId, error: fetchError })
+    logger.error("[updateRequestStatus] Failed to fetch current state", { requestId }, fetchError instanceof Error ? fetchError : new Error(String(fetchError)))
     return null
   }
 
@@ -344,7 +345,7 @@ export async function updateRequestStatus(
     .single()
 
   if (error || !data) {
-    logger.error("[updateRequestStatus] Database error", { requestId, status, error })
+    logger.error("[updateRequestStatus] Database error", { requestId, status }, error instanceof Error ? error : new Error(String(error)))
     return null
   }
 
@@ -366,7 +367,7 @@ export async function updateClinicalNote(requestId: string, clinicalNote: string
     .eq("id", requestId)
 
   if (error) {
-    logger.error("Error updating clinical note", { error })
+    logger.error("Error updating clinical note", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 
@@ -390,7 +391,7 @@ export async function updateScriptSent(requestId: string, scriptSent: boolean, s
     .eq("id", requestId)
 
   if (error) {
-    logger.error("Error updating script sent status", { error })
+    logger.error("Error updating script sent status", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 
@@ -413,7 +414,7 @@ export async function getDoctorDashboardStats(): Promise<{
   const { data, error } = await supabase.from("requests").select("status, payment_status").eq("payment_status", "paid") // Only count paid requests
 
   if (error || !data) {
-    logger.error("Error fetching dashboard stats", { error })
+    logger.error("Error fetching dashboard stats", {}, error instanceof Error ? error : new Error(String(error)))
     return { total: 0, pending: 0, approved: 0, declined: 0, needs_follow_up: 0 }
   }
 
@@ -441,7 +442,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
     .order("created_at", { ascending: false })
 
   if (error) {
-    logger.error("Error fetching all requests", { error })
+    logger.error("Error fetching all requests", {}, error instanceof Error ? error : new Error(String(error)))
     return []
   }
 
@@ -591,7 +592,7 @@ export async function escalateRequest(
     .single()
 
   if (fetchError || !currentRequest) {
-    logger.error("[escalateRequest] Failed to fetch request", { requestId, error: fetchError })
+    logger.error("[escalateRequest] Failed to fetch request", { requestId }, fetchError instanceof Error ? fetchError : new Error(String(fetchError)))
     return false
   }
 
@@ -620,7 +621,7 @@ export async function escalateRequest(
     .eq("id", requestId)
 
   if (error) {
-    logger.error("[escalateRequest] Database error", { error })
+    logger.error("[escalateRequest] Database error", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 
@@ -644,7 +645,7 @@ export async function markAsReviewed(requestId: string, doctorId: string): Promi
     .eq("id", requestId)
 
   if (error) {
-    logger.error("Error marking as reviewed", { error })
+    logger.error("Error marking as reviewed", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 

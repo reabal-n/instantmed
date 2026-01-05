@@ -1,6 +1,7 @@
 "use server"
 
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("sms-service")
 
 /**
  * SMS notification service for InstantMed
@@ -114,7 +115,7 @@ export async function sendSms({ to, message, requestId }: SendSmsParams): Promis
 
     if (!response.ok) {
       const error = await response.text()
-      logger.error("Twilio API error", { status: response.status, error, requestId })
+      logger.error("Twilio API error", { status: response.status, requestId }, new Error(String(error)))
       return { success: false, error: `Twilio error: ${response.status}` }
     }
 
@@ -127,7 +128,7 @@ export async function sendSms({ to, message, requestId }: SendSmsParams): Promis
 
     return { success: true, messageId: data.sid }
   } catch (err) {
-    logger.error("Failed to send SMS", { error: err, requestId })
+    logger.error("Failed to send SMS", { requestId }, err instanceof Error ? err : new Error(String(err)))
     return { success: false, error: "Failed to send SMS" }
   }
 }

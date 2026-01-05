@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("email-verification")
 
 interface SendVerificationEmailParams {
   email: string
@@ -21,7 +22,7 @@ export async function sendVerificationEmail({
     logger.info("Email verification requested (handled by Clerk)", { email })
     return { success: true }
   } catch (error) {
-    logger.error("Unexpected error in email verification", { error })
+    logger.error("Unexpected error in email verification", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: "Failed to send verification email" }
   }
 }
@@ -43,7 +44,7 @@ export async function isEmailVerified(): Promise<boolean> {
     )
     return primaryEmail?.verification?.status === "verified"
   } catch (error) {
-    logger.error("Error checking email verification status", { error })
+    logger.error("Error checking email verification status", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 }
@@ -74,7 +75,7 @@ export async function resendVerificationEmail(
     logger.info("Verification email resend requested (handled by Clerk)", { email })
     return { success: true }
   } catch (error) {
-    logger.error("Error resending verification email", { error })
+    logger.error("Error resending verification email", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: "Failed to resend verification email" }
   }
 }

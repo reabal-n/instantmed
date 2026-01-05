@@ -97,7 +97,9 @@ export function useDraftResume(
             }
           }
         } catch (error) {
-          console.error('Failed to fetch server drafts:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to fetch server drafts:', error)
+          }
         }
       }
 
@@ -126,7 +128,9 @@ export function useDraftResume(
 
       setDrafts(mergedDrafts)
     } catch (error) {
-      console.error('Failed to load drafts:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to load drafts:', error)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -185,7 +189,9 @@ export function useDraftResume(
 
       throw new Error('Could not load draft data')
     } catch (error) {
-      console.error('Failed to resume draft:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to resume draft:', error)
+      }
       throw error
     } finally {
       setIsLoading(false)
@@ -215,7 +221,9 @@ export function useDraftResume(
         d.id !== draftId && d.sessionId !== draftId
       ))
     } catch (error) {
-      console.error('Failed to delete draft:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to delete draft:', error)
+      }
     }
   }, [drafts])
 

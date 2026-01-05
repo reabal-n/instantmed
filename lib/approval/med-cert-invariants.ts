@@ -6,7 +6,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("med-cert-invariants")
 
 export class ApprovalInvariantError extends Error {
   constructor(message: string) {
@@ -162,7 +163,9 @@ export async function assertApprovalInvariants(
     }
   } catch (error) {
     logger.error(
-      `[approval-invariants] Invariant check failed: ${error instanceof Error ? error.message : "unknown error"}`
+      `[approval-invariants] Invariant check failed`,
+      {},
+      error instanceof Error ? error : new Error(String(error))
     )
     throw error
   }

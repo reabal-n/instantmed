@@ -1,6 +1,7 @@
 import "server-only"
 import type { RequestStatus, PaymentStatus } from "@/types/db"
-import { logger } from "@/lib/logger"
+import { createLogger } from "@/lib/observability/logger"
+const logger = createLogger("request-lifecycle")
 
 // ============================================
 // REQUEST LIFECYCLE STATE MACHINE

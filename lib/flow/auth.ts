@@ -35,7 +35,9 @@ export async function getFlowSession(): Promise<FlowSession> {
   // Clerk auth is managed via hooks (useUser, useAuth)
   // This function cannot access Clerk state since it's not a hook
   // Components should use useUser() directly instead
-  console.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
+  }
   
   return {
     user: null,
@@ -56,7 +58,9 @@ export function subscribeToFlowAuth(
 ): () => void {
   // Clerk doesn't use subscriptions - it uses React context
   // Components should use useUser() hook which automatically updates
-  console.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
+  }
   
   // Call callback with unauthenticated state
   callback({
@@ -110,7 +114,9 @@ export async function createDraft(
 
     return { draftId: data.id }
   } catch (err) {
-    console.error('Error creating draft:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error creating draft:', err)
+    }
     return {
       draftId: '',
       error: err instanceof Error ? err.message : 'Failed to create draft',
@@ -164,7 +170,9 @@ export async function loadDraft(
       isOwner: true,
     }
   } catch (err) {
-    console.error('Error loading draft:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error loading draft:', err)
+    }
     return {
       data: null,
       isOwner: false,
@@ -195,7 +203,9 @@ export async function saveDraft(
 
     return { success: true }
   } catch (err) {
-    console.error('Error saving draft:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error saving draft:', err)
+    }
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to save draft',
@@ -275,7 +285,9 @@ export async function getUserDrafts(
       })),
     }
   } catch (err) {
-    console.error('Error getting user drafts:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error getting user drafts:', err)
+    }
     return {
       drafts: [],
       error: err instanceof Error ? err.message : 'Failed to get drafts',

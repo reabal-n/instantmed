@@ -186,6 +186,15 @@ export function validateEnv(): EnvValidationResult {
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
   ]
+  
+  // Required in production only
+  if (process.env.NODE_ENV === "production") {
+    required.push(
+      "NEXT_PUBLIC_APP_URL",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET"
+    )
+  }
 
   for (const key of required) {
     if (!process.env[key]) {

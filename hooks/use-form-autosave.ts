@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useCallback, useRef } from 'react'
-import { logger } from '@/lib/logger'
+// Client-side hook - use console for logging (wrapped in dev check)
 
 interface AutosaveOptions {
   debounceMs?: number
@@ -74,7 +74,9 @@ export function useFormAutosave<T extends Record<string, any>>(
         // Uncomment if you want visible feedback:
         // toast.success('Draft saved', { description: 'Your progress is saved' })
       } catch (error) {
-        logger.error('Form autosave error', { error })
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Form autosave error', error)
+        }
         onError?.(error as Error)
       }
     }, debounceMs)
@@ -91,7 +93,9 @@ export function useFormAutosave<T extends Record<string, any>>(
       storageInterface.removeItem(storageKey)
       storageInterface.removeItem(timestampKey)
     } catch (error) {
-      logger.error('Form clear error', { error })
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Form clear error', error)
+      }
       onError?.(error as Error)
     }
   }, [storageKey, timestampKey, getStorage, onError])

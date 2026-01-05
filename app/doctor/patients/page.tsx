@@ -13,7 +13,10 @@ async function getAllPatients() {
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching patients:", error)
+    // Server-side error - use logger in production, console in dev
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching patients:", error)
+    }
     return []
   }
 

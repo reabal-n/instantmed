@@ -23,7 +23,9 @@ export function saveWithTTL<T>(key: string, data: T, ttlMs: number = DEFAULT_TTL
     }
     localStorage.setItem(key, JSON.stringify(item))
   } catch (e) {
-    console.error(`Failed to save to localStorage: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to save to localStorage: ${key}`, e)
+    }
   }
 }
 
@@ -44,7 +46,9 @@ export function loadWithTTL<T>(key: string): T | null {
     
     return item.data
   } catch (e) {
-    console.error(`Failed to load from localStorage: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to load from localStorage: ${key}`, e)
+    }
     return null
   }
 }
@@ -56,7 +60,9 @@ export function removeFromStorage(key: string): void {
   try {
     localStorage.removeItem(key)
   } catch (e) {
-    console.error(`Failed to remove from localStorage: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to remove from localStorage: ${key}`, e)
+    }
   }
 }
 
@@ -70,7 +76,9 @@ export function saveFormData<T>(key: string, data: T, ttlMs: number = DEFAULT_TT
     // Also save to localStorage with TTL as fallback
     saveWithTTL(key, data, ttlMs)
   } catch (e) {
-    console.error(`Failed to save form data: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to save form data: ${key}`, e)
+    }
   }
 }
 
@@ -88,7 +96,9 @@ export function loadFormData<T>(key: string): T | null {
     // Fall back to localStorage with TTL check
     return loadWithTTL<T>(key)
   } catch (e) {
-    console.error(`Failed to load form data: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to load form data: ${key}`, e)
+    }
     return null
   }
 }
@@ -101,7 +111,9 @@ export function clearFormData(key: string): void {
     sessionStorage.removeItem(key)
     localStorage.removeItem(key)
   } catch (e) {
-    console.error(`Failed to clear form data: ${key}`, e)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to clear form data: ${key}`, e)
+    }
   }
 }
 

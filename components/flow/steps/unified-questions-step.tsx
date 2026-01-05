@@ -167,7 +167,9 @@ export function UnifiedQuestionsStep({
       onComplete?.()
       nextStep()
     } catch (error) {
-      console.error('Error completing questions:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error completing questions:', error)
+      }
     } finally {
       setIsSubmitting(false)
     }

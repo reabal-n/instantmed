@@ -310,7 +310,9 @@ export const useFlowStore = create<FlowStore>()(
           })
         } catch (error) {
           // Still mark as saved since localStorage succeeded
-          console.warn('Draft saved locally, server sync failed:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Draft saved locally, server sync failed:', error)
+          }
           set({
             lastSavedAt: new Date().toISOString(),
             isSaving: false,
@@ -365,7 +367,9 @@ export const useFlowStore = create<FlowStore>()(
           }
         } catch (error) {
           // Server sync failed, but localStorage is saved - don't throw
-          console.warn('Server sync failed (data saved locally):', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Server sync failed (data saved locally):', error)
+          }
         }
       },
 
@@ -418,7 +422,9 @@ export const useFlowStore = create<FlowStore>()(
             }
           }
         } catch (error) {
-          console.error('Failed to load draft:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to load draft:', error)
+          }
           set({
             isLoading: false,
             error: 'Failed to load draft',

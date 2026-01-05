@@ -80,7 +80,9 @@ export function AppointmentScheduler({
       await onSchedule(selectedDate, selectedTime)
       setScheduled(true)
     } catch (error) {
-      console.error("Scheduling error:", error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Scheduling error:", error)
+      }
     } finally {
       setIsScheduling(false)
     }
