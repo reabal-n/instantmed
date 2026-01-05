@@ -80,7 +80,7 @@ const statusConfig: Record<StatusVariant, StatusBadgeConfig> = {
   },
   info: {
     bg: "bg-blue-100 dark:bg-blue-950/30",
-    text: "text-blue-700 dark:text-blue-400",
+    text: "text-primary dark:text-blue-400",
     icon: AlertCircle,
   },
   success: {

@@ -1,536 +1,430 @@
-// Comprehensive medication database for the prescription flow
+/**
+ * Australian Medication Database
+ * Common medications available in Australia with PBS listings
+ */
+
 export interface Medication {
-  slug: string
-  name: string
-  brandNames: string[]
-  genericName: string
+  id: string
+  name: string // Generic name
+  brandNames: string[] // Common brand names
+  strengths: string[] // Available strengths
   category: MedicationCategory
-  description: string
-  simpleDescription: string // "What it does" in plain English
-  uses: string[]
-  dosages: string[]
-  sideEffects: string[]
-  contraindications: string[] // "Who it's NOT for" in plain English
-  warnings: string[]
-  schedule: "S2" | "S3" | "S4" | "S8"
-  prescribable: boolean
-  price: number
-  popular: boolean
-  searchTerms: string[]
+  commonUses: string[]
+  requiresCall: boolean // Whether a phone consult is required
+  schedule: number // 2, 3, 4, or 8 (controlled substances)
+  notes?: string
+  searchTerms: string[] // Additional search terms
 }
 
 export type MedicationCategory =
-  | "blood-pressure"
-  | "cholesterol"
+  | "cardiovascular"
   | "diabetes"
-  | "skin"
-  | "womens-health"
-  | "mens-health"
-  | "weight-loss"
   | "mental-health"
-  | "antibiotics"
   | "pain-relief"
+  | "antibiotics"
+  | "thyroid"
+  | "gastrointestinal"
   | "respiratory"
+  | "contraception"
+  | "cholesterol"
+  | "blood-pressure"
+  | "allergy"
+  | "skin"
   | "other"
 
-export const CATEGORY_LABELS: Record<MedicationCategory, string> = {
-  "blood-pressure": "Blood Pressure",
-  cholesterol: "Cholesterol",
-  diabetes: "Diabetes",
-  skin: "Skin",
-  "womens-health": "Women's Health",
-  "mens-health": "Men's Health",
-  "weight-loss": "Weight Loss",
-  "mental-health": "Mental Health",
-  antibiotics: "Antibiotics",
-  "pain-relief": "Pain Relief",
-  respiratory: "Respiratory",
-  other: "Other",
-}
-
-export const CATEGORY_ICONS: Record<MedicationCategory, string> = {
-  "blood-pressure": "❤️",
-  cholesterol: "🫀",
-  diabetes: "💉",
-  skin: "🧴",
-  "womens-health": "♀️",
-  "mens-health": "♂️",
-  "weight-loss": "⚖️",
-  "mental-health": "🧠",
-  antibiotics: "💊",
-  "pain-relief": "🩹",
-  respiratory: "🫁",
-  other: "💊",
-}
-
-// Top 30 most requested medications in Australian telehealth
-export const MEDICATIONS: Medication[] = [
-  // Blood Pressure
+export const AUSTRALIAN_MEDICATIONS: Medication[] = [
+  // === CARDIOVASCULAR & CHOLESTEROL ===
   {
-    slug: "amlodipine",
-    name: "Amlodipine",
-    brandNames: ["Norvasc", "Amlovask"],
-    genericName: "Amlodipine Besylate",
-    category: "blood-pressure",
-    description: "Calcium channel blocker used to treat high blood pressure and chest pain.",
-    simpleDescription: "Relaxes blood vessels to lower your blood pressure. The go-to for many Aussies.",
-    uses: ["High blood pressure", "Angina (chest pain)", "Coronary artery disease"],
-    dosages: ["5mg once daily", "10mg once daily"],
-    sideEffects: ["Swollen ankles", "Flushing", "Headache", "Dizziness"],
-    contraindications: ["Severe aortic stenosis", "Unstable angina", "Cardiogenic shock"],
-    warnings: ["May cause ankle swelling", "Grapefruit can increase side effects"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["norvasc", "blood pressure", "bp", "hypertension"],
+    id: "atorvastatin",
+    name: "Atorvastatin",
+    brandNames: ["Lipitor", "Atorva", "Atostin"],
+    strengths: ["10mg", "20mg", "40mg", "80mg"],
+    category: "cholesterol",
+    commonUses: ["High cholesterol", "Heart disease prevention"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["statin", "cholesterol", "lipitor"],
   },
   {
-    slug: "ramipril",
-    name: "Ramipril",
-    brandNames: ["Tritace", "Ramace"],
-    genericName: "Ramipril",
-    category: "blood-pressure",
-    description: "ACE inhibitor for blood pressure and heart protection.",
-    simpleDescription: "Protects your heart and kidneys while keeping blood pressure down.",
-    uses: ["High blood pressure", "Heart failure", "Post heart attack", "Diabetic kidney protection"],
-    dosages: ["2.5mg once daily", "5mg once daily", "10mg once daily"],
-    sideEffects: ["Dry cough", "Dizziness", "Fatigue", "High potassium"],
-    contraindications: ["Pregnancy", "History of angioedema", "Bilateral renal artery stenosis"],
-    warnings: ["Can cause persistent dry cough", "Avoid if pregnant or planning pregnancy"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["tritace", "ace inhibitor", "blood pressure", "heart"],
+    id: "rosuvastatin",
+    name: "Rosuvastatin",
+    brandNames: ["Crestor", "Rosuva"],
+    strengths: ["5mg", "10mg", "20mg", "40mg"],
+    category: "cholesterol",
+    commonUses: ["High cholesterol", "Cardiovascular disease prevention"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["statin", "cholesterol", "crestor"],
   },
   {
-    slug: "perindopril",
+    id: "perindopril",
     name: "Perindopril",
     brandNames: ["Coversyl", "Perindo"],
-    genericName: "Perindopril Erbumine",
+    strengths: ["2.5mg", "5mg", "10mg"],
     category: "blood-pressure",
-    description: "ACE inhibitor for blood pressure with excellent heart protection.",
-    simpleDescription: "Another ACE inhibitor, often causes less cough than ramipril.",
-    uses: ["High blood pressure", "Heart failure", "Coronary artery disease"],
-    dosages: ["4mg once daily", "8mg once daily"],
-    sideEffects: ["Cough", "Dizziness", "Headache"],
-    contraindications: ["Pregnancy", "Angioedema history"],
-    warnings: ["Stop if you develop swelling of face/lips/tongue"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: false,
-    searchTerms: ["coversyl", "ace inhibitor", "bp"],
+    commonUses: ["High blood pressure", "Heart failure"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["ace inhibitor", "blood pressure", "coversyl"],
+  },
+  {
+    id: "irbesartan",
+    name: "Irbesartan",
+    brandNames: ["Avapro", "Karvea"],
+    strengths: ["75mg", "150mg", "300mg"],
+    category: "blood-pressure",
+    commonUses: ["High blood pressure", "Diabetic kidney disease"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["arb", "blood pressure", "avapro"],
+  },
+  {
+    id: "amlodipine",
+    name: "Amlodipine",
+    brandNames: ["Norvasc", "Amlosafe"],
+    strengths: ["5mg", "10mg"],
+    category: "blood-pressure",
+    commonUses: ["High blood pressure", "Angina"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["calcium channel blocker", "blood pressure", "norvasc"],
   },
 
-  // Cholesterol
+  // === DIABETES ===
   {
-    slug: "atorvastatin",
-    name: "Atorvastatin",
-    brandNames: ["Lipitor"],
-    genericName: "Atorvastatin Calcium",
-    category: "cholesterol",
-    description: "Statin medication to lower cholesterol and reduce heart disease risk.",
-    simpleDescription: "Australia's most prescribed cholesterol medication. Lowers the bad stuff.",
-    uses: ["High cholesterol", "Heart disease prevention", "Post heart attack"],
-    dosages: ["10mg once daily", "20mg once daily", "40mg once daily", "80mg once daily"],
-    sideEffects: ["Muscle aches", "Digestive issues", "Headache"],
-    contraindications: ["Active liver disease", "Pregnancy", "Breastfeeding"],
-    warnings: ["Report unexplained muscle pain", "Avoid grapefruit juice"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["lipitor", "cholesterol", "statin", "heart"],
-  },
-  {
-    slug: "rosuvastatin",
-    name: "Rosuvastatin",
-    brandNames: ["Crestor"],
-    genericName: "Rosuvastatin Calcium",
-    category: "cholesterol",
-    description: "Powerful statin for cholesterol management.",
-    simpleDescription: "The strongest statin available. Great if atorvastatin isn't doing enough.",
-    uses: ["High cholesterol", "Cardiovascular prevention"],
-    dosages: ["5mg once daily", "10mg once daily", "20mg once daily"],
-    sideEffects: ["Muscle pain", "Headache", "Abdominal pain"],
-    contraindications: ["Liver disease", "Pregnancy"],
-    warnings: ["Lower starting dose for Asian patients"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["crestor", "cholesterol", "statin"],
-  },
-
-  // Diabetes
-  {
-    slug: "metformin",
+    id: "metformin",
     name: "Metformin",
-    brandNames: ["Glucophage", "Diabex", "Diaformin"],
-    genericName: "Metformin Hydrochloride",
+    brandNames: ["Diabex", "Diaformin", "Glucophage"],
+    strengths: ["500mg", "850mg", "1000mg", "XR 500mg", "XR 1000mg"],
     category: "diabetes",
-    description: "First-line medication for type 2 diabetes.",
-    simpleDescription: "Helps your body use insulin better. The starting point for most type 2 diabetics.",
-    uses: ["Type 2 diabetes", "PCOS", "Insulin resistance"],
-    dosages: ["500mg twice daily", "850mg twice daily", "1000mg twice daily"],
-    sideEffects: ["Nausea", "Diarrhea", "Stomach upset", "Vitamin B12 deficiency"],
-    contraindications: ["Severe kidney disease", "Metabolic acidosis"],
-    warnings: ["Stop before CT scans with contrast", "Avoid excessive alcohol"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["glucophage", "diabex", "diabetes", "blood sugar", "pcos"],
+    commonUses: ["Type 2 diabetes", "PCOS", "Prediabetes"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["diabetes", "sugar", "diabex", "glucophage"],
   },
   {
-    slug: "gliclazide",
+    id: "gliclazide",
     name: "Gliclazide",
     brandNames: ["Diamicron", "Glyade"],
-    genericName: "Gliclazide",
+    strengths: ["30mg", "60mg", "80mg", "MR 30mg", "MR 60mg"],
     category: "diabetes",
-    description: "Sulfonylurea that stimulates insulin release.",
-    simpleDescription: "Makes your pancreas produce more insulin. Often added when metformin alone isn't enough.",
-    uses: ["Type 2 diabetes"],
-    dosages: ["40mg once daily", "80mg once daily", "Modified release 30-120mg"],
-    sideEffects: ["Low blood sugar", "Weight gain", "Nausea"],
-    contraindications: ["Type 1 diabetes", "Severe liver/kidney disease"],
-    warnings: ["Can cause hypos - know the symptoms", "Carry glucose tablets"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: false,
-    searchTerms: ["diamicron", "diabetes", "sulfonylurea"],
+    commonUses: ["Type 2 diabetes"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["diabetes", "sugar", "diamicron"],
   },
 
-  // Women's Health
+  // === THYROID ===
   {
-    slug: "levonorgestrel-ethinylestradiol",
-    name: "Levlen ED",
-    brandNames: ["Levlen ED", "Microgynon", "Monofeme"],
-    genericName: "Levonorgestrel/Ethinylestradiol",
-    category: "womens-health",
-    description: "Combined oral contraceptive pill.",
-    simpleDescription: "The classic 'pill'. Prevents pregnancy and can help with periods too.",
-    uses: ["Contraception", "Period regulation", "Acne", "Endometriosis"],
-    dosages: ["One tablet daily for 21 days, 7 day break"],
-    sideEffects: ["Nausea", "Breast tenderness", "Mood changes", "Spotting"],
-    contraindications: ["History of blood clots", "Migraine with aura", "Smokers over 35"],
-    warnings: ["Increased clot risk", "Tell doctor if you get migraines"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["pill", "contraceptive", "birth control", "levlen", "microgynon"],
-  },
-  {
-    slug: "norethisterone",
-    name: "Norethisterone",
-    brandNames: ["Primolut N"],
-    genericName: "Norethisterone",
-    category: "womens-health",
-    description: "Progestogen used to delay or regulate periods.",
-    simpleDescription: "Need to delay your period for a holiday or event? This is what you need.",
-    uses: ["Period delay", "Heavy periods", "Endometriosis", "Abnormal bleeding"],
-    dosages: ["5mg three times daily"],
-    sideEffects: ["Nausea", "Headache", "Breast tenderness", "Bloating"],
-    contraindications: ["Pregnancy", "Liver disease", "History of blood clots"],
-    warnings: ["Not a contraceptive", "Period usually starts 2-3 days after stopping"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["primolut", "delay period", "heavy periods"],
-  },
-  {
-    slug: "trimethoprim",
-    name: "Trimethoprim",
-    brandNames: ["Alprim", "Triprim"],
-    genericName: "Trimethoprim",
-    category: "womens-health",
-    description: "Antibiotic commonly used for urinary tract infections.",
-    simpleDescription: "The go-to for UTIs. Usually works within 24-48 hours.",
-    uses: ["Urinary tract infections", "Cystitis"],
-    dosages: ["300mg once daily for 3 days", "150mg twice daily for 3 days"],
-    sideEffects: ["Nausea", "Rash", "Itching"],
-    contraindications: ["Severe kidney disease", "Blood disorders", "Pregnancy (first trimester)"],
-    warnings: ["Complete the full course", "Drink plenty of water"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["uti", "urinary infection", "cystitis", "burning pee"],
+    id: "levothyroxine",
+    name: "Levothyroxine",
+    brandNames: ["Oroxine", "Eltroxin", "Eutroxsig"],
+    strengths: ["25mcg", "50mcg", "75mcg", "100mcg", "125mcg", "150mcg", "200mcg"],
+    category: "thyroid",
+    commonUses: ["Hypothyroidism", "Thyroid hormone replacement"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["thyroid", "underactive thyroid", "oroxine", "eltroxin"],
   },
 
-  // Men's Health
+  // === RESPIRATORY ===
   {
-    slug: "sildenafil",
-    name: "Sildenafil",
-    brandNames: ["Viagra"],
-    genericName: "Sildenafil Citrate",
-    category: "mens-health",
-    description: "PDE5 inhibitor for erectile dysfunction.",
-    simpleDescription: "The original ED medication. Works in about 30 minutes, lasts 4-5 hours.",
-    uses: ["Erectile dysfunction"],
-    dosages: ["25mg as needed", "50mg as needed", "100mg as needed"],
-    sideEffects: ["Headache", "Flushing", "Indigestion", "Nasal congestion", "Visual changes"],
-    contraindications: ["Taking nitrates", "Severe heart disease", "Recent stroke"],
-    warnings: ["Never take with nitrates", "Seek help for erections > 4 hours"],
-    schedule: "S4",
-    prescribable: true,
-    price: 29.95,
-    popular: true,
-    searchTerms: ["viagra", "ed", "erectile dysfunction", "impotence"],
+    id: "salbutamol",
+    name: "Salbutamol",
+    brandNames: ["Ventolin", "Asmol", "Salamol"],
+    strengths: ["100mcg inhaler", "200mcg inhaler"],
+    category: "respiratory",
+    commonUses: ["Asthma", "COPD", "Bronchospasm"],
+    requiresCall: false,
+    schedule: 3,
+    searchTerms: ["asthma", "inhaler", "ventolin", "puffer"],
   },
   {
-    slug: "tadalafil",
-    name: "Tadalafil",
-    brandNames: ["Cialis"],
-    genericName: "Tadalafil",
-    category: "mens-health",
-    description: "Long-acting PDE5 inhibitor for ED.",
-    simpleDescription: "The 'weekend pill'. Take Friday night, works until Sunday. Or daily for spontaneity.",
-    uses: ["Erectile dysfunction", "Benign prostatic hyperplasia"],
-    dosages: ["10mg as needed", "20mg as needed", "5mg daily"],
-    sideEffects: ["Headache", "Back pain", "Muscle aches", "Flushing"],
-    contraindications: ["Nitrates", "Severe heart disease"],
-    warnings: ["Effects last up to 36 hours", "Don't combine with other ED meds"],
-    schedule: "S4",
-    prescribable: true,
-    price: 29.95,
-    popular: true,
-    searchTerms: ["cialis", "ed", "erectile dysfunction", "weekend pill"],
-  },
-  {
-    slug: "finasteride",
-    name: "Finasteride",
-    brandNames: ["Propecia", "Proscar"],
-    genericName: "Finasteride",
-    category: "mens-health",
-    description: "5-alpha reductase inhibitor for hair loss and enlarged prostate.",
-    simpleDescription: "Stops hair loss by blocking DHT. Takes 3-6 months to see results.",
-    uses: ["Male pattern baldness", "Enlarged prostate (BPH)"],
-    dosages: ["1mg daily for hair loss", "5mg daily for BPH"],
-    sideEffects: ["Decreased libido", "Erectile dysfunction", "Decreased ejaculate"],
-    contraindications: ["Women (especially pregnant)", "Children"],
-    warnings: ["Can affect PSA test results", "Don't donate blood while taking"],
-    schedule: "S4",
-    prescribable: true,
-    price: 29.95,
-    popular: true,
-    searchTerms: ["propecia", "proscar", "hair loss", "balding", "bph"],
+    id: "fluticasone-salmeterol",
+    name: "Fluticasone/Salmeterol",
+    brandNames: ["Seretide", "Flutiform"],
+    strengths: ["25/125", "25/250", "25/500"],
+    category: "respiratory",
+    commonUses: ["Asthma", "COPD prevention"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["asthma", "preventer", "seretide"],
   },
 
-  // Weight Loss
+  // === GASTROINTESTINAL ===
   {
-    slug: "orlistat",
-    name: "Orlistat",
-    brandNames: ["Xenical"],
-    genericName: "Orlistat",
-    category: "weight-loss",
-    description: "Lipase inhibitor that reduces fat absorption.",
-    simpleDescription: "Blocks about 30% of the fat you eat. Expect oily stools if you eat fatty food.",
-    uses: ["Obesity", "Weight management"],
-    dosages: ["120mg with each main meal"],
-    sideEffects: ["Oily stools", "Flatulence", "Urgent bowel movements", "Vitamin deficiency"],
-    contraindications: ["Cholestasis", "Malabsorption syndrome"],
-    warnings: ["Take a multivitamin at bedtime", "Eat low-fat meals to avoid side effects"],
-    schedule: "S4",
-    prescribable: true,
-    price: 34.95,
-    popular: false,
-    searchTerms: ["xenical", "weight loss", "fat blocker", "obesity"],
+    id: "esomeprazole",
+    name: "Esomeprazole",
+    brandNames: ["Nexium", "Esopral"],
+    strengths: ["20mg", "40mg"],
+    category: "gastrointestinal",
+    commonUses: ["GERD", "Reflux", "Stomach ulcers", "Heartburn"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["reflux", "heartburn", "nexium", "ppi"],
+  },
+  {
+    id: "pantoprazole",
+    name: "Pantoprazole",
+    brandNames: ["Somac", "Pantoloc"],
+    strengths: ["20mg", "40mg"],
+    category: "gastrointestinal",
+    commonUses: ["GERD", "Reflux", "Stomach ulcers"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["reflux", "heartburn", "somac", "ppi"],
   },
 
-  // Mental Health (non-MHCP)
+  // === MENTAL HEALTH ===
   {
-    slug: "sertraline",
+    id: "sertraline",
     name: "Sertraline",
-    brandNames: ["Zoloft"],
-    genericName: "Sertraline Hydrochloride",
+    brandNames: ["Zoloft", "Xydep", "Sertra"],
+    strengths: ["50mg", "100mg"],
     category: "mental-health",
-    description: "SSRI antidepressant for depression and anxiety.",
-    simpleDescription: "One of the most prescribed antidepressants. Generally well-tolerated with few interactions.",
-    uses: ["Depression", "Anxiety disorders", "OCD", "PTSD", "Panic disorder"],
-    dosages: ["50mg once daily", "100mg once daily", "Up to 200mg daily"],
-    sideEffects: ["Nausea", "Insomnia", "Diarrhea", "Sexual dysfunction", "Drowsiness"],
-    contraindications: ["MAOIs", "Pimozide", "Disulfiram (liquid form)"],
-    warnings: ["Takes 2-4 weeks to work", "Don't stop suddenly", "Monitor for worsening mood"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["zoloft", "depression", "anxiety", "ssri", "antidepressant"],
+    commonUses: ["Depression", "Anxiety", "OCD", "PTSD"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires mental health assessment",
+    searchTerms: ["depression", "anxiety", "ssri", "zoloft", "antidepressant"],
   },
   {
-    slug: "escitalopram",
+    id: "escitalopram",
     name: "Escitalopram",
     brandNames: ["Lexapro", "Esipram"],
-    genericName: "Escitalopram Oxalate",
+    strengths: ["10mg", "20mg"],
     category: "mental-health",
-    description: "SSRI for depression and generalised anxiety.",
-    simpleDescription: "Cleaner version of citalopram. Often first choice for anxiety.",
-    uses: ["Depression", "Generalised anxiety disorder", "Social anxiety"],
-    dosages: ["10mg once daily", "20mg once daily"],
-    sideEffects: ["Nausea", "Insomnia", "Fatigue", "Sexual dysfunction"],
-    contraindications: ["MAOIs", "QT prolongation"],
-    warnings: ["Takes 2-4 weeks to work", "Taper slowly when stopping"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["lexapro", "esipram", "anxiety", "depression", "ssri"],
+    commonUses: ["Depression", "Anxiety", "GAD"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires mental health assessment",
+    searchTerms: ["depression", "anxiety", "ssri", "lexapro", "antidepressant"],
+  },
+  {
+    id: "venlafaxine",
+    name: "Venlafaxine",
+    brandNames: ["Efexor", "Enlafax"],
+    strengths: ["37.5mg", "75mg", "150mg", "XR 75mg", "XR 150mg"],
+    category: "mental-health",
+    commonUses: ["Depression", "Anxiety", "GAD"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires mental health assessment",
+    searchTerms: ["depression", "anxiety", "snri", "efexor", "antidepressant"],
   },
 
-  // Skin
+  // === ANTIBIOTICS ===
   {
-    slug: "doxycycline",
-    name: "Doxycycline",
-    brandNames: ["Doryx", "Doxylin"],
-    genericName: "Doxycycline Hyclate",
-    category: "skin",
-    description: "Tetracycline antibiotic for acne and skin infections.",
-    simpleDescription: "Great for moderate acne. Also treats rosacea and skin infections.",
-    uses: ["Acne", "Rosacea", "Skin infections", "Respiratory infections"],
-    dosages: ["50mg twice daily", "100mg once or twice daily"],
-    sideEffects: ["Nausea", "Photosensitivity", "Oesophageal irritation"],
-    contraindications: ["Pregnancy", "Children under 12", "Severe liver disease"],
-    warnings: ["Take with food and water", "Avoid sun exposure", "Don't lie down after taking"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["acne", "pimples", "rosacea", "skin infection"],
+    id: "amoxicillin",
+    name: "Amoxicillin",
+    brandNames: ["Amoxil", "Moxacin"],
+    strengths: ["250mg", "500mg"],
+    category: "antibiotics",
+    commonUses: ["Bacterial infections", "UTI", "Respiratory infections"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires clinical assessment",
+    searchTerms: ["antibiotic", "infection", "amoxil"],
   },
   {
-    slug: "tretinoin",
+    id: "cephalexin",
+    name: "Cephalexin",
+    brandNames: ["Keflex", "Cefalexin"],
+    strengths: ["250mg", "500mg"],
+    category: "antibiotics",
+    commonUses: ["Skin infections", "UTI", "Respiratory infections"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires clinical assessment",
+    searchTerms: ["antibiotic", "infection", "keflex"],
+  },
+
+  // === CONTRACEPTION ===
+  {
+    id: "levonorgestrel-ethinylestradiol",
+    name: "Levonorgestrel/Ethinylestradiol",
+    brandNames: ["Microgynon", "Levlen", "Monofeme"],
+    strengths: ["150/30mcg"],
+    category: "contraception",
+    commonUses: ["Contraception", "Period regulation"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["pill", "contraceptive", "birth control", "microgynon", "levlen"],
+  },
+
+  // === PAIN RELIEF ===
+  {
+    id: "paracetamol-codeine",
+    name: "Paracetamol/Codeine",
+    brandNames: ["Panadeine Forte", "Panamax Co"],
+    strengths: ["500/30mg"],
+    category: "pain-relief",
+    commonUses: ["Moderate to severe pain"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Short-term use only",
+    searchTerms: ["pain", "panadeine forte", "codeine"],
+  },
+
+  // === MEN'S HEALTH ===
+  {
+    id: "sildenafil",
+    name: "Sildenafil",
+    brandNames: ["Viagra", "Silvasta"],
+    strengths: ["25mg", "50mg", "100mg"],
+    category: "other",
+    commonUses: ["Erectile dysfunction"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["ed", "erectile dysfunction", "viagra", "mens health"],
+  },
+  {
+    id: "tadalafil",
+    name: "Tadalafil",
+    brandNames: ["Cialis", "Tadacip"],
+    strengths: ["5mg", "10mg", "20mg"],
+    category: "other",
+    commonUses: ["Erectile dysfunction", "BPH"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["ed", "erectile dysfunction", "cialis", "mens health"],
+  },
+  {
+    id: "finasteride",
+    name: "Finasteride",
+    brandNames: ["Propecia", "Proscar"],
+    strengths: ["1mg", "5mg"],
+    category: "other",
+    commonUses: ["Hair loss", "Male pattern baldness", "BPH"],
+    requiresCall: false,
+    schedule: 4,
+    searchTerms: ["hair loss", "baldness", "propecia"],
+  },
+
+  // === ALLERGY ===
+  {
+    id: "cetirizine",
+    name: "Cetirizine",
+    brandNames: ["Zyrtec", "Zetop"],
+    strengths: ["10mg"],
+    category: "allergy",
+    commonUses: ["Allergies", "Hay fever", "Hives"],
+    requiresCall: false,
+    schedule: 2,
+    searchTerms: ["allergy", "hay fever", "zyrtec", "antihistamine"],
+  },
+  {
+    id: "fexofenadine",
+    name: "Fexofenadine",
+    brandNames: ["Telfast", "Fexotab"],
+    strengths: ["60mg", "120mg", "180mg"],
+    category: "allergy",
+    commonUses: ["Allergies", "Hay fever"],
+    requiresCall: false,
+    schedule: 2,
+    searchTerms: ["allergy", "hay fever", "telfast", "antihistamine"],
+  },
+
+  // === SKIN CONDITIONS ===
+  {
+    id: "tretinoin",
     name: "Tretinoin",
     brandNames: ["Retin-A", "Retrieve"],
-    genericName: "Tretinoin",
+    strengths: ["0.025%", "0.05%", "0.1%"],
     category: "skin",
-    description: "Topical retinoid for acne and skin aging.",
-    simpleDescription: "The gold standard for acne and anti-aging. Start low and go slow.",
-    uses: ["Acne", "Fine wrinkles", "Sun-damaged skin"],
-    dosages: ["0.025% cream", "0.05% cream", "0.1% cream"],
-    sideEffects: ["Redness", "Peeling", "Dryness", "Sun sensitivity"],
-    contraindications: ["Pregnancy", "Eczema on face"],
-    warnings: ["Use at night only", "Apply sunscreen daily", "Skin will purge initially"],
-    schedule: "S4",
-    prescribable: true,
-    price: 29.95,
-    popular: true,
-    searchTerms: ["retin-a", "retinoid", "acne", "anti-aging", "wrinkles"],
+    commonUses: ["Acne", "Anti-aging", "Skin texture"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires skin assessment",
+    searchTerms: ["acne", "retinoid", "retin-a", "wrinkles"],
+  },
+  {
+    id: "adapalene",
+    name: "Adapalene",
+    brandNames: ["Differin"],
+    strengths: ["0.1%"],
+    category: "skin",
+    commonUses: ["Acne"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires skin assessment",
+    searchTerms: ["acne", "retinoid", "differin"],
   },
 
-  // Antibiotics
+  // === WOMEN'S HEALTH ===
   {
-    slug: "amoxicillin",
-    name: "Amoxicillin",
-    brandNames: ["Amoxil", "Alphamox"],
-    genericName: "Amoxicillin",
+    id: "nitrofurantoin",
+    name: "Nitrofurantoin",
+    brandNames: ["Macrobid", "Macrodantin"],
+    strengths: ["50mg", "100mg"],
     category: "antibiotics",
-    description: "Broad-spectrum penicillin antibiotic.",
-    simpleDescription: "Workhorse antibiotic for chest, ear, and dental infections.",
-    uses: ["Chest infections", "Ear infections", "UTIs", "Dental infections", "H. pylori"],
-    dosages: ["250mg three times daily", "500mg three times daily"],
-    sideEffects: ["Diarrhea", "Nausea", "Rash", "Yeast infection"],
-    contraindications: ["Penicillin allergy", "Glandular fever (causes rash)"],
-    warnings: ["Complete the full course", "Tell us if you're allergic to penicillin"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: true,
-    searchTerms: ["amoxil", "penicillin", "antibiotic", "chest infection", "ear infection"],
+    commonUses: ["UTI", "Urinary tract infections"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires assessment",
+    searchTerms: ["uti", "urinary", "cystitis", "macrobid"],
   },
   {
-    slug: "azithromycin",
-    name: "Azithromycin",
-    brandNames: ["Zithromax", "Azithromycin Sandoz"],
-    genericName: "Azithromycin",
+    id: "trimethoprim",
+    name: "Trimethoprim",
+    brandNames: ["Triprim", "Alprim"],
+    strengths: ["150mg", "300mg"],
     category: "antibiotics",
-    description: "Macrolide antibiotic for respiratory and skin infections.",
-    simpleDescription: "The '3-day antibiotic'. Great if you're allergic to penicillin.",
-    uses: ["Chest infections", "STIs (chlamydia)", "Skin infections", "Ear infections"],
-    dosages: ["500mg day 1, then 250mg for 4 days", "1g single dose for chlamydia"],
-    sideEffects: ["Nausea", "Diarrhea", "Abdominal pain"],
-    contraindications: ["Liver disease", "QT prolongation"],
-    warnings: ["Can affect heart rhythm", "Report irregular heartbeat"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: false,
-    searchTerms: ["zithromax", "z-pack", "antibiotic", "chlamydia"],
+    commonUses: ["UTI", "Urinary tract infections"],
+    requiresCall: true,
+    schedule: 4,
+    notes: "Requires assessment",
+    searchTerms: ["uti", "urinary", "cystitis"],
   },
 
-  // Respiratory
-  {
-    slug: "salbutamol",
-    name: "Salbutamol Inhaler",
-    brandNames: ["Ventolin", "Asmol"],
-    genericName: "Salbutamol Sulfate",
-    category: "respiratory",
-    description: "Reliever inhaler for asthma and COPD.",
-    simpleDescription: "The blue puffer. Fast-acting relief for asthma symptoms.",
-    uses: ["Asthma relief", "COPD", "Exercise-induced wheeze"],
-    dosages: ["1-2 puffs as needed", "Max 8 puffs per day"],
-    sideEffects: ["Tremor", "Fast heartbeat", "Headache"],
-    contraindications: ["None absolute"],
-    warnings: ["If using > 2 times per week, your asthma may need better control"],
-    schedule: "S3",
-    prescribable: true,
-    price: 19.95,
-    popular: true,
-    searchTerms: ["ventolin", "asthma", "puffer", "inhaler", "wheeze"],
-  },
-  {
-    slug: "fluticasone-salmeterol",
-    name: "Seretide",
-    brandNames: ["Seretide", "Advair"],
-    genericName: "Fluticasone/Salmeterol",
-    category: "respiratory",
-    description: "Preventer inhaler combining steroid and long-acting bronchodilator.",
-    simpleDescription: "The purple preventer. Use daily to stop asthma attacks before they start.",
-    uses: ["Asthma prevention", "COPD maintenance"],
-    dosages: ["1 puff twice daily", "Available in different strengths"],
-    sideEffects: ["Hoarse voice", "Oral thrush", "Headache"],
-    contraindications: ["Active TB", "Untreated infections"],
-    warnings: ["Rinse mouth after use", "Don't use as reliever"],
-    schedule: "S4",
-    prescribable: true,
-    price: 24.95,
-    popular: false,
-    searchTerms: ["seretide", "advair", "preventer", "asthma control"],
-  },
+  // Add more medications as needed...
 ]
 
-// Helper functions
+/**
+ * Search medications by name, brand, or search terms
+ */
 export function searchMedications(query: string): Medication[] {
-  const q = query.toLowerCase().trim()
-  if (!q) return []
+  if (!query || query.length < 2) {
+    return []
+  }
 
-  return MEDICATIONS.filter(
-    (med) =>
-      med.name.toLowerCase().includes(q) ||
-      med.genericName.toLowerCase().includes(q) ||
-      med.brandNames.some((b) => b.toLowerCase().includes(q)) ||
-      med.searchTerms.some((t) => t.includes(q)) ||
-      med.simpleDescription.toLowerCase().includes(q),
-  ).slice(0, 10)
+  const lowerQuery = query.toLowerCase().trim()
+
+  return AUSTRALIAN_MEDICATIONS.filter((med) => {
+    // Search in generic name
+    if (med.name.toLowerCase().includes(lowerQuery)) return true
+
+    // Search in brand names
+    if (med.brandNames.some((brand) => brand.toLowerCase().includes(lowerQuery))) return true
+
+    // Search in search terms
+    if (med.searchTerms.some((term) => term.toLowerCase().includes(lowerQuery))) return true
+
+    // Search in common uses
+    if (med.commonUses.some((use) => use.toLowerCase().includes(lowerQuery))) return true
+
+    return false
+  }).slice(0, 10) // Return top 10 results
 }
 
-export function getMedicationBySlug(slug: string): Medication | undefined {
-  return MEDICATIONS.find((m) => m.slug === slug)
+/**
+ * Get medication by ID
+ */
+export function getMedicationById(id: string): Medication | undefined {
+  return AUSTRALIAN_MEDICATIONS.find((med) => med.id === id)
 }
 
-export function getPopularMedications(): Medication[] {
-  return MEDICATIONS.filter((m) => m.popular && m.prescribable)
-}
-
+/**
+ * Get medications by category
+ */
 export function getMedicationsByCategory(category: MedicationCategory): Medication[] {
-  return MEDICATIONS.filter((m) => m.category === category && m.prescribable)
+  return AUSTRALIAN_MEDICATIONS.filter((med) => med.category === category)
 }
 
-export function getAllCategories(): MedicationCategory[] {
-  return [...new Set(MEDICATIONS.map((m) => m.category))]
+/**
+ * Check if medication is controlled (Schedule 8)
+ */
+export function isControlledMedication(medicationId: string): boolean {
+  const med = getMedicationById(medicationId)
+  return med?.schedule === 8
 }

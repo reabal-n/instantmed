@@ -102,11 +102,11 @@ export default function PatientRequestDetailPageClient({
       case "needs_follow_up":
         return {
           badge: (
-            <Badge className="bg-blue-100/80 text-blue-700 border-0 font-medium px-3 py-1">More info needed</Badge>
+            <Badge className="bg-blue-100/80 text-primary border-0 font-medium px-3 py-1">More info needed</Badge>
           ),
           icon: AlertCircle,
           color: "text-blue-500",
-          bgColor: "bg-blue-500",
+          bgColor: "bg-primary",
         }
       default:
         return {

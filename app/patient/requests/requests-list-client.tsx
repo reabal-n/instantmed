@@ -83,7 +83,7 @@ export function RequestsListClient({ requests }: RequestsListClientProps) {
       case "declined":
         return <Badge className="bg-red-100/80 text-red-700 border-0 font-medium">See notes</Badge>
       case "needs_follow_up":
-        return <Badge className="bg-blue-100/80 text-blue-700 border-0 font-medium">More info needed</Badge>
+        return <Badge className="bg-blue-100/80 text-primary border-0 font-medium">More info needed</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }

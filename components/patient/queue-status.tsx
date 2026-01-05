@@ -108,7 +108,7 @@ export function QueueStatus({
         "rounded-2xl border p-4 sm:p-5",
         isPriority
           ? "bg-linear-to-br from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800"
-          : "bg-linear-to-br from-blue-50 to-cyan-50 border-blue-200 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800",
+          : "bg-linear-to-br from-blue-50 to-cyan-50 border-primary dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-primary",
         className
       )}
     >
@@ -118,7 +118,7 @@ export function QueueStatus({
           <div
             className={cn(
               "h-8 w-8 rounded-full flex items-center justify-center",
-              isPriority ? "bg-amber-500" : "bg-blue-500"
+              isPriority ? "bg-amber-500" : "bg-primary"
             )}
           >
             {isPriority ? (

@@ -44,7 +44,7 @@ export function AnalyticsClient({ analytics }: AnalyticsClientProps) {
       title: "Requests Today",
       value: analytics.requests_today,
       icon: FileText,
-      color: "text-blue-600",
+      color: "text-primary",
       bgColor: "bg-blue-50",
     },
     {

@@ -43,7 +43,7 @@ const typeIcons = {
 
 const typeColors = {
   prescription: "bg-purple-100 text-purple-600",
-  medical_certificate: "bg-blue-100 text-blue-600",
+  medical_certificate: "bg-blue-100 text-primary",
   referral: "bg-emerald-100 text-emerald-600",
   pathology: "bg-amber-100 text-amber-600",
   consultation: "bg-gray-100 text-gray-600",
@@ -322,14 +322,14 @@ export function HealthSummary({ allergies = [], conditions = [], medications = [
 
       {/* Current Medications */}
       {medications.length > 0 && (
-        <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+        <div className="p-3 rounded-xl bg-blue-50 border border-primary">
           <div className="flex items-center gap-2 mb-2">
-            <Pill className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">Current Medications</span>
+            <Pill className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Current Medications</span>
           </div>
           <div className="flex flex-wrap gap-1">
             {medications.map((med, i) => (
-              <Badge key={i} variant="outline" className="bg-blue-100 text-blue-700 border-blue-200">
+              <Badge key={i} variant="outline" className="bg-blue-100 text-primary border-primary">
                 {med}
               </Badge>
             ))}

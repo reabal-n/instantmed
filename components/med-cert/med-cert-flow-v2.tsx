@@ -143,7 +143,7 @@ function TrustStrip() {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1.5 cursor-help">
-              <Lock className="w-3.5 h-3.5 text-blue-600" />
+              <Lock className="w-3.5 h-3.5 text-primary" />
               <span>{MED_CERT_COPY.trust.encrypted}</span>
             </div>
           </TooltipTrigger>

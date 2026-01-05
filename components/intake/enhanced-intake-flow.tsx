@@ -36,6 +36,8 @@ import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
+import { MedicationSearch } from "@/components/medication/medication-search"
+import type { Medication } from "@/lib/data/medications"
 
 // ============================================
 // TYPES
@@ -823,30 +825,39 @@ export function EnhancedIntakeFlow({
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="p-4 bg-blue-50 border border-primary rounded-xl">
                 <div className="flex items-center gap-2 text-blue-800">
                   <Phone className="w-4 h-4" />
                   <span className="text-sm font-medium">
                     Quick 2-minute phone consult required
                   </span>
                 </div>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-primary mt-1">
                   Our doctor will call you to discuss your needs
                 </p>
               </div>
             )}
 
-            {/* Medication name */}
+            {/* Medication Search */}
             <FormField
               label="Medication name"
               required
               error={errors.medicationName}
             >
-              <Input
+              <MedicationSearch
                 value={state.medicationName}
-                onChange={(e) => updateField("medicationName", e.target.value)}
-                placeholder="e.g., Metformin 500mg"
-                className="h-11"
+                onChange={(medication, customValue) => {
+                  if (medication) {
+                    updateField("medicationName", medication.name)
+                    // Auto-fill dosage if only one strength available
+                    if (medication.strengths.length === 1) {
+                      updateField("medicationDosage", medication.strengths[0])
+                    }
+                  } else if (customValue) {
+                    updateField("medicationName", customValue)
+                  }
+                }}
+                placeholder="Search for a medication..."
               />
             </FormField>
 

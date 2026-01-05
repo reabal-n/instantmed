@@ -133,7 +133,7 @@ export function GlobalSearch({ variant = "doctor" }: GlobalSearchProps) {
       approved: "bg-emerald-100 text-emerald-700",
       declined: "bg-red-100 text-red-700",
       pending: "bg-amber-100 text-amber-700",
-      needs_follow_up: "bg-blue-100 text-blue-700",
+      needs_follow_up: "bg-blue-100 text-primary",
     }
 
     return (
@@ -202,7 +202,7 @@ export function GlobalSearch({ variant = "doctor" }: GlobalSearchProps) {
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center",
-                      result.type === "request" ? "bg-primary/10" : "bg-blue-500/10"
+                      result.type === "request" ? "bg-primary/10" : "bg-primary/10"
                     )}>
                       {result.type === "request" ? (
                         <FileText className="w-5 h-5 text-primary" />

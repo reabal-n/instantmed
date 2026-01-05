@@ -175,7 +175,7 @@ export default async function AnalyticsPage() {
   }
 
   const categoryColors: Record<string, string> = {
-    medical_certificate: "bg-blue-500",
+    medical_certificate: "bg-primary",
     prescription: "bg-purple-500",
     referral: "bg-emerald-500",
     uncategorized: "bg-gray-400",
@@ -331,9 +331,9 @@ export default async function AnalyticsPage() {
               <p className="text-2xl font-semibold text-red-700">{analytics.statusBreakdown.declined || 0}</p>
               <p className="text-sm text-red-600">Declined</p>
             </div>
-            <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100">
-              <p className="text-2xl font-semibold text-blue-700">{analytics.statusBreakdown.needs_follow_up || 0}</p>
-              <p className="text-sm text-blue-600">Follow-up</p>
+            <div className="p-4 rounded-xl bg-blue-50/50 border border-primary">
+              <p className="text-2xl font-semibold text-primary">{analytics.statusBreakdown.needs_follow_up || 0}</p>
+              <p className="text-sm text-primary">Follow-up</p>
             </div>
           </div>
         </Card>

@@ -142,7 +142,7 @@ export default function MensHealthPage() {
           {/* Hero */}
           <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-blue-500/5 to-transparent">
             <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 text-sm mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm mb-6">
                 <EyeOff className="h-4 w-4" />
                 100% Discreet • No Phone Call
               </div>
@@ -161,7 +161,7 @@ export default function MensHealthPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <Link href="/start?service=mens-health">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-base px-8 w-full sm:w-auto">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white text-base px-8 w-full sm:w-auto">
                     Start Consultation
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -176,19 +176,19 @@ export default function MensHealthPage() {
               {/* Trust badges */}
               <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Zap className="h-4 w-4 text-blue-600" />
+                  <Zap className="h-4 w-4 text-primary" />
                   <span className="font-medium">Script in 15 min</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <PhoneOff className="h-4 w-4 text-blue-600" />
+                  <PhoneOff className="h-4 w-4 text-primary" />
                   <span className="font-medium">No phone call</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Shield className="h-4 w-4 text-blue-600" />
+                  <Shield className="h-4 w-4 text-primary" />
                   <span className="font-medium">AHPRA doctors</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Lock className="h-4 w-4 text-blue-600" />
+                  <Lock className="h-4 w-4 text-primary" />
                   <span className="font-medium">Encrypted & secure</span>
                 </div>
               </div>
@@ -215,12 +215,12 @@ export default function MensHealthPage() {
                       <div>
                         <h3 className="text-xl font-bold">{treatment.name}</h3>
                         {treatment.popular && (
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mt-1">
+                          <Badge className="bg-blue-100 text-primary hover:bg-blue-100 mt-1">
                             Most Popular
                           </Badge>
                         )}
                       </div>
-                      <Pill className="h-6 w-6 text-blue-600" />
+                      <Pill className="h-6 w-6 text-primary" />
                     </div>
                     <p className="text-muted-foreground text-sm mb-4">{treatment.description}</p>
                     <div className="space-y-2 text-sm">
@@ -234,7 +234,7 @@ export default function MensHealthPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Best for:</span>
-                        <span className="font-medium text-blue-600">{treatment.bestFor}</span>
+                        <span className="font-medium text-primary">{treatment.bestFor}</span>
                       </div>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export default function MensHealthPage() {
                   Not sure which is right for you? Our doctors will help you choose.
                 </p>
                 <Link href="/start?service=mens-health">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-primary hover:bg-primary/90">
                     Start Consultation
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -269,7 +269,7 @@ export default function MensHealthPage() {
                 {platformFeatures.map((feature, i) => (
                   <div key={i} className="flex gap-4 p-4 rounded-xl bg-slate-50">
                     <div className="shrink-0 w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <feature.icon className="h-6 w-6 text-blue-600" />
+                      <feature.icon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">{feature.title}</h3>
@@ -291,7 +291,7 @@ export default function MensHealthPage() {
 
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                     1
                   </div>
                   <h3 className="font-semibold mb-2">Complete Questionnaire</h3>
@@ -300,7 +300,7 @@ export default function MensHealthPage() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                     2
                   </div>
                   <h3 className="font-semibold mb-2">Doctor Reviews</h3>
@@ -309,7 +309,7 @@ export default function MensHealthPage() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
                     3
                   </div>
                   <h3 className="font-semibold mb-2">Collect Your Script</h3>
@@ -368,7 +368,7 @@ export default function MensHealthPage() {
           </section>
 
           {/* Final CTA */}
-          <section className="py-16 px-4 bg-blue-600">
+          <section className="py-16 px-4 bg-primary">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-2xl font-bold sm:text-3xl text-white mb-4">
                 Ready to Get Started?
@@ -377,7 +377,7 @@ export default function MensHealthPage() {
                 Complete a confidential consultation in minutes. Our doctors are ready to help.
               </p>
               <Link href="/start?service=mens-health">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 text-base px-8">
+                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 text-base px-8">
                   Start Consultation
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

@@ -60,7 +60,7 @@ interface PanelDoctorDashboardProps {
 }
 
 const STATUS_CONFIG = {
-  submitted: { label: "New", color: "bg-blue-100 text-blue-700", icon: Clock },
+  submitted: { label: "New", color: "bg-blue-100 text-primary", icon: Clock },
   in_review: { label: "Reviewing", color: "bg-yellow-100 text-yellow-700", icon: AlertCircle },
   approved: { label: "Approved", color: "bg-green-100 text-green-700", icon: CheckCircle },
   rejected: { label: "Declined", color: "bg-red-100 text-red-700", icon: XCircle },
@@ -333,7 +333,7 @@ function StatCard({
   color: "blue" | "yellow" | "green"
 }) {
   const colors = {
-    blue: "bg-blue-50 text-blue-600",
+    blue: "bg-blue-50 text-primary",
     yellow: "bg-yellow-50 text-yellow-600",
     green: "bg-green-50 text-green-600",
   }

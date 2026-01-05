@@ -61,7 +61,7 @@ export function HeroValueProp({ className }: { className?: string }) {
           <span className="text-sm font-medium">No phone calls</span>
         </div>
         <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-full px-4 py-2 shadow-sm border">
-          <Clock className="h-4 w-4 text-blue-600" />
+          <Clock className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">15 mins or less</span>
         </div>
         <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-full px-4 py-2 shadow-sm border">
@@ -149,17 +149,17 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative rounded-2xl border bg-linear-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800 p-6"
+        className="relative rounded-2xl border bg-linear-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-primary p-6"
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+          <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
             <Phone className="h-6 w-6 text-white" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100">
               Quick 2-Min Phone Consult
             </h3>
-            <p className="text-blue-700 dark:text-blue-300 text-sm">
+            <p className="text-primary dark:text-blue-300 text-sm">
               For new medications
             </p>
           </div>
@@ -186,15 +186,15 @@ export function ServiceTypeCards({ className }: { className?: string }) {
 
         <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
             <span>Fill out form online first</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
             <span>Quick 2-minute doctor call</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
             <span>E-script sent immediately after</span>
           </div>
         </div>
@@ -202,7 +202,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
         <Link href="/prescriptions/new" className="block mt-6">
           <Button
             variant="outline"
-            className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300"
+            className="w-full border-primary text-primary hover:bg-blue-100 dark:border-primary dark:text-blue-300"
           >
             Request New Script
             <ArrowRight className="h-4 w-4 ml-2" />
@@ -236,8 +236,8 @@ function ServiceItem({
     },
     blue: {
       bg: "bg-blue-100 dark:bg-blue-900/30",
-      icon: "text-blue-600",
-      price: "text-blue-700 dark:text-blue-300",
+      icon: "text-primary",
+      price: "text-primary dark:text-blue-300",
     },
   }
 
@@ -332,7 +332,7 @@ export function HowItWorksSection({ className }: { className?: string }) {
             )}
 
             <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
-              <step.icon className="h-7 w-7 text-blue-600" />
+              <step.icon className="h-7 w-7 text-primary" />
             </div>
 
             <Badge variant="outline" className="mb-2">
@@ -351,7 +351,7 @@ export function HowItWorksSection({ className }: { className?: string }) {
           repeat prescriptions
         </p>
         <Link href="/start">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+          <Button size="lg" className="bg-primary hover:bg-primary/90">
             Get started now
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>

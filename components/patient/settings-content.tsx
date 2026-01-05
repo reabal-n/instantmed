@@ -88,7 +88,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
                 onClick={() => setActiveSection(section.id)}
                 className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b last:border-b-0 transition-colors ${
                   activeSection === section.id
-                    ? "bg-blue-50 text-blue-600 border-l-4 border-l-blue-600 pl-3"
+                    ? "bg-blue-50 text-primary border-l-4 border-l-blue-600 pl-3"
                     : "hover:bg-slate-50"
                 }`}
               >

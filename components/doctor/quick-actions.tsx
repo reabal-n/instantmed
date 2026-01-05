@@ -105,7 +105,7 @@ export function QuickActions({
       description: "Create PDF document for patient",
       icon: FileDown,
       shortcut: "⌘ G",
-      color: "text-blue-600 bg-blue-100 hover:bg-blue-200",
+      color: "text-primary bg-blue-100 hover:bg-blue-200",
       action: onGenerateDocument,
     })
   }

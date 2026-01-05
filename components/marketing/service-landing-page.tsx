@@ -79,9 +79,9 @@ const colorClasses = {
   blue: {
     gradient: 'from-blue-400 to-indigo-500',
     light: 'bg-blue-50',
-    text: 'text-blue-600',
-    border: 'border-blue-100',
-    button: 'bg-blue-500 hover:bg-blue-600',
+    text: 'text-primary',
+    border: 'border-primary',
+    button: 'bg-primary hover:bg-primary',
     ring: 'ring-blue-400',
     iconBg: 'bg-blue-50',
   },

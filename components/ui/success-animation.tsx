@@ -34,7 +34,7 @@ const statusConfig = {
   info: {
     icon: Info,
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400",
+    iconColor: "text-primary dark:text-blue-400",
     ringColor: "ring-blue-500/20",
   },
 }

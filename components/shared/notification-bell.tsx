@@ -26,7 +26,7 @@ function getNotificationIcon(type: Notification["type"]) {
 function getNotificationColor(type: Notification["type"]) {
   switch (type) {
     case "request_update":
-      return "bg-blue-100 text-blue-600"
+      return "bg-blue-100 text-primary"
     case "payment":
       return "bg-green-100 text-green-600"
     case "document_ready":

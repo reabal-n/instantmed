@@ -95,7 +95,7 @@ export default async function SymptomPage({ params }: PageProps) {
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Info className="h-5 w-5 text-blue-600" />
+                  <Info className="h-5 w-5 text-primary" />
                   Most Common
                 </h3>
                 <ul className="space-y-2">

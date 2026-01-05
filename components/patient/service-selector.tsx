@@ -25,7 +25,7 @@ const SERVICES = [
     label: 'Medical Certificate',
     description: 'For work, uni, or carer\'s leave',
     color: 'from-blue-50 to-blue-100',
-    iconColor: 'text-blue-600',
+    iconColor: 'text-primary',
   },
   {
     id: 'prescription' as const,

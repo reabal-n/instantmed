@@ -186,7 +186,7 @@ export function PatientDashboard({
                 <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
                   {/* Quick Actions */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-primary">
                       <h3 className="font-semibold mb-2">New Request</h3>
                       <p className="text-sm text-muted-foreground mb-4">
                         Need a medical certificate or prescription?
@@ -442,7 +442,7 @@ function StatCard({
   color: "blue" | "yellow" | "green" | "purple"
 }) {
   const colors = {
-    blue: "bg-blue-100 text-blue-600",
+    blue: "bg-blue-100 text-primary",
     yellow: "bg-yellow-100 text-yellow-600",
     green: "bg-green-100 text-green-600",
     purple: "bg-purple-100 text-purple-600",
@@ -591,7 +591,7 @@ function RequestDetailModal({ request, onClose }: { request: Request; onClose: (
           {request.doctor_notes && (
             <div>
               <h3 className="font-semibold mb-2">Doctor Notes</h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+              <div className="bg-blue-50 border border-primary rounded-lg p-4 text-sm">
                 {request.doctor_notes}
               </div>
             </div>

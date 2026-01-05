@@ -58,7 +58,7 @@ const STATUS_CONFIG = {
   approved: { color: "bg-green-100 text-green-700", icon: CheckCircle, label: "Approved" },
   rejected: { color: "bg-red-100 text-red-700", icon: AlertCircle, label: "Declined" },
   pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Pending review" },
-  in_review: { color: "bg-blue-100 text-blue-700", icon: Clock, label: "Being reviewed" },
+  in_review: { color: "bg-blue-100 text-primary", icon: Clock, label: "Being reviewed" },
   requires_info: { color: "bg-orange-100 text-orange-700", icon: AlertCircle, label: "More info needed" },
 }
 
@@ -216,7 +216,7 @@ function StatCard({
   color: "blue" | "yellow" | "green"
 }) {
   const colors = {
-    blue: "bg-blue-50 text-blue-600",
+    blue: "bg-blue-50 text-primary",
     yellow: "bg-yellow-50 text-yellow-600",
     green: "bg-green-50 text-green-600",
   }
@@ -334,7 +334,7 @@ function RequestDetailDrawer({ request }: { request: Request }) {
       {request.doctor_notes && (
         <div>
           <p className="text-sm text-gray-600 mb-2">Doctor notes</p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-blue-50 border border-primary rounded-lg p-4 text-sm text-gray-900">
             {request.doctor_notes}
           </div>
         </div>

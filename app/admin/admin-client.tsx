@@ -645,7 +645,7 @@ export function AdminClient({
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
-                { title: "Today", value: analytics.requests_today, icon: FileText, color: "text-blue-600", bg: "bg-blue-50" },
+                { title: "Today", value: analytics.requests_today, icon: FileText, color: "text-primary", bg: "bg-blue-50" },
                 { title: "This Week", value: analytics.requests_this_week, icon: Calendar, color: "text-emerald-600", bg: "bg-emerald-50" },
                 { title: "Avg Time", value: `${analytics.avg_review_time_hours}h`, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
                 { title: "Approval", value: `${analytics.approval_rate}%`, icon: CheckCircle, color: "text-green-600", bg: "bg-green-50" },

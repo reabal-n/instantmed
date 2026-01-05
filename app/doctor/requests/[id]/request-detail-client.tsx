@@ -454,7 +454,7 @@ export function RequestDetailClient({
                     ? "bg-emerald-100 text-emerald-700 border-0"
                     : request.status === "declined"
                       ? "bg-red-100 text-red-700 border-0"
-                      : "bg-blue-100 text-blue-700 border-0"
+                      : "bg-blue-100 text-primary border-0"
             }
           >
             {request.status === "awaiting_prescribe" ? "Awaiting eScript" : request.status.replace("_", " ")}

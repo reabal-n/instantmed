@@ -64,7 +64,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
   const getUrgencyColor = (days: number) => {
     if (days <= 3) return "text-red-600 bg-red-50 border-red-200"
     if (days <= 7) return "text-amber-600 bg-amber-50 border-amber-200"
-    return "text-blue-600 bg-blue-50 border-blue-200"
+    return "text-primary bg-blue-50 border-primary"
   }
 
   const getUrgencyIcon = (days: number) => {

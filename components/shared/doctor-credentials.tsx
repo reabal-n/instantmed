@@ -344,7 +344,7 @@ export function DoctorCredentialsCard({
 export function TrustBadgeStrip({ className }: { className?: string }) {
   const badges = [
     { icon: Shield, label: "AHPRA Registered", color: "text-green-600" },
-    { icon: CheckCircle2, label: "Australian Doctors", color: "text-blue-600" },
+    { icon: CheckCircle2, label: "Australian Doctors", color: "text-primary" },
     { icon: Clock, label: "15 Min Response", color: "text-purple-600" },
     { icon: Award, label: "4.9★ Rating", color: "text-amber-600" },
   ]

@@ -68,7 +68,7 @@ export function SuccessState({
 
       {/* Timeline info */}
       {timelineInfo && (
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-sm text-blue-700 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-sm text-primary mb-8 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300">
           <TimelineIcon className="w-4 h-4" />
           <span>{timelineInfo.text}</span>
         </div>

@@ -156,7 +156,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Disclaimers */}
-                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="mb-16 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-primary dark:border-primary">
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-4">
                     Important disclaimers
                   </h3>

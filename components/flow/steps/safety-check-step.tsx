@@ -54,8 +54,8 @@ const outcomeConfig: Record<
   REQUIRES_CALL: {
     icon: Phone,
     bgColor: 'bg-blue-50',
-    iconColor: 'text-blue-600',
-    borderColor: 'border-blue-200',
+    iconColor: 'text-primary',
+    borderColor: 'border-primary',
   },
   DECLINE: {
     icon: AlertCircle,
@@ -400,9 +400,9 @@ export function SafetyCheckStep({
               complete your consultation.
             </p>
 
-            <div className="mt-8 p-4 rounded-xl bg-blue-50 border border-blue-200 max-w-sm mx-auto">
+            <div className="mt-8 p-4 rounded-xl bg-blue-50 border border-primary max-w-sm mx-auto">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-blue-600" />
+                <Clock className="w-5 h-5 text-primary" />
                 <div className="text-left">
                   <p className="font-medium text-slate-900">What happens next?</p>
                   <p className="text-sm text-slate-600">
@@ -454,7 +454,7 @@ export function SafetyCheckStep({
           >
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-blue-600 mt-0.5" />
+                <Phone className="w-5 h-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium text-slate-900">
                     Phone consultation required
@@ -467,7 +467,7 @@ export function SafetyCheckStep({
               </div>
 
               <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                <Clock className="w-5 h-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium text-slate-900">
                     Typical wait time: 1-2 hours
@@ -479,7 +479,7 @@ export function SafetyCheckStep({
               </div>
 
               <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                <Shield className="w-5 h-5 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium text-slate-900">No upfront charge</p>
                   <p className="text-sm text-slate-600">
@@ -493,7 +493,7 @@ export function SafetyCheckStep({
           <div className="space-y-3">
             <Button
               onClick={handleRequestCall}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl"
             >
               <Phone className="w-5 h-5 mr-2" />
               Request a callback
@@ -578,7 +578,7 @@ export function SafetyCheckStep({
                   href="https://www.healthdirect.gov.au/symptom-checker"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                  className="text-primary hover:underline inline-flex items-center gap-1"
                 >
                   Healthdirect Symptom Checker
                   <ExternalLink className="w-3 h-3" />

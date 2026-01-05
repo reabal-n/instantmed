@@ -20,7 +20,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           success: 'group-[.toaster]:border-emerald-200/50 group-[.toaster]:bg-emerald-50/95 group-[.toaster]:text-emerald-900 dark:group-[.toaster]:bg-emerald-950/90 dark:group-[.toaster]:border-emerald-800/50 dark:group-[.toaster]:text-emerald-100',
           error: 'group-[.toaster]:border-red-200/50 group-[.toaster]:bg-red-50/95 group-[.toaster]:text-red-900 dark:group-[.toaster]:bg-red-950/90 dark:group-[.toaster]:border-red-800/50 dark:group-[.toaster]:text-red-100',
           warning: 'group-[.toaster]:border-amber-200/50 group-[.toaster]:bg-amber-50/95 group-[.toaster]:text-amber-900 dark:group-[.toaster]:bg-amber-950/90 dark:group-[.toaster]:border-amber-800/50 dark:group-[.toaster]:text-amber-100',
-          info: 'group-[.toaster]:border-blue-200/50 group-[.toaster]:bg-blue-50/95 group-[.toaster]:text-blue-900 dark:group-[.toaster]:bg-blue-950/90 dark:group-[.toaster]:border-blue-800/50 dark:group-[.toaster]:text-blue-100',
+          info: 'group-[.toaster]:border-primary/50 group-[.toaster]:bg-blue-50/95 group-[.toaster]:text-blue-900 dark:group-[.toaster]:bg-blue-950/90 dark:group-[.toaster]:border-primary/50 dark:group-[.toaster]:text-blue-100',
           loading: 'group-[.toaster]:border-primary/20 group-[.toaster]:bg-background/95',
         },
       }}

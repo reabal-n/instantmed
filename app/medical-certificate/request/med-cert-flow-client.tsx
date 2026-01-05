@@ -196,7 +196,7 @@ function TrustStrip() {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex items-center gap-1 cursor-help">
-            <Lock className="w-3.5 h-3.5 text-blue-600" aria-hidden="true" />
+            <Lock className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
             <span>256-bit encrypted</span>
           </div>
         </TooltipTrigger>

@@ -75,7 +75,7 @@ interface DoctorDashboardClientProps {
 }
 
 const STATUS_CONFIG = {
-  submitted: { label: "New", color: "bg-blue-500", icon: Clock },
+  submitted: { label: "New", color: "bg-primary", icon: Clock },
   in_review: { label: "Reviewing", color: "bg-yellow-500", icon: Eye },
   approved: { label: "Approved", color: "bg-green-500", icon: CheckCircle },
   rejected: { label: "Rejected", color: "bg-red-500", icon: XCircle },
@@ -496,7 +496,7 @@ function StatCard({
   color: "blue" | "yellow" | "green"
 }) {
   const colorClasses = {
-    blue: "bg-blue-500/10 text-blue-600",
+    blue: "bg-primary/10 text-primary",
     yellow: "bg-yellow-500/10 text-yellow-600",
     green: "bg-green-500/10 text-green-600",
   }
