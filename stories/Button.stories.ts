@@ -52,10 +52,3 @@ export const Small: Story = {
     label: 'Button',
   },
 };
-
-export const T3w5: Story = {
-  args: {
-    primary: false,
-    label: "Button"
-  }
-};

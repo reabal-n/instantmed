@@ -176,7 +176,7 @@ export function GlowingBorder({
         style={{
           borderRadius,
           padding: borderWidth,
-          background: gradient,
+          backgroundImage: gradient,
           backgroundSize: '200% 100%',
           WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'xor',
@@ -197,7 +197,7 @@ export function GlowingBorder({
         className="absolute -inset-px pointer-events-none opacity-50"
         style={{
           borderRadius,
-          background: gradient,
+          backgroundImage: gradient,
           backgroundSize: '200% 100%',
           filter: 'blur(8px)',
         }}
@@ -712,7 +712,7 @@ export function HolographicCard({
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none mix-blend-overlay"
         style={{
           borderRadius,
-          background: `
+          backgroundImage: `
             linear-gradient(
               ${angle + 45}deg,
               transparent 0%,

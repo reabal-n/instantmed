@@ -24,7 +24,7 @@ export function AnimatedGradientBorder({
       <motion.div
         className="absolute -inset-px rounded-2xl opacity-75 group-hover:opacity-100 transition-opacity"
         style={{
-          background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #8b5cf6, #6366f1)',
+          backgroundImage: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #8b5cf6, #6366f1)',
           backgroundSize: '200% 100%',
           padding: borderWidth,
         }}

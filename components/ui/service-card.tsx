@@ -69,7 +69,7 @@ function AnimatedGradientBorder({ disabled }: { disabled?: boolean }) {
         className="absolute inset-0 rounded-xl gradient-border-animated"
         style={{
           padding: '1px',
-          background: 'linear-gradient(90deg, oklch(0.65 0.15 185), oklch(0.6 0.12 280), oklch(0.7 0.12 200), oklch(0.65 0.15 185))',
+          backgroundImage: 'linear-gradient(90deg, oklch(0.65 0.15 185), oklch(0.6 0.12 280), oklch(0.7 0.12 200), oklch(0.65 0.15 185))',
           backgroundSize: '300% 100%',
           WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'xor',

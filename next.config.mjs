@@ -81,8 +81,12 @@ const sentryConfig = {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: true
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true
+    },
+    automaticVercelMonitors: true
+  }
 };
 
 // Apply bundle analyzer, then optionally Sentry

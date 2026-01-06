@@ -168,12 +168,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Only use custom domain in production
+  // In development, explicitly use undefined to prevent Clerk from auto-detecting custom domain
+  const clerkDomain = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_CLERK_DOMAIN
+    ? process.env.NEXT_PUBLIC_CLERK_DOMAIN
+    : undefined
+
   return (
     <ClerkProvider
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       afterSignInUrl="/"
       afterSignUpUrl="/"
+      domain={clerkDomain}
     >
       <html
         lang="en"
