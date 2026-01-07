@@ -175,7 +175,10 @@ export default function RootLayout({
     : undefined
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      domain={clerkDomain}
+    >
       <html
         lang="en"
         className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
