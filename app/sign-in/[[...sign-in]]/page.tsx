@@ -15,7 +15,6 @@ function SignInForm() {
         routing="path"
         path="/sign-in"
         fallbackRedirectUrl="/"
-        signInFallbackRedirectUrl="/"
         appearance={{
           elements: {
             rootBox: "w-full",
