@@ -23,22 +23,21 @@ import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Performance Anxiety Treatment Online | Propranolol Australia | InstantMed",
+  title: "Performance Anxiety Consultation Online Australia | InstantMed",
   description:
-    "Get propranolol for performance anxiety, stage fright, and situational anxiety from Australian doctors. Script in 15 minutes, no phone call required. Discreet online consultation.",
+    "Get doctor-led consultation for performance anxiety, stage fright, and situational anxiety from Australian doctors. Consultation completed in 15 minutes, no phone call required. Discreet online service.",
   keywords: [
-    "propranolol prescription australia",
-    "performance anxiety treatment",
-    "stage fright medication",
+    "performance anxiety consultation",
+    "stage fright consultation",
     "situational anxiety treatment",
     "public speaking anxiety",
-    "beta blocker anxiety australia",
-    "propranolol online",
-    "interview anxiety medication",
+    "performance anxiety doctor",
+    "anxiety consultation online",
+    "interview anxiety consultation",
   ],
   openGraph: {
-    title: "Performance Anxiety Treatment | Propranolol | InstantMed",
-    description: "Get propranolol for stage fright and performance anxiety from Australian doctors in 15 minutes.",
+    title: "Performance Anxiety Consultation Online | InstantMed",
+    description: "Get doctor-led consultation for stage fright and performance anxiety from Australian doctors in 15 minutes.",
     url: "https://instantmed.com.au/performance-anxiety",
   },
   alternates: {
@@ -94,29 +93,29 @@ const platformFeatures = [
 
 const faqs = [
   {
-    question: "What is propranolol and how does it help with performance anxiety?",
+    question: "How does treatment help with performance anxiety?",
     answer:
-      "Propranolol is a beta-blocker that reduces the physical symptoms of anxiety — racing heart, trembling hands, sweating, and shaky voice. It doesn&apos;t sedate you or affect your mental clarity; it simply blocks the adrenaline response that causes these symptoms. Many professionals, musicians, and public speakers use it for specific high-pressure situations.",
+      "Our doctors can recommend treatment options that reduce the physical symptoms of anxiety — racing heart, trembling hands, sweating, and shaky voice. These treatments don&apos;t sedate you or affect your mental clarity; they address the adrenaline response that causes these symptoms. Many professionals, musicians, and public speakers use these approaches for specific high-pressure situations.",
   },
   {
-    question: "When should I take propranolol?",
+    question: "When should I take treatment?",
     answer:
-      "Propranolol is typically taken 30-60 minutes before a stressful event. The effects last 3-4 hours. It's used 'as needed' for specific situations rather than taken daily. Your doctor will advise on the appropriate dose for your circumstances.",
+      "Treatment is typically taken 30-60 minutes before a stressful event. The effects last 3-4 hours. It's used 'as needed' for specific situations rather than taken daily. Your doctor will advise on the appropriate approach for your circumstances.",
   },
   {
-    question: "Is propranolol safe?",
+    question: "Is treatment safe?",
     answer:
-      "Propranolol has been used safely for decades. However, it&apos;s not suitable for everyone — particularly those with asthma, very low blood pressure, or certain heart conditions. Our doctors will review your health history to ensure it&apos;s appropriate for you.",
+      "These treatment approaches have been used safely for decades. However, they&apos;re not suitable for everyone — particularly those with asthma, very low blood pressure, or certain heart conditions. Our doctors will review your health history to ensure treatment is appropriate for you.",
   },
   {
-    question: "Will propranolol make me feel drowsy or 'drugged'?",
+    question: "Will treatment make me feel drowsy or 'drugged'?",
     answer:
-      "No. Unlike anti-anxiety medications like benzodiazepines, propranolol doesn&apos;t sedate you or affect your cognitive function. You'll feel calm and clear-headed, just without the physical symptoms of anxiety. Many people say they feel like their 'normal self' — just without the nerves.",
+      "No. Unlike some anti-anxiety treatments, these options don&apos;t sedate you or affect your cognitive function. You'll feel calm and clear-headed, just without the physical symptoms of anxiety. Many people say they feel like their 'normal self' — just without the nerves.",
   },
   {
-    question: "Can I use propranolol for everyday anxiety?",
+    question: "Can I use this for everyday anxiety?",
     answer:
-      "Propranolol is most effective for situational/performance anxiety with specific triggers. For generalised anxiety disorder (GAD) or daily anxiety, other treatments may be more appropriate. If you experience frequent anxiety, please mention this in your consultation.",
+      "These treatments are most effective for situational/performance anxiety with specific triggers. For generalised anxiety disorder (GAD) or daily anxiety, other treatment approaches may be more appropriate. If you experience frequent anxiety, please mention this in your consultation.",
   },
   {
     question: "How quickly can I get my prescription?",
@@ -161,8 +160,8 @@ export default function PerformanceAnxietyPage() {
                     Calm Your Nerves, Keep Your Edge
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Get propranolol for performance anxiety from an Australian doctor in{" "}
-                    <strong>15 minutes</strong>. Stop the racing heart, shaky hands, and trembling voice — without feeling sedated.
+                    Get doctor-led consultation for performance anxiety from an Australian doctor in{" "}
+                    <strong>15 minutes</strong>. Address racing heart, shaky hands, and trembling voice — without feeling sedated.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Used by professionals worldwide • AHPRA-registered doctors • Discreet service
@@ -212,19 +211,19 @@ export default function PerformanceAnxietyPage() {
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="grid md:grid-cols-2 gap-6 items-center">
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-3">What is Propranolol?</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3">How We Help</h2>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Propranolol is a beta-blocker that has been used safely for decades. It works by blocking the effects of adrenaline — the hormone responsible for your fight or flight response.
+                      Our doctors can recommend treatment options that have been used safely for decades. These work by addressing the physical effects of adrenaline — the hormone responsible for your fight or flight response.
                     </p>
                     <p className="text-sm text-muted-foreground mb-3">
-                      When you feel anxious, adrenaline causes physical symptoms: racing heart, sweating, trembling hands, and a shaky voice. Propranolol blocks these effects without sedating you or clouding your thinking.
+                      When you feel anxious, adrenaline causes physical symptoms: racing heart, sweating, trembling hands, and a shaky voice. Treatment options can address these effects without sedating you or clouding your thinking.
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      The result? You feel calm and in control, with full mental clarity. Many professionals — from musicians to executives — use it for high-stakes situations.
+                      The result? You feel calm and in control, with full mental clarity. Many professionals — from musicians to executives — use these approaches for high-stakes situations.
                     </p>
                   </div>
                   <div className="glass-card rounded-xl p-4">
-                    <h3 className="text-sm font-semibold mb-3">Propranolol blocks:</h3>
+                    <h3 className="text-sm font-semibold mb-3">Treatment can help with:</h3>
                     <ul className="space-y-2">
                       {[
                         "Racing heart / palpitations",
@@ -242,7 +241,7 @@ export default function PerformanceAnxietyPage() {
                     </ul>
                     <div className="mt-4 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
                       <p className="text-xs text-indigo-700">
-                        <strong>Note:</strong> Propranolol does not cause drowsiness or affect your mental sharpness. You will think and speak clearly — just without the physical anxiety symptoms.
+                        <strong>Note:</strong> These treatments do not cause drowsiness or affect your mental sharpness. You will think and speak clearly — just without the physical anxiety symptoms.
                       </p>
                     </div>
                   </div>
@@ -258,7 +257,7 @@ export default function PerformanceAnxietyPage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Common Use Cases</h2>
                   <p className="text-sm text-muted-foreground">
-                    Propranolol can help in many high-pressure situations
+                    Our treatment approaches can help in many high-pressure situations
                   </p>
                 </div>
 
@@ -311,9 +310,9 @@ export default function PerformanceAnxietyPage() {
                     <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       3
                     </div>
-                    <h3 className="text-sm font-semibold mb-1">Collect Your Script</h3>
+                    <h3 className="text-sm font-semibold mb-1">Receive Treatment Plan</h3>
                     <p className="text-xs text-muted-foreground">
-                      E-script sent to your phone. Collect from any pharmacy Australia-wide.
+                      Treatment plan sent to your phone. Collect from any pharmacy Australia-wide.
                     </p>
                   </div>
                 </div>
@@ -326,13 +325,13 @@ export default function PerformanceAnxietyPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">How to Use Propranolol</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">How Treatment Works</h2>
                   <p className="text-sm text-muted-foreground">Simple guidelines for best results</p>
                 </div>
 
                 <div className="space-y-3 max-w-3xl mx-auto">
                   {[
-                    { time: "30-60 min before", desc: "Take propranolol 30-60 minutes before your event for optimal effect." },
+                    { time: "30-60 min before", desc: "Take treatment 30-60 minutes before your event for optimal effect." },
                     { time: "Duration", desc: "Effects typically last 3-4 hours — plenty of time for most situations." },
                     { time: "As needed", desc: "Use only when you have a specific anxiety-provoking event. Not for daily use." },
                     { time: "First time?", desc: "Try a test dose at home first to see how it affects you before an important event." },
@@ -385,7 +384,7 @@ export default function PerformanceAnxietyPage() {
                     <div>
                       <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">Important Safety Information</h3>
                       <p className="text-xs text-amber-800 dark:text-amber-300 mb-2">
-                        Propranolol is safe for most people but may not be suitable if you have:
+                        These treatments are safe for most people but may not be suitable if you have:
                       </p>
                       <ul className="text-xs text-amber-800 dark:text-amber-300 space-y-1">
                         <li>• Asthma or severe respiratory conditions</li>
@@ -394,7 +393,7 @@ export default function PerformanceAnxietyPage() {
                         <li>• Diabetes (may mask symptoms of low blood sugar)</li>
                       </ul>
                       <p className="text-xs text-amber-800 dark:text-amber-300 mt-2">
-                        Our doctors will review your health history to ensure propranolol is appropriate for you.
+                        Our doctors will review your health history to ensure treatment is appropriate for you.
                       </p>
                     </div>
                   </div>

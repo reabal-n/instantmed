@@ -48,15 +48,15 @@ export const metadata: Metadata = {
     template: "%s | InstantMed",
   },
   description:
-    "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs. Same-day response, 7 days a week. No waiting rooms, no hold music.",
+    "Get medical certificates and doctor consultations online from AHPRA-registered Australian GPs. Same-day response, 7 days a week. No waiting rooms, no hold music.",
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
     "medical certificate online",
-    "online prescription",
+    "online doctor consultation",
     "GP online",
     "sick certificate",
-    "repeat prescription online",
+    "repeat request online",
     "telehealth GP",
     "virtual doctor",
     "InstantMed",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed - Online Doctor Consultations Australia",
     description:
-      "Medical certificates and scripts — handled in minutes. AHPRA-registered Australian GPs available 7 days.",
+      "Medical certificates and consultations — handled in minutes. AHPRA-registered Australian GPs available 7 days.",
     images: [
       {
         url: "/og-image.png",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "InstantMed - Online Doctor Consultations Australia",
-    description: "Medical certificates and scripts — handled in minutes by real Australian GPs.",
+    description: "Medical certificates and consultations — handled in minutes by real Australian GPs.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -144,7 +144,7 @@ function JsonLd() {
       "@type": "Country",
       name: "Australia",
     },
-    serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Prescriptions"],
+    serviceType: ["Telehealth", "Online Medical Consultation", "Medical Certificates", "Doctor Consultations"],
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",

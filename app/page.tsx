@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect } from 'react'
 import {
   Hero,
   ServicePicker,
@@ -17,6 +20,25 @@ import { ParallaxSection } from '@/components/ui/parallax-section'
 export const dynamic = "force-dynamic"
 
 export default function HomePage() {
+  useEffect(() => {
+    // Handle hash navigation on page load
+    const hash = window.location.hash.replace('#', '')
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash)
+        if (element) {
+          const headerOffset = 80
+          const elementPosition = element.getBoundingClientRect().top
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          })
+        }
+      }, 100)
+    }
+  }, [])
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />

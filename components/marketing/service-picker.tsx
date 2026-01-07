@@ -71,11 +71,11 @@ const itemVariants = {
 
 export function ServicePicker() {
   return (
-    <section className="relative py-20 lg:py-28">
+    <section id="pricing" className="relative py-12 lg:py-16 scroll-mt-20">
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 
-          className="text-center mb-14"
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -87,27 +87,27 @@ export function ServicePicker() {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground/80">Get started in minutes</span>
+            <span className="text-xs font-medium text-foreground/80">Get started in minutes</span>
           </motion.div>
           
           <div className="mb-4">
             <AnimatedText
               text="What do you need today?"
-              textClassName="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight"
+              textClassName="text-3xl sm:text-4xl lg:text-4xl font-bold text-foreground tracking-tight"
               underlineClassName="text-primary"
               underlinePath="M 0,10 Q 100,0 200,10 Q 300,20 400,10"
               underlineHoverPath="M 0,10 Q 100,20 200,10 Q 300,0 400,10"
               underlineDuration={1.2}
             />
           </div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Select a service to get started. Most requests reviewed within an hour.
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Select a service to get started. All requests are reviewed by an Australian-registered doctor in under 30 mins.
           </p>
         </motion.div>
 
         {/* Service Cards Grid */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -141,7 +141,7 @@ export function ServicePicker() {
                     
                     {/* Glassmorphic card */}
                     <div className={cn(
-                      "relative h-full rounded-2xl overflow-hidden",
+                      "relative h-full rounded-2xl overflow-hidden flex flex-col",
                       "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
                       "border border-white/20 dark:border-white/10",
                       "shadow-lg shadow-black/5 dark:shadow-black/20",
@@ -151,12 +151,12 @@ export function ServicePicker() {
                       "group-hover:scale-[1.02]"
                     )}>
                       {/* Gradient header strip */}
-                      <div className={`h-1.5 w-full bg-gradient-to-r ${colors.gradient}`} />
+                      <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />
                       
-                      <div className="p-6 pb-4">
+                      <div className="p-3 pb-2.5 flex-1 flex flex-col">
                         {/* Icon with animated background */}
                         <motion.div 
-                          className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-5 overflow-hidden icon-spin-hover"
+                          className="relative w-9 h-9 rounded-lg flex items-center justify-center mb-2 overflow-hidden icon-spin-hover"
                           style={{ backgroundColor: colors.light }}
                         >
                           <motion.div
@@ -165,25 +165,25 @@ export function ServicePicker() {
                               background: `radial-gradient(circle at center, ${colors.accent}30 0%, transparent 70%)` 
                             }}
                           />
-                          <Icon className="w-8 h-8 relative z-10" style={{ color: colors.accent }} />
+                          <Icon className="w-5 h-5 relative z-10" style={{ color: colors.accent }} />
                         </motion.div>
                         
                         {/* Title */}
-                        <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                        <h3 className="text-base font-semibold text-foreground mb-0.5 group-hover:text-primary transition-colors duration-300">
                           {service.title}
                         </h3>
                         
                         {/* Description */}
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                        <p className="text-xs text-muted-foreground leading-tight mb-2">
                           {service.description}
                         </p>
                         
                         {/* Benefits list */}
                         {service.benefits && (
-                          <ul className="space-y-2 mb-4">
+                          <ul className="space-y-1 mb-1 flex-1">
                             {service.benefits.map((benefit, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
-                                <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                              <li key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                                <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                                 <span>{benefit}</span>
                               </li>
                             ))}
@@ -191,29 +191,21 @@ export function ServicePicker() {
                         )}
                         
                         {/* Meta info */}
-                        <div className="flex items-center gap-3 text-xs">
-                          <span className="flex items-center gap-1.5 text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
+                        <div className="flex items-center gap-2 text-xs min-h-[18px]">
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="h-3 w-3" />
                             {meta.time}
                           </span>
-                          <span className="flex items-center gap-1.5">
+                          <span className="flex items-center gap-1">
                             {meta.needsCall ? (
                               <>
-                                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                                <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 <span className="text-muted-foreground">Quick call</span>
                               </>
                             ) : (
                               <>
-                                <PhoneOff className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
-                                <span className="text-emerald-600 dark:text-emerald-400 font-medium relative inline-block">
-                                  <span className="relative z-10">No call needed</span>
-                                  <span className="absolute inset-0 blur-[2px] opacity-60 text-emerald-500 dark:text-emerald-400 animate-pulse">
-                                    No call needed
-                                  </span>
-                                  <span className="absolute inset-0 blur-[4px] opacity-40 text-emerald-400 dark:text-emerald-500">
-                                    No call needed
-                                  </span>
-                                </span>
+                                <PhoneOff className="h-3 w-3 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.5)] flex-shrink-0" />
+                                <span className="text-emerald-600 dark:text-emerald-400 font-medium">No call needed</span>
                               </>
                             )}
                           </span>
@@ -222,7 +214,7 @@ export function ServicePicker() {
                       
                       <Divider className="opacity-50" />
                       
-                      <div className="flex items-center justify-between px-6 py-4">
+                      <div className="flex items-center justify-between px-3 py-2.5 flex-shrink-0">
                         <Chip 
                           color={colors.chipColor} 
                           variant="flat" 
@@ -232,15 +224,15 @@ export function ServicePicker() {
                             content: "font-medium"
                           }}
                         >
-                          From ${service.priceFrom.toFixed(2)}
+                          ${service.priceFrom.toFixed(2)}
                         </Chip>
                         
                         <MagneticButton>
                           <div
                             className={cn(
-                              "relative overflow-hidden inline-flex items-center gap-1.5",
-                              "px-5 py-2.5 rounded-xl",
-                              "text-white text-sm font-bold",
+                              "relative overflow-hidden inline-flex items-center gap-1",
+                              "px-3 py-1.5 rounded-lg",
+                              "text-white text-xs font-bold",
                               "shadow-lg shadow-primary/40",
                               "hover:shadow-xl hover:shadow-primary/50",
                               "transition-all duration-300",
@@ -254,9 +246,9 @@ export function ServicePicker() {
                               boxShadow: `0 8px 24px -4px ${colors.accent}40, 0 4px 12px -2px ${colors.accent}30`,
                             }}
                           >
-                            <span className="relative z-10 flex items-center gap-1.5">
+                            <span className="relative z-10 flex items-center gap-1">
                               Start now
-                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                              <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
                             </span>
                             {/* Shimmer effect */}
                             <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -265,6 +257,13 @@ export function ServicePicker() {
                           </div>
                         </MagneticButton>
                       </div>
+                      
+                      {/* Disclaimer for General Consult */}
+                      {service.id === 'consult' && (
+                        <p className="text-[10px] text-muted-foreground/70 text-center px-3 pb-3">
+                          Not suitable for emergencies or urgent care.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Link>

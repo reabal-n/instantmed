@@ -22,22 +22,20 @@ import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Weight Loss Treatment Online Australia | Duromine & GLP-1 | InstantMed",
+  title: "Weight Management Consultation Online Australia | InstantMed",
   description:
-    "Get medically supervised weight loss treatment from Australian doctors. Duromine, GLP-1 medications (Ozempic, Saxenda). Script in 15 minutes, ongoing support included.",
+    "Get medically supervised weight management support from Australian doctors. Doctor-led assessment and ongoing monitoring. Consultation completed in 15 minutes.",
   keywords: [
-    "weight loss prescription australia",
-    "duromine online australia",
-    "ozempic prescription online",
-    "saxenda online australia",
-    "GLP-1 weight loss australia",
-    "weight loss telehealth",
-    "wegovy australia",
-    "mounjaro australia",
+    "weight management australia",
+    "weight loss consultation online",
+    "medical weight management",
+    "weight management telehealth",
+    "doctor weight management",
+    "online weight consultation",
   ],
   openGraph: {
-    title: "Weight Loss Treatment Online | Duromine & GLP-1 | InstantMed",
-    description: "Get medically supervised weight loss prescriptions from Australian doctors. Ongoing support included.",
+    title: "Weight Management Consultation Online | InstantMed",
+    description: "Get medically supervised weight management support from Australian doctors. Ongoing monitoring included.",
     url: "https://instantmed.com.au/weight-loss",
   },
   alternates: {
@@ -48,19 +46,19 @@ export const metadata: Metadata = {
 const treatments = [
   {
     id: "glp1",
-    name: "GLP-1 Medications",
-    examples: "Ozempic®, Saxenda®, Wegovy®, Mounjaro®",
-    description: "Weekly or daily injections that reduce appetite and help you feel full longer. Clinically proven for significant weight loss.",
-    howItWorks: "Mimics natural hormones that regulate appetite and blood sugar",
+    name: "Hormone-Based Treatment",
+    examples: "Weekly or daily options available",
+    description: "Doctor-prescribed treatment that helps regulate appetite and support healthy weight management. Clinically proven approach with ongoing monitoring.",
+    howItWorks: "Works with your body's natural hormone systems to support appetite regulation",
     suitableFor: "BMI 30+ or BMI 27+ with related health conditions",
     popular: true,
   },
   {
-    id: "duromine",
-    name: "Phentermine (Duromine®)",
-    examples: "Duromine® 15mg, 30mg, 40mg",
-    description: "Short-term appetite suppressant taken once daily. Typically used for 3-6 months alongside lifestyle changes.",
-    howItWorks: "Suppresses appetite by affecting brain chemicals",
+    id: "short-term",
+    name: "Short-Term Treatment Option",
+    examples: "Various strengths available based on assessment",
+    description: "Doctor-prescribed treatment taken once daily. Typically used for 3-6 months alongside lifestyle changes with regular check-ins.",
+    howItWorks: "Supports appetite regulation through doctor-supervised treatment",
     suitableFor: "BMI 30+ or BMI 27+ with related health conditions",
     popular: false,
   },
@@ -85,7 +83,7 @@ const platformFeatures = [
   {
     icon: Shield,
     title: "Safe & Regulated",
-    description: "Only TGA-approved medications prescribed after thorough health assessment.",
+    description: "Only TGA-approved treatment options recommended after thorough health assessment.",
   },
 ]
 
@@ -94,7 +92,7 @@ const eligibility = {
     "Adults 18+ with BMI of 30 or higher",
     "BMI 27+ with weight-related conditions (diabetes, high blood pressure)",
     "Have tried diet and exercise without adequate results",
-    "No contraindications to weight loss medications",
+    "No contraindications to weight management treatments",
   ],
   notEligible: [
     "Under 18 years of age",
@@ -107,19 +105,19 @@ const eligibility = {
 
 const faqs = [
   {
-    question: "What's the difference between GLP-1 medications and Duromine?",
+    question: "What treatment options are available?",
     answer:
-      "GLP-1 medications (like Ozempic and Saxenda) work by mimicking natural hormones that regulate appetite and blood sugar. They're typically used long-term and are associated with significant, sustained weight loss. Duromine is an appetite suppressant that works on brain chemistry and is typically used short-term (3-6 months). Your doctor will recommend the best option based on your health profile and goals.",
+      "Our doctors can recommend different treatment approaches based on your health assessment. Some options work with your body's natural hormone systems for long-term support, while others are designed for shorter-term use alongside lifestyle changes. Your doctor will discuss the best approach for your individual health profile and goals.",
   },
   {
-    question: "Do I need to have tried other weight loss methods first?",
+    question: "Do I need to have tried other weight management methods first?",
     answer:
-      "Generally, yes. Weight loss medications are most appropriate as an adjunct to lifestyle modifications (diet and exercise) for people who haven&apos;t achieved adequate results with lifestyle changes alone. Your doctor will discuss your history as part of the assessment.",
+      "Generally, yes. Medical weight management treatments are most appropriate as an adjunct to lifestyle modifications (diet and exercise) for people who haven&apos;t achieved adequate results with lifestyle changes alone. Your doctor will discuss your history as part of the assessment.",
   },
   {
-    question: "Are these medications PBS-subsidised?",
+    question: "Are these treatments PBS-subsidised?",
     answer:
-      "Some medications may be PBS-subsidised for eligible patients with specific conditions (like Type 2 diabetes for some GLP-1 medications). Your doctor will discuss costs and eligibility during your consultation. Out-of-pocket costs vary depending on the medication.",
+      "Some treatment options may be PBS-subsidised for eligible patients with specific conditions (like Type 2 diabetes). Your doctor will discuss costs and eligibility during your consultation. Out-of-pocket costs vary depending on the treatment approach.",
   },
   {
     question: "How quickly can I get my prescription?",
@@ -129,12 +127,12 @@ const faqs = [
   {
     question: "What side effects should I expect?",
     answer:
-      "Side effects vary by medication. GLP-1 medications may cause nausea, vomiting, or diarrhoea (usually temporary). Duromine may cause increased heart rate, dry mouth, or insomnia. Our doctors will discuss potential side effects and how to manage them.",
+      "Side effects vary by treatment approach. Some options may cause temporary digestive symptoms like nausea or diarrhoea. Other approaches may cause increased heart rate, dry mouth, or sleep changes. Our doctors will discuss potential side effects and how to manage them based on your specific treatment plan.",
   },
   {
-    question: "How long will I need to take medication?",
+    question: "How long will I need treatment?",
     answer:
-      "This depends on the medication and your individual response. GLP-1 medications are often used long-term for sustained results. Duromine is typically used for 3-6 months. Your doctor will create a personalised plan with regular check-ins.",
+      "This depends on the treatment approach and your individual response. Some options are used long-term for sustained results, while others are typically used for 3-6 months alongside lifestyle changes. Your doctor will create a personalised plan with regular check-ins.",
   },
 ]
 
@@ -174,8 +172,8 @@ export default function WeightLossPage() {
                     Weight Loss Treatment That Actually Works
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Get a prescription for clinically-proven weight loss medication from an Australian doctor.
-                    Includes <strong>ongoing support</strong> and regular check-ins.
+                    Get doctor-led weight management support from an Australian doctor.
+                    Includes <strong>ongoing monitoring</strong> and regular check-ins.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     TGA-approved treatments • AHPRA-registered doctors • Ongoing monitoring
@@ -226,7 +224,7 @@ export default function WeightLossPage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                    Our doctors can prescribe TGA-approved weight loss medications based on your health profile
+                    Our doctors can recommend TGA-approved treatment options based on your health assessment
                   </p>
                 </div>
 
@@ -317,7 +315,7 @@ export default function WeightLossPage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Who Can Use This Service?</h2>
                   <p className="text-sm text-muted-foreground">
-                    Weight loss medications are suitable for adults who meet certain criteria
+                    Weight management treatments are suitable for adults who meet certain criteria
                   </p>
                 </div>
 
@@ -373,7 +371,7 @@ export default function WeightLossPage() {
                   {[
                     { step: 1, title: "Health Assessment", desc: "Complete a detailed questionnaire about your health, weight history, and goals." },
                     { step: 2, title: "Doctor Review", desc: "An AHPRA-registered doctor reviews your assessment and determines eligibility." },
-                    { step: 3, title: "Get Your Script", desc: "If appropriate, your prescription is sent directly to your phone." },
+                    { step: 3, title: "Receive Treatment Plan", desc: "If appropriate, your treatment plan is sent directly to your phone." },
                     { step: 4, title: "Ongoing Support", desc: "Regular check-ins to monitor progress and adjust your plan as needed." },
                   ].map((item) => (
                     <div key={item.step} className="text-center">

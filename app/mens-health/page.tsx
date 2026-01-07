@@ -20,22 +20,20 @@ import type { Metadata } from "next"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Men&apos;s Health Online Australia | ED Treatment | Sildenafil & Tadalafil | InstantMed",
+  title: "Men&apos;s Health Consultation Online Australia | InstantMed",
   description:
-    "Discreet men&apos;s health consultations with Australian doctors. Get prescriptions for erectile dysfunction treatments including sildenafil and tadalafil. Script in 15 minutes, no awkward conversations.",
+    "Discreet men&apos;s health consultations with Australian doctors. Doctor-led assessment and treatment planning. Consultation completed in 15 minutes, no awkward conversations.",
   keywords: [
     "mens health online australia",
-    "erectile dysfunction treatment australia",
-    "sildenafil prescription online",
-    "tadalafil prescription australia",
-    "viagra alternative australia",
-    "cialis alternative australia",
-    "ED treatment telehealth",
+    "men's health consultation",
+    "men's health telehealth",
     "discreet mens health",
+    "online men's health",
+    "men's health doctor",
   ],
   openGraph: {
-    title: "Men&apos;s Health Online | Discreet ED Treatment | InstantMed",
-    description: "Get discreet men&apos;s health prescriptions from Australian doctors in 15 minutes. No phone calls required for most requests.",
+    title: "Men&apos;s Health Consultation Online | InstantMed",
+    description: "Get discreet men&apos;s health consultations from Australian doctors in 15 minutes. No phone calls required for most requests.",
     url: "https://instantmed.com.au/mens-health",
   },
   alternates: {
@@ -45,18 +43,18 @@ export const metadata: Metadata = {
 
 const treatments = [
   {
-    id: "sildenafil",
-    name: "Sildenafil",
-    description: "The active ingredient in Viagra®. Works in 30-60 minutes, lasts 4-6 hours.",
+    id: "short-acting",
+    name: "Short-Acting Treatment",
+    description: "Doctor-prescribed treatment option. Works in 30-60 minutes, effects last 4-6 hours.",
     duration: "4-6 hours",
     onset: "30-60 min",
-    bestFor: "Planned intimacy",
+    bestFor: "Planned situations",
     popular: true,
   },
   {
-    id: "tadalafil",
-    name: "Tadalafil",
-    description: "The active ingredient in Cialis®. Works in 30-60 minutes, lasts up to 36 hours.",
+    id: "long-acting",
+    name: "Long-Acting Treatment",
+    description: "Doctor-prescribed treatment option. Works in 30-60 minutes, effects last up to 36 hours.",
     duration: "Up to 36 hours",
     onset: "30-60 min",
     bestFor: "Flexibility & spontaneity",
@@ -89,14 +87,14 @@ const platformFeatures = [
 
 const faqs = [
   {
-    question: "What&apos;s the difference between Sildenafil and Tadalafil?",
+    question: "What treatment options are available?",
     answer:
-      "Sildenafil (Viagra®) works quickly (30-60 min) and lasts 4-6 hours — ideal for planned intimacy. Tadalafil (Cialis®) also works in 30-60 minutes but lasts up to 36 hours, offering more flexibility and spontaneity. Both are equally effective; the choice depends on your lifestyle and preferences.",
+      "Our doctors can recommend different treatment approaches based on your health assessment. Some options work quickly (30-60 min) and last 4-6 hours — ideal for planned situations. Other options also work in 30-60 minutes but last up to 36 hours, offering more flexibility and spontaneity. Your doctor will discuss which approach best fits your lifestyle and preferences.",
   },
   {
-    question: "Do I need a prescription in Australia?",
+    question: "Do I need a doctor consultation in Australia?",
     answer:
-      "Yes, both sildenafil and tadalafil are prescription-only medications in Australia. Our AHPRA-registered doctors can prescribe these medications after reviewing your health information through our secure online consultation.",
+      "Yes, these treatments require a doctor consultation in Australia. Our AHPRA-registered doctors can recommend appropriate treatment options after reviewing your health information through our secure online consultation.",
   },
   {
     question: "Is this service actually private?",
@@ -156,9 +154,9 @@ export default function MensHealthPage() {
                     Men&apos;s Health Treatment Online
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Get a prescription for ED treatment from an Australian doctor in{" "}
+                    Get a doctor-led consultation for men's health concerns from an Australian doctor in{" "}
                     <strong>15 minutes</strong>. No waiting rooms. No awkward conversations.
-                    Treatment sent straight to your pharmacy.
+                    Treatment plan sent straight to your phone.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     TGA-approved treatments • AHPRA-registered doctors • Discreet service
@@ -209,7 +207,7 @@ export default function MensHealthPage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Available Treatments</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                    Our doctors can prescribe TGA-approved ED medications based on your health profile
+                    Our doctors can recommend TGA-approved treatment options based on your health assessment
                   </p>
                 </div>
 
@@ -324,9 +322,9 @@ export default function MensHealthPage() {
                     <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       3
                     </div>
-                    <h3 className="text-sm font-semibold mb-1">Collect Your Script</h3>
+                    <h3 className="text-sm font-semibold mb-1">Receive Treatment Plan</h3>
                     <p className="text-xs text-muted-foreground">
-                      E-script sent to your phone. Collect from any pharmacy Australia-wide.
+                      Treatment plan sent to your phone. Collect from any pharmacy Australia-wide.
                     </p>
                   </div>
                 </div>
@@ -344,7 +342,7 @@ export default function MensHealthPage() {
                     <div>
                       <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">Important Safety Information</h3>
                       <p className="text-xs text-amber-800 dark:text-amber-300 mb-2">
-                        ED medications are not suitable for everyone. Our doctors will assess your eligibility based on your health history.
+                        These treatments are not suitable for everyone. Our doctors will assess your eligibility based on your health history.
                       </p>
                       <ul className="text-xs text-amber-800 dark:text-amber-300 space-y-1">
                         <li>• Not suitable if taking nitrates (e.g., GTN spray)</li>

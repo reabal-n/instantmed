@@ -27,7 +27,7 @@ function DisplayCard({
   return (
     <div
       className={cn(
-        "relative flex min-h-[10rem] w-[20rem] max-w-[calc(100vw-4rem)] -skew-y-[8deg] select-none flex-col justify-between gap-3 rounded-xl border-2 bg-muted/70 backdrop-blur-sm px-4 py-4 transition-all duration-700 after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[18rem] after:bg-gradient-to-l after:from-background after:to-transparent after:content-[''] hover:border-white/20 hover:bg-muted",
+        "relative flex min-h-[11rem] md:min-h-[12rem] w-[18rem] sm:w-[20rem] md:w-[22rem] max-w-[calc(100vw-2rem)] md:max-w-[calc(100vw-4rem)] skew-y-0 md:-skew-y-[8deg] select-none flex-col justify-between gap-3 md:gap-4 rounded-xl border-2 bg-muted/70 backdrop-blur-sm px-4 py-4 md:px-6 md:py-5 transition-all duration-700 md:after:absolute md:after:-right-1 md:after:top-[-5%] md:after:h-[110%] md:after:w-[18rem] md:after:bg-gradient-to-l md:after:from-background md:after:to-transparent md:after:content-[''] hover:border-white/20 hover:bg-muted",
         className
       )}
     >
@@ -65,10 +65,22 @@ export default function DisplayCards({ cards }: DisplayCardsProps) {
   const displayCards = cards || defaultCards;
 
   return (
-    <div className="grid [grid-template-areas:'stack'] place-items-center opacity-100 animate-in fade-in-0 duration-700 min-h-[240px] w-full overflow-hidden">
-      {displayCards.map((cardProps, index) => (
-        <DisplayCard key={index} {...cardProps} />
-      ))}
-    </div>
+    <>
+      {/* Mobile: Stack vertically */}
+      <div className="flex flex-col gap-6 md:hidden w-full">
+        {displayCards.map((cardProps, index) => (
+          <div key={index} className="w-full flex justify-center">
+            <DisplayCard {...cardProps} className={cardProps.className?.replace(/\[grid-area:stack\]/g, '') || ''} />
+          </div>
+        ))}
+      </div>
+      
+      {/* Desktop: Stacked cards */}
+      <div className="hidden md:grid [grid-template-areas:'stack'] place-items-center opacity-100 animate-in fade-in-0 duration-700 min-h-[280px] lg:min-h-[320px] w-full overflow-visible py-2 md:py-3">
+        {displayCards.map((cardProps, index) => (
+          <DisplayCard key={index} {...cardProps} />
+        ))}
+      </div>
+    </>
   );
 }

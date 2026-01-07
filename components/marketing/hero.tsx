@@ -71,13 +71,13 @@ export function Hero() {
 
             {/* Subtext */}
             <motion.p 
-              className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed px-2"
+              className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed px-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              Med certs &amp; repeat scripts with no phone call required.
-              New scripts just need a quick 2-min consult.
+              Med certs &amp; repeat requests with no phone call required.
+              New requests just need a quick 2-min consult.
             </motion.p>
 
             {/* CTAs */}

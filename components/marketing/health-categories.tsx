@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Clock, PhoneOff } from 'lucide-react'
+import { ArrowRight, Check, Clock, PhoneOff, Phone } from 'lucide-react'
 import { Card, CardBody, CardFooter, Divider } from '@heroui/react'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 
   WeightLossIcon, 
   HairLossIcon, 
-  PerformanceAnxietyIcon,
   ShieldPremiumAlt 
 } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
@@ -19,44 +18,46 @@ const healthCategories = [
   {
     id: 'mens-health',
     title: "Men's Health",
-    description: "ED treatment, hair loss. Discreet, no call.",
+    description: "ED treatment plans discreetly reviewed online.",
     Icon: MensHealthIcon,
     color: 'blue',
     href: '/mens-health',
     benefits: [
-      "Discreet consultations",
-      "No call required",
-      "Fast turnaround",
-      "AHPRA registered doctors"
+      "Discreet, private consultation",
+      "No phone call required in most cases",
+      "Evidence-based treatment options",
+      "Fast doctor review"
     ],
   },
   {
     id: 'womens-health',
     title: "Women's Health",
-    description: "UTI, contraception, morning-after pill.",
+    description: "UTI treatment, contraception, and morning-after pill requests.",
     Icon: WomensHealthIcon,
     color: 'pink',
     href: '/womens-health',
     benefits: [
-      "Private consultations",
-      "No call required",
-      "Fast turnaround",
-      "AHPRA registered doctors"
+      "Private, confidential consultations",
+      "No phone call required",
+      "Fast turnaround times"
     ],
   },
   {
     id: 'weight-loss',
     title: "Weight Loss",
-    description: "Medical weight management programs.",
+    description: "Medical weight management programs, tailored to you.",
     Icon: WeightLossIcon,
     color: 'violet',
     href: '/weight-loss',
     benefits: [
       "Personalized programs",
-      "No call required",
+      "Brief clinician call required",
       "Fast turnaround",
       "AHPRA registered doctors"
     ],
+    metaTime: "~30 min",
+    metaCall: "quick 2 min call",
+    needsCall: true,
   },
   {
     id: 'hair-loss',
@@ -67,21 +68,7 @@ const healthCategories = [
     href: '/hair-loss',
     benefits: [
       "Evidence-based treatments",
-      "No call required",
-      "Fast turnaround",
-      "AHPRA registered doctors"
-    ],
-  },
-  {
-    id: 'performance-anxiety',
-    title: "Performance Anxiety",
-    description: "Stage fright, public speaking, interviews.",
-    Icon: PerformanceAnxietyIcon,
-    color: 'indigo',
-    href: '/performance-anxiety',
-    benefits: [
-      "Discreet consultations",
-      "No call required",
+      "No call required in most cases",
       "Fast turnaround",
       "AHPRA registered doctors"
     ],
@@ -118,12 +105,6 @@ const colorConfig: Record<string, {
     gradient: 'from-teal-400 to-cyan-500',
     chipColor: 'success'
   },
-  indigo: { 
-    accent: '#6366F1', 
-    light: 'rgba(99, 102, 241, 0.06)', 
-    gradient: 'from-indigo-400 to-violet-500',
-    chipColor: 'primary'
-  },
 }
 
 const containerVariants = {
@@ -145,11 +126,11 @@ const itemVariants = {
 
 export function HealthCategories() {
   return (
-    <section className="relative py-16 lg:py-20 bg-content2/30">
+    <section className="relative py-12 lg:py-16 bg-content2/30">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -163,14 +144,14 @@ export function HealthCategories() {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
             Specialized Health Services
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Script in 15 minutes. No phone call required for most services.
+          <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+            Clinician review usually completed within ~15 minutes for eligible patients. Most services do not require a phone call.
           </p>
         </motion.div>
 
         {/* Health Category Cards */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-stretch"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -181,10 +162,10 @@ export function HealthCategories() {
             const colors = colorConfig[category.color]
             
             return (
-              <motion.div key={category.id} variants={itemVariants}>
+              <motion.div key={category.id} variants={itemVariants} className="w-full">
                 <Link href={category.href} className="group block h-full">
                   <div className={cn(
-                    "relative h-full rounded-2xl overflow-hidden",
+                    "relative h-full min-h-[280px] rounded-2xl overflow-hidden flex flex-col",
                     "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
                     "border border-white/20 dark:border-white/10",
                     "shadow-lg shadow-black/5 dark:shadow-black/20",
@@ -194,12 +175,12 @@ export function HealthCategories() {
                     "group-hover:scale-[1.02]"
                   )}>
                     {/* Gradient header strip */}
-                    <div className={`h-1.5 w-full bg-gradient-to-r ${colors.gradient}`} />
+                    <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />
                     
-                    <div className="p-5 pb-4">
+                    <div className="p-3 pb-2.5 flex-1 flex flex-col">
                       {/* Icon with animated background */}
                       <motion.div 
-                        className="relative w-12 h-12 rounded-2xl flex items-center justify-center mb-4 overflow-hidden icon-spin-hover"
+                        className="relative w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 overflow-hidden icon-spin-hover"
                         style={{ backgroundColor: colors.light }}
                       >
                         <motion.div
@@ -208,25 +189,25 @@ export function HealthCategories() {
                             background: `radial-gradient(circle at center, ${colors.accent}30 0%, transparent 70%)` 
                           }}
                         />
-                        <Icon className="w-6 h-6 relative z-10" style={{ color: colors.accent }} />
+                        <Icon className="w-5 h-5 relative z-10" style={{ color: colors.accent }} />
                       </motion.div>
                       
                       {/* Title */}
-                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                      <h3 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors duration-300">
                         {category.title}
                       </h3>
                       
                       {/* Description */}
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                      <p className="text-xs text-muted-foreground leading-tight mb-2">
                         {category.description}
                       </p>
                       
                       {/* Benefits list */}
                       {category.benefits && (
-                        <ul className="space-y-1.5 mb-4">
+                        <ul className="space-y-1 mb-2 flex-1">
                           {category.benefits.slice(0, 3).map((benefit, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-[10px] text-muted-foreground">
-                              <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                            <li key={idx} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
+                              <Check className="h-2.5 w-2.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                               <span>{benefit}</span>
                             </li>
                           ))}
@@ -234,26 +215,35 @@ export function HealthCategories() {
                       )}
                       
                       {/* Meta info */}
-                      <div className="flex items-center gap-2 text-[10px]">
+                      <div className="flex items-center gap-2 text-[10px] mt-auto">
                         <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          ~15 min
+                          <Clock className="h-2.5 w-2.5" />
+                          {category.metaTime || "~15 min"}
                         </span>
                         <span className="flex items-center gap-1">
-                          <PhoneOff className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">No call</span>
+                          {category.needsCall ? (
+                            <>
+                              <Phone className="h-2.5 w-2.5 text-primary dark:text-primary" />
+                              <span className="text-primary dark:text-primary font-medium">{category.metaCall || "Quick call"}</span>
+                            </>
+                          ) : (
+                            <>
+                              <PhoneOff className="h-2.5 w-2.5 text-emerald-500 dark:text-emerald-400" />
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">No call</span>
+                            </>
+                          )}
                         </span>
                       </div>
                     </div>
                     
                     <Divider className="opacity-50" />
                     
-                    <div className="px-5 py-4">
+                    <div className="px-3 py-2.5 flex-shrink-0">
                       <MagneticButton>
                         <div
                           className={cn(
-                            "relative overflow-hidden inline-flex items-center gap-1.5",
-                            "px-4 py-2 rounded-xl",
+                            "relative overflow-hidden inline-flex items-center gap-1",
+                            "px-3 py-1.5 rounded-lg",
                             "text-white text-xs font-bold",
                             "shadow-lg shadow-primary/30",
                             "hover:shadow-xl hover:shadow-primary/40",
@@ -269,9 +259,9 @@ export function HealthCategories() {
                             boxShadow: `0 8px 24px -4px ${colors.accent}40, 0 4px 12px -2px ${colors.accent}30`,
                           }}
                         >
-                          <span className="relative z-10 flex items-center gap-1.5">
+                          <span className="relative z-10 flex items-center gap-1">
                             Learn more
-                            <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
+                            <ArrowRight className="h-2.5 w-2.5 transition-transform duration-300 group-hover:translate-x-1" />
                           </span>
                           {/* Shimmer effect */}
                           <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />

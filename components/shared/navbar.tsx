@@ -22,6 +22,12 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu as HeroDropdownMenu,
+  DropdownItem,
+} from "@heroui/react"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -129,9 +135,10 @@ interface AnimatedNavLinkProps {
   gradient?: string
   icon?: React.ReactNode
   isActive?: boolean
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
-function AnimatedNavLink({ href, children, gradient, icon, isActive }: AnimatedNavLinkProps) {
+function AnimatedNavLink({ href, children, gradient, icon, isActive, onClick }: AnimatedNavLinkProps) {
   const defaultGradient = "radial-gradient(circle, rgba(0,226,181,0.15) 0%, rgba(0,226,181,0.06) 50%, rgba(0,226,181,0) 100%)"
   
   return (
@@ -156,6 +163,7 @@ function AnimatedNavLink({ href, children, gradient, icon, isActive }: AnimatedN
       >
         <Link
           href={href}
+          onClick={onClick}
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",
             isActive
@@ -175,6 +183,7 @@ function AnimatedNavLink({ href, children, gradient, icon, isActive }: AnimatedN
       >
         <Link
           href={href}
+          onClick={onClick}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-foreground"
         >
           {icon}
@@ -204,10 +213,64 @@ function NavLink({ href, isActive, children }: { href: string; isActive: boolean
   )
 }
 
+function ScrollNavLink({ 
+  sectionId, 
+  isActive, 
+  children 
+}: { 
+  sectionId: string
+  isActive: boolean
+  children: React.ReactNode 
+}) {
+  const pathname = usePathname()
+  const router = useRouter()
+  
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    
+    const scrollToSection = () => {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const headerOffset = 80 // Account for fixed header
+        const elementPosition = element.getBoundingClientRect().top
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        })
+      }
+    }
+    
+    if (pathname === '/') {
+      // Already on homepage, scroll to section
+      scrollToSection()
+    } else {
+      // Navigate to homepage with hash, then scroll
+      router.push(`/#${sectionId}`)
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        scrollToSection()
+      }, 300)
+    }
+  }
+  
+  return (
+    <AnimatedNavLink 
+      href={`/#${sectionId}`} 
+      isActive={isActive}
+      onClick={handleClick}
+    >
+      {children}
+    </AnimatedNavLink>
+  )
+}
+
 export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { theme } = useTheme()
@@ -238,7 +301,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <motion.nav
           className={cn(
-            "relative mx-auto max-w-5xl rounded-2xl overflow-hidden",
+            "relative mx-auto max-w-5xl rounded-2xl",
             "p-1 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border border-border/40 shadow-lg",
             scrolled && "shadow-xl border-border/60",
           )}
@@ -271,51 +334,71 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               {variant === "marketing" && (
                 <>
                   {/* Services Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1">
-                        Services
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64 glass-card border-white/20">
-                      <DropdownMenuLabel className="text-xs text-muted-foreground">Core Services</DropdownMenuLabel>
-                      {services.map((service) => (
-                        <DropdownMenuItem key={service.href} asChild>
-                          <Link href={service.href} className="flex items-center gap-2 cursor-pointer">
-                            <service.icon className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm font-medium">{service.title}</p>
-                              <p className="text-xs text-muted-foreground">{service.description}</p>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-xs text-muted-foreground">Health Programs</DropdownMenuLabel>
-                      {healthVerticals.map((vertical) => (
-                        <DropdownMenuItem key={vertical.href} asChild>
-                          <Link href={vertical.href} className="flex items-center gap-2 cursor-pointer">
-                            <vertical.icon className={cn("h-4 w-4", vertical.color)} />
-                            <div>
-                              <p className="text-sm font-medium">{vertical.title}</p>
-                              <p className="text-xs text-muted-foreground">{vertical.description}</p>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div 
+                    className="relative"
+                    onMouseEnter={() => setServicesDropdownOpen(true)}
+                    onMouseLeave={() => setServicesDropdownOpen(false)}
+                  >
+                    <button 
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1"
+                    >
+                      Services
+                      <ChevronDown className={cn("h-3 w-3 transition-transform", servicesDropdownOpen && "rotate-180")} />
+                    </button>
+                    
+                    {servicesDropdownOpen && (
+                      <div className="absolute top-full left-0 pt-2 z-[100]">
+                        <div className="w-64 glass-card border-white/20 bg-background/90 backdrop-blur-xl rounded-xl shadow-2xl p-2 space-y-1">
+                          <div className="px-2 py-1.5">
+                            <p className="text-xs font-medium text-muted-foreground">Core Services</p>
+                          </div>
+                          {services.map((service) => (
+                            <Link
+                              key={service.href}
+                              href={service.href}
+                              className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                            >
+                              <service.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                              <div>
+                                <p className="text-sm font-medium">{service.title}</p>
+                                <p className="text-xs text-muted-foreground">{service.description}</p>
+                              </div>
+                            </Link>
+                          ))}
+                          <div className="h-px bg-border my-1" />
+                          <div className="px-2 py-1.5">
+                            <p className="text-xs font-medium text-muted-foreground">Health Programs</p>
+                          </div>
+                          {healthVerticals.map((vertical) => (
+                            <Link
+                              key={vertical.href}
+                              href={vertical.href}
+                              className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                            >
+                              <vertical.icon className={cn("h-4 w-4", vertical.color)} />
+                              <div>
+                                <p className="text-sm font-medium">{vertical.title}</p>
+                                <p className="text-xs text-muted-foreground">{vertical.description}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                  <NavLink href="/how-it-works" isActive={pathname === "/how-it-works"}>
+                  <ScrollNavLink sectionId="how-it-works" isActive={pathname === "/how-it-works"}>
                     How it works
-                  </NavLink>
-                  <NavLink href="/pricing" isActive={pathname === "/pricing"}>
+                  </ScrollNavLink>
+                  <ScrollNavLink sectionId="pricing" isActive={pathname === "/pricing"}>
                     Pricing
-                  </NavLink>
+                  </ScrollNavLink>
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
+                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
+                      Get started
+                    </ShatterButtonLink>
                     {isSignedIn ? (
                       <Button
                         variant="outline"
@@ -335,9 +418,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         <Link href="/sign-in">Sign in</Link>
                       </Button>
                     )}
-                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
-                      Get started
-                    </ShatterButtonLink>
                   </div>
                 </>
               )}

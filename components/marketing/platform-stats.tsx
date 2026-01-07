@@ -12,7 +12,7 @@ const statsData = [
     value: 98.5,
     label: "Patient Satisfaction",
     suffix: "%",
-    description: "Based on 5,000+ reviews",
+    description: "Based on 1,000+ reviews",
     color: "bg-primary",
   },
   {
@@ -53,10 +53,10 @@ export function PlatformStats() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
             Trusted by thousands
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
             Real results, real people. Here&apos;s why Australians choose InstantMed.
           </p>
         </motion.div>

@@ -25,7 +25,7 @@ export function FAQSection() {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
             Common questions
           </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto">
+          <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             Everything you need to know about our service.
           </p>
         </motion.div>

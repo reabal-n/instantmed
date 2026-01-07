@@ -17,6 +17,7 @@ export interface DropdownMenuProps extends Omit<HeroDropdownProps, "children"> {
 
 function DropdownMenu({
   children,
+  className,
   ...props
 }: DropdownMenuProps) {
   return (
@@ -24,11 +25,11 @@ function DropdownMenu({
       placement="bottom-start"
       backdrop="blur"
       classNames={{
-        content: "bg-background/90 backdrop-blur-xl border border-default-100 rounded-xl",
+        content: cn("bg-background/90 backdrop-blur-xl border border-default-100 rounded-xl z-[100]", className),
       }}
       {...props}
     >
-      {React.Children.toArray(children)}
+      {children}
     </Dropdown>
   )
 }
@@ -63,11 +64,19 @@ interface DropdownMenuContentProps extends React.ComponentProps<"div"> {
 function DropdownMenuContent({
   children,
   align,
+  className,
   ...props
 }: DropdownMenuContentProps) {
   // Note: HeroUI handles placement on the Dropdown component, not the content
   // The align prop is accepted for API compatibility but placement should be set on DropdownMenu
-  return <HeroDropdownMenu {...(props as any)}>{children as any}</HeroDropdownMenu>
+  return (
+    <HeroDropdownMenu 
+      className={cn(className)}
+      {...(props as any)}
+    >
+      {children as any}
+    </HeroDropdownMenu>
+  )
 }
 
 function DropdownMenuGroup({ children }: { children: React.ReactNode }) {

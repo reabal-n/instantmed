@@ -37,7 +37,7 @@ export function MarketingFooter() {
               {siteConfig.name}
             </Link>
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              Medical certificates & prescriptions — handled online by real Australian doctors.
+              Medical certificates & consultations — handled online by real Australian doctors.
             </p>
           </div>
 

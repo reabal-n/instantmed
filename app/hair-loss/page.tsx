@@ -20,21 +20,20 @@ import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Hair Loss Treatment Online Australia | Minoxidil & Finasteride | InstantMed",
+  title: "Hair Loss Consultation Online Australia | InstantMed",
   description:
-    "Get hair loss prescriptions online from Australian doctors. Minoxidil, finasteride for male pattern baldness. Script in 15 minutes, no awkward conversations, discreet delivery.",
+    "Get hair loss consultations online from Australian doctors. Doctor-led assessment and treatment planning. Consultation completed in 15 minutes, no awkward conversations, discreet service.",
   keywords: [
-    "hair loss treatment australia",
-    "minoxidil prescription online",
-    "finasteride prescription australia",
-    "male pattern baldness treatment",
+    "hair loss consultation australia",
+    "hair loss doctor online",
+    "male pattern baldness consultation",
     "hair loss telehealth",
-    "propecia alternative australia",
-    "regaine prescription",
+    "hair regrowth consultation",
+    "online hair loss doctor",
   ],
   openGraph: {
-    title: "Hair Loss Treatment Online | Minoxidil & Finasteride | InstantMed",
-    description: "Get hair loss prescriptions from Australian doctors in 15 minutes. Discreet, no phone call required.",
+    title: "Hair Loss Consultation Online | InstantMed",
+    description: "Get hair loss consultations from Australian doctors in 15 minutes. Discreet, no phone call required.",
     url: "https://instantmed.com.au/hair-loss",
   },
   alternates: {
@@ -44,21 +43,21 @@ export const metadata: Metadata = {
 
 const treatments = [
   {
-    id: "finasteride",
-    name: "Finasteride",
-    brand: "Generic / Propecia®",
-    description: "Oral tablet taken once daily. Blocks DHT, the hormone responsible for hair follicle miniaturisation in male pattern baldness.",
-    type: "Oral tablet",
+    id: "oral",
+    name: "Oral Treatment Option",
+    brand: "Daily oral option",
+    description: "Doctor-prescribed oral treatment taken once daily. Works by addressing hormonal factors that contribute to hair follicle changes.",
+    type: "Oral treatment",
     frequency: "Once daily",
     results: "Results typically visible in 3-6 months",
     bestFor: "Hair loss at the crown and mid-scalp",
     popular: true,
   },
   {
-    id: "minoxidil",
-    name: "Minoxidil",
-    brand: "Generic / Regaine®",
-    description: "Topical solution or foam applied to the scalp. Stimulates hair follicles and increases blood flow to promote hair growth.",
+    id: "topical",
+    name: "Topical Treatment Option",
+    brand: "Applied treatment option",
+    description: "Doctor-prescribed topical solution or foam applied to the scalp. Stimulates hair follicles and increases blood flow to support hair growth.",
     type: "Topical solution/foam",
     frequency: "Twice daily",
     results: "Results typically visible in 2-4 months",
@@ -67,9 +66,9 @@ const treatments = [
   },
   {
     id: "combination",
-    name: "Combination Therapy",
-    brand: "Finasteride + Minoxidil",
-    description: "Using both treatments together for maximum effectiveness. Addresses hair loss through multiple mechanisms.",
+    name: "Combination Approach",
+    brand: "Dual treatment approach",
+    description: "Using both treatment approaches together for maximum effectiveness. Addresses hair loss through multiple mechanisms.",
     type: "Oral + Topical",
     frequency: "As directed",
     results: "Often more effective than either alone",
@@ -103,24 +102,24 @@ const platformFeatures = [
 
 const faqs = [
   {
-    question: "What&apos;s the difference between Finasteride and Minoxidil?",
+    question: "What treatment options are available?",
     answer:
-      "Finasteride is an oral tablet that blocks DHT (the hormone causing hair loss) from within. It&apos;s most effective for hair loss at the crown and mid-scalp. Minoxidil is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both together for best results.",
+      "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss — it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
   },
   {
     question: "How long until I see results?",
     answer:
-      "Hair growth takes time. With Minoxidil, some improvement may be visible in 2-4 months. With Finasteride, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key — stopping treatment typically leads to reversal of gains.",
+      "Hair growth takes time. With topical treatments, some improvement may be visible in 2-4 months. With oral treatments, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key — stopping treatment typically leads to reversal of gains.",
   },
   {
     question: "Are there side effects?",
     answer:
-      "Minoxidil may cause scalp irritation or unwanted facial hair growth (rare). Finasteride may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping the medication. Our doctors will discuss these with you.",
+      "Topical treatments may cause scalp irritation or unwanted facial hair growth (rare). Oral treatments may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping treatment. Our doctors will discuss potential side effects with you.",
   },
   {
-    question: "Do I need a prescription for these treatments?",
+    question: "Do I need a doctor consultation for these treatments?",
     answer:
-      "Finasteride always requires a prescription in Australia. Minoxidil 5% (the most effective strength) is also prescription-only, though lower strengths are available over the counter. Our doctors can prescribe both.",
+      "Oral treatments always require a doctor consultation in Australia. Topical treatments at higher strengths are also prescription-only, though lower strengths are available over the counter. Our doctors can recommend both approaches after assessment.",
   },
   {
     question: "Is the service really discreet?",
@@ -130,7 +129,7 @@ const faqs = [
   {
     question: "Can women use these treatments?",
     answer:
-      "Minoxidil can be used by women for hair loss (at lower concentrations). Finasteride is NOT suitable for women, especially those who are or may become pregnant. If you&apos;re a woman experiencing hair loss, please indicate this in your consultation.",
+      "Topical treatments can be used by women for hair loss (at lower concentrations). Oral treatments are NOT suitable for women, especially those who are or may become pregnant. If you&apos;re a woman experiencing hair loss, please indicate this in your consultation.",
   },
 ]
 
@@ -170,7 +169,7 @@ export default function HairLossPage() {
                     Hair Loss Treatment Online
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Get a prescription for clinically-proven hair loss treatment from an Australian doctor in{" "}
+                    Get a doctor-led consultation for clinically-proven hair loss treatment from an Australian doctor in{" "}
                     <strong>15 minutes</strong>. No waiting rooms. No awkward conversations.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
@@ -222,7 +221,7 @@ export default function HairLossPage() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                    Our doctors can prescribe TGA-approved hair loss treatments based on your needs
+                    Our doctors can recommend TGA-approved hair loss treatment options based on your assessment
                   </p>
                 </div>
 
@@ -346,9 +345,9 @@ export default function HairLossPage() {
                     <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       3
                     </div>
-                    <h3 className="text-sm font-semibold mb-1">Collect Your Script</h3>
+                    <h3 className="text-sm font-semibold mb-1">Receive Treatment Plan</h3>
                     <p className="text-xs text-muted-foreground">
-                      E-script sent to your phone. Collect from any pharmacy Australia-wide.
+                      Treatment plan sent to your phone. Collect from any pharmacy Australia-wide.
                     </p>
                   </div>
                 </div>

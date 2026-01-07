@@ -22,9 +22,9 @@ export const siteConfig = {
 
 export const heroRotatingTexts = [
   "medical certificate",
-  "prescription",
+  "doctor consultation",
   "sick note",
-  "script renewal",
+  "repeat request",
 ]
 
 export const trustSignals = [
@@ -56,17 +56,16 @@ export const serviceCategories = [
     slug: "medical-certificate",
     title: "Medical Certificates",
     shortTitle: "Med Certs",
-    description: "Sick leave, carer's leave, or fitness-to-work certificates",
+    description: "Work, study, or carer's certificates",
     icon: "FileText",
     color: "emerald",
-    priceFrom: 24.95,
+    priceFrom: 19.95,
     href: "/start?service=med-cert",
     popular: true,
     benefits: [
       "Valid for all employers",
       "Same-day delivery",
-      "Backdating if appropriate",
-      "No phone call required"
+      "Backdating if appropriate"
     ],
   },
   {
@@ -74,17 +73,16 @@ export const serviceCategories = [
     slug: "prescription",
     title: "Repeat Scripts",
     shortTitle: "Scripts",
-    description: "Repeat prescriptions for medications you already take",
+    description: "Repeat requests for treatments you already take",
     icon: "Pill",
     color: "cyan",
-    priceFrom: 19.95,
+    priceFrom: 29.95,
     href: "/start?service=repeat-script",
     popular: false,
     benefits: [
       "Works with any chemist",
       "Repeat scripts included",
-      "Sent direct to pharmacy",
-      "No phone call required"
+      "eToken sent via SMS"
     ],
   },
   {
@@ -92,17 +90,16 @@ export const serviceCategories = [
     slug: "consult",
     title: "General Consult",
     shortTitle: "Consult",
-    description: "New prescriptions, dose changes, or complex health concerns",
+    description: "Clinical assessment for health concerns or new treatment requests",
     icon: "Stethoscope",
     color: "violet",
-    priceFrom: 44.95,
+    priceFrom: 49.95,
     href: "/start?service=consult",
     popular: false,
     benefits: [
-      "New prescriptions available",
-      "Dose adjustments",
-      "Detailed review",
-      "Quick call if needed"
+      "Assessment of common medical concerns",
+      "Treatment advice and management plans",
+      "New prescriptions if clinically appropriate",
     ],
   },
 ]
@@ -134,21 +131,21 @@ export const howItWorks = [
   {
     step: 1,
     title: "Answer a few questions",
-    description: "Quick form, no account needed. Takes about 2 minutes.",
+    description: "Short, secure form. Takes about 2 minutes.",
     icon: "ClipboardList",
     emoji: "📝",
   },
   {
     step: 2,
     title: "A doctor reviews it",
-    description: "A real GP looks at your request. If they need anything, they'll message you.",
+    description: "A fully registered Australian GP personally reviews your request.",
     icon: "Stethoscope",
     emoji: "🩺",
   },
   {
     step: 3,
     title: "Done",
-    description: "Certificate in your inbox. Script sent to your pharmacy. That's it.",
+    description: "Your certificate is emailed, or your script is sent straight to your phone.",
     icon: "FileCheck",
     emoji: "✅",
   },
@@ -164,7 +161,7 @@ export const featuredServices = [
   },
   {
     title: "Prescriptions",
-    description: "For your regular medications — the ones you already take. Skip the 3-week GP wait.",
+    description: "For your regular treatments — the ones you already take. Skip the 3-week GP wait.",
     priceFrom: 19.95,
     href: "/start?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your pharmacy"],
@@ -175,7 +172,7 @@ export const pricingTiers = [
   {
     name: "Prescription",
     price: 19.95,
-    description: "Need your regular meds?",
+    description: "Need your regular treatments?",
     features: [
       "Sent direct to your pharmacy",
       "Repeats included when suitable",
@@ -209,7 +206,7 @@ export const pricingTiers = [
     price: 44.95,
     description: "Complex health concerns?",
     features: [
-      "New prescriptions available",
+      "New treatment options available",
       "Dose adjustments",
       "Detailed review",
       "Pathology requests if needed",
@@ -244,8 +241,8 @@ export const faqItems = [
     answer: "Completely. Your health info is encrypted and only seen by the treating doctor. We don't share anything with employers, insurers, or anyone else. Ever.",
   },
   {
-    question: "What medications can you prescribe?",
-    answer: "Most common ones — contraception, blood pressure meds, cholesterol, skin treatments, and more. We can't do anything controlled (like strong painkillers) or medications that need a physical exam first.",
+    question: "What treatments can you provide?",
+    answer: "Most common ones — contraception, blood pressure treatments, cholesterol management, skin treatments, and more. We can't do anything controlled (like strong painkillers) or treatments that need a physical exam first.",
   },
   {
     question: "Do I need to create an account?",
