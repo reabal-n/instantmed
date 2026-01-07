@@ -29,7 +29,7 @@ function DropdownMenu({
       }}
       {...props}
     >
-      {children}
+      {children as any}
     </Dropdown>
   )
 }
