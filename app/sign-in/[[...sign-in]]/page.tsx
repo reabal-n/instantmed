@@ -1,68 +1,32 @@
 "use client"
 
-import { SignIn } from '@clerk/nextjs'
+import { useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle } from 'lucide-react'
-import { Suspense } from 'react'
 
 export const dynamic = "force-dynamic"
 
-function SignInForm() {
-  return (
-    <div className="w-full min-h-[400px] flex items-center justify-center">
-      <SignIn 
-        signUpUrl="/sign-up"
-        routing="path"
-        path="/sign-in"
-        fallbackRedirectUrl="/"
-        appearance={{
-          elements: {
-            rootBox: "w-full",
-            card: "shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl",
-            headerTitle: "text-foreground",
-            headerSubtitle: "text-muted-foreground",
-            formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11",
-            formFieldInput: "rounded-xl border-border focus:border-primary focus:ring-primary",
-            footerActionLink: "text-primary hover:text-primary/80",
-            dividerLine: "bg-border",
-            dividerText: "text-muted-foreground",
-            socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl h-11 text-base",
-            socialButtonsBlockButtonText: "text-foreground font-medium",
-            identityPreviewEditButton: "text-primary",
-            formFieldLabel: "text-foreground",
-            footerActionText: "text-muted-foreground",
-            formFieldInputShowPasswordButton: "text-muted-foreground hover:text-foreground",
-            formFieldInputShowPasswordIcon: "text-muted-foreground",
-          },
-          layout: {
-            socialButtonsPlacement: "top",
-            socialButtonsVariant: "blockButton",
-          }
-        }}
-      />
-    </div>
-  )
-}
+function SignInRedirect() {
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || '/'
+  
+  useEffect(() => {
+    // Build redirect URL with current origin
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
+    const fullRedirectUrl = redirectUrl.startsWith('http') ? redirectUrl : `${currentOrigin}${redirectUrl}`
+    
+    // Redirect to Clerk Account Portal
+    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(fullRedirectUrl)}`
+    window.location.href = accountPortalUrl
+  }, [redirectUrl])
 
-function SignInLoading() {
-  return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded-lg w-3/4"></div>
-          <div className="h-4 bg-muted rounded-lg w-1/2"></div>
-          <div className="space-y-3 pt-4">
-            <div className="h-11 bg-muted rounded-xl"></div>
-            <div className="h-11 bg-muted rounded-xl"></div>
-            <div className="h-11 bg-muted rounded-xl"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return null
 }
 
 export default function SignInPage() {
+
+  // Show loading state while redirecting
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="relative min-h-screen flex">
@@ -111,21 +75,26 @@ export default function SignInPage() {
           </div>
         </div>
         
-        {/* Right side - Sign In */}
+        {/* Right side - Loading */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-md">
-            {/* Mobile logo */}
-            <div className="lg:hidden text-center mb-8">
-              <Link href="/" className="inline-flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <span className="text-xl font-bold text-white">I</span>
+          <div className="w-full max-w-md text-center">
+            <Suspense fallback={
+              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
+                  <p className="text-muted-foreground mt-4">Loading...</p>
                 </div>
-                <span className="text-2xl font-bold text-foreground">InstantMed</span>
-              </Link>
-            </div>
-            
-            <Suspense fallback={<SignInLoading />}>
-              <SignInForm />
+              </div>
+            }>
+              <SignInRedirect />
+              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
+                  <p className="text-muted-foreground mt-4">Redirecting to sign in...</p>
+                </div>
+              </div>
             </Suspense>
             
             {/* Mobile trust strip */}

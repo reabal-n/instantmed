@@ -1,12 +1,31 @@
 "use client"
 
-import { SignUp } from '@clerk/nextjs'
+import { useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle, Star } from 'lucide-react'
 
 export const dynamic = "force-dynamic"
 
+function SignUpRedirect() {
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || '/'
+  
+  useEffect(() => {
+    // Build redirect URL with current origin
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
+    const fullRedirectUrl = redirectUrl.startsWith('http') ? redirectUrl : `${currentOrigin}${redirectUrl}`
+    
+    // Redirect to Clerk Account Portal
+    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(fullRedirectUrl)}`
+    window.location.href = accountPortalUrl
+  }, [redirectUrl])
+
+  return null
+}
+
 export default function SignUpPage() {
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated gradient background */}
@@ -35,33 +54,25 @@ export default function SignUpPage() {
               </Link>
             </div>
             
-            <SignUp 
-              signInUrl="/sign-in"
-              routing="path"
-              path="/sign-up"
-              appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  card: "shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl",
-                  headerTitle: "text-foreground",
-                  headerSubtitle: "text-muted-foreground",
-                  formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11",
-                  formFieldInput: "rounded-xl border-border focus:border-primary focus:ring-primary",
-                  footerActionLink: "text-primary hover:text-primary/80",
-                  dividerLine: "bg-border",
-                  dividerText: "text-muted-foreground",
-                  socialButtonsBlockButton: "border-border hover:bg-accent rounded-xl h-11 text-base",
-                  socialButtonsBlockButtonText: "text-foreground font-medium",
-                  identityPreviewEditButton: "text-primary",
-                  formFieldLabel: "text-foreground",
-                  footerActionText: "text-muted-foreground",
-                },
-                layout: {
-                  socialButtonsPlacement: "top",
-                  socialButtonsVariant: "blockButton",
-                }
-              }}
-            />
+            {/* Loading state while redirecting */}
+            <Suspense fallback={
+              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
+                  <p className="text-muted-foreground mt-4 text-center">Loading...</p>
+                </div>
+              </div>
+            }>
+              <SignUpRedirect />
+              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
+                  <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
+                  <p className="text-muted-foreground mt-4 text-center">Redirecting to sign up...</p>
+                </div>
+              </div>
+            </Suspense>
             
             {/* Mobile trust strip */}
             <div className="lg:hidden mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground">
