@@ -9,15 +9,20 @@ export const dynamic = "force-dynamic"
 
 function SignInRedirect() {
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || '/'
+  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
   
   useEffect(() => {
     // Build redirect URL with current origin
     const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
-    const fullRedirectUrl = redirectUrl.startsWith('http') ? redirectUrl : `${currentOrigin}${redirectUrl}`
     
-    // Redirect to Clerk Account Portal
-    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(fullRedirectUrl)}`
+    // Always redirect to /auth/callback after sign-in, which handles role-based redirects
+    // Pass the original redirect as a parameter so callback can use it
+    const callbackUrl = redirectUrl 
+      ? `${currentOrigin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`
+      : `${currentOrigin}/auth/callback`
+    
+    // Redirect to Clerk Account Portal with callback URL
+    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`
     window.location.href = accountPortalUrl
   }, [redirectUrl])
 

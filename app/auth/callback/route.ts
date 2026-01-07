@@ -74,17 +74,36 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}${redirectTo}?auth_success=true`)
     }
 
-    // Redirect based on role
+    // Redirect based on role - prioritize explicit redirect, then role-based dashboard
     if (finalProfile.role === "patient") {
-      if (!finalProfile.onboarding_completed && !redirectTo) {
-        return NextResponse.redirect(`${origin}/patient/onboarding`)
+      // If there's an explicit redirect, use it (unless onboarding is needed)
+      if (redirectTo && finalProfile.onboarding_completed) {
+        // Ensure redirect is a relative path
+        const redirectPath = redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`
+        return NextResponse.redirect(`${origin}${redirectPath}`)
       }
-      return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
-    } else if (finalProfile.role === "doctor") {
+      // Check onboarding status
+      if (!finalProfile.onboarding_completed) {
+        // If redirecting to onboarding, preserve the original redirect
+        const onboardingUrl = redirectTo 
+          ? `${origin}/patient/onboarding?redirect=${encodeURIComponent(redirectTo)}`
+          : `${origin}/patient/onboarding`
+        return NextResponse.redirect(onboardingUrl)
+      }
+      // Default to patient dashboard
+      return NextResponse.redirect(`${origin}/patient`)
+    } else if (finalProfile.role === "doctor" || finalProfile.role === "admin") {
+      // Doctors and admins go to doctor dashboard
+      // Only use explicit redirect if it's a doctor-specific route
+      if (redirectTo && (redirectTo.startsWith('/doctor') || redirectTo.startsWith('/admin'))) {
+        const redirectPath = redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`
+        return NextResponse.redirect(`${origin}${redirectPath}`)
+      }
       return NextResponse.redirect(`${origin}/doctor`)
     }
 
-    // Default fallback
+    // Default fallback - should rarely happen
+    log.warn("Unknown role, defaulting to patient dashboard", { role: finalProfile.role, userId: user.id })
     return NextResponse.redirect(redirectTo ? `${origin}${redirectTo}` : `${origin}/patient`)
   } catch (error) {
     log.error("Auth callback failed", {}, error)
