@@ -46,7 +46,7 @@ const healthPrograms = [
   {
     label: 'Weight Loss',
     href: '/weight-loss',
-    description: 'Ozempic & Saxenda',
+    description: 'Weight management consultation',
     icon: Scale,
     color: 'text-indigo-500',
   },

@@ -85,14 +85,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const price = getMedicationPrice(med)
 
   return {
-    title: `${med.name} Prescription Online Australia | ${med.brandNames[0] || med.name} | InstantMed`,
-    description: `Request ${med.name}${med.brandNames.length > 0 ? ` (${med.brandNames[0]})` : ""} prescription online. ${description} Reviewed by Australian doctors. From $${price}.`,
-    keywords: [
-      `${med.name.toLowerCase()} online`,
-      `${med.name.toLowerCase()} prescription australia`,
-      `${med.brandNames[0]?.toLowerCase() || med.name.toLowerCase()} online`,
-      `buy ${med.name.toLowerCase()} australia`,
-    ],
+    title: `${med.name} Information | InstantMed`,
+    description: `Learn about ${med.name}. Reviewed by Australian doctors.`,
+    robots: {
+      index: false,
+      follow: false,
+    },
   }
 }
 

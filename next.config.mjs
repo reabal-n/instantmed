@@ -29,6 +29,21 @@ const nextConfig = {
     }]
   },
   serverExternalPackages: ["@supabase/ssr"],
+  // Redirects for removed medication pages (Google Ads compliance)
+  async redirects() {
+    return [
+      {
+        source: "/medications",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/medications/:path*",
+        destination: "/",
+        permanent: true,
+      },
+    ];
+  },
   // PostHog reverse proxy rewrites
   async rewrites() {
     return [{

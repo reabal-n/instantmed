@@ -163,7 +163,7 @@ export const CONSULTATION_TYPES: ConsultationType[] = [
         options: [
           "Never tried",
           "Diet and exercise",
-          "Medication (e.g., Ozempic, Saxenda)",
+          "Weight management treatment",
           "Multiple approaches",
         ],
       },

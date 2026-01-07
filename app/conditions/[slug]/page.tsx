@@ -47,13 +47,13 @@ const conditions: Record<
     howWeHelp: [
       "Answer a few quick questions about your symptoms",
       "A doctor reviews your case (usually within 30 mins)",
-      "If appropriate, antibiotics are prescribed via e-script",
+      "If appropriate, treatment options are recommended",
       "Pick up from any pharmacy or get delivered",
     ],
     pricing: {
       name: "UTI Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/womens-health?condition=uti",
     ctaText: "Get UTI Treatment Now",
@@ -68,7 +68,7 @@ const conditions: Record<
     faqs: [
       {
         q: "Can you prescribe antibiotics for a UTI online?",
-        a: "Yes — if your symptoms are consistent with a straightforward UTI and you don&apos;t have any red flags, our doctors can prescribe appropriate antibiotics via e-script.",
+        a: "Yes — if your symptoms are consistent with a straightforward UTI and you don&apos;t have any red flags, our doctors can recommend appropriate treatment options.",
       },
       {
         q: "How quickly will I feel better?",
@@ -88,11 +88,11 @@ const conditions: Record<
   acne: {
     name: "Acne",
     slug: "acne",
-    title: "Acne Treatment Online Australia | Prescription Skincare | InstantMed",
-    h1: "Acne Treatment Online — Prescription-Strength Solutions",
+    title: "Acne Treatment Online Australia | InstantMed",
+    h1: "Acne Treatment Online — Doctor-Reviewed Solutions",
     description:
-      "Get effective acne treatment online. Australian doctors can prescribe retinoids, antibiotics, and prescription skincare. No waiting rooms.",
-    heroSubhead: "Tried everything from the chemist? It might be time for prescription-strength treatment.",
+      "Get effective acne treatment online. Australian doctors can recommend clinically appropriate treatment options. No waiting rooms.",
+    heroSubhead: "Tried everything from the chemist? It might be time for doctor-reviewed treatment options.",
     symptoms: [
       "Pimples, blackheads, or whiteheads",
       "Red or inflamed skin",
@@ -103,13 +103,13 @@ const conditions: Record<
     howWeHelp: [
       "Share photos and describe your skin concerns",
       "A doctor assesses your acne type and severity",
-      "Prescription treatment prescribed if appropriate",
+      "Treatment options recommended if appropriate",
       "Follow-up available to adjust treatment",
     ],
     pricing: {
       name: "Acne Consultation",
       price: "$34.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=acne",
     ctaText: "Start Acne Treatment",
@@ -130,7 +130,7 @@ const conditions: Record<
       },
       {
         q: "How long until I see results?",
-        a: "Most prescription acne treatments take 6-12 weeks to show significant improvement. Some treatments may cause initial purging before improvement.",
+        a: "Most doctor-reviewed acne treatments take 6-12 weeks to show significant improvement. Some treatments may cause initial purging before improvement.",
       },
     ],
     relatedConditions: ["eczema"],
@@ -138,10 +138,10 @@ const conditions: Record<
   eczema: {
     name: "Eczema",
     slug: "eczema",
-    title: "Eczema Treatment Online Australia | Prescription Creams | InstantMed",
+    title: "Eczema Treatment Online Australia | InstantMed",
     h1: "Eczema Treatment Online — Stop the Itch",
     description:
-      "Get eczema treatment online in Australia. Prescription steroid creams and moisturising advice from Australian doctors.",
+      "Get eczema treatment online in Australia. Doctor-reviewed treatment options and moisturising advice from Australian doctors.",
     heroSubhead: "Itchy, red, cracked skin? Let&apos;s get you some relief without the wait.",
     symptoms: [
       "Itchy, dry, or cracked skin",
@@ -159,7 +159,7 @@ const conditions: Record<
     pricing: {
       name: "Eczema Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=eczema",
     ctaText: "Get Eczema Treatment",
@@ -184,10 +184,10 @@ const conditions: Record<
   "hay-fever": {
     name: "Hay Fever",
     slug: "hay-fever",
-    title: "Hay Fever Treatment Online Australia | Prescription Relief | InstantMed",
+    title: "Hay Fever Treatment Online Australia | InstantMed",
     h1: "Hay Fever Treatment Online — Breathe Easy",
     description:
-      "Get prescription hay fever treatment online. Stronger antihistamines and nasal sprays when over-the-counter options fail.",
+      "Get hay fever treatment online. Doctor-reviewed treatment options when over-the-counter options fail.",
     heroSubhead: "Sneezing, itchy eyes, runny nose? When the chemist stuff isn&apos;t cutting it, we can help.",
     symptoms: [
       "Sneezing fits",
@@ -199,13 +199,13 @@ const conditions: Record<
     howWeHelp: [
       "Tell us about your symptoms and what you have tried",
       "Doctor recommends appropriate treatment",
-      "Prescription issued if needed",
+      "Treatment plan issued if needed",
       "Advice on reducing exposure",
     ],
     pricing: {
       name: "Hay Fever Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=hayfever",
     ctaText: "Get Hay Fever Relief",
@@ -217,12 +217,12 @@ const conditions: Record<
     ],
     faqs: [
       {
-        q: "What prescription options are available?",
-        a: "Stronger antihistamines, prescription nasal corticosteroid sprays, and eye drops. For severe cases, short courses of oral steroids may be considered.",
+        q: "What treatment options are available?",
+        a: "Our doctors can recommend stronger antihistamines, nasal sprays, and eye drops. For severe cases, additional treatment options may be considered.",
       },
       {
-        q: "Why prescription when there's stuff at the chemist?",
-        a: "Prescription options are often stronger and more targeted. Some people also benefit from combining treatments in ways that require medical guidance.",
+        q: "Why see a doctor when there's stuff at the chemist?",
+        a: "Doctor-reviewed treatment options are often stronger and more targeted. Some people also benefit from combining treatments in ways that require medical guidance.",
       },
     ],
     relatedConditions: ["sinus-infection", "cold-and-flu"],
@@ -233,7 +233,7 @@ const conditions: Record<
     title: "Acid Reflux Treatment Online Australia | Heartburn Relief | InstantMed",
     h1: "Acid Reflux Treatment Online — Settle Your Stomach",
     description:
-      "Get acid reflux and heartburn treatment online. Prescription PPIs and advice from Australian doctors.",
+      "Get acid reflux and heartburn treatment online. Doctor-reviewed treatment options and advice from Australian doctors.",
     heroSubhead: "Heartburn keeping you up at night? Constant burping and discomfort? Let&apos;s sort it.",
     symptoms: [
       "Burning sensation in chest (heartburn)",
@@ -245,13 +245,13 @@ const conditions: Record<
     howWeHelp: [
       "Describe your symptoms and triggers",
       "Doctor assesses and recommends treatment",
-      "Prescription issued if appropriate",
+      "Treatment plan issued if appropriate",
       "Lifestyle modification advice",
     ],
     pricing: {
       name: "Acid Reflux Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=reflux",
     ctaText: "Get Reflux Treatment",
@@ -264,7 +264,7 @@ const conditions: Record<
     ],
     faqs: [
       {
-        q: "What medications can you prescribe?",
+        q: "What treatment options are available?",
         a: "Proton pump inhibitors (PPIs) like omeprazole, esomeprazole, and pantoprazole. Also H2 blockers like ranitidine for milder cases.",
       },
       {
@@ -277,11 +277,11 @@ const conditions: Record<
   "high-blood-pressure": {
     name: "High Blood Pressure",
     slug: "high-blood-pressure",
-    title: "Blood Pressure Medication Online Australia | Repeat Scripts | InstantMed",
-    h1: "Blood Pressure Medication Online — Easy Repeats",
+    title: "Blood Pressure Consultation Online Australia | InstantMed",
+    h1: "Blood Pressure Consultation Online — Easy Repeats",
     description:
-      "Get your blood pressure medication renewed online. For stable patients on existing treatment. Australian doctors.",
-    heroSubhead: "Already on BP medication and need a repeat? We can help — no need to take time off work.",
+      "Get your blood pressure treatment renewed online. For stable patients on existing treatment. Australian doctors.",
+    heroSubhead: "Already on BP treatment and need a repeat? We can help — no need to take time off work.",
     symptoms: [
       "Usually no symptoms (silent condition)",
       "Headaches in severe cases",
@@ -290,20 +290,20 @@ const conditions: Record<
       "Dizziness",
     ],
     howWeHelp: [
-      "Confirm your current medication and dose",
+      "Confirm your current treatment and dose",
       "Provide recent BP readings if available",
       "Doctor reviews and issues repeat",
-      "E-script sent to your phone",
+      "Treatment plan sent to your phone",
     ],
     pricing: {
-      name: "Repeat Prescription",
+      name: "Repeat Request",
       price: "$29.95",
-      description: "For stable patients on existing medication",
+      description: "For stable patients on existing treatment",
     },
     ctaHref: "/prescriptions?category=blood-pressure",
-    ctaText: "Get Repeat Script",
+    ctaText: "Get Repeat Request",
     whenToSeeGP: [
-      "Starting blood pressure medication for first time",
+      "Starting blood pressure treatment for first time",
       "BP not well controlled",
       "Experiencing side effects",
       "Due for annual review",
@@ -311,12 +311,12 @@ const conditions: Record<
     ],
     faqs: [
       {
-        q: "Can I start BP medication online?",
+        q: "Can I start BP treatment online?",
         a: "For new diagnoses, we'd recommend seeing a GP in person for proper assessment including physical examination. We're best for stable repeats.",
       },
       {
         q: "What if my BP has changed?",
-        a: "If your readings have changed significantly, the doctor may recommend seeing your regular GP for medication adjustment.",
+        a: "If your readings have changed significantly, the doctor may recommend seeing your regular GP for treatment adjustment.",
       },
     ],
     relatedConditions: ["high-cholesterol"],
@@ -324,10 +324,10 @@ const conditions: Record<
   "high-cholesterol": {
     name: "High Cholesterol",
     slug: "high-cholesterol",
-    title: "Cholesterol Medication Online Australia | Statin Repeats | InstantMed",
-    h1: "Cholesterol Medication Online — Simple Repeats",
+    title: "Cholesterol Consultation Online Australia | InstantMed",
+    h1: "Cholesterol Consultation Online — Simple Repeats",
     description:
-      "Get your cholesterol medication renewed online. For stable patients on statins. Quick and convenient.",
+      "Get your cholesterol treatment renewed online. For stable patients on existing treatment. Quick and convenient.",
     heroSubhead: "On statins and need a repeat? We've got you covered.",
     symptoms: [
       "Usually no symptoms",
@@ -336,20 +336,20 @@ const conditions: Record<
       "Family history important",
     ],
     howWeHelp: [
-      "Confirm current medication and dose",
+      "Confirm current treatment and dose",
       "Review recent lipid results if available",
-      "Doctor issues repeat prescription",
-      "E-script sent to your phone if approved",
+      "Doctor reviews and issues treatment plan",
+      "Treatment plan sent to your phone if approved",
     ],
     pricing: {
-      name: "Repeat Prescription",
+      name: "Repeat Request",
       price: "$29.95",
-      description: "For stable patients on existing medication",
+      description: "For stable patients on existing treatment",
     },
     ctaHref: "/prescriptions?category=cholesterol",
-    ctaText: "Get Repeat Script",
+    ctaText: "Get Repeat Request",
     whenToSeeGP: [
-      "Starting cholesterol medication",
+      "Starting cholesterol treatment",
       "Due for blood tests",
       "Experiencing muscle pain",
       "Other health conditions",
@@ -357,7 +357,7 @@ const conditions: Record<
     faqs: [
       {
         q: "Can you prescribe statins without blood tests?",
-        a: "For repeats of existing medication, recent bloods help but may not always be required. New prescriptions typically need lipid panel results.",
+        a: "For repeats of existing treatment, recent bloods help but may not always be required. New treatment requests typically need lipid panel results.",
       },
     ],
     relatedConditions: ["high-blood-pressure"],
@@ -368,7 +368,7 @@ const conditions: Record<
     title: "Erectile Dysfunction Treatment Online Australia | Discreet | InstantMed",
     h1: "ED Treatment Online — Discreet and Confidential",
     description:
-      "Get erectile dysfunction treatment online in Australia. Viagra, Cialis and alternatives prescribed discreetly by Australian doctors.",
+      "Get erectile dysfunction treatment online in Australia. Doctor-reviewed treatment options available discreetly from Australian doctors.",
     heroSubhead:
       "Not performing like you used to? No awkward conversations — just effective treatment, delivered discreetly.",
     symptoms: [
@@ -380,13 +380,13 @@ const conditions: Record<
     howWeHelp: [
       "Answer confidential health questions",
       "Doctor reviews and recommends treatment",
-      "Prescription issued if safe and appropriate",
+      "Treatment plan issued if safe and appropriate",
       "Discreet packaging available",
     ],
     pricing: {
       name: "ED Consultation",
       price: "$34.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/mens-health?condition=ed",
     ctaText: "Get ED Treatment",
@@ -398,16 +398,16 @@ const conditions: Record<
     ],
     faqs: [
       {
-        q: "What ED medications can you prescribe?",
-        a: "Sildenafil (Viagra), tadalafil (Cialis), and vardenafil (Levitra). The doctor will recommend the most appropriate option based on your needs.",
+        q: "What treatment options are available?",
+        a: "Our doctors can recommend clinically appropriate treatment options based on your health assessment. The doctor will discuss the most suitable approach for your individual needs.",
       },
       {
-        q: "Is it safe to buy ED medication online?",
-        a: "Yes, when prescribed by a registered doctor after proper assessment. We never sell medication without a prescription.",
+        q: "Is it safe to get treatment online?",
+        a: "Yes, when reviewed by a registered doctor after proper assessment. All consultations are conducted by AHPRA-registered Australian doctors.",
       },
       {
-        q: "What about the generic versions?",
-        a: "Generic versions are equally effective and more affordable. They contain the same active ingredient.",
+        q: "How does the consultation process work?",
+        a: "You complete a confidential health questionnaire, which is reviewed by an Australian doctor. If appropriate, treatment options are discussed and recommended.",
       },
     ],
     relatedConditions: ["hair-loss"],
@@ -415,10 +415,10 @@ const conditions: Record<
   "hair-loss": {
     name: "Hair Loss",
     slug: "hair-loss",
-    title: "Hair Loss Treatment Online Australia | Finasteride & Minoxidil | InstantMed",
+    title: "Hair Loss Treatment Online Australia | InstantMed",
     h1: "Hair Loss Treatment Online — Keep What You Have",
     description:
-      "Get hair loss treatment online. Finasteride, minoxidil, and combination treatments prescribed by Australian doctors.",
+      "Get hair loss treatment online. Doctor-reviewed treatment options available from Australian doctors.",
     heroSubhead: "Noticing more hair in the drain? The earlier you act, the better the results.",
     symptoms: [
       "Receding hairline",
@@ -436,7 +436,7 @@ const conditions: Record<
     pricing: {
       name: "Hair Loss Consultation",
       price: "$34.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/mens-health?condition=hairloss",
     ctaText: "Start Hair Treatment",
@@ -449,7 +449,7 @@ const conditions: Record<
     faqs: [
       {
         q: "Does hair loss treatment actually work?",
-        a: "Yes — finasteride stops further loss in about 90% of men and regrows hair in about 65%. Results are best when started early.",
+        a: "Yes — clinically proven treatments can help stop further loss and promote regrowth in many men. Results are best when started early, before significant loss has occurred.",
       },
       {
         q: "What about side effects?",
@@ -461,41 +461,41 @@ const conditions: Record<
   contraception: {
     name: "Contraception",
     slug: "contraception",
-    title: "Contraceptive Pill Online Australia | Birth Control | InstantMed",
-    h1: "Contraceptive Pill Online — Easy Repeats",
+    title: "Contraception Consultation Online Australia | Birth Control | InstantMed",
+    h1: "Contraception Consultation Online — Easy Repeats",
     description:
-      "Get your contraceptive pill renewed online. For women already on the pill who need a repeat prescription.",
-    heroSubhead: "Running low on the pill? Get your repeat sorted without the hassle.",
+      "Get your contraception renewed online. For women already on existing treatment who need a repeat request.",
+    heroSubhead: "Running low? Get your repeat sorted without the hassle.",
     symptoms: [
       "Need to prevent pregnancy",
-      "Already on contraceptive pill",
-      "Need repeat prescription",
+      "Already on contraception",
+      "Need repeat request",
       "May also help with period pain or acne",
     ],
     howWeHelp: [
-      "Confirm your current pill and health history",
+      "Confirm your current treatment and health history",
       "Doctor reviews and issues repeat",
-      "E-script sent to your phone",
+      "Treatment plan sent to your phone",
       "Pick up from any pharmacy",
     ],
-    pricing: { name: "Contraception Repeat", price: "$29.95", description: "For women already on the pill" },
+    pricing: { name: "Contraception Repeat", price: "$29.95", description: "For women already on existing treatment" },
     ctaHref: "/womens-health?condition=contraception",
-    ctaText: "Get Pill Repeat",
+    ctaText: "Get Repeat Request",
     whenToSeeGP: [
-      "Starting the pill for first time",
-      "Wanting to change pill type",
+      "Starting contraception for first time",
+      "Wanting to change treatment type",
       "Experiencing side effects",
       "Over 35 and smoking",
       "History of blood clots",
     ],
     faqs: [
       {
-        q: "Can I start the pill online?",
-        a: "For first-time users, we'd recommend seeing a GP in person to discuss options and check blood pressure. We're great for repeats of existing prescriptions.",
+        q: "Can I start contraception online?",
+        a: "For first-time users, we'd recommend seeing a GP in person to discuss options and check blood pressure. We're great for repeats of existing treatment.",
       },
       {
-        q: "Can you prescribe any pill?",
-        a: "We can prescribe most combined and progesterone-only pills. The doctor will confirm your current pill is still appropriate.",
+        q: "What treatment options are available?",
+        a: "Our doctors can recommend most combined and progesterone-only options. The doctor will confirm your current treatment is still appropriate.",
       },
     ],
     relatedConditions: ["uti", "thrush"],
@@ -503,10 +503,10 @@ const conditions: Record<
   "weight-loss": {
     name: "Weight Loss",
     slug: "weight-loss",
-    title: "Weight Loss Medication Online Australia | Ozempic, Saxenda | InstantMed",
-    h1: "Weight Loss Medication Online — Medical Support",
+    title: "Weight Loss Consultation Online Australia | InstantMed",
+    h1: "Weight Loss Consultation Online — Medical Support",
     description:
-      "Get weight loss medication like Ozempic and Saxenda prescribed online. Includes eligibility assessment and ongoing support.",
+      "Get weight loss consultation online. Includes eligibility assessment and ongoing support from Australian doctors.",
     heroSubhead: "Struggling to shift the weight despite your best efforts? Medical options may help.",
     symptoms: [
       "BMI over 30",
@@ -517,7 +517,7 @@ const conditions: Record<
     howWeHelp: [
       "Complete eligibility assessment",
       "Doctor reviews your health history",
-      "If appropriate, medication prescribed",
+      "If appropriate, treatment plan recommended",
       "Ongoing monitoring and support",
     ],
     pricing: { name: "Weight Loss Consultation", price: "$49.95", description: "Includes comprehensive assessment" },
@@ -531,12 +531,12 @@ const conditions: Record<
     ],
     faqs: [
       {
-        q: "Can you prescribe Ozempic for weight loss?",
-        a: "We can prescribe semaglutide (Ozempic/Wegovy) for eligible patients. You must meet BMI criteria and have no contraindications.",
+        q: "What treatment options are available?",
+        a: "Our doctors can recommend clinically appropriate treatment options for eligible patients. You must meet BMI criteria and have no contraindications. The doctor will discuss suitable options during your consultation.",
       },
       {
         q: "How much weight can I expect to lose?",
-        a: "Clinical trials show average weight loss of 15-20% of body weight over 12-18 months with GLP-1 medications combined with lifestyle changes.",
+        a: "Clinical trials show average weight loss of 15-20% of body weight over 12-18 months with doctor-reviewed treatment options combined with lifestyle changes.",
       },
     ],
     relatedConditions: ["high-blood-pressure", "high-cholesterol"],
@@ -596,13 +596,13 @@ const conditions: Record<
     howWeHelp: [
       "Describe your symptoms and duration",
       "Doctor assesses if antibiotics needed",
-      "Prescription issued if appropriate",
+      "Treatment plan issued if appropriate",
       "Advice on symptom relief",
     ],
     pricing: {
       name: "Sinus Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=sinus",
     ctaText: "Get Sinus Treatment",
@@ -645,7 +645,7 @@ const conditions: Record<
     pricing: {
       name: "Eye Consultation",
       price: "$29.95",
-      description: "Includes assessment and prescription if appropriate",
+      description: "Includes assessment and treatment recommendation if appropriate",
     },
     ctaHref: "/prescriptions/request?condition=conjunctivitis",
     ctaText: "Get Eye Treatment",
@@ -674,7 +674,7 @@ const conditions: Record<
     title: "Thrush Treatment Online Australia | Candida | InstantMed",
     h1: "Thrush Treatment Online — Quick and Discreet",
     description:
-      "Get thrush treatment online. Prescription antifungal medication for vaginal or oral thrush from Australian doctors.",
+      "Get thrush treatment online. Doctor-reviewed treatment options for vaginal or oral thrush from Australian doctors.",
     heroSubhead: "Itching, burning, cottage cheese discharge? Let&apos;s get you comfortable again.",
     symptoms: [
       "Itching and irritation",
@@ -689,7 +689,7 @@ const conditions: Record<
       "Antifungal treatment prescribed",
       "Advice on prevention",
     ],
-    pricing: { name: "Thrush Consultation", price: "$29.95", description: "Includes assessment and prescription" },
+    pricing: { name: "Thrush Consultation", price: "$29.95", description: "Includes assessment and treatment recommendation" },
     ctaHref: "/womens-health?condition=thrush",
     ctaText: "Get Thrush Treatment",
     whenToSeeGP: [

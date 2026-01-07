@@ -31,7 +31,7 @@ const conditions: Condition[] = [
     id: "weight-loss",
     icon: "⚖️",
     name: "Weight Loss",
-    tagline: "Ozempic, Saxenda, the works.",
+    tagline: "Doctor-led weight management support.",
     price: "$149",
     href: "/weight-loss",
     color: "#10B981",

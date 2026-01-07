@@ -548,18 +548,18 @@ export const intentPages: IntentPage[] = [
   {
     slug: 'hair-loss-treatment-online',
     type: 'intent',
-    title: 'Hair Loss Treatment Online Australia | Finasteride & Minoxidil | InstantMed',
-    description: 'Get hair loss treatment online from Australian doctors. Finasteride prescriptions for men, minoxidil guidance for all. From $34.95.',
+    title: 'Hair Loss Treatment Online Australia | InstantMed',
+    description: 'Get hair loss treatment online from Australian doctors. Doctor-reviewed treatment options available. From $34.95.',
     h1: 'Hair Loss Treatment Online — Stop Thinning, Start Regrowing',
     content: {
-      intro: 'Experiencing hair thinning or male pattern baldness? Get evidence-based hair loss treatment online. Our Australian doctors can prescribe finasteride for men and provide guidance on minoxidil for anyone experiencing pattern hair loss.',
+      intro: 'Experiencing hair thinning or male pattern baldness? Get evidence-based hair loss treatment online. Our Australian doctors can recommend clinically appropriate treatment options for anyone experiencing pattern hair loss.',
       uniqueBlocks: [
         {
           id: 'treatment-options',
           type: 'list',
           content: [
-            'Finasteride (men only): Oral medication that blocks DHT. Stops loss in 90%, regrows hair in 65%.',
-            'Minoxidil (men & women): Topical treatment. Improves blood flow to follicles. Available OTC.',
+            'Oral treatment options (men): Doctor-reviewed options that can help slow hair loss and promote regrowth.',
+            'Topical treatment options (men & women): Doctor-reviewed options that can improve hair growth.',
             'Combination therapy: Many men use both together for best results.',
             'Works best when started early, before significant loss',
             'Results take 6-12 months — hair grows slowly',
@@ -568,7 +568,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'online-process',
           type: 'text',
-          content: 'Complete a quick questionnaire about your hair loss pattern, health history, and expectations. Upload photos of your hair (top and crown views helpful). Our doctor reviews and assesses whether treatment is appropriate. If suitable, an e-script for finasteride is sent to your phone, or we provide guidance on obtaining minoxidil over-the-counter.',
+          content: 'Complete a quick questionnaire about your hair loss pattern, health history, and expectations. Upload photos of your hair (top and crown views helpful). Our doctor reviews and assesses whether treatment is appropriate. If suitable, treatment options are discussed and recommended.',
         },
         {
           id: 'realistic-expectations',
@@ -580,7 +580,7 @@ export const intentPages: IntentPage[] = [
     metadata: {
       keywords: [
         'hair loss treatment online',
-        'finasteride online australia',
+        'hair loss treatment online australia',
         'hair loss doctor online',
         'male pattern baldness treatment',
         'online hair loss prescription',
@@ -590,12 +590,12 @@ export const intentPages: IntentPage[] = [
     structured: {
       faqs: [
         {
-          question: 'Can I get finasteride prescribed online?',
-          answer: 'Yes — our Australian doctors can prescribe finasteride online after assessing your suitability. We discuss how it works, potential side effects, and realistic expectations before prescribing.',
+          question: 'Can I get hair loss treatment online?',
+          answer: 'Yes — our Australian doctors can recommend clinically appropriate treatment options online after assessing your suitability. We discuss how treatment works, potential considerations, and realistic expectations.',
         },
         {
           question: 'Do hair loss treatments really work?',
-          answer: 'Yes — finasteride and minoxidil are proven effective. Finasteride stops further loss in ~90% of men and regrows hair in ~65%. Minoxidil works for about 60% of users. Results vary, but most people see some benefit.',
+          answer: 'Yes — clinically proven treatments can help slow hair loss and promote regrowth. Results vary, but many people see benefit when treatment is started early and used consistently.',
         },
         {
           question: 'How long until I see results?',
@@ -605,19 +605,18 @@ export const intentPages: IntentPage[] = [
     },
     links: {
       related: [
-        { type: 'medication', slug: 'finasteride', title: 'Finasteride Information' },
-        { type: 'medication', slug: 'minoxidil', title: 'Minoxidil Information' },
+        { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment' },
         { type: 'symptom', slug: 'hair-thinning', title: 'Hair Thinning Causes' },
       ],
     },
     intent: {
       searchQuery: 'hair loss treatment online',
       alternateQueries: [
-        'finasteride online',
+        'hair loss treatment online',
         'hair loss doctor online',
         'male pattern baldness treatment',
         'online hair loss prescription',
-        'propecia online',
+        'hair loss treatment online',
       ],
       userNeed: 'Get prescription hair loss treatment conveniently',
       urgency: 'flexible',

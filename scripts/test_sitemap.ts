@@ -4,7 +4,6 @@
  */
 
 import { getAllSlugs } from "../lib/seo/pages"
-import { getAllMedicationSlugs } from "../lib/seo/medications"
 import { getAllIntentSlugs } from "../lib/seo/intents"
 import { getAllSymptomSlugs } from "../lib/seo/symptoms"
 import { getAllComparisonSlugs } from "../lib/seo/comparisons"
@@ -15,10 +14,6 @@ try {
   const conditionSlugs = getAllSlugs("conditions")
   console.log(`✅ getAllSlugs('conditions'): ${conditionSlugs.length} slugs`)
   console.log(`   First 3: ${conditionSlugs.slice(0, 3).join(", ")}`)
-
-  const medicationSlugs = getAllMedicationSlugs()
-  console.log(`✅ getAllMedicationSlugs(): ${medicationSlugs.length} slugs`)
-  console.log(`   First 3: ${medicationSlugs.slice(0, 3).join(", ")}`)
 
   const intentSlugs = getAllIntentSlugs()
   console.log(`✅ getAllIntentSlugs(): ${intentSlugs.length} slugs`)

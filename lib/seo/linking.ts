@@ -9,7 +9,6 @@
  * - Builds contextual navigation
  */
 
-import { medications, getMedicationsByCategory } from './medications'
 import { intentPages } from './intents'
 import type { RelatedLink, PageType } from './registry'
 
@@ -94,47 +93,12 @@ function findRelatedContent(
 ): RelatedLink[] {
   const links: RelatedLink[] = []
 
-  // If medication page, show:
-  // - Other medications in same category
-  // - Related conditions
-  if (current.type === 'medication') {
-    const currentMed = medications.find(m => m.slug === current.slug)
-    if (currentMed) {
-      // Same category medications
-      const sameCategoryMeds = getMedicationsByCategory(currentMed.medication.category)
-        .filter(m => m.slug !== current.slug)
-        .slice(0, 3)
-        .map(m => ({
-          type: 'medication' as const,
-          slug: m.slug,
-          title: m.medication.genericName,
-          description: m.clinicalInfo.uses[0],
-        }))
-      links.push(...sameCategoryMeds)
-
-      // Related conditions (if we have the data)
-      // TODO: Add condition relationships
-    }
-  }
+  // Medication pages removed for Google Ads compliance
 
   // If condition page, show:
-  // - Related conditions
-  // - Relevant medications
+    // - Related conditions
   if (current.type === 'condition') {
     // TODO: Implement condition relationships
-    // For now, show medications that treat this condition
-    const relevantMeds = medications
-      .filter(m => m.clinicalInfo.uses.some(use =>
-        use.toLowerCase().includes(current.slug.replace(/-/g, ' '))
-      ))
-      .slice(0, 3)
-      .map(m => ({
-        type: 'medication' as const,
-        slug: m.slug,
-        title: m.medication.genericName,
-        description: `Treatment option for ${current.slug.replace(/-/g, ' ')}`,
-      }))
-    links.push(...relevantMeds)
   }
 
   // If intent page, show:
@@ -173,15 +137,7 @@ function findNextSteps(
 ): RelatedLink[] {
   const steps: RelatedLink[] = []
 
-  // Medication page → How to get it
-  if (current.type === 'medication') {
-    steps.push({
-      type: 'category',
-      slug: 'prescriptions',
-      title: 'Request This Medication',
-      description: 'Start online consultation',
-    })
-  }
+  // Medication pages removed for Google Ads compliance
 
   // Condition page → Treatment options
   if (current.type === 'condition') {
@@ -238,27 +194,7 @@ function findPeopleAlsoSearch(
 ): RelatedLink[] {
   const searches: RelatedLink[] = []
 
-  // Medication → Related search intents
-  if (current.type === 'medication') {
-    const med = medications.find(m => m.slug === current.slug)
-    if (med) {
-      // Find intent pages that mention this medication
-      const relatedIntents = intentPages
-        .filter(p =>
-          p.intent.alternateQueries.some(q =>
-            q.includes(med.medication.genericName.toLowerCase())
-          )
-        )
-        .slice(0, 3)
-        .map(p => ({
-          type: 'intent' as const,
-          slug: p.slug,
-          title: p.intent.searchQuery,
-          description: p.intent.userNeed,
-        }))
-      searches.push(...relatedIntents)
-    }
-  }
+  // Medication pages removed for Google Ads compliance
 
   // Condition → Related intents
   if (current.type === 'condition') {
@@ -291,25 +227,7 @@ function findOtherTreatments(
 ): RelatedLink[] {
   const treatments: RelatedLink[] = []
 
-  // Show medications in different categories
-  if (current.type === 'medication' || current.type === 'condition') {
-    const categories = ['mens-health', 'womens-health', 'sexual-health', 'general']
-    
-    for (const category of categories) {
-      const categoryMeds = getMedicationsByCategory(category)
-      if (categoryMeds.length > 0) {
-        const med = categoryMeds[0]
-        treatments.push({
-          type: 'medication',
-          slug: med.slug,
-          title: med.medication.genericName,
-          description: `${category.replace('-', ' ')} treatment`,
-        })
-      }
-      
-      if (treatments.length >= maxLinks) break
-    }
-  }
+  // Medication pages removed for Google Ads compliance
 
   return treatments.slice(0, maxLinks)
 }
@@ -371,7 +289,7 @@ export function generateBreadcrumbs(
   ]
 
   const typeMap: Record<PageType, { name: string; url: string }> = {
-    medication: { name: 'Medications', url: '/medications' },
+    medication: { name: 'Services', url: '/' }, // Medication pages removed, redirect to home
     condition: { name: 'Conditions', url: '/conditions' },
     'category-hub': { name: 'Health Services', url: '/' },
     audience: { name: 'Who We Help', url: '/for' },

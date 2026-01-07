@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next"
 import { getAllSlugs } from "@/lib/seo/pages"
-import { getAllMedicationSlugs } from "@/lib/seo/medications"
 import { getAllIntentSlugs } from "@/lib/seo/intents"
 import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
 import { getAllComparisonSlugs } from "@/lib/seo/comparisons"
@@ -44,14 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  // Medications (13 pages now)
-  const medicationSlugs = getAllMedicationSlugs()
-  const medicationRoutes = medicationSlugs.map((slug) => ({
-    url: `${baseUrl}/medications/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.8, // Higher priority - high purchase intent
-  }))
+  // Medications pages removed for Google Ads compliance
 
   // Intent pages (13 pages now)
   const intentSlugs = getAllIntentSlugs()
@@ -130,7 +122,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...routes,
     ...conditionRoutes,
-    ...medicationRoutes,
     ...intentRoutes,
     ...symptomRoutes,
     ...comparisonRoutes,

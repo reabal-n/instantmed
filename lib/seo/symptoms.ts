@@ -181,7 +181,7 @@ export const symptomPages: SymptomPage[] = [
     slug: 'hair-thinning',
     type: 'symptom',
     title: 'Hair Thinning | Causes, Treatment Options | InstantMed',
-    description: 'Noticing hair thinning or loss? Learn about male and female pattern hair loss, treatment options like finasteride and minoxidil, and when to see a specialist.',
+    description: 'Noticing hair thinning or loss? Learn about male and female pattern hair loss, treatment options, and when to see a specialist.',
     h1: 'Hair Thinning — Causes & Treatment Options',
     content: {
       intro: 'Hair thinning is incredibly common — affecting about 50% of men by age 50 and many women, especially after menopause. While it can be distressing, several treatments can slow or reverse hair loss if started early.',
@@ -200,9 +200,9 @@ export const symptomPages: SymptomPage[] = [
           id: 'treatment-options',
           type: 'list',
           content: [
-            'Finasteride (men): Oral medication that blocks DHT. Stops loss in 90%, regrows hair in 65%.',
-            'Minoxidil (men & women): Topical solution. Improves blood flow to follicles. Works for both genders.',
-            'Dutasteride (men): Stronger DHT blocker. For cases where finasteride isn\'t effective enough.',
+            'Oral treatment options (men): Doctor-reviewed options that can help slow hair loss and promote regrowth.',
+            'Topical treatment options (men & women): Doctor-reviewed options that can improve hair growth.',
+            'Combination approaches: Some people benefit from using multiple treatment approaches together.',
             'Spironolactone (women): For women with hormonal hair loss (PCOS, etc.).',
             'PRP injections: Platelet-rich plasma. Growing evidence for effectiveness.',
           ],
@@ -232,7 +232,7 @@ export const symptomPages: SymptomPage[] = [
         },
         {
           question: 'Do hair loss treatments work?',
-          answer: 'Yes — finasteride stops further loss in about 90% of men and regrows hair in 65%. Minoxidil works for both men and women. Results take 6-12 months. Treatment must be continued to maintain benefits.',
+          answer: 'Yes — clinically proven treatments can help slow hair loss and promote regrowth. Results take 6-12 months. Treatment must be continued to maintain benefits.',
         },
         {
           question: 'Can stress cause hair loss?',
@@ -243,7 +243,7 @@ export const symptomPages: SymptomPage[] = [
     links: {
       related: [
         { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment Options' },
-        { type: 'medication', slug: 'finasteride', title: 'Finasteride for Hair Loss' },
+        { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment' },
         { type: 'category', slug: 'mens-health', title: "Men's Health Services" },
       ],
     },
@@ -299,14 +299,14 @@ export const symptomPages: SymptomPage[] = [
     onlineTreatment: {
       canHelpWith: [
         'Male pattern hair loss (androgenetic alopecia)',
-        'Want to try finasteride or minoxidil',
+        'Want to explore treatment options',
         'Stable health, no major medical issues',
         'Looking for convenient prescription access',
       ],
       whatWeOffer: [
         'Assessment of hair loss pattern',
-        'Prescription for finasteride (men) if appropriate',
-        'Advice on minoxidil use (over-the-counter)',
+        'Treatment recommendations if appropriate',
+        'Guidance on treatment options',
         'Realistic expectations about results and timeline',
         'Follow-up available to track progress',
       ],
