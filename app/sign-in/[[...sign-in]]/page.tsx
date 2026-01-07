@@ -14,6 +14,8 @@ function SignInForm() {
         signUpUrl="/sign-up"
         routing="path"
         path="/sign-in"
+        fallbackRedirectUrl="/"
+        signInFallbackRedirectUrl="/"
         appearance={{
           elements: {
             rootBox: "w-full",
@@ -30,6 +32,8 @@ function SignInForm() {
             identityPreviewEditButton: "text-primary",
             formFieldLabel: "text-foreground",
             footerActionText: "text-muted-foreground",
+            formFieldInputShowPasswordButton: "text-muted-foreground hover:text-foreground",
+            formFieldInputShowPasswordIcon: "text-muted-foreground",
           },
           layout: {
             socialButtonsPlacement: "top",
