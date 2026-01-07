@@ -68,73 +68,74 @@ export default function PricingPage() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
-          <div className="hero-orb hero-orb-mint w-[500px] h-[500px] -top-[200px] left-1/2 -translate-x-1/2 opacity-40" />
-
-          <div className="relative mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 badge-premium text-[#2563EB] text-sm font-medium spacing-premium">Simple pricing</Badge>
-            <h1
-              className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl animate-fade-in-up opacity-0"
-              style={{ animationDelay: "0.1s", animationFillMode: "forwards", fontFamily: "var(--font-display)" }}
-            >
-              Pay per consult. <span className="text-premium-gradient">No subscriptions.</span>
-            </h1>
-            <p
-              className="mx-auto mt-4 max-w-xl text-pretty text-lg text-muted-foreground animate-fade-in-up opacity-0"
-              style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-            >
-              Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help.
-            </p>
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
+                <BadgeCheck className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-foreground/80">Simple pricing</span>
+              </div>
+              <h1
+                className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Pay per consult. <span className="text-premium-gradient">No subscriptions.</span>
+              </h1>
+              <p className="mx-auto max-w-xl text-pretty text-sm text-muted-foreground">
+                Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help.
+              </p>
+            </div>
           </div>
           </section>
         </ParallaxSection>
 
         {/* Pricing Cards */}
         <ParallaxSection speed={0.25}>
-          <section className="px-4 py-12 sm:px-6 section-premium">
-          <div className="mx-auto max-w-5xl">
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <section className="px-4 py-12 sm:px-6">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {services.map((service, index) => (
                 <GlowCard
                   key={service.name}
                   glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}
                   customSize={true}
-                  className={`card-premium rounded-3xl p-8 animate-fade-in-up opacity-0 relative ${
+                  className={`card-premium rounded-2xl p-5 lg:p-6 animate-fade-in-up opacity-0 relative ${
                     service.popular ? "ring-2 ring-[#2563EB] shadow-premium-xl" : "shadow-premium-lg"
                   }`}
                   style={{ animationDelay: `${0.1 + index * 0.1}s`, animationFillMode: "forwards" }}
                 >
                   {service.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2563EB] text-[#0A0F1C] shadow-lg font-medium">
+                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#2563EB] text-[#0A0F1C] shadow-lg font-medium text-xs">
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       Most Popular
                     </Badge>
                   )}
 
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-3">
                     <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: `${service.color}20` }}
                     >
-                      <AnimatedIcon type={service.iconType} size={40} />
+                      <AnimatedIcon type={service.iconType} size={32} />
                     </div>
                   </div>
 
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-display)" }}>
                       {service.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{service.description}</p>
                   </div>
 
-                  <div className="text-center mb-6">
-                    <span className="text-4xl font-bold">${service.price}</span>
-                    <span className="text-muted-foreground ml-1">AUD</span>
+                  <div className="text-center mb-4">
+                    <span className="text-3xl font-bold">${service.price}</span>
+                    <span className="text-muted-foreground ml-1 text-sm">AUD</span>
                   </div>
 
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2 mb-6">
                     {service.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3 text-sm">
-                        <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: service.color }} />
+                      <li key={feature} className="flex items-start gap-2 text-xs">
+                        <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: service.color }} />
                         <span className="text-muted-foreground">{feature}</span>
                       </li>
                     ))}
@@ -155,21 +156,22 @@ export default function PricingPage() {
                   </Button>
                 </GlowCard>
               ))}
-            </div>
+              </div>
 
-            {/* Trust badges */}
-            <div className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Shield className="w-4 h-4 text-[#2563EB]" />
-                <span>AHPRA registered doctors</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Clock className="w-4 h-4 text-[#4f46e5]" />
-                <span>Same-day response</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 border border-[#0A0F1C]/5">
-                <Zap className="w-4 h-4 text-[#4f46e5]" />
-                <span>100% refund guarantee</span>
+              {/* Trust badges */}
+              <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+                  <Shield className="w-3.5 h-3.5 text-primary" />
+                  <span>AHPRA registered doctors</span>
+                </div>
+                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <span>Same-day response</span>
+                </div>
+                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm rounded-full px-3 py-1.5 border border-divider/50">
+                  <Zap className="w-3.5 h-3.5 text-primary" />
+                  <span>100% refund guarantee</span>
+                </div>
               </div>
             </div>
           </div>
@@ -178,24 +180,24 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <ParallaxSection speed={0.2}>
-          <section className="px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-2xl">
-            <h2 className="text-2xl font-semibold text-center mb-8" style={{ fontFamily: "var(--font-display)" }}>
-              Common questions
-            </h2>
-            <div className="space-y-4">
-              {faqs.map((faq, index) => (
-                <GlowCard
-                  key={index}
-                  glowColor={index % 2 === 0 ? 'blue' : 'purple'}
-                  customSize={true}
-                  className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
-                  style={{ animationDelay: `${0.4 + index * 0.1}s`, animationFillMode: "forwards" }}
-                >
-                  <h3 className="font-medium">{faq.q}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{faq.a}</p>
-                </GlowCard>
-              ))}
+          <section className="px-4 py-12 sm:px-6 lg:py-16">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <h2 className="text-2xl font-semibold text-center mb-6" style={{ fontFamily: "var(--font-display)" }}>
+                Common questions
+              </h2>
+              <div className="space-y-3 max-w-2xl mx-auto">
+                {faqs.map((faq, index) => (
+                  <div
+                    key={index}
+                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 animate-fade-in-up opacity-0"
+                    style={{ animationDelay: `${0.4 + index * 0.1}s`, animationFillMode: "forwards" }}
+                  >
+                    <h3 className="text-sm font-medium mb-1">{faq.q}</h3>
+                    <p className="text-xs text-muted-foreground">{faq.a}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           </section>
@@ -203,20 +205,19 @@ export default function PricingPage() {
 
         {/* CTA */}
         <ParallaxSection speed={0.15}>
-          <section className="px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <TiltCard className="glass-card rounded-3xl p-10 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-[#2563EB]/10 via-transparent to-[#4f46e5]/10 pointer-events-none" />
-              <div className="relative">
-                <BadgeCheck className="h-12 w-12 text-[#2563EB] mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>
+          <section className="px-4 py-12 sm:px-6 lg:py-16">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden">
+                <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
+                <h2 className="text-2xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
                   Ready to skip the waiting room?
                 </h2>
-                <p className="text-muted-foreground mb-8">Get started in under 2 minutes. Only pay if we can help.</p>
+                <p className="text-sm text-muted-foreground mb-6">Get started in under 2 minutes. Only pay if we can help.</p>
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-full btn-premium text-[#0A0F1C] font-semibold h-14 px-10 shadow-lg group"
+                  className="rounded-full btn-premium text-[#0A0F1C] font-semibold h-12 px-8 shadow-lg group"
                 >
                   <Link href="/medical-certificate">
                     Start a consult
@@ -224,7 +225,7 @@ export default function PricingPage() {
                   </Link>
                 </Button>
               </div>
-            </TiltCard>
+            </div>
           </div>
           </section>
         </ParallaxSection>

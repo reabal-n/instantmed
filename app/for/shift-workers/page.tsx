@@ -1,8 +1,6 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { GlowCard } from "@/components/ui/spotlight-card"
-import { ParallaxSection } from "@/components/ui/parallax-section"
 import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Hospital } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -64,256 +62,238 @@ export default function ShiftWorkersPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <ParallaxSection speed={0.1}>
-            <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-purple-500/10 to-transparent">
-              <div className="mx-auto max-w-3xl text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 text-purple-600 text-sm mb-6">
-                  <Moon className="h-4 w-4" />
-                  For Shift Workers
-                </div>
-
-                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                  Medical Certificates When GPs Are Closed
-                </h1>
-                <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-4">
-                  Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong> — anytime between 8am-10pm, 7 days a week.
-                </p>
-                <p className="text-sm text-muted-foreground mb-8">
-                  Works around your roster • All employers accept • AHPRA doctors
-                </p>
-
-                <Link href="/medical-certificate/request">
-                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-base px-8">
-                    Get Certificate Now
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-
-                {/* Trust badges */}
-                <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                    <Clock className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium">8am-10pm, 7 days</span>
+          <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-3xl mx-auto text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4 interactive-pill cursor-default">
+                    <Moon className="w-3.5 h-3.5 text-purple-600" />
+                    <span className="text-xs font-medium text-purple-700">For Shift Workers</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                    <Zap className="h-4 w-4 text-purple-600" />
-                    <span>15 min turnaround</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                    <Shield className="h-4 w-4 text-purple-600" />
-                    <span>All employers</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </ParallaxSection>
 
-          {/* Availability Bar */}
-          <ParallaxSection speed={0.15}>
-            <section className="px-4 py-8 bg-purple-600 text-white">
-            <div className="mx-auto max-w-4xl">
-              <div className="grid gap-6 sm:grid-cols-4 text-center">
-                <div className="flex flex-col items-center">
-                  <Sun className="h-6 w-6 mb-2" />
-                  <div className="text-sm font-medium">Early mornings</div>
-                  <div className="text-xs text-white/70">From 8am</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <Coffee className="h-6 w-6 mb-2" />
-                  <div className="text-sm font-medium">Business hours</div>
-                  <div className="text-xs text-white/70">9am-5pm</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <Moon className="h-6 w-6 mb-2" />
-                  <div className="text-sm font-medium">Evenings</div>
-                  <div className="text-xs text-white/70">Until 10pm</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <Star className="h-6 w-6 mb-2" />
-                  <div className="text-sm font-medium">Weekends</div>
-                  <div className="text-xs text-white/70">Sat & Sun</div>
-                </div>
-              </div>
-            </div>
-            </section>
-          </ParallaxSection>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                    Medical Certificates When GPs Are Closed
+                  </h1>
+                  <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
+                    Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong> — anytime between 8am-10pm, 7 days a week.
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    Works around your roster • All employers accept • AHPRA doctors
+                  </p>
 
-          {/* Industries */}
-          <ParallaxSection speed={0.25}>
-            <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">Popular with shift workers in</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {[
-                  { icon: Hospital, title: "Healthcare", examples: "Nurses, aged care, hospital staff", color: 'blue' as const },
-                  { icon: Coffee, title: "Hospitality", examples: "Chefs, waitstaff, hotel workers", color: 'purple' as const },
-                  { icon: Clock, title: "Retail", examples: "Supermarkets, shops, warehouse", color: 'green' as const },
-                  { icon: Moon, title: "Security", examples: "Guards, patrol, monitoring", color: 'purple' as const },
-                  { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery", color: 'blue' as const },
-                  { icon: Sun, title: "Manufacturing", examples: "Factory workers, production", color: 'orange' as const },
-                ].map((item) => (
-                  <GlowCard
-                    key={item.title}
-                    glowColor={item.color}
-                    customSize={true}
-                    className="flex gap-4 p-4"
-                  >
-                    <item.icon className="h-6 w-6 text-purple-600 shrink-0" />
-                    <div>
-                      <h3 className="font-semibold">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.examples}</p>
+                  <Link href="/start?service=med-cert">
+                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-6">
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+
+                  {/* Trust badges */}
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Clock className="h-3.5 w-3.5 text-purple-600" />
+                      <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
                     </div>
-                  </GlowCard>
-                ))}
-              </div>
-            </div>
-            </section>
-          </ParallaxSection>
-
-          {/* Why Shift Workers Use This */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">Why shift workers choose InstantMed</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    title: "GPs don&apos;t work your hours",
-                    desc: "Finish a night shift at 6am and can&apos;t see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
-                    color: 'blue' as const,
-                  },
-                  {
-                    title: "No time to wait",
-                    desc: "You're already exhausted from your shift. Skip the waiting room and get your cert in 15 minutes from your phone.",
-                    color: 'purple' as const,
-                  },
-                  {
-                    title: "Before your next roster",
-                    desc: "Need documentation before your manager schedules the next shift? Get sorted same-day.",
-                    color: 'green' as const,
-                  },
-                  {
-                    title: "Any employer accepts it",
-                    desc: "Hospitals, retail chains, agencies — they all accept our certificates. AHPRA-registered, legally valid.",
-                    color: 'orange' as const,
-                  },
-                ].map((item) => (
-                  <GlowCard
-                    key={item.title}
-                    glowColor={item.color}
-                    customSize={true}
-                    className="p-5"
-                  >
-                    <h3 className="font-semibold mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </GlowCard>
-                ))}
-              </div>
-            </div>
-            </section>
-          </ParallaxSection>
-
-          {/* Testimonials */}
-          <ParallaxSection speed={0.25}>
-            <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold text-center mb-8">What shift workers say</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    name: "Lisa R.",
-                    role: "Nurse, Adelaide",
-                    quote: "Finished night shift feeling terrible. Got my cert at 7am before I even tried to sleep. Sorted.",
-                  },
-                  {
-                    name: "Marcus P.",
-                    role: "Chef, Melbourne",
-                    quote: "Hospitality hours mean I can&apos;t see a GP during the week. This saved me so much hassle.",
-                  },
-                  {
-                    name: "Emma T.",
-                    role: "Retail Manager, Brisbane",
-                    quote: "Got sick on a Sunday. Had my cert to HR before Monday morning. No stress.",
-                  },
-                  {
-                    name: "Dave K.",
-                    role: "Security, Sydney",
-                    quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
-                  },
-                ].map((item) => (
-                  <div key={item.name} className="p-5 rounded-xl bg-muted/30">
-                    <div className="flex gap-1 mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Zap className="h-3.5 w-3.5 text-purple-600" />
+                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
-                    <p className="text-sm mb-3">&quot;{item.quote}&quot;</p>
-                    <p className="text-xs text-muted-foreground">
-                      — {item.name}, {item.role}
-                    </p>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Shield className="h-3.5 w-3.5 text-purple-600" />
+                      <span className="font-medium text-muted-foreground">All employers</span>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-            </section>
-          </ParallaxSection>
-
-          {/* How It Works */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">How it works</h2>
-              <div className="grid gap-6 sm:grid-cols-3">
-                {[
-                  {
-                    step: "1",
-                    title: "Quick questionnaire",
-                    desc: "Tell us why you need a certificate. Takes 2 minutes on your phone.",
-                    time: "2 min",
-                    color: 'blue' as const,
-                  },
-                  {
-                    step: "2",
-                    title: "Doctor reviews",
-                    desc: "An AHPRA-registered GP assesses your request.",
-                    time: "~15 min",
-                    color: 'purple' as const,
-                  },
-                  {
-                    step: "3",
-                    title: "Certificate delivered",
-                    desc: "Secure PDF sent to your email. Forward to your manager.",
-                    time: "Instant",
-                    color: 'green' as const,
-                  },
-                ].map((item) => (
-                  <GlowCard
-                    key={item.step}
-                    glowColor={item.color}
-                    customSize={true}
-                    className="text-center p-4"
-                  >
-                    <div className="h-12 w-12 rounded-full bg-purple-600/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-xl text-purple-600">{item.step}</span>
-                    </div>
-                    <h3 className="font-semibold mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{item.desc}</p>
-                    <span className="inline-block text-xs bg-purple-600/10 text-purple-600 px-2 py-0.5 rounded-full">
-                      {item.time}
-                    </span>
-                  </GlowCard>
-                ))}
+                </div>
               </div>
             </div>
           </section>
-          </ParallaxSection>
+
+          {/* Availability Bar */}
+          <section className="px-4 py-8 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-purple-500/20 bg-purple-50/30 dark:bg-purple-950/10">
+                <div className="max-w-4xl mx-auto">
+                  <div className="grid gap-4 sm:grid-cols-4 text-center">
+                    <div className="flex flex-col items-center">
+                      <Sun className="h-5 w-5 mb-2 text-purple-600" />
+                      <div className="text-xs font-medium text-purple-700">Early mornings</div>
+                      <div className="text-xs text-muted-foreground">From 8am</div>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <Coffee className="h-5 w-5 mb-2 text-purple-600" />
+                      <div className="text-xs font-medium text-purple-700">Business hours</div>
+                      <div className="text-xs text-muted-foreground">9am-5pm</div>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <Moon className="h-5 w-5 mb-2 text-purple-600" />
+                      <div className="text-xs font-medium text-purple-700">Evenings</div>
+                      <div className="text-xs text-muted-foreground">Until 10pm</div>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <Star className="h-5 w-5 mb-2 text-purple-600" />
+                      <div className="text-xs font-medium text-purple-700">Weekends</div>
+                      <div className="text-xs text-muted-foreground">Sat & Sun</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Industries */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Popular with shift workers in</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    { icon: Hospital, title: "Healthcare", examples: "Nurses, aged care, hospital staff" },
+                    { icon: Coffee, title: "Hospitality", examples: "Chefs, waitstaff, hotel workers" },
+                    { icon: Clock, title: "Retail", examples: "Supermarkets, shops, warehouse" },
+                    { icon: Moon, title: "Security", examples: "Guards, patrol, monitoring" },
+                    { icon: Smartphone, title: "Transport", examples: "Drivers, logistics, delivery" },
+                    { icon: Sun, title: "Manufacturing", examples: "Factory workers, production" },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <item.icon className="h-5 w-5 text-purple-600 shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-semibold">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground">{item.examples}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Why Shift Workers Use This */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why shift workers choose InstantMed</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      title: "GPs don&apos;t work your hours",
+                      desc: "Finish a night shift at 6am and can&apos;t see a doctor until Monday? We're available 8am-10pm, 7 days a week.",
+                    },
+                    {
+                      title: "No time to wait",
+                      desc: "You're already exhausted from your shift. Skip the waiting room and get your cert in 15 minutes from your phone.",
+                    },
+                    {
+                      title: "Before your next roster",
+                      desc: "Need documentation before your manager schedules the next shift? Get sorted same-day.",
+                    },
+                    {
+                      title: "Any employer accepts it",
+                      desc: "Hospitals, retail chains, agencies — they all accept our certificates. AHPRA-registered, legally valid.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="glass-card rounded-xl p-4">
+                      <h3 className="text-sm font-semibold mb-1.5">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonials */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What shift workers say</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      name: "Lisa R.",
+                      role: "Nurse, Adelaide",
+                      quote: "Finished night shift feeling terrible. Got my cert at 7am before I even tried to sleep. Sorted.",
+                    },
+                    {
+                      name: "Marcus P.",
+                      role: "Chef, Melbourne",
+                      quote: "Hospitality hours mean I can&apos;t see a GP during the week. This saved me so much hassle.",
+                    },
+                    {
+                      name: "Emma T.",
+                      role: "Retail Manager, Brisbane",
+                      quote: "Got sick on a Sunday. Had my cert to HR before Monday morning. No stress.",
+                    },
+                    {
+                      name: "Dave K.",
+                      role: "Security, Sydney",
+                      quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
+                    },
+                  ].map((item) => (
+                    <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
+                      <p className="text-xs text-muted-foreground">
+                        — {item.name}, {item.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* How It Works */}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">How it works</h2>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    {
+                      step: "1",
+                      title: "Quick questionnaire",
+                      desc: "Tell us why you need a certificate. Takes 2 minutes on your phone.",
+                      time: "2 min",
+                    },
+                    {
+                      step: "2",
+                      title: "Doctor reviews",
+                      desc: "An AHPRA-registered GP assesses your request.",
+                      time: "~15 min",
+                    },
+                    {
+                      step: "3",
+                      title: "Certificate delivered",
+                      desc: "Secure PDF sent to your email. Forward to your manager.",
+                      time: "Instant",
+                    },
+                  ].map((item) => (
+                    <div key={item.step} className="glass-card rounded-xl text-center p-4">
+                      <div className="h-10 w-10 rounded-lg bg-purple-600 flex items-center justify-center mx-auto mb-3">
+                        <span className="font-bold text-lg text-white">{item.step}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
+                      <span className="inline-block text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                        {item.time}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* FAQs */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12">
-              <div className="mx-auto max-w-2xl">
-                <h2 className="text-xl font-bold text-center mb-8">Quick answers</h2>
-                <div className="space-y-4">
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">Quick answers</h2>
+                <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
                       q: "What are your hours?",
@@ -336,34 +316,36 @@ export default function ShiftWorkersPage() {
                       a: "Medical certificates are $19.95. One flat fee, no hidden costs. Scripts from $29.95.",
                     },
                   ].map((faq, i) => (
-                    <div key={i} className="p-5 rounded-xl bg-muted/30">
-                      <h3 className="font-semibold mb-2">{faq.q}</h3>
-                      <p className="text-sm text-muted-foreground">{faq.a}</p>
+                    <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
+                      <p className="text-xs text-muted-foreground">{faq.a}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            </section>
-          </ParallaxSection>
+            </div>
+          </section>
 
           {/* CTA */}
-          <ParallaxSection speed={0.15}>
-            <section className="px-4 py-16 bg-muted/30">
-            <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Get your certificate in 15 minutes</h2>
-              <p className="text-muted-foreground mb-6">
-                Works around your roster, not the other way around.
-              </p>
-              <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
-                  Get Certificate Now
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-              <p className="mt-4 text-xs text-muted-foreground">$19.95 • 8am-10pm, 7 days</p>
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-xl mx-auto text-center">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-purple-500/20 bg-purple-50/30 dark:bg-purple-950/10">
+                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Works around your roster, not the other way around.
+                  </p>
+                  <Link href="/start?service=med-cert">
+                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-sm h-12 px-8">
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <p className="mt-4 text-xs text-muted-foreground">$19.95 • 8am-10pm, 7 days</p>
+                </div>
+              </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Related */}
           <section className="px-4 py-8 border-t">

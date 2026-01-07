@@ -10,19 +10,19 @@ import { siteConfig } from '@/lib/marketing/homepage'
 const services = [
   {
     label: 'Medical Certificates',
-    href: '/medical-certificate/request',
+    href: '/start?service=med-cert',
     description: 'Work, uni & carer\'s leave',
     icon: FileText,
   },
   {
     label: 'Repeat Scripts',
-    href: '/prescriptions/request',
+    href: '/start?service=repeat-script',
     description: 'Medications you already take',
     icon: Pill,
   },
   {
     label: 'General Consult',
-    href: '/consult/request',
+    href: '/start?service=consult',
     description: 'New prescriptions & dose changes',
     icon: Zap,
   },

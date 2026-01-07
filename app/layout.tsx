@@ -175,13 +175,7 @@ export default function RootLayout({
     : undefined
 
   return (
-    <ClerkProvider
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-      domain={clerkDomain}
-    >
+    <ClerkProvider>
       <html
         lang="en"
         className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}

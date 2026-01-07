@@ -181,7 +181,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                   size="lg"
                   className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl shadow-lg transition-all magnetic-button glow-pulse', colors.button)}
                 >
-                  <Link href={config.flowSlug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}>
+                  <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
                     Get started
                     <ArrowRight className="ml-2 h-5 w-5 icon-spin-hover" />
                   </Link>
@@ -324,7 +324,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               size="lg"
               className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl', colors.button)}
             >
-              <Link href={config.flowSlug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}>
+              <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
                 Start now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -421,7 +421,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                 size="lg"
                 className={cn('text-white px-10 h-12 text-base font-semibold rounded-xl', colors.button)}
               >
-                <Link href={config.flowSlug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}>
+                <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
                   Get started
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -466,7 +466,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               size="lg"
               className="bg-white text-slate-900 hover:bg-slate-100 px-10 h-14 text-lg font-semibold rounded-xl shadow-lg"
             >
-              <Link href={config.flowSlug === 'medical-certificate' ? '/medical-certificate/request' : '/prescriptions/request'}>
+              <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
                 Start your request
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

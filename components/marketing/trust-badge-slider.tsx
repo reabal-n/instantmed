@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils"
 import { 
   LegitScriptLogo, 
   ISOLogo, 
-  HIPAALogo, 
   SOC2Logo, 
   SSLLogo, 
   AHPRALogo, 
@@ -16,7 +15,6 @@ import {
 const trustBadges = [
   { name: "LegitScript", label: "Certified", Logo: LegitScriptLogo },
   { name: "ISO 27001", label: "Certified", Logo: ISOLogo },
-  { name: "HIPAA", label: "Compliant", Logo: HIPAALogo },
   { name: "SOC 2", label: "Type II", Logo: SOC2Logo },
   { name: "256-bit SSL", label: "Encrypted", Logo: SSLLogo },
   { name: "AHPRA", label: "Registered", Logo: AHPRALogo },

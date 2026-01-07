@@ -27,16 +27,16 @@ export const TestimonialsColumn = (props: {
           ease: "linear",
           repeatType: "loop",
         }}
-        className="flex flex-col gap-6 pb-6 bg-background"
+        className="flex flex-col gap-4 pb-4"
       >
         {[
           ...new Array(2).fill(0).map((_, index) => (
             <React.Fragment key={index}>
               {props.testimonials.map(({ text, image, name, role }, i) => (
-                <div className="p-10 rounded-3xl border shadow-lg shadow-primary/10 max-w-xs w-full bg-card" key={i}>
-                  <div className="text-muted-foreground leading-relaxed">{text}</div>
-                  <div className="flex items-center gap-2 mt-5">
-                    <div className="relative h-10 w-10 rounded-full overflow-hidden shrink-0">
+                <div className="p-5 rounded-2xl border shadow-md shadow-primary/5 max-w-xs w-full bg-card/50 backdrop-blur-sm" key={i}>
+                  <div className="text-muted-foreground leading-relaxed text-sm">{text}</div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
                       {image.startsWith('/') ? (
                         <Image
                           fill
@@ -47,11 +47,11 @@ export const TestimonialsColumn = (props: {
                         />
                       ) : (
                         <img
-                          width={40}
-                          height={40}
+                          width={32}
+                          height={32}
                           src={image}
                           alt={name}
-                          className="h-10 w-10 rounded-full object-cover"
+                          className="h-8 w-8 rounded-full object-cover"
                           onError={(e) => {
                             // Fallback to dicebear if image fails to load
                             const target = e.target as HTMLImageElement;
@@ -63,8 +63,8 @@ export const TestimonialsColumn = (props: {
                       )}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <div className="font-medium tracking-tight leading-5 truncate">{name}</div>
-                      <div className="leading-5 opacity-60 tracking-tight text-sm truncate">{role}</div>
+                      <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
+                      <div className="leading-4 opacity-60 tracking-tight text-xs truncate">{role}</div>
                     </div>
                   </div>
                 </div>

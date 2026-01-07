@@ -35,7 +35,7 @@ export function TestimonialsColumnsWrapper({
   const thirdColumn = testimonials.slice(Math.ceil((testimonials.length * 2) / 3));
 
   return (
-    <section className={cn("bg-background my-20 relative", className)}>
+    <section className={cn("relative", className)}>
       <div className="container z-10 mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -45,18 +45,18 @@ export function TestimonialsColumnsWrapper({
           className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
         >
           <div className="flex justify-center">
-            <div className="border py-1 px-4 rounded-lg text-sm">{badgeText}</div>
+            <div className="border py-1 px-3 rounded-lg text-xs">{badgeText}</div>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tighter mt-5 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center">
             {title}
           </h2>
-          <p className="text-center mt-5 opacity-75 text-muted-foreground">
+          <p className="text-center mt-3 opacity-75 text-muted-foreground text-sm">
             {subtitle}
           </p>
         </motion.div>
 
-        <div className="flex justify-center gap-6 mt-10 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[740px] overflow-hidden">
+        <div className="flex justify-center gap-4 mt-8 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[600px] overflow-hidden">
           <TestimonialsColumn testimonials={firstColumn} duration={15} />
           <TestimonialsColumn testimonials={secondColumn} className="hidden md:block" duration={19} />
           <TestimonialsColumn testimonials={thirdColumn} className="hidden lg:block" duration={17} />

@@ -66,10 +66,10 @@ const GlowCard: React.FC<GlowCardProps> = ({
     return sizeMap[size];
   };
 
-  const getInlineStyles = (): React.CSSProperties => {
+  const getInlineStyles = () => {
     const baseStyles: React.CSSProperties = {
-      '--base': base,
-      '--spread': spread,
+      '--base': base.toString(),
+      '--spread': spread.toString(),
       '--radius': '14',
       '--border': '3',
       '--backdrop': 'hsl(0 0% 60% / 0.12)',
@@ -102,7 +102,8 @@ const GlowCard: React.FC<GlowCardProps> = ({
       baseStyles.height = typeof height === 'number' ? `${height}px` : height;
     }
 
-    return baseStyles;
+    // Merge with provided style prop
+    return style ? { ...baseStyles, ...style } : baseStyles;
   };
 
   const beforeAfterStyles = `
@@ -142,7 +143,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       );
     }
     
-    [data-glow] [data-glow] {
+    [data-glow] > [data-glow] {
       position: absolute;
       inset: 0;
       will-change: filter;
@@ -167,7 +168,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       <div
         ref={cardRef}
         data-glow
-        style={{ ...getInlineStyles(), ...style }}
+        style={getInlineStyles()}
         className={`
           ${getSizeClasses()}
           ${!customSize ? 'aspect-[3/4]' : ''}

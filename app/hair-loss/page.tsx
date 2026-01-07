@@ -157,260 +157,278 @@ export default function HairLossPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-teal-500/5 to-transparent">
-            <div className="mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 text-teal-600 text-sm mb-6">
-                <EyeOff className="h-4 w-4" />
-                100% Discreet • No Phone Call
-              </div>
+          <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-4xl mx-auto text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 mb-4 interactive-pill cursor-default">
+                    <EyeOff className="w-3.5 h-3.5 text-teal-600" />
+                    <span className="text-xs font-medium text-teal-700">100% Discreet • No Phone Call</span>
+                  </div>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Hair Loss Treatment Online
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-4">
-                Get a prescription for clinically-proven hair loss treatment from an Australian doctor in{" "}
-                <strong>15 minutes</strong>. No waiting rooms. No awkward conversations.
-              </p>
-              <p className="text-sm text-muted-foreground mb-8">
-                TGA-approved treatments • AHPRA-registered doctors • Discreet service
-              </p>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                    Hair Loss Treatment Online
+                  </h1>
+                  <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
+                    Get a prescription for clinically-proven hair loss treatment from an Australian doctor in{" "}
+                    <strong>15 minutes</strong>. No waiting rooms. No awkward conversations.
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    TGA-approved treatments • AHPRA-registered doctors • Discreet service
+                  </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <Link href="/start?service=hair-loss">
-                  <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white text-base px-8 w-full sm:w-auto">
-                    Start Consultation
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-                <Link href="#treatments">
-                  <Button variant="outline" size="lg" className="text-base px-8 w-full sm:w-auto">
-                    View Treatments
-                  </Button>
-                </Link>
-              </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                    <Link href="/start?service=hair-loss">
+                      <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-6 w-full sm:w-auto">
+                        Start Consultation
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                    <Link href="#treatments">
+                      <Button variant="outline" size="lg" className="text-sm px-6 w-full sm:w-auto">
+                        View Treatments
+                      </Button>
+                    </Link>
+                  </div>
 
-              {/* Trust badges */}
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Zap className="h-4 w-4 text-teal-600" />
-                  <span className="font-medium">Script in 15 min</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <PhoneOff className="h-4 w-4 text-teal-600" />
-                  <span className="font-medium">No phone call</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Shield className="h-4 w-4 text-teal-600" />
-                  <span className="font-medium">AHPRA doctors</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Lock className="h-4 w-4 text-teal-600" />
-                  <span className="font-medium">Encrypted & secure</span>
+                  {/* Trust badges */}
+                  <div className="flex flex-wrap justify-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Zap className="h-3.5 w-3.5 text-teal-600" />
+                      <span className="font-medium text-muted-foreground">Script in 15 min</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <PhoneOff className="h-3.5 w-3.5 text-teal-600" />
+                      <span className="font-medium text-muted-foreground">No phone call</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Shield className="h-3.5 w-3.5 text-teal-600" />
+                      <span className="font-medium text-muted-foreground">AHPRA doctors</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Lock className="h-3.5 w-3.5 text-teal-600" />
+                      <span className="font-medium text-muted-foreground">Encrypted & secure</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Treatment Options */}
-          <section id="treatments" className="py-16 px-4 bg-slate-50">
-            <div className="mx-auto max-w-4xl">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold sm:text-3xl mb-3">Treatment Options</h2>
-                <p className="text-muted-foreground max-w-xl mx-auto">
-                  Our doctors can prescribe TGA-approved hair loss treatments based on your needs
-                </p>
-              </div>
+          <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Treatment Options</h2>
+                  <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+                    Our doctors can prescribe TGA-approved hair loss treatments based on your needs
+                  </p>
+                </div>
 
-              <div className="space-y-6">
-                {treatments.map((treatment) => (
-                  <div
-                    key={treatment.id}
-                    className="bg-white rounded-2xl p-6 border shadow-sm"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-xl font-bold">{treatment.name}</h3>
-                          {treatment.popular && (
-                            <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100">
-                              Popular
-                            </Badge>
-                          )}
+                <div className="space-y-4">
+                  {treatments.map((treatment) => (
+                    <div
+                      key={treatment.id}
+                      className="bg-content1/50 backdrop-blur-sm rounded-xl p-4 border border-divider/50 hover:border-teal-500/30 transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h3 className="text-lg font-bold">{treatment.name}</h3>
+                            {treatment.popular && (
+                              <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 text-xs">
+                                Popular
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{treatment.brand}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{treatment.brand}</p>
+                        <Pill className="h-5 w-5 text-teal-600 shrink-0" />
                       </div>
-                      <Pill className="h-6 w-6 text-teal-600" />
+
+                      <p className="text-sm text-muted-foreground mb-3">{treatment.description}</p>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div className="bg-teal-50/50 border border-teal-100 rounded-lg p-3">
+                          <p className="text-muted-foreground text-xs">Type</p>
+                          <p className="font-medium">{treatment.type}</p>
+                        </div>
+                        <div className="bg-teal-50/50 border border-teal-100 rounded-lg p-3">
+                          <p className="text-muted-foreground text-xs">Frequency</p>
+                          <p className="font-medium">{treatment.frequency}</p>
+                        </div>
+                        <div className="bg-teal-50/50 border border-teal-100 rounded-lg p-3">
+                          <p className="text-muted-foreground text-xs">Results</p>
+                          <p className="font-medium">{treatment.results}</p>
+                        </div>
+                        <div className="bg-teal-50/50 border border-teal-100 rounded-lg p-3">
+                          <p className="text-muted-foreground text-xs">Best for</p>
+                          <p className="font-medium">{treatment.bestFor}</p>
+                        </div>
+                      </div>
                     </div>
+                  ))}
+                </div>
 
-                    <p className="text-muted-foreground mb-4">{treatment.description}</p>
-
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <p className="text-muted-foreground text-xs">Type</p>
-                        <p className="font-medium">{treatment.type}</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <p className="text-muted-foreground text-xs">Frequency</p>
-                        <p className="font-medium">{treatment.frequency}</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <p className="text-muted-foreground text-xs">Results</p>
-                        <p className="font-medium">{treatment.results}</p>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <p className="text-muted-foreground text-xs">Best for</p>
-                        <p className="font-medium">{treatment.bestFor}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Not sure which is right for you? Our doctors will recommend the best option.
-                </p>
-                <Link href="/start?service=hair-loss">
-                  <Button className="bg-teal-600 hover:bg-teal-700">
-                    Start Consultation
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
+                <div className="mt-6 text-center">
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Not sure which is right for you? Our doctors will recommend the best option.
+                  </p>
+                  <Link href="/start?service=hair-loss">
+                    <Button className="bg-teal-600 hover:bg-teal-700 text-xs h-9">
+                      Start Consultation
+                      <ArrowRight className="h-3.5 w-3.5 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
 
           {/* Platform Features */}
-          <section className="py-16 px-4">
-            <div className="mx-auto max-w-4xl">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold sm:text-3xl mb-3">Why Choose InstantMed?</h2>
-                <p className="text-muted-foreground">
-                  Fast, discreet, and professional healthcare from home
-                </p>
-              </div>
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Why Choose InstantMed?</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Fast, discreet, and professional healthcare from home
+                  </p>
+                </div>
 
-              <div className="grid sm:grid-cols-2 gap-6">
-                {platformFeatures.map((feature, i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-xl bg-slate-50">
-                    <div className="shrink-0 w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-                      <feature.icon className="h-6 w-6 text-teal-600" />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {platformFeatures.map((feature, i) => (
+                    <div key={i} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <div className="shrink-0 w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                        <feature.icon className="h-5 w-5 text-teal-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold mb-1">{feature.title}</h3>
+                        <p className="text-xs text-muted-foreground">{feature.description}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </section>
 
           {/* How It Works */}
-          <section className="py-16 px-4 bg-slate-50">
-            <div className="mx-auto max-w-4xl">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold sm:text-3xl mb-3">How It Works</h2>
-                <p className="text-muted-foreground">Three simple steps to get your treatment</p>
-              </div>
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">How It Works</h2>
+                  <p className="text-sm text-muted-foreground">Three simple steps to get your treatment</p>
+                </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                    1
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                      1
+                    </div>
+                    <h3 className="text-sm font-semibold mb-1">Complete Questionnaire</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Answer questions about your hair loss online. Takes about 3 minutes.
+                    </p>
                   </div>
-                  <h3 className="font-semibold mb-2">Complete Questionnaire</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Answer questions about your hair loss online. Takes about 3 minutes.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                    2
+                  <div className="text-center">
+                    <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                      2
+                    </div>
+                    <h3 className="text-sm font-semibold mb-1">Doctor Reviews</h3>
+                    <p className="text-xs text-muted-foreground">
+                      An AHPRA-registered doctor reviews your request and prescribes if appropriate.
+                    </p>
                   </div>
-                  <h3 className="font-semibold mb-2">Doctor Reviews</h3>
-                  <p className="text-sm text-muted-foreground">
-                    An AHPRA-registered doctor reviews your request and prescribes if appropriate.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                    3
+                  <div className="text-center">
+                    <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                      3
+                    </div>
+                    <h3 className="text-sm font-semibold mb-1">Collect Your Script</h3>
+                    <p className="text-xs text-muted-foreground">
+                      E-script sent to your phone. Collect from any pharmacy Australia-wide.
+                    </p>
                   </div>
-                  <h3 className="font-semibold mb-2">Collect Your Script</h3>
-                  <p className="text-sm text-muted-foreground">
-                    E-script sent to your phone. Collect from any pharmacy Australia-wide.
-                  </p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Results Timeline */}
-          <section className="py-16 px-4">
-            <div className="mx-auto max-w-3xl">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold sm:text-3xl mb-3">What to Expect</h2>
-                <p className="text-muted-foreground">Hair regrowth takes time — here&apos;s a typical timeline</p>
-              </div>
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">What to Expect</h2>
+                  <p className="text-sm text-muted-foreground">Hair regrowth takes time — here&apos;s a typical timeline</p>
+                </div>
 
-              <div className="space-y-4">
-                {[
-                  { month: "Month 1-2", desc: "Treatment begins. Some initial shedding is normal as weaker hairs make way for stronger growth." },
-                  { month: "Month 3-4", desc: "Early signs of improvement. Shedding slows, and you may notice fine new hairs appearing." },
-                  { month: "Month 6", desc: "Visible improvement for most men. Hair appears thicker and fuller." },
-                  { month: "Month 12+", desc: "Full results visible. Continued use maintains and often improves results." },
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 p-4 bg-slate-50 rounded-xl">
-                    <div className="shrink-0 w-20 text-teal-600 font-semibold">{item.month}</div>
-                    <p className="text-muted-foreground">{item.desc}</p>
-                  </div>
-                ))}
+                <div className="space-y-3 max-w-3xl mx-auto">
+                  {[
+                    { month: "Month 1-2", desc: "Treatment begins. Some initial shedding is normal as weaker hairs make way for stronger growth." },
+                    { month: "Month 3-4", desc: "Early signs of improvement. Shedding slows, and you may notice fine new hairs appearing." },
+                    { month: "Month 6", desc: "Visible improvement for most men. Hair appears thicker and fuller." },
+                    { month: "Month 12+", desc: "Full results visible. Continued use maintains and often improves results." },
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-3 p-4 bg-teal-50/50 border border-teal-100 rounded-xl">
+                      <div className="shrink-0 w-16 text-teal-600 font-semibold text-xs">{item.month}</div>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
 
           {/* FAQs */}
-          <section className="py-16 px-4 bg-slate-50">
-            <div className="mx-auto max-w-3xl">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold sm:text-3xl mb-3">Frequently Asked Questions</h2>
-              </div>
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Frequently Asked Questions</h2>
+                </div>
 
-              <div className="space-y-4">
-                {faqs.map((faq, i) => (
-                  <details key={i} className="group bg-white rounded-xl border">
-                    <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
-                      <span className="font-medium pr-4">{faq.question}</span>
-                      <ChevronDown className="h-5 w-5 text-muted-foreground group-open:rotate-180 transition-transform" />
-                    </summary>
-                    <div className="px-5 pb-5">
-                      <p className="text-muted-foreground">{faq.answer}</p>
-                    </div>
-                  </details>
-                ))}
+                <div className="space-y-3 max-w-3xl mx-auto">
+                  {faqs.map((faq, i) => (
+                    <details key={i} className="group bg-content1/50 backdrop-blur-sm rounded-xl border border-divider/50">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
+                        <span className="text-sm font-medium pr-4">{faq.question}</span>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform shrink-0" />
+                      </summary>
+                      <div className="px-4 pb-4">
+                        <p className="text-xs text-muted-foreground">{faq.answer}</p>
+                      </div>
+                    </details>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
 
           {/* Final CTA */}
-          <section className="py-16 px-4 bg-teal-600">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-2xl font-bold sm:text-3xl text-white mb-4">
-                Ready to Get Started?
-              </h2>
-              <p className="text-teal-100 mb-8 max-w-xl mx-auto">
-                Complete a confidential consultation in minutes. Our doctors are ready to help.
-              </p>
-              <Link href="/start?service=hair-loss">
-                <Button size="lg" className="bg-white text-teal-600 hover:bg-teal-50 text-base px-8">
-                  Start Consultation
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-              <p className="text-teal-200 text-sm mt-4">
-                Takes ~3 minutes • 100% discreet • Script in 15 min
-              </p>
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-3xl mx-auto text-center">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-teal-500/20 bg-teal-50/30 dark:bg-teal-950/10">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+                    Ready to Get Started?
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
+                    Complete a confidential consultation in minutes. Our doctors are ready to help.
+                  </p>
+                  <Link href="/start?service=hair-loss">
+                    <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-8 h-12">
+                      Start Consultation
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Takes ~3 minutes • 100% discreet • Script in 15 min
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
         </main>

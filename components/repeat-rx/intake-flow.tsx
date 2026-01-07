@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -105,24 +106,46 @@ function ProgressIndicator({
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-center gap-1.5">
-        {displaySteps.map((step, i) => (
-          <div
-            key={step}
-            className={cn(
-              "h-1 rounded-full transition-all duration-300",
-              i < currentIndex
-                ? "bg-primary w-8"
-                : i === currentIndex
-                ? "bg-primary/80 w-10"
-                : "bg-muted-foreground/20 w-6"
-            )}
+      <div className="flex items-center gap-3">
+        {/* Compact progress dots */}
+        <div className="flex items-center gap-3 relative">
+          {displaySteps.map((step, i) => (
+            <div
+              key={step}
+              className={cn(
+                "w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300",
+                i <= currentIndex ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+              )}
+            />
+          ))}
+          
+          {/* Animated progress overlay */}
+          <motion.div
+            initial={{ width: '12px' }}
+            animate={{
+              width: totalSteps === 3 
+                ? (currentIndex === 0 ? '24px' : currentIndex === 1 ? '60px' : '96px')
+                : totalSteps === 5
+                ? (currentIndex === 0 ? '24px' : currentIndex === 1 ? '48px' : currentIndex === 2 ? '72px' : currentIndex === 3 ? '96px' : '120px')
+                : `${((currentIndex + 1) / totalSteps) * 100}%`
+            }}
+            className="absolute -left-[6px] -top-[6px] -translate-y-1/2 h-2 bg-primary rounded-full"
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              mass: 0.8,
+              bounce: 0.25,
+              duration: 0.6
+            }}
           />
-        ))}
+        </div>
+        
+        {/* Step label */}
+        <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
+          Step {currentIndex + 1}/{totalSteps}
+        </span>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-2">
-        Step {currentIndex + 1} of {totalSteps}
-      </p>
     </div>
   )
 }
@@ -678,23 +701,23 @@ export function RepeatRxIntakeFlow({
         {/* Header */}
         {currentStep !== "auth" && currentStep !== "confirmation" && (
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
-            <div className="max-w-lg mx-auto px-4 py-3">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="max-w-lg mx-auto px-3 py-2">
+              <div className="flex items-center gap-2 mb-2">
                 {currentStep !== "medication" && (
                   <button
                     onClick={goBack}
-                    className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+                    className="p-1.5 -ml-1 rounded-lg hover:bg-muted transition-colors"
                     aria-label="Go back"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4" />
                   </button>
                 )}
-                <div className="flex-1 flex items-center justify-center gap-2">
-                  <Pill className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Repeat Prescription</span>
+                <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
+                  <Pill className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-xs font-medium truncate">Repeat Prescription</span>
                 </div>
-                <Link href="/" className="p-2 -mr-2 rounded-lg hover:bg-muted transition-colors">
-                  <X className="w-5 h-5" />
+                <Link href="/" className="p-1.5 -mr-1 rounded-lg hover:bg-muted transition-colors shrink-0">
+                  <X className="w-4 h-4" />
                 </Link>
               </div>
               <ProgressIndicator currentStep={currentStep} steps={STEPS} />

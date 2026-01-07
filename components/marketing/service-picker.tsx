@@ -1,11 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, Phone, PhoneOff } from 'lucide-react'
+import { ArrowRight, Clock, Phone, PhoneOff, Check, Sparkles } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
+import { cn } from '@/lib/utils'
+import { MagneticButton } from '@/components/effects/magnetic-button'
+import { AnimatedText } from '@/components/ui/animated-underline-text-one'
 
 const iconMap = {
   FileText: DocumentPremium,
@@ -87,9 +90,16 @@ export function ServicePicker() {
             <span className="text-sm font-medium text-foreground/80">Get started in minutes</span>
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-            What do you need today?
-          </h2>
+          <div className="mb-4">
+            <AnimatedText
+              text="What do you need today?"
+              textClassName="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight"
+              underlineClassName="text-primary"
+              underlinePath="M 0,10 Q 100,0 200,10 Q 300,20 400,10"
+              underlineHoverPath="M 0,10 Q 100,20 200,10 Q 300,0 400,10"
+              underlineDuration={1.2}
+            />
+          </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Select a service to get started. Most requests reviewed within an hour.
           </p>
@@ -114,15 +124,34 @@ export function ServicePicker() {
                   href={service.href || `/${service.slug}/request`}
                   className="group block h-full"
                 >
-                    <Card 
-                      isHoverable
-                      isPressable
-                      className="h-full bg-content1 border border-divider overflow-hidden hover:border-primary/50 transition-colors"
-                      shadow="sm"
-                    >
-                    <CardBody className="p-0">
+                  <div className="relative h-full">
+                    {/* Popular badge */}
+                    {service.popular && (
+                      <div className="absolute -top-3 right-4 z-20">
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                          className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-emerald-500/40 dark:shadow-emerald-600/30 backdrop-blur-sm border border-white/20"
+                        >
+                          Popular
+                        </motion.div>
+                      </div>
+                    )}
+                    
+                    {/* Glassmorphic card */}
+                    <div className={cn(
+                      "relative h-full rounded-2xl overflow-hidden",
+                      "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
+                      "border border-white/20 dark:border-white/10",
+                      "shadow-lg shadow-black/5 dark:shadow-black/20",
+                      "hover:bg-white/80 dark:hover:bg-white/10",
+                      "hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30",
+                      "transition-all duration-300",
+                      "group-hover:scale-[1.02]"
+                    )}>
                       {/* Gradient header strip */}
-                      <div className={`h-1.5 w-full bg-linear-to-r ${colors.gradient}`} />
+                      <div className={`h-1.5 w-full bg-gradient-to-r ${colors.gradient}`} />
                       
                       <div className="p-6 pb-4">
                         {/* Icon with animated background */}
@@ -149,54 +178,95 @@ export function ServicePicker() {
                           {service.description}
                         </p>
                         
+                        {/* Benefits list */}
+                        {service.benefits && (
+                          <ul className="space-y-2 mb-4">
+                            {service.benefits.map((benefit, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+                                <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                                <span>{benefit}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        
                         {/* Meta info */}
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
                             <Clock className="h-3.5 w-3.5" />
                             {meta.time}
                           </span>
                           <span className="flex items-center gap-1.5">
                             {meta.needsCall ? (
                               <>
-                                <Phone className="h-3.5 w-3.5" />
-                                Quick call
+                                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Quick call</span>
                               </>
                             ) : (
                               <>
-                                <PhoneOff className="h-3.5 w-3.5 text-emerald-500" />
-                                <span className="text-emerald-600 dark:text-emerald-400">No call needed</span>
+                                <PhoneOff className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
+                                <span className="text-emerald-600 dark:text-emerald-400 font-medium relative inline-block">
+                                  <span className="relative z-10">No call needed</span>
+                                  <span className="absolute inset-0 blur-[2px] opacity-60 text-emerald-500 dark:text-emerald-400 animate-pulse">
+                                    No call needed
+                                  </span>
+                                  <span className="absolute inset-0 blur-[4px] opacity-40 text-emerald-400 dark:text-emerald-500">
+                                    No call needed
+                                  </span>
+                                </span>
                               </>
                             )}
                           </span>
                         </div>
                       </div>
-                    </CardBody>
-                    
-                    <Divider />
-                    
-                    <CardFooter className="flex items-center justify-between px-6 py-4">
-                      <Chip 
-                        color={colors.chipColor} 
-                        variant="flat" 
-                        size="sm"
-                        classNames={{
-                          base: "interactive-pill",
-                          content: "font-medium"
-                        }}
-                      >
-                        From ${service.priceFrom.toFixed(2)}
-                      </Chip>
                       
-                      <motion.div 
-                        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors duration-300"
-                        whileHover={{ x: 4 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      >
-                        Start now
-                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                      </motion.div>
-                    </CardFooter>
-                  </Card>
+                      <Divider className="opacity-50" />
+                      
+                      <div className="flex items-center justify-between px-6 py-4">
+                        <Chip 
+                          color={colors.chipColor} 
+                          variant="flat" 
+                          size="sm"
+                          classNames={{
+                            base: "interactive-pill",
+                            content: "font-medium"
+                          }}
+                        >
+                          From ${service.priceFrom.toFixed(2)}
+                        </Chip>
+                        
+                        <MagneticButton>
+                          <div
+                            className={cn(
+                              "relative overflow-hidden inline-flex items-center gap-1.5",
+                              "px-5 py-2.5 rounded-xl",
+                              "text-white text-sm font-bold",
+                              "shadow-lg shadow-primary/40",
+                              "hover:shadow-xl hover:shadow-primary/50",
+                              "transition-all duration-300",
+                              "cursor-pointer",
+                              "glow-pulse",
+                              "border border-white/20",
+                              "backdrop-blur-sm"
+                            )}
+                            style={{
+                              background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}cc 100%)`,
+                              boxShadow: `0 8px 24px -4px ${colors.accent}40, 0 4px 12px -2px ${colors.accent}30`,
+                            }}
+                          >
+                            <span className="relative z-10 flex items-center gap-1.5">
+                              Start now
+                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                            </span>
+                            {/* Shimmer effect */}
+                            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                            {/* Glow effect */}
+                            <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" style={{ background: colors.accent }} />
+                          </div>
+                        </MagneticButton>
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               </motion.div>
             )

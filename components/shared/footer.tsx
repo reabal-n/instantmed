@@ -46,13 +46,13 @@ export function Footer() {
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
               <h4 className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</h4>
               <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/medical-certificate/request">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=med-cert">
                   Medical Certificates
                 </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/prescriptions/request">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=repeat-script">
                   Prescriptions
                 </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/consult/request">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=consult">
                   General Consult
                 </Link>
               </div>

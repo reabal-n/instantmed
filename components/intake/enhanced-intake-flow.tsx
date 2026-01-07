@@ -41,7 +41,6 @@ import { StepProgress } from "@/components/intake/step-progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, CheckCircle2 } from "lucide-react"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
-import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -50,6 +49,7 @@ import {
   SymptomChecker,
   checkSymptoms,
 } from "@/components/intake/symptom-checker"
+import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
@@ -172,6 +172,15 @@ const SERVICES: Array<{
     icon: Stethoscope,
     price: "$29.95",
     time: "2 min call",
+    noCall: false,
+  },
+  {
+    id: "consult",
+    title: "General Consult",
+    subtitle: "New prescriptions & dose changes",
+    icon: Zap,
+    price: "$44.95",
+    time: "~15 mins",
     noCall: false,
   },
 ]
@@ -367,7 +376,7 @@ function FormField({
   showSuccess?: boolean
 }) {
   return (
-    <div className={cn("space-y-1.5", className)}>
+    <div className={cn("space-y-1", className)}>
       <div className="flex items-center gap-2">
         <Label className="text-sm font-medium">
           {label}
@@ -398,19 +407,7 @@ function FormField({
       {example && (
         <p className="text-xs text-muted-foreground italic">e.g., {example}</p>
       )}
-      <div className="relative">
-        {children}
-        {showSuccess && !error && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <CheckCircle2 className="w-4 h-4 text-green-600" />
-          </div>
-        )}
-        {error && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <AlertTriangle className="w-4 h-4 text-destructive" />
-          </div>
-        )}
-      </div>
+      {children}
       {error && (
         <p className="text-xs text-destructive flex items-center gap-1 mt-1">
           <AlertTriangle className="w-3 h-3" />
@@ -486,10 +483,9 @@ export function EnhancedIntakeFlow({
       lastService: state.service,
       lastCertType: state.certType || undefined,
       lastDuration: state.duration || undefined,
-      lastPharmacy: state.pharmacyPreference || undefined,
     }
     localStorage.setItem("intake_preferences", JSON.stringify(prefs))
-  }, [state.service, state.certType, state.duration, state.pharmacyPreference])
+  }, [state.service, state.certType, state.duration])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof IntakeState, string>>>({})
@@ -536,18 +532,18 @@ export function EnhancedIntakeFlow({
     return labels
   }, [steps])
 
-  // Time estimates per step (in minutes)
+  // Time estimates per step (in minutes) - reduced by 2 minutes total
   const timeEstimates = useMemo(() => {
     return steps.map((step) => {
       switch (step) {
         case "service":
           return 1
         case "details":
-          return 2
+          return 1
         case "safety":
           return 1
         case "account":
-          return 2
+          return 1
         case "review":
           return 1
         default:
@@ -606,6 +602,13 @@ export function EnhancedIntakeFlow({
       case "medicationName":
         if (!value && step === "details" && (state.service === "repeat-script" || state.service === "new-script")) {
           return "Please enter medication name"
+        }
+        break
+      case "consultReason":
+        if (!value && step === "details" && state.service === "consult") {
+          return "Please describe what you need help with"
+        } else if (value && typeof value === "string" && value.length < 10) {
+          return "Please provide more details (at least 10 characters)"
         }
         break
       case "firstName":
@@ -799,6 +802,8 @@ export function EnhancedIntakeFlow({
       answers.symptoms = state.symptoms
       answers.symptom_details = state.symptomDetails
       answers.employer_name = state.employerName
+    } else if (state.service === "consult") {
+      answers.consult_reason = state.consultReason
     } else {
       answers.medication_name = state.medicationName
       answers.medication_dosage = state.medicationDosage
@@ -835,6 +840,8 @@ export function EnhancedIntakeFlow({
         ? (state.certType || "sick_leave")
         : state.service === "repeat-script"
           ? "repeat"
+          : state.service === "consult"
+          ? "general"
           : "new"
       const answers = buildAnswersPayload()
 
@@ -905,6 +912,8 @@ export function EnhancedIntakeFlow({
           title:
             state.service === "med-cert"
               ? "Tell us about your absence"
+              : state.service === "consult"
+              ? "What do you need help with?"
               : "Your medication",
           subtitle: "This helps our doctors help you faster",
         }
@@ -928,26 +937,58 @@ export function EnhancedIntakeFlow({
       // ======= SERVICE SELECTION =======
       case "service":
         return (
-          <motion.div className="space-y-4">
+          <motion.div className="space-y-3">
             {/* Urgency messaging */}
-            <Alert variant="info" className="border-primary/20 bg-primary/5">
-              <Clock className="w-4 h-4" />
-              <AlertDescription className="text-xs">
+            <Alert variant="info" className="border-primary/20 bg-primary/5 py-2 px-3">
+              <Clock className="w-3 h-3" />
+              <AlertDescription className="text-[11px] leading-tight">
                 Most requests reviewed within 1 hour • Doctors online now
               </AlertDescription>
             </Alert>
 
-            {SERVICES.map((service) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                selected={state.service === service.id}
-                onClick={() => updateField("service", service.id)}
-              />
-            ))}
+            <RadioGroup
+              value={state.service || undefined}
+              onValueChange={(value) => updateField("service", value as ServiceType)}
+              className="w-full"
+            >
+              {SERVICES.map((service) => {
+                const Icon = service.icon
+                return (
+                  <RadioCard
+                    key={service.id}
+                    value={service.id}
+                    title={service.title}
+                    description={service.subtitle}
+                    icon={<Icon className="w-5 h-5" />}
+                    className="relative"
+                  >
+                    <div className="flex items-center justify-between w-full mt-2">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {service.noCall && (
+                          <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
+                            <PhoneOff className="w-3 h-3" />
+                            No call
+                          </span>
+                        )}
+                        <span className="font-medium text-foreground">{service.price}</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {service.time}
+                        </span>
+                      </div>
+                      {service.popular && (
+                        <Badge className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+                          Popular
+                        </Badge>
+                      )}
+                    </div>
+                  </RadioCard>
+                )
+              })}
+            </RadioGroup>
 
             {/* Trust badges */}
-            <div className="pt-4">
+            <div className="pt-2">
               <TrustBadgeStrip />
             </div>
           </motion.div>
@@ -957,7 +998,7 @@ export function EnhancedIntakeFlow({
       case "details":
         if (state.service === "med-cert") {
           return (
-            <motion.div className="space-y-6">
+            <motion.div className="space-y-4">
               {/* Trust indicator */}
               <Alert variant="info" className="border-primary/20 bg-primary/5">
                 <Shield className="w-4 h-4" />
@@ -1118,28 +1159,76 @@ export function EnhancedIntakeFlow({
           )
         }
 
+        // Consult details
+        if (state.service === "consult") {
+          return (
+            <motion.div className="space-y-4">
+              {/* Trust indicator */}
+              <Alert variant="info" className="border-primary/20 bg-primary/5">
+                <Shield className="w-4 h-4" />
+                <AlertDescription className="text-xs">
+                  All consultations are reviewed by AHPRA-registered Australian doctors
+                </AlertDescription>
+              </Alert>
+
+              {/* Consult reason */}
+              <FormField
+                label="What do you need help with?"
+                required
+                error={errors.consultReason}
+                hint="Describe your health concern or what you need"
+                helpText="Be as specific as possible. This helps our doctors understand how to help you."
+                example="e.g., I need a new prescription for acne treatment, or I want to discuss adjusting my blood pressure medication"
+              >
+                <EnhancedTextarea
+                  label=""
+                  value={state.consultReason}
+                  onChange={(value) => updateField("consultReason", value)}
+                  placeholder="Tell us about your health concern..."
+                  minRows={4}
+                  className="resize-none touch-target"
+                  maxLength={1000}
+                  showCharacterCounter={true}
+                  helperText="Describe what you need help with - new prescription, medication review, health concern, etc."
+                />
+              </FormField>
+
+              {/* Phone call notice */}
+              <Alert variant="info" className="border-primary/20 bg-primary/5">
+                <Phone className="w-4 h-4" />
+                <AlertDescription className="text-xs">
+                  A doctor may call you for a quick 2-minute consultation to discuss your needs
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )
+        }
+
         // Prescription details
         return (
-          <motion.div className="space-y-6">
+          <motion.div className="space-y-4">
             {/* Repeat vs New */}
             {state.service === "repeat-script" ? (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+              <div className="py-2 px-3 bg-green-50 border border-green-200 rounded-xl">
                 <div className="flex items-center gap-2 text-green-800">
-                  <PhoneOff className="w-4 h-4" />
-                  <span className="text-sm font-medium">
+                  <PhoneOff className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">
                     No phone call needed for repeats
+                  </span>
+                  <span className="text-[10px] text-green-700">
+                    • Prescription token will be sent via SMS
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-blue-50 border border-primary rounded-xl">
+              <div className="py-2 px-3 bg-blue-50 border border-primary rounded-xl">
                 <div className="flex items-center gap-2 text-blue-800">
-                  <Phone className="w-4 h-4" />
-                  <span className="text-sm font-medium">
+                  <Phone className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">
                     Quick 2-minute phone consult required
                   </span>
                 </div>
-                <p className="text-xs text-primary mt-1">
+                <p className="text-[10px] text-primary mt-1">
                   Our doctor will call you to discuss your needs
                 </p>
               </div>
@@ -1200,23 +1289,13 @@ export function EnhancedIntakeFlow({
                 ))}
               </div>
             </div>
-
-            {/* Pharmacy preference */}
-            <FormField label="Preferred pharmacy (optional)">
-              <Input
-                value={state.pharmacyPreference}
-                onChange={(e) => updateField("pharmacyPreference", e.target.value)}
-                placeholder="e.g., Chemist Warehouse Sydney CBD"
-                className="h-11"
-              />
-            </FormField>
           </motion.div>
         )
 
       // ======= SAFETY CHECK =======
       case "safety":
         return (
-          <motion.div className="space-y-6">
+          <motion.div className="space-y-4">
             {/* Emergency warning - Enhanced */}
             <Alert variant="warning" role="alert">
               <AlertTriangle className="w-5 h-5" />
@@ -1278,7 +1357,7 @@ export function EnhancedIntakeFlow({
       // ======= ACCOUNT DETAILS =======
       case "account":
         return (
-          <motion.div className="space-y-5">
+          <motion.div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 label="First name"
@@ -1384,7 +1463,7 @@ export function EnhancedIntakeFlow({
         const selectedService = SERVICES.find((s) => s.id === state.service)
         
         return (
-          <motion.div className="space-y-6" data-intake-form>
+          <motion.div className="space-y-4" data-intake-form>
             {/* Trust indicators at top */}
             <div className="flex flex-wrap items-center justify-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
               <div className="flex items-center gap-2 text-sm">
@@ -1737,33 +1816,20 @@ export function EnhancedIntakeFlow({
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={goBack}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                goBack()
-              }
-            }}
-            className="p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors touch-target focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            aria-label={stepIndex > 0 ? `Go back to ${stepLabels[stepIndex - 1] || "previous"} step` : "Go back"}
-          >
-            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
-          </button>
-
-          <div className="flex-1 mx-4">
+        <div className="max-w-lg mx-auto px-3 py-2 flex items-start justify-center">
+          <div className="flex-1 min-w-0">
             <StepProgress
               currentStep={stepIndex + 1}
               totalSteps={steps.length}
               steps={stepLabels}
               showTimeEstimate={true}
               timeEstimates={timeEstimates}
+              className="compact"
             />
           </div>
 
           {/* Auto-save indicator */}
-          <div className="w-9 flex items-center justify-end">
+          <div className="w-7 flex items-center justify-end shrink-0 mt-0.5">
             {lastSavedAt && (
               <TooltipProvider>
                 <Tooltip>
@@ -1791,16 +1857,16 @@ export function EnhancedIntakeFlow({
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6 pb-24">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-20">
         {/* Step title */}
         <motion.div
           key={step + "-title"}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
+          className="text-center mb-4"
         >
-          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
+          <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
         </motion.div>
 
         {/* Step content */}
@@ -1820,33 +1886,42 @@ export function EnhancedIntakeFlow({
       </main>
 
       {/* Footer CTA */}
-      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-6 pb-safe">
+      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-2 pb-safe">
         <div className="max-w-lg mx-auto">
-          <UnifiedProgressIndicator
-            currentStep={stepIndex + 1}
-            totalSteps={steps.length}
-            onContinue={goNext}
-            onBack={stepIndex > 0 ? goBack : undefined}
-            isExpanded={stepIndex === 0}
-            isLastStep={isLastStep}
-            disabled={
-              isSubmitting ||
-              (step === "service" && !state.service) ||
-              (step === "safety" && symptomCheckResult.severity === "critical") ||
-              Object.keys(errors).length > 0
-            }
-            continueLabel={
-              isSubmitting
+          <div className="flex items-center justify-center gap-3">
+            {stepIndex > 0 && (
+              <button
+                onClick={goBack}
+                disabled={isSubmitting}
+                className="shrink-0 w-12 h-12 rounded-full border-2 border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center justify-center"
+              >
+                <ArrowLeft className="w-5 h-5 text-slate-600" />
+              </button>
+            )}
+            <button
+              onClick={goNext}
+              disabled={
+                isSubmitting ||
+                (step === "service" && !state.service) ||
+                (step === "safety" && symptomCheckResult.severity === "critical") ||
+                Object.keys(errors).length > 0
+              }
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg flex items-center justify-center px-6"
+            >
+              {isSubmitting
                 ? "Processing..."
                 : isLastStep
                   ? `Pay ${SERVICES.find((s) => s.id === state.service)?.price}`
-                  : "Continue"
-            }
-          />
+                  : "Continue"}
+              {!isSubmitting && (
+                <ArrowRight className="w-5 h-5 ml-2" />
+              )}
+            </button>
+          </div>
         </div>
 
         {step === "service" && (
-          <p className="text-center text-xs text-muted-foreground mt-3">
+          <p className="text-center text-xs text-muted-foreground mt-2">
             🔒 Secure • No payment until review complete
           </p>
         )}

@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface StepProgressProps {
   currentStep: number
@@ -26,6 +27,93 @@ export function StepProgress({
   const remainingTime = showTimeEstimate && timeEstimates.length > 0
     ? timeEstimates.slice(currentStep - 1).reduce((sum, time) => sum + time, 0)
     : null
+
+  // Compact mode for headers (when used in tight spaces)
+  const isCompact = className?.includes('compact') || false
+
+  if (isCompact) {
+    // Calculate progress width based on current step
+    // The progress bar should extend to cover all completed steps and reach the current step's dot
+    const calculateProgressWidth = () => {
+      // With flex-1 layout, steps are evenly distributed
+      // Progress should extend proportionally: (currentStep / totalSteps) of container width
+      // Account for the -6px initial offset
+      const progressPercent = (currentStep / totalSteps) * 100
+      
+      // Use CSS calc to combine percentage with pixel offset
+      // The progress bar starts at -6px, so we add that to the calculated width
+      return `calc(${progressPercent}% + 6px)`
+    }
+
+    return (
+      <div className={cn("w-full", className)}>
+        {/* Progress dots with labels */}
+        <div className="flex items-start gap-3 relative pb-4">
+          {/* Animated progress overlay - behind dots */}
+          <motion.div
+            initial={{ width: '12px' }}
+            animate={{
+              width: calculateProgressWidth(),
+            }}
+            className="absolute -left-[6px] top-[3px] h-[2px] bg-primary rounded-full z-0"
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              mass: 0.8,
+              bounce: 0.25,
+              duration: 0.6
+            }}
+          />
+          
+          {Array.from({ length: totalSteps }).map((_, index) => {
+            const stepNumber = index + 1
+            const isCompleted = stepNumber < currentStep
+            const isCurrent = stepNumber === currentStep
+            
+            return (
+              <div key={index} className="flex flex-col items-center gap-1 flex-1 min-w-0 relative z-10">
+                {/* Dot */}
+                <div className="relative">
+                  <div
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full transition-colors duration-300",
+                      (isCompleted || isCurrent) && "bg-primary",
+                      !isCompleted && !isCurrent && "bg-gray-300 dark:bg-gray-600"
+                    )}
+                  />
+                </div>
+                
+                {/* Step label */}
+                {steps && steps.length > 0 && (
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium text-center leading-tight transition-colors duration-300",
+                      isCurrent && "text-foreground font-semibold",
+                      isCompleted && "text-primary",
+                      !isCompleted && !isCurrent && "text-muted-foreground"
+                    )}
+                    title={steps[index]}
+                  >
+                    {steps[index] || `${stepNumber}`}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Time estimate */}
+        {showTimeEstimate && remainingTime !== null && remainingTime > 0 && (
+          <div className="flex justify-center mt-1">
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              ~{remainingTime} min
+            </span>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className={cn("w-full", className)}>

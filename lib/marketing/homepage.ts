@@ -30,18 +30,18 @@ export const heroRotatingTexts = [
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Usually done in an hour",
-    description: "No waiting days for an appointment",
+    text: "~15 min turnaround",
+    description: "Fast response times",
+  },
+  {
+    icon: "Clock",
+    text: "7 days a week",
+    description: "Available every day",
   },
   {
     icon: "Shield",
-    text: "Actual doctors, not AI",
+    text: "AHPRA registered drs",
     description: "Real Australian GPs review every request",
-  },
-  {
-    icon: "DollarSign",
-    text: "Pay only if approved",
-    description: "Full refund if we can't help",
   },
   {
     icon: "Lock",
@@ -60,7 +60,14 @@ export const serviceCategories = [
     icon: "FileText",
     color: "emerald",
     priceFrom: 24.95,
-    href: "/medical-certificate/request",
+    href: "/start?service=med-cert",
+    popular: true,
+    benefits: [
+      "Valid for all employers",
+      "Same-day delivery",
+      "Backdating if appropriate",
+      "No phone call required"
+    ],
   },
   {
     id: "scripts",
@@ -71,7 +78,14 @@ export const serviceCategories = [
     icon: "Pill",
     color: "cyan",
     priceFrom: 19.95,
-    href: "/prescriptions/request",
+    href: "/start?service=repeat-script",
+    popular: false,
+    benefits: [
+      "Works with any chemist",
+      "Repeat scripts included",
+      "Sent direct to pharmacy",
+      "No phone call required"
+    ],
   },
   {
     id: "consult",
@@ -82,7 +96,14 @@ export const serviceCategories = [
     icon: "Stethoscope",
     color: "violet",
     priceFrom: 44.95,
-    href: "/consult/request",
+    href: "/start?service=consult",
+    popular: false,
+    benefits: [
+      "New prescriptions available",
+      "Dose adjustments",
+      "Detailed review",
+      "Quick call if needed"
+    ],
   },
 ]
 
@@ -138,14 +159,14 @@ export const featuredServices = [
     title: "Medical Certificates",
     description: "For when you're unwell and need proof for work or uni. Employers accept these — we've issued thousands.",
     priceFrom: 24.95,
-    href: "/medical-certificate/request",
+    href: "/start?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
   {
     title: "Prescriptions",
     description: "For your regular medications — the ones you already take. Skip the 3-week GP wait.",
     priceFrom: 19.95,
-    href: "/prescriptions/request",
+    href: "/start?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your pharmacy"],
   },
 ]
@@ -162,7 +183,7 @@ export const pricingTiers = [
       "eScript or paper",
     ],
     cta: "Get a script",
-    href: "/prescriptions/request",
+    href: "/start?service=repeat-script",
     popular: false,
     icon: "Pill",
     color: "from-cyan-500 to-blue-500",
@@ -178,7 +199,7 @@ export const pricingTiers = [
       "Backdating if appropriate",
     ],
     cta: "Get a certificate",
-    href: "/medical-certificate/request",
+    href: "/start?service=med-cert",
     popular: true,
     icon: "FileText",
     color: "from-indigo-500 to-violet-500",
@@ -194,7 +215,7 @@ export const pricingTiers = [
       "Pathology requests if needed",
     ],
     cta: "Book a consult",
-    href: "/consult/request",
+    href: "/start?service=consult",
     popular: false,
     icon: "Stethoscope",
     color: "from-violet-500 to-purple-500",

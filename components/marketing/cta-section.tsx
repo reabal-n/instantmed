@@ -20,14 +20,14 @@ function CreditCardIcon({ className }: { className?: string }) {
 }
 
 const features = [
-  { Icon: ClockPremium, text: "15 min typical turnaround" },
+  { Icon: ClockPremium, text: "~15 min turnaround" },
   { Icon: ShieldPremiumAlt, text: "AHPRA registered doctors" },
-  { Icon: CreditCardIcon, text: "Pay only if approved" },
+  { Icon: CreditCardIcon, text: "7 days a week" },
 ]
 
 export function CTASection() {
   return (
-    <section className="py-16 lg:py-20 relative overflow-hidden section-premium">
+    <section className="py-16 lg:py-20 relative overflow-hidden">
       <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

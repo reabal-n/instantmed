@@ -55,7 +55,7 @@ export function MarketingFooter() {
                     {link.label}
                   </Link>
                 ))}
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/consult/request">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=consult">
                   General Consult
                 </Link>
               </div>

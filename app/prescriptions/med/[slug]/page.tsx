@@ -155,7 +155,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                     <p className="text-4xl font-bold">${price}</p>
                   </div>
                   <Button asChild className="w-full h-12 text-base" size="lg">
-                    <Link href={`/prescriptions/request?medication=${med.id}`}>
+                    <Link href={`/start?service=repeat-script&medication=${med.id}`}>
                       Request {med.name}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>

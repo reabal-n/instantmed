@@ -145,7 +145,7 @@ export default async function MedicationPage({ params }: PageProps) {
               <p className="text-muted-foreground mb-6">{med.description}</p>
 
               {med.prescribable && (
-                <Link href={`/prescriptions/request?medication=${slug}`}>
+                <Link href={`/start?service=repeat-script&medication=${slug}`}>
                   <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
                     Request This Medication
                     <ArrowRight className="h-4 w-4 ml-2" />

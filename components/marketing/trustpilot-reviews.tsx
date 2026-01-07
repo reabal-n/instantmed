@@ -1,8 +1,5 @@
 "use client"
 
-import { Star, MapPin } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Spotlight } from '@/components/ui/glowing-effect'
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 
 const reviews = [
@@ -86,82 +83,15 @@ const reviewsForColumns = reviews.map((r) => ({
   role: r.location,
 }))
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-px">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <div 
-          key={star} 
-          className={cn(
-            "w-4 h-4 flex items-center justify-center",
-            star <= rating ? "bg-[#00b67a]" : "bg-gray-300"
-          )}
-        >
-          <Star className={cn(
-            "w-2.5 h-2.5",
-            star <= rating ? "text-white fill-white" : "text-gray-400"
-          )} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ReviewCard({ review }: { review: typeof reviews[0] }) {
-  return (
-    <div className="shrink-0 w-[300px] mx-2">
-      <Spotlight color="oklch(0.65 0.15 160 / 0.12)" size={250}>
-        <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 h-full transition-all duration-300 hover:border-[#00b67a]/30 hover:shadow-lg hover:shadow-[#00b67a]/5">
-          <div className="flex items-center justify-between mb-2">
-            <StarRating rating={review.rating} />
-            <span className="text-[10px] text-zinc-400">{review.date}</span>
-          </div>
-          
-          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed mb-3 line-clamp-2">
-            {review.text}
-          </p>
-          
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">{review.name}</span>
-            <span className="text-zinc-300 dark:text-zinc-600">•</span>
-            <span className="flex items-center gap-0.5 text-zinc-500">
-              <MapPin className="w-3 h-3" />
-              {review.location}
-            </span>
-          </div>
-        </div>
-      </Spotlight>
-    </div>
-  )
-}
-
 export function TrustpilotReviews() {
   return (
-    <section className="py-8 overflow-hidden bg-zinc-50 dark:bg-zinc-950">
-      {/* Trustpilot header */}
-      <div className="flex items-center justify-center gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-px">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="w-6 h-6 bg-[#00b67a] flex items-center justify-center">
-                <Star className="w-4 h-4 text-white fill-white" />
-              </div>
-            ))}
-          </div>
-          <span className="text-lg font-semibold text-zinc-900 dark:text-white ml-1">Trustpilot</span>
-        </div>
-        <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-700" />
-        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-          <span className="font-semibold text-zinc-900 dark:text-white">4.9</span> • 2,847 reviews
-        </div>
-      </div>
-
+    <section className="py-8 overflow-hidden relative">
       {/* Testimonials Columns */}
       <TestimonialsColumnsWrapper
         testimonials={reviewsForColumns}
         title="What our customers say"
         subtitle="See what our customers have to say about us."
-        badgeText="Trustpilot Reviews"
+        badgeText="Customer Reviews"
         className="py-0 my-0"
       />
     </section>

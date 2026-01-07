@@ -38,7 +38,7 @@ const CERT_TYPES = [
     icon: Briefcase,
     description: "For when you&apos;re unwell and need a day or two to recover.",
     popular: true,
-    href: "/medical-certificate/request?type=personal",
+    href: "/start?service=med-cert",
   },
   {
     id: "carer",
@@ -49,7 +49,7 @@ const CERT_TYPES = [
     icon: Heart,
     description: "For when you need to care for a sick family member.",
     popular: false,
-    href: "/medical-certificate/request?type=carer",
+    href: "/start?service=med-cert",
   },
   {
     id: "extended",
@@ -60,7 +60,7 @@ const CERT_TYPES = [
     icon: Calendar,
     description: "May require a brief phone consult with the doctor.",
     popular: false,
-    href: "/medical-certificate/request?type=extended",
+    href: "/start?service=med-cert",
   },
 ]
 
@@ -121,7 +121,7 @@ export default function MedicalCertificatePage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-slide-up-delay-3">
               <Button asChild size="lg" className="btn-liquid px-10 h-14 text-base">
-                <Link href="/medical-certificate/request">
+                <Link href="/start?service=med-cert">
                   Get my certificate
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>

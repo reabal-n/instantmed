@@ -25,8 +25,11 @@ function Input({
       radius="lg"
       variant="bordered"
       classNames={{
+        base: cn("w-full", className),
+        mainWrapper: "border-none shadow-none bg-transparent", // Remove borders from outer wrapper
         inputWrapper: cn(
-          "bg-background/50 backdrop-blur-sm border-default-200",
+          "bg-background/50 backdrop-blur-sm",
+          "border-default-200",
           "transition-all duration-300",
           "hover:border-primary/50 hover:shadow-sm hover:shadow-primary/5",
           "data-[focused=true]:border-primary data-[focused=true]:shadow-md data-[focused=true]:shadow-primary/10",
@@ -41,7 +44,6 @@ function Input({
           "text-base md:text-sm" // Prevent zoom on iOS
         ),
       }}
-      className={className}
       {...props}
     />
   )

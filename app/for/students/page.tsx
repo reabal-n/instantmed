@@ -1,8 +1,6 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { GlowCard } from "@/components/ui/spotlight-card"
-import { ParallaxSection } from "@/components/ui/parallax-section"
 import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOpen, FileText, Calendar } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -64,289 +62,287 @@ export default function StudentsPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-indigo-500/10 to-transparent">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 text-sm mb-6">
-                <GraduationCap className="h-4 w-4" />
-                For Uni & TAFE Students
-              </div>
+          <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-3xl mx-auto text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4 interactive-pill cursor-default">
+                    <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="text-xs font-medium text-indigo-700">For Uni & TAFE Students</span>
+                  </div>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Medical Certificates for Special Consideration
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-4">
-                Too sick for that exam or assignment? Get your medical certificate in <strong>15 minutes</strong>. Accepted by all Australian universities and TAFEs.
-              </p>
-              <p className="text-sm text-muted-foreground mb-8">
-                Valid for special consideration • Deferred exams • Assignment extensions
-              </p>
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                    Medical Certificates for Special Consideration
+                  </h1>
+                  <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
+                    Too sick for that exam or assignment? Get your medical certificate in <strong>15 minutes</strong>. Accepted by all Australian universities and TAFEs.
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    Valid for special consideration • Deferred exams • Assignment extensions
+                  </p>
 
-              <Link href="/medical-certificate/request?reason=uni">
-                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-base px-8">
-                  Get Certificate Now
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+                  <Link href="/start?service=med-cert">
+                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-6">
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
 
-              {/* Speed badges */}
-              <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Zap className="h-4 w-4 text-indigo-600" />
-                  <span className="font-medium">15 min turnaround</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <GraduationCap className="h-4 w-4 text-indigo-600" />
-                  <span>All unis accept</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full border">
-                  <Shield className="h-4 w-4 text-indigo-600" />
-                  <span>AHPRA doctors</span>
+                  {/* Speed badges */}
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Zap className="h-3.5 w-3.5 text-indigo-600" />
+                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <GraduationCap className="h-3.5 w-3.5 text-indigo-600" />
+                      <span className="font-medium text-muted-foreground">All unis accept</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
+                      <Shield className="h-3.5 w-3.5 text-indigo-600" />
+                      <span className="font-medium text-muted-foreground">AHPRA doctors</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Speed Stats */}
-          <ParallaxSection speed={0.15}>
-            <section className="px-4 py-8 bg-indigo-600 text-white">
-            <div className="mx-auto max-w-4xl">
-              <div className="grid gap-6 sm:grid-cols-3 text-center">
-                <div>
-                  <div className="text-3xl font-bold mb-1">2 min</div>
-                  <div className="text-sm text-white/80">questionnaire</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold mb-1">15 min</div>
-                  <div className="text-sm text-white/80">doctor review</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold mb-1">PDF</div>
-                  <div className="text-sm text-white/80">straight to email</div>
+          <section className="px-4 py-8 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10">
+                <div className="max-w-4xl mx-auto">
+                  <div className="grid gap-4 sm:grid-cols-3 text-center">
+                    <div>
+                      <div className="text-2xl font-bold mb-1 text-indigo-600">2 min</div>
+                      <div className="text-xs text-muted-foreground">questionnaire</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold mb-1 text-indigo-600">15 min</div>
+                      <div className="text-xs text-muted-foreground">doctor review</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold mb-1 text-indigo-600">PDF</div>
+                      <div className="text-xs text-muted-foreground">straight to email</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Universities */}
-          <ParallaxSection speed={0.25}>
-            <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-xl font-bold mb-6">Accepted by all Australian universities</h2>
-              <p className="text-muted-foreground mb-8">
-                Our certificates meet the requirements for special consideration at every Australian university and TAFE.
-              </p>
-              <div className="flex flex-wrap justify-center gap-3 text-sm text-muted-foreground">
-                {[
-                  "University of Sydney",
-                  "University of Melbourne",
-                  "UNSW",
-                  "Monash University",
-                  "UQ",
-                  "UWA",
-                  "ANU",
-                  "RMIT",
-                  "UTS",
-                  "QUT",
-                  "All TAFEs",
-                ].map((uni) => (
-                  <span key={uni} className="px-3 py-1.5 bg-muted/50 rounded-full">
-                    {uni}
-                  </span>
-                ))}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="max-w-3xl mx-auto text-center">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-3">Accepted by all Australian universities</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Our certificates meet the requirements for special consideration at every Australian university and TAFE.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2 text-xs">
+                    {[
+                      "University of Sydney",
+                      "University of Melbourne",
+                      "UNSW",
+                      "Monash University",
+                      "UQ",
+                      "UWA",
+                      "ANU",
+                      "RMIT",
+                      "UTS",
+                      "QUT",
+                      "All TAFEs",
+                    ].map((uni) => (
+                      <span key={uni} className="px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-700">
+                        {uni}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Use Cases */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">What you can use it for</h2>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    icon: FileText,
-                    title: "Special Consideration",
-                    desc: "For exams, assignments, or class attendance affected by illness",
-                  },
-                  {
-                    icon: Calendar,
-                    title: "Deferred Exams",
-                    desc: "Medical evidence for exam deferrals and supplementary assessments",
-                  },
-                  {
-                    icon: BookOpen,
-                    title: "Assignment Extensions",
-                    desc: "Documentation for late submission without penalty",
-                  },
-                ].map((item, index) => (
-                  <GlowCard
-                    key={item.title}
-                    glowColor={index === 0 ? 'blue' : index === 1 ? 'purple' : 'green'}
-                    customSize={true}
-                    className="text-center p-5"
-                  >
-                    <item.icon className="h-8 w-8 mx-auto mb-3 text-indigo-600" />
-                    <h3 className="font-semibold mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </GlowCard>
-                ))}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">What you can use it for</h2>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    {
+                      icon: FileText,
+                      title: "Special Consideration",
+                      desc: "For exams, assignments, or class attendance affected by illness",
+                    },
+                    {
+                      icon: Calendar,
+                      title: "Deferred Exams",
+                      desc: "Medical evidence for exam deferrals and supplementary assessments",
+                    },
+                    {
+                      icon: BookOpen,
+                      title: "Assignment Extensions",
+                      desc: "Documentation for late submission without penalty",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="glass-card rounded-xl p-4 text-center">
+                      <item.icon className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
+                      <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Why Students Use This */}
-          <ParallaxSection speed={0.25}>
-            <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-8 text-center">Why students use InstantMed</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    icon: Clock,
-                    title: "No GP waitlists",
-                    desc: "Skip the 2-week wait for a bulk-billing appointment. Get your cert in 15 minutes.",
-                  },
-                  {
-                    icon: Zap,
-                    title: "Before the deadline",
-                    desc: "Special consideration deadlines are tight. We get you sorted same-day.",
-                  },
-                  {
-                    icon: Smartphone,
-                    title: "From your phone",
-                    desc: "Do it from bed when you&apos;re too sick to leave the house. PDF to your email.",
-                  },
-                  {
-                    icon: Shield,
-                    title: "Legit certificate",
-                    desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
-                  },
-                ].map((item, index) => (
-                  <GlowCard
-                    key={item.title}
-                    glowColor={index % 4 === 0 ? 'blue' : index % 4 === 1 ? 'purple' : index % 4 === 2 ? 'green' : 'orange'}
-                    customSize={true}
-                    className="flex gap-4 p-4"
-                  >
-                    <item.icon className="h-6 w-6 text-indigo-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold mb-1">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why students use InstantMed</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      icon: Clock,
+                      title: "No GP waitlists",
+                      desc: "Skip the 2-week wait for a bulk-billing appointment. Get your cert in 15 minutes.",
+                    },
+                    {
+                      icon: Zap,
+                      title: "Before the deadline",
+                      desc: "Special consideration deadlines are tight. We get you sorted same-day.",
+                    },
+                    {
+                      icon: Smartphone,
+                      title: "From your phone",
+                      desc: "Do it from bed when you&apos;re too sick to leave the house. PDF to your email.",
+                    },
+                    {
+                      icon: Shield,
+                      title: "Legit certificate",
+                      desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <item.icon className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      </div>
                     </div>
-                  </GlowCard>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Testimonials */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold text-center mb-8">What students say</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    name: "Sophie L.",
-                    uni: "UNSW",
-                    quote: "Had a migraine on exam day. Got my cert submitted to special con before 5pm cutoff.",
-                  },
-                  {
-                    name: "James W.",
-                    uni: "University of Melbourne",
-                    quote: "Way better than waiting 3 weeks for a GP. My assignment extension was approved same day.",
-                  },
-                  {
-                    name: "Priya K.",
-                    uni: "UQ",
-                    quote: "Was too sick to leave bed. Did the whole thing on my phone. Lifesaver.",
-                  },
-                  {
-                    name: "Marcus T.",
-                    uni: "UTS",
-                    quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
-                  },
-                ].map((item) => (
-                  <div key={item.name} className="p-5 rounded-xl bg-background">
-                    <div className="flex gap-1 mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What students say</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      name: "Sophie L.",
+                      uni: "UNSW",
+                      quote: "Had a migraine on exam day. Got my cert submitted to special con before 5pm cutoff.",
+                    },
+                    {
+                      name: "James W.",
+                      uni: "University of Melbourne",
+                      quote: "Way better than waiting 3 weeks for a GP. My assignment extension was approved same day.",
+                    },
+                    {
+                      name: "Priya K.",
+                      uni: "UQ",
+                      quote: "Was too sick to leave bed. Did the whole thing on my phone. Lifesaver.",
+                    },
+                    {
+                      name: "Marcus T.",
+                      uni: "UTS",
+                      quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
+                    },
+                  ].map((item) => (
+                    <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
+                      <p className="text-xs text-muted-foreground">
+                        — {item.name}, {item.uni}
+                      </p>
                     </div>
-                    <p className="text-sm mb-3">&quot;{item.quote}&quot;</p>
-                    <p className="text-xs text-muted-foreground">
-                      — {item.name}, {item.uni}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* FAQs */}
-          <ParallaxSection speed={0.2}>
-            <section className="px-4 py-12">
-            <div className="mx-auto max-w-2xl">
-              <h2 className="text-xl font-bold text-center mb-8">FAQ for students</h2>
-              <div className="space-y-4">
-                {[
-                  {
-                    q: "Will my uni actually accept this?",
-                    a: "Yes. Our certificates are issued by AHPRA-registered doctors and include all the details unis require: doctor's name, provider number, dates of illness, and signature. Every Australian university accepts them.",
-                  },
-                  {
-                    q: "Can I get a certificate for an exam I already missed?",
-                    a: "Yes, we can backdate certificates up to 48 hours if clinically appropriate. Just indicate the dates you were unwell when completing the questionnaire.",
-                  },
-                  {
-                    q: "Does it say what I was sick with?",
-                    a: "By default, certificates say 'medical condition' without specific details — protecting your privacy. If your uni requires more detail, let us know.",
-                  },
-                  {
-                    q: "How long can the certificate cover?",
-                    a: "Most student certificates cover 1-3 days for acute illness. The doctor will determine appropriate duration based on your symptoms.",
-                  },
-                  {
-                    q: "What does it cost?",
-                    a: "Medical certificates for students are $19.95 — one flat fee. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
-                  },
-                ].map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-muted/30">
-                    <h3 className="font-semibold mb-2">{faq.q}</h3>
-                    <p className="text-sm text-muted-foreground">{faq.a}</p>
-                  </div>
-                ))}
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">FAQ for students</h2>
+                <div className="space-y-3 max-w-2xl mx-auto">
+                  {[
+                    {
+                      q: "Will my uni actually accept this?",
+                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and include all the details unis require: doctor's name, provider number, dates of illness, and signature. Every Australian university accepts them.",
+                    },
+                    {
+                      q: "Can I get a certificate for an exam I already missed?",
+                      a: "Yes, we can backdate certificates up to 48 hours if clinically appropriate. Just indicate the dates you were unwell when completing the questionnaire.",
+                    },
+                    {
+                      q: "Does it say what I was sick with?",
+                      a: "By default, certificates say 'medical condition' without specific details — protecting your privacy. If your uni requires more detail, let us know.",
+                    },
+                    {
+                      q: "How long can the certificate cover?",
+                      a: "Most student certificates cover 1-3 days for acute illness. The doctor will determine appropriate duration based on your symptoms.",
+                    },
+                    {
+                      q: "What does it cost?",
+                      a: "Medical certificates for students are $19.95 — one flat fee. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
+                    },
+                  ].map((faq, i) => (
+                    <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
+                      <h3 className="text-sm font-semibold mb-1.5">{faq.q}</h3>
+                      <p className="text-xs text-muted-foreground">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* CTA */}
-          <ParallaxSection speed={0.15}>
-            <section className="px-4 py-16 bg-muted/30">
-            <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Get your certificate in 15 minutes</h2>
-              <p className="text-muted-foreground mb-6">
-                Don&apos;t miss your special consideration deadline. Get sorted now.
-              </p>
-              <Link href="/medical-certificate/request?reason=uni">
-                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                  Get Certificate Now
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-              <p className="mt-4 text-xs text-muted-foreground">$19.95 • Accepted by all unis</p>
+          <section className="px-4 py-12 sm:px-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-xl mx-auto text-center">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10">
+                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Don&apos;t miss your special consideration deadline. Get sorted now.
+                  </p>
+                  <Link href="/start?service=med-cert">
+                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm h-12 px-8">
+                      Get Certificate Now
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                  <p className="mt-4 text-xs text-muted-foreground">$19.95 • Accepted by all unis</p>
+                </div>
+              </div>
             </div>
-            </section>
-          </ParallaxSection>
+          </section>
 
           {/* Related */}
           <section className="px-4 py-8 border-t">

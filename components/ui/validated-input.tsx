@@ -96,66 +96,59 @@ export function ValidatedInput({
 
   return (
     <div className="space-y-1">
-      <div className="relative">
-        <Input
-          {...props}
-          type={type}
-          label={label}
-          value={displayValue}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onFocus={handleFocus}
-          maxLength={maxLength}
-          className={cn(
+      <Input
+        {...props}
+        type={type}
+        label={label}
+        value={displayValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
+        maxLength={maxLength}
+        className={className}
+        classNames={{
+          input: cn(
+            error && touched && "text-red-700 dark:text-red-400",
+            isValid && touched && "text-green-700 dark:text-green-400"
+          ),
+          inputWrapper: cn(
             "transition-all duration-200",
-            error && touched && "border-red-500 focus:border-red-500",
-            isValid && touched && "border-green-500 focus:border-green-500",
-            focused && !error && !isValid && "border-primary focus:border-primary",
-            className
-          )}
-          classNames={{
-            input: cn(
-              error && touched && "text-red-700 dark:text-red-400",
-              isValid && touched && "text-green-700 dark:text-green-400"
-            ),
-            inputWrapper: cn(
-              error && touched && "border-red-500 focus-within:border-red-500",
-              isValid && touched && !error && "border-green-500 focus-within:border-green-500"
-            ),
-          }}
-          endContent={
-            <div className="flex items-center gap-2">
-              {/* Character Counter */}
-              {showCharacterCounter && maxLength && (
-                <span
-                  className={cn(
-                    "text-xs font-medium transition-colors",
-                    remainingChars !== null && remainingChars < 10
-                      ? "text-amber-600 dark:text-amber-400"
-                      : remainingChars === 0
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {characterCount}/{maxLength}
-                </span>
-              )}
-              
-              {/* Success/Error Indicator */}
-              {touched && (
-                <div className="flex items-center">
-                  {isValid && showSuccessIndicator && !error && (
-                    <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
-                  )}
-                  {error && (
-                    <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
-                  )}
-                </div>
-              )}
-            </div>
-          }
-        />
-      </div>
+            error && touched && "border-red-500 focus-within:border-red-500",
+            isValid && touched && !error && "border-green-500 focus-within:border-green-500"
+          ),
+        }}
+        endContent={
+          <div className="flex items-center gap-2">
+            {/* Character Counter */}
+            {showCharacterCounter && maxLength && (
+              <span
+                className={cn(
+                  "text-xs font-medium transition-colors",
+                  remainingChars !== null && remainingChars < 10
+                    ? "text-amber-600 dark:text-amber-400"
+                    : remainingChars === 0
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-muted-foreground"
+                )}
+              >
+                {characterCount}/{maxLength}
+              </span>
+            )}
+            
+            {/* Success/Error Indicator */}
+            {touched && (
+              <div className="flex items-center">
+                {isValid && showSuccessIndicator && !error && (
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400 animate-in zoom-in duration-200" />
+                )}
+                {error && (
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 animate-in zoom-in duration-200" />
+                )}
+              </div>
+            )}
+          </div>
+        }
+      />
 
       {/* Helper Text / Format Hint */}
       <div className="flex items-start justify-between gap-2">

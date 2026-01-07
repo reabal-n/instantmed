@@ -30,6 +30,13 @@ export function MedicationSearch({
   // Search medications when query changes
   useEffect(() => {
     const performSearch = () => {
+      // Don't show dropdown if query matches selected medication
+      if (selectedMed && query === selectedMed.name) {
+        setResults([])
+        setIsOpen(false)
+        return
+      }
+      
       if (query.length >= 2) {
         const searchResults = searchMedications(query)
         setResults(searchResults)
@@ -42,7 +49,7 @@ export function MedicationSearch({
     }
     
     performSearch()
-  }, [query])
+  }, [query, selectedMed])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -56,10 +63,16 @@ export function MedicationSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleSelect = (medication: Medication) => {
+  const handleSelect = (medication: Medication, event?: React.MouseEvent) => {
+    // Prevent blur event from firing when clicking on dropdown item
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
     setSelectedMed(medication)
     setQuery(medication.name)
     setIsOpen(false)
+    setResults([]) // Clear results to prevent dropdown from showing
     onChange(medication)
   }
 
@@ -86,7 +99,7 @@ export function MedicationSearch({
       case "Enter":
         e.preventDefault()
         if (results[highlightedIndex]) {
-          handleSelect(results[highlightedIndex])
+          handleSelect(results[highlightedIndex], undefined)
         }
         break
       case "Escape":
@@ -97,6 +110,9 @@ export function MedicationSearch({
 
   // Handle custom medication entry (not in database)
   const handleBlur = () => {
+    // Close dropdown on blur
+    setIsOpen(false)
+    
     setTimeout(() => {
       if (query && !selectedMed && results.length === 0) {
         // User entered a custom medication not in our database
@@ -108,30 +124,32 @@ export function MedicationSearch({
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {/* Search Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          onFocus={() => {
-            if (results.length > 0) setIsOpen(true)
-          }}
-          placeholder={placeholder}
-          className="h-12 pl-10 pr-10 rounded-xl"
-        />
-        {query && (
-          <button
-            onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
-            type="button"
-          >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
-        )}
-      </div>
+      <Input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        onFocus={() => {
+          if (results.length > 0) setIsOpen(true)
+        }}
+        placeholder={placeholder}
+        startContent={<Search className="w-4 h-4 text-muted-foreground" />}
+        endContent={
+          query ? (
+            <button
+              onClick={handleClear}
+              className="p-1 hover:bg-muted rounded-full transition-colors"
+              type="button"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          ) : null
+        }
+        classNames={{
+          inputWrapper: "h-12",
+        }}
+      />
 
       {/* Dropdown Results */}
       {isOpen && results.length > 0 && (
@@ -140,7 +158,10 @@ export function MedicationSearch({
             <button
               key={med.id}
               type="button"
-              onClick={() => handleSelect(med)}
+              onMouseDown={(e) => {
+                e.preventDefault() // Prevent input blur
+                handleSelect(med, e)
+              }}
               onMouseEnter={() => setHighlightedIndex(index)}
               className={cn(
                 "w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0 first:rounded-t-xl last:rounded-b-xl",

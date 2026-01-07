@@ -96,7 +96,7 @@ export default function ConsultPage() {
                 size="lg"
                 className="rounded-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-14 px-8 shadow-lg"
               >
-                <Link href="/consult/request">
+                <Link href="/start?service=consult">
                   Book a consult — $49.95
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -169,7 +169,7 @@ export default function ConsultPage() {
                 size="lg"
                 className="w-full sm:w-auto rounded-full bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold h-12 px-8"
               >
-                <Link href="/consult/request">
+                <Link href="/start?service=consult">
                   Get started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -229,7 +229,7 @@ export default function ConsultPage() {
               If you&apos;re already taking a medication and just need a repeat, our prescription service is faster and more affordable.
             </p>
             <Button asChild variant="outline" className="rounded-full">
-              <Link href="/prescriptions/request">
+              <Link href="/start?service=repeat-script">
                 Get a repeat script — $29.95
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

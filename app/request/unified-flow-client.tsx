@@ -984,7 +984,7 @@ export function UnifiedFlowClient({
                 <p className="text-sm text-amber-800 font-medium">Need a new medication?</p>
                 <p className="text-xs text-amber-700 mt-1">New medications require a General Consult ($49.95) for proper assessment.</p>
                 <a
-                  href="/consult/request"
+                  href="/start?service=consult"
                   className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-amber-900 hover:underline"
                 >
                   Start a General Consult <ExternalLink className="w-3 h-3" />

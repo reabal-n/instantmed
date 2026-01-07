@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { Moon, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const OPEN_HOUR = 8
@@ -29,12 +29,22 @@ function useHasMounted() {
 
 export function DoctorAvailabilityPill() {
   const [isOnline, setIsOnline] = useState(true)
+  const [visitorCount, setVisitorCount] = useState(12)
   const mounted = useHasMounted()
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(isWithinHours())
     updateStatus()
     const interval = setInterval(updateStatus, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const change = Math.random() > 0.5 ? 1 : -1
+      setVisitorCount((prev) => Math.max(8, Math.min(25, prev + change)))
+    }, 2000 + Math.random() * 2000) // Random interval between 2-4 seconds
+
     return () => clearInterval(interval)
   }, [])
 
@@ -47,19 +57,31 @@ export function DoctorAvailabilityPill() {
       transition={{ delay: 0.5, duration: 0.4 }}
       className="flex justify-center"
     >
-      <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 dark:bg-white/10 border border-white/50 dark:border-white/20 shadow-lg shadow-black/5 dark:shadow-black/20 hover:shadow-xl hover:bg-white/80 dark:hover:bg-white/15 transition-all duration-300">
+      <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all duration-300">
         {isOnline ? (
           <>
-            <Sun className="w-4 h-4 text-emerald-500 animate-pulse" />
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <span className="relative flex h-2.5 w-2.5">
+            <span className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500 shadow-sm shadow-emerald-500/50" />
               </span>
               Doctors online now
             </span>
-            <span className="hidden sm:inline text-sm text-muted-foreground/60">•</span>
-            <span className="hidden sm:inline text-sm text-muted-foreground">~45 min response</span>
+            <span className="hidden sm:inline text-xs text-emerald-600/60 dark:text-emerald-400/60">•</span>
+            <span className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+              <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <motion.span
+                key={visitorCount}
+                initial={{ y: -4, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 4, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="inline-block min-w-[1.5ch] text-center font-medium text-xs"
+              >
+                {visitorCount}
+              </motion.span>
+              <span className="hidden sm:inline">viewing now</span>
+            </span>
           </>
         ) : (
           <>

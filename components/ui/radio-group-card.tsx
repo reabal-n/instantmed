@@ -1,53 +1,39 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { RadioGroup as HeroRadioGroup, Radio, type RadioGroupProps as HeroRadioGroupProps } from "@heroui/react"
-import { cn } from "@/lib/utils"
-
-export interface RadioGroupProps extends HeroRadioGroupProps {
-  className?: string
-}
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const RadioGroup = React.forwardRef<
-  HTMLDivElement,
-  RadioGroupProps
+  React.ElementRef<typeof RadioGroupPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
 >(({ className, ...props }, ref) => (
-  <HeroRadioGroup
+  <RadioGroupPrimitive.Root
     ref={ref}
     className={cn("grid gap-4 sm:grid-cols-2", className)}
     {...props}
   />
-))
-RadioGroup.displayName = "RadioGroup"
-
-export interface RadioCardProps {
-  title: string
-  description?: string
-  icon?: React.ReactNode
-  value: string
-  className?: string
-  isSelected?: boolean
-}
+));
+RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 const RadioCard = React.forwardRef<
-  HTMLInputElement,
-  RadioCardProps
->(({ className, title, description, icon, value, ...props }, ref) => (
-  <Radio
+  React.ElementRef<typeof RadioGroupPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> & {
+    title: string;
+    description?: string;
+    icon?: React.ReactNode;
+  }
+>(({ className, title, description, icon, ...props }, ref) => (
+  <RadioGroupPrimitive.Item
     ref={ref}
-    value={value}
-    classNames={{
-      base: cn(
-        "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left shadow-sm transition-all",
-        "hover:shadow-md",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
-        "data-[selected=true]:border-primary data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      ),
-      label: "font-semibold",
-      description: "text-sm text-default-500",
-    }}
+    className={cn(
+      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left shadow-sm transition-all",
+      "hover:shadow-md hover:-translate-y-0.5",
+      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
+      "data-[state=checked]:border-black data-[state=checked]:shadow-lg data-[state=checked]:-translate-y-1",
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      className
+    )}
     {...props}
   >
     <div className="flex items-center gap-3">
@@ -55,18 +41,18 @@ const RadioCard = React.forwardRef<
       <span className="font-semibold">{title}</span>
     </div>
     {description && (
-      <p className="text-sm text-default-500">{description}</p>
+      <p className="text-sm text-muted-foreground">{description}</p>
     )}
 
     {/* Glowing green dot indicator */}
-    {props.isSelected && (
-      <span className="absolute top-3 right-3 relative flex size-3">
+    <RadioGroupPrimitive.Indicator className="absolute top-3 right-3">
+      <span className="relative flex size-3">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
         <span className="relative inline-flex size-3 rounded-full bg-green-500 shadow-[0_0_6px_2px_rgba(34,197,94,0.6)]"></span>
       </span>
-    )}
-  </Radio>
-))
-RadioCard.displayName = "RadioCard"
+    </RadioGroupPrimitive.Indicator>
+  </RadioGroupPrimitive.Item>
+));
+RadioCard.displayName = "RadioCard";
 
-export { RadioGroup, RadioCard }
+export { RadioGroup, RadioCard };

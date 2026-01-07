@@ -43,19 +43,19 @@ interface NavbarProps {
 const services = [
   {
     title: "Medical Certificates",
-    href: "/medical-certificate/request",
+    href: "/start?service=med-cert",
     description: "Work, uni & carer's leave",
     icon: FileText,
   },
   {
     title: "Repeat Scripts",
-    href: "/prescriptions/request",
+    href: "/start?service=repeat-script",
     description: "Medications you already take",
     icon: Pill,
   },
   {
     title: "General Consult",
-    href: "/consult/request",
+    href: "/start?service=consult",
     description: "New prescriptions & dose changes",
     icon: Zap,
   },
@@ -273,7 +273,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   {/* Services Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="px-2 py-1 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5 transition-all flex items-center gap-0.5">
+                      <button className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1">
                         Services
                         <ChevronDown className="h-3 w-3" />
                       </button>
@@ -315,22 +315,22 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </NavLink>
 
                   <div className="ml-2 flex items-center gap-2">
-                    <SkyToggle size={12} />
+                    <SkyToggle size={8} />
                     {isSignedIn ? (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         asChild
-                        className="rounded-md text-xs h-7 px-2.5 hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all"
                       >
                         <Link href="/patient">Dashboard</Link>
                       </Button>
                     ) : (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         asChild
-                        className="rounded-md text-xs h-7 px-2.5 hover:bg-white/40 dark:hover:bg-white/5"
+                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all"
                       >
                         <Link href="/sign-in">Sign in</Link>
                       </Button>
