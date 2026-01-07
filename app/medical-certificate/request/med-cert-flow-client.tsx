@@ -922,11 +922,11 @@ export function MedCertFlowClient({
     }
   }
 
-  // Handle proceeding to payment, especially for guests
+  // Handle proceeding to payment - actually submits the request and creates checkout
   const handleProceedToPayment = async () => {
-    // Modified logic: if not authenticated, collect guest email first
+    // For guests: validate email and proceed to guest checkout
     if (!isAuthenticated) {
-      if (!formData.guestEmail) {
+      if (!formData.guestEmail && !formData.email) {
         setError("Please provide an email address to receive your certificate.")
         return
       }
@@ -935,8 +935,9 @@ export function MedCertFlowClient({
       return
     }
 
-    // If authenticated, directly proceed to payment
-    setStep("payment")
+    // For authenticated users: directly submit and create checkout
+    // This actually processes the payment, not just changes the step
+    await handleSubmit()
   }
 
   // Format date for display
@@ -1839,10 +1840,19 @@ export function MedCertFlowClient({
               <Button
                 onClick={handleProceedToPayment}
                 className="flex-1 h-12 rounded-xl gap-2"
-                disabled={!isAuthenticated && !formData.guestEmail}
+                disabled={(!isAuthenticated && !formData.guestEmail) || isSubmitting}
               >
-                Proceed to Payment
-                <ArrowRight className="w-5 h-5" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Pay $29.95
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </Button>
             ) : (
               <Button onClick={goNext} disabled={!canProceed()} className="flex-1 h-12 rounded-xl gap-2">

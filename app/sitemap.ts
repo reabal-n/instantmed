@@ -1,8 +1,4 @@
 import type { MetadataRoute } from "next"
-import { getAllSlugs } from "@/lib/seo/pages"
-import { getAllIntentSlugs } from "@/lib/seo/intents"
-import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
-import { getAllComparisonSlugs } from "@/lib/seo/comparisons"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -30,48 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : 0.8,
   }))
 
-  // ============================================
-  // PROGRAMMATIC SEO PAGES
-  // ============================================
-  
-  // Conditions (15 existing)
-  const conditionSlugs = getAllSlugs('conditions')
-  const conditionRoutes = conditionSlugs.map((slug) => ({
-    url: `${baseUrl}/conditions/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }))
-
-  // Medications pages removed for Google Ads compliance
-
-  // Intent pages (13 pages now)
-  const intentSlugs = getAllIntentSlugs()
-  const intentRoutes = intentSlugs.map((slug) => ({
-    url: `${baseUrl}/telehealth/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.9, // Highest priority - direct search intent match
-  }))
-
-  // Symptom pages (8 pages now)
-  const symptomSlugs = getAllSymptomSlugs()
-  const symptomRoutes = symptomSlugs.map((slug) => ({
-    url: `${baseUrl}/symptoms/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }))
-
-  // Comparison pages (NEW - 3 medication comparisons)
-  const comparisonSlugs = getAllComparisonSlugs()
-  const comparisonRoutes = comparisonSlugs.map((slug) => ({
-    url: `${baseUrl}/compare/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.75, // High intent - people comparing are close to decision
-  }))
-
   // Category hubs
   const categoryHubs = [
     { slug: 'mens-health', priority: 0.8 },
@@ -94,41 +48,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
-  // Legacy paths (keep for backwards compatibility)
-  const certificateSlugs = getAllSlugs('certificates')
-  const certificateRoutes = certificateSlugs.map((slug) => ({
-    url: `${baseUrl}/health/certificates/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }))
-
-  const benefitSlugs = getAllSlugs('benefits')
-  const benefitRoutes = benefitSlugs.map((slug) => ({
-    url: `${baseUrl}/health/why-${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }))
-
-  const resourceSlugs = getAllSlugs('resources')
-  const resourceRoutes = resourceSlugs.map((slug) => ({
-    url: `${baseUrl}/health/guides/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.5,
-  }))
-
   return [
     ...routes,
-    ...conditionRoutes,
-    ...intentRoutes,
-    ...symptomRoutes,
-    ...comparisonRoutes,
     ...categoryRoutes,
     ...audienceRoutes,
-    ...certificateRoutes,
-    ...benefitRoutes,
-    ...resourceRoutes,
   ]
 }

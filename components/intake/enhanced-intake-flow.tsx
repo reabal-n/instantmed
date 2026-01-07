@@ -767,7 +767,7 @@ export function EnhancedIntakeFlow({
       const nextStep = steps[stepIndex + 1]
       setStep([nextStep, 1])
     }
-  }, [validateStep, isLastStep, stepIndex, steps, step, state.service, isAuthenticated])
+  }, [validateStep, isLastStep, stepIndex, steps, step, state.service, isAuthenticated, handleSubmit])
 
   const goBack = useCallback(() => {
     if (isFirstStep) {
@@ -1899,12 +1899,13 @@ export function EnhancedIntakeFlow({
               </button>
             )}
             <button
-              onClick={goNext}
+              onClick={isLastStep ? handleSubmit : goNext}
               disabled={
                 isSubmitting ||
                 (step === "service" && !state.service) ||
                 (step === "safety" && symptomCheckResult.severity === "critical") ||
-                Object.keys(errors).length > 0
+                Object.keys(errors).length > 0 ||
+                (isLastStep && !state.agreedToTerms)
               }
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg flex items-center justify-center px-6"
             >
