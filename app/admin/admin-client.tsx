@@ -750,7 +750,7 @@ export function AdminClient({
                     <p className="text-sm text-muted-foreground">Access database bootstrap utilities</p>
                   </div>
                   <Button variant="outline" size="sm" asChild className="rounded-xl">
-                    <Link href="/admin/bootstrap">Open</Link>
+                    <Link href="/doctor/admin/bootstrap">Open</Link>
                   </Button>
                 </div>
               </div>

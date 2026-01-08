@@ -23,7 +23,7 @@ export function StickyCTABar() {
   const pathname = usePathname()
 
   // Get page-specific config
-  const config = Object.entries(SERVICE_CONFIG).find(([path]) => pathname.startsWith(path))?.[1] || DEFAULT_CONFIG
+  const config = Object.entries(SERVICE_CONFIG).find(([path]) => pathname?.startsWith(path))?.[1] || DEFAULT_CONFIG
 
   const handleScroll = useCallback(() => {
     if (isDismissed) return
@@ -50,7 +50,7 @@ export function StickyCTABar() {
   }, [isDismissed, handleScroll])
 
   // Don't show on request flows or patient dashboard
-  if (pathname.includes("/request") || pathname.startsWith("/patient") || pathname.startsWith("/doctor")) {
+  if (!pathname || pathname.includes("/request") || pathname.startsWith("/patient") || pathname.startsWith("/doctor")) {
     return null
   }
 

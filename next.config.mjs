@@ -7,9 +7,24 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    swcPlugins: [["@onlook/nextjs", {
+      root: path.resolve(".")
+    }]]
+  },
   typescript: {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
+  },
+  webpack: (config, {
+    isServer
+  }) => {
+    // Exclude TinaCMS generated files from build
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'tinacms/dist/client': false
+    };
+    return config;
   },
   images: {
     // Enable Next.js Image Optimization
@@ -31,18 +46,15 @@ const nextConfig = {
   serverExternalPackages: ["@supabase/ssr"],
   // Redirects for removed medication pages (Google Ads compliance)
   async redirects() {
-    return [
-      {
-        source: "/medications",
-        destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/medications/:path*",
-        destination: "/",
-        permanent: true,
-      },
-    ];
+    return [{
+      source: "/medications",
+      destination: "/",
+      permanent: true
+    }, {
+      source: "/medications/:path*",
+      destination: "/",
+      permanent: true
+    }];
   },
   // PostHog reverse proxy rewrites
   async rewrites() {
@@ -58,32 +70,38 @@ const nextConfig = {
   skipTrailingSlashRedirect: true,
   // Security headers
   async headers() {
-    return [{
-      source: "/:path*",
-      headers: [{
-        key: "X-DNS-Prefetch-Control",
-        value: "on"
-      }, {
+    const baseHeaders = [{
+      key: "X-DNS-Prefetch-Control",
+      value: "on"
+    }, {
+      key: "X-Content-Type-Options",
+      value: "nosniff"
+    }, {
+      key: "X-Frame-Options",
+      value: "SAMEORIGIN"
+    }, {
+      key: "X-XSS-Protection",
+      value: "1; mode=block"
+    }, {
+      key: "Referrer-Policy",
+      value: "strict-origin-when-cross-origin"
+    }, {
+      key: "Permissions-Policy",
+      value: "camera=(), microphone=(), geolocation=()"
+    }];
+
+    // Standard CSP for all routes
+    const standardCSP = ["default-src 'self'", "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://challenges.cloudflare.com", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com data:", "img-src 'self' data: blob: https: http:", "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://*.google-analytics.com https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com", "frame-src 'self' https://js.stripe.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://challenges.cloudflare.com", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'self'", "upgrade-insecure-requests"];
+    return [
+    // All routes - standard CSP
+    {
+      source: "/(.*)",
+      headers: [...baseHeaders, {
         key: "Strict-Transport-Security",
         value: "max-age=63072000; includeSubDomains; preload"
       }, {
-        key: "X-Content-Type-Options",
-        value: "nosniff"
-      }, {
-        key: "X-Frame-Options",
-        value: "SAMEORIGIN"
-      }, {
-        key: "X-XSS-Protection",
-        value: "1; mode=block"
-      }, {
-        key: "Referrer-Policy",
-        value: "strict-origin-when-cross-origin"
-      }, {
-        key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=()"
-      }, {
         key: "Content-Security-Policy",
-        value: ["default-src 'self'", "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://challenges.cloudflare.com", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com data:", "img-src 'self' data: blob: https: http:", "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://*.google-analytics.com https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com", "frame-src 'self' https://js.stripe.com https://*.clerk.accounts.dev https://*.clerk.instantmed.com.au https://challenges.cloudflare.com", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'self'", "upgrade-insecure-requests"].join("; ")
+        value: standardCSP.join("; ")
       }]
     }];
   }

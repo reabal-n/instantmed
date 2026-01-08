@@ -27,6 +27,7 @@ import {
   Users,
   Zap,
   TrendingUp,
+  X,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
@@ -248,7 +249,7 @@ function ServiceCard({
     <div className="relative">
       {/* Popular badge */}
       {service.popular && (
-        <Badge className="absolute -top-2.5 right-3 z-10 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[10px] shadow-lg">
+        <Badge className="absolute -top-2.5 right-3 z-10 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[10px] shadow-[0_4px_12px_rgba(16,185,129,0.3)]">
           Most Popular
         </Badge>
       )}
@@ -304,13 +305,13 @@ function SelectableChip({
   onClick,
   children,
   className,
-  gradient = "blue-purple",
+  gradient = "primary-subtle",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
   className?: string
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red" | "primary-subtle"
 }) {
   return (
     <EnhancedSelectionButton
@@ -437,13 +438,14 @@ export function EnhancedIntakeFlow({
     0,
   ])
 
-  // Load saved preferences from localStorage
+  // Load saved preferences from localStorage (only on client)
   const [savedPreferences, setSavedPreferences] = useState<{
     lastService?: ServiceType
     lastCertType?: "work" | "study" | "carer"
     lastDuration?: "1" | "2" | "3"
     lastPharmacy?: string
   }>(() => {
+    if (typeof window === "undefined") return {}
     try {
       const saved = localStorage.getItem("intake_preferences")
       return saved ? JSON.parse(saved) : {}
@@ -479,6 +481,7 @@ export function EnhancedIntakeFlow({
 
   // Save preferences when they change
   useEffect(() => {
+    if (typeof window === "undefined") return
     const prefs = {
       lastService: state.service,
       lastCertType: state.certType || undefined,
@@ -554,6 +557,7 @@ export function EnhancedIntakeFlow({
 
   // Auto-save to localStorage
   useEffect(() => {
+    if (typeof window === "undefined") return
     if (step === "service" && !state.service) return
     
     setIsSaving(true)
@@ -748,36 +752,6 @@ export function EnhancedIntakeFlow({
     return Object.keys(newErrors).length === 0
   }, [step, state, symptomCheckResult])
 
-  // Navigate
-  const goNext = useCallback(() => {
-    if (!validateStep()) return
-
-    // PostHog: Track step completion
-    posthog.capture("intake_step_completed", {
-      step_name: step,
-      step_number: stepIndex + 1,
-      total_steps: steps.length,
-      service_type: state.service,
-      is_authenticated: isAuthenticated,
-    })
-
-    if (isLastStep) {
-      handleSubmit()
-    } else {
-      const nextStep = steps[stepIndex + 1]
-      setStep([nextStep, 1])
-    }
-  }, [validateStep, isLastStep, stepIndex, steps, step, state.service, isAuthenticated, handleSubmit])
-
-  const goBack = useCallback(() => {
-    if (isFirstStep) {
-      router.push("/")
-    } else {
-      const prevStep = steps[stepIndex - 1]
-      setStep([prevStep, -1])
-    }
-  }, [isFirstStep, stepIndex, steps, router])
-
   // Map service type to Stripe category
   const getStripeCategory = (): ServiceCategory => {
     switch (state.service) {
@@ -821,9 +795,12 @@ export function EnhancedIntakeFlow({
     return answers
   }
 
-  // Submit to Stripe
-  const handleSubmit = async () => {
+  // Submit to Stripe - moved before goNext to fix initialization order
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting) return
+    
+    // Clear any previous errors
+    setErrors({})
     setIsSubmitting(true)
 
     // PostHog: Track checkout started
@@ -835,15 +812,27 @@ export function EnhancedIntakeFlow({
     })
 
     try {
+      // Validate required fields before proceeding
+      if (!state.agreedToTerms) {
+        setErrors({ agreedToTerms: "Please agree to the terms and conditions to continue" })
+        setIsSubmitting(false)
+        return
+      }
+
       const category = getStripeCategory()
       const subtype = state.service === "med-cert"
         ? (state.certType || "sick_leave")
         : state.service === "repeat-script"
           ? "repeat"
           : state.service === "consult"
-          ? "general"
-          : "new"
+            ? "general"
+            : "new"
       const answers = buildAnswersPayload()
+
+      // Verify server actions are available
+      if (!createRequestAndCheckoutAction || !createGuestCheckoutAction) {
+        throw new Error("Payment system not available. Please refresh the page and try again.")
+      }
 
       let result
 
@@ -856,7 +845,13 @@ export function EnhancedIntakeFlow({
           answers,
         })
       } else {
-        // Guest checkout
+        // Guest checkout - validate email
+        if (!state.email || !state.email.includes("@")) {
+          setErrors({ agreedToTerms: "Please enter a valid email address" })
+          setIsSubmitting(false)
+          return
+        }
+        
         result = await createGuestCheckoutAction({
           category,
           subtype,
@@ -886,21 +881,71 @@ export function EnhancedIntakeFlow({
         posthog.capture("checkout_error", {
           service_type: state.service,
           error_message: result.error,
+          is_authenticated: isAuthenticated,
         })
-        // Show error
-        setErrors({ agreedToTerms: result.error || "Something went wrong. Please try again." })
+        
+        // Show error with better visibility
+        const errorMessage = result.error || "Something went wrong. Please try again."
+        setErrors({ agreedToTerms: errorMessage })
+        
+        // Log error for debugging
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Checkout error:", errorMessage)
+        }
+        
+        // If authentication error, suggest signing in
+        if (errorMessage.includes("logged in") || errorMessage.includes("Authentication")) {
+          // Could trigger a sign-in modal here if needed
+        }
       }
     } catch (error) {
       // PostHog: Track checkout exception
       posthog.captureException(error)
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again."
+      
       if (process.env.NODE_ENV === 'development') {
         console.error("Submit error:", error)
       }
-      setErrors({ agreedToTerms: "Something went wrong. Please try again." })
+      
+      setErrors({ 
+        agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at help@instantmed.com.au` 
+      })
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [isSubmitting, state, isAuthenticated, setIsSubmitting, setErrors])
+
+  // Navigate
+  const goNext = useCallback(() => {
+    if (!validateStep()) return
+
+    // PostHog: Track step completion
+    posthog.capture("intake_step_completed", {
+      step_name: step,
+      step_number: stepIndex + 1,
+      total_steps: steps.length,
+      service_type: state.service,
+      is_authenticated: isAuthenticated,
+    })
+
+    if (isLastStep) {
+      handleSubmit()
+    } else {
+      const nextStep = steps[stepIndex + 1]
+      setStep([nextStep, 1])
+    }
+  }, [validateStep, isLastStep, stepIndex, steps, step, state.service, isAuthenticated, handleSubmit])
+
+  const goBack = useCallback(() => {
+    if (isFirstStep) {
+      router.push("/")
+    } else {
+      // Clear errors when going back to prevent button from being disabled
+      setErrors({})
+      const prevStep = steps[stepIndex - 1]
+      setStep([prevStep, -1])
+    }
+  }, [isFirstStep, stepIndex, steps, router, setErrors])
 
   // Get step title
   const getStepTitle = () => {
@@ -939,11 +984,17 @@ export function EnhancedIntakeFlow({
         return (
           <motion.div className="space-y-3">
             {/* Urgency messaging */}
-            <Alert variant="info" className="border-primary/20 bg-primary/5 py-2 px-3">
-              <Clock className="w-3 h-3" />
-              <AlertDescription className="text-[11px] leading-tight">
-                Most requests reviewed within 1 hour • Doctors online now
-              </AlertDescription>
+            <Alert 
+              variant="info" 
+              showIcon={false}
+              className="border-primary/20 bg-primary/5 shadow-[0_0_8px_rgba(99,102,241,0.15)] dark:shadow-[0_0_8px_rgba(99,102,241,0.25)] flex items-center justify-center py-1.5 px-2"
+            >
+              <div className="flex items-center justify-center gap-1.5">
+                <Clock className="w-3 h-3 flex-shrink-0" />
+                <AlertDescription className="text-[11px] leading-tight text-center">
+                  Most requests reviewed within 1 hour • Doctors online now
+                </AlertDescription>
+              </div>
             </Alert>
 
             <RadioGroup
@@ -1016,14 +1067,14 @@ export function EnhancedIntakeFlow({
                 helpText="Select Work for employer, Study for university/school, or Carer's leave to care for someone"
               >
                 <div className="grid grid-cols-3 gap-2">
-                  {CERT_TYPES.map((type, index) => (
+                  {CERT_TYPES.map((type) => (
                     <OptionCard
                       key={type.id}
                       selected={state.certType === type.id}
                       onClick={() => updateField("certType", type.id as "work" | "study" | "carer")}
                       icon={type.icon}
                       label={type.label}
-                      gradient={index === 0 ? "blue-purple" : index === 1 ? "purple-pink" : "teal-emerald"}
+                      gradient="primary-subtle"
                     />
                   ))}
                 </div>
@@ -1063,6 +1114,7 @@ export function EnhancedIntakeFlow({
                 <div className="space-y-2">
                   <Input
                     type="date"
+                    size="sm"
                     value={state.startDate}
                     onChange={(e) => {
                       const selectedDate = new Date(e.target.value)
@@ -1077,7 +1129,7 @@ export function EnhancedIntakeFlow({
                         // This could trigger a dialog or alert
                       }
                     }}
-                    className="h-11 touch-target"
+                    className="h-9"
                     max={new Date().toISOString().split("T")[0]}
                     aria-label="Select start date for absence"
                   />
@@ -1490,7 +1542,7 @@ export function EnhancedIntakeFlow({
             </Alert>
 
             {/* Summary card - Enhanced with edit capability */}
-            <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-sm">
+            <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {selectedService && (
@@ -1520,7 +1572,12 @@ export function EnhancedIntakeFlow({
               </div>
 
               {/* ETA with urgency */}
-              <div className="flex items-center gap-2 text-sm p-3 bg-white rounded-lg border border-slate-200">
+              <motion.div 
+                className="flex items-center gap-2 text-sm p-3 bg-white rounded-lg border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
                 <Clock className="w-4 h-4 text-primary" />
                 <span className="text-muted-foreground">
                   Estimated completion:{" "}
@@ -1528,7 +1585,7 @@ export function EnhancedIntakeFlow({
                     {selectedService?.time}
                   </strong>
                 </span>
-              </div>
+              </motion.div>
 
               {/* No call badge */}
               {selectedService?.noCall && (
@@ -1544,17 +1601,20 @@ export function EnhancedIntakeFlow({
             </div>
 
             {/* Patient info - Editable */}
-            <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3">
+            <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Sending to:</p>
-                <button
+                <motion.button
                   onClick={() => setEditingSection(editingSection === "patient" ? null : "patient")}
                   className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors touch-target"
                   aria-label="Edit patient details"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
                 >
                   <Edit2 className="w-3 h-3" />
                   <span>Edit</span>
-                </button>
+                </motion.button>
               </div>
               {editingSection === "patient" ? (
                 <div className="space-y-3 pt-2 border-t">
@@ -1622,7 +1682,7 @@ export function EnhancedIntakeFlow({
 
             {/* Service details - Editable */}
             {state.service === "med-cert" && (
-              <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3">
+              <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Service details:</p>
                   <button
@@ -1645,6 +1705,7 @@ export function EnhancedIntakeFlow({
                             onClick={() => updateField("certType", type.id as "work" | "study" | "carer")}
                             icon={type.icon}
                             label={type.label}
+                            gradient="primary-subtle"
                           />
                         ))}
                       </div>
@@ -1810,14 +1871,26 @@ export function EnhancedIntakeFlow({
   }, [errors, announce])
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50/30 to-white flex flex-col">
       {/* Screen reader announcements */}
       <LiveRegion />
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
-        <div className="max-w-lg mx-auto px-3 py-2 flex items-start justify-center">
-          <div className="flex-1 min-w-0">
+        <div className="max-w-lg mx-auto px-3 py-2 flex items-start justify-between">
+          {/* Close button */}
+          <motion.button
+            onClick={() => router.push("/")}
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors mt-0.5"
+            aria-label="Close and return to home"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <X className="w-5 h-5 text-slate-600" />
+          </motion.button>
+
+          <div className="flex-1 min-w-0 flex justify-center">
             <StepProgress
               currentStep={stepIndex + 1}
               totalSteps={steps.length}
@@ -1829,7 +1902,7 @@ export function EnhancedIntakeFlow({
           </div>
 
           {/* Auto-save indicator */}
-          <div className="w-7 flex items-center justify-end shrink-0 mt-0.5">
+          <div className="w-8 flex items-center justify-end shrink-0 mt-0.5">
             {lastSavedAt && (
               <TooltipProvider>
                 <Tooltip>
@@ -1893,7 +1966,7 @@ export function EnhancedIntakeFlow({
               <button
                 onClick={goBack}
                 disabled={isSubmitting}
-                className="shrink-0 w-12 h-12 rounded-full border-2 border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center justify-center"
+                className="shrink-0 w-12 h-12 rounded-full border-2 border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] hover:scale-105 active:scale-95 flex items-center justify-center"
               >
                 <ArrowLeft className="w-5 h-5 text-slate-600" />
               </button>
@@ -1904,10 +1977,13 @@ export function EnhancedIntakeFlow({
                 isSubmitting ||
                 (step === "service" && !state.service) ||
                 (step === "safety" && symptomCheckResult.severity === "critical") ||
-                Object.keys(errors).length > 0 ||
-                (isLastStep && !state.agreedToTerms)
+                (isLastStep && !state.agreedToTerms) ||
+                // Only check errors relevant to current step to prevent disabled state when going back
+                !!(step === "details" && (errors.medicationName || errors.symptoms || errors.certType || errors.duration || errors.consultReason)) ||
+                !!(step === "account" && (errors.firstName || errors.lastName || errors.email || errors.phone || errors.dob)) ||
+                !!(step === "review" && errors.agreedToTerms)
               }
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg flex items-center justify-center px-6"
+              className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)] hover:shadow-[0_6px_16px_rgba(99,102,241,0.35)] hover:from-indigo-700 hover:via-blue-700 hover:to-cyan-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_4px_12px_rgba(99,102,241,0.25)] flex items-center justify-center px-6"
             >
               {isSubmitting
                 ? "Processing..."

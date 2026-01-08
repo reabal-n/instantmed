@@ -98,7 +98,7 @@ export async function requireClerkAuthWithRole(
     } else if (user.profile.role === 'doctor') {
       redirect('/doctor')
     } else if (user.profile.role === 'admin') {
-      redirect('/admin')
+      redirect('/doctor')
     }
   }
 

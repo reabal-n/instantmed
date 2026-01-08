@@ -32,7 +32,7 @@ export function DoctorSidebar({ pendingCount = 0, scriptsToSend = 0 }: DoctorSid
         {/* Main Nav */}
         <nav className="glass-card rounded-2xl p-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/doctor" && pathname.startsWith(item.href))
+            const isActive = pathname === item.href || (item.href !== "/doctor" && pathname?.startsWith(item.href))
             const showBadge = item.badge && pendingCount > 0
             return (
               <Link

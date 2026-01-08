@@ -43,7 +43,7 @@ export function ServiceAuthGate({
   const [isLoading, setIsLoading] = useState(false)
 
   // Encode the current path for redirect after auth
-  const redirectParam = encodeURIComponent(pathname)
+  const redirectParam = encodeURIComponent(pathname || "/")
 
   const handleSignIn = () => {
     setIsLoading(true)

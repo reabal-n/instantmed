@@ -1,7 +1,16 @@
 import { EnhancedIntakeFlow } from "@/components/intake/enhanced-intake-flow"
+import { Suspense } from "react"
 
 // Prevent static generation to avoid Clerk publishableKey build errors
 export const dynamic = "force-dynamic"
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  )
+}
 
 export default async function StartPage({
   searchParams,
@@ -30,5 +39,9 @@ export default async function StartPage({
     ? serviceMap[params.service.toLowerCase()]
     : undefined
 
-  return <EnhancedIntakeFlow initialService={initialService} />
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <EnhancedIntakeFlow initialService={initialService} />
+    </Suspense>
+  )
 }

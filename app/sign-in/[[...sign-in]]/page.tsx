@@ -1,32 +1,46 @@
 "use client"
 
-import { useEffect, Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { SignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle } from 'lucide-react'
 
 export const dynamic = "force-dynamic"
 
-function SignInRedirect() {
+function SignInContent() {
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const redirectUrl = searchParams?.get('redirect_url') || searchParams?.get('redirect') || ''
   
-  useEffect(() => {
-    // Build redirect URL with current origin
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
+  // Build redirect URL with current origin
+  const afterSignInUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '/auth/callback'
+    const currentOrigin = window.location.origin
     
     // Always redirect to /auth/callback after sign-in, which handles role-based redirects
     // Pass the original redirect as a parameter so callback can use it
-    const callbackUrl = redirectUrl 
+    return redirectUrl 
       ? `${currentOrigin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`
       : `${currentOrigin}/auth/callback`
-    
-    // Redirect to Clerk Account Portal with callback URL
-    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`
-    window.location.href = accountPortalUrl
   }, [redirectUrl])
 
-  return null
+  const afterSignUpUrl = afterSignInUrl
+
+  return (
+    <SignIn
+      routing="path"
+      path="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl={afterSignInUrl}
+      afterSignUpUrl={afterSignUpUrl}
+      appearance={{
+        elements: {
+          rootBox: "mx-auto",
+          card: "shadow-xl",
+        },
+      }}
+    />
+  )
 }
 
 export default function SignInPage() {
@@ -92,14 +106,7 @@ export default function SignInPage() {
                 </div>
               </div>
             }>
-              <SignInRedirect />
-              <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
-                  <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
-                  <p className="text-muted-foreground mt-4">Redirecting to sign in...</p>
-                </div>
-              </div>
+              <SignInContent />
             </Suspense>
             
             {/* Mobile trust strip */}

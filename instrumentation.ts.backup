@@ -7,9 +7,25 @@
  * - One-time setup tasks
  */
 
+import * as Sentry from "@sentry/nextjs";
 import { validateEnv } from "./lib/env"
 
 export async function register() {
+  // Initialize Sentry server-side
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+    enabled: process.env.NODE_ENV === "production",
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    enableLogs: true,
+    sendDefaultPii: false,
+    ignoreErrors: [
+      "Network request failed",
+      "Failed to fetch",
+      "Load failed",
+      "AbortError",
+    ],
+  });
+
   // Skip validation in build time
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return
@@ -31,7 +47,8 @@ export async function register() {
     console.error("\nPlease check your .env.local file against .env.example")
     
     // In production, fail fast
-    if (process.env.NODE_ENV === "production") {
+    // Note: process.exit is not available in Edge Runtime, so we only use it in Node.js runtime
+    if (process.env.NODE_ENV === "production" && typeof process !== "undefined" && process.exit) {
       process.exit(1)
     } else {
       // eslint-disable-next-line no-console
@@ -56,4 +73,8 @@ export async function register() {
     // eslint-disable-next-line no-console
     console.warn("⚠️  Redis not configured - using in-memory rate limiting (not suitable for production)")
   }
+}
+
+export function onRequestError(err: Error, request: { path: string }) {
+  Sentry.captureRequestError(err, request);
 }

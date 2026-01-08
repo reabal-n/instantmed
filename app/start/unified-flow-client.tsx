@@ -53,8 +53,8 @@ function StartFlowContent() {
   useEffect(() => {
     if (isInitialized) return
 
-    const serviceParam = searchParams.get('service')
-    const stepParam = searchParams.get('step')
+    const serviceParam = searchParams?.get('service')
+    const stepParam = searchParams?.get('step')
 
     // Queue all state updates for next tick to avoid sync setState
     queueMicrotask(() => {

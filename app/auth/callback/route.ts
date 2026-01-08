@@ -12,8 +12,8 @@ const log = createLogger("auth-callback")
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
-  const redirectTo = searchParams.get("redirect")
-  const flow = searchParams.get("flow")
+  const redirectTo = searchParams?.get("redirect")
+  const flow = searchParams?.get("flow")
 
   try {
     // Check if user is authenticated via Clerk
@@ -95,9 +95,16 @@ export async function GET(request: Request) {
     } else if (finalProfile.role === "doctor" || finalProfile.role === "admin") {
       // Doctors and admins go to doctor dashboard
       // Only use explicit redirect if it's a doctor-specific route
-      if (redirectTo && (redirectTo.startsWith('/doctor') || redirectTo.startsWith('/admin'))) {
+      // Note: /admin redirects are converted to /doctor
+      if (redirectTo) {
         const redirectPath = redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`
-        return NextResponse.redirect(`${origin}${redirectPath}`)
+        // Convert /admin redirects to /doctor
+        const normalizedPath = redirectPath.startsWith('/admin') 
+          ? redirectPath.replace('/admin', '/doctor')
+          : redirectPath
+        if (normalizedPath.startsWith('/doctor')) {
+          return NextResponse.redirect(`${origin}${normalizedPath}`)
+        }
       }
       return NextResponse.redirect(`${origin}/doctor`)
     }

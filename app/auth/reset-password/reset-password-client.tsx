@@ -50,7 +50,7 @@ export function ResetPasswordClient() {
 
     try {
       // Get the reset token from URL
-      const token = searchParams.get("__clerk_ticket")
+      const token = searchParams?.get("__clerk_ticket")
       
       if (!token) {
         setError("Invalid or expired reset link. Please request a new one.")

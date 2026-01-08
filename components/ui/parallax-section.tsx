@@ -97,6 +97,7 @@ export function ParallaxSection({
       }}
       style={{
         transform: shouldAnimate ? `translate3d(0, ${offset}px, 0)` : undefined,
+        willChange: shouldAnimate ? 'transform' : 'auto',
       }}
       // Accessibility: Ensure proper focus management
       tabIndex={-1}

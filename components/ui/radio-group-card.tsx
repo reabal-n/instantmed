@@ -28,6 +28,7 @@ const RadioCard = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left shadow-sm transition-all",
+      "bg-white",
       "hover:shadow-md hover:-translate-y-0.5",
       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
       "data-[state=checked]:border-black data-[state=checked]:shadow-lg data-[state=checked]:-translate-y-1",

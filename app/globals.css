@@ -16,6 +16,7 @@ body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  background: transparent;
 }
 
 /* Smooth scroll for all scrollable containers */
@@ -29,6 +30,15 @@ body {
   will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
+}
+
+/* Smooth parallax scrolling for all sections */
+section,
+[class*="section"],
+main > div {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* ================================
@@ -445,16 +455,16 @@ body {
   .glass-card {
     @apply bg-card text-card-foreground;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0, 0, 0, 0.04);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
   .card:hover,
   [data-slot="base"]:hover,
   .glass-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
   }
   
   /* ================================
@@ -483,15 +493,23 @@ body {
     line-height: 1.5;
     font-size: var(--font-size-base);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: var(--shadow-xs);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  
+  input:hover,
+  textarea:hover,
+  select:hover {
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08);
+    transform: scale(1.002);
   }
   
   input:focus,
   textarea:focus,
   select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), var(--shadow-sm);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 2px 6px rgba(37, 99, 235, 0.1);
     outline: none;
+    transform: scale(1.005);
   }
   
   /* Enhanced dark mode input focus */
@@ -515,13 +533,14 @@ body {
   
   button:hover,
   [role="button"]:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
   
   button:active,
   [role="button"]:active {
     transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
   }
   
   /* Enhanced dark mode button hover */

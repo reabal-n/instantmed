@@ -26,7 +26,7 @@ export function PatientSidebar() {
         {/* Main Nav */}
         <nav className="glass-card rounded-2xl p-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/patient" && pathname.startsWith(item.href))
+            const isActive = pathname === item.href || (item.href !== "/patient" && pathname?.startsWith(item.href))
             return (
               <Link
                 key={item.href}

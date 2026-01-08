@@ -99,10 +99,23 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     }
 
     // 1. Get authenticated user
-    const authUser = await getAuthenticatedUserWithProfile()
+    let authUser
+    try {
+      authUser = await getAuthenticatedUserWithProfile()
+    } catch (authError) {
+      logger.error("Authentication check failed", { error: authError })
+      return { 
+        success: false, 
+        error: "Authentication failed. Please sign in and try again. If this continues, contact support at help@instantmed.com.au" 
+      }
+    }
     
     if (!authUser) {
-      return { success: false, error: "You must be logged in to submit a request" }
+      logger.warn("User not authenticated when attempting checkout")
+      return { 
+        success: false, 
+        error: "You must be logged in to submit a request. Please sign in and try again." 
+      }
     }
 
     // 2. Get the Supabase client (use service role for reliability)
@@ -110,7 +123,14 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
     if (!supabaseUrl || !serviceKey) {
-      return { success: false, error: "Server configuration error" }
+      logger.error("Missing Supabase configuration", { 
+        hasUrl: !!supabaseUrl, 
+        hasServiceKey: !!serviceKey 
+      })
+      return { 
+        success: false, 
+        error: "Server configuration error. Please contact support at help@instantmed.com.au" 
+      }
     }
     
     const { createClient: createServiceClient } = await import("@supabase/supabase-js")
@@ -139,7 +159,11 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
 
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
-      return { success: false, error: "Server configuration error. Please contact support." }
+      logger.error("Invalid base URL", { baseUrl })
+      return { 
+        success: false, 
+        error: "Server configuration error. Please contact support at help@instantmed.com.au" 
+      }
     }
 
     // 4. Create the request with pending_payment status
@@ -224,10 +248,24 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     // 9. Create Stripe checkout session
     let session
     try {
+      logger.info("Creating Stripe checkout session", { 
+        requestId: request.id, 
+        category: input.category,
+        hasPriceId: !!priceId 
+      })
       session = await stripe.checkout.sessions.create(sessionParams)
+      logger.info("Stripe checkout session created", { 
+        sessionId: session.id, 
+        hasUrl: !!session.url 
+      })
     } catch (stripeError: unknown) {
       await supabase.from("requests").delete().eq("id", request.id)
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      logger.error("Stripe checkout session creation failed", { 
+        error: errorMessage, 
+        requestId: request.id,
+        category: input.category 
+      })
 
       // Check for URL-related errors
       if (errorMessage.toLowerCase().includes("url") || errorMessage.includes("Invalid") || errorMessage.includes("valid")) {
@@ -247,8 +285,12 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
 
     if (!session.url) {
       // Clean up
+      logger.error("Stripe session created but no URL returned", { sessionId: session.id })
       await supabase.from("requests").delete().eq("id", request.id)
-      return { success: false, error: "Failed to create checkout session. Please try again." }
+      return { 
+        success: false, 
+        error: "Failed to create checkout session. Please try again or contact support at help@instantmed.com.au" 
+      }
     }
 
     // 10. Create payment record
@@ -270,9 +312,17 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       .update({ active_checkout_session_id: session.id })
       .eq("id", request.id)
 
+    logger.info("Checkout session created successfully", { 
+      requestId: request.id, 
+      sessionId: session.id 
+    })
     return { success: true, checkoutUrl: session.url }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    logger.error("Unexpected error in createRequestAndCheckoutAction", { 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined 
+    })
     return {
       success: false,
       error: `Something went wrong. Please try again or contact support at help@instantmed.com.au if this continues. [ERR_CHECKOUT: ${errorMessage.substring(0, 30)}]`,

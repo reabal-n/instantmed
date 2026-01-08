@@ -292,7 +292,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   }
 
   const firstName = userName?.split(" ")[0] || "User"
-  const isActivePath = (path: string) => pathname === path || pathname.startsWith(path + "/")
+  const isActivePath = (path: string) => pathname === path || pathname?.startsWith(path + "/")
 
   return (
     <>

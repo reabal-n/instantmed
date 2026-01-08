@@ -81,7 +81,7 @@ export function DashboardSidebar({
         {/* Main Navigation */}
         <nav className="glass-card rounded-2xl p-3 space-y-1 border border-white/20">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== baseHref && pathname.startsWith(item.href))
+            const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
             const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
             const badgeCount = variant === "doctor" ? pendingCount : requestCount
             

@@ -267,12 +267,6 @@ export function MedicationSearch({
         </div>
       )}
 
-      {/* Helper Text */}
-      {!selectedMed && query.length < 2 && (
-        <p className="text-xs text-muted-foreground mt-2">
-          Start typing to search our Australian medication database
-        </p>
-      )}
     </div>
   )
 }

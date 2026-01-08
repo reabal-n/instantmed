@@ -350,10 +350,10 @@ export function TrustBadgeStrip({ className }: { className?: string }) {
   ]
 
   return (
-    <div className={cn("flex flex-wrap items-center justify-center gap-4", className)}>
+    <div className={cn("flex flex-nowrap items-center justify-center gap-2", className)}>
       {badges.map(({ icon: Icon, label, color }) => (
-        <div key={label} className="flex items-center gap-1.5 text-sm">
-          <Icon className={cn("h-4 w-4", color)} />
+        <div key={label} className="flex items-center gap-0.5 text-xs whitespace-nowrap">
+          <Icon className={cn("h-3 w-3 flex-shrink-0", color)} />
           <span className="text-muted-foreground">{label}</span>
         </div>
       ))}

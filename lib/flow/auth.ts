@@ -26,18 +26,18 @@ export interface FlowSession {
 /**
  * Get current flow session state
  * 
- * NOTE: This function is deprecated. Use the useUser() hook from @clerk/nextjs instead.
+ * NOTE: This is a utility function for internal use in draft operations.
+ * For React components, use the useUser() hook from @clerk/nextjs instead.
  * For server-side auth, use getAuthenticatedUserWithProfile() from @/lib/auth.
  * 
- * This returns a dummy unauthenticated state since Clerk manages auth via hooks.
+ * This function is used internally by draft functions that need to check
+ * user state but cannot use React hooks. It returns unauthenticated state
+ * since Clerk auth requires hooks in client components.
  */
 export async function getFlowSession(): Promise<FlowSession> {
-  // Clerk auth is managed via hooks (useUser, useAuth)
-  // This function cannot access Clerk state since it's not a hook
-  // Components should use useUser() directly instead
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecated] getFlowSession() called. Use useUser() hook instead.')
-  }
+  // Note: Clerk auth is managed via hooks (useUser, useAuth) in React components.
+  // This utility function is used internally by draft operations that need
+  // to check user state but cannot use hooks. Components should use useUser() directly.
   
   return {
     user: null,
@@ -45,33 +45,6 @@ export async function getFlowSession(): Promise<FlowSession> {
     email: null,
     userId: null,
   }
-}
-
-/**
- * Subscribe to auth state changes in flow context
- * 
- * NOTE: This function is deprecated. Use Clerk's useUser() hook instead.
- * Clerk handles auth state reactively through its React context.
- */
-export function subscribeToFlowAuth(
-  callback: (session: FlowSession) => void
-): () => void {
-  // Clerk doesn't use subscriptions - it uses React context
-  // Components should use useUser() hook which automatically updates
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecated] subscribeToFlowAuth() called. Use useUser() hook instead.')
-  }
-  
-  // Call callback with unauthenticated state
-  callback({
-    user: null,
-    isAuthenticated: false,
-    email: null,
-    userId: null,
-  })
-
-  // Return no-op unsubscribe
-  return () => {}
 }
 
 // ============================================
@@ -236,7 +209,9 @@ export async function claimDraft(
 
     return { success: true }
   } catch (err) {
-    console.error('Error claiming draft:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error claiming draft:', err)
+    }
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to claim draft',

@@ -14,7 +14,7 @@ interface EnhancedSelectionButtonProps {
   icon?: React.ElementType
   label?: string
   description?: string
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red" | "primary-subtle"
 }
 
 const gradientClasses = {
@@ -22,6 +22,7 @@ const gradientClasses = {
   "purple-pink": "from-purple-500 via-pink-500 to-rose-500",
   "teal-emerald": "from-teal-400 via-emerald-500 to-green-500",
   "orange-red": "from-orange-400 via-red-500 to-pink-500",
+  "primary-subtle": "from-blue-600 to-indigo-600",
 }
 
 export function EnhancedSelectionButton({
@@ -41,20 +42,20 @@ export function EnhancedSelectionButton({
     chip: cn(
       "px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium",
       selected
-        ? `bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-lg shadow-purple-500/30`
-        : "bg-white border-2 border-gray-200 hover:border-purple-300 hover:shadow-md text-gray-700"
+        ? `bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] ${gradient === "primary-subtle" ? "shadow-blue-500/20" : "shadow-purple-500/25"}`
+        : "bg-white border-2 border-gray-200 hover:border-purple-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-gray-700"
     ),
     card: cn(
       "w-full p-5 rounded-2xl border-2 text-left",
       selected
-        ? `border-transparent bg-gradient-to-br ${gradientClasses[gradient]} text-white shadow-xl shadow-purple-500/20`
-        : "border-gray-200 bg-white hover:border-purple-300 hover:shadow-lg text-gray-900"
+        ? `border-transparent bg-gradient-to-br ${gradientClasses[gradient]} text-white shadow-[0_6px_20px_rgba(0,0,0,0.12)] shadow-purple-500/15`
+        : "border-gray-200 !bg-white hover:border-purple-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] text-gray-900"
     ),
     option: cn(
-      "w-full p-4 min-h-[80px] rounded-xl border-2 flex items-center gap-4 text-left",
+      "w-full p-3 min-h-[64px] rounded-xl border-2 flex items-center gap-2.5 text-left",
       selected
-        ? `border-transparent bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-lg`
-        : "border-gray-200 bg-white hover:border-purple-300 hover:shadow-md text-gray-900"
+        ? `border-transparent bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)]`
+        : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-gray-900"
     ),
     default: cn(
       "px-4 py-2 rounded-lg",
@@ -77,7 +78,7 @@ export function EnhancedSelectionButton({
       {variant === "option" && Icon && (
         <motion.div
           className={cn(
-            "w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-all",
+            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all",
             selected
               ? "bg-white/20 backdrop-blur-sm"
               : "bg-gray-100 text-gray-600"
@@ -87,7 +88,7 @@ export function EnhancedSelectionButton({
           }}
           transition={{ duration: 0.3 }}
         >
-          <Icon className="w-5 h-5" />
+          <Icon className="w-4 h-4" />
         </motion.div>
       )}
 
@@ -110,7 +111,7 @@ export function EnhancedSelectionButton({
 
       <div className="flex-1 min-w-0">
         {label && (
-          <div className="font-medium text-sm block mb-1">{label}</div>
+          <div className={cn("font-medium block", variant === "option" ? "text-sm leading-tight" : "text-sm mb-1")}>{label}</div>
         )}
         {description && (
           <div className="text-xs opacity-90">{description}</div>

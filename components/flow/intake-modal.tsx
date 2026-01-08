@@ -88,7 +88,7 @@ export function IntakeModal({
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className={cn(
-                    "relative w-full bg-white shadow-2xl",
+                    "relative w-full bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]",
                     "sm:max-w-2xl sm:rounded-2xl",
                     "h-full sm:h-auto sm:max-h-[90vh]",
                     "flex flex-col"
@@ -99,13 +99,16 @@ export function IntakeModal({
                 {title && (
                   <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-4 sm:rounded-t-2xl">
                     <h2 className="text-lg font-semibold">{title}</h2>
-                    <button
+                    <motion.button
                       onClick={handleClose}
                       className="rounded-lg p-2 hover:bg-muted transition-colors"
                       aria-label="Close modal"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <X className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                   </div>
                 )}
 

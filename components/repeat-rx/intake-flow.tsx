@@ -659,7 +659,7 @@ export function RepeatRxIntakeFlow({
   
   // Handle auth callback - now using Clerk's user state
   useEffect(() => {
-    if (searchParams.get("auth_success") === "true") {
+    if (searchParams?.get("auth_success") === "true") {
       // Clear the URL param
       window.history.replaceState({}, "", window.location.pathname)
     }
@@ -697,7 +697,7 @@ export function RepeatRxIntakeFlow({
   
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50/30 to-white">
         {/* Header */}
         {currentStep !== "auth" && currentStep !== "confirmation" && (
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">

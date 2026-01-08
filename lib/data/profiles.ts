@@ -91,29 +91,6 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
   return data as unknown as Profile
 }
 
-/**
- * @deprecated Use ensureProfile server action instead.
- * This function uses regular client which may fail due to RLS.
- * Profile creation MUST happen server-side using service role client.
- */
-export async function createProfile(profile: {
-  auth_user_id: string
-  full_name: string
-  date_of_birth: string
-  role: "patient" | "doctor"
-}): Promise<Profile | null> {
-  console.warn("[DEPRECATED] createProfile called - use ensureProfile server action instead")
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.from("profiles").insert(profile).select().single()
-
-  if (error || !data) {
-    console.error("Error creating profile:", error)
-    return null
-  }
-
-  return data as unknown as Profile
-}
 
 /**
  * Update an existing profile.

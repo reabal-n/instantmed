@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
-import { AuroraBackground } from "@/components/ui/aurora-background"
+import { SkyBackground } from "@/components/ui/sky-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     template: "%s | InstantMed",
   },
   description:
-    "Get medical certificates and doctor consultations online from AHPRA-registered Australian GPs. Same-day response, 7 days a week. No waiting rooms, no hold music.",
+    "An asynchronous telehealth platform for Australians to get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) online. AHPRA-registered doctors review requests asynchronously (no video calls). Mobile-optimized, Medicare-friendly, with built-in safety features and secure payment processing.",
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed - Online Doctor Consultations Australia",
     description:
-      "Medical certificates and consultations — handled in minutes. AHPRA-registered Australian GPs available 7 days.",
+      "An asynchronous telehealth platform for Australians. Get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.",
     images: [
       {
         url: "/og-image.png",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "InstantMed - Online Doctor Consultations Australia",
-    description: "Medical certificates and consultations — handled in minutes by real Australian GPs.",
+    description: "Asynchronous telehealth platform for Australians. Medical certificates ($19.95), prescriptions ($29.95), and consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls required.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -199,12 +199,12 @@ export default function RootLayout({
           <OrganizationSchema />
           <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
         </head>
-        <body className="font-sans antialiased bg-background text-foreground">
+        <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <HeroUIProviderWrapper>
-              <AuroraBackground fullPage showRadialGradient />
+              <SkyBackground fullPage />
               <SkipToContent />
-              <div id="main-content" className="page-enter relative">
+              <div id="main-content" className="page-enter relative z-10">
                 {children}
               </div>
               <Toaster position="top-center" richColors />

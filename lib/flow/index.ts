@@ -43,7 +43,6 @@ export { useDraftPersistence, useDraftResume } from './hooks'
 // Auth Helpers
 export {
   getFlowSession,
-  subscribeToFlowAuth,
   createDraft,
   loadDraft,
   saveDraft,

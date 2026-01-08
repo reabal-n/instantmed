@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react"
 export function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirect") || "/account"
+  const redirectTo = searchParams?.get("redirect") || "/account"
   const { isSignedIn, isLoaded } = useUser()
 
   useEffect(() => {

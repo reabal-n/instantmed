@@ -130,7 +130,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
       <nav className="flex-1 p-2 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           
           return (
             <Link

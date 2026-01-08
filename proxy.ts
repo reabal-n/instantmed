@@ -9,7 +9,17 @@ const isProtectedRoute = createRouteMatcher([
   '/account(.*)',
 ])
 
+// Routes that should bypass Clerk middleware entirely
+const isPublicRoute = createRouteMatcher([
+  '/api(.*)',
+])
+
 export default clerkMiddleware(async (auth, request) => {
+  // Bypass Clerk for public routes
+  if (isPublicRoute(request)) {
+    return NextResponse.next()
+  }
+
   const { userId, redirectToSignIn } = await auth()
 
   // If user is not authenticated and trying to access protected route
