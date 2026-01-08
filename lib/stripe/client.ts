@@ -6,6 +6,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   // Allow build to proceed without Stripe key (it will be provided at runtime)
   // Note: This warning is acceptable at module load time
   if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
     console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
   }
 }
