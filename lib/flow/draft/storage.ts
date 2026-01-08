@@ -67,9 +67,8 @@ export function saveLocalDraft(draft: LocalDraft): void {
     // Also update the "current draft" pointer
     localStorage.setItem(STORAGE_KEYS.CURRENT_DRAFT, draft.sessionId)
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to save draft to localStorage:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to save draft to localStorage:', error)
   }
 }
 
@@ -87,9 +86,8 @@ export function loadLocalDraft(sessionId: string): LocalDraft | null {
     
     return JSON.parse(data) as LocalDraft
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to load draft from localStorage:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to load draft from localStorage:', error)
     return null
   }
 }
@@ -110,9 +108,8 @@ export function deleteLocalDraft(sessionId: string): void {
       localStorage.removeItem(STORAGE_KEYS.CURRENT_DRAFT)
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to delete draft from localStorage:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to delete draft from localStorage:', error)
   }
 }
 
@@ -160,9 +157,8 @@ export function getAllLocalDrafts(): DraftSummary[] {
       }
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to get local drafts:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to get local drafts:', error)
   }
 
   // Sort by most recently updated
@@ -224,9 +220,8 @@ export function savePendingFlow(state: Omit<PendingFlowState, 'savedAt'>): void 
     }
     localStorage.setItem(STORAGE_KEYS.PENDING_FLOW, JSON.stringify(data))
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to save pending flow:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to save pending flow:', error)
   }
 }
 
@@ -253,9 +248,8 @@ export function loadPendingFlow(): PendingFlowState | null {
 
     return state
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to load pending flow:', error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Failed to load pending flow:', error)
     return null
   }
 }

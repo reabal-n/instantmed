@@ -87,9 +87,8 @@ export async function createDraft(
 
     return { draftId: data.id }
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error creating draft:', err)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Error creating draft:', err)
     return {
       draftId: '',
       error: err instanceof Error ? err.message : 'Failed to create draft',
@@ -143,9 +142,8 @@ export async function loadDraft(
       isOwner: true,
     }
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error loading draft:', err)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Error loading draft:', err)
     return {
       data: null,
       isOwner: false,
@@ -176,9 +174,8 @@ export async function saveDraft(
 
     return { success: true }
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error saving draft:', err)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Error saving draft:', err)
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to save draft',
@@ -209,9 +206,8 @@ export async function claimDraft(
 
     return { success: true }
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error claiming draft:', err)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Error claiming draft:', err)
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Failed to claim draft',
@@ -260,9 +256,8 @@ export async function getUserDrafts(
       })),
     }
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error getting user drafts:', err)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error('Error getting user drafts:', err)
     return {
       drafts: [],
       error: err instanceof Error ? err.message : 'Failed to get drafts',

@@ -572,9 +572,8 @@ export function EnhancedIntakeFlow({
         setLastSavedAt(new Date())
         setIsSaving(false)
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Auto-save error:", error)
-        }
+        // eslint-disable-next-line no-console
+        if (process.env.NODE_ENV === 'development') console.error("Auto-save error:", error)
         setIsSaving(false)
       }
     }, 2000) // Debounce 2 seconds
@@ -889,9 +888,8 @@ export function EnhancedIntakeFlow({
         setErrors({ agreedToTerms: errorMessage })
         
         // Log error for debugging
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Checkout error:", errorMessage)
-        }
+        // eslint-disable-next-line no-console
+        if (process.env.NODE_ENV === 'development') console.error("Checkout error:", errorMessage)
         
         // If authentication error, suggest signing in
         if (errorMessage.includes("logged in") || errorMessage.includes("Authentication")) {
@@ -903,9 +901,8 @@ export function EnhancedIntakeFlow({
       posthog.captureException(error)
       const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again."
       
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Submit error:", error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error("Submit error:", error)
       
       setErrors({ 
         agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at help@instantmed.com.au` 

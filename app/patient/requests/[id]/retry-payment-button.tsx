@@ -35,9 +35,8 @@ export function RetryPaymentButton({ requestId }: RetryPaymentButtonProps) {
       }
     } catch (error) {
       // Log error in development only
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Retry payment error:", error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error("Retry payment error:", error)
       toast.error("Failed to initiate payment. Please try again.")
       setIsLoading(false)
       setHasClicked(false) // Allow retry on error

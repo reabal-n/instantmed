@@ -137,7 +137,8 @@ export function DoctorDashboardClient({
   }) => {
     // Defensive null check for patient data
     if (!request.patient) {
-      console.warn("[RequestCard] Missing patient data for request:", request.id)
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.warn("[RequestCard] Missing patient data for request:", request.id)
       return null
     }
     

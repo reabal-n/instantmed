@@ -80,9 +80,8 @@ export function AppointmentScheduler({
       await onSchedule(selectedDate, selectedTime)
       setScheduled(true)
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Scheduling error:", error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error("Scheduling error:", error)
     } finally {
       setIsScheduling(false)
     }

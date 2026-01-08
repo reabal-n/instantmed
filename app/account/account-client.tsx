@@ -115,9 +115,8 @@ export function AccountClient() {
           })))
         }
       } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error loading account:', err)
-        }
+        // eslint-disable-next-line no-console
+        if (process.env.NODE_ENV === 'development') console.error('Error loading account:', err)
         setError('Failed to load account data')
       } finally {
         setIsLoading(false)
@@ -265,9 +264,8 @@ export function AccountClient() {
             ) : (
               <div className="space-y-4">
                 {requests.map((request) => (
-                  <div className="hover-lift card-shine">
+                  <div key={request.id} className="hover-lift card-shine">
                     <Link
-                      key={request.id}
                       href={`/patient/requests/${request.id}`}
                       className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
                     >

@@ -145,9 +145,8 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
       onComplete?.()
       nextStep()
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error:', error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error('Error:', error)
       setAuthError('An unexpected error occurred')
     } finally {
       setIsSubmitting(false)

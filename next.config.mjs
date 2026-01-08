@@ -1,3 +1,4 @@
+import path from "path";
 import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 const bundleAnalyzer = withBundleAnalyzer({
@@ -6,6 +7,12 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Use pnpm dev:onlook to enable Onlook visual editor
+    swcPlugins: process.env.ONLOOK === "1" ? [["@onlook/nextjs", {
+      root: path.resolve(".")
+    }]] : []
+  },
   typescript: {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false

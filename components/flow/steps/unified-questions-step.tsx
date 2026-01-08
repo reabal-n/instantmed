@@ -176,9 +176,8 @@ export function UnifiedQuestionsStep({
       onComplete?.()
       nextStep()
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error completing questions:', error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error('Error completing questions:', error)
       posthog.captureException(error)
     } finally {
       setIsSubmitting(false)

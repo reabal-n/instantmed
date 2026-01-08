@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:onlook": "bash scripts/dev-onlook.sh",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

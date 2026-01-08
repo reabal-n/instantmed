@@ -14,9 +14,8 @@ async function getAllPatients() {
 
   if (error) {
     // Server-side error - use logger in production, console in dev
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Error fetching patients:", error)
-    }
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error("Error fetching patients:", error)
     return []
   }
 

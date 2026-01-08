@@ -51,7 +51,10 @@ export function AuthStep({
   useEffect(() => {
     if (isSignedIn && user) {
       // User is already authenticated via Clerk
-      setMode('authenticated')
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setMode('authenticated')
+      }, 0)
       
       // Update identity data with user email
       const userEmail = user.primaryEmailAddress?.emailAddress
@@ -70,16 +73,25 @@ export function AuthStep({
       })
 
       // Auto-continue after brief delay
-      setTimeout(() => {
+      const continueTimer = setTimeout(() => {
         onAuthenticated?.()
         nextStep()
       }, 1500)
+      
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(continueTimer)
+      }
     } else if (isSignedIn === false) {
       // Not signed in, show email input
-      if (identityData?.email) {
-        setEmail(identityData.email)
-      }
-      setMode('email_input')
+      const timer = setTimeout(() => {
+        if (identityData?.email) {
+          setEmail(identityData.email)
+        }
+        setMode('email_input')
+      }, 0)
+      
+      return () => clearTimeout(timer)
     }
   }, [isSignedIn, user, identityData, setIdentityData, updateAnswer, onAuthenticated, nextStep])
 

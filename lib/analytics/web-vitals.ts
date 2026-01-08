@@ -51,6 +51,7 @@ function reportMetric(metric: WebVitalMetric, config: WebVitalsConfig) {
   // Log in development
   if (debug) {
     const color = metric.rating === "good" ? "green" : metric.rating === "needs-improvement" ? "orange" : "red"
+    // eslint-disable-next-line no-console
     console.log(
       `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)} (${metric.rating})`,
       `color: ${color}; font-weight: bold`

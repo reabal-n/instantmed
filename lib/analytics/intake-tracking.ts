@@ -24,9 +24,8 @@ export function trackIntakeEvent(event: IntakeEvent) {
   }
 
   // Log to console in development
-  if (process.env.NODE_ENV === "development") {
-    console.log("[Intake Analytics]", eventData)
-  }
+  // eslint-disable-next-line no-console
+  if (process.env.NODE_ENV === "development") console.log("[Intake Analytics]", eventData)
 
   // Send to analytics provider (Google Analytics, Mixpanel, etc.)
   if (typeof window !== "undefined") {

@@ -93,6 +93,9 @@ interface DropdownMenuItemProps extends Omit<React.ComponentProps<typeof Dropdow
   isDisabled?: boolean
 }
 
+// Use a counter for stable keys
+let dropdownItemCounter = 0
+
 function DropdownMenuItem({
   className,
   variant = "default",
@@ -103,7 +106,8 @@ function DropdownMenuItem({
   ...props
 }: DropdownMenuItemProps) {
   // HeroUI requires a key prop, so we generate one from children if not provided
-  const itemKey = (props as any).key || String(children) || Math.random().toString()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const itemKey = (props as any).key || String(children) || `dropdown-item-${++dropdownItemCounter}`
   
   // Map shadcn/ui API to HeroUI API
   const heroIsDisabled = isDisabled ?? disabled

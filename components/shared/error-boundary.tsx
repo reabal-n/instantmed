@@ -39,9 +39,13 @@ async function reportError(error: Error, errorInfo: React.ErrorInfo): Promise<vo
 
     // Log to console in development
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.group("🚨 Error Report")
+      // eslint-disable-next-line no-console
       console.error("Error:", error)
+      // eslint-disable-next-line no-console
       console.error("Component Stack:", errorInfo.componentStack)
+      // eslint-disable-next-line no-console
       console.groupEnd()
     }
 
@@ -121,8 +125,8 @@ Time: ${new Date().toISOString()}
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers
-      console.log(details)
+      // Fallback for older browsers - not much we can do
+      void details
     }
   }
 

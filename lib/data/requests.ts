@@ -542,7 +542,8 @@ export async function saveDoctorNotes(requestId: string, notes: string): Promise
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error saving doctor notes:", error)
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error("Error saving doctor notes:", error)
     return false
   }
 
@@ -565,7 +566,8 @@ export async function flagForFollowup(requestId: string, reason: string): Promis
     .eq("id", requestId)
 
   if (error) {
-    console.error("Error flagging for followup:", error)
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error("Error flagging for followup:", error)
     return false
   }
 

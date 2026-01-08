@@ -47,7 +47,7 @@ export function HowItWorks() {
               Three steps. Done in minutes.
             </h2>
             <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-              Answer a few questions. A real doctor reviews. You're done. No appointments or waiting rooms.
+              Answer a few questions. A real doctor reviews. You&apos;re done. No appointments or waiting rooms.
             </p>
           </motion.div>
 

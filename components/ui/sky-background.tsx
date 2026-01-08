@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -18,6 +18,7 @@ export const SkyBackground = ({
   fullPage = false,
 }: SkyBackgroundProps) => {
   const [scrollY, setScrollY] = useState(0);
+  const [animationOffset, setAnimationOffset] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +28,25 @@ export const SkyBackground = ({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
+  // Use an interval to update animation offset instead of calling Date.now() in render
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationOffset(Date.now());
+    }, 100); // Update every 100ms for smooth animation
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Pre-calculate sine values to avoid impure function calls in render
+  const cloudOffsets = useMemo(() => ({
+    cloud1: Math.sin(animationOffset / 5000) * 10,
+    cloud2: Math.sin(animationOffset / 6000 + 1) * 12,
+    cloud3: Math.sin(animationOffset / 5500 + 2) * 8,
+    cloud4: Math.sin(animationOffset / 4800 + 0.5) * 6,
+    cloud5: Math.sin(animationOffset / 7000 + 3) * 5,
+    cloud6: Math.sin(animationOffset / 6500 + 4) * 7,
+    cloud7: Math.sin(animationOffset / 8000 + 5) * 4,
+  }), [animationOffset]);
 
   if (fullPage) {
     return (
@@ -72,7 +92,7 @@ export const SkyBackground = ({
           }}
           animate={{
             x: scrollY * 0.1,
-            y: scrollY * 0.05 + Math.sin(Date.now() / 5000) * 10,
+            y: scrollY * 0.05 + cloudOffsets.cloud1,
           }}
           transition={{
             x: { type: "spring", stiffness: 50, damping: 30 },
@@ -102,7 +122,7 @@ export const SkyBackground = ({
           }}
           animate={{
             x: -scrollY * 0.08,
-            y: scrollY * 0.03 + Math.sin(Date.now() / 6000 + 1) * 12,
+            y: scrollY * 0.03 + cloudOffsets.cloud2,
           }}
           transition={{
             x: { type: "spring", stiffness: 50, damping: 30 },
@@ -131,7 +151,7 @@ export const SkyBackground = ({
           }}
           animate={{
             x: scrollY * 0.12,
-            y: scrollY * 0.04 + Math.sin(Date.now() / 5500 + 2) * 8,
+            y: scrollY * 0.04 + cloudOffsets.cloud3,
           }}
           transition={{
             x: { type: "spring", stiffness: 50, damping: 30 },
@@ -160,7 +180,7 @@ export const SkyBackground = ({
           }}
           animate={{
             x: -scrollY * 0.15,
-            y: scrollY * 0.06 + Math.sin(Date.now() / 4800 + 0.5) * 6,
+            y: scrollY * 0.06 + cloudOffsets.cloud4,
           }}
           transition={{
             x: { type: "spring", stiffness: 50, damping: 30 },
@@ -188,7 +208,7 @@ export const SkyBackground = ({
             `,
           }}
           animate={{
-            y: scrollY * 0.02 + Math.sin(Date.now() / 7000 + 3) * 5,
+            y: scrollY * 0.02 + cloudOffsets.cloud5,
           }}
           transition={{
             y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
@@ -215,7 +235,7 @@ export const SkyBackground = ({
             `,
           }}
           animate={{
-            y: scrollY * 0.025 + Math.sin(Date.now() / 6500 + 4) * 7,
+            y: scrollY * 0.025 + cloudOffsets.cloud6,
           }}
           transition={{
             y: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
@@ -242,7 +262,7 @@ export const SkyBackground = ({
             `,
           }}
           animate={{
-            y: scrollY * 0.03 + Math.sin(Date.now() / 8000 + 5) * 4,
+            y: scrollY * 0.03 + cloudOffsets.cloud7,
           }}
           transition={{
             y: { duration: 8, repeat: Infinity, ease: "easeInOut" },

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 // BASE SKELETON
 // =============================================================================
 
-export interface SkeletonProps extends HeroSkeletonProps {}
+export type SkeletonProps = HeroSkeletonProps
 
 function Skeleton({
   className,

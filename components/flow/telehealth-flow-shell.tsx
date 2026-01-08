@@ -242,20 +242,25 @@ export function useDraftPersistence<T extends Record<string, unknown>>(
 
   // Check for existing draft on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(storageKey)
-      if (saved) {
-        const draft: DraftState<T> = JSON.parse(saved)
-        const hoursSinceSave = (Date.now() - draft.savedAt) / (1000 * 60 * 60)
-        if (hoursSinceSave < expiryHours && Object.keys(draft.formData).length > 0) {
-          setShowRecoveryPrompt(true)
-        } else {
-          localStorage.removeItem(storageKey)
+    // Use setTimeout to avoid synchronous setState in effect
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(storageKey)
+        if (saved) {
+          const draft: DraftState<T> = JSON.parse(saved)
+          const hoursSinceSave = (Date.now() - draft.savedAt) / (1000 * 60 * 60)
+          if (hoursSinceSave < expiryHours && Object.keys(draft.formData).length > 0) {
+            setShowRecoveryPrompt(true)
+          } else {
+            localStorage.removeItem(storageKey)
+          }
         }
+      } catch {
+        localStorage.removeItem(storageKey)
       }
-    } catch {
-      localStorage.removeItem(storageKey)
-    }
+    }, 0)
+    
+    return () => clearTimeout(timer)
   }, [storageKey, expiryHours])
 
   // Auto-save draft (debounced)

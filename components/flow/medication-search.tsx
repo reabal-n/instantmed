@@ -86,17 +86,15 @@ export function MedicationSearch({
         })
 
         if (error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('Search error:', error)
-          }
+          // eslint-disable-next-line no-console
+          if (process.env.NODE_ENV === 'development') console.error('Search error:', error)
           setResults([])
         } else {
           setResults((data as MedicationResult[]) || [])
         }
       } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Search error:', err)
-        }
+        // eslint-disable-next-line no-console
+        if (process.env.NODE_ENV === 'development') console.error('Search error:', err)
         setResults([])
       } finally {
         setIsSearching(false)

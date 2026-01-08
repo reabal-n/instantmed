@@ -82,7 +82,8 @@ export async function verifyDocumentExists(requestId: string): Promise<boolean> 
     .eq("request_id", requestId)
 
   if (error) {
-    console.error("[verifyDocumentExists] Error:", error)
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.error("[verifyDocumentExists] Error:", error)
     return false
   }
 
@@ -166,6 +167,7 @@ export async function assertApprovalInvariants(
 
   // Log warnings
   if (result.warnings.length > 0) {
-    console.warn("[ApprovalInvariants] Warnings:", result.warnings)
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.warn("[ApprovalInvariants] Warnings:", result.warnings)
   }
 }

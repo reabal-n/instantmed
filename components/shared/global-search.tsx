@@ -83,9 +83,8 @@ export function GlobalSearch({ variant = "doctor" }: GlobalSearchProps) {
         setResults(data.results || [])
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Search error:", error)
-      }
+      // eslint-disable-next-line no-console
+      if (process.env.NODE_ENV === 'development') console.error("Search error:", error)
     } finally {
       setIsLoading(false)
     }

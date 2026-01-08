@@ -36,8 +36,9 @@ export function ParallaxSection({
   useEffect(() => {
     // Skip parallax if user prefers reduced motion
     if (prefersReducedMotion) {
-      setIsVisible(true);
-      return;
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => setIsVisible(true), 0);
+      return () => clearTimeout(timer);
     }
 
     const handleScroll = () => {

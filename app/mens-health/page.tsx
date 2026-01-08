@@ -154,7 +154,7 @@ export default function MensHealthPage() {
                     Men&apos;s Health Treatment Online
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Get a doctor-led consultation for men's health concerns from an Australian doctor in{" "}
+                    Get a doctor-led consultation for men&apos;s health concerns from an Australian doctor in{" "}
                     <strong>15 minutes</strong>. No waiting rooms. No awkward conversations.
                     Treatment plan sent straight to your phone.
                   </p>

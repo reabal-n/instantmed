@@ -1,10 +1,23 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle, Clock, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+
+// Generate confetti particles outside of component to avoid impure function calls during render
+function generateConfettiParticles() {
+  const colors = ["#2563EB", "#8b5cf6", "#22c55e", "#f59e0b"]
+  return Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    delay: Math.random() * 0.5,
+  }))
+}
 
 interface SuccessStateProps {
   /** Main success message */
@@ -46,6 +59,9 @@ export function SuccessState({
   className,
   showConfetti = false,
 }: SuccessStateProps) {
+  // Use lazy initializer to generate random values only once on mount
+  const [confettiParticles] = useState(generateConfettiParticles)
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -56,16 +72,14 @@ export function SuccessState({
       {/* Confetti effect */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {confettiParticles.map((particle) => (
             <motion.div
-              key={i}
+              key={particle.id}
               className="absolute w-2 h-2 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                backgroundColor: ["#2563EB", "#8b5cf6", "#22c55e", "#f59e0b"][
-                  Math.floor(Math.random() * 4)
-                ],
+                left: particle.left,
+                top: particle.top,
+                backgroundColor: particle.color,
               }}
               initial={{ opacity: 0, y: -20, scale: 0 }}
               animate={{
@@ -76,7 +90,7 @@ export function SuccessState({
               }}
               transition={{
                 duration: 2,
-                delay: Math.random() * 0.5,
+                delay: particle.delay,
                 ease: "easeOut",
               }}
             />

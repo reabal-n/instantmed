@@ -27,11 +27,19 @@ export function CompleteAccountForm({
   useEffect(() => {
     // If already signed in, redirect to success
     if (isLoaded && isSignedIn && requestId) {
-      setShowConfetti(true)
+      // Use a timeout to avoid synchronous setState in effect
+      const confettiTimer = setTimeout(() => {
+        setShowConfetti(true)
+      }, 0)
       
-      setTimeout(() => {
+      const redirectTimer = setTimeout(() => {
         router.push(`/patient/requests/success?request_id=${requestId}`)
       }, 1000)
+      
+      return () => {
+        clearTimeout(confettiTimer)
+        clearTimeout(redirectTimer)
+      }
     }
   }, [isLoaded, isSignedIn, requestId, router])
 
