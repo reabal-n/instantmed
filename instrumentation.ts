@@ -24,6 +24,18 @@ export async function register() {
   });
 }
 
-export function onRequestError(err: Error, request: { path: string }) {
-  Sentry.captureRequestError(err, request);
+export function onRequestError(
+  err: Error,
+  request: { path: string; method: string },
+  context: { routerKind: string; routePath: string; routeType: string }
+) {
+  Sentry.captureException(err, {
+    extra: {
+      path: request.path,
+      method: request.method,
+      routerKind: context.routerKind,
+      routePath: context.routePath,
+      routeType: context.routeType,
+    },
+  });
 }

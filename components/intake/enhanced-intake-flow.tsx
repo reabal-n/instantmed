@@ -339,7 +339,7 @@ function OptionCard({
   icon: React.ElementType
   label: string
   description?: string
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
+  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red" | "primary-subtle"
 }) {
   return (
     <EnhancedSelectionButton
