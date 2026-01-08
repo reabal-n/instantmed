@@ -8,9 +8,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    swcPlugins: [["@onlook/nextjs", {
+    swcPlugins: process.env.NODE_ENV === "development" ? [["@onlook/nextjs", {
       root: path.resolve(".")
-    }]]
+    }]] : []
   },
   typescript: {
     // TypeScript errors have been fixed - enable strict type checking
