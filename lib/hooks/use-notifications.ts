@@ -72,6 +72,7 @@ export function useNotifications(): UseNotificationsReturn {
       setNotifications(data || [])
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error("Error fetching notifications:", err)
       }
       setError(err instanceof Error ? err.message : "Failed to load notifications")
@@ -93,6 +94,7 @@ export function useNotifications(): UseNotificationsReturn {
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       )
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error marking notification as read:", err)
     }
   }, [supabase])
@@ -120,6 +122,7 @@ export function useNotifications(): UseNotificationsReturn {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error("Error marking all notifications as read:", err)
       }
     }
