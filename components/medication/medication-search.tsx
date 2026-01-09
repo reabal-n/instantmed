@@ -147,7 +147,11 @@ export function MedicationSearch({
           ) : null
         }
         classNames={{
-          inputWrapper: "h-12",
+          inputWrapper: cn(
+            "h-12 bg-white border border-slate-200 shadow-none",
+            "hover:border-slate-300",
+            "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20"
+          ),
         }}
       />
 

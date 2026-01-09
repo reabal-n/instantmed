@@ -57,34 +57,37 @@ export function EnhancedTextarea({
       <div className="relative">
         <HeroTextarea
           {...props}
-          label={label}
+          label={label || undefined}
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={() => setFocused(true)}
           maxLength={maxLength}
+          variant="bordered"
+          radius="lg"
           className={cn(
             "transition-all duration-200",
-            error && touched && "border-red-500 focus:border-red-500",
-            isValid && touched && !error && showSuccessIndicator && "border-green-500 focus:border-green-500",
-            focused && !error && !isValid && "border-primary focus:border-primary",
             className
           )}
           classNames={{
+            base: "gap-0 bg-transparent",
+            mainWrapper: "bg-transparent",
             inputWrapper: cn(
-              "bg-background/50 backdrop-blur-sm border-default-200",
-              "transition-all duration-300",
-              "hover:border-primary/50 hover:shadow-sm hover:shadow-primary/5",
-              "data-[focused=true]:border-primary data-[focused=true]:shadow-md data-[focused=true]:shadow-primary/10",
-              "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
-              error && touched && "border-red-500 focus-within:border-red-500",
-              isValid && touched && !error && showSuccessIndicator && "border-green-500 focus-within:border-green-500"
+              "bg-white border border-slate-200 rounded-lg shadow-none",
+              "transition-all duration-200",
+              "hover:border-slate-300",
+              "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",
+              error && touched && "!border-red-500",
+              isValid && touched && !error && showSuccessIndicator && "!border-green-500"
             ),
+            innerWrapper: "bg-transparent",
             input: cn(
-              "text-foreground placeholder:text-default-400",
+              "text-foreground placeholder:text-slate-400 bg-transparent",
               error && touched && "text-red-700 dark:text-red-400",
               isValid && touched && !error && showSuccessIndicator && "text-green-700 dark:text-green-400"
             ),
+            label: "text-foreground font-medium",
+            helperWrapper: "hidden", // Hide HeroUI's helper wrapper, we render our own
           }}
         />
         

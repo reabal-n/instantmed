@@ -25,20 +25,22 @@ function Textarea({
       radius="lg"
       variant="bordered"
       classNames={{
+        base: "bg-transparent",
+        mainWrapper: "bg-transparent",
         inputWrapper: cn(
-          "bg-background/50 backdrop-blur-sm border-default-200",
-          "transition-all duration-300",
-          "hover:border-primary/50 hover:shadow-sm hover:shadow-primary/5",
-          "data-[focused=true]:border-primary data-[focused=true]:shadow-md data-[focused=true]:shadow-primary/10",
-          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
-          "data-[focused=true]:scale-[1.01]", // Subtle scale on focus
+          "bg-white border border-slate-200 shadow-none",
+          "transition-all duration-200",
+          "hover:border-slate-300",
+          "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",
           // Mobile optimizations
-          "min-h-[48px] md:min-h-0" // Larger touch target on mobile
+          "min-h-[48px] md:min-h-0"
         ),
+        innerWrapper: "bg-transparent",
         input: cn(
-          "text-foreground placeholder:text-default-400",
-          "text-base md:text-sm" // Prevent zoom on iOS
+          "text-foreground placeholder:text-slate-400 bg-transparent",
+          "text-base md:text-sm"
         ),
+        helperWrapper: "bg-transparent",
       }}
       className={className}
       {...props}

@@ -100,6 +100,8 @@ export function ValidatedInput({
         {...props}
         type={type}
         label={label}
+        variant="bordered"
+        radius="lg"
         value={displayValue}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -107,15 +109,22 @@ export function ValidatedInput({
         maxLength={maxLength}
         className={className}
         classNames={{
+          base: "bg-transparent",
+          mainWrapper: "bg-transparent",
           input: cn(
+            "text-foreground placeholder:text-slate-400 bg-transparent",
             error && touched && "text-red-700 dark:text-red-400",
             isValid && touched && "text-green-700 dark:text-green-400"
           ),
           inputWrapper: cn(
+            "bg-white border border-slate-200 shadow-none",
             "transition-all duration-200",
-            error && touched && "border-red-500 focus-within:border-red-500",
-            isValid && touched && !error && "border-green-500 focus-within:border-green-500"
+            "hover:border-slate-300",
+            "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",
+            error && touched && "!border-red-500",
+            isValid && touched && !error && "!border-green-500"
           ),
+          innerWrapper: "bg-transparent",
         }}
         endContent={
           <div className="flex items-center gap-2">
