@@ -4,7 +4,6 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogIn, UserPlus, ArrowRight, Loader2 } from "lucide-react"
-import { useClerk } from "@clerk/nextjs"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -39,7 +38,7 @@ export function ServiceAuthGate({
   description = "Create an account or log in to submit your request.",
 }: ServiceAuthGateProps) {
   const pathname = usePathname()
-  const { openSignIn } = useClerk()
+  const { openSignIn } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   // Encode the current path for redirect after auth

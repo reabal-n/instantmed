@@ -35,7 +35,6 @@ import {
   Save,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
@@ -410,8 +409,8 @@ export function PrescriptionFlowClient({
   userName,
 }: Props) {
   const _router = useRouter()
-  const { isSignedIn, user: clerkUser } = useUser()
-  const { openSignIn } = useClerk()
+  const { isSignedIn, user: clerkUser } = useAuth()
+  const { openSignIn } = useAuth()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

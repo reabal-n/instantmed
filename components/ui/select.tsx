@@ -36,13 +36,36 @@ function Select({
 
   return (
     <HeroSelect
-      radius="lg"
+      radius="lg" // Soft Pop Glass: rounded-xl
       variant="bordered"
       selectedKeys={heroSelectedKeys}
       onSelectionChange={heroOnSelectionChange as any}
       classNames={{
-        trigger: "bg-background/50 backdrop-blur-sm border-default-200 hover:border-primary data-[focused=true]:border-primary",
+        // Soft Pop Glass trigger button
+        trigger: cn(
+          "bg-white/60 dark:bg-gray-900/40",
+          "backdrop-blur-lg",
+          "border border-white/30 dark:border-white/10",
+          // Motion
+          "transition-all duration-200",
+          // Hover state
+          "hover:border-primary/30",
+          "hover:bg-white/70 dark:hover:bg-gray-900/50",
+          // Focus state with glow
+          "data-[focused=true]:border-primary/50",
+          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-gray-900/60",
+          "data-[focused=true]:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+        ),
         value: "text-foreground",
+        // Soft Pop Glass dropdown
+        popoverContent: cn(
+          "bg-white/90 dark:bg-gray-900/90",
+          "backdrop-blur-2xl",
+          "border border-white/40 dark:border-white/10",
+          "rounded-xl",
+          "shadow-[0_20px_40px_rgba(0,0,0,0.15)]",
+        ),
+        listbox: "bg-transparent",
       }}
       className={className}
       {...props}
@@ -71,8 +94,17 @@ function SelectTrigger({
   return (
     <button
       className={cn(
-        "border-input data-[placeholder]:text-muted-foreground flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm",
-        size === "default" ? "h-9" : "h-8",
+        // Soft Pop Glass trigger
+        "bg-white/60 dark:bg-gray-900/40",
+        "backdrop-blur-lg",
+        "border border-white/30 dark:border-white/10",
+        "rounded-xl",
+        "flex w-fit items-center justify-between gap-2 px-3 py-2 text-sm",
+        "transition-all duration-200",
+        "hover:border-primary/30",
+        "focus:border-primary/50 focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+        "data-[placeholder]:text-muted-foreground/50",
+        size === "default" ? "h-11" : "h-9",
         className
       )}
       {...props}
@@ -95,7 +127,7 @@ function SelectLabel({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("text-default-500 px-2 py-1.5 text-xs", className)}
+      className={cn("text-muted-foreground px-2 py-1.5 text-xs font-medium", className)}
       {...props}
     />
   )
@@ -119,7 +151,13 @@ function SelectItem({
   return (
     <HeroSelectItem
       key={itemKey}
-      className={className}
+      className={cn(
+        "rounded-lg",
+        "transition-colors duration-150",
+        "data-[hover=true]:bg-primary/5",
+        "data-[selectable=true]:focus:bg-primary/10",
+        className
+      )}
       {...props}
     >
       {children}
@@ -133,7 +171,7 @@ function SelectSeparator({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
+      className={cn("bg-white/20 dark:bg-white/10 pointer-events-none -mx-1 my-1 h-px", className)}
       {...props}
     />
   )

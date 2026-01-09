@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
-import { auth } from "@clerk/nextjs/server"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import type {
   MedicationSelection,
@@ -60,7 +59,7 @@ export async function POST(request: Request) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", userId)
+        .eq("auth_user_id", userId)
         .single()
       
       if (profile?.id) {

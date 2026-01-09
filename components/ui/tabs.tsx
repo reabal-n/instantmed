@@ -27,7 +27,6 @@ function Tabs({
   ...props
 }: TabsProps) {
   // Map shadcn/ui API to HeroUI API
-  // Use defaultValue/defaultSelectedKey for initial state, value/selectedKey for controlled
   const heroSelectedKey = selectedKey ?? value ?? defaultSelectedKey ?? defaultValue
   const heroOnSelectionChange = onSelectionChange ?? (onValueChange ? (key: React.Key) => onValueChange(String(key)) : undefined)
 
@@ -35,10 +34,37 @@ function Tabs({
     <HeroTabs
       variant="solid"
       color="primary"
-      radius="lg"
+      radius="full" // Soft Pop Glass: pill-shaped tabs
       className={cn("flex flex-col gap-2", className)}
       selectedKey={heroSelectedKey}
       onSelectionChange={heroOnSelectionChange}
+      classNames={{
+        // Soft Pop Glass tab list container
+        tabList: cn(
+          "bg-white/60 dark:bg-gray-900/40",
+          "backdrop-blur-xl",
+          "border border-white/40 dark:border-white/10",
+          "rounded-full",
+          "p-1",
+          "shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
+        ),
+        // Tab button
+        tab: cn(
+          "rounded-full",
+          "transition-all duration-200",
+          "data-[hover=true]:bg-white/50 dark:data-[hover=true]:bg-white/10",
+        ),
+        // Active tab with glow
+        cursor: cn(
+          "bg-white dark:bg-gray-800",
+          "shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
+          "dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
+        ),
+        // Tab content panel
+        panel: cn(
+          "pt-4",
+        ),
+      }}
       {...props}
     />
   )
@@ -46,20 +72,47 @@ function Tabs({
 
 function TabsList({
   children,
+  className,
   ...props
 }: React.ComponentProps<"div">) {
-  return <div {...props}>{children}</div>
+  return (
+    <div 
+      className={cn(
+        // Soft Pop Glass tab list (standalone)
+        "inline-flex items-center gap-1 p-1",
+        "bg-white/60 dark:bg-gray-900/40",
+        "backdrop-blur-xl",
+        "border border-white/40 dark:border-white/10",
+        "rounded-full",
+        "shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
 }
 
 function TabsTrigger({
   value,
   children,
+  className,
   ...props
 }: React.ComponentProps<typeof Tab>) {
   return (
     <Tab
       key={value as any}
       value={value}
+      className={cn(
+        "rounded-full px-4 py-2",
+        "transition-all duration-200",
+        "hover:bg-white/50 dark:hover:bg-white/10",
+        "data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800",
+        "data-[selected=true]:shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
+        "dark:data-[selected=true]:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
+        className
+      )}
       {...props}
     >
       {children}
@@ -75,7 +128,7 @@ function TabsContent({
 }: React.ComponentProps<"div"> & { value: string }) {
   return (
     <div
-      className={cn("flex-1 outline-none", className)}
+      className={cn("flex-1 outline-none pt-4", className)}
       {...props}
     >
       {children}

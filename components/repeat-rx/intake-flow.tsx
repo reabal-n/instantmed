@@ -36,7 +36,6 @@ import type {
   EligibilityResult,
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
 import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 
@@ -470,8 +469,8 @@ export function RepeatRxIntakeFlow({
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const { openSignIn } = useClerk()
-  const { user, isSignedIn } = useUser()
+  const { openSignIn } = useAuth()
+  const { user, isSignedIn } = useAuth()
   
   // ============================================================================
   // STATE

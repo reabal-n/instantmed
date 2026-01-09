@@ -354,16 +354,14 @@ export function AdminDashboardClient({
                       <TableCell>
                         {showScriptCheckbox && (
                           <TooltipProvider>
-                            <Tooltip>
-                              <Tooltip content={request.script_sent ? "Script sent via external platform" : "Mark as sent"}>
-                                <div className="flex items-center justify-center">
-                                  <Checkbox
-                                    isSelected={request.script_sent}
-                                    onValueChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                    className="data-[selected=true]:bg-indigo-500 data-[selected=true]:border-indigo-500"
-                                  />
-                                </div>
-                              </Tooltip>
+                            <Tooltip content={request.script_sent ? "Script sent via external platform" : "Mark as sent"}>
+                              <div className="flex items-center justify-center">
+                                <Checkbox
+                                  isSelected={request.script_sent}
+                                  onValueChange={() => handleScriptSentToggle(request.id, request.script_sent)}
+                                  className="data-[selected=true]:bg-indigo-500 data-[selected=true]:border-indigo-500"
+                                />
+                              </div>
                             </Tooltip>
                           </TooltipProvider>
                         )}

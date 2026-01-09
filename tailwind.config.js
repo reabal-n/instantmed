@@ -28,6 +28,26 @@ const config = {
         "soft": "0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06)",
         "soft-md": "0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 30px rgba(0, 0, 0, 0.08)",
         "soft-lg": "0 8px 12px rgba(0, 0, 0, 0.06), 0 20px 48px rgba(0, 0, 0, 0.1)",
+        // Soft Pop Glass - Colored glow shadows
+        "glow-primary": "0 8px 30px rgb(59, 130, 246, 0.2)",
+        "glow-primary-hover": "0 12px 40px rgb(59, 130, 246, 0.3)",
+        "glow-primary-intense": "0 16px 50px rgb(59, 130, 246, 0.4)",
+        "glow-accent": "0 8px 30px rgb(139, 92, 246, 0.2)",
+        "glow-accent-hover": "0 12px 40px rgb(139, 92, 246, 0.3)",
+        "glow-success": "0 8px 30px rgb(34, 197, 94, 0.2)",
+        "glow-success-hover": "0 12px 40px rgb(34, 197, 94, 0.3)",
+        "glow-danger": "0 8px 30px rgb(239, 68, 68, 0.2)",
+        "glow-warning": "0 8px 30px rgb(245, 158, 11, 0.2)",
+        // Glass card shadows
+        "glass": "0 8px 30px rgba(0, 0, 0, 0.06)",
+        "glass-hover": "0 20px 40px rgba(59, 130, 246, 0.1)",
+        "glass-elevated": "0 25px 60px rgba(0, 0, 0, 0.15)",
+      },
+      // Backdrop blur extensions
+      backdropBlur: {
+        xs: "2px",
+        "2xl": "40px",
+        "3xl": "64px",
       },
       spacing: {
         "8": "8px",

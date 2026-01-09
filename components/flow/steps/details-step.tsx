@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import type { FlowConfig, IdentityData, ConsentType } from '@/lib/flow'
 import { cn } from '@/lib/utils'
-import { useUser, useClerk } from '@clerk/nextjs'
 
 interface DetailsStepProps {
   config: FlowConfig
@@ -40,8 +39,8 @@ const REQUIRED_CONSENTS: { type: ConsentType; label: string; version: string }[]
 export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
   const existingIdentity = useFlowIdentity()
   const { setIdentityData, addConsent, nextStep } = useFlowStore()
-  const { user: clerkUser, isLoaded } = useUser()
-  const { openSignIn } = useClerk()
+  const { user: clerkUser, isLoaded } = useAuth()
+  const { openSignIn } = useAuth()
 
   // Check auth status based on Clerk
   const isLoggedIn = !!clerkUser

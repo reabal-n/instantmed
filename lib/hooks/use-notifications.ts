@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useUser } from "@clerk/nextjs"
 import { logger } from "@/lib/logger"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
@@ -33,7 +32,7 @@ export function useNotifications(): UseNotificationsReturn {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
-  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser()
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useAuth()
 
   const fetchNotifications = useCallback(async () => {
     if (!isClerkLoaded || !clerkUser) {
@@ -50,7 +49,7 @@ export function useNotifications(): UseNotificationsReturn {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", clerkUser.id)
+        .eq("auth_user_id", clerkUser.id)
         .single()
 
       if (!profile) {
@@ -106,7 +105,7 @@ export function useNotifications(): UseNotificationsReturn {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", clerkUser.id)
+        .eq("auth_user_id", clerkUser.id)
         .single()
 
       if (!profile) return
@@ -138,7 +137,7 @@ export function useNotifications(): UseNotificationsReturn {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", clerkUser.id)
+        .eq("auth_user_id", clerkUser.id)
         .single()
 
       if (!profile) return

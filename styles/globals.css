@@ -176,50 +176,255 @@
     background-size: 24px 24px;
   }
   
-  /* Glassmorphism effect */
+  /* ============================================
+     SOFT POP GLASS DESIGN SYSTEM
+     Premium glassmorphism for modern telehealth
+     ============================================ */
+
+  /* Base Glass - Level 1 */
   .glass {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.40);
+  }
+
+  .dark .glass {
+    background: rgba(17, 17, 27, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.10);
   }
   
-  /* Premium liquid glass card */
+  /* Glass Surface - Soft Pop Glass Card */
   .glass-card {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0.4) 100%
-    );
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.40);
+    border-radius: 1rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
   .glass-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 
-      0 20px 48px rgba(0, 0, 0, 0.1),
-      0 0 40px rgba(0, 226, 181, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 0 0 1px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.12);
   }
   
   .dark .glass-card {
-    background: linear-gradient(
-      135deg,
-      rgba(30, 30, 40, 0.8) 0%,
-      rgba(20, 20, 30, 0.6) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: rgba(17, 17, 27, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.20);
+  }
+
+  .dark .glass-card:hover {
+    background: rgba(17, 17, 27, 0.80);
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
+  }
+
+  /* Glass Surface - Elevated (Modals, Popovers) */
+  .glass-elevated {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.50);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark .glass-elevated {
+    background: rgba(17, 17, 27, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* Glass Input */
+  .glass-input-field {
+    background: rgba(255, 255, 255, 0.60);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-input-field:focus {
+    border-color: rgba(59, 130, 246, 0.50);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+
+  .dark .glass-input-field {
+    background: rgba(17, 17, 27, 0.40);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  /* ============================================
+     GLOW EFFECTS - Colored Light Emissions
+     ============================================ */
+
+  /* Primary Blue Glow */
+  .glow-primary {
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.20);
+  }
+
+  .glow-primary-hover:hover {
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.30);
+  }
+
+  .glow-primary-intense {
+    box-shadow: 0 16px 50px rgba(59, 130, 246, 0.40);
+  }
+
+  /* Accent Purple Glow */
+  .glow-accent {
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.20);
+  }
+
+  .glow-accent-hover:hover {
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.30);
+  }
+
+  /* Success Emerald Glow */
+  .glow-success {
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.20);
+  }
+
+  .glow-success-hover:hover {
+    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.30);
+  }
+
+  /* Danger Red Glow */
+  .glow-danger {
+    box-shadow: 0 8px 30px rgba(239, 68, 68, 0.20);
+  }
+
+  /* Warning Amber Glow */
+  .glow-warning {
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.20);
+  }
+
+  /* ============================================
+     SOFT POP BUTTONS
+     ============================================ */
+
+  .btn-soft-pop {
+    position: relative;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .btn-soft-pop:hover {
+    transform: scale(1.02);
+  }
+
+  .btn-soft-pop:active {
+    transform: scale(0.98);
+  }
+
+  /* Primary Button with Glow */
+  .btn-soft-pop-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.30);
+  }
+
+  .btn-soft-pop-primary:hover {
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.40);
+  }
+
+  /* Secondary/Outline Button */
+  .btn-soft-pop-secondary {
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(59, 130, 246, 0.30);
+    color: #3b82f6;
+  }
+
+  .btn-soft-pop-secondary:hover {
+    background: rgba(255, 255, 255, 0.90);
+    border-color: rgba(59, 130, 246, 0.50);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+  }
+
+  .dark .btn-soft-pop-secondary {
+    background: rgba(17, 17, 27, 0.60);
+    border-color: rgba(139, 92, 246, 0.30);
+    color: #a78bfa;
+  }
+
+  /* Ghost Button */
+  .btn-soft-pop-ghost {
+    background: transparent;
+    color: currentColor;
+  }
+
+  .btn-soft-pop-ghost:hover {
+    background: rgba(59, 130, 246, 0.10);
+  }
+
+  /* ============================================
+     MOTION UTILITIES - Spring Physics
+     ============================================ */
+
+  /* Hover lift with spring */
+  .motion-lift {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .motion-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  /* Press effect */
+  .motion-press:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  /* Magnetic hover */
+  .motion-magnetic {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .motion-magnetic:hover {
+    transform: scale(1.02);
+  }
+
+  /* Bounce in animation */
+  @keyframes bounce-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    60% {
+      transform: scale(1.02) translateY(-2px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* Spring scale */
+  @keyframes spring-scale {
+    0% {
+      transform: scale(0.9);
+    }
+    60% {
+      transform: scale(1.03);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .animate-spring-scale {
+    animation: spring-scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
   
   /* Premium glass panel (for larger sections) */

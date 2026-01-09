@@ -17,7 +17,6 @@ import {
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useUser, useClerk } from '@clerk/nextjs'
 import { Chip, Spinner } from '@heroui/react'
 import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/shared/navbar'
@@ -48,8 +47,8 @@ interface RequestSummary {
 export function AccountClient() {
   const router = useRouter()
   const supabase = createClient()
-  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser()
-  const { signOut } = useClerk()
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useAuth()
+  const { signOut } = useAuth()
   
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -71,7 +70,7 @@ export function AccountClient() {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('clerk_user_id', clerkUser.id)
+          .eq('auth_user_id', clerkUser.id)
           .single()
 
         if (profileError) throw profileError

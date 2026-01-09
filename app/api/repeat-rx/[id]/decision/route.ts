@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -60,7 +59,7 @@ export async function POST(
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, role")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .single()
     
     if (!profile || profile.role !== "clinician") {
@@ -154,7 +153,7 @@ export async function POST(
       // Get patient details for notification
       const { data: patientProfile } = await supabase
         .from("profiles")
-        .select("id, full_name, email, clerk_user_id")
+        .select("id, full_name, email, auth_user_id")
         .eq("id", existingRequest.patient_id)
         .single()
       

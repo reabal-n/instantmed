@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/server"
 import { isAdminEmail } from "@/lib/env"
-import { auth, currentUser } from "@clerk/nextjs/server"
 
 // Only allow in development/preview
 const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"

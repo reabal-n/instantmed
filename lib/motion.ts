@@ -60,12 +60,40 @@ export const easing = {
 } as const
 
 // =============================================================================
-// SPRING PRESETS - DEPRECATED
+// SPRING PRESETS - SOFT POP GLASS
 // =============================================================================
-// DO NOT USE SPRINGS. All animations use duration + ease-out.
-// Kept for backwards compatibility, will be removed.
+// Spring physics for premium, tactile feel (Linear style)
+// Use for interactive elements, modals, and micro-interactions
 
 export const spring = {
+  /** Snappy spring - buttons, small interactions */
+  snappy: { 
+    type: "spring" as const, 
+    stiffness: 400, 
+    damping: 30 
+  } as Transition,
+  /** Smooth spring - page transitions, modals */
+  smooth: { 
+    type: "spring" as const, 
+    stiffness: 200, 
+    damping: 25 
+  } as Transition,
+  /** Bouncy spring - celebratory animations */
+  bouncy: { 
+    type: "spring" as const, 
+    stiffness: 300, 
+    damping: 20 
+  } as Transition,
+  /** Gentle spring - subtle movements */
+  gentle: { 
+    type: "spring" as const, 
+    stiffness: 150, 
+    damping: 20 
+  } as Transition,
+}
+
+// Legacy duration-based fallbacks (for reduced motion)
+export const springFallback = {
   snappy: { duration: 0.15, ease: 'easeOut' } as Transition,
   smooth: { duration: 0.18, ease: 'easeOut' } as Transition,
   bouncy: { duration: 0.15, ease: 'easeOut' } as Transition,
@@ -403,18 +431,54 @@ export const glowHover = {
 }
 
 /**
- * Combined lift + glow
+ * Combined lift + glow (Soft Pop Glass)
+ * Uses colored glow shadows instead of black
  */
 export const hoverLiftGlow = {
   whileHover: {
-    y: -2,
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(101, 163, 185, 0.1)',
+    y: -4,
+    scale: 1.01,
+    boxShadow: '0 20px 40px rgba(59, 130, 246, 0.12)',
     transition: spring.snappy,
   } as TargetAndTransition,
   whileTap: {
     y: 0,
     scale: 0.98,
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+    boxShadow: '0 8px 30px rgba(59, 130, 246, 0.08)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Soft Pop Glass card hover with purple glow (dark mode friendly)
+ */
+export const hoverLiftGlowPurple = {
+  whileHover: {
+    y: -4,
+    scale: 1.01,
+    boxShadow: '0 20px 40px rgba(139, 92, 246, 0.15)',
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    y: 0,
+    scale: 0.98,
+    boxShadow: '0 8px 30px rgba(139, 92, 246, 0.10)',
+    transition: { duration: duration.instant },
+  } as TargetAndTransition,
+}
+
+/**
+ * Soft Pop Glass button glow
+ */
+export const buttonGlow = {
+  whileHover: {
+    scale: 1.02,
+    boxShadow: '0 12px 40px rgba(59, 130, 246, 0.35)',
+    transition: spring.snappy,
+  } as TargetAndTransition,
+  whileTap: {
+    scale: 0.98,
+    boxShadow: '0 8px 30px rgba(59, 130, 246, 0.25)',
     transition: { duration: duration.instant },
   } as TargetAndTransition,
 }

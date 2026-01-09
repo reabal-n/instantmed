@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("email-verification")
 

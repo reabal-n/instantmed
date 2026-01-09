@@ -1,11 +1,9 @@
 /**
- * Authentication helpers using Clerk
+ * Authentication helpers using Supabase
  * 
- * This module provides authentication utilities that work with Clerk.
- * It maintains backward compatibility with the previous Supabase auth API.
+ * This module provides authentication utilities that work with Supabase Auth.
  */
 
-import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Profile } from "@/types/db"
@@ -15,7 +13,7 @@ export interface AuthenticatedUser {
   user: {
     id: string
     email?: string | null
-    // Backward-compatible user_metadata for existing code that relied on Supabase
+    // Backward-compatible user_metadata for existing code
     user_metadata?: {
       full_name?: string
       date_of_birth?: string
@@ -29,46 +27,20 @@ export interface AuthenticatedUser {
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
-  const user = await currentUser()
+  const supabase = await createClient()
   
-  if (!user) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
     return null
   }
 
-  const supabase = await createClient()
-  
-  // Try to find profile by clerk_user_id first, then fall back to email
-  let profile: Profile | null = null
-  
-  const { data: clerkProfile } = await supabase
+  // Find profile by auth_user_id
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("clerk_user_id", user.id)
+    .eq("auth_user_id", user.id)
     .single()
-  
-  if (clerkProfile) {
-    profile = clerkProfile as Profile
-  } else {
-    // Fallback: try to find by email (for migrated users)
-    const email = user.emailAddresses[0]?.emailAddress
-    if (email) {
-      const { data: emailProfile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("email", email)
-        .single()
-      
-      if (emailProfile) {
-        // Update the profile with clerk_user_id for future lookups
-        await supabase
-          .from("profiles")
-          .update({ clerk_user_id: user.id })
-          .eq("id", emailProfile.id)
-        
-        profile = emailProfile as Profile
-      }
-    }
-  }
 
   if (!profile) {
     return null
@@ -77,14 +49,14 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
   return {
     user: {
       id: user.id,
-      email: user.emailAddresses[0]?.emailAddress ?? null,
+      email: user.email ?? null,
       // Populate user_metadata from profile for backward compatibility
       user_metadata: {
         full_name: profile.full_name ?? undefined,
         date_of_birth: profile.date_of_birth ?? undefined,
       },
     },
-    profile,
+    profile: profile as Profile,
   }
 }
 
@@ -93,51 +65,34 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
  * Used for onboarding and first-time user flows.
  */
 export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  const user = await currentUser()
+  const supabase = await createClient()
   
-  if (!user) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
     return null
   }
 
-  const supabase = await createClient()
-  const email = user.emailAddresses[0]?.emailAddress
+  const email = user.email
   
   // Try to find existing profile
   let { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("clerk_user_id", user.id)
+    .eq("auth_user_id", user.id)
     .single()
-  
-  if (!profile && email) {
-    // Try by email
-    const { data: emailProfile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("email", email)
-      .single()
-    
-    if (emailProfile) {
-      // Update existing profile with clerk_user_id
-      await supabase
-        .from("profiles")
-        .update({ clerk_user_id: user.id })
-        .eq("id", emailProfile.id)
-      profile = emailProfile
-    }
-  }
   
   // Create new profile if none exists
   if (!profile) {
-    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || null
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name || null
     
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
-        clerk_user_id: user.id,
+        auth_user_id: user.id,
         email: email,
         full_name: fullName,
-        avatar_url: user.imageUrl || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
         role: "patient",
         onboarding_completed: false,
       })
@@ -176,7 +131,7 @@ export async function requireAuth(
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   // Admin role has access to doctor pages
@@ -189,7 +144,7 @@ export async function requireAuth(
     } else if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
       redirect("/doctor")
     } else {
-      redirect("/sign-in")
+      redirect("/auth/login")
     }
   }
 
@@ -216,30 +171,29 @@ export async function getCurrentUser(): Promise<{
   email?: string | null
   user_metadata?: { full_name?: string; date_of_birth?: string }
 } | null> {
-  const user = await currentUser()
-  if (!user) return null
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
   
-  // Build full name from Clerk user data
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || undefined
+  if (error || !user) return null
   
   return {
     id: user.id,
-    email: user.emailAddresses[0]?.emailAddress ?? null,
+    email: user.email ?? null,
     user_metadata: {
-      full_name: fullName,
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
     },
   }
 }
 
 /**
- * Get a user's profile by their Clerk user ID
+ * Get a user's profile by their Supabase auth user ID
  */
-export async function getUserProfile(clerkUserId: string): Promise<Profile | null> {
+export async function getUserProfile(authUserId: string): Promise<Profile | null> {
   const supabase = await createClient()
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("auth_user_id", authUserId)
     .single()
   
   if (error || !profile) return null
@@ -264,44 +218,45 @@ export async function requirePatientAuth(options?: {
 
 /**
  * Sign out - redirects to home page
- * Note: Clerk handles sign out via the UserButton or SignOutButton components
  */
 export async function signOut() {
   redirect("/")
 }
 
 /**
- * Get the Clerk auth state (userId, sessionId, etc.)
+ * Get the Supabase auth state (user, session)
  * Use this for lightweight auth checks without profile data
  */
-export async function getClerkAuth() {
-  return await auth()
+export async function getSupabaseAuth() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  return { user, session, userId: user?.id ?? null }
 }
 
 /**
  * Get authenticated user for API routes.
- * Returns the Clerk user ID and profile, or null if not authenticated.
+ * Returns the user ID and profile, or null if not authenticated.
  */
 export async function getApiAuth(): Promise<{ userId: string; profile: Profile } | null> {
-  const { userId } = await auth()
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
   
-  if (!userId) {
+  if (error || !user) {
     return null
   }
 
-  const supabase = await createClient()
-  
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", user.id)
     .single()
   
   if (!profile) {
     return null
   }
 
-  return { userId, profile: profile as Profile }
+  return { userId: user.id, profile: profile as Profile }
 }
 
 /**

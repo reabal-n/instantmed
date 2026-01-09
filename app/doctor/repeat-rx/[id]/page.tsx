@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { RepeatRxReviewClient } from "./review-client"
 
 // Generate metadata for SEO
@@ -47,7 +46,7 @@ async function getRequestData(id: string) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
     .single()
   
   if (!profile || profile.role !== "clinician") {

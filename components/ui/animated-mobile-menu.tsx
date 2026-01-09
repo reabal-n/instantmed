@@ -188,10 +188,12 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
         href={item.href}
         onClick={handleClick}
         className={cn(
-          "flex items-center gap-4 px-4 py-3.5 rounded-xl",
-          "transition-all duration-200",
-          "hover:bg-white/60 dark:hover:bg-white/10",
-          "active:bg-white/80 dark:active:bg-white/20",
+          "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
+          "transition-all duration-300",
+          // Glass hover effect
+          "hover:bg-white/70 dark:hover:bg-white/15",
+          "hover:shadow-[0_4px_20px_rgb(59,130,246,0.1)]",
+          "active:bg-white/90 dark:active:bg-white/25",
           "group"
         )}
       >
@@ -311,15 +313,18 @@ export function AnimatedMobileMenu({
         )}
       </AnimatePresence>
 
-      {/* Animated background panel */}
+      {/* Animated background panel - Glass with glow */}
       <motion.div
         variants={sidebarVariants}
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
-          "bg-linear-to-b from-white/98 to-gray-50/98",
-          "dark:from-gray-900/98 dark:to-gray-950/98",
-          "backdrop-blur-xl",
-          "shadow-2xl shadow-black/10 dark:shadow-black/30"
+          // Glass surface
+          "bg-white/85 dark:bg-gray-900/80",
+          "backdrop-blur-2xl",
+          // Border
+          "border-l border-white/50 dark:border-white/15",
+          // Glow shadow
+          "shadow-[-20px_0_60px_rgb(59,130,246,0.15)] dark:shadow-[-20px_0_60px_rgb(139,92,246,0.2)]"
         )}
       />
 

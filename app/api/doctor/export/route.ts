@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { logger } from "@/lib/observability/logger"
 
 // Type for the raw Supabase response (patient is an array from join)
@@ -36,7 +35,7 @@ export async function GET() {
     const supabase = await createClient()
 
     // Check if user is a doctor
-    const { data: profile } = await supabase.from("profiles").select("role").eq("clerk_user_id", userId).single()
+    const { data: profile } = await supabase.from("profiles").select("role").eq("auth_user_id", userId).single()
 
     if (!profile || profile.role !== "doctor") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

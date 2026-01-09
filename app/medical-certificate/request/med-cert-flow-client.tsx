@@ -42,7 +42,6 @@ import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { SessionProgress } from "@/components/shell"
 import posthog from "posthog-js"
 
@@ -393,8 +392,8 @@ export function MedCertFlowClient({
   const mainRef = useRef<HTMLElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
   const _searchParams = useSearchParams() // Added for guest checkout redirection
-  const { openSignIn } = useClerk()
-  const { user, isSignedIn } = useUser()
+  const { openSignIn } = useAuth()
+  const { user, isSignedIn } = useAuth()
 
   // Auth state
   const [_patientId, setPatientId] = useState<string | null>(initialPatientId)

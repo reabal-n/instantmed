@@ -1,6 +1,5 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
-import { clerkClient } from "@clerk/nextjs/server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -59,7 +58,7 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
     await supabase
       .from("profiles")
       .update({ email: newEmail })
-      .eq("clerk_user_id", authUser.user.id)
+      .eq("auth_user_id", authUser.user.id)
 
     return {
       success: true,

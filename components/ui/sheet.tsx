@@ -39,11 +39,38 @@ function Sheet({
       onClose={() => onOpenChange?.(false)}
       placement={placementMap[side]}
       scrollBehavior="inside"
+      // Soft Pop Glass styling
       classNames={{
-        backdrop: "bg-black/80 backdrop-blur-sm",
-        base: "bg-background border border-default-100",
-        header: "border-b border-default-100",
-        footer: "border-t border-default-100",
+        // Glass backdrop
+        backdrop: cn(
+          "bg-black/40",
+          "backdrop-blur-sm",
+        ),
+        wrapper: "z-50",
+      }}
+      // Spring physics motion
+      motionProps={{
+        variants: {
+          enter: {
+            x: side === "right" ? 0 : side === "left" ? 0 : undefined,
+            y: side === "bottom" ? 0 : side === "top" ? 0 : undefined,
+            opacity: 1,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+            },
+          },
+          exit: {
+            x: side === "right" ? 20 : side === "left" ? -20 : undefined,
+            y: side === "bottom" ? 20 : side === "top" ? -20 : undefined,
+            opacity: 0,
+            transition: {
+              duration: 0.2,
+              ease: "easeOut",
+            },
+          },
+        },
       }}
       {...props}
     >
@@ -65,7 +92,19 @@ function SheetClose({
 }: React.ComponentProps<"button">) {
   return (
     <button
-      className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-lg outline-offset-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none"
+      className={cn(
+        "group absolute right-3 top-3 flex size-8 items-center justify-center",
+        // Soft Pop Glass close button
+        "rounded-full",
+        "bg-white/50 dark:bg-gray-800/50",
+        "backdrop-blur-lg",
+        "border border-white/30 dark:border-white/10",
+        "transition-all duration-200",
+        "hover:bg-white/80 dark:hover:bg-gray-800/80",
+        "hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)]",
+        "active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+      )}
       {...props}
     >
       {children || (
@@ -97,11 +136,18 @@ function SheetContent({
   return (
     <ModalContent
       className={cn(
-        "flex flex-col gap-4 bg-background shadow-lg",
-        side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
-        side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
-        side === "top" && "inset-x-0 top-0 h-auto border-b",
-        side === "bottom" && "inset-x-0 bottom-0 h-auto border-t",
+        "flex flex-col gap-4",
+        // Soft Pop Glass elevated surface
+        "bg-white/90 dark:bg-gray-900/90",
+        "backdrop-blur-2xl",
+        // Border based on side
+        side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l border-white/40 dark:border-white/10 sm:max-w-sm rounded-l-3xl",
+        side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r border-white/40 dark:border-white/10 sm:max-w-sm rounded-r-3xl",
+        side === "top" && "inset-x-0 top-0 h-auto border-b border-white/40 dark:border-white/10 rounded-b-3xl",
+        side === "bottom" && "inset-x-0 bottom-0 h-auto border-t border-white/40 dark:border-white/10 rounded-t-3xl",
+        // Glow shadow
+        "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
+        "dark:shadow-[0_25px_60px_rgba(0,0,0,0.4)]",
         className
       )}
       {...props}
@@ -114,7 +160,11 @@ function SheetContent({
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <ModalHeader
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn(
+        "flex flex-col gap-1.5 p-6",
+        "border-b border-white/20 dark:border-white/10",
+        className
+      )}
       {...props}
     />
   )
@@ -123,7 +173,11 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <ModalFooter
-      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      className={cn(
+        "mt-auto flex flex-col gap-2 p-6",
+        "border-t border-white/20 dark:border-white/10",
+        className
+      )}
       {...props}
     />
   )
@@ -135,7 +189,7 @@ function SheetTitle({
 }: React.ComponentProps<"h2">) {
   return (
     <h2
-      className={cn("text-foreground font-semibold", className)}
+      className={cn("text-foreground font-semibold text-lg", className)}
       {...props}
     />
   )
@@ -147,7 +201,7 @@ function SheetDescription({
 }: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn("text-default-500 text-sm", className)}
+      className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
   )

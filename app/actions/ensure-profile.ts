@@ -10,7 +10,7 @@ const log = createLogger("ensure-profile")
  * This is the ONLY place where profiles are created - server-side only using service role.
  * 
  * Flow:
- * 1. Check if profile exists (by clerk_user_id)
+ * 1. Check if profile exists (by auth_user_id)
  * 2. If found: do nothing, return existing profile ID
  * 3. If not found: create profile server-side using service role client
  * 
@@ -18,10 +18,10 @@ const log = createLogger("ensure-profile")
  * - This is a server action ("use server") - can ONLY be called from server
  * - Uses service role client to bypass RLS
  * - Never create profiles on the client - always use this function
- * - Uses clerk_user_id (Clerk user ID format: user_xxxxx)
+ * - Uses auth_user_id (Supabase user ID format: UUID)
  */
 export async function ensureProfile(
-  userId: string, // Clerk user ID (user_xxxxx)
+  userId: string, // Supabase auth user ID (UUID)
   userEmail: string,
   options?: {
     fullName?: string
@@ -31,11 +31,11 @@ export async function ensureProfile(
   try {
     const supabase = createServiceRoleClient()
 
-    // Step 1: Check if profile exists by clerk_user_id
+    // Step 1: Check if profile exists by auth_user_id
     const { data: existingProfile, error: selectError } = await supabase
       .from("profiles")
       .select("id, email, full_name")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .maybeSingle()
 
     if (selectError) {
@@ -48,7 +48,7 @@ export async function ensureProfile(
     }
 
     // Step 3: Profile doesn't exist - create it
-    // Use provided email (should always be available from Clerk)
+    // Use provided email (should always be available from Supabase auth)
     if (!userEmail) {
       log.error("No email provided for profile creation", { userId })
       return {
@@ -58,14 +58,12 @@ export async function ensureProfile(
     }
 
     const profileData = {
-      clerk_user_id: userId, // Use clerk_user_id for Clerk authentication
+      auth_user_id: userId, // Use auth_user_id for Supabase authentication
       email: userEmail,
       full_name: options?.fullName || userEmail.split("@")[0] || "User",
       date_of_birth: options?.dateOfBirth || null,
       role: "patient" as const,
       onboarding_completed: false,
-      // auth_user_id is optional (for legacy support, but not required for Clerk users)
-      auth_user_id: null,
     }
 
     const { data: newProfile, error: insertError } = await supabase
@@ -80,7 +78,7 @@ export async function ensureProfile(
         const { data: existingAfterError } = await supabase
           .from("profiles")
           .select("id")
-          .eq("clerk_user_id", userId)
+          .eq("auth_user_id", userId)
           .single()
 
         if (existingAfterError) {

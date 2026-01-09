@@ -37,7 +37,17 @@ function Popover({
       isOpen={heroIsOpen}
       onOpenChange={heroOnOpenChange}
       classNames={{
-        content: "bg-background border border-default-100",
+        base: "before:bg-white/90 dark:before:bg-gray-900/90",
+        content: cn(
+          // Glass surface
+          "bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl",
+          // Border
+          "border border-white/50 dark:border-white/15",
+          // Shape
+          "rounded-2xl",
+          // Glow shadow
+          "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]"
+        ),
       }}
       {...props}
     >

@@ -9,6 +9,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react"
+import { cn } from "@/lib/utils"
 
 export interface ModalProps {
   isOpen: boolean
@@ -37,11 +38,62 @@ export function Modal({
       backdrop={backdrop}
       placement={placement}
       scrollBehavior={scrollBehavior}
+      // Soft Pop Glass styling
       classNames={{
-        backdrop: "bg-black/50 backdrop-blur-sm",
-        base: "bg-background border border-default-100",
-        header: "border-b border-default-100",
-        footer: "border-t border-default-100",
+        // Glass backdrop
+        backdrop: cn(
+          "bg-black/40",
+          "backdrop-blur-sm",
+        ),
+        // Elevated glass surface for modal
+        base: cn(
+          "bg-white/85 dark:bg-gray-900/80",
+          "backdrop-blur-2xl",
+          "border border-white/50 dark:border-white/15",
+          // Geometry: rounded-3xl for modals
+          "rounded-3xl",
+          // Elevated glow shadow
+          "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
+          "dark:shadow-[0_25px_60px_rgba(0,0,0,0.4)]",
+        ),
+        header: cn(
+          "border-b border-white/20 dark:border-white/10",
+          "pb-4",
+        ),
+        body: "py-6",
+        footer: cn(
+          "border-t border-white/20 dark:border-white/10",
+          "pt-4",
+        ),
+        closeButton: cn(
+          "hover:bg-white/50 dark:hover:bg-white/10",
+          "transition-colors duration-200",
+          "rounded-full",
+        ),
+      }}
+      // Spring physics motion (Linear style)
+      motionProps={{
+        variants: {
+          enter: {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+            },
+          },
+          exit: {
+            y: 20,
+            opacity: 0,
+            scale: 0.95,
+            transition: {
+              duration: 0.2,
+              ease: "easeOut",
+            },
+          },
+        },
       }}
     >
       <ModalContent>

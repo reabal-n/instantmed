@@ -5,61 +5,88 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { motion, type HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { hoverLift, hoverLiftGlow, press, spring } from '@/lib/motion'
+import { spring, hoverLiftGlow, hoverLiftGlowPurple, press } from '@/lib/motion'
+
+/**
+ * Soft Pop Glass Card Component
+ * 
+ * Premium glassmorphism with colored glow shadows and spring physics.
+ * See SOFT_POP_GLASS_DESIGN_SYSTEM.md for full documentation.
+ */
 
 const glassCardVariants = cva(
   [
     // Base glass styles
     'relative overflow-hidden',
-    'backdrop-blur-[var(--glass-blur)]',
     // Consistent 1px border
     'border',
-    // Transitions use CSS variables for consistency
-    'transition-[transform,box-shadow,border-color]',
-    'duration-[var(--duration-normal)]',
-    'ease-[var(--ease-default)]',
+    // Transitions
+    'transition-[transform,box-shadow,border-color,background-color]',
+    'duration-300',
+    'ease-out',
     // Focus styles
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
   ],
   {
     variants: {
       variant: {
-        default: [
-          'bg-[var(--glass-bg)]',
-          'border-[var(--glass-border)]',
-          'shadow-[var(--shadow-md-value)]',
-        ],
-        elevated: [
-          'bg-[var(--glass-bg-elevated)]',
-          'border-[var(--glass-border)]',
-          'shadow-[var(--shadow-lg-value)]',
-        ],
+        /** Subtle glass - lightest, for nested elements */
         subtle: [
-          'bg-surface/50',
-          'border-border-subtle',
-          'shadow-[var(--shadow-sm-value)]',
+          'bg-white/50 dark:bg-gray-900/40',
+          'backdrop-blur-lg',
+          'border-white/30 dark:border-white/8',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.04)]',
         ],
+        /** Default glass - standard cards */
+        default: [
+          'bg-white/70 dark:bg-gray-900/60',
+          'backdrop-blur-xl',
+          'border-white/40 dark:border-white/10',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
+        ],
+        /** Elevated glass - modals, popovers */
+        elevated: [
+          'bg-white/85 dark:bg-gray-900/80',
+          'backdrop-blur-2xl',
+          'border-white/50 dark:border-white/15',
+          'shadow-[0_25px_60px_rgba(0,0,0,0.15)]',
+        ],
+        /** Solid glass - high contrast needs */
         solid: [
-          'bg-surface',
-          'border-border',
-          'shadow-[var(--shadow-md-value)]',
+          'bg-white/95 dark:bg-gray-900/95',
+          'backdrop-blur-xl',
+          'border-white/60 dark:border-white/20',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
         ],
       },
       size: {
-        // Consistent radii scale: sm=lg, default=xl, lg/xl=2xl
-        sm: 'p-4 rounded-lg',
-        default: 'p-5 rounded-xl',
-        lg: 'p-6 rounded-xl',
-        xl: 'p-8 rounded-2xl',
+        sm: 'p-4 rounded-xl',
+        default: 'p-5 rounded-2xl',
+        lg: 'p-6 rounded-2xl',
+        xl: 'p-8 rounded-3xl',
       },
       hover: {
         none: '',
-        lift: '',
-        glow: '',
-        scale: '',
+        /** Lift with blue glow */
+        lift: [
+          'hover:bg-white/85 dark:hover:bg-gray-900/80',
+          'hover:-translate-y-1',
+          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
+          'dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]',
+        ],
+        /** Glow effect only */
+        glow: [
+          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)]',
+          'dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.18)]',
+        ],
+        /** Scale effect */
+        scale: [
+          'hover:scale-[1.02]',
+          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
+        ],
       },
       clickable: {
-        true: 'cursor-pointer select-none',
+        true: 'cursor-pointer select-none active:scale-[0.98]',
         false: '',
       },
     },
@@ -102,31 +129,40 @@ GlassCard.displayName = 'GlassCard'
 
 export interface GlassCardMotionProps
   extends Omit<HTMLMotionProps<'div'>, 'onAnimationStart' | 'onDrag' | 'onDragEnd' | 'onDragStart'>,
-    VariantProps<typeof glassCardVariants> {}
+    VariantProps<typeof glassCardVariants> {
+  /** Glow color on hover */
+  glowColor?: 'blue' | 'purple'
+}
 
 const GlassCardMotion = React.forwardRef<HTMLDivElement, GlassCardMotionProps>(
-  ({ className, variant, size, hover = 'lift', clickable, ...props }, ref) => {
+  ({ className, variant, size, hover = 'lift', clickable, glowColor = 'blue', ...props }, ref) => {
     // Determine hover/tap animations based on hover prop
     const motionProps = React.useMemo(() => {
       switch (hover) {
         case 'lift':
-          return hoverLift
+          return glowColor === 'purple' ? hoverLiftGlowPurple : hoverLiftGlow
         case 'glow':
-          return hoverLiftGlow
+          return glowColor === 'purple' ? hoverLiftGlowPurple : hoverLiftGlow
         case 'scale':
           return {
-            whileHover: { scale: 1.02, transition: spring.snappy },
+            whileHover: { 
+              scale: 1.02, 
+              boxShadow: glowColor === 'purple' 
+                ? '0 20px 40px rgba(139, 92, 246, 0.15)' 
+                : '0 20px 40px rgba(59, 130, 246, 0.12)',
+              transition: spring.snappy 
+            },
             whileTap: press.whileTap,
           }
         default:
           return {}
       }
-    }, [hover])
+    }, [hover, glowColor])
 
     return (
       <motion.div
         ref={ref}
-        className={cn(glassCardVariants({ variant, size, hover, clickable, className }))}
+        className={cn(glassCardVariants({ variant, size, hover: 'none', clickable, className }))}
         {...motionProps}
         {...props}
       />

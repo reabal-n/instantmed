@@ -12,7 +12,6 @@ import {
 import { FlowContent } from '../flow-content'
 import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
-import { useUser, useClerk } from '@clerk/nextjs'
 import { GoogleIcon } from '@/components/icons/google-icon'
 
 // ============================================
@@ -36,8 +35,8 @@ export function AuthStep({
   onSkip,
   allowSkip = false,
 }: AuthStepProps) {
-  const { isSignedIn, user } = useUser()
-  const { openSignIn } = useClerk()
+  const { isSignedIn, user } = useAuth()
+  const { openSignIn } = useAuth()
   const identityData = useFlowIdentity()
   const { updateAnswer, nextStep, setIdentityData } = useFlowStore()
 

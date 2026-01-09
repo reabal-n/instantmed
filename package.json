@@ -4,16 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:onlook": "bash scripts/dev-onlook.sh",
-    "build": "next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",
     "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm build",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
     "check:rls": "npx tsx scripts/rls-check.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5",
     "@edge-runtime/cookies": "^6.0.0",
     "@heroui/react": "^2.8.6",
     "@heroui/system": "^2.4.24",
@@ -83,7 +82,6 @@
     "@21st-extension/toolbar": "^0.5.14",
     "@iconify/react": "^6.0.2",
     "@next/bundle-analyzer": "^16.1.1",
-    "@onlook/nextjs": "^2.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",

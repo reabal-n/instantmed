@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useUser, useClerk } from "@clerk/nextjs"
+import { useAuth } from "@/components/providers/supabase-auth-provider"
 import { Button } from "@/components/ui/button"
 import { Loader2, Shield, CheckCircle } from "lucide-react"
 
@@ -39,21 +39,33 @@ interface InlineAuthStepProps {
 
 export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAuthStepProps) {
   const router = useRouter()
-  const { isSignedIn, user } = useUser()
-  const { openSignIn } = useClerk()
+  const { isSignedIn, user, profile, signInWithGoogle, isLoading: authLoading } = useAuth()
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Handle Clerk auth - when user is signed in via Clerk, complete the flow
+  // Handle auth - when user is signed in via Supabase, complete the flow
   useEffect(() => {
     const completeAuth = async () => {
-      if (isSignedIn && user) {
+      if (isSignedIn && user && profile) {
+        setIsLoading(true)
+        try {
+          onAuthComplete(user.id, profile.id)
+          router.refresh()
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          if (process.env.NODE_ENV === 'development') console.error("Error completing auth:", err)
+          setError("Failed to complete authentication")
+        } finally {
+          setIsLoading(false)
+        }
+      } else if (isSignedIn && user && !profile) {
+        // User is signed in but profile needs to be created
         setIsLoading(true)
         try {
           const { ensureProfile } = await import("@/app/actions/ensure-profile")
-          const userEmail = user.primaryEmailAddress?.emailAddress || ""
-          const userName = user.fullName || user.firstName || ""
+          const userEmail = user.email || ""
+          const userName = user.user_metadata?.full_name || user.user_metadata?.name || ""
           
           const { profileId } = await ensureProfile(user.id, userEmail, { 
             fullName: userName, 
@@ -74,18 +86,30 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       }
     }
 
-    completeAuth()
-  }, [isSignedIn, user, onAuthComplete, router])
+    if (!authLoading) {
+      completeAuth()
+    }
+  }, [isSignedIn, user, profile, onAuthComplete, router, authLoading])
 
-  const handleSignIn = () => {
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true)
+      // Pass current URL so user comes back here after auth
+      await signInWithGoogle(window.location.pathname + window.location.search)
+    } catch (err) {
+      setError("Failed to sign in with Google")
+      setIsLoading(false)
+    }
+  }
+
+  const handleEmailSignIn = () => {
+    // Redirect to login page with return URL
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search)
+    router.push(`/auth/login?redirect=${returnUrl}&flow=questionnaire`)
   }
 
   // If loading (checking auth status)
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="space-y-6 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
@@ -127,7 +151,8 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
       <div className="space-y-3">
         <Button
-          onClick={handleSignIn}
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
           className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
         >
           <GoogleIcon className="mr-2 h-5 w-5" />
@@ -143,7 +168,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
           </div>
         </div>
 
-        <Button onClick={handleSignIn} className="w-full h-12 rounded-xl btn-glow">
+        <Button onClick={handleEmailSignIn} disabled={isLoading} className="w-full h-12 rounded-xl btn-glow">
           Sign in with email
         </Button>
       </div>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
-import { getUserEmailFromClerkId, getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 
 const log = createLogger("notifications-send")
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       // Get user's email from profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("auth_user_id, clerk_user_id, notification_preferences")
+        .select("auth_user_id, email, notification_preferences")
         .eq("id", userId)
         .single()
 
@@ -97,11 +97,9 @@ export async function POST(request: Request) {
         const shouldSendEmail = prefs.email_request_updates !== false
 
         if (shouldSendEmail) {
-          // Get email from Clerk (prefer clerk_user_id, fallback to auth_user_id)
-          let email: string | null = null
-          if (profile.clerk_user_id) {
-            email = await getUserEmailFromClerkId(profile.clerk_user_id)
-          } else if (profile.auth_user_id) {
+          // Get email from profile directly, or lookup from auth
+          let email: string | null = profile.email
+          if (!email && profile.auth_user_id) {
             email = await getUserEmailFromAuthUserId(profile.auth_user_id)
           }
 

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { auth } from "@clerk/nextjs/server"
 const log = createLogger("route")
 
 /**

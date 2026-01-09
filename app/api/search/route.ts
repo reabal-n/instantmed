@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -13,13 +12,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] })
   }
 
-  // Check auth via Clerk
-  const { userId } = await auth()
-  if (!userId) {
+  // Check auth via Supabase
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-
-  const supabase = await createClient()
 
   const results: Array<{
     id: string
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", userId)
+        .eq("auth_user_id", user.id)
         .single()
 
       if (profile) {

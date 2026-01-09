@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { auth } from "@clerk/nextjs/server"
+import { createClient } from "@/lib/supabase/server"
 const log = createLogger("route")
 
 /**
@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
   
   try {
     // Rate limiting
-    const { userId } = await auth()
-    if (userId) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', userId)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user?.id) {
+      const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
       if (rateLimitResponse) {
         return rateLimitResponse
       }

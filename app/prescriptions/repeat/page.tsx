@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
 // SEO Metadata
@@ -83,7 +82,7 @@ async function getPatientData() {
       preferred_pharmacy_address,
       preferred_pharmacy_phone
     `)
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
     .single()
   
   const preferredPharmacy = profile?.preferred_pharmacy_name

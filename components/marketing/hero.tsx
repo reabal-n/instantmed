@@ -143,14 +143,14 @@ export function Hero() {
             }}
           >
             <HolographicCard borderRadius="1rem" intensity={0.6}>
-              <div className="bg-white/98 backdrop-blur-md rounded-xl p-3 sm:p-3.5 shadow-xl border border-white/30 hover:shadow-2xl transition-shadow cursor-default">
+              <div className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.25)] transition-all duration-300 cursor-default">
                 <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center flex-shrink-0 shadow-[0_4px_15px_rgb(59,130,246,0.2)]">
                     <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-primary" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-900 leading-tight">Request submitted</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Just now</p>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Request submitted</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Just now</p>
                   </div>
                 </div>
               </div>
@@ -168,10 +168,10 @@ export function Hero() {
               y: { duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }
             }}
           >
-            <div className="bg-white/98 backdrop-blur-md rounded-xl p-3 sm:p-3.5 shadow-xl border-2 border-blue-500/40 hover:border-blue-500/60 hover:shadow-2xl transition-all cursor-default group">
+            <div className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.3)] transition-all duration-300 cursor-default group">
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Doctor Profile Image */}
-                <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full overflow-hidden ring-2 ring-blue-500/30 group-hover:ring-blue-500/50 flex-shrink-0 transition-all">
+                <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full overflow-hidden ring-2 ring-primary/30 group-hover:ring-primary/60 group-hover:shadow-[0_0_20px_rgb(59,130,246,0.3)] flex-shrink-0 transition-all duration-300">
                   <Image
                     src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&q=80"
                     alt="AHPRA-registered doctor"
@@ -179,16 +179,16 @@ export function Hero() {
                     height={44}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-green-500 rounded-full border-2 border-white shadow-sm" />
+                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-emerald-500 rounded-full border-2 border-white shadow-[0_0_10px_rgb(34,197,94,0.4)]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
-                    <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 flex-shrink-0" />
-                    <p className="text-xs font-semibold text-slate-900 leading-tight">Doctor reviews</p>
+                    <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary flex-shrink-0" />
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Doctor reviews</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
-                    <p className="text-xs text-slate-600 font-medium">4.9 rating</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">4.9 rating</p>
                   </div>
                 </div>
               </div>
@@ -207,17 +207,17 @@ export function Hero() {
           >
             <PulseGlow color="#22c55e" duration={2} scale={1.03}>
               <motion.div 
-                className="bg-white/98 backdrop-blur-md rounded-xl p-3 sm:p-3.5 shadow-xl border-2 border-emerald-500 hover:shadow-2xl transition-all cursor-default"
+                className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(34,197,94,0.25)] border border-emerald-400/50 dark:border-emerald-500/30 hover:shadow-[0_12px_40px_rgb(34,197,94,0.35)] transition-all duration-300 cursor-default"
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               >
                 <div className="flex items-center gap-2 sm:gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-600" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 flex items-center justify-center flex-shrink-0 shadow-[0_4px_15px_rgb(34,197,94,0.2)]">
+                    <CheckCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-emerald-700 leading-tight">Approved ✓</p>
-                    <p className="text-xs text-slate-600 mt-0.5 font-medium">12 min total</p>
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 leading-tight">Approved ✓</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">12 min total</p>
                   </div>
                 </div>
               </motion.div>

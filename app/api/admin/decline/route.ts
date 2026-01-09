@@ -5,8 +5,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { auth } from "@clerk/nextjs/server"
-import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 
 const log = createLogger("admin-decline")
 
@@ -27,24 +26,25 @@ export async function POST(request: Request) {
     // Require either an internal API key OR an authenticated admin session
     const apiKey = process.env.INTERNAL_API_KEY
     let authorized = false
-    let clerkUserId: string | null = null
+    let authUserId: string | null = null
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
     } else {
       try {
-        const { userId } = await auth()
-        if (userId) {
-          const serverSupabase = await createServerClient()
+        const serverSupabase = await createServerClient()
+        const { data: { user } } = await serverSupabase.auth.getUser()
+        
+        if (user) {
           const { data: profile, error: profileError } = await serverSupabase
             .from('profiles')
             .select('role, id')
-            .eq('clerk_user_id', userId)
+            .eq('auth_user_id', user.id)
             .single()
 
           if (!profileError && profile?.role === 'admin') {
             authorized = true
-            clerkUserId = userId
+            authUserId = user.id
           }
         }
       } catch (err) {
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limiting
-    const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId || undefined)
+    const rateLimitResponse = await applyRateLimit(request, 'sensitive', authUserId || undefined)
     if (rateLimitResponse) {
       return rateLimitResponse
     }
@@ -129,7 +129,8 @@ export async function POST(request: Request) {
         patient:profiles!patient_id (
           id,
           full_name,
-          auth_user_id
+          auth_user_id,
+          email
         )
       `)
       .eq('id', requestId)
@@ -145,6 +146,7 @@ export async function POST(request: Request) {
       id: string
       full_name: string
       auth_user_id: string
+      email: string | null
     }
 
     // Supabase sometimes returns patient as an array due to join behavior
@@ -156,8 +158,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true })
     }
 
-    // Get email using Clerk helper (supports both clerk_user_id and legacy auth_user_id)
-    const patientEmail = await getUserEmailFromAuthUserId(patient.auth_user_id)
+    // Get email from profile first, then fallback to auth lookup
+    let patientEmail = patient.email
+    if (!patientEmail && patient.auth_user_id) {
+      patientEmail = await getUserEmailFromAuthUserId(patient.auth_user_id)
+    }
 
     // Fire notifications
     await notifyRequestStatusChange({

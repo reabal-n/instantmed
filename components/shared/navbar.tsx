@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
-import { useClerk, useUser } from "@clerk/nextjs"
+import { useAuth } from "@/components/providers/supabase-auth-provider"
 import {
   LogOut,
   User,
@@ -22,18 +22,11 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu as HeroDropdownMenu,
-  DropdownItem,
-} from "@heroui/react"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { cn } from "@/lib/utils"
@@ -205,14 +198,6 @@ function AnimatedNavLink({ href, children, gradient, icon, isActive, onClick }: 
   )
 }
 
-function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
-  return (
-    <AnimatedNavLink href={href} isActive={isActive}>
-      {children}
-    </AnimatedNavLink>
-  )
-}
-
 function ScrollNavLink({ 
   sectionId, 
   isActive, 
@@ -275,8 +260,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const pathname = usePathname()
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
-  const { signOut } = useClerk()
-  const { isSignedIn } = useUser()
+  const { signOut, isSignedIn } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -348,7 +332,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     
                     {servicesDropdownOpen && (
                       <div className="absolute top-full left-0 pt-2 z-[100]">
-                        <div className="w-64 glass-card border-white/20 bg-background/90 backdrop-blur-xl rounded-xl shadow-2xl p-2 space-y-1">
+                        <div className="w-64 bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-2xl shadow-[0_12px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_12px_40px_rgb(139,92,246,0.2)] p-2 space-y-1">
                           <div className="px-2 py-1.5">
                             <p className="text-xs font-medium text-muted-foreground">Core Services</p>
                           </div>
@@ -415,7 +399,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         asChild
                         className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all"
                       >
-                        <Link href="/sign-in">Sign in</Link>
+                        <Link href="/auth/login">Sign in</Link>
                       </Button>
                     )}
                   </div>
@@ -572,7 +556,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             {variant === "marketing" && (
               <>
                 <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all">
-                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                     Sign in
                   </Link>
                 </Button>

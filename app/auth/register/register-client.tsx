@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
 import { Loader2 } from "lucide-react"
 
 
@@ -10,7 +9,7 @@ export function RegisterClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams?.get("redirect") || "/account"
-  const { isSignedIn, isLoaded } = useUser()
+  const { isSignedIn, isLoaded } = useAuth()
 
   useEffect(() => {
     if (isLoaded) {

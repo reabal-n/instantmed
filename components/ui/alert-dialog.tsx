@@ -31,6 +31,21 @@ function AlertDialog({
       onClose={() => onOpenChange?.(false)}
       isDismissable={false}
       isKeyboardDismissDisabled={true}
+      classNames={{
+        backdrop: "bg-black/60 backdrop-blur-lg",
+        base: cn(
+          // Elevated glass surface
+          "bg-white/85 dark:bg-gray-900/80 backdrop-blur-2xl",
+          // Border
+          "border border-white/60 dark:border-white/20",
+          // Shape
+          "rounded-3xl",
+          // Glow shadow
+          "shadow-[0_8px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_8px_40px_rgb(139,92,246,0.2)]"
+        ),
+        header: "border-b border-white/50 dark:border-white/15",
+        footer: "border-t border-white/50 dark:border-white/15",
+      }}
       {...props}
     >
       {children}
@@ -68,7 +83,15 @@ function AlertDialogContent({
 }: React.ComponentProps<typeof ModalContent>) {
   return (
     <ModalContent
-      className={cn("bg-background border border-default-100", className)}
+      className={cn(
+        // Glass surface
+        "bg-white/85 dark:bg-gray-900/80 backdrop-blur-2xl",
+        // Border
+        "border border-white/60 dark:border-white/20",
+        // Shape
+        "rounded-3xl",
+        className
+      )}
       {...props}
     >
       {children}

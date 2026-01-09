@@ -3,9 +3,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 
 const log = createLogger("admin-approve")
 
@@ -23,21 +22,22 @@ export async function POST(request: Request) {
       authorized = true
     } else {
       try {
-        const { userId } = await auth()
-        if (userId) {
-          rateLimitKey = userId
+        const serverSupabase = await createServerClient()
+        const { data: { user } } = await serverSupabase.auth.getUser()
+        
+        if (user) {
+          rateLimitKey = user.id
           
           // Apply rate limiting for authenticated users
-          const rateLimitResponse = await applyRateLimit(request, 'sensitive', userId)
+          const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
           if (rateLimitResponse) {
             return rateLimitResponse
           }
           
-          const serverSupabase = await createServerClient()
           const { data: profile, error: profileError } = await serverSupabase
             .from('profiles')
             .select('role')
-            .eq('clerk_user_id', userId)
+            .eq('auth_user_id', user.id)
             .single()
 
           if (!profileError && profile?.role === 'admin') {
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         patient_id,
         category,
         subtype,
-        patient:profiles!patient_id ( id, full_name, auth_user_id )
+        patient:profiles!patient_id ( id, full_name, auth_user_id, email )
       `)
       .eq('id', requestId)
       .single()
@@ -96,15 +96,12 @@ export async function POST(request: Request) {
       .limit(1)
       .single()
 
-    // Extract patient from the relation - cast through unknown since Supabase types are imprecise for relations
-    const patientData = requestWithPatient?.patient as unknown as { id: string; full_name: string; auth_user_id: string | null; clerk_user_id?: string | null } | null
+    // Extract patient from the relation
+    const patientData = requestWithPatient?.patient as unknown as { id: string; full_name: string; auth_user_id: string | null; email: string | null } | null
     
-    // Try to get email from Clerk first, fallback to auth_user_id (legacy)
-    let patientEmail: string | null = null
-    if (patientData?.clerk_user_id) {
-      const { getUserEmailFromClerkId } = await import("@/lib/auth/clerk-helpers")
-      patientEmail = await getUserEmailFromClerkId(patientData.clerk_user_id)
-    } else if (patientData?.auth_user_id) {
+    // Get email from profile or auth_user_id
+    let patientEmail: string | null = patientData?.email ?? null
+    if (!patientEmail && patientData?.auth_user_id) {
       patientEmail = await getUserEmailFromAuthUserId(patientData.auth_user_id)
     }
     

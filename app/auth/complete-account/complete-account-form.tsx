@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Check, Loader2 } from "lucide-react"
-import { useClerk, useUser } from "@clerk/nextjs"
 import { Confetti } from "@/components/ui/confetti"
 
 export function CompleteAccountForm({
@@ -19,8 +18,8 @@ export function CompleteAccountForm({
   sessionId?: string
 }) {
   const router = useRouter()
-  const { openSignUp } = useClerk()
-  const { isSignedIn, isLoaded } = useUser()
+  const { openSignUp } = useAuth()
+  const { isSignedIn, isLoaded } = useAuth()
 
   const [showConfetti, setShowConfetti] = useState(false)
   

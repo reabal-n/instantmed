@@ -38,7 +38,7 @@ import {
 import { MedCertEditor } from "@/components/doctor/med-cert-editor"
 import { updateStatusAction, saveClinicalNoteAction, markEScriptSentAction, type DeclineData } from "./actions"
 import type { RequestWithDetails, RequestStatus, GeneratedDocument, Request, DeclineReasonCode } from "@/types/db"
-import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES, mapLegacyAnswers, extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
+import { containsBlockedSubstance, S8_DISCLAIMER_EXAMPLES } from "@/lib/validation/repeat-script-schema"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
 
 interface RequestDetailClientProps {
@@ -233,30 +233,6 @@ export function RequestDetailClient({
     })
   }
 
-  const _getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge className="bg-amber-100/80 text-amber-700 border-0 font-medium">Pending</Badge>
-      case "awaiting_prescribe":
-        return <Badge className="bg-violet-100/80 text-violet-700 border-0 font-medium">Awaiting eScript</Badge>
-      case "approved":
-        return <Badge className="bg-emerald-100/80 text-emerald-700 border-0 font-medium">Approved</Badge>
-      case "declined":
-        return <Badge className="bg-red-100/80 text-red-700 border-0 font-medium">Declined</Badge>
-      case "needs_follow_up":
-        return <Badge className="bg-orange-100/80 text-orange-700 border-0 font-medium">Needs Follow-up</Badge>
-      default:
-        return <Badge variant="secondary">Unknown</Badge>
-    }
-  }
-
-  const _getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
 
   // Parse answers JSON for display
   const answers = request.answers?.answers || {}
@@ -300,8 +276,6 @@ export function RequestDetailClient({
   const isDeprecatedService = isReferral || isPathology
 
   // S8 Warning Detection: Check if patient free text contains S8 substance terms
-  const mappedAnswers = mapLegacyAnswers(answers)
-  const _structuredMed = extractMedicationFromAnswers(mappedAnswers)
   
   // Collect all free text fields to check for S8 mentions
   const freeTextFields = [
@@ -324,28 +298,6 @@ export function RequestDetailClient({
   const showS8Warning = isConsultOrRepeat && hasS8InFreeText
 
 
-  // Medical cert / prescription grouped answers
-  const _groupedAnswersForPrescriptionAndMedCert = {
-    reason: answers.reason_label || answers.reason,
-    dateNeeded: answers.date_needed_label || answers.dateNeeded || answers["Date needed"],
-    workType: answers.work_type_label || answers.workType || answers["Work type"],
-    impact: answers.impact_label || answers.impact || answers.Impact,
-    context: answers.context_label || answers.context || answers.Context,
-    caringFor: answers.caring_for_label || answers.caringFor || answers["Caring for"],
-    careReason: answers.reason_label || answers.careReason || answers["Care reason"],
-    duration: answers.duration_label || answers.duration || answers.Duration,
-    livingSituation: answers.living_situation_label || answers.livingSituation || answers["Living situation"],
-    description: answers.short_description || answers.description || answers.Description,
-    medicationName: answers.medication_name,
-    additionalNotes: answers.additional_notes,
-    durationOnMedication: answers.duration_label || answers.duration_on_medication,
-    symptomControl: answers.control_label || answers.symptom_control,
-    sideEffects: answers.side_effects_label || answers.side_effects,
-    requestTypes: answers.request_types_labels || answers.request_types,
-    primaryCondition: answers.condition_label || answers.primary_condition,
-    recentReview: answers.review_label || answers.recent_review,
-    currentControl: answers.control_label || answers.current_control,
-  }
 
   // AMT-backed structured medication data
   const structuredMedication = {

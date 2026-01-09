@@ -2,7 +2,6 @@ import { createClient } from "../supabase/server"
 import { createServiceRoleClient } from "../supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("data-profiles")
-import { currentUser } from "@clerk/nextjs/server"
 import type { Profile, AustralianState } from "../../types/db"
 
 /**
@@ -10,20 +9,19 @@ import type { Profile, AustralianState } from "../../types/db"
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
-  const user = await currentUser()
+  const supabase = await createClient()
   
-  if (!user) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
     return null
   }
 
-  const supabase = await createClient()
-  
   const { data, error } = await supabase
     .from("profiles")
     .select(`
       id,
       auth_user_id,
-      clerk_user_id,
       full_name,
       date_of_birth,
       email,
@@ -42,7 +40,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       created_at,
       updated_at
     `)
-    .eq("clerk_user_id", user.id)
+    .eq("auth_user_id", user.id)
     .single()
 
   if (error || !data) {
@@ -166,7 +164,8 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     .select(`
       patient_id,
       patient:profiles!patient_id (
-        auth_user_id
+        auth_user_id,
+        email
       )
     `)
     .eq("id", requestId)
@@ -177,7 +176,13 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     return null
   }
 
-  const patient = request.patient as unknown as { auth_user_id: string | null }
+  const patient = request.patient as unknown as { auth_user_id: string | null; email: string | null }
+  
+  // First try to get email from profile
+  if (patient.email) {
+    return patient.email
+  }
+  
   const authUserId = patient.auth_user_id
 
   // For guest profiles (no auth_user_id), we can't get email this way
@@ -197,5 +202,33 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
     return null
   }
 
+  return authUser.user.email
+}
+
+/**
+ * Get user email from auth_user_id
+ */
+export async function getUserEmailFromAuthUserId(authUserId: string): Promise<string | null> {
+  const supabase = await createClient()
+  
+  // Try to get from profile first (most common case)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("auth_user_id", authUserId)
+    .single()
+  
+  if (profile?.email) {
+    return profile.email
+  }
+  
+  // Fallback to auth.users
+  const serviceClient = createServiceRoleClient()
+  const { data: authUser, error: authError } = await serviceClient.auth.admin.getUserById(authUserId)
+  
+  if (authError || !authUser?.user?.email) {
+    return null
+  }
+  
   return authUser.user.email
 }

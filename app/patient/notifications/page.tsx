@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import { NotificationsClient } from "./notifications-client"
 
 // Prevent static generation to avoid Clerk publishableKey build errors
@@ -24,7 +23,7 @@ export default async function NotificationsPage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, full_name, first_name, notification_preferences")
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
     .single()
 
   if (!profile) {

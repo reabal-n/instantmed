@@ -27,8 +27,19 @@ function Tooltip({
       placement="top"
       showArrow
       classNames={{
-        base: "bg-foreground text-background",
-        content: "bg-foreground text-background rounded-md px-3 py-1.5 text-xs",
+        base: "before:bg-white/90 dark:before:bg-gray-900/90",
+        content: cn(
+          // Glass surface
+          "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl",
+          // Border
+          "border border-white/50 dark:border-white/15",
+          // Shape
+          "rounded-xl px-3 py-2 text-xs",
+          // Glow shadow
+          "shadow-[0_4px_20px_rgb(59,130,246,0.15)] dark:shadow-[0_4px_20px_rgb(139,92,246,0.15)]",
+          // Text
+          "text-foreground"
+        ),
       }}
       {...props}
     >

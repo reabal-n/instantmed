@@ -1,7 +1,6 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
 import type { AustralianState } from "@/types/db"
 
 interface OnboardingInput {
@@ -31,11 +30,11 @@ export async function completeOnboardingAction(
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("clerk_user_id")
+    .select("auth_user_id")
     .eq("id", profileId)
     .single()
 
-  if (profileError || !profile || profile.clerk_user_id !== userId) {
+  if (profileError || !profile || profile.auth_user_id !== userId) {
     return { success: false, error: "Unauthorized" }
   }
 

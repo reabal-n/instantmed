@@ -21,7 +21,6 @@ import {
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
@@ -181,8 +180,8 @@ export function ConsultFlowClient({
   userName,
 }: Props) {
   const router = useRouter()
-  const { isSignedIn, user: clerkUser } = useUser()
-  const { openSignIn } = useClerk()
+  const { isSignedIn, user: clerkUser } = useAuth()
+  const { openSignIn } = useAuth()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

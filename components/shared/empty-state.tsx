@@ -30,13 +30,28 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <motion.div 
-      className={cn("flex flex-col items-center justify-center py-12 px-4 text-center", className)}
+      className={cn(
+        "flex flex-col items-center justify-center py-12 px-4 text-center",
+        // Glass container
+        "bg-white/50 dark:bg-gray-900/40 backdrop-blur-xl",
+        "border border-white/40 dark:border-white/10",
+        "rounded-3xl",
+        "shadow-[0_8px_30px_rgb(59,130,246,0.1)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.1)]",
+        className
+      )}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
     >
       <motion.div 
-        className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 mb-6 shadow-lg"
+        className={cn(
+          "flex h-20 w-20 items-center justify-center rounded-3xl mb-6",
+          // Glass icon container with gradient
+          "bg-gradient-to-br from-primary/20 to-violet-500/20",
+          "backdrop-blur-sm border border-white/50 dark:border-white/20",
+          // Glow effect
+          "shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
+        )}
         animate={animate ? { 
           y: [0, -8, 0],
           rotate: [0, 2, -2, 0],
@@ -70,8 +85,10 @@ export function EmptyState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Button asChild className="rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+          <Button asChild className="rounded-full shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] transition-all duration-300">
             <Link href={actionHref}>
               <Plus className="mr-2 h-4 w-4" />
               {actionLabel}
@@ -84,8 +101,10 @@ export function EmptyState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Button onClick={onAction} className="rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+          <Button onClick={onAction} className="rounded-full shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] transition-all duration-300">
             <Plus className="mr-2 h-4 w-4" />
             {actionLabel}
           </Button>

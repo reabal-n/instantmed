@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server"
 import { sendMedCertReadyEmail } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("resend-certificate")
-import { auth } from "@clerk/nextjs/server"
 
 const RESEND_LIMIT = 3 // Max resends per 24 hours
 const RESEND_WINDOW_MS = 24 * 60 * 60 * 1000 // 24 hours
@@ -34,7 +33,7 @@ export async function resendCertificateEmailAction(requestId: string): Promise<R
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, email")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (!profile) {

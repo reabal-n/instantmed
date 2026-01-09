@@ -47,7 +47,6 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
 import { cn } from "@/lib/utils"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { 
   cardInteractive, 
   pageTransitionDirectional,
@@ -507,8 +506,8 @@ export function MedCertForm({
 }: MedCertFormProps) {
   const _router = useRouter()
   const mainRef = useRef<HTMLElement>(null)
-  const { openSignIn } = useClerk()
-  const { user, isSignedIn } = useUser()
+  const { openSignIn } = useAuth()
+  const { user, isSignedIn } = useAuth()
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

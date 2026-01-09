@@ -29,6 +29,40 @@ function Dialog({
     <HeroModal
       isOpen={open}
       onClose={() => onOpenChange?.(false)}
+      // Soft Pop Glass styling
+      classNames={{
+        // Glass backdrop
+        backdrop: cn(
+          "bg-black/40",
+          "backdrop-blur-sm",
+        ),
+        // Elevated glass wrapper
+        wrapper: "z-50",
+      }}
+      // Spring physics motion (Linear style)
+      motionProps={{
+        variants: {
+          enter: {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+            },
+          },
+          exit: {
+            y: 20,
+            opacity: 0,
+            scale: 0.95,
+            transition: {
+              duration: 0.2,
+              ease: "easeOut",
+            },
+          },
+        },
+      }}
       {...props}
     >
       {children}
@@ -73,10 +107,17 @@ function DialogContent({
   return (
     <ModalContent
       className={cn(
-        "bg-background border border-default-100",
+        // Soft Pop Glass elevated surface
+        "bg-white/85 dark:bg-gray-900/80",
+        "backdrop-blur-2xl",
+        "border border-white/50 dark:border-white/15",
+        // Geometry: rounded-3xl for modals
+        "rounded-3xl",
+        // Elevated glow shadow
+        "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
+        "dark:shadow-[0_25px_60px_rgba(0,0,0,0.4)]",
         // Mobile optimizations
         "max-h-[90vh] overflow-y-auto",
-        "md:rounded-2xl",
         className
       )}
       {...props}
@@ -89,7 +130,12 @@ function DialogContent({
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <ModalHeader
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn(
+        "flex flex-col gap-2 text-center sm:text-left",
+        "border-b border-white/20 dark:border-white/10",
+        "pb-4",
+        className
+      )}
       {...props}
     />
   )
@@ -100,6 +146,8 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <ModalFooter
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        "border-t border-white/20 dark:border-white/10",
+        "pt-4",
         className
       )}
       {...props}
@@ -125,7 +173,7 @@ function DialogDescription({
 }: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn("text-default-500 text-sm", className)}
+      className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
   )

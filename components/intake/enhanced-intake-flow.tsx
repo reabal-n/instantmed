@@ -13,7 +13,6 @@ import {
   Briefcase,
   GraduationCap,
   Heart,
-  Check,
   FileText,
   Shield,
   Pill,
@@ -23,7 +22,6 @@ import {
   Phone,
   Edit2,
   ChevronDown,
-  ChevronUp,
   Users,
   Zap,
   TrendingUp,
@@ -32,7 +30,6 @@ import {
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { EnhancedTextarea } from "@/components/ui/enhanced-textarea"
 import { ValidatedInput, validationRules } from "@/components/ui/validated-input"
 import { Label } from "@/components/ui/label"
@@ -43,7 +40,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info, CheckCircle2 } from "lucide-react"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAnnouncement } from "@/components/ui/live-region"
 import {
@@ -56,7 +52,6 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
 import { MedicationSearch } from "@/components/medication/medication-search"
-import type { Medication } from "@/lib/data/medications"
 import posthog from "posthog-js"
 
 // ============================================
@@ -224,81 +219,11 @@ const stepVariants = {
   }),
 }
 
-const cardVariants = {
-  initial: { scale: 0.96, opacity: 0 },
-  animate: { scale: 1, opacity: 1 },
-  tap: { scale: 0.98 },
-}
-
 // ============================================
 // SUB-COMPONENTS
 // ============================================
 
 // Progress indicator is now using StepProgress component
-
-function ServiceCard({
-  service,
-  selected,
-  onClick,
-}: {
-  service: (typeof SERVICES)[number]
-  selected: boolean
-  onClick: () => void
-}) {
-  return (
-    <div className="relative">
-      {/* Popular badge */}
-      {service.popular && (
-        <Badge className="absolute -top-2.5 right-3 z-10 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[10px] shadow-[0_4px_12px_rgba(16,185,129,0.3)]">
-          Most Popular
-        </Badge>
-      )}
-      <EnhancedSelectionButton
-        variant="card"
-        selected={selected}
-        onClick={onClick}
-        icon={service.icon}
-        gradient={service.popular ? "teal-emerald" : "blue-purple"}
-        className="relative w-full p-5 touch-target"
-        aria-label={`Select ${service.title} service`}
-      >
-        <div className="flex items-start gap-4 w-full">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-              <h3 className={cn("font-semibold", selected ? "text-white" : "text-foreground")}>
-                {service.title}
-              </h3>
-            {service.noCall && (
-                <span className={cn(
-                  "inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full",
-                  selected 
-                    ? "text-white/90 bg-white/20 backdrop-blur-sm"
-                    : "text-green-700 bg-green-100"
-                )}>
-                <PhoneOff className="w-2.5 h-2.5" />
-                No call
-              </span>
-            )}
-          </div>
-            <p className={cn("text-sm", selected ? "text-white/90" : "text-muted-foreground")}>
-              {service.subtitle}
-            </p>
-
-          <div className="flex items-center gap-3 mt-3 text-xs">
-              <span className={cn("font-semibold", selected ? "text-white" : "text-primary")}>
-                {service.price}
-              </span>
-              <span className={cn("flex items-center gap-1", selected ? "text-white/80" : "text-muted-foreground")}>
-              <Clock className="w-3 h-3" />
-              {service.time}
-            </span>
-          </div>
-        </div>
-      </div>
-      </EnhancedSelectionButton>
-    </div>
-  )
-}
 
 function SelectableChip({
   selected,
@@ -364,7 +289,7 @@ function FormField({
   hint,
   helpText,
   example,
-  showSuccess,
+  showSuccess: _showSuccess,
 }: {
   label: string
   required?: boolean
@@ -428,7 +353,7 @@ export function EnhancedIntakeFlow({
   isAuthenticated = false,
   userEmail,
   userName,
-  patientId,
+  patientId: _patientId,
   userPhone,
   userDob,
 }: EnhancedIntakeFlowProps) {
@@ -439,7 +364,7 @@ export function EnhancedIntakeFlow({
   ])
 
   // Load saved preferences from localStorage (only on client)
-  const [savedPreferences, setSavedPreferences] = useState<{
+  const [savedPreferences] = useState<{
     lastService?: ServiceType
     lastCertType?: "work" | "study" | "carer"
     lastDuration?: "1" | "2" | "3"
@@ -729,6 +654,9 @@ export function EnhancedIntakeFlow({
       case "safety":
         if (symptomCheckResult.severity === "critical") {
           return false // Block progression
+        }
+        if (!state.safetyConfirmed) {
+          newErrors.safetyConfirmed = "Please confirm this is not a medical emergency"
         }
         break
 
@@ -1111,22 +1039,11 @@ export function EnhancedIntakeFlow({
                 <div className="space-y-2">
                   <Input
                     type="date"
-                    size="sm"
                     value={state.startDate}
                     onChange={(e) => {
-                      const selectedDate = new Date(e.target.value)
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-                      const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
-                      
                       updateField("startDate", e.target.value)
-                      
-                      // Show warning for backdating more than 3 days
-                      if (daysDiff > 3) {
-                        // This could trigger a dialog or alert
-                      }
                     }}
-                    className="h-9"
+                    className="h-11"
                     max={new Date().toISOString().split("T")[0]}
                     aria-label="Select start date for absence"
                   />
@@ -1416,14 +1333,18 @@ export function EnhancedIntakeFlow({
                 <Input
                   value={state.firstName}
                   onChange={(e) => updateField("firstName", e.target.value)}
+                  placeholder="John"
                   className="h-11"
+                  autoComplete="given-name"
                 />
               </FormField>
               <FormField label="Last name" required error={errors.lastName}>
                 <Input
                   value={state.lastName}
                   onChange={(e) => updateField("lastName", e.target.value)}
+                  placeholder="Smith"
                   className="h-11"
+                  autoComplete="family-name"
                 />
               </FormField>
             </div>
@@ -1432,9 +1353,6 @@ export function EnhancedIntakeFlow({
               label="Email"
               required
               error={errors.email}
-              hint="We'll send your certificate here"
-              example="you@example.com"
-              showSuccess={!!state.email && !errors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)}
             >
               <ValidatedInput
                 type="email"
@@ -1454,10 +1372,6 @@ export function EnhancedIntakeFlow({
               label="Mobile number"
               required
               error={errors.phone}
-              hint="Australian mobile number"
-              example="0412 345 678"
-              helpText="We may need to contact you if the doctor has questions"
-              showSuccess={!!state.phone && !errors.phone && /^04\d{8}$/.test(state.phone.replace(/\s/g, ""))}
             >
               <ValidatedInput
                 type="tel"
@@ -1491,9 +1405,7 @@ export function EnhancedIntakeFlow({
               label="Date of birth"
               required
               error={errors.dob}
-              hint="Required for medical records"
-              helpText="You must be 18 or older to use this service"
-              showSuccess={!!state.dob && !errors.dob}
+              hint="You must be 18 or older"
             >
               <Input
                 type="date"
@@ -1556,7 +1468,9 @@ export function EnhancedIntakeFlow({
                     <p className="text-xs text-muted-foreground">
                       {state.service === "med-cert" && state.certType
                         ? `${state.duration} day${state.duration !== "1" ? "s" : ""} • ${CERT_TYPES.find((t) => t.id === state.certType)?.label}`
-                        : state.medicationName}
+                        : state.service === "consult"
+                        ? state.consultReason?.slice(0, 50) + (state.consultReason?.length > 50 ? "..." : "")
+                        : state.medicationName || "Prescription request"}
                     </p>
                   </div>
                 </div>
@@ -1973,7 +1887,7 @@ export function EnhancedIntakeFlow({
               disabled={
                 isSubmitting ||
                 (step === "service" && !state.service) ||
-                (step === "safety" && symptomCheckResult.severity === "critical") ||
+                (step === "safety" && (symptomCheckResult.severity === "critical" || !state.safetyConfirmed)) ||
                 (isLastStep && !state.agreedToTerms) ||
                 // Only check errors relevant to current step to prevent disabled state when going back
                 !!(step === "details" && (errors.medicationName || errors.symptoms || errors.certType || errors.duration || errors.consultReason)) ||

@@ -1,7 +1,7 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getUserEmailFromAuthUserId } from "@/lib/auth/clerk-helpers"
+import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 
 const log = createLogger("create-profile")
 
@@ -53,7 +53,7 @@ export async function createOrGetProfile(
       return { profileId: existingProfile.id, error: null }
     }
 
-    // Get user email from Clerk (supports both clerk_user_id and legacy auth_user_id)
+    // Get user email from Supabase auth
     const userEmail = await getUserEmailFromAuthUserId(authUserId)
     
     if (!userEmail) {

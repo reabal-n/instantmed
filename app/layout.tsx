@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Lora, JetBrains_Mono, Caveat } from "next/font/google"
-import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
@@ -11,6 +10,7 @@ import { SkipToContent } from "@/components/shared/skip-to-content"
 import { SkyBackground } from "@/components/ui/sky-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
+import { SupabaseAuthProvider } from "@/components/providers/supabase-auth-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import Script from "next/script"
@@ -168,38 +168,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Only use custom domain in production
-  // In development, explicitly use undefined to prevent Clerk from auto-detecting custom domain
-  const clerkDomain = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_CLERK_DOMAIN
-    ? process.env.NEXT_PUBLIC_CLERK_DOMAIN
-    : undefined
-
   return (
-    <ClerkProvider>
-      <html
-        lang="en"
-        className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
-        suppressHydrationWarning
-      >
-        <head>
-          {/* Google tag (gtag.js) */}
-          <Script
-            src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-            strategy="afterInteractive"
-          />
-          <Script id="google-gtag" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'AW-17795889471');
-            `}
-          </Script>
-          <JsonLd />
-          <OrganizationSchema />
-          <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
-        </head>
-        <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
+          strategy="afterInteractive"
+        />
+        <Script id="google-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17795889471');
+          `}
+        </Script>
+        <JsonLd />
+        <OrganizationSchema />
+        <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
+      </head>
+      <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
+        <SupabaseAuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <HeroUIProviderWrapper>
               <SkyBackground fullPage />
@@ -215,8 +209,8 @@ export default function RootLayout({
               <PostHogIdentify />
             </HeroUIProviderWrapper>
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </SupabaseAuthProvider>
+      </body>
+    </html>
   )
 }

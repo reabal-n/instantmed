@@ -1,7 +1,6 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
-import { clerkClient } from "@clerk/nextjs/server"
 import { isTestMode } from "@/lib/test-mode"
 
 const log = createLogger("test-actions")
@@ -147,11 +146,11 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
     }
   }
 
-  // Check if profile exists using clerk_user_id
+  // Check if profile exists using auth_user_id
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("clerk_user_id", adminUser.id)
+    .eq("auth_user_id", adminUser.id)
     .single()
 
   if (existingProfile) {
@@ -161,7 +160,7 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
       .update({
         role: "doctor",
       })
-      .eq("clerk_user_id", adminUser.id)
+      .eq("auth_user_id", adminUser.id)
 
     if (updateError) {
       return { success: false, message: `Failed to update profile: ${updateError.message}` }
@@ -172,7 +171,7 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
 
   // Create profile if doesn't exist
   const { error: insertError } = await supabase.from("profiles").insert({
-    clerk_user_id: adminUser.id,
+    auth_user_id: adminUser.id,
     email: adminEmail,
     full_name: "Dr. Admin",
     role: "doctor",

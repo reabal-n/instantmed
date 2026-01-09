@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -9,21 +8,20 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   
   try {
-    // Use Clerk for authentication
-    const authResult = await auth()
-    userId = authResult.userId
+    // Use Supabase for authentication
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    userId = user?.id ?? null
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
-
-    // Verify user is a doctor using clerk_user_id
+    // Verify user is a doctor using auth_user_id
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {

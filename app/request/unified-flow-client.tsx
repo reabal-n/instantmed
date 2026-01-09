@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -254,8 +253,8 @@ export function UnifiedFlowClient({
   medicareIrn: savedIrn,
 }: Props) {
   const _router = useRouter()
-  const { openSignIn } = useClerk()
-  const { isSignedIn, user: clerkUser } = useUser()
+  const { openSignIn } = useAuth()
+  const { isSignedIn, user: clerkUser } = useAuth()
 
   // Auth state - use Clerk state when available
   const [patientId, setPatientId] = useState(initialPatientId)

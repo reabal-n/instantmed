@@ -5,7 +5,6 @@ import { StreamlinedIntake, type IntakeFormData } from "@/components/intake/stre
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { useConfetti } from "@/components/effects/confetti"
-import { useUser, useClerk } from "@clerk/nextjs"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("client")
 
@@ -29,8 +28,8 @@ export function MedCertIntakeClient({
   const router = useRouter()
   const supabase = createClient()
   const { fire: fireConfetti } = useConfetti()
-  const { user } = useUser()
-  const { openSignIn } = useClerk()
+  const { user } = useAuth()
+  const { openSignIn } = useAuth()
 
   const handleSubmit = async (data: IntakeFormData) => {
     // Use Clerk user for authentication
