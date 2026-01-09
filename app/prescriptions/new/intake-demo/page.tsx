@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useMemo } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { 
   MedCertIntakeFlow, 
   StepContent, 
@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { searchMedications, type Medication } from "@/lib/data/medications"
+import { type Medication } from "@/lib/data/medications"
 
 // Define the steps for the repeat prescription flow
 const STEPS: IntakeStep[] = [
@@ -44,16 +44,16 @@ const STEPS: IntakeStep[] = [
   { id: "checkout", title: "Checkout" },
 ]
 
-// Popular/common medication requests (chips)
+// Popular/common medication requests (chips) - softer gradient styling
 const POPULAR_MEDICATIONS = [
-  { id: "contraceptive", label: "Contraceptive Pill", emoji: "💊", searchTerm: "contraceptive" },
-  { id: "asthma", label: "Asthma Inhaler", emoji: "🌬️", searchTerm: "ventolin" },
-  { id: "bloodpressure", label: "Blood Pressure", emoji: "❤️", searchTerm: "blood pressure" },
-  { id: "cholesterol", label: "Cholesterol", emoji: "🫀", searchTerm: "statin" },
-  { id: "thyroid", label: "Thyroid", emoji: "🦋", searchTerm: "thyroxine" },
-  { id: "diabetes", label: "Diabetes", emoji: "📊", searchTerm: "metformin" },
-  { id: "reflux", label: "Reflux/Heartburn", emoji: "🔥", searchTerm: "omeprazole" },
-  { id: "anxiety", label: "Mental Health", emoji: "🧠", searchTerm: "sertraline" },
+  { id: "contraceptive", label: "Contraceptive Pill", emoji: "💊", searchTerm: "contraceptive", color: "from-rose-50 to-pink-50 border-rose-200/60 hover:border-rose-300" },
+  { id: "asthma", label: "Asthma Inhaler", emoji: "🌬️", searchTerm: "ventolin", color: "from-sky-50 to-cyan-50 border-sky-200/60 hover:border-sky-300" },
+  { id: "bloodpressure", label: "Blood Pressure", emoji: "❤️", searchTerm: "blood pressure", color: "from-red-50 to-rose-50 border-red-200/60 hover:border-red-300" },
+  { id: "cholesterol", label: "Cholesterol", emoji: "🫀", searchTerm: "statin", color: "from-orange-50 to-amber-50 border-orange-200/60 hover:border-orange-300" },
+  { id: "thyroid", label: "Thyroid", emoji: "🦋", searchTerm: "thyroxine", color: "from-violet-50 to-purple-50 border-violet-200/60 hover:border-violet-300" },
+  { id: "diabetes", label: "Diabetes", emoji: "📊", searchTerm: "metformin", color: "from-emerald-50 to-teal-50 border-emerald-200/60 hover:border-emerald-300" },
+  { id: "reflux", label: "Reflux/Heartburn", emoji: "🔥", searchTerm: "omeprazole", color: "from-amber-50 to-yellow-50 border-amber-200/60 hover:border-amber-300" },
+  { id: "anxiety", label: "Mental Health", emoji: "🧠", searchTerm: "sertraline", color: "from-indigo-50 to-blue-50 border-indigo-200/60 hover:border-indigo-300" },
 ]
 
 // ============================================
@@ -94,16 +94,71 @@ export default function RepeatPrescriptionDemoPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Derive search results from searchQuery (no setState in effect)
-  const searchResults = useMemo(() => {
-    if (searchQuery.length >= 2) {
-      return searchMedications(searchQuery)
+  // API-based search results
+  const [searchResults, setSearchResults] = useState<Array<{
+    id: string
+    medication_id: string
+    label: string
+    generic: string
+    brand_names: string[]
+    form: string
+    strength: string
+    category: string
+    schedule: string | null
+    is_common: boolean
+  }>>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  
+  // Debounced API search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([])
+      setSearchError(null)
+      return
     }
-    return []
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(async () => {
+      setIsSearching(true)
+      setSearchError(null)
+      
+      try {
+        const res = await fetch(`/api/medications?q=${encodeURIComponent(searchQuery)}`, {
+          signal: controller.signal
+        })
+        
+        if (!res.ok) {
+          throw new Error("Search failed")
+        }
+        
+        const data = await res.json()
+        
+        if (data.blocked) {
+          setSearchError(data.message)
+          setSearchResults([])
+        } else {
+          // Flatten the nested arrays from the API
+          const flattened = data.medications?.flat() || []
+          setSearchResults(flattened)
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          setSearchError("Search failed. Please try again.")
+        }
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300) // 300ms debounce
+
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [searchQuery])
   
   // Derive showNotFound from searchResults
-  const showNotFound = searchQuery.length >= 2 && searchResults.length === 0
+  const showNotFound = searchQuery.length >= 2 && searchResults.length === 0 && !isSearching && !searchError
 
   // Advance to next step
   const advanceStep = useCallback(() => {
@@ -123,11 +178,25 @@ export default function RepeatPrescriptionDemoPage() {
     router.push("/prescriptions")
   }
 
-  // Handle medication selection
-  const handleSelectMedication = (medication: Medication) => {
+  // Handle medication selection from API results
+  const handleSelectMedication = (apiMed: typeof searchResults[0]) => {
+    // Convert API result to Medication format for compatibility
+    const medication: Medication = {
+      id: apiMed.medication_id,
+      name: apiMed.generic,
+      brandNames: apiMed.brand_names || [],
+      strengths: [apiMed.strength], // Pre-select the chosen strength
+      category: "other",
+      commonUses: [apiMed.category],
+      requiresCall: apiMed.schedule === "S8",
+      schedule: apiMed.schedule ? parseInt(apiMed.schedule.replace("S", "")) : 4,
+      searchTerms: [],
+    }
     setSelectedMedication(medication)
-    setSearchQuery(medication.name)
+    setSearchQuery(apiMed.label)
     setCustomMedicationName("")
+    // Pre-select strength from API result
+    setSelectedStrength(apiMed.strength)
   }
 
   // Handle popular chip click
@@ -302,7 +371,12 @@ export default function RepeatPrescriptionDemoPage() {
                       disabled={!!selectedMedication}
                     />
 
-                    {(searchQuery || selectedMedication) && (
+                    {/* Loading spinner */}
+                    {isSearching && (
+                      <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    )}
+
+                    {(searchQuery || selectedMedication) && !isSearching && (
                       <motion.button
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -314,9 +388,32 @@ export default function RepeatPrescriptionDemoPage() {
                     )}
                   </div>
 
+                  {/* Search Error (e.g., blocked medications) */}
+                  <AnimatePresence>
+                    {searchError && isSearchFocused && !selectedMedication && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "absolute z-50 w-full mt-2 p-4",
+                          "bg-red-50/95 dark:bg-red-900/20 backdrop-blur-xl",
+                          "border border-red-200 dark:border-red-800",
+                          "rounded-2xl shadow-lg"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-red-700 dark:text-red-300">{searchError}</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {/* Floating Glass Dropdown */}
                   <AnimatePresence>
-                    {isSearchFocused && searchResults.length > 0 && !selectedMedication && (
+                    {isSearchFocused && searchResults.length > 0 && !selectedMedication && !searchError && (
                       <motion.div
                         ref={dropdownRef}
                         initial={{ opacity: 0, y: -10, scale: 0.98 }}
@@ -331,7 +428,7 @@ export default function RepeatPrescriptionDemoPage() {
                           "max-h-80 overflow-y-auto"
                         )}
                       >
-                        {searchResults.map((med, index) => (
+                        {searchResults.slice(0, 10).map((med, index) => (
                           <motion.button
                             key={med.id}
                             initial={{ opacity: 0, x: -10 }}
@@ -347,30 +444,31 @@ export default function RepeatPrescriptionDemoPage() {
                               "border-b border-slate-100 dark:border-slate-800 last:border-b-0",
                               "first:rounded-t-2xl last:rounded-b-2xl",
                               highlightedIndex === index
-                                ? "bg-primary/5 dark:bg-primary/10"
+                                ? "bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20"
                                 : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                             )}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                <Pill className="w-5 h-5 text-primary" />
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center flex-shrink-0">
+                                <Pill className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">
-                                  <span className="font-semibold text-foreground">{med.name}</span>
-                                  {med.requiresCall && (
+                                  <span className="font-semibold text-foreground">{med.generic}</span>
+                                  <span className="text-xs text-muted-foreground">{med.strength}</span>
+                                  {med.schedule === "S8" && (
                                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
                                       Call needed
                                     </span>
                                   )}
                                 </div>
-                                {med.brandNames.length > 0 && (
+                                {med.brand_names && med.brand_names.length > 0 && (
                                   <p className="text-xs text-muted-foreground">
-                                    {med.brandNames.slice(0, 3).join(", ")}
+                                    {med.brand_names.slice(0, 3).join(", ")}
                                   </p>
                                 )}
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                  {med.commonUses.slice(0, 2).join(" • ")}
+                                  {med.form} • {med.category}
                                 </p>
                               </div>
                               <ChevronRight className="w-4 h-4 text-muted-foreground mt-2" />
@@ -541,9 +639,9 @@ export default function RepeatPrescriptionDemoPage() {
                           onClick={() => handlePopularChipClick(med.searchTerm)}
                           className={cn(
                             "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full",
-                            "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
-                            "text-sm font-medium text-foreground",
-                            "hover:border-primary/50 hover:bg-primary/5",
+                            "bg-gradient-to-br border",
+                            med.color,
+                            "text-sm font-medium text-slate-700 dark:text-slate-200",
                             "shadow-sm hover:shadow-md",
                             "transition-all duration-200"
                           )}
