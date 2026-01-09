@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { useState, useCallback, useRef, useMemo } from "react"
 import { 
   MedCertIntakeFlow, 
   StepContent, 
@@ -105,11 +105,6 @@ export default function RepeatPrescriptionDemoPage() {
   // Derive showNotFound from searchResults
   const showNotFound = searchQuery.length >= 2 && searchResults.length === 0
 
-  // Reset highlighted index when search changes
-  useEffect(() => {
-    setHighlightedIndex(0)
-  }, [searchQuery])
-
   // Advance to next step
   const advanceStep = useCallback(() => {
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1))
@@ -132,14 +127,13 @@ export default function RepeatPrescriptionDemoPage() {
   const handleSelectMedication = (medication: Medication) => {
     setSelectedMedication(medication)
     setSearchQuery(medication.name)
-    setSearchResults([])
-    setShowNotFound(false)
     setCustomMedicationName("")
   }
 
   // Handle popular chip click
   const handlePopularChipClick = (searchTerm: string) => {
     setSearchQuery(searchTerm)
+    setHighlightedIndex(0)
     searchInputRef.current?.focus()
   }
 
@@ -160,7 +154,6 @@ export default function RepeatPrescriptionDemoPage() {
         notes: "This medication will be reviewed by our doctors."
       })
       setSearchQuery(customMedicationName.trim())
-      setShowNotFound(false)
     }
   }
 
@@ -168,8 +161,6 @@ export default function RepeatPrescriptionDemoPage() {
   const handleClearSelection = () => {
     setSelectedMedication(null)
     setSearchQuery("")
-    setSearchResults([])
-    setShowNotFound(false)
     setCustomMedicationName("")
     searchInputRef.current?.focus()
   }
@@ -194,7 +185,6 @@ export default function RepeatPrescriptionDemoPage() {
         }
         break
       case "Escape":
-        setSearchResults([])
         setIsSearchFocused(false)
         break
     }
@@ -293,6 +283,7 @@ export default function RepeatPrescriptionDemoPage() {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value)
+                        setHighlightedIndex(0)
                         if (selectedMedication) {
                           setSelectedMedication(null)
                         }
@@ -445,7 +436,7 @@ export default function RepeatPrescriptionDemoPage() {
                             disabled={!customMedicationName.trim()}
                             className="w-full"
                           >
-                            Use "{customMedicationName || "..."}"
+                            Use &quot;{customMedicationName || "..."}&quot;
                           </Button>
                         </div>
                       </motion.div>
