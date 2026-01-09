@@ -34,8 +34,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { format, subDays, addDays } from "date-fns"
+import { format, addDays } from "date-fns"
 
 // Define the steps for the medical certificate flow
 const STEPS: IntakeStep[] = [
@@ -99,13 +98,13 @@ export default function IntakeDemoPage() {
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1))
   }, [])
 
-  const handleStepChange = (step: number, direction: "forward" | "back") => {
+  const handleStepChange = (step: number, _direction: "forward" | "back") => {
     setCurrentStep(step)
   }
 
   const handleComplete = () => {
-    // In real implementation, this would submit the form
-    alert("Form completed! Redirecting to payment...")
+    // In real implementation, this would submit the form and redirect to payment
+    router.push("/medical-certificate/new/checkout")
   }
 
   const handleExit = () => {
@@ -176,13 +175,11 @@ export default function IntakeDemoPage() {
     return null
   }
   
-  // Get selected symptom labels
-  const getSelectedSymptomLabels = () => {
-    return selectedSymptoms
-      .map(id => SYMPTOM_TAGS.find(s => s.id === id)?.label)
-      .filter(Boolean)
-      .join(", ")
-  }
+  // Get selected symptom labels (used in summary)
+  const selectedSymptomLabels = selectedSymptoms
+    .map(id => SYMPTOM_TAGS.find(s => s.id === id)?.label)
+    .filter(Boolean)
+    .join(", ")
 
   return (
     <MedCertIntakeFlow
@@ -221,7 +218,7 @@ export default function IntakeDemoPage() {
                   transition={{ delay: 0.2, duration: 0.4 }}
                   className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3"
                 >
-                  Let's get this sorted quickly. 🩺
+                  Let&apos;s get this sorted quickly. 🩺
                 </motion.h1>
 
                 {/* Subtext */}
@@ -355,7 +352,7 @@ export default function IntakeDemoPage() {
 
                     {/* Subtext */}
                     <p className="text-sm text-muted-foreground">
-                      I'm the patient.
+                      I&apos;m the patient.
                     </p>
                   </motion.button>
 
@@ -410,7 +407,7 @@ export default function IntakeDemoPage() {
 
                     {/* Subtext */}
                     <p className="text-sm text-muted-foreground">
-                      I'm requesting as a carer/guardian.
+                      I&apos;m requesting as a carer/guardian.
                     </p>
                   </motion.button>
                 </div>
@@ -481,7 +478,7 @@ export default function IntakeDemoPage() {
                   className="text-center"
                 >
                   <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight mb-2">
-                    The Nitty-Gritty. What's going on? 🤔
+                    The Nitty-Gritty. What&apos;s going on? 🤔
                   </h2>
                 </motion.div>
 
@@ -660,7 +657,7 @@ export default function IntakeDemoPage() {
                     {/* Symptom tags */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">
-                        What's been bothering you? <span className="text-muted-foreground font-normal">(Select all that apply)</span>
+                        What&apos;s been bothering you? <span className="text-muted-foreground font-normal">(Select all that apply)</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {SYMPTOM_TAGS.map((symptom) => (
@@ -746,7 +743,7 @@ export default function IntakeDemoPage() {
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">
                     We need to rule out the scary stuff. Please read these carefully. 
-                    <span className="font-medium text-foreground"> We can't treat emergencies via telehealth.</span>
+                    <span className="font-medium text-foreground"> We can&apos;t treat emergencies via telehealth.</span>
                   </p>
                 </motion.div>
 
@@ -829,7 +826,7 @@ export default function IntakeDemoPage() {
                           animate={{ opacity: 1, height: "auto" }}
                           className="text-xs text-amber-600 dark:text-amber-400 mt-1"
                         >
-                          We'll make sure your doctor knows.
+                          We&apos;ll make sure your doctor knows.
                         </motion.p>
                       )}
                     </div>
@@ -860,7 +857,7 @@ export default function IntakeDemoPage() {
                           animate={{ opacity: 1, height: "auto" }}
                           className="text-xs text-amber-600 dark:text-amber-400 mt-1"
                         >
-                          Different rules apply — we'll guide you through it.
+                          Different rules apply — we&apos;ll guide you through it.
                         </motion.p>
                       )}
                     </div>
@@ -1132,7 +1129,7 @@ export default function IntakeDemoPage() {
                   {/* Reassurance text */}
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                     <Shield className="w-3.5 h-3.5" />
-                    <span>You won't be charged until a doctor reviews your request.</span>
+                    <span>You won&apos;t be charged until a doctor reviews your request.</span>
                   </div>
                 </motion.div>
               </div>

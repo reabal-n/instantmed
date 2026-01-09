@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { 
   MedCertIntakeFlow, 
   StepContent, 
@@ -11,18 +11,15 @@ import {
   Search,
   Pill,
   X,
-  Sparkles,
   Clock,
   Shield,
   ChevronRight,
   AlertCircle,
-  Pencil,
   HelpCircle,
   Phone,
   Calendar,
   Repeat,
   Sun,
-  Moon,
   Zap,
   Smartphone,
   Mail,
@@ -69,10 +66,8 @@ export default function RepeatPrescriptionDemoPage() {
   
   // Medication search state
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<Medication[]>([])
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
-  const [showNotFound, setShowNotFound] = useState(false)
   const [customMedicationName, setCustomMedicationName] = useState("")
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   
@@ -99,17 +94,20 @@ export default function RepeatPrescriptionDemoPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Handle search
-  useEffect(() => {
+  // Derive search results from searchQuery (no setState in effect)
+  const searchResults = useMemo(() => {
     if (searchQuery.length >= 2) {
-      const results = searchMedications(searchQuery)
-      setSearchResults(results)
-      setShowNotFound(results.length === 0)
-      setHighlightedIndex(0)
-    } else {
-      setSearchResults([])
-      setShowNotFound(false)
+      return searchMedications(searchQuery)
     }
+    return []
+  }, [searchQuery])
+  
+  // Derive showNotFound from searchResults
+  const showNotFound = searchQuery.length >= 2 && searchResults.length === 0
+
+  // Reset highlighted index when search changes
+  useEffect(() => {
+    setHighlightedIndex(0)
   }, [searchQuery])
 
   // Advance to next step
@@ -117,12 +115,13 @@ export default function RepeatPrescriptionDemoPage() {
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1))
   }, [])
 
-  const handleStepChange = (step: number, direction: "forward" | "back") => {
+  const handleStepChange = (step: number, _direction: "forward" | "back") => {
     setCurrentStep(step)
   }
 
   const handleComplete = () => {
-    alert("Form completed! Redirecting to payment...")
+    // In real implementation, this would process payment
+    router.push("/prescriptions/new/checkout")
   }
 
   const handleExit = () => {
@@ -262,7 +261,7 @@ export default function RepeatPrescriptionDemoPage() {
                     Refill time. What do you need? 💊
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Search for your medication. If it's your usual, we probably know it.
+                    Search for your medication. If it&apos;s your usual, we probably know it.
                   </p>
                 </motion.div>
 
@@ -413,10 +412,10 @@ export default function RepeatPrescriptionDemoPage() {
                           </div>
                           <div>
                             <h3 className="font-semibold text-foreground">
-                              Computer says 'no'?
+                              Computer says &quot;no&quot;?
                             </h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                              We couldn't match that exact name. No stress—just type it in manually below and our doctors will double-check it.
+                              We couldn&apos;t match that exact name. No stress—just type it in manually below and our doctors will double-check it.
                             </p>
                           </div>
                         </div>
@@ -618,7 +617,7 @@ export default function RepeatPrescriptionDemoPage() {
                     className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-4"
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
-                    <span>Can't find yours? Start typing and we'll help.</span>
+                    <span>Can&apos;t find yours? Start typing and we&apos;ll help.</span>
                   </motion.div>
                 )}
               </div>
@@ -1046,7 +1045,7 @@ export default function RepeatPrescriptionDemoPage() {
                               Briefly tell us what changed?
                             </label>
                             <p className="text-xs text-muted-foreground">
-                              Don't worry, we just need to check this won't affect your medication.
+                              Don&apos;t worry, we just need to check this won&apos;t affect your medication.
                             </p>
                             <Textarea
                               value={healthChangedDetails}
@@ -1106,7 +1105,7 @@ export default function RepeatPrescriptionDemoPage() {
                               What are you taking?
                             </label>
                             <p className="text-xs text-muted-foreground">
-                              We'll check for any interactions—better safe than sorry!
+                              We&apos;ll check for any interactions—better safe than sorry!
                             </p>
                             <Textarea
                               value={newMedicationsDetails}
@@ -1165,7 +1164,7 @@ export default function RepeatPrescriptionDemoPage() {
                               Thanks for letting us know
                             </p>
                             <p className="text-xs text-pink-700 dark:text-pink-300 mt-1">
-                              Our doctor will review your medication to ensure it's safe during pregnancy or breastfeeding.
+                              Our doctor will review your medication to ensure it&apos;s safe during pregnancy or breastfeeding.
                             </p>
                           </div>
                         </div>
@@ -1236,7 +1235,7 @@ export default function RepeatPrescriptionDemoPage() {
                             Our doctor will review this
                           </p>
                           <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                            We've noted your responses. The prescribing doctor will take them into account when reviewing your request.
+                            We&apos;ve noted your responses. The prescribing doctor will take them into account when reviewing your request.
                           </p>
                         </div>
                       </div>
@@ -1336,7 +1335,7 @@ export default function RepeatPrescriptionDemoPage() {
                   </div>
                   
                   <p className="text-xs text-muted-foreground -mt-2">
-                    We'll SMS the token to this number instantly after approval.
+                    We&apos;ll SMS the token to this number instantly after approval.
                   </p>
 
                   {/* Mobile Number */}
@@ -1408,7 +1407,7 @@ export default function RepeatPrescriptionDemoPage() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      We'll send a receipt and updates here.
+                      We&apos;ll send a receipt and updates here.
                     </p>
                   </div>
                 </motion.div>
@@ -1476,7 +1475,7 @@ export default function RepeatPrescriptionDemoPage() {
                   {/* Refund Guarantee Footer */}
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>If the doctor can't prescribe it, you get a full refund. No stress.</span>
+                    <span>If the doctor can&apos;t prescribe it, you get a full refund. No stress.</span>
                   </div>
 
                   {/* Trust Badges */}
