@@ -178,6 +178,10 @@ export default function RepeatPrescriptionDemoPage() {
     router.push("/prescriptions")
   }
 
+  const handleClose = () => {
+    router.push("/")
+  }
+
   // Handle medication selection from API results
   const handleSelectMedication = (apiMed: typeof searchResults[0]) => {
     // Convert API result to Medication format for compatibility
@@ -298,6 +302,7 @@ export default function RepeatPrescriptionDemoPage() {
       onStepChange={handleStepChange}
       onComplete={handleComplete}
       onExit={handleExit}
+      onClose={handleClose}
       canContinue={canContinue}
       continueLabel={currentStep === 4 ? "Pay $19.95" : undefined}
       hideNavigation={hideNavigation}
@@ -669,10 +674,10 @@ export default function RepeatPrescriptionDemoPage() {
                         size="lg"
                         className={cn(
                           "w-full py-6 text-lg font-semibold",
-                          "bg-gradient-to-r from-primary via-blue-600 to-cyan-600",
-                          "hover:from-primary/90 hover:via-blue-600/90 hover:to-cyan-600/90",
-                          "shadow-[0_8px_32px_rgba(37,99,235,0.35)]",
-                          "hover:shadow-[0_12px_40px_rgba(37,99,235,0.45)]",
+                          "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500",
+                          "hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600",
+                          "shadow-[0_8px_32px_rgba(16,185,129,0.35)]",
+                          "hover:shadow-[0_12px_40px_rgba(16,185,129,0.45)]",
                           "hover:scale-[1.01] active:scale-[0.99]",
                           "transition-all duration-200"
                         )}
@@ -796,7 +801,7 @@ export default function RepeatPrescriptionDemoPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.03 }}
-                        whileHover={{ scale: 1.03 }}
+                        whileHover={{ scale: 1.03, y: -2 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => {
                           setSelectedStrength(strength)
@@ -804,11 +809,10 @@ export default function RepeatPrescriptionDemoPage() {
                           setCustomStrength("")
                         }}
                         className={cn(
-                          "px-4 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-200",
-                          "hover:border-primary/50",
+                          "px-4 py-2.5 rounded-full border text-sm font-semibold transition-all duration-200",
                           selectedStrength === strength && !showCustomStrength
-                            ? "border-primary bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.3)]"
-                            : "border-slate-200 dark:border-slate-700 text-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 shadow-md"
+                            : "bg-gradient-to-br from-slate-50 to-white border-slate-200 dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 text-foreground hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                         )}
                       >
                         {strength}
@@ -820,18 +824,17 @@ export default function RepeatPrescriptionDemoPage() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: availableStrengths.length * 0.03 }}
-                      whileHover={{ scale: 1.03 }}
+                      whileHover={{ scale: 1.03, y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
                         setShowCustomStrength(true)
                         setSelectedStrength(null)
                       }}
                       className={cn(
-                        "px-4 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-200",
-                        "hover:border-primary/50",
+                        "px-4 py-2.5 rounded-full border text-sm font-semibold transition-all duration-200",
                         showCustomStrength
-                          ? "border-primary bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.3)]"
-                          : "border-dashed border-slate-300 dark:border-slate-600 text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+                          ? "bg-gradient-to-br from-violet-50 to-purple-50 border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-400 shadow-md"
+                          : "border-dashed bg-gradient-to-br from-slate-50 to-white border-slate-300 dark:from-slate-800 dark:to-slate-900 dark:border-slate-600 text-muted-foreground hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-sm"
                       )}
                     >
                       Custom
@@ -885,13 +888,22 @@ export default function RepeatPrescriptionDemoPage() {
                       const Icon = option.icon
                       const isSelected = frequency === option.id
                       
+                      // Different pastel colors for each option
+                      const colors = [
+                        { bg: "from-amber-50 to-orange-50", border: "border-amber-200 dark:border-amber-700", icon: "from-amber-400 to-orange-400", text: "text-amber-700 dark:text-amber-400" },
+                        { bg: "from-sky-50 to-cyan-50", border: "border-sky-200 dark:border-sky-700", icon: "from-sky-400 to-cyan-400", text: "text-sky-700 dark:text-sky-400" },
+                        { bg: "from-emerald-50 to-teal-50", border: "border-emerald-200 dark:border-emerald-700", icon: "from-emerald-400 to-teal-400", text: "text-emerald-700 dark:text-emerald-400" },
+                        { bg: "from-violet-50 to-purple-50", border: "border-violet-200 dark:border-violet-700", icon: "from-violet-400 to-purple-400", text: "text-violet-700 dark:text-violet-400" },
+                      ]
+                      const color = colors[index]
+                      
                       return (
                         <motion.button
                           key={option.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.2 + index * 0.05 }}
-                          whileHover={{ scale: 1.02 }}
+                          whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setFrequency(option.id)
@@ -900,23 +912,23 @@ export default function RepeatPrescriptionDemoPage() {
                             }
                           }}
                           className={cn(
-                            "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
+                            "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200",
                             isSelected
-                              ? "border-primary bg-primary/5 shadow-[0_0_0_4px_rgba(37,99,235,0.1)]"
-                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                              ? `bg-gradient-to-br ${color.bg} ${color.border} shadow-md`
+                              : "bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                           )}
                         >
                           <div className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
                             isSelected
-                              ? "bg-primary text-white"
+                              ? `bg-gradient-to-br ${color.icon} text-white shadow-sm`
                               : "bg-slate-100 dark:bg-slate-800 text-muted-foreground"
                           )}>
                             <Icon className="w-5 h-5" />
                           </div>
                           <span className={cn(
                             "text-xs font-medium text-center",
-                            isSelected ? "text-primary" : "text-foreground"
+                            isSelected ? color.text : "text-foreground"
                           )}>
                             {option.label}
                           </span>
@@ -1547,10 +1559,10 @@ export default function RepeatPrescriptionDemoPage() {
                     size="lg"
                     className={cn(
                       "w-full py-6 text-lg font-semibold",
-                      "bg-gradient-to-r from-primary via-blue-600 to-cyan-600",
-                      "hover:from-primary/90 hover:via-blue-600/90 hover:to-cyan-600/90",
-                      "shadow-[0_8px_32px_rgba(37,99,235,0.35)]",
-                      "hover:shadow-[0_12px_40px_rgba(37,99,235,0.45)]",
+                      "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500",
+                      "hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600",
+                      "shadow-[0_8px_32px_rgba(16,185,129,0.35)]",
+                      "hover:shadow-[0_12px_40px_rgba(16,185,129,0.45)]",
                       "hover:scale-[1.01] active:scale-[0.99]",
                       "transition-all duration-200",
                       "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, type ReactNode } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -27,6 +27,8 @@ interface MedCertIntakeFlowProps {
   onComplete?: () => void
   /** Callback when user exits the flow */
   onExit?: () => void
+  /** Callback when user clicks the close (X) button */
+  onClose?: () => void
   /** Whether the continue button should be disabled */
   canContinue?: boolean
   /** Whether the form is currently submitting */
@@ -39,6 +41,8 @@ interface MedCertIntakeFlowProps {
   hideNavigation?: boolean
   /** Hide the progress indicator (useful for intro steps) */
   hideProgress?: boolean
+  /** Hide the close button */
+  hideCloseButton?: boolean
   /** Children render prop receiving current step index */
   children: (currentStep: number) => ReactNode
   /** Additional className for the container */
@@ -184,12 +188,14 @@ export function MedCertIntakeFlow({
   onStepChange,
   onComplete,
   onExit,
+  onClose,
   canContinue = true,
   isSubmitting = false,
   continueLabel,
   backLabel = "Back",
   hideNavigation = false,
   hideProgress = false,
+  hideCloseButton = false,
   children,
   className,
 }: MedCertIntakeFlowProps) {
@@ -253,7 +259,7 @@ export function MedCertIntakeFlow({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(
-          "w-full max-w-2xl",
+          "w-full max-w-2xl relative",
           "bg-white dark:bg-slate-900",
           "rounded-2xl",
           "shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)]",
@@ -261,6 +267,32 @@ export function MedCertIntakeFlow({
           "overflow-hidden"
         )}
       >
+        {/* Close (X) button */}
+        {!hideCloseButton && onClose && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClose}
+            className={cn(
+              "absolute top-4 right-4 z-10",
+              "w-10 h-10 rounded-full",
+              "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700",
+              "border border-slate-200/60 dark:border-slate-600/60",
+              "flex items-center justify-center",
+              "text-slate-500 dark:text-slate-400",
+              "hover:text-slate-700 dark:hover:text-slate-200",
+              "hover:border-slate-300 dark:hover:border-slate-500",
+              "hover:shadow-md",
+              "transition-all duration-200"
+            )}
+            aria-label="Close and return home"
+          >
+            <X className="w-5 h-5" />
+          </motion.button>
+        )}
+
         {/* Header with progress */}
         <AnimatePresence mode="wait">
           {!hideProgress && (

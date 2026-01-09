@@ -111,6 +111,10 @@ export default function IntakeDemoPage() {
     router.push("/medical-certificate")
   }
 
+  const handleClose = () => {
+    router.push("/")
+  }
+
   // Handle patient type selection (auto-advance)
   const handlePatientTypeSelect = (type: "self" | "other") => {
     setPatientType(type)
@@ -176,7 +180,7 @@ export default function IntakeDemoPage() {
   }
   
   // Get selected symptom labels (used in summary)
-  const selectedSymptomLabels = selectedSymptoms
+  const _selectedSymptomLabels = selectedSymptoms
     .map(id => SYMPTOM_TAGS.find(s => s.id === id)?.label)
     .filter(Boolean)
     .join(", ")
@@ -188,6 +192,7 @@ export default function IntakeDemoPage() {
       onStepChange={handleStepChange}
       onComplete={handleComplete}
       onExit={handleExit}
+      onClose={handleClose}
       canContinue={canContinue}
       continueLabel={currentStep === 6 ? "Pay $29.95" : undefined}
       hideNavigation={hideNavigation}
@@ -266,10 +271,10 @@ export default function IntakeDemoPage() {
                     size="lg"
                     className={cn(
                       "px-10 py-6 text-lg font-semibold",
-                      "bg-gradient-to-r from-primary via-blue-600 to-cyan-600",
-                      "hover:from-primary/90 hover:via-blue-600/90 hover:to-cyan-600/90",
-                      "shadow-[0_8px_32px_rgba(37,99,235,0.35)]",
-                      "hover:shadow-[0_12px_40px_rgba(37,99,235,0.45)]",
+                      "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500",
+                      "hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600",
+                      "shadow-[0_8px_32px_rgba(16,185,129,0.35)]",
+                      "hover:shadow-[0_12px_40px_rgba(16,185,129,0.45)]",
                       "hover:scale-[1.02] active:scale-[0.98]",
                       "transition-all duration-200"
                     )}
@@ -312,9 +317,9 @@ export default function IntakeDemoPage() {
                     className={cn(
                       "relative group p-6 sm:p-8 rounded-2xl border-2 text-center",
                       "transition-all duration-300 cursor-pointer",
-                      "hover:border-primary hover:shadow-[0_8px_32px_rgba(37,99,235,0.15)]",
+                      "hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-[0_8px_32px_rgba(16,185,129,0.15)]",
                       patientType === "self"
-                        ? "border-primary bg-primary/5 shadow-[0_8px_32px_rgba(37,99,235,0.2)]"
+                        ? "border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 shadow-[0_8px_32px_rgba(16,185,129,0.2)]"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     )}
                   >
@@ -323,7 +328,7 @@ export default function IntakeDemoPage() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-4 right-4 w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                        className="absolute top-4 right-4 w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center"
                       >
                         <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -336,8 +341,8 @@ export default function IntakeDemoPage() {
                       "w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center",
                       "transition-all duration-300",
                       patientType === "self"
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary"
+                        ? "bg-gradient-to-br from-emerald-400 to-teal-400 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500"
                     )}>
                       <User className="w-8 h-8 sm:w-10 sm:h-10" />
                     </div>
@@ -345,7 +350,7 @@ export default function IntakeDemoPage() {
                     {/* Title */}
                     <h3 className={cn(
                       "text-lg sm:text-xl font-semibold mb-1 transition-colors",
-                      patientType === "self" ? "text-primary" : "text-foreground"
+                      patientType === "self" ? "text-emerald-700 dark:text-emerald-400" : "text-foreground"
                     )}>
                       For Me
                     </h3>
@@ -367,9 +372,9 @@ export default function IntakeDemoPage() {
                     className={cn(
                       "relative group p-6 sm:p-8 rounded-2xl border-2 text-center",
                       "transition-all duration-300 cursor-pointer",
-                      "hover:border-primary hover:shadow-[0_8px_32px_rgba(37,99,235,0.15)]",
+                      "hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-[0_8px_32px_rgba(139,92,246,0.15)]",
                       patientType === "other"
-                        ? "border-primary bg-primary/5 shadow-[0_8px_32px_rgba(37,99,235,0.2)]"
+                        ? "border-violet-300 dark:border-violet-700 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 shadow-[0_8px_32px_rgba(139,92,246,0.2)]"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     )}
                   >
@@ -378,7 +383,7 @@ export default function IntakeDemoPage() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-4 right-4 w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                        className="absolute top-4 right-4 w-6 h-6 rounded-full bg-gradient-to-br from-violet-400 to-purple-400 flex items-center justify-center"
                       >
                         <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -391,8 +396,8 @@ export default function IntakeDemoPage() {
                       "w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center",
                       "transition-all duration-300",
                       patientType === "other"
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-primary/10 group-hover:text-primary"
+                        ? "bg-gradient-to-br from-violet-400 to-purple-400 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500"
                     )}>
                       <Users className="w-8 h-8 sm:w-10 sm:h-10" />
                     </div>
@@ -400,7 +405,7 @@ export default function IntakeDemoPage() {
                     {/* Title */}
                     <h3 className={cn(
                       "text-lg sm:text-xl font-semibold mb-1 transition-colors",
-                      patientType === "other" ? "text-primary" : "text-foreground"
+                      patientType === "other" ? "text-violet-700 dark:text-violet-400" : "text-foreground"
                     )}>
                       For Someone Else
                     </h3>
@@ -433,31 +438,30 @@ export default function IntakeDemoPage() {
               >
                 <div className="grid gap-3">
                   {[
-                    { id: "work", label: "Work", icon: Briefcase, description: "For your employer" },
-                    { id: "study", label: "Study", icon: GraduationCap, description: "For uni or school" },
-                    { id: "carer", label: "Carer's leave", icon: Heart, description: "To care for someone" },
+                    { id: "work", label: "Work", icon: Briefcase, description: "For your employer", colors: { bg: "from-sky-50 to-cyan-50", border: "border-sky-200 dark:border-sky-700", icon: "from-sky-400 to-cyan-400", text: "text-sky-700 dark:text-sky-400" } },
+                    { id: "study", label: "Study", icon: GraduationCap, description: "For uni or school", colors: { bg: "from-violet-50 to-purple-50", border: "border-violet-200 dark:border-violet-700", icon: "from-violet-400 to-purple-400", text: "text-violet-700 dark:text-violet-400" } },
+                    { id: "carer", label: "Carer's leave", icon: Heart, description: "To care for someone", colors: { bg: "from-rose-50 to-pink-50", border: "border-rose-200 dark:border-rose-700", icon: "from-rose-400 to-pink-400", text: "text-rose-700 dark:text-rose-400" } },
                   ].map((option) => (
                     <button
                       key={option.id}
                       onClick={() => setSelectedPurpose(option.id)}
                       className={cn(
                         "flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200",
-                        "hover:border-primary/50 hover:bg-primary/5",
                         selectedPurpose === option.id
-                          ? "border-primary bg-primary/10 shadow-[0_0_0_4px_rgba(37,99,235,0.1)]"
-                          : "border-slate-200 dark:border-slate-700"
+                          ? `bg-gradient-to-br ${option.colors.bg} ${option.colors.border} shadow-md`
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
                       )}
                     >
                       <div className={cn(
                         "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
                         selectedPurpose === option.id
-                          ? "bg-primary text-white"
+                          ? `bg-gradient-to-br ${option.colors.icon} text-white shadow-sm`
                           : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                       )}>
                         <option.icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">{option.label}</p>
+                        <p className={cn("font-semibold", selectedPurpose === option.id ? option.colors.text : "text-foreground")}>{option.label}</p>
                         <p className="text-sm text-muted-foreground">{option.description}</p>
                       </div>
                     </button>
@@ -548,39 +552,47 @@ export default function IntakeDemoPage() {
                         How many days do you think you need off?
                       </label>
                       <div className="grid grid-cols-4 gap-2">
-                        {["1", "2", "3"].map((days) => (
-                          <motion.button
-                            key={days}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              setSelectedDuration(days)
-                              setCustomEndDate(undefined)
-                            }}
-                            className={cn(
-                              "py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200",
-                              "hover:border-primary/50 hover:bg-primary/5",
-                              selectedDuration === days && !customEndDate
-                                ? "border-primary bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)]"
-                                : "border-slate-200 dark:border-slate-700 text-foreground"
-                            )}
-                          >
-                            {days} Day{days !== "1" ? "s" : ""}
-                          </motion.button>
-                        ))}
+                        {["1", "2", "3"].map((days, index) => {
+                          const colors = [
+                            { bg: "from-emerald-50 to-teal-50", border: "border-emerald-300 dark:border-emerald-700", text: "text-emerald-700 dark:text-emerald-400" },
+                            { bg: "from-sky-50 to-cyan-50", border: "border-sky-300 dark:border-sky-700", text: "text-sky-700 dark:text-sky-400" },
+                            { bg: "from-violet-50 to-purple-50", border: "border-violet-300 dark:border-violet-700", text: "text-violet-700 dark:text-violet-400" },
+                          ]
+                          const color = colors[index]
+                          const isSelected = selectedDuration === days && !customEndDate
+                          
+                          return (
+                            <motion.button
+                              key={days}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                setSelectedDuration(days)
+                                setCustomEndDate(undefined)
+                              }}
+                              className={cn(
+                                "py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200",
+                                isSelected
+                                  ? `bg-gradient-to-br ${color.bg} ${color.border} ${color.text} shadow-md`
+                                  : "bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 text-foreground hover:border-slate-300 hover:shadow-sm"
+                              )}
+                            >
+                              {days} Day{days !== "1" ? "s" : ""}
+                            </motion.button>
+                          )
+                        })}
                         
                         {/* Custom date option */}
                         <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                           <PopoverTrigger asChild>
                             <motion.button
-                              whileHover={{ scale: 1.02 }}
+                              whileHover={{ scale: 1.02, y: -2 }}
                               whileTap={{ scale: 0.98 }}
                               className={cn(
-                                "py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200",
-                                "hover:border-primary/50 hover:bg-primary/5",
+                                "py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200",
                                 customEndDate
-                                  ? "border-primary bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)]"
-                                  : "border-slate-200 dark:border-slate-700 text-foreground"
+                                  ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 shadow-md"
+                                  : "bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 text-foreground hover:border-slate-300 hover:shadow-sm"
                               )}
                             >
                               {customEndDate ? format(customEndDate, "d MMM") : "Custom"}
@@ -660,24 +672,41 @@ export default function IntakeDemoPage() {
                         What&apos;s been bothering you? <span className="text-muted-foreground font-normal">(Select all that apply)</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {SYMPTOM_TAGS.map((symptom) => (
-                          <motion.button
-                            key={symptom.id}
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => toggleSymptom(symptom.id)}
-                            className={cn(
-                              "px-4 py-2.5 rounded-full border-2 text-sm font-medium transition-all duration-200",
-                              "hover:border-primary/50",
-                              selectedSymptoms.includes(symptom.id)
-                                ? "border-primary bg-primary text-white shadow-[0_2px_8px_rgba(37,99,235,0.25)]"
-                                : "border-slate-200 dark:border-slate-700 text-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
-                            )}
-                          >
-                            <span className="mr-1.5">{symptom.emoji}</span>
-                            {symptom.label}
-                          </motion.button>
-                        ))}
+                        {SYMPTOM_TAGS.map((symptom, index) => {
+                          // Unique pastel gradient for each symptom
+                          const colors = [
+                            { bg: "from-rose-50 to-pink-50", border: "border-rose-200/60", text: "text-rose-700 dark:text-rose-400" },
+                            { bg: "from-amber-50 to-orange-50", border: "border-amber-200/60", text: "text-amber-700 dark:text-amber-400" },
+                            { bg: "from-emerald-50 to-teal-50", border: "border-emerald-200/60", text: "text-emerald-700 dark:text-emerald-400" },
+                            { bg: "from-sky-50 to-cyan-50", border: "border-sky-200/60", text: "text-sky-700 dark:text-sky-400" },
+                            { bg: "from-violet-50 to-purple-50", border: "border-violet-200/60", text: "text-violet-700 dark:text-violet-400" },
+                            { bg: "from-pink-50 to-fuchsia-50", border: "border-pink-200/60", text: "text-pink-700 dark:text-pink-400" },
+                            { bg: "from-lime-50 to-green-50", border: "border-lime-200/60", text: "text-lime-700 dark:text-lime-400" },
+                            { bg: "from-indigo-50 to-blue-50", border: "border-indigo-200/60", text: "text-indigo-700 dark:text-indigo-400" },
+                            { bg: "from-red-50 to-rose-50", border: "border-red-200/60", text: "text-red-700 dark:text-red-400" },
+                            { bg: "from-slate-100 to-gray-50", border: "border-slate-300/60", text: "text-slate-700 dark:text-slate-400" },
+                          ]
+                          const color = colors[index % colors.length]
+                          const isSelected = selectedSymptoms.includes(symptom.id)
+                          
+                          return (
+                            <motion.button
+                              key={symptom.id}
+                              whileHover={{ scale: 1.03, y: -2 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => toggleSymptom(symptom.id)}
+                              className={cn(
+                                "px-4 py-2.5 rounded-full border text-sm font-medium transition-all duration-200",
+                                isSelected
+                                  ? `bg-gradient-to-br ${color.bg} ${color.border} ${color.text} shadow-md`
+                                  : "bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 text-foreground hover:border-slate-300 hover:shadow-sm"
+                              )}
+                            >
+                              <span className="mr-1.5">{symptom.emoji}</span>
+                              {symptom.label}
+                            </motion.button>
+                          )
+                        })}
                       </div>
                     </div>
 
@@ -1112,10 +1141,10 @@ export default function IntakeDemoPage() {
                     size="lg"
                     className={cn(
                       "w-full py-6 text-lg font-semibold",
-                      "bg-gradient-to-r from-primary via-blue-600 to-cyan-600",
-                      "hover:from-primary/90 hover:via-blue-600/90 hover:to-cyan-600/90",
-                      "shadow-[0_8px_32px_rgba(37,99,235,0.35)]",
-                      "hover:shadow-[0_12px_40px_rgba(37,99,235,0.45)]",
+                      "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500",
+                      "hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600",
+                      "shadow-[0_8px_32px_rgba(16,185,129,0.35)]",
+                      "hover:shadow-[0_12px_40px_rgba(16,185,129,0.45)]",
                       "hover:scale-[1.01] active:scale-[0.99]",
                       "transition-all duration-200",
                       "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
