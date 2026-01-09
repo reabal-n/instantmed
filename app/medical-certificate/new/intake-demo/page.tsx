@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { 
   MedCertIntakeFlow, 
   StepContent, 
   type IntakeStep 
 } from "@/components/intake"
+import { PaymentRedirectOverlay } from "@/components/intake/payment-skeleton"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
 import { 
@@ -27,7 +28,9 @@ import {
   Lock,
   CheckCircle2,
   Loader2,
-  Mail
+  Mail,
+  AlertCircle,
+  RotateCcw
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -39,6 +42,8 @@ import { Switch } from "@/components/ui/switch"
 import { format, addDays } from "date-fns"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { toast } from "sonner"
+import { useIntakeAnalytics } from "@/lib/hooks/use-intake-analytics"
 
 // Google icon component
 function GoogleIcon({ className }: { className?: string }) {
@@ -82,10 +87,22 @@ const SYMPTOM_TAGS = [
 // DEMO PAGE
 // ============================================
 
+// Storage key for form persistence
+const STORAGE_KEY = "medcert_intake_draft"
+
 export default function IntakeDemoPage() {
   const router = useRouter()
   const { isSignedIn, user, profile, signInWithGoogle, isLoading: authLoading } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
+  const [isRestored, setIsRestored] = useState(false)
+  const [showDraftBanner, setShowDraftBanner] = useState(false)
+  const hasTrackedStart = useRef(false)
+  
+  // Analytics tracking
+  const analytics = useIntakeAnalytics({
+    flowType: "medical_certificate",
+    steps: STEPS,
+  })
   
   // Demo state
   const [patientType, setPatientType] = useState<"self" | "other" | null>(null)
@@ -119,6 +136,80 @@ export default function IntakeDemoPage() {
   // Payment state (Step 7)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false)
+  
+  // Load saved draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const data = JSON.parse(saved)
+        // Check if draft is less than 24 hours old
+        if (data.timestamp && Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+          setPatientType(data.patientType || null)
+          setSelectedPurpose(data.selectedPurpose || null)
+          setStartDate(data.startDate ? new Date(data.startDate) : new Date())
+          setSelectedDuration(data.selectedDuration || null)
+          setCustomEndDate(data.customEndDate ? new Date(data.customEndDate) : undefined)
+          setSelectedSymptoms(data.selectedSymptoms || [])
+          setAdditionalNotes(data.additionalNotes || "")
+          setCurrentStep(data.currentStep || 0)
+          setShowDraftBanner(data.currentStep > 0)
+          analytics.trackDraftRestored()
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    setIsRestored(true)
+  }, [analytics])
+  
+  // Save draft on state changes (debounced)
+  useEffect(() => {
+    if (!isRestored) return
+    
+    const timeoutId = setTimeout(() => {
+      const data = {
+        patientType,
+        selectedPurpose,
+        startDate: startDate?.toISOString(),
+        selectedDuration,
+        customEndDate: customEndDate?.toISOString(),
+        selectedSymptoms,
+        additionalNotes,
+        currentStep,
+        timestamp: Date.now(),
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    }, 500)
+    
+    return () => clearTimeout(timeoutId)
+  }, [isRestored, patientType, selectedPurpose, startDate, selectedDuration, customEndDate, selectedSymptoms, additionalNotes, currentStep])
+  
+  // Clear draft helper
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setShowDraftBanner(false)
+    analytics.trackDraftDiscarded()
+    toast.success("Draft cleared")
+  }, [analytics])
+  
+  // Track flow start
+  useEffect(() => {
+    if (!hasTrackedStart.current && isRestored) {
+      hasTrackedStart.current = true
+      analytics.trackFlowStart()
+    }
+  }, [isRestored, analytics])
+  
+  // Track step changes
+  useEffect(() => {
+    if (isRestored) {
+      analytics.trackStepEnter(currentStep)
+    }
+  }, [currentStep, isRestored, analytics])
   
   // Simple email validation
   const isValidEmail = (emailStr: string) => {
@@ -135,8 +226,10 @@ export default function IntakeDemoPage() {
 
   // Advance to next step
   const advanceStep = useCallback(() => {
+    // Track step completion before advancing
+    analytics.trackStepComplete(currentStep)
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1))
-  }, [])
+  }, [currentStep, analytics])
 
   const handleStepChange = (step: number, _direction: "forward" | "back") => {
     setCurrentStep(step)
@@ -146,6 +239,9 @@ export default function IntakeDemoPage() {
     // Submit to Stripe checkout
     setIsSubmitting(true)
     setSubmitError(null)
+    
+    // Track payment initiation
+    analytics.trackPaymentInitiated(29.95, !isSignedIn)
     
     try {
       // Build the answers object for the request
@@ -184,13 +280,34 @@ export default function IntakeDemoPage() {
       }
       
       if (result.success && result.checkoutUrl) {
-        // Redirect to Stripe checkout
-        window.location.href = result.checkoutUrl
+        // Show payment overlay
+        setShowPaymentOverlay(true)
+        
+        // Clear draft on successful checkout initiation
+        localStorage.removeItem(STORAGE_KEY)
+        
+        // Track flow completion
+        analytics.trackFlowComplete({ checkout_initiated: true })
+        
+        // Small delay for visual feedback, then redirect
+        setTimeout(() => {
+          window.location.href = result.checkoutUrl!
+        }, 1000)
       } else {
-        setSubmitError(result.error || "Something went wrong. Please try again.")
+        const errorMessage = result.error || "Something went wrong. Please try again."
+        setSubmitError(errorMessage)
+        toast.error("Payment Error", {
+          description: errorMessage,
+        })
+        analytics.trackValidationError(currentStep, "checkout_error", errorMessage)
       }
     } catch (_err) {
-      setSubmitError("Failed to create checkout session. Please try again.")
+      const errorMessage = "Failed to create checkout session. Please try again."
+      setSubmitError(errorMessage)
+      toast.error("Connection Error", {
+        description: errorMessage,
+      })
+      analytics.trackValidationError(currentStep, "network_error", errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -201,6 +318,8 @@ export default function IntakeDemoPage() {
   }
 
   const handleClose = () => {
+    // Track flow abandonment
+    analytics.trackFlowAbandoned(currentStep, "user_closed")
     router.push("/")
   }
   
@@ -211,7 +330,9 @@ export default function IntakeDemoPage() {
       setAuthError(null)
       await signInWithGoogle(window.location.pathname + window.location.search)
     } catch (_err) {
-      setAuthError("Failed to sign in with Google. Please try again.")
+      const errorMessage = "Failed to sign in with Google. Please try again."
+      setAuthError(errorMessage)
+      toast.error("Sign In Error", { description: errorMessage })
       setIsAuthenticating(false)
     }
   }
@@ -294,18 +415,62 @@ export default function IntakeDemoPage() {
     .join(", ")
 
   return (
-    <MedCertIntakeFlow
-      steps={STEPS}
-      currentStep={currentStep}
-      onStepChange={handleStepChange}
-      onComplete={handleComplete}
-      onExit={handleExit}
-      onClose={handleClose}
-      canContinue={canContinue}
-      continueLabel={currentStep === 7 ? "Pay $29.95" : undefined}
-      hideNavigation={hideNavigation}
-      hideProgress={hideProgress}
-    >
+    <>
+      {/* Payment redirect overlay */}
+      {showPaymentOverlay && <PaymentRedirectOverlay />}
+      
+      {/* Draft restoration banner */}
+      <AnimatePresence>
+        {showDraftBanner && currentStep > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
+          >
+            <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-amber-800 dark:text-amber-200">
+                  We found your saved progress
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearDraft}
+                  className="h-8 text-xs text-amber-700 dark:text-amber-300 hover:text-amber-900"
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  Start Fresh
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDraftBanner(false)}
+                  className="h-8 text-xs"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <MedCertIntakeFlow
+        steps={STEPS}
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+        onComplete={handleComplete}
+        onExit={handleExit}
+        onClose={handleClose}
+        canContinue={canContinue}
+        continueLabel={currentStep === 7 ? "Pay $29.95" : undefined}
+        hideNavigation={hideNavigation}
+        hideProgress={hideProgress}
+      >
       {(step) => {
         switch (step) {
           // ======= STEP 0: THE HOOK (Introduction) =======
@@ -926,21 +1091,34 @@ export default function IntakeDemoPage() {
                   <div 
                     className={cn(
                       "flex items-center justify-between gap-4 p-4 rounded-xl border-2 transition-all duration-300",
+                      "min-h-[72px]", // Ensure good tap target
                       hasEmergencySymptoms
                         ? "border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     )}
+                    role="group"
+                    aria-describedby="emergency-help"
                   >
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-medium text-foreground" id="emergency-question">
                         Are you having chest pain, severe difficulty breathing, or signs of a stroke?
                       </p>
                     </div>
                     <Switch
                       checked={hasEmergencySymptoms}
-                      onCheckedChange={setHasEmergencySymptoms}
+                      onCheckedChange={(checked) => {
+                        setHasEmergencySymptoms(checked)
+                        if (checked) {
+                          analytics.trackEmergencyRedirect()
+                          toast.error("Emergency Symptoms Detected", {
+                            description: "Please call 000 or go to the ER immediately.",
+                            duration: 10000,
+                          })
+                        }
+                      }}
                       aria-label="Has critical emergency symptoms"
-                      className="flex-shrink-0"
+                      aria-describedby="emergency-question"
+                      className="shrink-0"
                     />
                   </div>
 
@@ -1568,6 +1746,7 @@ export default function IntakeDemoPage() {
         }
       }}
     </MedCertIntakeFlow>
+    </>
   )
 }
 

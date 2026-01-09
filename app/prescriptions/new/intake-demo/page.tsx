@@ -6,6 +6,7 @@ import {
   StepContent, 
   type IntakeStep 
 } from "@/components/intake"
+import { PaymentRedirectOverlay } from "@/components/intake/payment-skeleton"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
 import { 
@@ -28,7 +29,8 @@ import {
   CheckCircle2,
   Lock,
   RefreshCw,
-  Loader2
+  Loader2,
+  RotateCcw
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -38,6 +40,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { type Medication } from "@/lib/data/medications"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { toast } from "sonner"
+import { useIntakeAnalytics } from "@/lib/hooks/use-intake-analytics"
 
 // Google icon component
 function GoogleIcon({ className }: { className?: string }) {
@@ -77,10 +81,22 @@ const POPULAR_MEDICATIONS = [
 // DEMO PAGE
 // ============================================
 
+// Storage key for form persistence
+const STORAGE_KEY = "prescription_intake_draft"
+
 export default function RepeatPrescriptionDemoPage() {
   const router = useRouter()
   const { isSignedIn, user, profile, signInWithGoogle, isLoading: authLoading } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
+  const [isRestored, setIsRestored] = useState(false)
+  const [showDraftBanner, setShowDraftBanner] = useState(false)
+  const hasTrackedStart = useRef(false)
+  
+  // Analytics tracking
+  const analytics = useIntakeAnalytics({
+    flowType: "repeat_prescription",
+    steps: STEPS,
+  })
   
   // Medication search state
   const [searchQuery, setSearchQuery] = useState("")
@@ -115,9 +131,91 @@ export default function RepeatPrescriptionDemoPage() {
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false)
   
   const searchInputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Load saved draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const data = JSON.parse(saved)
+        // Check if draft is less than 24 hours old
+        if (data.timestamp && Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+          setSearchQuery(data.searchQuery || "")
+          if (data.selectedMedication) {
+            setSelectedMedication(data.selectedMedication)
+          }
+          setSelectedStrength(data.selectedStrength || null)
+          setCustomStrength(data.customStrength || "")
+          setShowCustomStrength(data.showCustomStrength || false)
+          setFrequency(data.frequency || null)
+          setCustomFrequency(data.customFrequency || "")
+          setLastPrescribed(data.lastPrescribed || null)
+          setMobileNumber(data.mobileNumber || "")
+          setEmail(data.email || "")
+          setCurrentStep(data.currentStep || 0)
+          setShowDraftBanner(data.currentStep > 0)
+          analytics.trackDraftRestored()
+        } else {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    setIsRestored(true)
+  }, [analytics])
+  
+  // Save draft on state changes (debounced)
+  useEffect(() => {
+    if (!isRestored) return
+    
+    const timeoutId = setTimeout(() => {
+      const data = {
+        searchQuery,
+        selectedMedication,
+        selectedStrength,
+        customStrength,
+        showCustomStrength,
+        frequency,
+        customFrequency,
+        lastPrescribed,
+        mobileNumber,
+        email,
+        currentStep,
+        timestamp: Date.now(),
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    }, 500)
+    
+    return () => clearTimeout(timeoutId)
+  }, [isRestored, searchQuery, selectedMedication, selectedStrength, customStrength, showCustomStrength, frequency, customFrequency, lastPrescribed, mobileNumber, email, currentStep])
+  
+  // Clear draft helper
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setShowDraftBanner(false)
+    analytics.trackDraftDiscarded()
+    toast.success("Draft cleared")
+  }, [analytics])
+  
+  // Track flow start
+  useEffect(() => {
+    if (!hasTrackedStart.current && isRestored) {
+      hasTrackedStart.current = true
+      analytics.trackFlowStart()
+    }
+  }, [isRestored, analytics])
+  
+  // Track step changes
+  useEffect(() => {
+    if (isRestored) {
+      analytics.trackStepEnter(currentStep)
+    }
+  }, [currentStep, isRestored, analytics])
   
   // Auto-skip auth step if already signed in
   useEffect(() => {
@@ -195,8 +293,10 @@ export default function RepeatPrescriptionDemoPage() {
 
   // Advance to next step
   const advanceStep = useCallback(() => {
+    // Track step completion before advancing
+    analytics.trackStepComplete(currentStep)
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1))
-  }, [])
+  }, [currentStep, analytics])
 
   const handleStepChange = (step: number, _direction: "forward" | "back") => {
     setCurrentStep(step)
@@ -206,6 +306,9 @@ export default function RepeatPrescriptionDemoPage() {
     // Submit to Stripe checkout
     setIsSubmitting(true)
     setSubmitError(null)
+    
+    // Track payment initiation
+    analytics.trackPaymentInitiated(19.95, !isSignedIn)
     
     try {
       // Build the answers object for the request
@@ -246,13 +349,34 @@ export default function RepeatPrescriptionDemoPage() {
       }
       
       if (result.success && result.checkoutUrl) {
-        // Redirect to Stripe checkout
-        window.location.href = result.checkoutUrl
+        // Show payment overlay
+        setShowPaymentOverlay(true)
+        
+        // Clear draft on successful checkout initiation
+        localStorage.removeItem(STORAGE_KEY)
+        
+        // Track flow completion
+        analytics.trackFlowComplete({ checkout_initiated: true })
+        
+        // Small delay for visual feedback, then redirect
+        setTimeout(() => {
+          window.location.href = result.checkoutUrl!
+        }, 1000)
       } else {
-        setSubmitError(result.error || "Something went wrong. Please try again.")
+        const errorMessage = result.error || "Something went wrong. Please try again."
+        setSubmitError(errorMessage)
+        toast.error("Payment Error", {
+          description: errorMessage,
+        })
+        analytics.trackValidationError(currentStep, "checkout_error", errorMessage)
       }
     } catch (_err) {
-      setSubmitError("Failed to create checkout session. Please try again.")
+      const errorMessage = "Failed to create checkout session. Please try again."
+      setSubmitError(errorMessage)
+      toast.error("Connection Error", {
+        description: errorMessage,
+      })
+      analytics.trackValidationError(currentStep, "network_error", errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -263,6 +387,8 @@ export default function RepeatPrescriptionDemoPage() {
   }
 
   const handleClose = () => {
+    // Track flow abandonment
+    analytics.trackFlowAbandoned(currentStep, "user_closed")
     router.push("/")
   }
   
@@ -273,7 +399,9 @@ export default function RepeatPrescriptionDemoPage() {
       setAuthError(null)
       await signInWithGoogle(window.location.pathname + window.location.search)
     } catch (_err) {
-      setAuthError("Failed to sign in with Google. Please try again.")
+      const errorMessage = "Failed to sign in with Google. Please try again."
+      setAuthError(errorMessage)
+      toast.error("Sign In Error", { description: errorMessage })
       setIsAuthenticating(false)
     }
   }
@@ -399,18 +527,62 @@ export default function RepeatPrescriptionDemoPage() {
   const hideProgress = false
 
   return (
-    <MedCertIntakeFlow
-      steps={STEPS}
-      currentStep={currentStep}
-      onStepChange={handleStepChange}
-      onComplete={handleComplete}
-      onExit={handleExit}
-      onClose={handleClose}
-      canContinue={canContinue}
-      continueLabel={currentStep === 5 ? "Pay $19.95" : undefined}
-      hideNavigation={hideNavigation}
-      hideProgress={hideProgress}
-    >
+    <>
+      {/* Payment redirect overlay */}
+      {showPaymentOverlay && <PaymentRedirectOverlay />}
+      
+      {/* Draft restoration banner */}
+      <AnimatePresence>
+        {showDraftBanner && currentStep > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
+          >
+            <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-amber-800 dark:text-amber-200">
+                  We found your saved progress
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearDraft}
+                  className="h-8 text-xs text-amber-700 dark:text-amber-300 hover:text-amber-900"
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  Start Fresh
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDraftBanner(false)}
+                  className="h-8 text-xs"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <MedCertIntakeFlow
+        steps={STEPS}
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+        onComplete={handleComplete}
+        onExit={handleExit}
+        onClose={handleClose}
+        canContinue={canContinue}
+        continueLabel={currentStep === 5 ? "Pay $19.95" : undefined}
+        hideNavigation={hideNavigation}
+        hideProgress={hideProgress}
+      >
       {(step) => {
         switch (step) {
           // ======= STEP 0: MEDICATION SEARCH =======
@@ -1904,6 +2076,7 @@ export default function RepeatPrescriptionDemoPage() {
         }
       }}
     </MedCertIntakeFlow>
+    </>
   )
 }
 
