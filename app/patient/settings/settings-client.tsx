@@ -354,7 +354,7 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
               <p className="text-xs text-muted-foreground mt-4">
                 To update your Medicare details, please{" "}
                 <a 
-                  href="mailto:help@instantmed.com.au?subject=Medicare%20Details%20Update" 
+                  href="mailto:hello@instantmed.com.au?subject=Medicare%20Details%20Update" 
                   className="text-primary hover:underline font-medium"
                 >
                   contact our support team

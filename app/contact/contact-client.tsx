@@ -13,7 +13,6 @@ import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import {
   Mail,
-  Phone,
   MapPin,
   Clock,
   Send,
@@ -156,24 +155,10 @@ export function ContactClient() {
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <a
-                          href="mailto:support@instantmed.com.au"
+                          href="mailto:hello@instantmed.com.au"
                           className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
                         >
-                          support@instantmed.com.au
-                        </a>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
-                        <Phone className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Phone</p>
-                        <a
-                          href="tel:1300123456"
-                          className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
-                        >
-                          1300 123 456
+                          hello@instantmed.com.au
                         </a>
                       </div>
                     </div>

@@ -37,9 +37,8 @@ import type {
   EligibilityResult,
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
-import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
-import { HelpTooltip, FieldLabelWithHelp } from "@/components/ui/help-tooltip"
-import { ContextualHelp, InfoCard } from "@/components/ui/contextual-help"
+import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
+import { ContextualHelp } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 import { CompactStepper } from "@/components/ui/form-stepper"
 
@@ -238,7 +237,7 @@ function AuthStep({
           <Button
             onClick={onSignIn}
             disabled={isLoading}
-            className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <ButtonSpinner className="mr-2" />
@@ -364,12 +363,10 @@ function PillButton({
   selected,
   onClick,
   children,
-  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
     <motion.button
@@ -382,7 +379,7 @@ function PillButton({
         "border-2 border-white/40 dark:border-white/10",
         "transition-all duration-300 ease-out",
         selected
-          ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
+          ? "border-primary/50 bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
           : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]"
       )}
       whileHover={selected ? {} : { scale: 1.02, y: -1 }}
@@ -755,7 +752,7 @@ export function RepeatRxIntakeFlow({
   
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="min-h-screen bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         {/* Header */}
         {currentStep !== "auth" && currentStep !== "confirmation" && (
           <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
@@ -877,12 +874,11 @@ export function RepeatRxIntakeFlow({
                   required
                 >
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(REPEAT_RX_COPY.steps.history.lastPrescribedOptions).map(([key, label], index) => (
+                    {Object.entries(REPEAT_RX_COPY.steps.history.lastPrescribedOptions).map(([key, label]) => (
                       <PillButton
                         key={key}
                         selected={lastPrescribed === key}
                         onClick={() => setLastPrescribed(key)}
-                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {label}
                       </PillButton>
@@ -897,12 +893,11 @@ export function RepeatRxIntakeFlow({
                   hint={REPEAT_RX_COPY.steps.history.stabilityNote}
                 >
                   <div className="flex flex-wrap gap-2">
-                    {Object.entries(REPEAT_RX_COPY.steps.history.stabilityOptions).map(([key, label], index) => (
+                    {Object.entries(REPEAT_RX_COPY.steps.history.stabilityOptions).map(([key, label]) => (
                       <PillButton
                         key={key}
                         selected={stability === key}
                         onClick={() => setStability(key)}
-                        gradient={index % 3 === 0 ? "blue-purple" : index % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {label}
                       </PillButton>
@@ -1374,7 +1369,7 @@ export function RepeatRxIntakeFlow({
               
               <Button
                 onClick={() => router.push("/patient/requests")}
-                className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               >
                 {REPEAT_RX_COPY.confirmation.trackStatus}
                 <ChevronRight className="w-4 h-4 ml-2" />
@@ -1414,7 +1409,7 @@ export function RepeatRxIntakeFlow({
                       goToStep("confirmation")
                     }}
                     disabled={isLoading}
-                    className="flex-1 h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>
@@ -1432,7 +1427,7 @@ export function RepeatRxIntakeFlow({
                   <Button
                     onClick={checkEligibility}
                     disabled={!canContinue() || isCheckingEligibility}
-                    className="flex-1 h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCheckingEligibility ? (
                       <>
@@ -1450,7 +1445,7 @@ export function RepeatRxIntakeFlow({
                   <Button
                     onClick={goNext}
                     disabled={!canContinue()}
-                    className="flex-1 h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {REPEAT_RX_COPY.nav.continue}
                     <ArrowRight className="w-4 h-4 ml-2" />

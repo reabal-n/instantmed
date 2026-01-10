@@ -139,7 +139,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       if (requestError?.code === "42501") {
         return {
           success: false,
-          error: "You don't have permission to create requests. Please contact support at help@instantmed.com.au",
+          error: "You don't have permission to create requests. Please contact support at hello@instantmed.com.au",
           errorCode: "PERMISSION_DENIED",
         }
       }
@@ -170,7 +170,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     log.error("[createRequestAction] Unexpected error", { error: String(error) })
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again or contact support at help@instantmed.com.au",
+      error: "An unexpected error occurred. Please try again or contact support at hello@instantmed.com.au",
       errorCode: "UNEXPECTED_ERROR",
     }
   }
@@ -258,7 +258,7 @@ async function checkServiceAvailability(input: CreateRequestInput): Promise<{
 
     return {
       available: false,
-      error: `This service is temporarily unavailable. Please try again later or contact support at help@instantmed.com.au [${errorCode}]`,
+      error: `This service is temporarily unavailable. Please try again later or contact support at hello@instantmed.com.au [${errorCode}]`,
       errorCode,
     }
   }

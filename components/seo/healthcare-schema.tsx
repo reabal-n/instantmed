@@ -57,7 +57,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     contactPoint: [{
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "support@instantmed.com.au",
+      email: "hello@instantmed.com.au",
       availableLanguage: ["English"]
     }],
     sameAs: [

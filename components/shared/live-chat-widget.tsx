@@ -76,7 +76,7 @@ function getSmartResponse(text: string): string {
     }
   }
 
-  return "Good question — I'm not sure on that one. Email support@instantmed.com.au or call 1300 123 456 and a real human will help."
+  return "Good question — I'm not sure on that one. Email hello@instantmed.com.au and a real human will help."
 }
 
 export function LiveChatWidget() {

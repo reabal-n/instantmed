@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2 } from "lucide-react"
 import { Button } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
@@ -37,24 +38,35 @@ export function AboutClient() {
         <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-              <div className="max-w-4xl mx-auto">
-                <h2 className="text-2xl font-bold mb-4">Our Story</h2>
-                <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-                  <p>
-                    InstantMed was born from frustration. We were tired of waiting weeks for GP appointments, taking
-                    half-days off work for simple script renewals, and dealing with the endless paperwork that comes
-                    with traditional healthcare.
-                  </p>
-                  <p>
-                    We asked ourselves: why can&apos;t getting a medical certificate or prescription be as simple as
-                    ordering food online? Why do you need to sit in a waiting room for 45 minutes when a doctor can
-                    review your request in minutes?
-                  </p>
-                  <p>
-                    So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors
-                    who can review your requests quickly and professionally—all without the hassle of phone calls, video
-                    chats, or waiting rooms.
-                  </p>
+              <div className="grid lg:grid-cols-2 gap-8 items-center">
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
+                  <Image
+                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=800&q=80"
+                    alt="Modern telehealth consultation"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Our Story</h2>
+                  <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                    <p>
+                      InstantMed was born from frustration. We were tired of waiting weeks for GP appointments, taking
+                      half-days off work for simple script renewals, and dealing with the endless paperwork that comes
+                      with traditional healthcare.
+                    </p>
+                    <p>
+                      We asked ourselves: why can&apos;t getting a medical certificate or prescription be as simple as
+                      ordering food online? Why do you need to sit in a waiting room for 45 minutes when a doctor can
+                      review your request in minutes?
+                    </p>
+                    <p>
+                      So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors
+                      who can review your requests quickly and professionally—all without the hassle of phone calls, video
+                      chats, or waiting rooms.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

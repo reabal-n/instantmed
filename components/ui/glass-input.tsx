@@ -96,7 +96,7 @@ const GlassInput = React.forwardRef<HTMLInputElement, GlassInputProps>(
           <input
             ref={ref}
             className={cn(
-              "relative z-10 h-full w-0 flex-grow bg-transparent py-3 text-foreground placeholder:text-foreground/50 focus:outline-none",
+              "relative z-10 h-full w-0 grow bg-transparent py-3 text-foreground placeholder:text-foreground/50 focus:outline-none",
               !icon && "pl-4",
               !endContent && "pr-4",
               className

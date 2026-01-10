@@ -834,7 +834,7 @@ export function EnhancedIntakeFlow({
       if (process.env.NODE_ENV === 'development') console.error("Submit error:", error)
       
       setErrors({ 
-        agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at help@instantmed.com.au` 
+        agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at hello@instantmed.com.au` 
       })
     } finally {
       setIsSubmitting(false)
@@ -916,7 +916,7 @@ export function EnhancedIntakeFlow({
               className="border-primary/20 bg-primary/5 shadow-[0_0_8px_rgba(99,102,241,0.15)] dark:shadow-[0_0_8px_rgba(99,102,241,0.25)] flex items-center justify-center py-1.5 px-2"
             >
               <div className="flex items-center justify-center gap-1.5">
-                <Clock className="w-3 h-3 flex-shrink-0" />
+                <Clock className="w-3 h-3 shrink-0" />
                 <AlertDescription className="text-[11px] leading-tight text-center">
                   Most requests reviewed within 1 hour • Doctors online now
                 </AlertDescription>
@@ -1452,7 +1452,7 @@ export function EnhancedIntakeFlow({
             </Alert>
 
             {/* Summary card - Enhanced with edit capability */}
-            <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+            <div className="p-5 bg-linear-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {selectedService && (
@@ -1663,7 +1663,7 @@ export function EnhancedIntakeFlow({
             )}
 
             {/* What happens next timeline */}
-            <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+            <div className="p-4 bg-linear-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
                 What happens next?
@@ -1783,7 +1783,7 @@ export function EnhancedIntakeFlow({
   }, [errors, announce])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
       {/* Screen reader announcements */}
       <LiveRegion />
       
@@ -1895,7 +1895,7 @@ export function EnhancedIntakeFlow({
                 !!(step === "account" && (errors.firstName || errors.lastName || errors.email || errors.phone || errors.dob)) ||
                 !!(step === "review" && errors.agreedToTerms)
               }
-              className="bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary-600 hover:to-primary-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
+              className="bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary-600 hover:to-primary-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
             >
               {isSubmitting
                 ? "Processing..."
