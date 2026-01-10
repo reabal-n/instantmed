@@ -124,7 +124,7 @@ function _GoogleIcon({ className }: { className?: string }) {
 }
 
 // Progress indicator component with animated dots and time estimate
-function ProgressIndicator({
+function _ProgressIndicator({
   steps,
   currentIndex,
 }: {

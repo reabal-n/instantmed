@@ -69,7 +69,7 @@ interface TooltipContentProps extends React.ComponentProps<"div"> {
 
 function TooltipContent({
   children,
-  side,
+  side: _side,
   ...props
 }: TooltipContentProps) {
   // Note: HeroUI handles placement on the Tooltip component, not the content

@@ -44,9 +44,9 @@ export async function getFlowSession(): Promise<FlowSession> {
     
     if (user) {
       return {
-        user: { id: user.id, email: user.email },
+        user: { id: user.id, email: user.email ?? null },
         isAuthenticated: true,
-        email: user.email,
+        email: user.email ?? null,
         userId: user.id,
       }
     }

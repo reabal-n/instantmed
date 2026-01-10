@@ -45,7 +45,7 @@ export function useDraftPersistence(
   } = options
 
   const { syncStatus, pendingChanges, lastSyncError } = useFlowSync()
-  const { draftId, sessionId } = useFlowDraft()
+  const { draftId, sessionId: _sessionId } = useFlowDraft()
   const serviceSlug = useFlowService()
   const { forceSave, clearDraft, saveDraft } = useFlowStore()
   const lastSavedAt = useFlowStore((s) => s.lastSavedAt)

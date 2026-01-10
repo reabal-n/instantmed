@@ -1,4 +1,5 @@
 import type * as React from "react"
+import Head from "next/head"
 
 interface BaseLayoutProps {
   previewText: string
@@ -8,7 +9,7 @@ interface BaseLayoutProps {
 export function BaseLayout({ previewText, children }: BaseLayoutProps) {
   return (
     <html>
-      <head>
+      <Head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="x-apple-disable-message-reformatting" />
@@ -93,7 +94,7 @@ export function BaseLayout({ previewText, children }: BaseLayoutProps) {
             color: #737373;
           }
         `}</style>
-      </head>
+      </Head>
       <body>
         <div className="container">
           <div className="card">

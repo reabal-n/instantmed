@@ -139,7 +139,7 @@ export const staggerItemVariants: Variants = {
 // MOTION COMPONENTS
 // ===========================================
 
-interface MotionCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
   /** Enable hover lift effect */
   hover?: boolean
@@ -186,14 +186,14 @@ export function MotionCard({
         transition: { duration: 0.1 },
       } : undefined}
       transition={{ ...springPresets.gentle, delay }}
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.div>
   )
 }
 
-interface MotionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface MotionButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
   /** Glow color for hover state */
   glowColor?: "primary" | "accent" | "success" | "danger"
@@ -229,14 +229,14 @@ export function MotionButton({
       initial="rest"
       whileHover="hover"
       whileTap="tap"
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.button>
   )
 }
 
-interface MotionListProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionListProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
 }
 
@@ -251,14 +251,14 @@ export function MotionList({ children, className, ...props }: MotionListProps) {
       variants={staggerContainerVariants}
       initial="hidden"
       animate="visible"
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.div>
   )
 }
 
-interface MotionListItemProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionListItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
 }
 
@@ -271,14 +271,14 @@ export function MotionListItem({ children, className, ...props }: MotionListItem
     <motion.div
       className={className}
       variants={staggerItemVariants}
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.div>
   )
 }
 
-interface MotionFadeProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionFadeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
   /** Show/hide the content */
   show?: boolean
@@ -298,7 +298,7 @@ export function MotionFade({ children, show = true, className, ...props }: Motio
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          {...props}
+          {...(props as any)}
         >
           {children}
         </motion.div>
@@ -307,7 +307,7 @@ export function MotionFade({ children, show = true, className, ...props }: Motio
   )
 }
 
-interface MotionModalProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionModalProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
   /** Control visibility */
   isOpen: boolean
@@ -335,7 +335,7 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
           initial="hidden"
           animate="visible"
           exit="exit"
-          {...props}
+          {...(props as any)}
         >
           {children}
         </motion.div>
@@ -344,7 +344,7 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
   )
 }
 
-interface MotionScaleProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MotionScaleProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'transition'> {
   children: React.ReactNode
 }
 
@@ -359,7 +359,7 @@ export function MotionScale({ children, className, ...props }: MotionScaleProps)
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springPresets.bouncy}
-      {...props}
+      {...(props as any)}
     >
       {children}
     </motion.div>

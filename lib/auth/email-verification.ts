@@ -8,17 +8,28 @@ interface SendVerificationEmailParams {
 
 /**
  * Send email verification link to user
- * Note: With Clerk, email verification is handled automatically during signup.
- * This function is kept for backwards compatibility but now just returns success
- * since Clerk handles email verification internally.
+ * Note: With Supabase, email verification is handled automatically during signup.
+ * This function is kept for backwards compatibility.
  */
 export async function sendVerificationEmail({
   email,
 }: SendVerificationEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
-    // With Clerk, email verification is handled during signup
-    // This is a no-op for compatibility
-    logger.info("Email verification requested (handled by Clerk)", { email })
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    
+    // Resend verification email via Supabase
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    })
+
+    if (error) {
+      logger.error("Error sending verification email", {}, error)
+      return { success: false, error: "Failed to send verification email" }
+    }
+
+    logger.info("Email verification requested", { email })
     return { success: true }
   } catch (error) {
     logger.error("Unexpected error in email verification", {}, error instanceof Error ? error : new Error(String(error)))
@@ -31,17 +42,16 @@ export async function sendVerificationEmail({
  */
 export async function isEmailVerified(): Promise<boolean> {
   try {
-    const user = await currentUser()
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return false
     }
 
-    // Clerk verifies emails - check if primary email is verified
-    const primaryEmail = user.emailAddresses.find(
-      (e) => e.id === user.primaryEmailAddressId
-    )
-    return primaryEmail?.verification?.status === "verified"
+    // Supabase verifies emails - check email_confirmed_at
+    return !!user.email_confirmed_at
   } catch (error) {
     logger.error("Error checking email verification status", {}, error instanceof Error ? error : new Error(String(error)))
     return false
@@ -50,28 +60,37 @@ export async function isEmailVerified(): Promise<boolean> {
 
 /**
  * Resend verification email with rate limiting
- * Note: With Clerk, this is handled through the Clerk dashboard or API
+ * Note: With Supabase, this sends a verification email
  */
 export async function resendVerificationEmail(
   email: string
 ): Promise<{ success: boolean; error?: string; retryAfter?: number }> {
   try {
-    const user = await currentUser()
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user || user.primaryEmailAddress?.emailAddress !== email) {
+    if (!user || user.email !== email) {
       return { success: false, error: "User not found" }
     }
 
     // Check if already verified
-    const primaryEmail = user.emailAddresses.find(
-      (e) => e.id === user.primaryEmailAddressId
-    )
-    if (primaryEmail?.verification?.status === "verified") {
+    if (user.email_confirmed_at) {
       return { success: false, error: "Email already verified" }
     }
 
-    // With Clerk, verification is automatic - user can request resend from Clerk UI
-    logger.info("Verification email resend requested (handled by Clerk)", { email })
+    // Resend verification email via Supabase
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    })
+
+    if (error) {
+      logger.error("Error resending verification email", {}, error)
+      return { success: false, error: "Failed to resend verification email" }
+    }
+
+    logger.info("Verification email resend requested", { email })
     return { success: true }
   } catch (error) {
     logger.error("Error resending verification email", {}, error instanceof Error ? error : new Error(String(error)))

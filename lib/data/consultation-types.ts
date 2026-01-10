@@ -10,7 +10,6 @@ import {
   Droplet,
   Pill,
   User,
-  Baby,
   Sparkles,
   Activity,
 } from "lucide-react"

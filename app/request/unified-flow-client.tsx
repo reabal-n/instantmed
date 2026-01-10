@@ -319,7 +319,7 @@ export function UnifiedFlowClient({
   const [_authMode, _setAuthMode] = useState<"signup" | "signin">("signup")
   const [_fullName, setFullName] = useState(userName || "")
   const [_email, setEmail] = useState(userEmail || "")
-  const [password, _setPassword] = useState("")
+  const [_password, _setPassword] = useState("")
   const [_showPassword, _setShowPassword] = useState(false)
   const [_agreedTerms, _setAgreedTerms] = useState(false)
 
@@ -598,7 +598,7 @@ export function UnifiedFlowClient({
         setForm((prev) => ({ ...prev, ...draft }))
       }
     } catch {}
-  }, [])
+  }, [handleMedicareChange])
 
   // Sync Supabase auth state
   useEffect(() => {

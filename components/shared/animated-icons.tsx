@@ -621,18 +621,18 @@ export function AnimatedIcon({ type, className = "", size = 56 }: AnimatedIconPr
   const animationRef = useRef<AnimationItem | null>(null)
   const [isHovered, setIsHovered] = useState(false)
 
-  const animations = {
-    medCert: medCertAnimation,
-    pill: pillAnimation,
-    referral: referralAnimation,
-    pathology: pathologyAnimation,
-    clock: clockAnimation,
-    doctor: doctorAnimation,
-    lock: lockAnimation,
-  }
-
   useEffect(() => {
     if (!containerRef.current) return
+
+    const animations = {
+      medCert: medCertAnimation,
+      pill: pillAnimation,
+      referral: referralAnimation,
+      pathology: pathologyAnimation,
+      clock: clockAnimation,
+      doctor: doctorAnimation,
+      lock: lockAnimation,
+    }
 
     animationRef.current = lottie.loadAnimation({
       container: containerRef.current,
@@ -645,7 +645,7 @@ export function AnimatedIcon({ type, className = "", size = 56 }: AnimatedIconPr
     return () => {
       animationRef.current?.destroy()
     }
-  }, [type, animations])
+  }, [type])
 
   useEffect(() => {
     if (animationRef.current) {
