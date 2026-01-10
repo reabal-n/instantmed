@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogIn, UserPlus, ArrowRight, Loader2 } from "lucide-react"
 
@@ -38,19 +38,13 @@ export function ServiceAuthGate({
   description = "Create an account or log in to submit your request.",
 }: ServiceAuthGateProps) {
   const pathname = usePathname()
-  const { openSignIn } = useAuth()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-
-  // Encode the current path for redirect after auth
-  const redirectParam = encodeURIComponent(pathname || "/")
 
   const handleSignIn = () => {
     setIsLoading(true)
-    openSignIn({
-      afterSignInUrl: pathname,
-      afterSignUpUrl: pathname,
-    })
-    setIsLoading(false)
+    // Redirect to login page with return URL
+    router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)
   }
 
   return (

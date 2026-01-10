@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Mail,
@@ -13,6 +14,8 @@ import { FlowContent } from '../flow-content'
 import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import { GoogleIcon } from '@/components/icons/google-icon'
+import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 // ============================================
 // TYPES
@@ -35,8 +38,8 @@ export function AuthStep({
   onSkip,
   allowSkip = false,
 }: AuthStepProps) {
-  const { isSignedIn, user } = useAuth()
-  const { openSignIn } = useAuth()
+  const router = useRouter()
+  const supabase = createClient()
   const identityData = useFlowIdentity()
   const { updateAnswer, nextStep, setIdentityData } = useFlowStore()
 
@@ -45,67 +48,113 @@ export function AuthStep({
   const [email, setEmail] = useState(identityData?.email || '')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [user, setUser] = useState<User | null>(null)
+  const [isChecking, setIsChecking] = useState(true)
+  const isSignedIn = !!user
 
-  // Check for existing session on mount - use Clerk
+  // Check for existing session on mount - use Supabase
   useEffect(() => {
-    if (isSignedIn && user) {
-      // User is already authenticated via Clerk
-      // Use setTimeout to avoid synchronous setState in effect
-      const timer = setTimeout(() => {
-        setMode('authenticated')
-      }, 0)
-      
-      // Update identity data with user email
-      const userEmail = user.primaryEmailAddress?.emailAddress
-      if (identityData) {
-        setIdentityData({
-          ...identityData,
-          email: userEmail || identityData.email,
-        })
+    const checkSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser) {
+          // User is already authenticated via Supabase
+          // Use setTimeout to avoid synchronous setState in effect
+          const timer = setTimeout(() => {
+            setMode('authenticated')
+          }, 0)
+          
+          // Update identity data with user email
+          const userEmail = currentUser.email
+          if (identityData) {
+            setIdentityData({
+              ...identityData,
+              email: userEmail || identityData.email,
+            })
+          }
+
+          // Store auth status
+          updateAnswer('_authenticated', {
+            userId: currentUser.id,
+            email: userEmail,
+            authenticatedAt: new Date().toISOString(),
+          })
+
+          // Auto-continue after brief delay
+          const continueTimer = setTimeout(() => {
+            onAuthenticated?.()
+            nextStep()
+          }, 1500)
+          
+          return () => {
+            clearTimeout(timer)
+            clearTimeout(continueTimer)
+          }
+        } else {
+          // Not signed in, show email input
+          const timer = setTimeout(() => {
+            if (identityData?.email) {
+              setEmail(identityData.email)
+            }
+            setMode('email_input')
+          }, 0)
+          
+          return () => clearTimeout(timer)
+        }
+      } catch (_error) {
+        // Error checking session - show email input
+        const timer = setTimeout(() => {
+          if (identityData?.email) {
+            setEmail(identityData.email)
+          }
+          setMode('email_input')
+        }, 0)
+        
+        return () => clearTimeout(timer)
+      } finally {
+        setIsChecking(false)
       }
+    }
+    
+    checkSession()
 
-      // Store auth status
-      updateAnswer('_authenticated', {
-        userId: user.id,
-        email: userEmail,
-        authenticatedAt: new Date().toISOString(),
-      })
-
-      // Auto-continue after brief delay
-      const continueTimer = setTimeout(() => {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user) {
+        setMode('authenticated')
+        const userEmail = session.user.email
+        if (identityData) {
+          setIdentityData({
+            ...identityData,
+            email: userEmail || identityData.email,
+          })
+        }
+        updateAnswer('_authenticated', {
+          userId: session.user.id,
+          email: userEmail,
+          authenticatedAt: new Date().toISOString(),
+        })
         onAuthenticated?.()
         nextStep()
-      }, 1500)
-      
-      return () => {
-        clearTimeout(timer)
-        clearTimeout(continueTimer)
       }
-    } else if (isSignedIn === false) {
-      // Not signed in, show email input
-      const timer = setTimeout(() => {
-        if (identityData?.email) {
-          setEmail(identityData.email)
-        }
-        setMode('email_input')
-      }, 0)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [isSignedIn, user, identityData, setIdentityData, updateAnswer, onAuthenticated, nextStep])
+    })
 
-  // Handle sign in - opens Clerk modal
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase, identityData, setIdentityData, updateAnswer, onAuthenticated, nextStep])
+
+  // Handle sign in - redirect to login
   const handleSignIn = () => {
     setIsLoading(true)
     setError('')
 
-    // Open Clerk's sign-in modal
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
-    
-    setIsLoading(false)
+    // Redirect to login page with return URL
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Handle skip (guest mode)
@@ -120,18 +169,13 @@ export function AuthStep({
     nextStep()
   }
 
-  // Handle Google OAuth - uses Clerk
+  // Handle Google OAuth - redirect to login
   const handleGoogleSignIn = () => {
     setIsLoading(true)
     setError('')
 
-    // Open Clerk's sign-in modal
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
-    
-    setIsLoading(false)
+    // Redirect to login page with return URL
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // ============================================

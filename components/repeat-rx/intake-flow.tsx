@@ -28,6 +28,7 @@ import {
 import { ButtonSpinner, Spinner } from "@/components/ui/unified-skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
+import type { User } from "@supabase/supabase-js"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
@@ -467,10 +468,14 @@ export function RepeatRxIntakeFlow({
   preferredPharmacy: _preferredPharmacy,
 }: RepeatRxIntakeProps) {
   const router = useRouter()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const { openSignIn } = useAuth()
-  const { user, isSignedIn } = useAuth()
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const isSignedIn = !!user
   
   // ============================================================================
   // STATE
@@ -541,10 +546,8 @@ export function RepeatRxIntakeFlow({
     // Save current form state before redirect
     sessionStorage.setItem("repeat_rx_redirect", "true")
     
-    openSignIn({
-      afterSignInUrl: `${window.location.origin}/prescriptions/repeat?auth_success=true`,
-      afterSignUpUrl: `${window.location.origin}/prescriptions/repeat?auth_success=true`,
-    })
+    // Redirect to login page
+    router.push(`/auth/login?redirect=${encodeURIComponent(`${window.location.origin}/prescriptions/repeat?auth_success=true`)}`)
     setIsLoading(false)
   }
   
@@ -592,7 +595,77 @@ export function RepeatRxIntakeFlow({
       goToStep(STEPS[currentIndex + 1])
     }
   }, [currentStep, goToStep])
-  
+
+  // Check Supabase auth session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser && !_isAuthenticated) {
+          const userMetadata = currentUser.user_metadata || {}
+          const { profileId } = await createOrGetProfile(
+            currentUser.id,
+            userMetadata.full_name || userMetadata.name || currentUser.email?.split('@')[0] || "",
+            ""
+          )
+
+          if (profileId) {
+            setPatientId(profileId)
+            setIsAuthenticated(true)
+            
+            // Check for auth_success query param
+            const urlParams = new URLSearchParams(window.location.search)
+            if (urlParams.get("auth_success") === "true") {
+              window.history.replaceState({}, "", window.location.pathname)
+              if (currentStep === "auth") {
+                goToStep("medication")
+              }
+            }
+          }
+        }
+      } catch (_error) {
+        // Error checking session
+      } finally {
+        setIsAuthLoading(false)
+      }
+    }
+    
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user && !_isAuthenticated) {
+        const userMetadata = session.user.user_metadata || {}
+        const { profileId } = await createOrGetProfile(
+          session.user.id,
+          userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || "",
+          ""
+        )
+
+        if (profileId) {
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get("auth_success") === "true") {
+            window.history.replaceState({}, "", window.location.pathname)
+            if (currentStep === "auth") {
+              goToStep("medication")
+            }
+          }
+        }
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase, _isAuthenticated, currentStep, goToStep])
+
   // Check eligibility when moving to review
   const checkEligibility = async () => {
     if (!medication) return

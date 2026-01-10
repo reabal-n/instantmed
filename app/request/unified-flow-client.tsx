@@ -27,6 +27,8 @@ import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-
 import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 
 // Types
 type Service = "medcert" | "prescription" | "referral"
@@ -249,11 +251,15 @@ export function UnifiedFlowClient({
   medicareNumber: savedMedicare,
   medicareIrn: savedIrn,
 }: Props) {
-  const _router = useRouter()
-  const { openSignIn } = useAuth()
-  const { isSignedIn, user: clerkUser } = useAuth()
+  const router = useRouter()
+  const supabase = createClient()
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const isSignedIn = !!user
 
-  // Auth state - use Clerk state when available
+  // Auth state - use Supabase state when available
   const [_patientId, _setPatientId] = useState(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth || !!isSignedIn)
   const [_needsOnboarding, _setNeedsOnboarding] = useState(initialNeedsOnboard)
@@ -594,42 +600,81 @@ export function UnifiedFlowClient({
     } catch {}
   }, [])
 
-  // Sync Clerk auth state
+  // Sync Supabase auth state
   useEffect(() => {
-    if (isSignedIn && clerkUser) {
+    if (isSignedIn && user) {
       setIsAuthenticated(true)
-      // If we have a Clerk user, try to get their profile
-      if (clerkUser.primaryEmailAddress?.emailAddress) {
-        setEmail(clerkUser.primaryEmailAddress.emailAddress)
-        setFullName(clerkUser.fullName || clerkUser.firstName || "")
+      // If we have a Supabase user, try to get their profile
+      const userMetadata = user.user_metadata || {}
+      if (user.email) {
+        setEmail(user.email)
+      }
+      if (userMetadata.full_name || userMetadata.name) {
+        setFullName(userMetadata.full_name || userMetadata.name || "")
       }
     }
-  }, [isSignedIn, clerkUser])
+  }, [isSignedIn, user])
 
-  // Auth handlers - use Clerk
-  const _handleGoogleAuth = () => {
-    // Open Clerk's sign-in modal with Google OAuth
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
+  // Check Supabase auth session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser) {
+          const userMetadata = currentUser.user_metadata || {}
+          if (currentUser.email) {
+            setEmail(currentUser.email)
+          }
+          if (userMetadata.full_name || userMetadata.name) {
+            setFullName(userMetadata.full_name || userMetadata.name || "")
+          }
+        }
+      } catch (_error) {
+        // Error checking session
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user) {
+        const userMetadata = session.user.user_metadata || {}
+        if (session.user.email) {
+          setEmail(session.user.email)
+        }
+        if (userMetadata.full_name || userMetadata.name) {
+          setFullName(userMetadata.full_name || userMetadata.name || "")
+        }
+      }
     })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase])
+
+  // Auth handlers - use Supabase redirects
+  const _handleGoogleAuth = () => {
+    // Redirect to login page
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   const handleSignIn = () => {
-    // Open Clerk's sign-in modal
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
+    // Redirect to login page
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
-  // Skip the email auth handlers since we're using Clerk
+  // Skip the email auth handlers since we're using Supabase redirects
   const _handleEmailAuth = async () => {
-    // Redirect to Clerk sign-in instead of using Supabase
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
+    // Redirect to login page
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Submit request

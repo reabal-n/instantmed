@@ -385,12 +385,16 @@ export function MedCertFlowClient({
   userEmail,
   userName,
 }: MedCertFlowClientProps) {
-  const _router = useRouter()
+  const router = useRouter()
+  const supabase = createClient()
   const mainRef = useRef<HTMLElement>(null)
   const errorRef = useRef<HTMLDivElement>(null)
   const _searchParams = useSearchParams() // Added for guest checkout redirection
-  const { openSignIn } = useAuth()
-  const { user, isSignedIn } = useAuth()
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const isSignedIn = !!user
 
   // Auth state
   const [_patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -606,17 +610,20 @@ export function MedCertFlowClient({
     setStep(targetStep)
   }
 
-  // Check for returning users (modified for new flow)
+  // Check Supabase auth session on mount
   useEffect(() => {
     const checkSession = async () => {
-      // Use Clerk user instead of Supabase session
-      if (user && !isAuthenticated) {
-        const supabase = createClient()
-        const { profileId } = await createOrGetProfile(
-          user.id,
-          user.fullName || "",
-          "",
-        )
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser && !isAuthenticated) {
+          const userMetadata = currentUser.user_metadata || {}
+          const { profileId } = await createOrGetProfile(
+            currentUser.id,
+            userMetadata.full_name || userMetadata.name || currentUser.email?.split('@')[0] || "",
+            "",
+          )
 
         if (profileId) {
           setPatientId(profileId)
@@ -770,10 +777,7 @@ export function MedCertFlowClient({
       sessionStorage.setItem("pending_profile_dob", formData.dateOfBirth)
       sessionStorage.setItem("pending_profile_name", formData.fullName || "") // Store full name for profile creation
 
-      openSignIn({
-        afterSignInUrl: window.location.href,
-        afterSignUpUrl: window.location.href,
-      })
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
       setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.signIn)

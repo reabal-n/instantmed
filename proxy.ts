@@ -1,38 +1,103 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 // Define protected routes that require authentication
-const isProtectedRoute = createRouteMatcher([
-  '/patient(.*)',
-  '/doctor(.*)',
-  '/admin(.*)',
-  '/account(.*)',
-])
+const protectedRoutes = [
+  '/patient',
+  '/doctor',
+  '/admin',
+  '/account',
+]
 
-// Routes that should bypass Clerk middleware entirely
-const isPublicRoute = createRouteMatcher([
-  '/api(.*)',
-])
+function isProtectedRoute(pathname: string): boolean {
+  return protectedRoutes.some(route => pathname.startsWith(route))
+}
 
-export default clerkMiddleware(async (auth, request) => {
-  // Bypass Clerk for public routes
-  if (isPublicRoute(request)) {
+function isPublicRoute(pathname: string): boolean {
+  return pathname.startsWith('/api') || 
+         pathname.startsWith('/auth') ||
+         pathname.startsWith('/_next') ||
+         pathname.startsWith('/static')
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Bypass middleware for public routes
+  if (isPublicRoute(pathname)) {
     return NextResponse.next()
   }
 
-  const { userId, redirectToSignIn } = await auth()
+  // Create Supabase client for server-side auth check
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // If user is not authenticated and trying to access protected route
-  if (!userId && isProtectedRoute(request)) {
-    return redirectToSignIn({ returnBackUrl: request.url })
+  if (!user && isProtectedRoute(pathname)) {
+    const redirectUrl = new URL('/auth/login', request.url)
+    redirectUrl.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // For authenticated users, we could add role-based routing here
-  // This would require fetching user metadata from Clerk
+  // For authenticated users, role-based routing can be added here
+  // This would require fetching user profile from Supabase
   // For now, we'll handle role-based access in the page components
 
-  return NextResponse.next()
-})
+  return response
+}
 
 export const config = {
   matcher: [

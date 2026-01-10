@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/client'
  * Flow Authentication Utilities
  * 
  * NOTE: This file provides client-side auth utilities for intake flows.
- * The app uses Clerk for authentication. Use Clerk hooks like useAuth()
- * and useAuth() in React components instead of these functions where possible.
+ * The app uses Supabase for authentication. Use Supabase hooks like useAuth()
+ * from @/components/providers/supabase-auth-provider in React components instead of these functions where possible.
  * 
- * Supabase client is used here ONLY for database operations (drafts), not auth.
+ * Supabase client is used here for both database operations (drafts) and auth.
  */
 
 // ============================================
@@ -27,17 +27,32 @@ export interface FlowSession {
  * Get current flow session state
  * 
  * NOTE: This is a utility function for internal use in draft operations.
- * For React components, use the useAuth() hook from @clerk/nextjs instead.
+ * For React components, use the useAuth() hook from @/components/providers/supabase-auth-provider instead.
  * For server-side auth, use getAuthenticatedUserWithProfile() from @/lib/auth.
  * 
  * This function is used internally by draft functions that need to check
- * user state but cannot use React hooks. It returns unauthenticated state
- * since Clerk auth requires hooks in client components.
+ * user state but cannot use React hooks. It checks Supabase auth session.
  */
 export async function getFlowSession(): Promise<FlowSession> {
-  // Note: Clerk auth is managed via hooks (useAuth, useAuth) in React components.
+  // Note: Supabase auth is managed via hooks (useAuth) in React components.
   // This utility function is used internally by draft operations that need
   // to check user state but cannot use hooks. Components should use useAuth() directly.
+  
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      return {
+        user: { id: user.id, email: user.email },
+        isAuthenticated: true,
+        email: user.email,
+        userId: user.id,
+      }
+    }
+  } catch (_error) {
+    // Error getting session
+  }
   
   return {
     user: null,

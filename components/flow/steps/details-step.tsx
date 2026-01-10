@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Check, AlertCircle } from 'lucide-react'
 import { ButtonSpinner, Spinner } from '@/components/ui/unified-skeleton'
 import { FlowContent, FlowSection } from '../flow-content'
@@ -10,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import type { FlowConfig, IdentityData, ConsentType } from '@/lib/flow'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 interface DetailsStepProps {
   config: FlowConfig
@@ -36,14 +39,15 @@ const REQUIRED_CONSENTS: { type: ConsentType; label: string; version: string }[]
 ]
 
 export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
+  const router = useRouter()
+  const supabase = createClient()
   const existingIdentity = useFlowIdentity()
   const { setIdentityData, addConsent, nextStep } = useFlowStore()
-  const { user: clerkUser, isLoaded } = useAuth()
-  const { openSignIn } = useAuth()
-
-  // Check auth status based on Clerk
-  const isLoggedIn = !!clerkUser
-  const isCheckingAuth = !isLoaded
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const isLoggedIn = !!user
 
   // Form state
   const [formData, setFormData] = useState<Partial<IdentityData>>({
@@ -63,17 +67,51 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
   const [authError, setAuthError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Prefill form with Clerk user data
+  // Check Supabase auth session on mount
   useEffect(() => {
-    if (clerkUser) {
-      setFormData((prev) => ({ 
-        ...prev, 
-        email: clerkUser.primaryEmailAddress?.emailAddress || prev.email,
-        firstName: clerkUser.firstName || prev.firstName,
-        lastName: clerkUser.lastName || prev.lastName,
-      }))
+    const checkSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser) {
+          // Prefill form with Supabase user data
+          const userMetadata = currentUser.user_metadata || {}
+          setFormData((prev) => ({ 
+            ...prev, 
+            email: currentUser.email || prev.email,
+            firstName: userMetadata.full_name?.split(' ')[0] || userMetadata.first_name || prev.firstName,
+            lastName: userMetadata.full_name?.split(' ').slice(1).join(' ') || userMetadata.last_name || prev.lastName,
+          }))
+        }
+      } catch (_error) {
+        setUser(null)
+      } finally {
+        setIsCheckingAuth(false)
+      }
     }
-  }, [clerkUser])
+    
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user) {
+        const userMetadata = session.user.user_metadata || {}
+        setFormData((prev) => ({ 
+          ...prev, 
+          email: session.user.email || prev.email,
+          firstName: userMetadata.full_name?.split(' ')[0] || userMetadata.first_name || prev.firstName,
+          lastName: userMetadata.full_name?.split(' ').slice(1).join(' ') || userMetadata.last_name || prev.lastName,
+        }))
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase])
 
   // Update form field
   const updateField = (field: keyof IdentityData, value: string) => {
@@ -108,12 +146,9 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
 
   // Handle continue
   const handleContinue = async () => {
-    // If not logged in, open Clerk sign-in modal
+    // If not logged in, redirect to login page
     if (!isLoggedIn) {
-      openSignIn({
-        afterSignInUrl: window.location.href,
-        afterSignUpUrl: window.location.href,
-      })
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
       return
     }
     
@@ -224,10 +259,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
             <div className="space-y-4">
               <Button
                 type="button"
-                onClick={() => openSignIn({
-                  afterSignInUrl: window.location.href,
-                  afterSignUpUrl: window.location.href,
-                })}
+                onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)}
                 className="w-full h-11"
               >
                 Sign in or create account
@@ -255,12 +287,12 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
               <Input
                 id="email"
                 type="email"
-                value={formData.email || clerkUser?.primaryEmailAddress?.emailAddress || ''}
+                value={formData.email || user?.email || ''}
                 disabled
                 className="mt-1.5 h-11 bg-slate-50"
               />
               <p className="mt-1 text-xs text-slate-400">
-                Logged in as {clerkUser?.primaryEmailAddress?.emailAddress}
+                Logged in as {user?.email}
               </p>
             </div>
           </FlowSection>

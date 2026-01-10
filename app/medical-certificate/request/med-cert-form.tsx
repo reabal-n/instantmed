@@ -28,6 +28,8 @@ import {
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
@@ -457,12 +459,12 @@ function SignInDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
-          {/* Sign in with Clerk */}
+          {/* Sign in with Supabase */}
           <Button
             type="button"
             onClick={() => {
               onOpenChange(false)
-              onGoogleAuth() // This now uses Clerk's openSignIn
+              onGoogleAuth() // Redirects to Supabase login
             }}
             disabled={isGoogleLoading}
             className="w-full h-11 rounded-xl gap-2"
@@ -502,10 +504,14 @@ export function MedCertForm({
   userEmail,
   userName,
 }: MedCertFormProps) {
-  const _router = useRouter()
+  const router = useRouter()
+  const supabase = createClient()
   const mainRef = useRef<HTMLElement>(null)
-  const { openSignIn } = useAuth()
-  const { user, isSignedIn } = useAuth()
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const isSignedIn = !!user
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -577,12 +583,68 @@ export function MedCertForm({
         clearFormData(STORAGE_KEYS.MED_CERT_STEP)
       }
 
-      // Use Clerk user for authentication check
-      if (user && !isAuthenticated) {
-        const supabase = createClient()
+      // Use Supabase user for authentication check
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser && !isAuthenticated) {
+          const userMetadata = currentUser.user_metadata || {}
+          const { profileId } = await createOrGetProfile(
+            currentUser.id,
+            userMetadata.full_name || userMetadata.name || currentUser.email?.split('@')[0] || "",
+            ""
+          )
+
+          if (profileId) {
+            setPatientId(profileId)
+            setIsAuthenticated(true)
+            setNeedsOnboarding(false)
+            
+            // Prefill form data from user profile (merge with restored data)
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode, email")
+              .eq("id", profileId)
+              .single()
+
+            setFormData((prev) => ({
+              ...prev,
+              email: currentUser.email || profile?.email || prev.email,
+              fullName: profile?.full_name || userMetadata.full_name || userMetadata.name || prev.fullName,
+              dateOfBirth: profile?.date_of_birth || prev.dateOfBirth,
+              medicareNumber: profile?.medicare_number || prev.medicareNumber,
+              medicareIrn: profile?.medicare_irn || prev.medicareIrn,
+              addressLine1: profile?.address_line1 || prev.addressLine1,
+              suburb: profile?.suburb || prev.suburb,
+              state: profile?.state || prev.state,
+              postcode: profile?.postcode || prev.postcode,
+            }))
+            
+            // If we restored form data and are now authenticated, go to review
+            if (savedFormDataObj) {
+              setStep("review")
+            }
+          }
+        }
+      } catch (_error) {
+        // Error checking session
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user && !isAuthenticated) {
+        const userMetadata = session.user.user_metadata || {}
         const { profileId } = await createOrGetProfile(
-          user.id,
-          user.fullName || "",
+          session.user.id,
+          userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || "",
           ""
         )
 
@@ -591,7 +653,6 @@ export function MedCertForm({
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
           
-          // Prefill form data from user profile (merge with restored data)
           const { data: profile } = await supabase
             .from("profiles")
             .select("full_name, date_of_birth, medicare_number, medicare_irn, address_line1, suburb, state, postcode, email")
@@ -600,8 +661,8 @@ export function MedCertForm({
 
           setFormData((prev) => ({
             ...prev,
-            email: user.primaryEmailAddress?.emailAddress || profile?.email || prev.email,
-            fullName: profile?.full_name || user.fullName || prev.fullName,
+            email: session.user.email || profile?.email || prev.email,
+            fullName: profile?.full_name || userMetadata.full_name || userMetadata.name || prev.fullName,
             dateOfBirth: profile?.date_of_birth || prev.dateOfBirth,
             medicareNumber: profile?.medicare_number || prev.medicareNumber,
             medicareIrn: profile?.medicare_irn || prev.medicareIrn,
@@ -611,27 +672,28 @@ export function MedCertForm({
             postcode: profile?.postcode || prev.postcode,
           }))
           
-          // If we restored form data and are now authenticated, go to review
           if (savedFormDataObj) {
             setStep("review")
           }
         }
       }
+    })
+
+    return () => {
+      subscription.unsubscribe()
     }
-    checkSession()
-  }, [isAuthenticated])
+  }, [supabase, isAuthenticated])
 
   // Handle successful sign-in from dialog
-  // Note: With Clerk migration, this is mainly triggered by the checkSession useEffect
-  // when user signs in via Clerk modal. Kept for backwards compatibility.
+  // Note: With Supabase migration, this is mainly triggered by the checkSession useEffect
+  // when user signs in via Supabase auth. Kept for backwards compatibility.
   const handleSignInSuccess = async (email: string, name?: string, dob?: string) => {
-    // Use Clerk user if available
+    // Use Supabase user if available
     if (!user) return
 
-    const supabase = createClient()
     const { profileId } = await createOrGetProfile(
       user.id,
-      name || user.fullName || "",
+      name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || "",
       dob || ""
     )
 
@@ -763,10 +825,7 @@ export function MedCertForm({
       saveFormData(STORAGE_KEYS.MED_CERT_FORM, formData)
       saveFormData(STORAGE_KEYS.MED_CERT_STEP, step)
       
-      openSignIn({
-        afterSignInUrl: window.location.href,
-        afterSignUpUrl: window.location.href,
-      })
+      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
       setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in. Please try again.")
