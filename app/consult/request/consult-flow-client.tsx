@@ -22,6 +22,8 @@ import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 
 // Flow steps for general consult
 type FlowStep =
@@ -178,8 +180,12 @@ export function ConsultFlowClient({
   userName,
 }: Props) {
   const router = useRouter()
-  const { isSignedIn, user: clerkUser } = useAuth()
-  const { openSignIn } = useAuth()
+  const supabase = createClient()
+  
+  // Supabase auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const isSignedIn = !!user
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -309,16 +315,13 @@ export function ConsultFlowClient({
     return SAFETY_QUESTIONS.some((q) => q.knockout && safetyAnswers[q.id] === true)
   }
 
-  // Handle Google auth - uses Clerk modal
+  // Handle Google auth - redirect to login
   const handleGoogleAuth = () => {
     sessionStorage.setItem("pending_profile_name", fullName)
     sessionStorage.setItem("pending_profile_dob", dob)
 
-    // Open Clerk sign-in modal
-    openSignIn({
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    })
+    // Redirect to login page with return URL
+    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Handle submit
@@ -363,16 +366,58 @@ export function ConsultFlowClient({
     }
   }
 
-  // Sync Clerk auth state
+  // Check Supabase auth session on mount
   useEffect(() => {
-    const syncClerkAuth = async () => {
-      if (isSignedIn && clerkUser && !isAuthenticated) {
+    const checkSession = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        setUser(currentUser)
+        
+        if (currentUser && !isAuthenticated) {
+          const pendingName = sessionStorage.getItem("pending_profile_name")
+          const pendingDob = sessionStorage.getItem("pending_profile_dob")
+          
+          // Get user metadata for name
+          const userMetadata = currentUser.user_metadata || {}
+          const userNameFromSession = pendingName || userMetadata.full_name || userMetadata.name || userMetadata.email?.split('@')[0] || ""
+          const userDob = pendingDob || ""
+
+          const { profileId } = await createOrGetProfile(currentUser.id, userNameFromSession, userDob)
+
+          if (profileId) {
+            sessionStorage.removeItem("pending_profile_name")
+            sessionStorage.removeItem("pending_profile_dob")
+            setPatientId(profileId)
+            setIsAuthenticated(true)
+            setNeedsOnboarding(false)
+
+            // Auto-advance if on signup step
+            if (step === "signup") {
+              goNext()
+            }
+          }
+        }
+      } catch (_error) {
+        // Error checking session - silently fail
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    checkSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user && !isAuthenticated) {
         const pendingName = sessionStorage.getItem("pending_profile_name")
         const pendingDob = sessionStorage.getItem("pending_profile_dob")
-        const userNameFromSession = pendingName || clerkUser.fullName || clerkUser.firstName || ""
+        const userMetadata = session.user.user_metadata || {}
+        const userNameFromSession = pendingName || userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || ""
         const userDob = pendingDob || ""
 
-        const { profileId } = await createOrGetProfile(clerkUser.id, userNameFromSession, userDob)
+        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
 
         if (profileId) {
           sessionStorage.removeItem("pending_profile_name")
@@ -381,15 +426,17 @@ export function ConsultFlowClient({
           setIsAuthenticated(true)
           setNeedsOnboarding(false)
 
-          // Auto-advance if on signup step
           if (step === "signup") {
             goNext()
           }
         }
       }
+    })
+
+    return () => {
+      subscription.unsubscribe()
     }
-    syncClerkAuth()
-  }, [isSignedIn, clerkUser, isAuthenticated, step, goNext])
+  }, [supabase, isAuthenticated, step, goNext])
 
   // If knocked out by safety check
   if (isKnockedOut) {
@@ -627,7 +674,7 @@ export function ConsultFlowClient({
 
                   <Button
                     className="w-full h-11 bg-primary hover:bg-primary/90"
-                    onClick={handleGoogleAuth}
+                    onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
                   </Button>
