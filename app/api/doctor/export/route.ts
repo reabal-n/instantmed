@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 
 // Type for the raw Supabase response (patient is an array from join)

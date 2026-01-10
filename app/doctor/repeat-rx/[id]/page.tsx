@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { RepeatRxReviewClient } from "./review-client"
 
 // Generate metadata for SEO

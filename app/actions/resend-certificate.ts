@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { sendMedCertReadyEmail } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("resend-certificate")

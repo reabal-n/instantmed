@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("bulk-action")

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
-import { createServiceClient } from "@/lib/supabase/server"
+import { createServiceClient, createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/env"
 
 // Only allow in development/preview
 const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   // Block in production
   if (!IS_DEV) {
     return NextResponse.json(
@@ -14,11 +15,12 @@ export async function GET(request: Request) {
     )
   }
 
-  // Require authentication using Clerk
+  // Require authentication using Supabase
   const { userId } = await auth()
-  const clerkUser = await currentUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!userId || !clerkUser) {
+  if (!userId || !user) {
     return NextResponse.json(
       { error: "Authentication required" },
       { status: 401 }

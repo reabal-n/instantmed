@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
 // SEO Metadata

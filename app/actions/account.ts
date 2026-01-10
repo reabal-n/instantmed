@@ -4,27 +4,31 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
 /**
- * Change password - Clerk handles this via its own UI
- * @deprecated Use Clerk's UserProfile component or Clerk's API directly
+ * Helper to get the current authenticated user ID from Supabase
+ */
+async function getAuthUserId(): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return user?.id ?? null
+}
+
+/**
+ * Change password - handled by Supabase Auth UI
  */
 export async function changePassword(
   _currentPassword: string,
   _newPassword: string,
 ): Promise<{ success: boolean; error: string | null }> {
-  // Password management is handled by Clerk's UserProfile component
-  // Users should use the Clerk UI at /account or click "Manage account" in the UserButton
   return { 
     success: false, 
-    error: "Password management is handled by your account settings. Click 'Manage Account' to change your password." 
+    error: "Password management is handled by your account settings." 
   }
 }
 
 /**
- * Request password reset - Clerk handles this via its own UI
- * @deprecated Use Clerk's SignIn component with forgot password flow
+ * Request password reset - handled by Supabase Auth
  */
 export async function requestPasswordReset(_email: string): Promise<{ success: boolean; error: string | null }> {
-  // Password reset is handled by Clerk at /sign-in (click "Forgot password?")
   return { 
     success: true, 
     error: null 
@@ -32,7 +36,7 @@ export async function requestPasswordReset(_email: string): Promise<{ success: b
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; error: string | null }> {
-  const { userId } = await auth()
+  const userId = await getAuthUserId()
   
   if (!userId) {
     return { success: false, error: "Not authenticated" }
@@ -60,9 +64,6 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
     return { success: false, error: updateError.message }
   }
 
-  // Note: Clerk sign-out is handled client-side via ClerkProvider
-  // The user will be redirected to sign-in after this
-
   revalidatePath("/")
   return { success: true, error: null }
 }
@@ -71,7 +72,7 @@ export async function updateNotificationPreferences(
   emailNotifications: boolean,
   smsNotifications: boolean,
 ): Promise<{ success: boolean; error: string | null }> {
-  const { userId } = await auth()
+  const userId = await getAuthUserId()
   
   if (!userId) {
     return { success: false, error: "Not authenticated" }

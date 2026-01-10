@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"

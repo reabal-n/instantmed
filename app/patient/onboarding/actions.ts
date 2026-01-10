@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import type { AustralianState } from "@/types/db"
 
 interface OnboardingInput {

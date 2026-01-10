@@ -2,6 +2,7 @@
 import { createLogger } from "@/lib/observability/logger"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("change-email")
 
@@ -30,32 +31,20 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
       return { success: false, error: "New email must be different from your current email" }
     }
 
-    // Check if email is already in use via Clerk
-    const client = await clerkClient()
-    try {
-      const existingUsers = await client.users.getUserList({ emailAddress: [newEmail] })
-      const emailInUse = existingUsers.data.some((u) => u.id !== authUser.user.id)
+    // Use Supabase Auth to update email (sends verification to new email)
+    const supabase = await createClient()
+    const { error: updateError } = await supabase.auth.updateUser({
+      email: newEmail,
+    })
 
-      if (emailInUse) {
-        return { success: false, error: "This email address is already in use" }
-      }
-    } catch (err) {
-      log.warn("Error checking email availability", {}, err)
-    }
-
-    // Use Clerk to update email (sends verification to new email)
-    try {
-      await client.users.updateUser(authUser.user.id, {
-        primaryEmailAddressID: newEmail,
-      })
-    } catch (error) {
-      log.error("Error updating email", { userId: authUser.user.id }, error)
-      return { success: false, error: "Unable to update email. Please try again." }
+    if (updateError) {
+      log.error("Error updating email", { userId: authUser.user.id }, updateError)
+      return { success: false, error: updateError.message || "Unable to update email. Please try again." }
     }
 
     // Also update in profiles table
-    const supabase = createServiceRoleClient()
-    await supabase
+    const serviceClient = createServiceRoleClient()
+    await serviceClient
       .from("profiles")
       .update({ email: newEmail })
       .eq("auth_user_id", authUser.user.id)
@@ -80,22 +69,22 @@ export async function resendEmailVerificationAction(): Promise<ChangeEmailResult
       return { success: false, error: "You must be logged in" }
     }
 
-    const client = await clerkClient()
-    try {
-      // Clerk handles email verification automatically
-      // Just need to trigger a new verification email via Clerk
-      await client.emailAddresses.createEmailAddress({
-        userId: authUser.user.id,
-        emailAddress: authUser.user.email!,
-      })
+    const supabase = await createClient()
+    
+    // Trigger password reset which also verifies email
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: authUser.user.email!,
+    })
 
-      return {
-        success: true,
-        message: "Verification email resent. Please check your inbox.",
-      }
-    } catch (error) {
+    if (error) {
       log.error("Error resending verification", { userId: authUser.user.id }, error)
       return { success: false, error: "Failed to resend verification email" }
+    }
+
+    return {
+      success: true,
+      message: "Verification email resent. Please check your inbox.",
     }
   } catch (error) {
     log.error("Unexpected error resending verification", {}, error)
