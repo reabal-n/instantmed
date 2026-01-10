@@ -1,15 +1,89 @@
 "use client"
 
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
-interface GlassInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+/**
+ * Soft Pop Glass Input Component
+ * 
+ * A premium glassmorphism input with focus glow effects.
+ * See SOFT_POP_GLASS_DESIGN_SYSTEM.md for full documentation.
+ */
+
+const glassInputVariants = cva(
+  [
+    // Base glass styles
+    "w-full rounded-xl transition-all duration-200",
+    "bg-white/60 dark:bg-gray-900/40",
+    "backdrop-blur-lg",
+    "border border-white/30 dark:border-white/10",
+    "placeholder:text-muted-foreground/50",
+    // Focus states
+    "focus:border-primary/50",
+    "focus:shadow-[0_0_20px_rgb(59,130,246,0.15)]",
+    "focus:outline-none",
+    // Error state handled via className
+  ],
+  {
+    variants: {
+      inputSize: {
+        sm: "h-10 px-3 text-sm",
+        default: "h-12 px-4 text-base",
+        lg: "h-14 px-5 text-lg",
+      },
+      hasError: {
+        true: "border-destructive/50 focus:border-destructive focus:shadow-[0_0_20px_rgb(239,68,68,0.15)]",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      inputSize: "default",
+      hasError: false,
+    },
+  }
+)
+
+interface GlassInputProps 
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
+    VariantProps<typeof glassInputVariants> {
   icon?: React.ReactNode
   endContent?: React.ReactNode
+  /** Use the animated glass effect (more complex) */
+  animated?: boolean
 }
 
 const GlassInput = React.forwardRef<HTMLInputElement, GlassInputProps>(
-  ({ className, icon, endContent, ...props }, ref) => {
+  ({ className, icon, endContent, inputSize, hasError, animated = false, ...props }, ref) => {
+    // Simple glass input (recommended for forms)
+    if (!animated) {
+      return (
+        <div className="relative w-full">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+              {icon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            className={cn(
+              glassInputVariants({ inputSize, hasError }),
+              icon && "pl-10",
+              endContent && "pr-10",
+              className
+            )}
+            {...props}
+          />
+          {endContent && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {endContent}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // Animated glass input (for special cases)
     return (
       <div className="glass-input-wrap w-full">
         <div className="glass-input">
