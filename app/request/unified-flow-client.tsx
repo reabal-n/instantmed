@@ -260,9 +260,9 @@ export function UnifiedFlowClient({
   const isSignedIn = !!user
 
   // Auth state - use Supabase state when available
-  const [_patientId, _setPatientId] = useState(initialPatientId)
+  const [patientId, setPatientId] = useState(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth || !!isSignedIn)
-  const [_needsOnboarding, _setNeedsOnboarding] = useState(initialNeedsOnboard)
+  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboard)
 
   // Flow state
   const [step, setStep] = useState<Step>(initialService ? "clinical" : "service")
