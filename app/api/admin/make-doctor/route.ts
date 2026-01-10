@@ -27,7 +27,7 @@ export async function GET(_request: Request) {
     )
   }
 
-  const { searchParams } = new URL(request.url)
+  const { searchParams } = new URL(_request.url)
   const email = searchParams.get("email")?.toLowerCase()
   const userEmail = user.email?.toLowerCase()
 
