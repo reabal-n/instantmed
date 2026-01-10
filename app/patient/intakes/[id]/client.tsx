@@ -13,7 +13,7 @@ import {
   FileText,
   Calendar,
 } from "lucide-react"
-import { formatIntakeStatus } from "@/lib/data/intakes"
+import { formatIntakeStatus } from "@/lib/format-intake"
 import type { IntakeWithPatient } from "@/types/db"
 
 interface IntakeDetailClientProps {

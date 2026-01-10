@@ -45,7 +45,7 @@ import {
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction } from "./actions"
 import type { QueueClientProps } from "./types"
-import { formatServiceType } from "@/lib/data/intakes"
+import { formatServiceType } from "@/lib/format-intake"
 import type { IntakeStatus } from "@/types/db"
 
 export function QueueClient({

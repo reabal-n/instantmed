@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react"
-import { formatIntakeStatus } from "@/lib/data/intakes"
+import { formatIntakeStatus } from "@/lib/format-intake"
 
 export const dynamic = "force-dynamic"
 

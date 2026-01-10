@@ -20,7 +20,21 @@ import {
   TrendingUp,
 } from "lucide-react"
 import type { IntakeWithPatient } from "@/types/db"
-import { formatIntakeStatus, formatServiceType } from "@/lib/data/intakes"
+
+// Format functions (inline to avoid server-only import)
+function formatIntakeStatus(status: string): string {
+  const labels: Record<string, string> = {
+    pending_payment: "Awaiting Payment",
+    paid: "In Queue",
+    in_review: "Under Review",
+    approved: "Approved",
+    declined: "Declined",
+    completed: "Completed",
+    pending_info: "Needs Info",
+    awaiting_script: "Awaiting Script",
+  }
+  return labels[status] || status
+}
 
 interface AdminDashboardClientProps {
   allIntakes: IntakeWithPatient[]

@@ -42,7 +42,7 @@ import {
   Send,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction } from "@/app/doctor/queue/actions"
-import { formatIntakeStatus, formatServiceType } from "@/lib/data/intakes"
+import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
 
 interface IntakeDetailClientProps {
