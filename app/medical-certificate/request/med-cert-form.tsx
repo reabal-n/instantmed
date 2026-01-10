@@ -41,7 +41,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
-import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
