@@ -35,6 +35,8 @@ import {
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
