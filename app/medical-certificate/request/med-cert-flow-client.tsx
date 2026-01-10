@@ -641,10 +641,47 @@ export function MedCertFlowClient({
             }
           }
         }
+      } catch (_error) {
+        // Error checking session
+      } finally {
+        setIsLoading(false)
       }
     }
+    
     checkSession()
-  }, [user, isAuthenticated, step, goNext])
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      
+      if (session?.user && !isAuthenticated) {
+        const userMetadata = session.user.user_metadata || {}
+        const { profileId } = await createOrGetProfile(
+          session.user.id,
+          userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || "",
+          "",
+        )
+
+        if (profileId) {
+          setPatientId(profileId)
+          setIsAuthenticated(true)
+          setNeedsOnboarding(false)
+
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get("auth_success") === "true") {
+            window.history.replaceState({}, "", window.location.pathname)
+            if (step === "patientDetails") {
+              goNext()
+            }
+          }
+        }
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase, isAuthenticated, step, goNext])
 
   const _toggleSymptom = (symptom: string) => {
     setFormData((prev) => ({
