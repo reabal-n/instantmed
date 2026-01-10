@@ -1,5 +1,6 @@
 "use server"
 
+import React from "react"
 import { revalidatePath } from "next/cache"
 import { renderToBuffer } from "@react-pdf/renderer"
 import { MedCertPdfDocument, type MedCertPdfData } from "@/lib/pdf/med-cert-pdf"
@@ -144,7 +145,7 @@ export async function approveAndSendCert(
     // 4. Generate PDF Buffer
     logger.info("Generating PDF for medical certificate", { requestId, certificateNumber })
     
-    const pdfBuffer = await renderToBuffer(<MedCertPdfDocument data={pdfData} />)
+    const pdfBuffer = await renderToBuffer(React.createElement(MedCertPdfDocument, { data: pdfData }))
     
     logger.info("PDF generated successfully", { 
       requestId, 
