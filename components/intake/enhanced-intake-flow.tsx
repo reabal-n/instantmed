@@ -1513,7 +1513,7 @@ export function EnhancedIntakeFlow({
             </div>
 
             {/* Patient info - Editable */}
-            <div className="p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 rounded-2xl space-y-3 shadow-[0_4px_16px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] hover:-translate-y-0.5">
+            <GlassCard variant="default" size="sm" hover="lift" className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Sending to:</p>
                 <motion.button
@@ -1590,11 +1590,11 @@ export function EnhancedIntakeFlow({
                   <p className="text-sm text-muted-foreground">{state.phone}</p>
                 </div>
               )}
-            </div>
+            </GlassCard>
 
             {/* Service details - Editable */}
             {state.service === "med-cert" && (
-              <div className="p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 rounded-2xl space-y-3 shadow-[0_4px_16px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] hover:-translate-y-0.5">
+              <GlassCard variant="default" size="sm" hover="lift" className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Service details:</p>
                   <button
@@ -1659,7 +1659,7 @@ export function EnhancedIntakeFlow({
                     )}
                   </div>
                 )}
-              </div>
+              </GlassCard>
             )}
 
             {/* What happens next timeline */}
