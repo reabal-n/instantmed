@@ -257,7 +257,15 @@ function formatDate(dateStr: string): string {
 }
 
 function formatDob(dateStr: string): string {
+  // Handle empty string or missing DOB
+  if (!dateStr || dateStr.trim() === "") {
+    return "Not Provided"
+  }
   const date = new Date(dateStr)
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return "Not Provided"
+  }
   return date.toLocaleDateString("en-AU", {
     day: "2-digit",
     month: "2-digit",

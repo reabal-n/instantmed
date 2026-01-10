@@ -13,6 +13,9 @@ import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditC
 import type { RequestWithPatient } from "@/types/db"
 import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
+import { CertReviewModal, type CertReviewData } from "@/components/doctor/cert-review-modal"
+import { approveAndSendCert } from "@/app/actions/approve-cert"
+import { toast } from "sonner"
 
 interface DoctorDashboardClientProps {
   pendingRequests: RequestWithPatient[]
@@ -43,6 +46,8 @@ export function DoctorDashboardClient({
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [localPendingRequests, setLocalPendingRequests] = useState(pendingRequests)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<RequestWithPatient | null>(null)
 
   // Real-time updates
   const { newRequestCount, lastNewRequest, clearNewRequestCount, isConnected } = useRealtimeRequests(
@@ -64,6 +69,43 @@ export function DoctorDashboardClient({
   const handleRefresh = () => {
     clearNewRequestCount()
     router.refresh()
+  }
+
+  // Handle approve button click - open modal for med certs, direct approve for others
+  const handleApproveClick = (request: RequestWithPatient) => {
+    if (request.category === "medical_certificate") {
+      setSelectedRequest(request)
+      setReviewModalOpen(true)
+    } else {
+      // For non-med-cert requests, use existing flow
+      router.push(`/doctor/requests/${request.id}?action=approve`)
+    }
+  }
+
+  // Handle modal confirm
+  const handleModalConfirm = async (data: CertReviewData) => {
+    if (!selectedRequest) return
+
+    try {
+      const result = await approveAndSendCert(selectedRequest.id, data)
+      
+      if (result.success) {
+        toast.success("Certificate approved and sent", {
+          description: "The medical certificate has been emailed to the patient.",
+        })
+        setReviewModalOpen(false)
+        setSelectedRequest(null)
+        router.refresh()
+      } else {
+        toast.error("Failed to approve certificate", {
+          description: result.error || "An error occurred",
+        })
+      }
+    } catch (error) {
+      toast.error("Failed to approve certificate", {
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+      })
+    }
   }
 
   const categoryFilters = [
@@ -214,16 +256,14 @@ export function DoctorDashboardClient({
                 </Tooltip>
               </TooltipProvider>
               <TooltipProvider>
-                <Tooltip content="Quick approve">
+                <Tooltip content={request.category === "medical_certificate" ? "Review & Approve" : "Quick approve"}>
                   <Button
                     size="sm"
-                    asChild
+                    onClick={() => handleApproveClick(request)}
                     className="rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-105"
                   >
-                    <Link href={`/doctor/requests/${request.id}?action=approve`}>
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="sr-only">Quick Approve</span>
-                    </Link>
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="sr-only">Approve</span>
                   </Button>
                 </Tooltip>
               </TooltipProvider>
@@ -535,6 +575,18 @@ export function DoctorDashboardClient({
           </Tabs>
         </div>
       </div>
+
+      {/* Review Modal for Medical Certificates */}
+      <CertReviewModal
+        open={reviewModalOpen}
+        onClose={() => {
+          setReviewModalOpen(false)
+          setSelectedRequest(null)
+        }}
+        request={selectedRequest}
+        doctorName={doctorName}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   )
 }

@@ -17,6 +17,13 @@ import { env } from "../env"
 // TYPES
 // ============================================
 
+interface ResendEmailAttachment {
+  filename: string
+  content: string // Base64 encoded
+  type?: string
+  disposition?: "attachment" | "inline"
+}
+
 interface ResendEmailParams {
   to: string
   from?: string
@@ -24,6 +31,7 @@ interface ResendEmailParams {
   html: string
   replyTo?: string
   tags?: { name: string; value: string }[]
+  attachments?: ResendEmailAttachment[]
 }
 
 interface ResendResponse {
@@ -61,20 +69,32 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
   }
 
   try {
+    const body: Record<string, unknown> = {
+      from,
+      to: [to],
+      subject,
+      html,
+      reply_to: replyTo,
+      tags,
+    }
+
+    // Add attachments if provided
+    if (params.attachments && params.attachments.length > 0) {
+      body.attachments = params.attachments.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        type: att.type || "application/pdf",
+        disposition: att.disposition || "attachment",
+      }))
+    }
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        html,
-        reply_to: replyTo,
-        tags,
-      }),
+      body: JSON.stringify(body),
     })
 
     const data: ResendResponse = await response.json()
