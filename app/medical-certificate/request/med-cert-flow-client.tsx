@@ -625,19 +625,20 @@ export function MedCertFlowClient({
             "",
           )
 
-        if (profileId) {
-          setPatientId(profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
+          if (profileId) {
+            setPatientId(profileId)
+            setIsAuthenticated(true)
+            setNeedsOnboarding(false)
 
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get("auth_success") === "true") {
-            // Remove the query param
-            window.history.replaceState({}, "", window.location.pathname)
-            // Continue flow
-            // Adjusted continue logic for new flow
-            if (step === "patientDetails") {
-              goNext()
+            const urlParams = new URLSearchParams(window.location.search)
+            if (urlParams.get("auth_success") === "true") {
+              // Remove the query param
+              window.history.replaceState({}, "", window.location.pathname)
+              // Continue flow
+              // Adjusted continue logic for new flow
+              if (step === "patientDetails") {
+                goNext()
+              }
             }
           }
         }
