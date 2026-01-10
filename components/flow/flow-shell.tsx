@@ -98,7 +98,7 @@ export function FlowShell({
   }, [stepIndex, prevStep, handleExit])
 
   return (
-    <div className="min-h-[100dvh] bg-linear-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
       {/* Subtle noise texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"
@@ -118,7 +118,7 @@ export function FlowShell({
       />
 
       {/* Progress stepper - sticky, minimal height */}
-      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100/80">
+      <div className="sticky top-14 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <FlowStepper
             steps={config.steps}
@@ -142,9 +142,9 @@ export function FlowShell({
               animate="animate"
               exit="exit"
               className={cn(
-                'bg-white rounded-2xl',
-                'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.04)]',
-                'border border-slate-100/80',
+                'bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl',
+                'border border-white/40 dark:border-white/10',
+                'shadow-[0_8px_30px_rgb(0,0,0,0.06)]',
                 'overflow-hidden'
               )}
             >

@@ -4,9 +4,20 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/rey/Desktop/instantmed"]
     },
+    "redis": {
+      "command": "npx",
+      "args": ["-y", "@gongrzhe/server-redis-mcp@1.0.0", "${UPSTASH_REDIS_URL}"],
+      "env": {
+        "UPSTASH_REDIS_URL": "${UPSTASH_REDIS_URL}"
+      }
+    },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
     },
     "supabase": {
       "command": "npx",
@@ -14,15 +25,17 @@
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@context7/mcp-server"]
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
     },
     "Playwright": {
       "command": "npx",
       "args": ["-y", "@executeautomation/playwright-mcp-server"]
     },
     "Sentry": {
-      "url": "https://mcp.sentry.dev/mcp/instantmed/javascript-nextjs",
-      "transport": "http"
+      "url": "https://mcp.sentry.dev/mcp/instantmed/javascript-nextjs"
     }
   }
 }

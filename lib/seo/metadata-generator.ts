@@ -345,7 +345,7 @@ export function generateMedicalBusinessSchema() {
     name: 'InstantMed',
     description: 'Online medical certificates and prescriptions from Australian doctors',
     url: 'https://instantmed.com.au',
-    telephone: '+61-xxx-xxx-xxx', // TODO: Add actual phone
+    telephone: '', // REQUIRED: Add business contact number before launch
     priceRange: '$19.95 - $49.95',
     areaServed: {
       '@type': 'Country',

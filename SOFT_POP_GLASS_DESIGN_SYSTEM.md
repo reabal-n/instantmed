@@ -4,7 +4,7 @@
 
 ## Core Philosophy
 
-**"Premium, tactile, and modern — like a high-end productivity app"**
+**"Premium, tactile, and modern — like a high-end productivity app"**d
 
 We balance medical trust with consumer-grade delight. Our UI must NOT feel sterile or clinical. Think Linear, Craft.do, or Notion — apps that feel premium and responsive.
 

@@ -54,6 +54,10 @@ import {
 } from "@/lib/motion"
 import { validators } from "@/lib/form-validation"
 import posthog from 'posthog-js'
+import { FormattedInput } from "@/components/ui/formatted-input"
+import { HelpTooltip, FieldLabelWithHelp } from "@/components/ui/help-tooltip"
+import { ContextualHelp, InfoCard } from "@/components/ui/contextual-help"
+import { ProgressiveSection } from "@/components/ui/progressive-section"
 
 // ============================================
 // TYPES & CONSTANTS
@@ -186,22 +190,29 @@ function OptionCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "w-full min-h-[56px] p-4 rounded-xl border-2",
+        // Glass surface
+        "w-full min-h-[56px] p-4 rounded-2xl border-2",
+        "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+        "border-white/40 dark:border-white/10",
         "flex items-center gap-4 text-left",
-        "transition-colors duration-150",
+        "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border bg-white hover:border-primary/40 hover:bg-white/80",
+          ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
+          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(59,130,246,0.15)]",
         className
       )}
-      {...cardInteractive}
+      whileHover={selected ? {} : { scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
       {Icon && (
         <div
           className={cn(
-            "w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150",
-            selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
+            selected 
+              ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.3)]" 
+              : "bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg text-muted-foreground"
           )}
         >
           <Icon className="w-5 h-5" />
@@ -240,16 +251,19 @@ function DurationChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
+        // Glass surface
         "flex-1 min-h-[52px] px-4 py-3 rounded-xl border-2 font-medium text-sm",
-        "transition-colors duration-150",
+        "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+        "border-white/40 dark:border-white/10",
+        "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
-          ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
-          : "border-border bg-white hover:border-primary/40 hover:shadow-sm"
+          ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
+          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(59,130,246,0.15)]"
       )}
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.98, y: 0 }}
-      transition={{ duration: 0.15 }}
+      whileHover={selected ? {} : { scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
       {label}
     </motion.button>
@@ -271,14 +285,19 @@ function SymptomChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium",
-        "transition-colors duration-150",
+        // Glass surface
+        "min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium",
+        "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+        "border-2 border-white/40 dark:border-white/10",
+        "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
-          ? "bg-primary text-primary-foreground shadow-sm"
-          : "bg-white border border-border hover:border-primary/40 hover:shadow-sm"
+          ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
+          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]"
       )}
+      whileHover={selected ? {} : { scale: 1.02, y: -1 }}
       whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
       {label}
     </motion.button>
@@ -336,7 +355,7 @@ function SafetyQuestion({
   onChange: (val: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-border">
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:bg-white/85 dark:hover:bg-gray-900/80 transition-all duration-300">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
       <CinematicSwitch
         value={value}
@@ -1052,7 +1071,7 @@ export function MedCertForm({
             />
 
             {isCarer && (
-              <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border">
+              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <div className="space-y-2">
                   <Label htmlFor="carer-name" className="text-sm font-medium">Person you&apos;re caring for</Label>
                   <Input
@@ -1060,7 +1079,7 @@ export function MedCertForm({
                     placeholder="Their full name"
                     value={formData.carerPatientName}
                     onChange={(e) => setFormData((prev) => ({ ...prev, carerPatientName: e.target.value }))}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1073,11 +1092,13 @@ export function MedCertForm({
                         onClick={() => setFormData((prev) => ({ ...prev, carerRelationship: rel }))}
                         aria-pressed={formData.carerRelationship === rel}
                         className={cn(
-                          "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                          "px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-300",
+                          "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+                          "border-2 border-white/40 dark:border-white/10",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                           formData.carerRelationship === rel
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-white border border-border hover:border-primary/40"
+                            ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
+                            : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.12)]"
                         )}
                       >
                         {rel}
@@ -1112,7 +1133,7 @@ export function MedCertForm({
                   placeholder="Brief description"
                   value={formData.otherSymptom}
                   onChange={(e) => setFormData((prev) => ({ ...prev, otherSymptom: e.target.value }))}
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
               </motion.div>
             )}
@@ -1123,16 +1144,27 @@ export function MedCertForm({
         return (
           <div className="space-y-4">
             <StepHeader title="Any additional information?" subtitle="Optional — helps the GP understand your situation" />
-            <div className="space-y-2">
+            <ProgressiveSection
+              title="Additional details"
+              description="Any extra information that might help the doctor understand your situation"
+              defaultOpen={!!formData.additionalNotes}
+            >
+              <div className="space-y-2">
               <Textarea
                 value={formData.additionalNotes}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
                 placeholder="e.g. symptoms started yesterday evening..."
-                className="min-h-[120px] resize-none rounded-xl"
+                className="min-h-[120px] resize-none rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 maxLength={500}
               />
-              <p className="text-xs text-right text-muted-foreground">{formData.additionalNotes.length}/500</p>
-            </div>
+                <p className="text-xs text-right text-muted-foreground">{formData.additionalNotes.length}/500</p>
+                <InfoCard
+                  title="Why we ask"
+                  description="Additional context helps our doctors make informed decisions about your certificate."
+                  variant="info"
+                />
+              </div>
+            </ProgressiveSection>
           </div>
         )
 
@@ -1203,7 +1235,7 @@ export function MedCertForm({
 
             {/* Sign-in panel for guests */}
             {!isAuthenticated && (
-              <Card className="border-primary/20 bg-linear-to-br from-primary/5 to-primary/10">
+              <Card className="border-primary/30 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(59,130,246,0.15)]">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1251,7 +1283,7 @@ export function MedCertForm({
 
             {/* Authenticated user badge */}
             {isAuthenticated && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-900/30 backdrop-blur-lg border border-emerald-200/50 dark:border-emerald-800/30 shadow-[0_4px_16px_rgb(34,197,94,0.15)]">
                 <CheckCircle className="w-4 h-4 text-emerald-600" />
                 <span className="text-sm text-emerald-700">Signed in as {formData.email}</span>
               </div>
@@ -1266,9 +1298,13 @@ export function MedCertForm({
                   initial="initial"
                   animate="animate"
                 >
-                  <Label htmlFor="email">Email address</Label>
+                  <FieldLabelWithHelp
+                    label="Email address"
+                    helpText="Your certificate will be sent to this email address"
+                    required
+                  />
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
                     <Input
                       id="email"
                       type="email"
@@ -1276,9 +1312,13 @@ export function MedCertForm({
                       onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                       placeholder="you@example.com"
                       className={cn(
-                        "h-11 pl-10 rounded-xl transition-all duration-150",
-                        formData.email && !validators.email(formData.email).isValid && "border-destructive focus:ring-destructive/20",
-                        formData.email && validators.email(formData.email).isValid && "border-emerald-500 focus:ring-emerald-500/20"
+                        // Glass input
+                        "h-11 pl-10 rounded-xl transition-all duration-200",
+                        "bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg",
+                        "border border-white/30 dark:border-white/10",
+                        "focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)]",
+                        formData.email && !validators.email(formData.email).isValid && "border-destructive/50 focus:shadow-[0_0_20px_rgb(239,68,68,0.15)]",
+                        formData.email && validators.email(formData.email).isValid && "border-emerald-500/50 focus:shadow-[0_0_20px_rgb(34,197,94,0.15)]"
                       )}
                     />
                   </div>
@@ -1292,27 +1332,38 @@ export function MedCertForm({
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="dob">Date of birth</Label>
+                <FieldLabelWithHelp
+                  label="Date of birth"
+                  helpText="Required for your medical certificate. Format: DD/MM/YYYY"
+                  required
+                />
                 <Input
                   id="dob"
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => setFormData((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
                   max={new Date().toISOString().split("T")[0]}
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
+                {!formData.dateOfBirth && (
+                  <p className="text-xs text-muted-foreground">We need this to verify your identity</p>
+                )}
               </div>
 
               {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="address">Street address</Label>
+                <FieldLabelWithHelp
+                  label="Street address"
+                  helpText="Your residential address (required for certificate)"
+                  required
+                />
                 <Input
                   id="address"
                   type="text"
                   value={formData.addressLine1}
                   onChange={(e) => setFormData((prev) => ({ ...prev, addressLine1: e.target.value }))}
                   placeholder="123 Main St"
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
               </div>
 
@@ -1334,7 +1385,7 @@ export function MedCertForm({
                     id="state"
                     value={formData.state}
                     onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
-                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    className="h-11 w-full rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border border-white/30 dark:border-white/10 px-3 text-sm focus:outline-none focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   >
                     <option value="">Select</option>
                     <option value="NSW">NSW</option>
@@ -1356,20 +1407,18 @@ export function MedCertForm({
                 animate="animate"
                 transition={{ delay: 0.3 }}
               >
-                <Label htmlFor="postcode">Postcode</Label>
-                <Input
-                  id="postcode"
-                  type="text"
+                <FieldLabelWithHelp
+                  label="Postcode"
+                  helpText="4-digit Australian postcode"
+                  required
+                />
+                <FormattedInput
+                  format="postcode"
                   value={formData.postcode}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 4)
-                    setFormData((prev) => ({ ...prev, postcode: value }))
-                  }}
+                  onChange={(unformatted) => setFormData((prev) => ({ ...prev, postcode: unformatted }))}
                   placeholder="2000"
-                  className={cn(
-                    "h-11 rounded-xl w-32 transition-all duration-150",
-                    formData.postcode.length === 4 && "border-emerald-500 focus:ring-emerald-500/20"
-                  )}
+                  label=""
+                  className="h-11 rounded-xl w-32"
                   maxLength={4}
                 />
                 {formData.postcode && formData.postcode.length < 4 && (
@@ -1378,6 +1427,15 @@ export function MedCertForm({
                       isValid: false, 
                       message: `${4 - formData.postcode.length} more digits needed`, 
                       type: 'info' 
+                    }} 
+                  />
+                )}
+                {formData.postcode && formData.postcode.length === 4 && (
+                  <ValidationHint 
+                    validation={{ 
+                      isValid: true, 
+                      message: 'Valid postcode', 
+                      type: 'success' 
                     }} 
                   />
                 )}
@@ -1391,7 +1449,7 @@ export function MedCertForm({
           <div className="space-y-4">
             <StepHeader title="Review your request" subtitle="Please confirm these details are correct" />
 
-            <div className="rounded-xl border border-border bg-white divide-y divide-border">
+            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] divide-y divide-white/20 dark:divide-white/5">
               {/* Certificate type */}
               <div className="flex items-center justify-between p-4">
                 <div className="space-y-0.5">
@@ -1517,14 +1575,14 @@ export function MedCertForm({
 
             {/* Authenticated badge */}
             {isAuthenticated && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-900/30 backdrop-blur-lg border border-emerald-200/50 dark:border-emerald-800/30 shadow-[0_4px_16px_rgb(34,197,94,0.15)]">
                 <CheckCircle className="w-4 h-4 text-emerald-600" />
                 <span className="text-sm text-emerald-700">Signed in — your certificate will be saved to your account</span>
               </div>
             )}
 
             {/* Pricing card */}
-            <div className="rounded-xl border border-border bg-white p-4 space-y-4">
+            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -1586,11 +1644,11 @@ export function MedCertForm({
     <main
       ref={mainRef}
       tabIndex={-1}
-      className="min-h-screen bg-linear-to-b from-background to-muted/30 flex flex-col"
+      className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col"
       aria-label="Medical certificate request"
     >
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10 px-4 py-3">
         <div className="max-w-md mx-auto space-y-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-sm font-semibold text-primary">
@@ -1649,7 +1707,7 @@ export function MedCertForm({
       </div>
 
       {/* Footer - sticky on mobile */}
-      <footer className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 mt-auto">
+      <footer className="sticky bottom-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3 mt-auto">
         <div className="max-w-md mx-auto flex gap-3">
           {step !== "type" && (
             <Button
@@ -1667,7 +1725,7 @@ export function MedCertForm({
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || isRedFlag}
-              className="flex-1 h-12 rounded-xl gap-2"
+              className="flex-1 h-12 rounded-full gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               {isSubmitting ? (
                 <>
@@ -1685,7 +1743,7 @@ export function MedCertForm({
             <Button
               onClick={goNext}
               disabled={!canProceed()}
-              className="flex-1 h-12 rounded-xl gap-2"
+              className="flex-1 h-12 rounded-full gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue
               <ArrowRight className="w-5 h-5" />

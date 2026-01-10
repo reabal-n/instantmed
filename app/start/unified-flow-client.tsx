@@ -120,7 +120,7 @@ function StartFlowContent() {
   // Show loading while hydrating store or initializing
   if (!isHydrated || !isInitialized) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-emerald-500 border-t-transparent" />
       </div>
     )
@@ -129,13 +129,13 @@ function StartFlowContent() {
   // Render eligibility fail screen
   if (showEligibilityFail) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-red-50/30 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center"
+          className="max-w-md w-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-8 text-center"
         >
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 rounded-full bg-red-100/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="h-8 w-8 text-red-600" />
           </div>
 
@@ -147,7 +147,7 @@ function StartFlowContent() {
             {eligibilityReason || 'Based on your answers, we recommend you seek care in person.'}
           </p>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="bg-amber-50/80 dark:bg-amber-900/30 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] rounded-xl p-4 mb-6">
             <p className="text-sm text-amber-800">
               <strong>If this is an emergency:</strong> Call 000 immediately or go to your nearest emergency department.
             </p>

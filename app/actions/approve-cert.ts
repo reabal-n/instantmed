@@ -223,7 +223,11 @@ export async function approveAndSendCert(
 
     return { success: true }
   } catch (error) {
-    logger.error("Error approving certificate", { requestId }, error instanceof Error ? error : new Error(String(error)))
+    logger.error("Error approving certificate", { 
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return {
       success: false,
       error: error instanceof Error ? error.message : "An unexpected error occurred",

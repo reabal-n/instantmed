@@ -38,7 +38,7 @@ export function FlowTopBar({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 h-14 bg-white/95 backdrop-blur-md border-b border-slate-100/80',
+        'sticky top-0 z-40 h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10',
         className
       )}
     >
@@ -89,7 +89,7 @@ export function FlowTopBar({
               onClick={onClose}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-white/70 dark:hover:bg-gray-800/60 backdrop-blur-lg rounded-xl transition-all duration-200"
             >
               <X className="h-5 w-5" />
             </motion.button>

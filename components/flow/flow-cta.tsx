@@ -106,7 +106,7 @@ export function FlowCTA({
     <div
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40',
-        'bg-background/95 backdrop-blur-sm border-t border-slate-100',
+        'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10',
         'px-4 py-4 sm:py-5',
         'safe-area-pb', // Support for notch devices
         className
@@ -159,23 +159,27 @@ export function FlowCTA({
             disabled={state === 'disabled' || state === 'loading'}
             size="lg"
             className={cn(
-              'w-full h-13 sm:h-14 text-base font-semibold rounded-xl',
+              'w-full h-13 sm:h-14 text-base font-semibold rounded-full',
               'transition-all duration-200',
               variant === 'primary' && [
                 state === 'enabled' && [
-                  'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
-                  'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
+                  'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
+                  'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
+                  'hover:scale-[1.02] active:scale-[0.98]',
                 ],
                 state === 'disabled' && [
-                  'bg-slate-200 text-slate-400 cursor-not-allowed',
+                  'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed',
                   'shadow-none',
                 ],
                 state === 'loading' && [
-                  'bg-linear-to-r from-indigo-600 to-violet-600 text-white cursor-wait',
+                  'bg-gradient-to-r from-primary-500 to-primary-600 text-white cursor-wait',
+                  'shadow-[0_8px_30px_rgb(59,130,246,0.3)]',
                 ],
               ],
               variant === 'secondary' && [
-                'bg-slate-900 hover:bg-slate-800 text-white',
+                'bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10',
+                'hover:bg-white/85 dark:hover:bg-gray-900/80',
+                'shadow-[0_4px_16px_rgb(0,0,0,0.04)]',
               ]
             )}
           >
@@ -267,14 +271,15 @@ export function InlineFlowCTA({
         disabled={disabled || isLoading}
         size="lg"
         className={cn(
-          'w-full h-13 sm:h-14 text-base font-semibold rounded-xl',
+          'w-full h-13 sm:h-14 text-base font-semibold rounded-full',
           'transition-all duration-200',
           !disabled && [
-            'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
-            'shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30',
+            'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
+            'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
+            'hover:scale-[1.02] active:scale-[0.98]',
           ],
           disabled && [
-            'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none',
+            'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed shadow-none',
           ]
         )}
       >

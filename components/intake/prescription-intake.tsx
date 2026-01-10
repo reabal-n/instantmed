@@ -158,7 +158,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
                   ? "bg-primary text-primary-foreground"
                   : i === currentIndex
                     ? "bg-primary/20 text-primary border-2 border-primary"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
               )}
             >
               {i < currentIndex ? <Check className="w-4 h-4" /> : i + 1}
@@ -167,7 +167,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
               <div
                 className={cn(
                   "h-0.5 w-8 sm:w-12 mx-1 sm:mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-primary" : "bg-muted"
+                  i < currentIndex ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
                 )}
               />
             )}
@@ -217,7 +217,7 @@ function SelectCard({
         "active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "border-border bg-white hover:border-primary/40 hover:shadow-md",
+          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -227,7 +227,7 @@ function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -268,7 +268,7 @@ function OptionChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-white border-2 border-border hover:border-primary/40"
+          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
       )}
     >
       {label}
@@ -286,7 +286,7 @@ function SafetyQuestion({
   onChange: (val: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-border">
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
       <CinematicSwitch
         value={value}
@@ -600,7 +600,7 @@ export function PrescriptionIntake({
             <Button
               onClick={goNext}
               disabled={!formData.rxType}
-              className="w-full h-12 rounded-xl text-base font-medium"
+              className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base font-medium"
             >
               Continue
               <ChevronRight className="w-5 h-5 ml-1" />
@@ -654,7 +654,7 @@ export function PrescriptionIntake({
 
               {/* Autocomplete suggestions */}
               {medicationSuggestions.length > 0 && !isControlled && (
-                <div className="bg-white border rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
                   {medicationSuggestions.map((med) => (
                     <button
                       key={med}
@@ -672,7 +672,7 @@ export function PrescriptionIntake({
               )}
 
               {isControlled && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-900/30 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm text-amber-800">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>This medication cannot be prescribed online. Please visit your GP.</span>
@@ -775,7 +775,7 @@ export function PrescriptionIntake({
                 placeholder="E.g., dosage, frequency, any concerns..."
                 value={formData.additionalNotes}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("additionalNotes", e.target.value)}
-                className="min-h-20 rounded-xl resize-none"
+                className="min-h-20 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
               />
             </FormField>
 

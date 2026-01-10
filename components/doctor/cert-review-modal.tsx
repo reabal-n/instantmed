@@ -14,12 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Loader2, Calendar, User, FileText } from "lucide-react"
-import type { RequestWithPatient } from "@/types/db"
+import type { RequestWithDetails } from "@/types/db"
 
 interface CertReviewModalProps {
   open: boolean
   onClose: () => void
-  request: RequestWithPatient | null
+  request: RequestWithDetails | null
   doctorName: string
   onConfirm: (data: CertReviewData) => Promise<void>
 }
@@ -248,7 +248,7 @@ export function CertReviewModal({
                 value={formData.medicalReason}
                 onChange={(e) => setFormData((prev) => ({ ...prev, medicalReason: e.target.value }))}
                 placeholder="Medical Illness"
-                rows={3}
+                className="min-h-[80px]"
                 required
               />
             </div>

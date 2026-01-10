@@ -93,7 +93,7 @@ export default function PricingPage() {
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
               <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {services.map((service) => (
+              {services.map((service, idx) => (
                 <GlowCard
                   key={service.name}
                   glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}
@@ -101,7 +101,7 @@ export default function PricingPage() {
                   className={`card-premium rounded-2xl p-5 lg:p-6 animate-fade-in-up opacity-0 relative ${
                     service.popular ? "ring-2 ring-[#2563EB] shadow-premium-xl" : "shadow-premium-lg"
                   }`}
-                  style={{ animationDelay: `${0.1 + index * 0.1}s`, animationFillMode: "forwards" }}
+                  style={{ animationDelay: `${0.1 + idx * 0.1}s`, animationFillMode: "forwards" }}
                 >
                   {service.popular && (
                     <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#2563EB] text-[#0A0F1C] shadow-lg font-medium text-xs">

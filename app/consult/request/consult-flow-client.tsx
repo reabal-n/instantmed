@@ -120,7 +120,7 @@ function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: stri
 // Safety knockout component
 function SafetyKnockout() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-b from-red-50 to-white">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-red-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -129,7 +129,7 @@ function SafetyKnockout() {
         <p className="text-red-700">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-white rounded-2xl p-6 border border-red-200 space-y-4">
+        <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-6 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-4">
           <p className="font-medium">If this is a medical emergency:</p>
           <Button
             as="a"
@@ -444,13 +444,13 @@ export function ConsultFlowClient({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border/40">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button
             onClick={stepIndex > 0 ? goBack : () => router.push("/consult")}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-white/70 dark:hover:bg-gray-800/60 backdrop-blur-lg rounded-full transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -503,10 +503,10 @@ export function ConsultFlowClient({
                       setConsultReason(reason.id)
                       setTimeout(goNext, 150)
                     }}
-                    className={`w-full p-4 rounded-xl border text-left transition-all ${
+                    className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
                       consultReason === reason.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border/60 hover:border-border"
+                        ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
+                        : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                     }`}
                   >
                     <span className="font-medium">{reason.label}</span>
@@ -560,7 +560,7 @@ export function ConsultFlowClient({
               <StepHeader emoji="🛡️" title="Safety screening" subtitle="Please answer honestly" />
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
-                  <div key={q.id} className="p-4 rounded-xl border border-border/60 space-y-3">
+                  <div key={q.id} className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
                     <p className="text-sm font-medium mb-2">{q.question}</p>
                     <CinematicSwitch
                       value={safetyAnswers[q.id] ?? undefined}
@@ -603,7 +603,7 @@ export function ConsultFlowClient({
                       <button
                         key={n}
                         onClick={() => setIrn(n)}
-                        className={`flex-1 h-12 rounded-xl border text-lg font-medium transition-all ${
+                        className={`flex-1 h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
                           irn === n
                             ? "border-primary bg-primary/5 text-primary"
                             : "border-border/60 hover:border-border"
@@ -673,7 +673,7 @@ export function ConsultFlowClient({
                   </div>
 
                   <Button
-                    className="w-full h-11 bg-primary hover:bg-primary/90"
+                    className="w-full h-11 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                     onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
@@ -694,7 +694,7 @@ export function ConsultFlowClient({
           {step === "review" && (
             <div className="space-y-4">
               <StepHeader title="Review your request" subtitle="Please confirm the details below" />
-              <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-3">
+              <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">Reason for consultation</p>
@@ -702,7 +702,7 @@ export function ConsultFlowClient({
                       {CONSULT_REASONS.find((r) => r.id === consultReason)?.label}
                     </p>
                   </div>
-                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-muted rounded">
+                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-white/70 dark:hover:bg-gray-800/60 backdrop-blur-lg rounded-xl transition-all duration-200">
                     <Pencil className="w-3 h-3 text-muted-foreground" />
                   </button>
                 </div>
@@ -733,7 +733,7 @@ export function ConsultFlowClient({
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
-              <div className="p-4 rounded-2xl border border-border/60 bg-card space-y-4">
+              <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
                   <span className="text-2xl font-bold">$49.95</span>
@@ -758,7 +758,7 @@ export function ConsultFlowClient({
                 If a prescription or referral isn&apos;t appropriate, you&apos;ll receive a full refund.
               </p>
               {error && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+                <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
                   {error}
                 </div>
               )}
@@ -768,11 +768,11 @@ export function ConsultFlowClient({
       </main>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-border/40 p-4">
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 p-4">
         <div className="max-w-lg mx-auto">
           {step === "payment" ? (
             <Button
-              className="w-full h-12 text-base bg-primary hover:bg-primary/90"
+              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               disabled={isSubmitting}
               onClick={handleSubmit}
             >
@@ -787,7 +787,7 @@ export function ConsultFlowClient({
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (
             <Button
-              className="w-full h-12 text-base bg-primary hover:bg-primary/90"
+              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               disabled={!canContinue()}
               onClick={() => {
                 if (step === "safety" && checkSafetyKnockout()) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { createServiceClient, createClient } from "@/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { auth } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/env"
 
@@ -47,7 +48,7 @@ export async function GET(_request: Request) {
   }
 
   try {
-    const supabase = createServiceClient()
+    const supabase = createServiceRoleClient()
 
     // First, find the profile
     const { data: profiles, error: findError } = await supabase

@@ -211,7 +211,7 @@ export function SwipeableCarousel({
   autoPlayInterval = 5000,
 }: SwipeableCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [_isAnimating, setIsAnimating] = useState(false)
   const isAnimatingRef = useRef(false)
 
   const goTo = useCallback((index: number) => {
@@ -252,7 +252,7 @@ export function SwipeableCarousel({
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {items.map((item, idx) => (
-            <div key={idx} className="w-full flex-shrink-0">
+            <div key={idx} className="w-full shrink-0">
               {item}
             </div>
           ))}
@@ -292,11 +292,11 @@ export function SwipeableCarousel({
               onClick={() => goTo(idx)}
               className={cn(
                 "w-2 h-2 rounded-full transition-all",
-                currentIndex === index
+                currentIndex === idx
                   ? "bg-primary w-6"
                   : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
               )}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={`Go to slide ${idx + 1}`}
             />
           ))}
         </div>

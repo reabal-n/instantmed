@@ -1484,7 +1484,7 @@ export function EnhancedIntakeFlow({
 
               {/* ETA with urgency */}
               <motion.div 
-                className="flex items-center gap-2 text-sm p-3 bg-white rounded-lg border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                className="flex items-center gap-2 text-sm p-3 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
@@ -1512,7 +1512,7 @@ export function EnhancedIntakeFlow({
             </div>
 
             {/* Patient info - Editable */}
-            <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+            <div className="p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 rounded-2xl space-y-3 shadow-[0_4px_16px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] hover:-translate-y-0.5">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Sending to:</p>
                 <motion.button
@@ -1593,7 +1593,7 @@ export function EnhancedIntakeFlow({
 
             {/* Service details - Editable */}
             {state.service === "med-cert" && (
-              <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+              <div className="p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 rounded-2xl space-y-3 shadow-[0_4px_16px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Service details:</p>
                   <button
@@ -1690,7 +1690,7 @@ export function EnhancedIntakeFlow({
             </div>
 
             {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-slate-50 rounded-xl border-2 border-transparent hover:border-primary/20 transition-colors touch-target">
+            <label className="flex items-start gap-3 cursor-pointer p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 touch-target">
               <input
                 type="checkbox"
                 checked={state.agreedToTerms}
@@ -1717,7 +1717,7 @@ export function EnhancedIntakeFlow({
             )}
 
             {/* Trust badges - Enhanced */}
-            <div className="flex flex-wrap gap-3 justify-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex flex-wrap gap-3 justify-center p-4 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
               <div className="flex items-center gap-1.5 text-xs">
                 <Shield className="w-4 h-4 text-green-600" />
                 <span className="font-medium text-foreground">AHPRA Verified</span>
@@ -1782,17 +1782,17 @@ export function EnhancedIntakeFlow({
   }, [errors, announce])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50/30 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
       {/* Screen reader announcements */}
       <LiveRegion />
       
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-lg mx-auto px-3 py-2 flex items-start justify-between">
           {/* Close button */}
           <motion.button
             onClick={() => router.push("/")}
-            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors mt-0.5"
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/70 dark:hover:bg-gray-800/60 backdrop-blur-lg transition-all duration-200 mt-0.5"
             aria-label="Close and return to home"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
@@ -1870,7 +1870,7 @@ export function EnhancedIntakeFlow({
       </main>
 
       {/* Footer CTA */}
-      <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-2 pb-safe">
+      <footer className="sticky bottom-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-2 pb-safe">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-center gap-3">
             {stepIndex > 0 && (
@@ -1894,7 +1894,7 @@ export function EnhancedIntakeFlow({
                 !!(step === "account" && (errors.firstName || errors.lastName || errors.email || errors.phone || errors.dob)) ||
                 !!(step === "review" && errors.agreedToTerms)
               }
-              className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)] hover:shadow-[0_6px_16px_rgba(99,102,241,0.35)] hover:from-indigo-700 hover:via-blue-700 hover:to-cyan-700 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_4px_12px_rgba(99,102,241,0.25)] flex items-center justify-center px-6"
+              className="bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary-600 hover:to-primary-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
             >
               {isSubmitting
                 ? "Processing..."

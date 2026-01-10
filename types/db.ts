@@ -39,8 +39,8 @@ export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC
 // Table: profiles
 export interface Profile {
   id: string // uuid, PK
-  auth_user_id: string // uuid, references auth.users.id (deprecated - use clerk_user_id)
-  clerk_user_id?: string | null // Clerk user ID for modern auth
+  auth_user_id: string // uuid, references auth.users.id (Supabase Auth)
+  clerk_user_id?: string | null // Legacy Clerk user ID (unused - project uses Supabase Auth)
   email?: string | null // User email
   avatar_url?: string | null // Profile avatar URL
   full_name: string

@@ -708,22 +708,22 @@ export default function RepeatPrescriptionDemoPage() {
                           "max-h-80 overflow-y-auto"
                         )}
                       >
-                        {searchResults.slice(0, 10).map((med) => (
+                        {searchResults.slice(0, 10).map((med, idx) => (
                           <motion.button
                             key={med.id}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.03 }}
+                            transition={{ delay: idx * 0.03 }}
                             onMouseDown={(e) => {
                               e.preventDefault()
                               handleSelectMedication(med)
                             }}
-                            onMouseEnter={() => setHighlightedIndex(index)}
+                            onMouseEnter={() => setHighlightedIndex(idx)}
                             className={cn(
                               "w-full text-left px-4 py-3 transition-colors",
                               "border-b border-slate-100 dark:border-slate-800 last:border-b-0",
                               "first:rounded-t-2xl last:rounded-b-2xl",
-                              highlightedIndex === index
+                              highlightedIndex === idx
                                 ? "bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20"
                                 : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                             )}
@@ -908,12 +908,12 @@ export default function RepeatPrescriptionDemoPage() {
                       Popular Requests
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {POPULAR_MEDICATIONS.map((med) => (
+                      {POPULAR_MEDICATIONS.map((med, idx) => (
                         <motion.button
                           key={med.id}
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.2 + index * 0.03 }}
+                          transition={{ delay: 0.2 + idx * 0.03 }}
                           whileHover={{ scale: 1.03, y: -2 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => handlePopularChipClick(med.searchTerm)}
@@ -1070,12 +1070,12 @@ export default function RepeatPrescriptionDemoPage() {
 
                   {/* Smart Chips for available strengths */}
                   <div className="flex flex-wrap gap-2">
-                    {availableStrengths.map((strength) => (
+                    {availableStrengths.map((strength, idx) => (
                       <motion.button
                         key={strength}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.03 }}
+                        transition={{ delay: idx * 0.03 }}
                         whileHover={{ scale: 1.03, y: -2 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => {

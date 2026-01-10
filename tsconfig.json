@@ -41,6 +41,7 @@
     "node_modules 2",
     "next-app-template",
     "instantmed-main",
-    "tina"
+    "tina",
+    "__tests__"
   ]
 }

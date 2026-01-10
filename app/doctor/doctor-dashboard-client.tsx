@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { Eye, Clock, CheckCircle, XCircle, FileText, StickyNote, Filter, CreditCard, Search, Bell, Wifi, WifiOff, RefreshCw } from "lucide-react"
-import type { RequestWithPatient } from "@/types/db"
+import type { RequestWithPatient, RequestWithDetails } from "@/types/db"
 import { useRealtimeRequests } from "@/lib/hooks/use-realtime-requests"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
 import { CertReviewModal, type CertReviewData } from "@/components/doctor/cert-review-modal"
@@ -47,7 +47,7 @@ export function DoctorDashboardClient({
   const [searchQuery, setSearchQuery] = useState("")
   const [localPendingRequests, setLocalPendingRequests] = useState(pendingRequests)
   const [reviewModalOpen, setReviewModalOpen] = useState(false)
-  const [selectedRequest, setSelectedRequest] = useState<RequestWithPatient | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<RequestWithDetails | null>(null)
 
   // Real-time updates
   const { newRequestCount, lastNewRequest, clearNewRequestCount, isConnected } = useRealtimeRequests(
@@ -74,7 +74,8 @@ export function DoctorDashboardClient({
   // Handle approve button click - open modal for med certs, direct approve for others
   const handleApproveClick = (request: RequestWithPatient) => {
     if (request.category === "medical_certificate") {
-      setSelectedRequest(request)
+      // Cast to RequestWithDetails - answers will be fetched by modal if needed
+      setSelectedRequest({ ...request, answers: null, document: null } as RequestWithDetails)
       setReviewModalOpen(true)
     } else {
       // For non-med-cert requests, use existing flow

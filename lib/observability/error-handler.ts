@@ -1,4 +1,5 @@
 import "server-only"
+import * as Sentry from "@sentry/nextjs"
 import { createLogger } from "./logger"
 
 const log = createLogger("error-handler")
@@ -109,13 +110,19 @@ export function reportError(
     metadata?: Record<string, unknown>
   }
 ): void {
-  // Log for now - in production, this would send to Sentry/LogRocket/etc.
+  // Log locally
   log.error("Error reported", context, error)
   
-  // TODO: Integrate with error tracking service
-  // if (process.env.SENTRY_DSN) {
-  //   Sentry.captureException(error, { extra: context })
-  // }
+  // Send to Sentry if configured
+  if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    Sentry.captureException(error, {
+      extra: context,
+      tags: {
+        action: context?.action,
+      },
+      user: context?.userId ? { id: context.userId } : undefined,
+    })
+  }
 }
 
 /**

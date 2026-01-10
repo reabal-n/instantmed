@@ -5,8 +5,10 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
-const logger = createLogger("stripe-checkout")
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
+
+const logger = createLogger("stripe-checkout")
 
 interface CreateCheckoutInput {
   category: ServiceCategory
@@ -118,23 +120,8 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       }
     }
 
-    // 2. Get the Supabase client (use service role for reliability)
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    if (!supabaseUrl || !serviceKey) {
-      logger.error("Missing Supabase configuration", { 
-        hasUrl: !!supabaseUrl, 
-        hasServiceKey: !!serviceKey 
-      })
-      return { 
-        success: false, 
-        error: "Server configuration error. Please contact support at help@instantmed.com.au" 
-      }
-    }
-    
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const supabase = createServiceClient(supabaseUrl, serviceKey)
+    // 2. Get the Supabase service role client
+    const supabase = createServiceRoleClient()
 
     // 3. Assert profile exists - create if missing (server-side)
     let patientId: string
@@ -345,16 +332,8 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     const patientId = authUser.profile.id
     const patientEmail = authUser.user.email
 
-    // 2. Get the Supabase service client
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    if (!supabaseUrl || !serviceKey) {
-      return { success: false, error: "Server configuration error" }
-    }
-    
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const supabase = createServiceClient(supabaseUrl, serviceKey)
+    // 2. Get the Supabase service role client
+    const supabase = createServiceRoleClient()
 
     // 3. Fetch the existing request with ownership check
     const { data: request, error: requestError } = await supabase
