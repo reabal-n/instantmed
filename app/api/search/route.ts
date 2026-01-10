@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
               title: patientData?.full_name || "Unknown Patient",
               subtitle: formatCategory(req.category) + (req.subtype ? ` - ${formatSubtype(req.subtype)}` : ""),
               status: req.status,
-              href: `/doctor/requests/${req.id}`,
+              href: `/doctor/intakes/${req.id}`,
             })
           }
         }
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
                 title,
                 subtitle: new Date(req.created_at).toLocaleDateString("en-AU"),
                 status: req.status,
-                href: `/patient/requests/${req.id}`,
+                href: `/patient/intakes/${req.id}`,
               })
             }
           }

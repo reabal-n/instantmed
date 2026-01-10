@@ -50,7 +50,7 @@ export default function PatientError({
 
         <div className="mt-6 pt-6 border-t">
           <Link
-            href="/patient/requests"
+            href="/patient/intakes"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <FileText className="h-4 w-4" />

@@ -32,7 +32,7 @@ export function CompleteAccountForm({
       }, 0)
       
       const redirectTimer = setTimeout(() => {
-        router.push(`/patient/requests/success?request_id=${requestId}`)
+        router.push(`/patient/intakes/success?request_id=${requestId}`)
       }, 1000)
       
       return () => {
@@ -44,7 +44,7 @@ export function CompleteAccountForm({
 
   const handleCreateAccount = () => {
     // Redirect to register page with pre-filled email and redirect URL
-    const redirectUrl = `/patient/requests/success?request_id=${requestId}`
+    const redirectUrl = `/patient/intakes/success?request_id=${requestId}`
     const registerUrl = email 
       ? `/auth/register?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectUrl)}`
       : `/auth/register?redirect=${encodeURIComponent(redirectUrl)}`
@@ -103,7 +103,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/requests/success?request_id=${requestId}`)}`} className="text-primary hover:underline">
+        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/intakes/success?request_id=${requestId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

@@ -243,7 +243,7 @@ export function AccountClient() {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-slate-900">Recent Requests</h3>
               <Button asChild variant="ghost" size="sm" className="scale-spring">
-                <Link href="/patient/requests">
+                <Link href="/patient/intakes">
                   View all
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
@@ -265,7 +265,7 @@ export function AccountClient() {
                 {requests.map((request) => (
                   <div key={request.id} className="hover-lift card-shine">
                     <Link
-                      href={`/patient/requests/${request.id}`}
+                      href={`/patient/intakes/${request.id}`}
                       className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
                     >
                     <div className="flex items-center gap-4">

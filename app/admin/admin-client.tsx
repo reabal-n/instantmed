@@ -552,7 +552,7 @@ export function AdminClient({
                                   </>
                                 )}
                                 <Link 
-                                  href={`/doctor/requests/${request.id}`}
+                                  href={`/doctor/intakes/${request.id}`}
                                   className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium border bg-white/50 hover:bg-white/80 border-border/40 transition-all"
                                 >
                                   <Eye className="h-3.5 w-3.5" />
