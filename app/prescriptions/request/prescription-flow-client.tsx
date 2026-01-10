@@ -32,8 +32,6 @@ import {
   BadgeCheck,
   Phone,
   Save,
-  Eye,
-  EyeOff,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
