@@ -9,7 +9,7 @@
  * - "after hours telehealth"
  */
 
-import type { SEOPage, FAQ } from './registry'
+import type { SEOPage } from './registry'
 
 export interface IntentPage extends Omit<SEOPage, 'type'> {
   type: 'intent'

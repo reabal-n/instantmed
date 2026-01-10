@@ -184,8 +184,8 @@ export function ConsultFlowClient({
   
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const isSignedIn = !!user
+  const [_isLoading, setIsLoading] = useState(true)
+  const _isSignedIn = !!user
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

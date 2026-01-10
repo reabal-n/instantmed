@@ -510,7 +510,7 @@ export function MedCertForm({
   // Supabase auth state
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [_isLoading, setIsLoading] = useState(true)
-  const isSignedIn = !!user
+  const _isSignedIn = !!user
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

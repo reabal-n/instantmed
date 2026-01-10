@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { Avatar as HeroAvatar, AvatarIcon, type AvatarProps as HeroAvatarProps } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
@@ -42,9 +43,12 @@ function Avatar({
 function AvatarImage({
   src,
   alt,
+  width = 40,
+  height = 40,
   ...props
-}: { src?: string; alt?: string } & React.ComponentProps<"img">) {
-  return <img src={src} alt={alt} {...props} />
+}: { src?: string; alt?: string; width?: number; height?: number } & Omit<React.ComponentProps<typeof Image>, "src" | "alt">) {
+  if (!src) return null
+  return <Image src={src} alt={alt || ""} width={width} height={height} {...props} />
 }
 
 function AvatarFallback({

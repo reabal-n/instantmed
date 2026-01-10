@@ -25,7 +25,7 @@ import {
   Pill,
   RefreshCw,
 } from "lucide-react"
-import { ButtonSpinner, Spinner } from "@/components/ui/unified-skeleton"
+import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import type { User } from "@supabase/supabase-js"
@@ -38,7 +38,6 @@ import type {
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
-import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 
 // ============================================================================
 // CONSTANTS
@@ -473,7 +472,7 @@ export function RepeatRxIntakeFlow({
   
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
-  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const [_isAuthLoading, setIsAuthLoading] = useState(true)
   const isSignedIn = !!user
   
   // ============================================================================
@@ -759,7 +758,6 @@ export function RepeatRxIntakeFlow({
     if (user && isSignedIn) {
       setupProfile()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, goToStep, user, isSignedIn])
   
   // ============================================================================

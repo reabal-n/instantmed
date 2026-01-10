@@ -256,13 +256,13 @@ export function UnifiedFlowClient({
   
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [_isLoading, setIsLoading] = useState(true)
   const isSignedIn = !!user
 
   // Auth state - use Supabase state when available
-  const [patientId, setPatientId] = useState(initialPatientId)
+  const [patientId, _setPatientId] = useState(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth || !!isSignedIn)
-  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboard)
+  const [needsOnboarding, _setNeedsOnboarding] = useState(initialNeedsOnboard)
 
   // Flow state
   const [step, setStep] = useState<Step>(initialService ? "clinical" : "service")
@@ -317,11 +317,11 @@ export function UnifiedFlowClient({
 
   // Account
   const [_authMode, _setAuthMode] = useState<"signup" | "signin">("signup")
-  const [fullName, setFullName] = useState(userName || "")
-  const [email, setEmail] = useState(userEmail || "")
+  const [_fullName, setFullName] = useState(userName || "")
+  const [_email, setEmail] = useState(userEmail || "")
   const [password, _setPassword] = useState("")
   const [_showPassword, _setShowPassword] = useState(false)
-  const [agreedTerms, _setAgreedTerms] = useState(false)
+  const [_agreedTerms, _setAgreedTerms] = useState(false)
 
   // Initialize form state from props and saved draft
   const initialFormData = {
@@ -418,7 +418,7 @@ export function UnifiedFlowClient({
   }
 
   // Medicare validation
-  const handleMedicareChange = (value: string) => {
+  const handleMedicareChange = useCallback((value: string) => {
     const digits = value.replace(/\D/g, "")
     // Format: XXXX XXXXX X
     let formatted = ""
@@ -445,7 +445,7 @@ export function UnifiedFlowClient({
         setMedicareValid(false)
       }
     }
-  }
+  }, [form])
 
   // Save draft to localStorage
   useEffect(() => {

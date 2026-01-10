@@ -1,7 +1,6 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Skeleton as HeroSkeleton } from "@heroui/react"
 
 /**
  * Unified Skeleton System with Shimmer Effects

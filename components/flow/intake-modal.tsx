@@ -23,13 +23,13 @@ export function IntakeModal({
 }: IntakeModalProps) {
   const [showConfirmation, setShowConfirmation] = useState(false)
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
       setShowConfirmation(true)
     } else {
       onClose()
     }
-  }
+  }, [hasUnsavedChanges, onClose])
 
   // Prevent body scroll when modal is open
   useEffect(() => {

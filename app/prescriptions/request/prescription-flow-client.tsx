@@ -409,12 +409,12 @@ export function PrescriptionFlowClient({
   userEmail,
   userName,
 }: Props) {
-  const router = useRouter()
+  const _router = useRouter()
   const supabase = createClient()
   
   // Supabase auth state
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [_user, setUser] = useState<User | null>(null)
+  const [_isLoading, setIsLoading] = useState(true)
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)

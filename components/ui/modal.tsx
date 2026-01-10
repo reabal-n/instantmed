@@ -5,7 +5,6 @@ import {
   Modal as HeroModal,
   ModalContent as HeroModalContent,
   ModalHeader as HeroModalHeader,
-  ModalBody,
   ModalFooter as HeroModalFooter,
   useDisclosure,
   type ModalProps as HeroModalProps,

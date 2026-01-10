@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Input, InputProps } from "@heroui/react"
 import { Check, AlertCircle, Info, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"

@@ -49,8 +49,8 @@ export function AuthStep({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [user, setUser] = useState<User | null>(null)
-  const [isChecking, setIsChecking] = useState(true)
-  const isSignedIn = !!user
+  const [_isChecking, setIsChecking] = useState(true)
+  const _isSignedIn = !!user
 
   // Check for existing session on mount - use Supabase
   useEffect(() => {

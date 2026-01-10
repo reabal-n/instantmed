@@ -395,7 +395,7 @@ export function MedCertFlowClient({
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
   const [, setIsLoading] = useState(true)
-  const isSignedIn = !!user
+  const _isSignedIn = !!user
 
   // Auth state
   const [_patientId, setPatientId] = useState<string | null>(initialPatientId)

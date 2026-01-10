@@ -680,7 +680,7 @@ export function EnhancedIntakeFlow({
   }, [step, state, symptomCheckResult])
 
   // Map service type to Stripe category
-  const getStripeCategory = (): ServiceCategory => {
+  const getStripeCategory = useCallback((): ServiceCategory => {
     switch (state.service) {
       case "med-cert":
         return "medical_certificate"
@@ -690,10 +690,10 @@ export function EnhancedIntakeFlow({
       default:
         return "consult"
     }
-  }
+  }, [state.service])
 
   // Build answers payload for Stripe
-  const buildAnswersPayload = () => {
+  const buildAnswersPayload = useCallback(() => {
     const answers: Record<string, unknown> = {}
 
     if (state.service === "med-cert") {
@@ -838,7 +838,7 @@ export function EnhancedIntakeFlow({
     } finally {
       setIsSubmitting(false)
     }
-  }, [isSubmitting, state, isAuthenticated, setIsSubmitting, setErrors])
+  }, [isSubmitting, state, isAuthenticated, setIsSubmitting, setErrors, getStripeCategory, buildAnswersPayload])
 
   // Navigate
   const goNext = useCallback(() => {

@@ -9,7 +9,7 @@
  * - "reflux at night"
  */
 
-import type { SEOPage, FAQ } from './registry'
+import type { SEOPage } from './registry'
 
 export interface SymptomPage extends Omit<SEOPage, 'type'> {
   type: 'symptom'

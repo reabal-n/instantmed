@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   Home, 
@@ -84,10 +85,12 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             {userAvatar ? (
-              <img 
+              <Image 
                 src={userAvatar} 
                 alt={userName} 
-                className="w-full h-full rounded-full object-cover" 
+                className="w-full h-full rounded-full object-cover"
+                width={40}
+                height={40}
               />
             ) : (
               <span className="text-sm font-medium text-primary">

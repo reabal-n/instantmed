@@ -46,7 +46,7 @@ export const TestimonialsColumn = (props: {
                           unoptimized
                         />
                       ) : (
-                        <img
+                        <Image
                           width={32}
                           height={32}
                           src={image}

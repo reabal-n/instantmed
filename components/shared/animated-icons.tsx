@@ -645,7 +645,7 @@ export function AnimatedIcon({ type, className = "", size = 56 }: AnimatedIconPr
     return () => {
       animationRef.current?.destroy()
     }
-  }, [type])
+  }, [type, animations])
 
   useEffect(() => {
     if (animationRef.current) {

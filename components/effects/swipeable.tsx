@@ -233,7 +233,7 @@ export function SwipeableCarousel({
     if (!autoPlay) return
     const interval = setInterval(goNext, autoPlayInterval)
     return () => clearInterval(interval)
-  }, [autoPlay, autoPlayInterval, currentIndex])
+  }, [autoPlay, autoPlayInterval, currentIndex, goNext])
 
   return (
     <div className={cn("relative", className)}>

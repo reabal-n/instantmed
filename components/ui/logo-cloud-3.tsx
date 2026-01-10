@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -40,14 +41,14 @@ export function LogoCloud({ className, logos, ...props }: LogoCloudProps) {
           }
           // Render image
           return (
-            <img
+            <Image
               alt={logo.alt}
+              src={logo.src || ""}
+              width={logo.width || 80}
+              height={logo.height || 20}
               className="pointer-events-none h-4 select-none md:h-5 dark:brightness-0 dark:invert opacity-80 hover:opacity-100 transition-opacity"
-              height={logo.height || "auto"}
               key={`logo-${logo.alt}-${index}`}
               loading="lazy"
-              src={logo.src}
-              width={logo.width || "auto"}
             />
           );
         })}

@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, Phone, PhoneOff, Check, Sparkles } from 'lucide-react'
+import { ArrowRight, Clock, Phone, PhoneOff, Check } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
-import { Card, CardBody, CardFooter, Chip, Divider } from '@heroui/react'
+import { Chip, Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { MagneticButton } from '@/components/effects/magnetic-button'

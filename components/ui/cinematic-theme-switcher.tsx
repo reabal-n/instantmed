@@ -1,7 +1,7 @@
 "use client"
 
 import { Sun, Moon } from "lucide-react"
-import { useState, useEffect, useRef, useSyncExternalStore } from "react"
+import { useState, useRef, useSyncExternalStore } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
 

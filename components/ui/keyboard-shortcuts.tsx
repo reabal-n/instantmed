@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 interface KeyboardShortcut {
   /** Key combination (e.g., "Escape", "Ctrl+k", "Meta+k") */

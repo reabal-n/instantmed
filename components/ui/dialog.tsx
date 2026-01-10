@@ -5,13 +5,11 @@ import {
   Modal as HeroModal,
   ModalContent,
   ModalHeader,
-  ModalBody,
   ModalFooter,
   useDisclosure,
   type ModalProps as HeroModalProps,
 } from "@heroui/react"
 import { cn } from "@/lib/utils"
-import { FocusTrap } from "./focus-trap"
 
 export interface DialogProps extends Omit<HeroModalProps, "children" | "isOpen" | "onClose"> {
   children?: React.ReactNode

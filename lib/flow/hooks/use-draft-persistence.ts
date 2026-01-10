@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useFlowStore, useFlowSync, useFlowDraft, useFlowService } from '../store'
-import { saveLocalDraft, loadLocalDraft, getSessionId } from '../draft/storage'
+import { saveLocalDraft } from '../draft/storage'
 import { getServiceName, calculateProgress } from '../draft/types'
 
 interface UseDraftPersistenceOptions {

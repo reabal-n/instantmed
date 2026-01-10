@@ -8,7 +8,7 @@
  * NOTE: Medication comparison pages have been removed for Google Ads compliance
  */
 
-import type { SEOPage, FAQ } from './registry'
+import type { SEOPage } from './registry'
 
 export interface ComparisonPage extends Omit<SEOPage, 'type'> {
   type: 'comparison'
