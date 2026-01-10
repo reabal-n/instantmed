@@ -29,7 +29,7 @@ import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
@@ -509,8 +509,8 @@ export function MedCertForm({
   const mainRef = useRef<HTMLElement>(null)
   
   // Supabase auth state
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [_isLoading, setIsLoading] = useState(true)
   const isSignedIn = !!user
 
   // Auth state
