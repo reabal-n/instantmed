@@ -41,6 +41,7 @@ import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-
 import { HelpTooltip, FieldLabelWithHelp } from "@/components/ui/help-tooltip"
 import { ContextualHelp, InfoCard } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
+import { CompactStepper } from "@/components/ui/form-stepper"
 
 // ============================================================================
 // CONSTANTS

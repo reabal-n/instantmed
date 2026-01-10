@@ -231,3 +231,74 @@ export function MiniStepper({ total, current, className }: MiniStepperProps) {
     </div>
   )
 }
+
+// =============================================================================
+// COMPACT STEPPER - Dots with step counter for headers
+// =============================================================================
+
+interface CompactStepperProps {
+  /** Current step (0-indexed) */
+  current: number
+  /** Total number of steps */
+  total: number
+  /** Optional step labels for accessibility */
+  labels?: string[]
+  /** Show step counter text */
+  showCounter?: boolean
+  className?: string
+}
+
+/**
+ * Compact progress indicator with animated dots.
+ * Use this in headers or tight spaces where FormStepper is too large.
+ */
+export function CompactStepper({ 
+  current, 
+  total, 
+  labels,
+  showCounter = true,
+  className 
+}: CompactStepperProps) {
+  // Calculate progress bar width based on current step
+  const calculateProgressWidth = () => {
+    if (total <= 1) return '24px'
+    const stepWidth = 24 // gap between dots (gap-3 = 12px * 2)
+    const baseWidth = 12 // initial dot coverage
+    return `${baseWidth + (current * stepWidth)}px`
+  }
+
+  return (
+    <div className={cn('w-full', className)}>
+      <div className="flex items-center gap-3">
+        {/* Progress dots */}
+        <div className="flex items-center gap-3 relative">
+          {Array.from({ length: total }).map((_, index) => (
+            <div
+              key={index}
+              className={cn(
+                'w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300',
+                index <= current ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+              )}
+              aria-label={labels?.[index]}
+            />
+          ))}
+          
+          {/* Animated progress overlay */}
+          <motion.div
+            initial={{ width: '12px' }}
+            animate={{ width: calculateProgressWidth() }}
+            className="absolute -left-[6px] top-1/2 -translate-y-1/2 h-2 bg-primary rounded-full"
+            transition={spring.snappy}
+          />
+        </div>
+        
+        {/* Step counter */}
+        {showCounter && (
+          <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
+            Step {current + 1}/{total}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
