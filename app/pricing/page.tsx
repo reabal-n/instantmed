@@ -93,7 +93,7 @@ export default function PricingPage() {
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
               <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {services.map((service, index) => (
+              {services.map((service) => (
                 <GlowCard
                   key={service.name}
                   glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}

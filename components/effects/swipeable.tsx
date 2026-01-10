@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, ReactNode } from "react"
+import { useEffect, useState, useRef, useCallback, ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface SwipeableProps {
@@ -131,7 +131,7 @@ export function SwipeableTabs({
     <div className={className}>
       {/* Tab headers */}
       <div className={cn("flex border-b border-border", tabClassName)}>
-        {tabs.map((tab, index) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -172,7 +172,7 @@ export function SwipeableTabs({
 
       {/* Dot indicators for mobile */}
       <div className="flex justify-center gap-2 mt-4 md:hidden">
-        {tabs.map((tab, index) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -212,28 +212,33 @@ export function SwipeableCarousel({
 }: SwipeableCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+  const isAnimatingRef = useRef(false)
 
-  const goTo = (index: number) => {
-    if (isAnimating) return
+  const goTo = useCallback((index: number) => {
+    if (isAnimatingRef.current) return
+    isAnimatingRef.current = true
     setIsAnimating(true)
     setCurrentIndex(index)
-    setTimeout(() => setIsAnimating(false), 300)
-  }
+    setTimeout(() => {
+      setIsAnimating(false)
+      isAnimatingRef.current = false
+    }, 300)
+  }, [])
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     goTo((currentIndex + 1) % items.length)
-  }
+  }, [currentIndex, items.length, goTo])
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     goTo((currentIndex - 1 + items.length) % items.length)
-  }
+  }, [currentIndex, items.length, goTo])
 
   // Auto-play
   useEffect(() => {
     if (!autoPlay) return
     const interval = setInterval(goNext, autoPlayInterval)
     return () => clearInterval(interval)
-  }, [autoPlay, autoPlayInterval, currentIndex, goNext])
+  }, [autoPlay, autoPlayInterval, goNext])
 
   return (
     <div className={cn("relative", className)}>
@@ -246,8 +251,8 @@ export function SwipeableCarousel({
           className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {items.map((item, index) => (
-            <div key={index} className="w-full flex-shrink-0">
+          {items.map((item, idx) => (
+            <div key={idx} className="w-full flex-shrink-0">
               {item}
             </div>
           ))}
@@ -281,10 +286,10 @@ export function SwipeableCarousel({
       {/* Dot indicators */}
       {showDots && items.length > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          {items.map((_, index) => (
+          {items.map((_, idx) => (
             <button
-              key={index}
-              onClick={() => goTo(index)}
+              key={idx}
+              onClick={() => goTo(idx)}
               className={cn(
                 "w-2 h-2 rounded-full transition-all",
                 currentIndex === index

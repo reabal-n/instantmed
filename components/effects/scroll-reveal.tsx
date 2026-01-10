@@ -96,7 +96,6 @@ export function ScrollRevealList({
   className,
   staggerDelay = 0.1,
   variant = "fadeUp",
-  ...props
 }: ScrollRevealProps & { staggerDelay?: number; children: React.ReactNode[] | React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })

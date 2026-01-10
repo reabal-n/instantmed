@@ -145,7 +145,8 @@ export async function approveAndSendCert(
     // 4. Generate PDF Buffer
     logger.info("Generating PDF for medical certificate", { requestId, certificateNumber })
     
-    const pdfBuffer = await renderToBuffer(React.createElement(MedCertPdfDocument, { data: pdfData }))
+    const pdfElement = React.createElement(MedCertPdfDocument, { data: pdfData }) as any
+    const pdfBuffer = await renderToBuffer(pdfElement)
     
     logger.info("PDF generated successfully", { 
       requestId, 

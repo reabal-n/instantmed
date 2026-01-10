@@ -879,7 +879,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.medcert.duration.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.medcert.duration.options.map((opt, index) => (
+                {COPY.medcert.duration.options.map((opt) => (
                   <Chip
                     key={opt}
                     selected={duration === opt}
@@ -1056,7 +1056,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.prescription.condition.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.prescription.condition.options.map((c, index) => (
+                {COPY.prescription.condition.options.map((c) => (
                   <Chip
                     key={c.id}
                     selected={condition === c.id}
@@ -1078,7 +1078,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.duration.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.duration.options.map((d, index) => (
+                    {COPY.prescription.duration.options.map((d) => (
                       <Chip
                         key={d.id}
                         selected={rxDuration === d.id}
@@ -1097,7 +1097,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.control.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.control.options.map((c, index) => (
+                    {COPY.prescription.control.options.map((c) => (
                       <Chip
                         key={c.id}
                         selected={rxControl === c.id}
@@ -1116,7 +1116,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.sideEffects.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.sideEffects.options.map((s, index) => (
+                    {COPY.prescription.sideEffects.options.map((s) => (
                       <Chip
                         key={s.id}
                         selected={rxSideEffects === s.id}

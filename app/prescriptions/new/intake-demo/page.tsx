@@ -708,7 +708,7 @@ export default function RepeatPrescriptionDemoPage() {
                           "max-h-80 overflow-y-auto"
                         )}
                       >
-                        {searchResults.slice(0, 10).map((med, index) => (
+                        {searchResults.slice(0, 10).map((med) => (
                           <motion.button
                             key={med.id}
                             initial={{ opacity: 0, x: -10 }}
@@ -908,7 +908,7 @@ export default function RepeatPrescriptionDemoPage() {
                       Popular Requests
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {POPULAR_MEDICATIONS.map((med, index) => (
+                      {POPULAR_MEDICATIONS.map((med) => (
                         <motion.button
                           key={med.id}
                           initial={{ opacity: 0, scale: 0.9 }}
@@ -1070,7 +1070,7 @@ export default function RepeatPrescriptionDemoPage() {
 
                   {/* Smart Chips for available strengths */}
                   <div className="flex flex-wrap gap-2">
-                    {availableStrengths.map((strength, index) => (
+                    {availableStrengths.map((strength) => (
                       <motion.button
                         key={strength}
                         initial={{ opacity: 0, scale: 0.9 }}

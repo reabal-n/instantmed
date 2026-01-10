@@ -121,7 +121,7 @@ export function CertReviewModal({
     try {
       await onConfirm(formData)
       onClose()
-    } catch (error) {
+    } catch {
       // Error handling is done in parent component via toast notifications
       // Silently fail here - parent component will show error toast
     } finally {
