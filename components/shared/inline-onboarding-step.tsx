@@ -253,10 +253,10 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   key={s}
                   type="button"
                   onClick={() => setState(s)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     state === s
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-white/50 text-foreground hover:bg-white/80 border border-white/40"
+                      ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
+                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                   }`}
                 >
                   {s}
@@ -367,10 +367,10 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   key={m.value}
                   type="button"
                   onClick={() => setExpiryMonth(m.value)}
-                  className={`py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
                     expiryMonth === m.value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white/50 text-foreground hover:bg-white/80 border border-white/40"
+                      ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
+                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {m.label}
@@ -383,10 +383,10 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   key={y}
                   type="button"
                   onClick={() => setExpiryYear(y)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 whitespace-nowrap ${
                     expiryYear === y
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white/50 text-foreground hover:bg-white/80 border border-white/40"
+                      ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
+                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {y}
