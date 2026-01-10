@@ -570,3 +570,172 @@ export async function getMedCertCertificateForRequest(requestId: string): Promis
     updated_at: certificate.updated_at,
   } as GeneratedDocument
 }
+
+// ============================================
+// INTAKE-BASED DOCUMENT FUNCTIONS
+// ============================================
+
+/**
+ * Get or create a medical certificate draft for an intake.
+ * Uses intakes table instead of requests.
+ */
+export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promise<DocumentDraft | null> {
+  if (!isValidUUID(intakeId)) {
+    return null
+  }
+
+  const supabase = await createClient()
+
+  // Check if draft already exists (using intake_id field if available, or request_id as fallback)
+  const { data: existingDraft, error: fetchError } = await supabase
+    .from("document_drafts")
+    .select("*")
+    .eq("request_id", intakeId) // document_drafts uses request_id column
+    .eq("type", "med_cert")
+    .maybeSingle()
+
+  if (fetchError) {
+    return null
+  }
+
+  if (existingDraft) {
+    return existingDraft as DocumentDraft
+  }
+
+  // Fetch intake with patient profile and answers
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      *,
+      patient:profiles!patient_id (*),
+      answers:intake_answers (*)
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  if (intakeError || !intake) {
+    return null
+  }
+
+  const patient = intake.patient
+  const answers = intake.answers?.[0]?.answers || {}
+
+  // Extract date info from answers
+  const dateNeeded = (answers.date_needed as string) || null
+  const today = new Date().toISOString().split("T")[0]
+
+  let dateFrom = today
+  let dateTo = today
+  if (dateNeeded === "Yesterday") {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    dateFrom = yesterday.toISOString().split("T")[0]
+    dateTo = today
+  } else if (dateNeeded === "Last 7 days") {
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    dateFrom = weekAgo.toISOString().split("T")[0]
+    dateTo = today
+  }
+
+  // Determine subtype from service or answers
+  const certType = (answers.cert_type as string) || "work"
+  let defaultCapacity = "Unable to work"
+  if (certType === "uni") {
+    defaultCapacity = "Unable to attend classes or complete assessments"
+  } else if (certType === "carer") {
+    defaultCapacity = "Required to care for a family member"
+  }
+
+  const initialData: MedCertDraftData = {
+    patient_name: patient.full_name || "",
+    dob: patient.date_of_birth || null,
+    reason: null,
+    date_from: dateFrom,
+    date_to: dateTo,
+    work_capacity: defaultCapacity,
+    notes: null,
+    doctor_name: "",
+    provider_number: "",
+    created_date: today,
+    certificate_type: certType as "work" | "uni" | "carer",
+  }
+
+  // Insert draft
+  const { data: newDraft, error: insertError } = await supabase
+    .from("document_drafts")
+    .insert({
+      request_id: intakeId, // Uses request_id column for compatibility
+      type: "med_cert",
+      data: initialData,
+    })
+    .select()
+    .single()
+
+  if (insertError) {
+    // Handle race condition - another process may have created the draft
+    if (insertError.code === "23505") {
+      const { data: raceDraft } = await supabase
+        .from("document_drafts")
+        .select("*")
+        .eq("request_id", intakeId)
+        .eq("type", "med_cert")
+        .single()
+      return raceDraft as DocumentDraft | null
+    }
+    return null
+  }
+
+  return newDraft as DocumentDraft
+}
+
+/**
+ * Get the latest generated document for an intake
+ */
+export async function getLatestDocumentForIntake(intakeId: string): Promise<GeneratedDocument | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("request_id", intakeId) // documents table uses request_id column
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    return null
+  }
+
+  return data as GeneratedDocument | null
+}
+
+/**
+ * Get med cert certificate for an intake (new med_cert_certificates table)
+ */
+export async function getMedCertCertificateForIntake(intakeId: string): Promise<GeneratedDocument | null> {
+  const supabase = await createClient()
+
+  const { data: certificate, error } = await supabase
+    .from("med_cert_certificates")
+    .select("*")
+    .eq("request_id", intakeId) // Uses request_id column
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !certificate) {
+    return null
+  }
+
+  return {
+    id: certificate.id,
+    request_id: intakeId,
+    type: "med_cert",
+    subtype: certificate.certificate_type,
+    pdf_url: certificate.pdf_url,
+    verification_code: certificate.certificate_number,
+    created_at: certificate.created_at,
+    updated_at: certificate.updated_at,
+  } as GeneratedDocument
+}

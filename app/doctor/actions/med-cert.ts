@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
-import { getRequestWithDetails } from "@/lib/data/requests"
+import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert")
 import type { MedCertDraft } from "@/types/db"
@@ -36,13 +36,14 @@ export async function getOrCreateMedCertDraft(
 
     const supabase = await createClient()
 
-    // Fetch request to verify it exists
-    const request = await getRequestWithDetails(requestId)
-    if (!request) {
+    // Fetch intake to verify it exists
+    const intake = await getIntakeWithDetails(requestId)
+    if (!intake) {
       return { success: false, error: "Request not found" }
     }
 
-    if (request.category !== "medical_certificate") {
+    const service = intake.service as { type?: string } | undefined
+    if (service?.type !== "med_certs") {
       return { success: false, error: "Request is not a medical certificate" }
     }
 
@@ -61,14 +62,14 @@ export async function getOrCreateMedCertDraft(
       }
     }
 
-    // Create new draft from request data
+    // Create new draft from intake data
     const newDraftData = {
       request_id: requestId,
-      patient_full_name: request.patient.full_name || "",
-      patient_dob: request.patient.date_of_birth || null,
+      patient_full_name: intake.patient.full_name || "",
+      patient_dob: intake.patient.date_of_birth || null,
       date_from: new Date().toISOString().split("T")[0],
       date_to: new Date().toISOString().split("T")[0],
-      certificate_type: (request.subtype as "work" | "uni" | "carer" | null) || null,
+      certificate_type: null as "work" | "uni" | "carer" | null,
       reason_summary: null,
       doctor_typed_name: profile.full_name || "Dr [Your Name]",
       doctor_ahpra: profile.ahpra_number || "",
@@ -238,21 +239,19 @@ export async function issueMedCertificate(
         })
         .eq("id", draftId)
 
-      // Also update request status to approved
+      // Also update intake status to approved
       await supabase
-        .from("requests")
+        .from("intakes")
         .update({
           status: "approved",
-          decision: "approved",
-          decided_at: new Date().toISOString(),
           reviewed_by: profile.id,
           reviewed_at: new Date().toISOString(),
         })
         .eq("id", requestId)
 
       // Revalidate paths
-      revalidatePath(`/doctor/requests/${requestId}`)
-      revalidatePath(`/patient/requests/${requestId}`)
+      revalidatePath(`/doctor/intakes/${requestId}`)
+      revalidatePath(`/patient/intakes/${requestId}`)
 
       return { success: true, pdfUrl: result.pdfUrl }
     } catch (_error) {

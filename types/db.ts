@@ -2,6 +2,203 @@
 
 export type UserRole = "patient" | "doctor" | "admin"
 
+// ============================================
+// INTAKE TYPES (Canonical case object)
+// ============================================
+
+export type IntakeStatus =
+  | "draft"
+  | "pending_payment"
+  | "paid"
+  | "in_review"
+  | "pending_info"
+  | "approved"
+  | "declined"
+  | "escalated"
+  | "completed"
+  | "cancelled"
+  | "expired"
+  | "awaiting_script"
+
+export type RiskTier = "low" | "moderate" | "high" | "critical"
+
+export type ServiceType =
+  | "weight_loss"
+  | "mens_health"
+  | "womens_health"
+  | "common_scripts"
+  | "med_certs"
+  | "referrals"
+  | "pathology"
+
+// Table: intakes (canonical case object)
+export interface Intake {
+  id: string
+  patient_id: string
+  service_id: string
+  assigned_admin_id: string | null
+  reference_number: string
+  status: IntakeStatus
+  previous_status: IntakeStatus | null
+  // Priority and SLA
+  is_priority: boolean
+  sla_deadline: string | null
+  sla_warning_sent: boolean
+  sla_breached: boolean
+  // Risk assessment
+  risk_score: number
+  risk_tier: RiskTier
+  risk_reasons: unknown[]
+  risk_flags: unknown[]
+  // Triage
+  triage_result: "allow" | "request_more_info" | "requires_live_consult" | "decline" | null
+  triage_reasons: unknown[]
+  requires_live_consult: boolean
+  live_consult_reason: string | null
+  // Payment
+  payment_id: string | null
+  payment_status: "unpaid" | "pending" | "paid" | "refunded" | "failed"
+  amount_cents: number | null
+  refund_amount_cents: number
+  // Admin/doctor workflow
+  admin_notes: string | null
+  doctor_notes: string | null
+  decline_reason: string | null
+  escalation_notes: string | null
+  // Decision tracking
+  decision: "approved" | "declined" | null
+  decline_reason_code: string | null
+  decline_reason_note: string | null
+  decided_at: string | null
+  // Review tracking
+  reviewed_by: string | null
+  reviewed_at: string | null
+  flagged_for_followup: boolean
+  followup_reason: string | null
+  // Script tracking
+  script_sent: boolean
+  script_sent_at: string | null
+  script_notes: string | null
+  parchment_reference: string | null
+  priority_review: boolean
+  // Timestamps
+  submitted_at: string | null
+  paid_at: string | null
+  assigned_at: string | null
+  approved_at: string | null
+  declined_at: string | null
+  completed_at: string | null
+  cancelled_at: string | null
+  // Document
+  generated_document_url: string | null
+  generated_document_type: string | null
+  document_sent_at: string | null
+  // Client info
+  client_ip: string | null
+  client_user_agent: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Table: intake_answers
+export interface IntakeAnswers {
+  id: string
+  intake_id: string
+  answers: Record<string, unknown>
+  // Normalized fields
+  has_allergies: boolean | null
+  allergy_details: string | null
+  has_current_medications: boolean | null
+  current_medications: string[] | null
+  has_medical_conditions: boolean | null
+  medical_conditions: string[] | null
+  symptom_duration: string | null
+  symptom_severity: "mild" | "moderate" | "severe" | null
+  pregnancy_status: "not_pregnant" | "pregnant" | "breastfeeding" | "trying" | "na" | null
+  // Med cert specific
+  absence_start_date: string | null
+  absence_end_date: string | null
+  absence_days: number | null
+  employer_name: string | null
+  reason_category: string | null
+  // Risk flags
+  red_flags: string[]
+  yellow_flags: string[]
+  questionnaire_version: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Table: services
+export interface Service {
+  id: string
+  slug: string
+  name: string
+  short_name: string | null
+  description: string | null
+  type: ServiceType
+  category: string | null
+  price_cents: number
+  priority_fee_cents: number
+  is_active: boolean
+  requires_id_verification: boolean
+  requires_medicare: boolean
+  requires_photo: boolean
+  min_age: number | null
+  max_age: number | null
+  allowed_states: string[] | null
+  sla_standard_minutes: number
+  sla_priority_minutes: number
+  questionnaire_id: string | null
+  eligibility_rules: Record<string, unknown>
+  icon_name: string | null
+  display_order: number
+  badge_text: string | null
+  meta_title: string | null
+  meta_description: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Table: patient_notes (longitudinal encounter notes)
+export interface PatientNote {
+  id: string
+  patient_id: string
+  intake_id: string | null
+  note_type: "encounter" | "general" | "allergy" | "medication" | "history" | "admin"
+  title: string | null
+  content: string
+  metadata: Record<string, unknown>
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+// Joined types for intakes
+export interface IntakeWithPatient extends Intake {
+  patient: Profile
+  service?: Service
+}
+
+export interface IntakeWithDetails extends Intake {
+  patient: Profile
+  service?: Service
+  answers: IntakeAnswers | null
+}
+
+// Insert/update types for intakes
+export type IntakeInsert = Partial<Omit<Intake, "id" | "created_at" | "updated_at" | "reference_number">> & {
+  patient_id: string
+  service_id: string
+}
+export type IntakeUpdate = Partial<Omit<Intake, "id" | "created_at" | "reference_number">>
+export type IntakeAnswersInsert = Omit<IntakeAnswers, "id" | "created_at" | "updated_at" | "absence_days">
+export type PatientNoteInsert = Omit<PatientNote, "id" | "created_at" | "updated_at">
+
+// ============================================
+// LEGACY REQUEST TYPES (deprecated - use Intake)
+// ============================================
+
 export type RequestType =
   | "script"
   | "med_cert"

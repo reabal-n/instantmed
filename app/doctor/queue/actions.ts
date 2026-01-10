@@ -2,15 +2,17 @@
 
 import { revalidatePath } from "next/cache"
 import {
-  updateRequestStatus,
+  updateIntakeStatus,
   saveDoctorNotes,
-  escalateRequest,
   flagForFollowup,
   markAsReviewed,
-} from "@/lib/data/requests"
+  declineIntake,
+  updateScriptSent,
+  createPatientNote,
+} from "@/lib/data/intakes"
 import { requireAuth } from "@/lib/auth"
-import { RequestLifecycleError } from "../../../lib/data/request-lifecycle"
-import type { RequestStatus } from "@/types/db"
+import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
+import type { IntakeStatus } from "@/types/db"
 
 // UUID validation helper
 function isValidUUID(id: string): boolean {
@@ -19,13 +21,12 @@ function isValidUUID(id: string): boolean {
 }
 
 export async function updateStatusAction(
-  requestId: string,
-  status: RequestStatus,
-  doctorId: string,
+  intakeId: string,
+  status: IntakeStatus,
+  _doctorId: string,
 ): Promise<{ success: boolean; error?: string; code?: string }> {
-  // Validate input
-  if (!isValidUUID(requestId)) {
-    return { success: false, error: "Invalid request ID" }
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
   }
 
   const { profile } = await requireAuth("doctor")
@@ -34,22 +35,23 @@ export async function updateStatusAction(
   }
 
   try {
-    // This will throw RequestLifecycleError if transition is invalid
-    const result = await updateRequestStatus(requestId, status, profile.id)
+    const result = await updateIntakeStatus(intakeId, status, profile.id)
     if (!result) {
       return { success: false, error: "Failed to update status" }
     }
 
-    // Mark as reviewed
-    await markAsReviewed(requestId, doctorId)
+    // Mark as reviewed if going to in_review
+    if (status === "in_review") {
+      await markAsReviewed(intakeId, profile.id)
+    }
 
     revalidatePath("/doctor")
     revalidatePath("/doctor/queue")
-    revalidatePath(`/doctor/requests/${requestId}`)
+    revalidatePath(`/doctor/intakes/${intakeId}`)
 
     return { success: true }
   } catch (error) {
-    if (error instanceof RequestLifecycleError) {
+    if (error instanceof IntakeLifecycleError) {
       switch (error.code) {
         case "PAYMENT_REQUIRED":
           return {
@@ -60,7 +62,7 @@ export async function updateStatusAction(
         case "TERMINAL_STATE":
           return {
             success: false,
-            error: "This request has already been finalized",
+            error: "This intake has already been finalized",
             code: error.code,
           }
         case "INVALID_TRANSITION":
@@ -82,7 +84,7 @@ export async function updateStatusAction(
 }
 
 export async function saveDoctorNotesAction(
-  requestId: string,
+  intakeId: string,
   notes: string,
 ): Promise<{ success: boolean; error?: string }> {
   const { profile } = await requireAuth("doctor")
@@ -90,7 +92,7 @@ export async function saveDoctorNotesAction(
     return { success: false, error: "Unauthorized" }
   }
 
-  const success = await saveDoctorNotes(requestId, notes)
+  const success = await saveDoctorNotes(intakeId, notes)
   if (!success) {
     return { success: false, error: "Failed to save notes" }
   }
@@ -98,30 +100,30 @@ export async function saveDoctorNotesAction(
   return { success: true }
 }
 
-export async function escalateRequestAction(
-  requestId: string,
-  level: "senior_review" | "phone_consult",
-  reason: string,
-  doctorId: string,
+export async function declineIntakeAction(
+  intakeId: string,
+  reasonCode: string,
+  reasonNote?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
 
-  const success = await escalateRequest(requestId, level, reason, doctorId)
+  const success = await declineIntake(intakeId, profile.id, reasonCode, reasonNote)
   if (!success) {
-    return { success: false, error: "Failed to escalate" }
+    return { success: false, error: "Failed to decline" }
   }
 
   revalidatePath("/doctor")
   revalidatePath("/doctor/queue")
+  revalidatePath(`/doctor/intakes/${intakeId}`)
 
   return { success: true }
 }
 
 export async function flagForFollowupAction(
-  requestId: string,
+  intakeId: string,
   reason: string,
 ): Promise<{ success: boolean; error?: string }> {
   const { profile } = await requireAuth("doctor")
@@ -129,9 +131,53 @@ export async function flagForFollowupAction(
     return { success: false, error: "Unauthorized" }
   }
 
-  const success = await flagForFollowup(requestId, reason)
+  const success = await flagForFollowup(intakeId, reason)
   if (!success) {
     return { success: false, error: "Failed to flag" }
+  }
+
+  return { success: true }
+}
+
+export async function markScriptSentAction(
+  intakeId: string,
+  scriptNotes?: string,
+  parchmentReference?: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference)
+  if (!success) {
+    return { success: false, error: "Failed to mark script sent" }
+  }
+
+  revalidatePath("/doctor")
+  revalidatePath("/doctor/queue")
+  revalidatePath(`/doctor/intakes/${intakeId}`)
+
+  return { success: true }
+}
+
+export async function addPatientNoteAction(
+  patientId: string,
+  content: string,
+  options?: {
+    intakeId?: string
+    noteType?: string
+    title?: string
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const note = await createPatientNote(patientId, profile.id, content, options)
+  if (!note) {
+    return { success: false, error: "Failed to create note" }
   }
 
   return { success: true }

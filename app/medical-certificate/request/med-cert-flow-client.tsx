@@ -30,7 +30,7 @@ import {
   BadgeCheck,
   Phone,
 } from "lucide-react"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import type { User } from "@supabase/supabase-js"
@@ -936,7 +936,7 @@ export function MedCertFlowClient({
 
     try {
       // Create request and redirect to Stripe checkout (authenticated users only)
-      const result = await createRequestAndCheckoutAction({
+      const result = await createIntakeAndCheckoutAction({
         category: "medical_certificate",
         subtype: formData.certType || "work",
         type: "med_cert",

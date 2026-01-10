@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { updateScriptSent } from "@/lib/data/requests"
+import { updateScriptSent } from "@/lib/data/intakes"
 
 export async function POST(request: Request) {
   try {
@@ -9,13 +9,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { requestId, scriptSent, scriptNotes } = await request.json()
+    const { intakeId, requestId, scriptSent, scriptNotes, parchmentReference } = await request.json()
+    
+    // Support both intakeId and legacy requestId
+    const id = intakeId || requestId
 
-    if (!requestId || typeof scriptSent !== "boolean") {
+    if (!id || typeof scriptSent !== "boolean") {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }
 
-    const success = await updateScriptSent(requestId, scriptSent, scriptNotes)
+    const success = await updateScriptSent(id, scriptSent, scriptNotes, parchmentReference)
 
     if (!success) {
       return NextResponse.json({ error: "Failed to update" }, { status: 500 })

@@ -20,13 +20,14 @@ interface ApproveCertResult {
 }
 
 /**
- * Server action to approve a medical certificate request, generate PDF, and email it to the patient.
+ * Server action to approve a medical certificate intake, generate PDF, and email it to the patient.
+ * Uses intakes table as the canonical case object.
  * 
- * @param requestId - The ID of the request to approve
+ * @param intakeId - The ID of the intake to approve
  * @param reviewData - The edited certificate data from the review modal
  */
 export async function approveAndSendCert(
-  requestId: string,
+  intakeId: string,
   reviewData: CertReviewData
 ): Promise<ApproveCertResult> {
   try {
@@ -40,40 +41,45 @@ export async function approveAndSendCert(
 
     const supabase = await createClient()
 
-    // 2. Fetch the request with patient details
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
+    // 2. Fetch the intake with patient details and service info
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
       .select(`
         *,
-        patient:profiles!requests_patient_id_fkey(
+        patient:profiles!patient_id(
           id,
           full_name,
           email,
           date_of_birth
         ),
-        answers:request_answers(
+        service:services!service_id(
+          slug,
+          type
+        ),
+        answers:intake_answers(
           answers
         )
       `)
-      .eq("id", requestId)
+      .eq("id", intakeId)
       .single()
 
-    if (requestError || !request) {
-      logger.error("Request not found", { requestId, error: requestError })
-      return { success: false, error: "Request not found" }
+    if (intakeError || !intake) {
+      logger.error("Intake not found", { intakeId, error: intakeError })
+      return { success: false, error: "Intake not found" }
     }
 
-    // Verify it's a medical certificate request
-    if (request.category !== "medical_certificate") {
-      return { success: false, error: "This action is only for medical certificate requests" }
+    // Verify it's a medical certificate service
+    const service = intake.service as { slug: string; type: string } | null
+    if (!service || service.type !== "med_certs") {
+      return { success: false, error: "This action is only for medical certificate intakes" }
     }
 
-    // Verify request is pending
-    if (request.status !== "pending") {
-      return { success: false, error: `Request is already ${request.status}` }
+    // Verify intake is in reviewable status
+    if (!["paid", "in_review"].includes(intake.status)) {
+      return { success: false, error: `Intake is already ${intake.status}` }
     }
 
-    const patient = request.patient as { id: string; full_name: string; email: string; date_of_birth: string | null } | null
+    const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null } | null
     if (!patient || !patient.email) {
       return { success: false, error: "Patient email not found" }
     }
@@ -88,18 +94,20 @@ export async function approveAndSendCert(
     const endDate = new Date(reviewData.endDate)
     const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
-    // Get certificate type from request subtype or default to "work"
-    const certificateType = (request.subtype === "uni" ? "study" : request.subtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
+    // Get certificate type from service slug or default to "work"
+    const certSubtype = service.slug.includes("carer") ? "carer" : service.slug.includes("uni") ? "uni" : "work"
+    const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
 
-    // Get symptoms summary from request answers or use medical reason
-    const answers = request.answers as { answers: Record<string, unknown> } | null
+    // Get symptoms summary from intake answers or use medical reason
+    const answers = intake.answers as unknown as { answers: Record<string, unknown> }[] | null
+    const answersData = answers?.[0]?.answers || null
     let symptomsSummary = reviewData.medicalReason
-    if (answers?.answers) {
-      const symptoms = answers.answers.symptoms as string[] | undefined
+    if (answersData) {
+      const symptoms = answersData.symptoms as string[] | undefined
       if (symptoms && Array.isArray(symptoms) && symptoms.length > 0) {
         symptomsSummary = symptoms.join(", ")
-      } else if (answers.answers.symptomDetails) {
-        symptomsSummary = String(answers.answers.symptomDetails)
+      } else if (answersData.symptomDetails) {
+        symptomsSummary = String(answersData.symptomDetails)
       }
     }
 
@@ -113,12 +121,12 @@ export async function approveAndSendCert(
     // Extract carer details if certificate type is "carer"
     let carerPersonName: string | undefined
     let carerRelationship: string | undefined
-    if (certificateType === "carer" && answers?.answers) {
+    if (certificateType === "carer" && answersData) {
       // Check both possible field names from intake flow
-      carerPersonName = (answers.answers.carer_patient_name as string | undefined) || 
-                       (answers.answers.carerPatientName as string | undefined)
-      carerRelationship = (answers.answers.carer_relationship as string | undefined) || 
-                         (answers.answers.carerRelationship as string | undefined)
+      carerPersonName = (answersData.carer_patient_name as string | undefined) || 
+                       (answersData.carerPatientName as string | undefined)
+      carerRelationship = (answersData.carer_relationship as string | undefined) || 
+                         (answersData.carerRelationship as string | undefined)
     }
 
     // Build PDF data
@@ -143,13 +151,14 @@ export async function approveAndSendCert(
     }
 
     // 4. Generate PDF Buffer
-    logger.info("Generating PDF for medical certificate", { requestId, certificateNumber })
+    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber })
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfElement = React.createElement(MedCertPdfDocument, { data: pdfData }) as any
     const pdfBuffer = await renderToBuffer(pdfElement)
     
     logger.info("PDF generated successfully", { 
-      requestId, 
+      intakeId, 
       certificateNumber,
       size: pdfBuffer.length 
     })
@@ -158,14 +167,14 @@ export async function approveAndSendCert(
     const pdfBase64 = pdfBuffer.toString("base64")
 
     // 6. Generate email HTML
-    const dashboardUrl = `${env.appUrl}/patient/requests/${requestId}`
+    const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
     const emailHtml = renderMedCertEmailToHtml({
       patientName: patient.full_name,
       dashboardUrl,
     })
 
     // 7. Send email with PDF attachment via Resend
-    logger.info("Sending email with PDF attachment", { requestId, to: patient.email })
+    logger.info("Sending email with PDF attachment", { intakeId, to: patient.email })
     
     const emailResult = await sendViaResend({
       to: patient.email,
@@ -181,50 +190,48 @@ export async function approveAndSendCert(
       ],
       tags: [
         { name: "category", value: "med_cert_approved" },
-        { name: "request_id", value: requestId },
+        { name: "intake_id", value: intakeId },
         { name: "cert_type", value: certificateType },
       ],
     })
 
     if (!emailResult.success) {
-      logger.error("Failed to send email", { requestId, error: emailResult.error })
+      logger.error("Failed to send email", { intakeId, error: emailResult.error })
       return { success: false, error: `Failed to send email: ${emailResult.error}` }
     }
 
-    logger.info("Email sent successfully", { requestId, resendId: emailResult.id })
+    logger.info("Email sent successfully", { intakeId, resendId: emailResult.id })
 
-    // 8. Update request status in Supabase
+    // 8. Update intake status in Supabase
     const { error: updateError } = await supabase
-      .from("requests")
+      .from("intakes")
       .update({
         status: "approved",
         reviewed_by: doctorProfile.id,
         reviewed_at: new Date().toISOString(),
         decided_at: new Date().toISOString(),
         decision: "approved",
-        // Note: If your schema has approved_at and doctor_id fields, add them here:
-        // approved_at: new Date().toISOString(),
-        // doctor_id: doctorProfile.id,
+        approved_at: new Date().toISOString(),
       })
-      .eq("id", requestId)
+      .eq("id", intakeId)
 
     if (updateError) {
-      logger.error("Failed to update request status", { requestId, error: updateError })
-      return { success: false, error: `Failed to update request: ${updateError.message}` }
+      logger.error("Failed to update intake status", { intakeId, error: updateError })
+      return { success: false, error: `Failed to update intake: ${updateError.message}` }
     }
 
-    logger.info("Request updated successfully", { requestId, status: "approved" })
+    logger.info("Intake updated successfully", { intakeId, status: "approved" })
 
     // 9. Revalidate dashboard paths
     revalidatePath("/doctor")
     revalidatePath("/doctor/dashboard")
-    revalidatePath(`/doctor/requests/${requestId}`)
-    revalidatePath(`/patient/requests/${requestId}`)
+    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidatePath(`/patient/intakes/${intakeId}`)
 
     return { success: true }
   } catch (error) {
     logger.error("Error approving certificate", { 
-      requestId,
+      intakeId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined
     })

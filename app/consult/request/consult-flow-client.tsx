@@ -18,7 +18,7 @@ import {
   Stethoscope,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
@@ -341,7 +341,7 @@ export function ConsultFlowClient({
     setError(null)
 
     try {
-      const result = await createRequestAndCheckoutAction({
+      const result = await createIntakeAndCheckoutAction({
         category: "consult",
         subtype: "general",
         type: "script",

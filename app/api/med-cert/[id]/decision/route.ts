@@ -6,11 +6,11 @@ const log = createLogger("route")
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { uploadPdfBuffer } from "@/lib/storage/documents"
 import { createGeneratedDocument } from "@/lib/data/documents"
-import { updateRequestStatus } from "@/lib/data/requests"
+import { updateIntakeStatus } from "@/lib/data/intakes"
 import { assertApprovalInvariants, ApprovalInvariantError } from "@/lib/approval/med-cert-invariants"
 import { getApiAuth } from "@/lib/auth"
 import { rateLimit } from "@/lib/rate-limit/limiter"
-import { RequestLifecycleError } from "@/lib/data/request-lifecycle"
+import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 
 // ============================================================================
 // TYPES
@@ -245,25 +245,25 @@ export async function PATCH(
       )
     }
 
-    // Update request status to approved
-    let updatedRequest
+    // Update intake status to approved
+    let updatedIntake
     try {
-      updatedRequest = await updateRequestStatus(requestId, "approved", profile.id)
+      updatedIntake = await updateIntakeStatus(requestId, "approved", profile.id)
     } catch (lifecycleError) {
-      if (lifecycleError instanceof RequestLifecycleError) {
-        log.warn("Lifecycle error on approval", { requestId, error: lifecycleError.message })
+      if (lifecycleError instanceof IntakeLifecycleError) {
+        log.warn("Lifecycle error on approval", { requestId, error: (lifecycleError as Error).message })
         return NextResponse.json(
-          { success: false, error: lifecycleError.message },
+          { success: false, error: (lifecycleError as Error).message },
           { status: 400 }
         )
       }
       throw lifecycleError
     }
 
-    if (!updatedRequest) {
-      log.error("Failed to update request status", { requestId })
+    if (!updatedIntake) {
+      log.error("Failed to update intake status", { requestId })
       return NextResponse.json(
-        { success: false, error: "Failed to update request status" },
+        { success: false, error: "Failed to update intake status" },
         { status: 500 }
       )
     }

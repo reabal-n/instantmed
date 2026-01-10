@@ -39,7 +39,7 @@ const VALID_STATUS_TRANSITIONS: Record<RequestStatus, RequestStatus[]> = {
 }
 
 // Valid payment status transitions (for reference - enforced at webhook level)
-const _VALID_PAYMENT_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
+const VALID_PAYMENT_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
   pending_payment: ["paid", "failed"],
   paid: ["refunded"],
   failed: ["pending_payment"], // Can retry payment

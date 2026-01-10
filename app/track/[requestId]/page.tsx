@@ -7,9 +7,8 @@ interface PageProps {
   params: Promise<{ requestId: string }>
 }
 
-// Prevent static generation to avoid Clerk publishableKey build errors
-
 export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Track Your Request | InstantMed",
   description: "Track the real-time status of your medical request",
@@ -19,31 +18,35 @@ export default async function TrackingPage({ params }: PageProps) {
   const { requestId } = await params
   const supabase = await createClient()
 
-  // Get the request with patient profile
-  const { data: request, error } = await supabase
-    .from("requests")
+  // Get the intake with patient profile
+  const { data: intake, error } = await supabase
+    .from("intakes")
     .select(`
       *,
       patient:profiles!patient_id (
         full_name,
         id
+      ),
+      service:services!service_id (
+        name,
+        short_name
       )
     `)
     .eq("id", requestId)
     .single()
 
-  if (error || !request) {
+  if (error || !intake) {
     notFound()
   }
 
-  // Get queue position for pending requests
+  // Get queue position for paid intakes awaiting review
   let queuePosition = 0
-  if (request.status === "pending") {
+  if (intake.status === "paid") {
     const { count } = await supabase
-      .from("requests")
+      .from("intakes")
       .select("*", { count: "exact", head: true })
-      .eq("status", "pending")
-      .lt("created_at", request.created_at)
+      .eq("status", "paid")
+      .lt("created_at", intake.created_at)
 
     queuePosition = (count || 0) + 1
   }
@@ -51,5 +54,5 @@ export default async function TrackingPage({ params }: PageProps) {
   // Calculate estimated wait time (avg 15 min per request)
   const estimatedMinutes = queuePosition * 15
 
-  return <TrackingClient request={request} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />
+  return <TrackingClient intake={intake} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />
 }

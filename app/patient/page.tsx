@@ -6,16 +6,11 @@ import { PanelDashboard } from "@/components/patient/panel-dashboard"
 /**
  * Patient Dashboard Page - Now panel-based
  * 
- * Changes:
- * - Uses PanelDashboard (no tabs, single scroll)
- * - Click request → DrawerPanel opens
- * - Simpler, calmer interface
- * - Removed invoices/payment methods from main view
+ * Uses intakes as the canonical case object.
  */
 
-// Prevent static generation to avoid Clerk publishableKey build errors
-
 export const dynamic = "force-dynamic"
+
 export default async function PatientDashboardPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
@@ -30,17 +25,18 @@ export default async function PatientDashboardPage() {
   const supabase = await createClient()
   const patientId = authUser.profile.id
 
-  // Fetch only what's needed for the dashboard
-  const [requestsResult, prescriptionsResult] = await Promise.all([
-    // Get patient requests
+  // Fetch intakes with service info for the dashboard
+  const [intakesResult, prescriptionsResult] = await Promise.all([
     supabase
-      .from("requests")
-      .select("*")
+      .from("intakes")
+      .select(`
+        *,
+        service:services!service_id(id, name, short_name, type, slug)
+      `)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
       .limit(10),
 
-    // Get patient prescriptions
     supabase
       .from("prescriptions")
       .select("*")
@@ -52,7 +48,7 @@ export default async function PatientDashboardPage() {
   return (
     <PanelDashboard
       fullName={authUser.profile.full_name || "Patient"}
-      requests={requestsResult.data || []}
+      intakes={intakesResult.data || []}
       prescriptions={prescriptionsResult.data || []}
     />
   )

@@ -50,7 +50,7 @@ import {
 import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
 import { MedicationSearch } from "@/components/medication/medication-search"
 import posthog from "posthog-js"
@@ -758,7 +758,7 @@ export function EnhancedIntakeFlow({
       const answers = buildAnswersPayload()
 
       // Verify server actions are available
-      if (!createRequestAndCheckoutAction || !createGuestCheckoutAction) {
+      if (!createIntakeAndCheckoutAction || !createGuestCheckoutAction) {
         throw new Error("Payment system not available. Please refresh the page and try again.")
       }
 
@@ -766,7 +766,7 @@ export function EnhancedIntakeFlow({
 
       if (isAuthenticated) {
         // Authenticated user checkout
-        result = await createRequestAndCheckoutAction({
+        result = await createIntakeAndCheckoutAction({
           category,
           subtype,
           type: state.service || "consult",

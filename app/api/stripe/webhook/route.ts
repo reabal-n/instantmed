@@ -134,13 +134,14 @@ export async function POST(request: Request) {
   // Handle checkout.session.completed
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
-    const requestId = session.metadata?.request_id
+    // Support both intake_id (new) and request_id (legacy) in metadata
+    const intakeId = session.metadata?.intake_id || session.metadata?.request_id
     const patientId = session.metadata?.patient_id
 
     log.info("checkout.session.completed received", {
       eventId: event.id,
       sessionId: session.id,
-      requestId,
+      intakeId,
       patientId,
       amount: session.amount_total,
       paymentStatus: session.payment_status,
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
       supabase,
       event.id,
       event.type,
-      requestId,
+      intakeId,
       session.id,
       {
         amount: session.amount_total,
@@ -165,110 +166,81 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, skipped: true })
     }
 
-    if (!requestId) {
-      log.error("CRITICAL: Missing request_id in metadata", {
+    if (!intakeId) {
+      log.error("CRITICAL: Missing intake_id in metadata", {
         eventId: event.id,
         sessionId: session.id,
       })
-      await recordEventError(supabase, event.id, "Missing request_id in session metadata")
-      // Return 200 to prevent Stripe retries - this is a data issue, not transient
-      return NextResponse.json({ error: "Missing request_id", processed: true }, { status: 200 })
+      await recordEventError(supabase, event.id, "Missing intake_id in session metadata")
+      return NextResponse.json({ error: "Missing intake_id", processed: true }, { status: 200 })
     }
 
     try {
-      // STEP 1: Update payment record
-      const { error: paymentError, data: paymentData } = await supabase
-        .from("payments")
-        .update({
-          status: "paid",
-          stripe_payment_intent_id: session.payment_intent as string,
-          amount_paid: session.amount_total,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("stripe_session_id", session.id)
-        .select()
+      // STEP 1: Check current intake state BEFORE updating
+      const { data: currentIntake, error: fetchError } = await supabase
+        .from("intakes")
+        .select("id, status, payment_status")
+        .eq("id", intakeId)
         .single()
 
-      if (paymentError) {
-        log.error("Payment update error (non-fatal)", {
-          sessionId: session.id,
-        }, paymentError)
-        // Continue - payment record is secondary to request status
-      } else {
-        log.info("Payment record updated", {
-          paymentId: paymentData?.id,
-          sessionId: session.id,
-        })
-      }
-
-      // STEP 2: Check current request state BEFORE updating
-      const { data: currentRequest, error: fetchError } = await supabase
-        .from("requests")
-        .select("id, status, payment_status, paid")
-        .eq("id", requestId)
-        .single()
-
-      if (fetchError || !currentRequest) {
-        const errorMsg = `Request not found: ${requestId}`
-        log.error("CRITICAL: Request not found", { requestId }, fetchError)
+      if (fetchError || !currentIntake) {
+        const errorMsg = `Intake not found: ${intakeId}`
+        log.error("CRITICAL: Intake not found", { intakeId }, fetchError)
         await recordEventError(supabase, event.id, errorMsg)
-        // Return 200 - the request doesn't exist, retrying won't help
-        return NextResponse.json({ error: "Request not found", processed: true }, { status: 200 })
+        return NextResponse.json({ error: "Intake not found", processed: true }, { status: 200 })
       }
 
-      // STEP 3: Guard against double-marking as paid
-      if (currentRequest.payment_status === "paid" && currentRequest.paid === true) {
-        log.info("Request already marked as paid, skipping update", {
-          requestId,
-          currentStatus: currentRequest.status,
+      // STEP 2: Guard against double-marking as paid
+      if (currentIntake.payment_status === "paid") {
+        log.info("Intake already marked as paid, skipping update", {
+          intakeId,
+          currentStatus: currentIntake.status,
         })
         return NextResponse.json({ received: true, already_paid: true })
       }
 
-      // STEP 4: Update request to paid status
-      const { error: requestError, data: requestData } = await supabase
-        .from("requests")
+      // STEP 3: Update intake to paid status
+      const { error: intakeError, data: intakeData } = await supabase
+        .from("intakes")
         .update({
-          paid: true,
           payment_status: "paid",
-          status: "pending", // Now visible to doctors
-          active_checkout_session_id: null, // Clear the active session
+          status: "paid", // Now visible to doctor in queue
+          paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", requestId)
-        .eq("payment_status", "pending_payment") // Only update if still pending (prevent race)
+        .eq("id", intakeId)
+        .in("payment_status", ["pending", "unpaid"]) // Only update if still pending
         .select()
         .single()
 
-      if (requestError) {
-        // Check if the error is because it's already paid (concurrent webhook)
-        const { data: recheckRequest } = await supabase
-          .from("requests")
+      if (intakeError) {
+        // Check if already paid (concurrent webhook)
+        const { data: recheckIntake } = await supabase
+          .from("intakes")
           .select("payment_status")
-          .eq("id", requestId)
+          .eq("id", intakeId)
           .single()
 
-        if (recheckRequest?.payment_status === "paid") {
-          log.info("Request was updated by concurrent webhook", { requestId })
+        if (recheckIntake?.payment_status === "paid") {
+          log.info("Intake was updated by concurrent webhook", { intakeId })
           return NextResponse.json({ received: true, concurrent_update: true })
         }
 
-        log.error("Request update FAILED", {
-          requestId,
+        log.error("Intake update FAILED", {
+          intakeId,
           sessionId: session.id,
-        }, requestError)
-        await recordEventError(supabase, event.id, `Request update failed: ${requestError.message}`)
-        // Return 500 so Stripe will retry
-        return NextResponse.json({ error: "Failed to update request" }, { status: 500 })
+        }, intakeError)
+        await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
+        return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
       }
 
-      log.info("Request updated to paid", {
-        requestId,
-        newStatus: requestData?.status,
+      log.info("Intake updated to paid", {
+        intakeId,
+        newStatus: intakeData?.status,
         sessionId: session.id,
       })
 
-      // STEP 5: Save Stripe customer ID to profile (non-critical)
+      // STEP 4: Save Stripe customer ID to profile (non-critical)
       if (session.customer && patientId) {
         const customerId = typeof session.customer === "string" ? session.customer : session.customer.id
 
@@ -295,9 +267,8 @@ export async function POST(request: Request) {
         }
       }
 
-      // STEP 6: Send payment notification (non-critical)
+      // STEP 5: Send payment notification (non-critical)
       if (patientId && session.amount_total) {
-        // Get patient info for notification
         const { data: patientProfile } = await supabase
           .from("profiles")
           .select("email, full_name")
@@ -306,13 +277,13 @@ export async function POST(request: Request) {
 
         if (patientProfile?.email) {
           notifyPaymentReceived({
-            requestId,
+            requestId: intakeId, // Using intakeId for notification tracking
             patientId,
             patientEmail: patientProfile.email,
             patientName: patientProfile.full_name || "Patient",
             amount: session.amount_total,
           }).catch((err) => {
-            log.error("Notification error (non-fatal)", { requestId }, err)
+            log.error("Notification error (non-fatal)", { intakeId }, err)
           })
         }
       }
@@ -320,13 +291,13 @@ export async function POST(request: Request) {
       const duration = Date.now() - startTime
       log.info("Payment processed successfully", {
         eventId: event.id,
-        requestId,
+        intakeId,
         sessionId: session.id,
         durationMs: duration,
       })
 
     } catch (error) {
-      log.error("Unexpected error", { requestId }, error)
+      log.error("Unexpected error", { intakeId }, error)
       await recordEventError(supabase, event.id, error instanceof Error ? error.message : "Unknown error")
       return NextResponse.json({ error: "Internal error" }, { status: 500 })
     }
@@ -335,12 +306,12 @@ export async function POST(request: Request) {
   // Handle checkout.session.expired
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session
-    const requestId = session.metadata?.request_id
+    const intakeId = session.metadata?.intake_id || session.metadata?.request_id
 
     log.info("checkout.session.expired received", {
       eventId: event.id,
       sessionId: session.id,
-      requestId,
+      intakeId,
     })
 
     // Atomic claim
@@ -348,7 +319,7 @@ export async function POST(request: Request) {
       supabase,
       event.id,
       event.type,
-      requestId,
+      intakeId,
       session.id
     )
 
@@ -357,35 +328,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, skipped: true })
     }
 
-    if (requestId) {
+    if (intakeId) {
       try {
-        // Update payment record to expired
+        // Update intake status to expired if still pending payment
         const { error: expireError } = await supabase
-          .from("payments")
+          .from("intakes")
           .update({
             status: "expired",
             updated_at: new Date().toISOString(),
           })
-          .eq("stripe_session_id", session.id)
+          .eq("id", intakeId)
+          .eq("status", "pending_payment")
 
         if (expireError) {
-          log.error("Error expiring payment", { sessionId: session.id }, expireError)
+          log.error("Error expiring intake", { sessionId: session.id }, expireError)
         }
 
-        // Clear the active checkout session on the request
-        await supabase
-          .from("requests")
-          .update({ active_checkout_session_id: null })
-          .eq("id", requestId)
-          .eq("active_checkout_session_id", session.id)
-
-        log.info("Payment marked expired", {
-          requestId,
+        log.info("Intake session expired", {
+          intakeId,
           sessionId: session.id,
         })
 
       } catch (error) {
-        log.error("Error handling expired session", { requestId }, error)
+        log.error("Error handling expired session", { intakeId }, error)
       }
     }
   }

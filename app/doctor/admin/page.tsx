@@ -1,22 +1,24 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getAllRequestsForAdmin, getDoctorDashboardStats } from "@/lib/data/requests"
+import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import { AdminDashboardClient } from "./admin-dashboard-client"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
-
 export const dynamic = "force-dynamic"
+
 export default async function AdminDashboardPage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     redirect("/sign-in")
   }
 
-  const [allRequests, stats] = await Promise.all([getAllRequestsForAdmin(), getDoctorDashboardStats()])
+  const [allIntakes, stats] = await Promise.all([
+    getAllIntakesForAdmin(),
+    getDoctorDashboardStats(),
+  ])
 
   return (
     <AdminDashboardClient
-      allRequests={allRequests}
+      allIntakes={allIntakes}
       stats={stats}
       doctorName={profile.full_name}
     />

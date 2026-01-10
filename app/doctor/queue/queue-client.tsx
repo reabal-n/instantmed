@@ -23,7 +23,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -33,9 +32,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Phone,
   Flag,
-  ArrowUpCircle,
   FileText,
   Search,
   MoreVertical,
@@ -46,29 +43,27 @@ import {
   RefreshCw,
   Zap,
 } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, escalateRequestAction, flagForFollowupAction } from "./actions"
+import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction } from "./actions"
 import type { QueueClientProps } from "./types"
-import { formatCategory, formatSubtype } from "@/lib/format-utils"
+import { formatServiceType } from "@/lib/data/intakes"
+import type { IntakeStatus } from "@/types/db"
 
 export function QueueClient({
-  requests: initialRequests,
+  intakes: initialIntakes,
   doctorId,
 }: QueueClientProps) {
   const router = useRouter()
-  const [requests, setRequests] = useState(initialRequests)
+  const [intakes, setIntakes] = useState(initialIntakes)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isPending, startTransition] = useTransition()
-  const [escalateDialog, setEscalateDialog] = useState<{
-    requestId: string
-    type: "senior_review" | "phone_consult"
-  } | null>(null)
-  const [escalateReason, setEscalateReason] = useState("")
+  const [declineDialog, setDeclineDialog] = useState<string | null>(null)
+  const [declineReason, setDeclineReason] = useState("")
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
 
-  // Real-time subscription
+  // Real-time subscription for intakes
   useEffect(() => {
     const supabase = createClient()
 
@@ -79,16 +74,16 @@ export function QueueClient({
         {
           event: "*",
           schema: "public",
-          table: "requests",
-          filter: "status=eq.pending",
+          table: "intakes",
+          filter: "status=in.(paid,in_review,pending_info)",
         },
         (payload) => {
           if (payload.eventType === "INSERT") {
             router.refresh()
           } else if (payload.eventType === "UPDATE") {
-            setRequests((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
+            setIntakes((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
           } else if (payload.eventType === "DELETE") {
-            setRequests((prev) => prev.filter((r) => r.id !== payload.old.id))
+            setIntakes((prev) => prev.filter((r) => r.id !== payload.old.id))
           }
         },
       )
@@ -141,47 +136,32 @@ export function QueueClient({
       .toUpperCase()
   }
 
-  const handleApprove = async (requestId: string, category?: string | null) => {
+  const handleApprove = async (intakeId: string, serviceType?: string | null) => {
     startTransition(async () => {
-      // For prescription requests, set status to awaiting_prescribe instead of approved
-      // This requires external Parchment entry before completion
-      const newStatus = category === "prescription" ? "awaiting_prescribe" : "approved"
-      const result = await updateStatusAction(requestId, newStatus as import("@/types/db").RequestStatus, doctorId)
+      // For prescriptions, set status to awaiting_script (external Parchment entry needed)
+      const newStatus: IntakeStatus = serviceType === "common_scripts" ? "awaiting_script" : "approved"
+      const result = await updateStatusAction(intakeId, newStatus, doctorId)
       if (result.success) {
-        setRequests((prev) => prev.filter((r) => r.id !== requestId))
-        // For med certs, go to document builder; for scripts, go to request detail
-        if (category === "prescription") {
-          router.push(`/doctor/requests/${requestId}`)
+        setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
+        // For med certs, go to document builder; for scripts, go to intake detail
+        if (serviceType === "common_scripts") {
+          router.push(`/doctor/intakes/${intakeId}`)
         } else {
-          router.push(`/doctor/requests/${requestId}/document`)
+          router.push(`/doctor/intakes/${intakeId}/document`)
         }
       }
     })
   }
 
-  const handleDecline = async (requestId: string) => {
-    startTransition(async () => {
-      const result = await updateStatusAction(requestId, "declined", doctorId)
-      if (result.success) {
-        setRequests((prev) => prev.filter((r) => r.id !== requestId))
-      }
-    })
-  }
-
-  const handleEscalate = async () => {
-    if (!escalateDialog || !escalateReason.trim()) return
+  const handleDecline = async () => {
+    if (!declineDialog || !declineReason.trim()) return
 
     startTransition(async () => {
-      const result = await escalateRequestAction(
-        escalateDialog.requestId,
-        escalateDialog.type,
-        escalateReason,
-        doctorId,
-      )
+      const result = await declineIntakeAction(declineDialog, "other", declineReason)
       if (result.success) {
-        setRequests((prev) => prev.filter((r) => r.id !== escalateDialog.requestId))
-        setEscalateDialog(null)
-        setEscalateReason("")
+        setIntakes((prev) => prev.filter((r) => r.id !== declineDialog))
+        setDeclineDialog(null)
+        setDeclineReason("")
       }
     })
   }
@@ -192,40 +172,45 @@ export function QueueClient({
     startTransition(async () => {
       const result = await flagForFollowupAction(flagDialog, flagReason)
       if (result.success) {
-        setRequests((prev) => prev.map((r) => (r.id === flagDialog ? { ...r, flagged_for_followup: true } : r)))
+        setIntakes((prev) => prev.map((r) => (r.id === flagDialog ? { ...r, flagged_for_followup: true } : r)))
         setFlagDialog(null)
         setFlagReason("")
       }
     })
   }
 
-  const handleSaveNotes = async (requestId: string) => {
-    const notes = doctorNotes[requestId]
+  const handleSaveNotes = async (intakeId: string) => {
+    const notes = doctorNotes[intakeId]
     if (!notes?.trim()) return
 
     startTransition(async () => {
-      await saveDoctorNotesAction(requestId, notes)
+      await saveDoctorNotesAction(intakeId, notes)
     })
   }
 
-  // Sort requests: priority first, then by created_at (oldest first)
-  const sortedRequests = useMemo(() => {
-    return [...requests].sort((a, b) => {
-      // Priority requests come first
-      if (a.priority_review && !b.priority_review) return -1
-      if (!a.priority_review && b.priority_review) return 1
+  // Sort intakes: priority first, then by SLA deadline, then by created_at
+  const sortedIntakes = useMemo(() => {
+    return [...intakes].sort((a, b) => {
+      // Priority intakes come first
+      if (a.is_priority && !b.is_priority) return -1
+      if (!a.is_priority && b.is_priority) return 1
+      // Then sort by SLA deadline if available
+      if (a.sla_deadline && b.sla_deadline) {
+        return new Date(a.sla_deadline).getTime() - new Date(b.sla_deadline).getTime()
+      }
       // Then sort by created_at (oldest first)
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     })
-  }, [requests])
+  }, [intakes])
 
-  const filteredRequests = sortedRequests.filter((r) => {
+  const filteredIntakes = sortedIntakes.filter((r) => {
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
+    const service = r.service as { name?: string; type?: string } | undefined
     return (
       r.patient.full_name.toLowerCase().includes(query) ||
       r.patient.medicare_number?.includes(query) ||
-      formatCategory(r.category).toLowerCase().includes(query)
+      formatServiceType(service?.type).toLowerCase().includes(query)
     )
   })
 
@@ -236,7 +221,7 @@ export function QueueClient({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {filteredRequests.length} request{filteredRequests.length !== 1 ? "s" : ""} waiting • Oldest first
+            {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting • Priority first
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -257,25 +242,26 @@ export function QueueClient({
 
       {/* Queue List */}
       <div className="space-y-3">
-        {filteredRequests.length === 0 ? (
+        {filteredIntakes.length === 0 ? (
           <Card className="py-12">
             <CardContent className="text-center text-muted-foreground">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 text-emerald-500" />
               <p className="font-medium">Queue is clear!</p>
-              <p className="text-sm">No pending requests at the moment.</p>
+              <p className="text-sm">No pending cases at the moment.</p>
             </CardContent>
           </Card>
         ) : (
-          filteredRequests.map((request, index) => {
-            const isExpanded = expandedId === request.id
-            const waitSeverity = getWaitTimeSeverity(request.created_at)
-            const patientAge = calculateAge(request.patient.date_of_birth)
+          filteredIntakes.map((intake, index) => {
+            const isExpanded = expandedId === intake.id
+            const waitSeverity = getWaitTimeSeverity(intake.created_at)
+            const patientAge = calculateAge(intake.patient.date_of_birth)
+            const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
             return (
               <Collapsible
-                key={request.id}
+                key={intake.id}
                 open={isExpanded}
-                onOpenChange={() => setExpandedId(isExpanded ? null : request.id)}
+                onOpenChange={() => setExpandedId(isExpanded ? null : intake.id)}
               >
                 <Card className={`transition-all ${isExpanded ? "ring-2 ring-primary/20" : ""}`}>
                   <CollapsibleTrigger asChild>
@@ -289,22 +275,17 @@ export function QueueClient({
                           )}
                           <Avatar className="h-10 w-10 shrink-0">
                             <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                              {getInitials(request.patient.full_name)}
+                              {getInitials(intake.patient.full_name)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium truncate">{request.patient.full_name}</span>
+                              <span className="font-medium truncate">{intake.patient.full_name}</span>
                               <span className="text-sm text-muted-foreground">{patientAge}y</span>
                               <Badge variant="outline" className="text-xs">
-                                {formatCategory(request.category)}
+                                {service?.short_name || formatServiceType(service?.type)}
                               </Badge>
-                              {request.subtype && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {formatSubtype(request.subtype)}
-                                </Badge>
-                              )}
-                              {request.priority_review && (
+                              {intake.is_priority && (
                                 <Badge className="bg-amber-100 text-amber-700 border-amber-200 ml-2">
                                   <Zap className="w-3 h-3 mr-1" />
                                   Priority
@@ -327,7 +308,7 @@ export function QueueClient({
                             }`}
                           >
                             <Clock className="h-4 w-4" />
-                            <span className="font-medium">{calculateWaitTime(request.created_at)}</span>
+                            <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
                           </div>
                           {waitSeverity === "critical" && <AlertTriangle className="h-4 w-4 text-red-500" />}
                         </div>
@@ -343,7 +324,7 @@ export function QueueClient({
                           <User className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="text-xs text-muted-foreground">Patient</p>
-                            <p className="text-sm font-medium">{request.patient.full_name}</p>
+                            <p className="text-sm font-medium">{intake.patient.full_name}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -351,7 +332,7 @@ export function QueueClient({
                           <div>
                             <p className="text-xs text-muted-foreground">DOB</p>
                             <p className="text-sm font-medium">
-                              {new Date(request.patient.date_of_birth).toLocaleDateString("en-AU")}
+                              {new Date(intake.patient.date_of_birth).toLocaleDateString("en-AU")}
                             </p>
                           </div>
                         </div>
@@ -360,7 +341,7 @@ export function QueueClient({
                           <div>
                             <p className="text-xs text-muted-foreground">Medicare</p>
                             <p className="text-sm font-medium font-mono">
-                              {request.patient.medicare_number?.slice(0, 4) || "N/A"} ••••
+                              {intake.patient.medicare_number?.slice(0, 4) || "N/A"} ••••
                             </p>
                           </div>
                         </div>
@@ -369,31 +350,21 @@ export function QueueClient({
                           <div>
                             <p className="text-xs text-muted-foreground">Location</p>
                             <p className="text-sm font-medium">
-                              {request.patient.suburb || "N/A"}, {request.patient.state || ""}
+                              {intake.patient.suburb || "N/A"}, {intake.patient.state || ""}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Questionnaire Responses */}
+                      {/* View Details Link */}
                       <div>
-                        <h4 className="text-sm font-medium mb-2">Questionnaire Responses</h4>
-                        <div className="p-4 bg-muted/30 rounded-lg text-sm space-y-2">
-                          {request.clinical_note ? (
-                            <p>{request.clinical_note}</p>
-                          ) : (
-                            <p className="text-muted-foreground italic">
-                              No questionnaire responses available. View full details to see answers.
-                            </p>
-                          )}
-                          <Link 
-                            href={`/doctor/requests/${request.id}`}
-                            className="inline-flex items-center text-sm text-primary hover:underline"
-                          >
-                            <FileText className="h-3.5 w-3.5 mr-1" />
-                            View full details
-                          </Link>
-                        </div>
+                        <Link 
+                          href={`/doctor/intakes/${intake.id}`}
+                          className="inline-flex items-center text-sm text-primary hover:underline"
+                        >
+                          <FileText className="h-3.5 w-3.5 mr-1" />
+                          View full details & questionnaire responses
+                        </Link>
                       </div>
 
                       {/* Doctor Notes */}
@@ -402,22 +373,22 @@ export function QueueClient({
                         <div className="flex gap-2">
                           <Textarea
                             placeholder="Add clinical notes (private, not shared with patient)..."
-                            value={doctorNotes[request.id] || ""}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            value={doctorNotes[intake.id] || ""}
+                            onChange={(e) =>
                               setDoctorNotes((prev) => ({
                                 ...prev,
-                                [request.id]: e.target.value,
+                                [intake.id]: e.target.value,
                               }))
                             }
                             className="min-h-20 text-sm"
                           />
                         </div>
-                        {doctorNotes[request.id] && (
+                        {doctorNotes[intake.id] && (
                           <Button
                             variant="ghost"
                             size="sm"
                             className="mt-2"
-                            onClick={() => handleSaveNotes(request.id)}
+                            onClick={() => handleSaveNotes(intake.id)}
                             disabled={isPending}
                           >
                             Save notes
@@ -428,14 +399,14 @@ export function QueueClient({
                       {/* Actions */}
                       <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
                         <Button
-                          onClick={() => handleApprove(request.id, request.category)}
+                          onClick={() => handleApprove(intake.id, service?.type)}
                           disabled={isPending}
                           className="bg-emerald-600 hover:bg-emerald-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1.5" />
-                          {request.category === "prescription" ? "Approve Script" : "Approve & Generate"}
+                          {service?.type === "common_scripts" ? "Approve Script" : "Approve & Generate"}
                         </Button>
-                        <Button variant="destructive" onClick={() => handleDecline(request.id)} disabled={isPending}>
+                        <Button variant="destructive" onClick={() => setDeclineDialog(intake.id)} disabled={isPending}>
                           <XCircle className="h-4 w-4 mr-1.5" />
                           Decline
                         </Button>
@@ -447,32 +418,9 @@ export function QueueClient({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setFlagDialog(request.id)}>
+                            <DropdownMenuItem onClick={() => setFlagDialog(intake.id)}>
                               <Flag className="h-4 w-4 mr-2" />
                               Flag for follow-up
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setEscalateDialog({
-                                  requestId: request.id,
-                                  type: "senior_review",
-                                })
-                              }
-                            >
-                              <ArrowUpCircle className="h-4 w-4 mr-2" />
-                              Escalate to senior
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setEscalateDialog({
-                                  requestId: request.id,
-                                  type: "phone_consult",
-                                })
-                              }
-                            >
-                              <Phone className="h-4 w-4 mr-2" />
-                              Needs phone consult
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -486,31 +434,27 @@ export function QueueClient({
         )}
       </div>
 
-      {/* Escalate Dialog */}
-      <Dialog open={!!escalateDialog} onOpenChange={() => setEscalateDialog(null)}>
+      {/* Decline Dialog */}
+      <Dialog open={!!declineDialog} onOpenChange={() => setDeclineDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {escalateDialog?.type === "senior_review" ? "Escalate to Senior Review" : "Mark for Phone Consult"}
-            </DialogTitle>
+            <DialogTitle>Decline Request</DialogTitle>
             <DialogDescription>
-              {escalateDialog?.type === "senior_review"
-                ? "This request will be escalated to a senior doctor for review."
-                : "This request will be marked as requiring a phone consultation with the patient."}
+              Please provide a reason for declining this request.
             </DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Reason for escalation..."
-            value={escalateReason}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEscalateReason(e.target.value)}
+            placeholder="Reason for declining..."
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEscalateDialog(null)}>
+            <Button variant="outline" onClick={() => setDeclineDialog(null)}>
               Cancel
             </Button>
-            <Button onClick={handleEscalate} disabled={!escalateReason.trim() || isPending}>
-              Confirm
+            <Button variant="destructive" onClick={handleDecline} disabled={!declineReason.trim() || isPending}>
+              Decline
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -521,12 +465,12 @@ export function QueueClient({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Flag for Follow-up</DialogTitle>
-            <DialogDescription>Add a note about why this request needs follow-up.</DialogDescription>
+            <DialogDescription>Add a note about why this case needs follow-up.</DialogDescription>
           </DialogHeader>
           <Textarea
             placeholder="Follow-up reason..."
             value={flagReason}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlagReason(e.target.value)}
+            onChange={(e) => setFlagReason(e.target.value)}
             className="min-h-[100px]"
           />
           <DialogFooter>

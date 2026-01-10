@@ -5,10 +5,11 @@
  * 
  * Allows authenticated patients to download their approved medical certificate PDF.
  * Returns the PDF file for streaming download to the browser.
+ * Supports both intakes (new) and legacy requests.
  */
 
 import { createClient } from "@/lib/supabase/server"
-import { getRequestWithDetails } from "@/lib/data/requests"
+import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -18,14 +19,14 @@ export const runtime = "nodejs"
 
 /**
  * GET handler for document download
- * Validates patient auth, verifies request ownership, streams PDF from Supabase
+ * Validates patient auth, verifies intake/request ownership, streams PDF from Supabase
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const { requestId } = await params
+    const { requestId } = await params // Can be intake ID or legacy request ID
 
     // Auth check - patients can only download their own documents
     const authResult = await getApiAuth()
@@ -44,23 +45,23 @@ export async function GET(
 
     log.info(`[document-download] Download request for ${requestId} by user ${userId}`)
 
-    // Fetch request to verify ownership and approval status
-    const requestData = await getRequestWithDetails(requestId)
+    // Fetch intake to verify ownership and approval status
+    const intakeData = await getIntakeWithDetails(requestId)
 
-    if (!requestData) {
-      log.warn(`[document-download] Request not found: ${requestId}`)
+    if (!intakeData) {
+      log.warn(`[document-download] Intake not found: ${requestId}`)
       return NextResponse.json({ error: "Request not found" }, { status: 404 })
     }
 
-    // Verify patient owns this request
-    if (requestData.patient_id !== userId) {
-      log.warn(`[document-download] User ${userId} attempted to download request owned by ${requestData.patient_id}`)
+    // Verify patient owns this intake
+    if (intakeData.patient_id !== userId) {
+      log.warn(`[document-download] User ${userId} attempted to download intake owned by ${intakeData.patient_id}`)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Verify request is approved (has generated document)
-    if (requestData.status !== "approved") {
-      log.warn(`[document-download] Attempted download of non-approved request ${requestId} (status: ${requestData.status})`)
+    // Verify intake is approved or completed (has generated document)
+    if (!["approved", "completed"].includes(intakeData.status)) {
+      log.warn(`[document-download] Attempted download of non-approved intake ${requestId} (status: ${intakeData.status})`)
       return NextResponse.json(
         { error: "Request not approved" },
         { status: 400 }

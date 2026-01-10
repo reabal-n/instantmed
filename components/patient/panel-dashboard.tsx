@@ -27,13 +27,12 @@ import { EmptyState } from "@/components/ui/empty-state"
  * - Human language throughout
  */
 
-interface Request {
+interface Intake {
   id: string
-  type: string
   status: string
   created_at: string
   updated_at: string
-  answers?: Record<string, unknown>
+  service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string }
   doctor_notes?: string
 }
 
@@ -48,7 +47,7 @@ interface Prescription {
 
 interface PatientDashboardProps {
   fullName: string
-  requests?: Request[]
+  intakes?: Intake[]
   prescriptions?: Prescription[]
 }
 
@@ -62,22 +61,22 @@ const STATUS_CONFIG = {
 
 export function PanelDashboard({
   fullName,
-  requests = [],
+  intakes = [],
   prescriptions = [],
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
 
-  const pendingRequests = requests.filter((r) => r.status === "pending" || r.status === "in_review")
+  const pendingIntakes = intakes.filter((r) => r.status === "paid" || r.status === "in_review" || r.status === "pending_info")
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
 
-  const handleViewRequest = (request: Request) => {
+  const handleViewIntake = (intake: Intake) => {
     openPanel({
-      id: `request-${request.id}`,
+      id: `intake-${intake.id}`,
       type: 'drawer',
       component: (
         <DrawerPanel title="Request Details" width={450}>
-          <RequestDetailDrawer request={request} />
+          <IntakeDetailDrawer intake={intake} />
         </DrawerPanel>
       )
     })
@@ -91,8 +90,8 @@ export function PanelDashboard({
           Welcome back, {firstName}
         </h1>
         <p className="text-gray-600">
-          {pendingRequests.length > 0 
-            ? `${pendingRequests.length} ${pendingRequests.length === 1 ? 'request' : 'requests'} pending review`
+          {pendingIntakes.length > 0 
+            ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
             : "All caught up"}
         </p>
       </div>
@@ -102,7 +101,7 @@ export function PanelDashboard({
         <TiltCard tiltAmount={5}>
           <StatCard
             label="Total Requests"
-            value={requests.length}
+            value={intakes.length}
             icon={FileText}
             color="blue"
           />
@@ -110,7 +109,7 @@ export function PanelDashboard({
         <TiltCard tiltAmount={5}>
           <StatCard
             label="Pending Review"
-            value={pendingRequests.length}
+            value={pendingIntakes.length}
             icon={Clock}
             color="yellow"
           />
@@ -129,14 +128,14 @@ export function PanelDashboard({
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Recent Requests</h2>
-          {requests.length > 5 && (
-            <Link href="/patient/requests" className="text-sm text-primary hover:underline">
+          {intakes.length > 5 && (
+            <Link href="/patient/intakes" className="text-sm text-primary hover:underline">
               View all
             </Link>
           )}
         </div>
 
-        {requests.length === 0 ? (
+        {intakes.length === 0 ? (
           <EmptyState
             icon={FileText}
             title={FEEDBACK_MESSAGES.noRequests}
@@ -144,11 +143,11 @@ export function PanelDashboard({
           />
         ) : (
           <div className="space-y-3">
-            {requests.slice(0, 5).map((request) => (
-              <RequestCard
-                key={request.id}
-                request={request}
-                onClick={() => handleViewRequest(request)}
+            {intakes.slice(0, 5).map((intake) => (
+              <IntakeCard
+                key={intake.id}
+                intake={intake}
+                onClick={() => handleViewIntake(intake)}
               />
             ))}
           </div>
@@ -234,20 +233,30 @@ function StatCard({
   )
 }
 
-function RequestCard({
-  request,
+function IntakeCard({
+  intake,
   onClick,
 }: {
-  request: Request
+  intake: Intake
   onClick: () => void
 }) {
-  const config = STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending
+  const statusMap: Record<string, keyof typeof STATUS_CONFIG> = {
+    paid: "pending",
+    in_review: "in_review",
+    pending_info: "requires_info",
+    approved: "approved",
+    declined: "rejected",
+    completed: "approved",
+  }
+  const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
   const Icon = config.icon
 
-  const getRequestTypeName = (type: string) => {
-    if (type === "medical_certificate") return "Medical Certificate"
-    if (type === "prescription") return "Prescription"
-    return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  const getServiceName = () => {
+    if (intake.service?.name) return intake.service.name
+    if (intake.service?.short_name) return intake.service.short_name
+    if (intake.service?.type === "med_certs") return "Medical Certificate"
+    if (intake.service?.type === "common_scripts") return "Prescription"
+    return "Request"
   }
 
   return (
@@ -258,18 +267,18 @@ function RequestCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
           <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-            {request.type === "medical_certificate" ? (
-              <FileText className="w-6 h-6 text-gray-600" />
-            ) : (
+            {intake.service?.type === "common_scripts" ? (
               <Pill className="w-6 h-6 text-gray-600" />
+            ) : (
+              <FileText className="w-6 h-6 text-gray-600" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 mb-1">
-              {getRequestTypeName(request.type)}
+              {getServiceName()}
             </h3>
             <p className="text-sm text-gray-600">
-              {new Date(request.created_at).toLocaleDateString("en-AU", {
+              {new Date(intake.created_at).toLocaleDateString("en-AU", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -289,8 +298,16 @@ function RequestCard({
   )
 }
 
-function RequestDetailDrawer({ request }: { request: Request }) {
-  const config = STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending
+function IntakeDetailDrawer({ intake }: { intake: Intake }) {
+  const statusMap: Record<string, keyof typeof STATUS_CONFIG> = {
+    paid: "pending",
+    in_review: "in_review",
+    pending_info: "requires_info",
+    approved: "approved",
+    declined: "rejected",
+    completed: "approved",
+  }
+  const config = STATUS_CONFIG[statusMap[intake.status] || "pending"] || STATUS_CONFIG.pending
   const Icon = config.icon
 
   return (
@@ -309,7 +326,7 @@ function RequestDetailDrawer({ request }: { request: Request }) {
         <div>
           <p className="text-sm text-gray-600 mb-1">Submitted</p>
           <p className="font-medium text-gray-900">
-            {new Date(request.created_at).toLocaleDateString("en-AU", {
+            {new Date(intake.created_at).toLocaleDateString("en-AU", {
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -319,7 +336,7 @@ function RequestDetailDrawer({ request }: { request: Request }) {
         <div>
           <p className="text-sm text-gray-600 mb-1">Last updated</p>
           <p className="font-medium text-gray-900">
-            {new Date(request.updated_at).toLocaleDateString("en-AU", {
+            {new Date(intake.updated_at).toLocaleDateString("en-AU", {
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -329,25 +346,25 @@ function RequestDetailDrawer({ request }: { request: Request }) {
       </div>
 
       {/* Doctor Notes */}
-      {request.doctor_notes && (
+      {intake.doctor_notes && (
         <div>
           <p className="text-sm text-gray-600 mb-2">Doctor notes</p>
           <div className="bg-blue-50 border border-primary rounded-lg p-4 text-sm text-gray-900">
-            {request.doctor_notes}
+            {intake.doctor_notes}
           </div>
         </div>
       )}
 
-      {/* Actions - Enhanced with magnetic-button */}
-      {request.status === "approved" && (
+      {/* Actions */}
+      {intake.status === "approved" && (
         <div className="pt-4 border-t border-gray-200">
           <Button className="w-full magnetic-button">
-            Download {request.type === "medical_certificate" ? "certificate" : "prescription"}
+            Download {intake.service?.type === "med_certs" ? "certificate" : "document"}
           </Button>
         </div>
       )}
 
-      {request.status === "requires_info" && (
+      {intake.status === "pending_info" && (
         <div className="pt-4 border-t border-gray-200">
           <Button className="w-full magnetic-button">
             Provide information

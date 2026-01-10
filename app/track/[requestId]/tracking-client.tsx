@@ -7,24 +7,25 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Clock, FileText, Loader2, MessageCircle, Phone, ArrowLeft, Zap, User } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { formatCategory, formatSubtype } from "@/lib/data/request-utils"
 
-interface Request {
+interface Intake {
   id: string
   status: string
-  category: string | null
-  subtype: string | null
   created_at: string
   updated_at: string
-  priority_review?: boolean
+  is_priority?: boolean
   patient: {
     full_name: string
     id: string
   }
+  service?: {
+    name?: string
+    short_name?: string
+  }
 }
 
 interface TrackingClientProps {
-  request: Request
+  intake: Intake
   queuePosition: number
   estimatedMinutes: number
 }
@@ -37,26 +38,26 @@ type TimelineStep = {
   timestamp?: string
 }
 
-function getTimelineSteps(request: Request): TimelineStep[] {
+function getTimelineSteps(intake: Intake): TimelineStep[] {
   const statusMap: Record<string, number> = {
-    draft: 0,
-    pending: 1,
+    pending_payment: 0,
+    paid: 1,
     in_review: 2,
     approved: 3,
     declined: 3,
-    needs_info: 3,
+    pending_info: 3,
     completed: 4,
   }
 
-  const currentStep = statusMap[request.status] ?? 1
+  const currentStep = statusMap[intake.status] ?? 1
 
   const steps: TimelineStep[] = [
     {
       id: "submitted",
       label: "Submitted",
-      description: "Your request has been received",
+      description: "Your intake has been received",
       status: currentStep >= 1 ? "complete" : "upcoming",
-      timestamp: request.created_at,
+      timestamp: intake.created_at,
     },
     {
       id: "in_queue",
@@ -67,21 +68,21 @@ function getTimelineSteps(request: Request): TimelineStep[] {
     {
       id: "under_review",
       label: "Under Review",
-      description: "A doctor is reviewing your request",
+      description: "A doctor is reviewing your intake",
       status: currentStep === 2 ? "current" : currentStep > 2 ? "complete" : "upcoming",
     },
     {
       id: "complete",
       label:
-        request.status === "declined" ? "Declined" : request.status === "needs_info" ? "More Info Needed" : "Complete",
+        intake.status === "declined" ? "Declined" : intake.status === "pending_info" ? "More Info Needed" : "Complete",
       description:
-        request.status === "declined"
-          ? "Your request could not be approved"
-          : request.status === "needs_info"
+        intake.status === "declined"
+          ? "Your intake could not be approved"
+          : intake.status === "pending_info"
             ? "Doctor needs additional information"
             : "Your document is ready",
       status: currentStep >= 3 ? "current" : "upcoming",
-      timestamp: currentStep >= 3 ? request.updated_at : undefined,
+      timestamp: currentStep >= 3 ? intake.updated_at : undefined,
     },
   ]
 
@@ -89,11 +90,11 @@ function getTimelineSteps(request: Request): TimelineStep[] {
 }
 
 export function TrackingClient({
-  request: initialRequest,
+  intake: initialRequest,
   queuePosition: initialQueuePosition,
   estimatedMinutes: initialEstimatedMinutes,
 }: TrackingClientProps) {
-  const [request, setRequest] = useState(initialRequest)
+  const [intake, setIntake] = useState(initialRequest)
   const [queuePosition, setQueuePosition] = useState(initialQueuePosition)
   const [estimatedMinutes, setEstimatedMinutes] = useState(initialEstimatedMinutes)
 
@@ -102,17 +103,17 @@ export function TrackingClient({
     const supabase = createClient()
 
     const channel = supabase
-      .channel(`request-${request.id}`)
+      .channel(`intake-${intake.id}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
-          table: "requests",
-          filter: `id=eq.${request.id}`,
+          table: "intakes",
+          filter: `id=eq.${intake.id}`,
         },
         (payload) => {
-          setRequest((prev) => ({ ...prev, ...payload.new }))
+          setIntake((prev) => ({ ...prev, ...payload.new }))
         },
       )
       .subscribe()
@@ -120,19 +121,19 @@ export function TrackingClient({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [request.id])
+  }, [intake.id])
 
   // Update queue position periodically
   useEffect(() => {
-    if (request.status !== "pending") return
+    if (intake.status !== "paid") return
 
     const updateQueuePosition = async () => {
       const supabase = createClient()
       const { count } = await supabase
-        .from("requests")
+        .from("intakes")
         .select("*", { count: "exact", head: true })
-        .eq("status", "pending")
-        .lt("created_at", request.created_at)
+        .eq("status", "paid")
+        .lt("created_at", intake.created_at)
 
       const newPosition = (count || 0) + 1
       setQueuePosition(newPosition)
@@ -141,10 +142,10 @@ export function TrackingClient({
 
     const interval = setInterval(updateQueuePosition, 30000) // Every 30 seconds
     return () => clearInterval(interval)
-  }, [request.status, request.created_at])
+  }, [intake.status, intake.created_at])
 
-  const steps = getTimelineSteps(request)
-  const isComplete = ["approved", "declined", "needs_info", "completed"].includes(request.status)
+  const steps = getTimelineSteps(intake)
+  const isComplete = ["approved", "declined", "pending_info", "completed"].includes(intake.status)
 
   return (
     <main className="min-h-screen bg-background">
@@ -167,8 +168,8 @@ export function TrackingClient({
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-xl font-semibold">{formatCategory(request.category)}</h1>
-                {request.priority_review && (
+                <h1 className="text-xl font-semibold">{intake.service?.name || intake.service?.short_name || "Request"}</h1>
+                {intake.is_priority && (
                   <Badge className="bg-amber-100 text-amber-700 border-amber-200">
                     <Zap className="w-3 h-3 mr-1" />
                     Priority
@@ -176,8 +177,8 @@ export function TrackingClient({
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {formatSubtype(request.subtype)} • Submitted{" "}
-                {new Date(request.created_at).toLocaleDateString("en-AU", {
+                Submitted{" "}
+                {new Date(intake.created_at).toLocaleDateString("en-AU", {
                   day: "numeric",
                   month: "short",
                   hour: "2-digit",
@@ -188,31 +189,31 @@ export function TrackingClient({
 
             <Badge
               variant={
-                request.status === "approved" || request.status === "completed"
+                intake.status === "approved" || intake.status === "completed"
                   ? "default"
-                  : request.status === "declined"
+                  : intake.status === "declined"
                     ? "destructive"
-                    : request.status === "needs_info"
+                    : intake.status === "needs_info"
                       ? "secondary"
                       : "outline"
               }
             >
-              {request.status === "pending"
+              {intake.status === "pending"
                 ? "In Queue"
-                : request.status === "in_review"
+                : intake.status === "in_review"
                   ? "Under Review"
-                  : request.status === "approved"
+                  : intake.status === "approved"
                     ? "Approved"
-                    : request.status === "declined"
+                    : intake.status === "declined"
                       ? "Declined"
-                      : request.status === "needs_info"
+                      : intake.status === "needs_info"
                         ? "More Info Needed"
-                        : request.status}
+                        : intake.status}
             </Badge>
           </div>
 
           {/* Queue position indicator */}
-          {request.status === "pending" && (
+          {intake.status === "paid" && (
             <div className="mt-6 p-4 bg-muted/50 rounded-xl">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Queue Position</span>
@@ -222,7 +223,7 @@ export function TrackingClient({
                 <Clock className="w-4 h-4" />
                 <span>Estimated wait: ~{estimatedMinutes} min</span>
               </div>
-              {request.priority_review && (
+              {intake.is_priority && (
                 <p className="text-xs text-amber-600 mt-2">Priority review — typically within 15 minutes</p>
               )}
             </div>
@@ -290,14 +291,14 @@ export function TrackingClient({
 
         {/* Action buttons */}
         <div className="mt-8 space-y-3">
-          {request.status === "needs_info" && (
+          {intake.status === "needs_info" && (
             <Button className="w-full" size="lg">
               <Phone className="w-4 h-4 mr-2" />
               Request a Call from Doctor
             </Button>
           )}
 
-          {isComplete && request.status === "approved" && (
+          {isComplete && intake.status === "approved" && (
             <Button className="w-full" size="lg">
               <FileText className="w-4 h-4 mr-2" />
               Download Document
@@ -314,7 +315,7 @@ export function TrackingClient({
 
         {/* Help section */}
         <div className="mt-8 p-4 bg-muted/50 rounded-xl text-center">
-          <p className="text-sm text-muted-foreground mb-2">Questions about your request?</p>
+          <p className="text-sm text-muted-foreground mb-2">Questions about your intake?</p>
           <Button variant="ghost" size="sm">
             <MessageCircle className="w-4 h-4 mr-2" />
             Chat with Support

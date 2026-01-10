@@ -17,11 +17,10 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { isTestMode, TEST_DATA } from "@/lib/test-mode"
-import { skipPaymentTestMode } from "@/app/actions/test-actions"
 import { PriorityUpsell } from "@/components/checkout/priority-upsell"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
 import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
@@ -207,38 +206,15 @@ function TestPaymentHint() {
 }
 
 function SkipPaymentButton({
-  requestId,
-  onSuccess,
+  requestId: _requestId,
+  onSuccess: _onSuccess,
 }: {
   requestId: string | null
   onSuccess: () => void
 }) {
-  const [isSkipping, setIsSkipping] = useState(false)
-
-  if (!isTestMode || !requestId) return null
-
-  const handleSkip = async () => {
-    setIsSkipping(true)
-    try {
-      const result = await skipPaymentTestMode(requestId)
-      if (result.success) {
-        onSuccess()
-      }
-    } finally {
-      setIsSkipping(false)
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleSkip}
-      disabled={isSkipping}
-      className="mt-2 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
-    >
-      {isSkipping ? "Skipping..." : "Skip payment (test only)"}
-    </button>
-  )
+  // Skip payment test mode removed - use Stripe test cards instead
+  if (!isTestMode) return null
+  return null
 }
 
 export function UnifiedFlowClient({
@@ -715,7 +691,7 @@ export function UnifiedFlowClient({
         }
       }
 
-      const result = await createRequestAndCheckoutAction({
+      const result = await createIntakeAndCheckoutAction({
         patientId,
         category,
         subtype,

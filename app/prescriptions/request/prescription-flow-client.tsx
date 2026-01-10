@@ -33,7 +33,7 @@ import {
   Phone,
   Save,
 } from "lucide-react"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
@@ -834,7 +834,7 @@ export function PrescriptionFlowClient({
     setError(null)
 
     try {
-      const result = await createRequestAndCheckoutAction({
+      const result = await createIntakeAndCheckoutAction({
         category: "prescription",
         subtype: rxType || "repeat",
         type: "script",

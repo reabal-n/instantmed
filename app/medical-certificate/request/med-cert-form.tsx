@@ -40,7 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/storage"
@@ -898,7 +898,7 @@ export function MedCertForm({
 
         if (isAuthenticated && patientId) {
           // Authenticated user checkout
-          result = await createRequestAndCheckoutAction({
+          result = await createIntakeAndCheckoutAction({
             category: "medical_certificate",
             subtype: formData.certType || "work",
             type: "med_cert",

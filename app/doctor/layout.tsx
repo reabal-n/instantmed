@@ -4,7 +4,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { Navbar } from "@/components/shared/navbar"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { DoctorDock } from "@/components/shared/doctor-dock"
-import { getDoctorDashboardStats } from "@/lib/data/requests"
+import { getDoctorDashboardStats } from "@/lib/data/intakes"
 
 export default async function DoctorLayout({
   children,
@@ -39,13 +39,13 @@ export default async function DoctorLayout({
               variant="doctor" 
               userName={authUser.profile.full_name}
               userRole={isAdmin ? "Admin" : "Doctor"}
-              pendingCount={stats.pending}
+              pendingCount={stats.in_queue}
             />
             <main className="flex-1 min-w-0">{children}</main>
           </div>
         </div>
       </div>
-      <DoctorDock pendingCount={stats.pending} />
+      <DoctorDock pendingCount={stats.in_queue} />
     </div>
   )
 }

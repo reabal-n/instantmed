@@ -463,7 +463,7 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
 /**
  * Create a document for a request (e.g., prescription, certificate).
  */
-export async function createDocument(requestId: string, documentType: string, _content: string): Promise<boolean> {
+export async function createDocument(requestId: string, documentType: string, content: string): Promise<boolean> {
   // TODO: Implement when documents table is created
   logger.info("createDocument called", { requestId, documentType })
   return false

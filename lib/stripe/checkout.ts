@@ -15,18 +15,21 @@ interface CreateCheckoutInput {
   subtype: string
   type: string
   answers: Record<string, unknown>
-  patientId?: string // Optional - passed from client when already authenticated
-  patientEmail?: string // Optional - passed from client when already authenticated
+  serviceSlug?: string // Service slug to look up service_id
+  isPriority?: boolean // Priority review upsell
+  // Legacy fields - patient info is now fetched from auth
+  patientId?: string
+  patientEmail?: string
 }
 
 interface CheckoutResult {
   success: boolean
   checkoutUrl?: string
+  intakeId?: string
   error?: string
 }
 
 function getBaseUrl(): string {
-  // Use centralized env function which handles validation and fallbacks properly
   return getAppUrl()
 }
 
@@ -39,11 +42,24 @@ function isValidUrl(url: string): boolean {
   }
 }
 
+// Map category to service slug
+function getServiceSlug(category: ServiceCategory, subtype: string): string {
+  const slugMap: Record<string, string> = {
+    "medical_certificate:work": "med-cert-sick",
+    "medical_certificate:uni": "med-cert-sick",
+    "medical_certificate:carer": "med-cert-carer",
+    "prescription:repeat": "common-scripts",
+    "prescription:chronic_review": "common-scripts",
+    "consult:general": "common-scripts",
+  }
+  return slugMap[`${category}:${subtype}`] || slugMap[category] || "common-scripts"
+}
+
 /**
- * Create a request and Stripe checkout session
- * Now links Stripe customer to profile and uses existing customer if available
+ * Create an intake and Stripe checkout session
+ * Uses intakes table as the canonical case object
  */
-export async function createRequestAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
+export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
     // KILL SWITCH: Check if service category is disabled
     const categoryMap: Record<ServiceCategory, "medical_certificate" | "prescription" | "other"> = {
@@ -65,7 +81,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       }
     }
 
-    // Server-side validation for repeat scripts using canonical schema
+    // Server-side validation for repeat scripts
     if (input.category === "prescription" && input.subtype === "repeat") {
       const validation = validateRepeatScriptPayload(input.answers)
       if (!validation.valid) {
@@ -75,7 +91,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
         }
       }
 
-      // KILL SWITCH: Check for blocked medications in repeat scripts
+      // KILL SWITCH: Check for blocked medications
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
       const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
@@ -87,7 +103,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       }
     }
 
-    // KILL SWITCH: Check for blocked medications in consults
+    // Check blocked medications in consults
     if (input.category === "consult") {
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
@@ -108,7 +124,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       logger.error("Authentication check failed", { error: authError })
       return { 
         success: false, 
-        error: "Authentication failed. Please sign in and try again. If this continues, contact support at help@instantmed.com.au" 
+        error: "Authentication failed. Please sign in and try again." 
       }
     }
     
@@ -123,7 +139,7 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     // 2. Get the Supabase service role client
     const supabase = createServiceRoleClient()
 
-    // 3. Assert profile exists - create if missing (server-side)
+    // 3. Assert profile exists
     let patientId: string
     if (authUser.profile?.id) {
       patientId = authUser.profile.id
@@ -153,47 +169,58 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       }
     }
 
-    // 4. Create the request with pending_payment status
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
+    // 4. Look up service by slug
+    const serviceSlug = input.serviceSlug || getServiceSlug(input.category, input.subtype)
+    const { data: service, error: serviceError } = await supabase
+      .from("services")
+      .select("id, price_cents, priority_fee_cents")
+      .eq("slug", serviceSlug)
+      .eq("is_active", true)
+      .single()
+
+    if (serviceError || !service) {
+      logger.error("Service not found", { serviceSlug, error: serviceError })
+      return { success: false, error: "Service not available. Please contact support." }
+    }
+
+    // 5. Create the intake with pending_payment status
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
       .insert({
         patient_id: patientId,
-        type: input.type,
-        status: "pending",
-        category: input.category,
-        subtype: input.subtype,
-        paid: false,
-        payment_status: "pending_payment",
+        service_id: service.id,
+        status: "pending_payment",
+        is_priority: input.isPriority || false,
+        priority_review: input.isPriority || false,
+        payment_status: "pending",
+        amount_cents: service.price_cents + (input.isPriority ? service.priority_fee_cents : 0),
       })
       .select()
       .single()
 
-    if (requestError || !request) {
-      if (requestError?.code === "23503") {
+    if (intakeError || !intake) {
+      logger.error("Failed to create intake", { error: intakeError })
+      if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
-      }
-      if (requestError?.code === "42501") {
-        return { success: false, error: "You don't have permission to create requests. Please contact support." }
       }
       return { success: false, error: "Failed to create your request. Please try again." }
     }
 
-    // 5. Insert the answers (ATOMIC - fail if answers cannot be saved)
-    const { error: answersError } = await supabase.from("request_answers").insert({
-      request_id: request.id,
+    // 6. Insert the answers (ATOMIC - fail if answers cannot be saved)
+    const { error: answersError } = await supabase.from("intake_answers").insert({
+      intake_id: intake.id,
       answers: input.answers,
     })
 
     if (answersError) {
-      // Answers are critical for clinical review - rollback the request
-      logger.error("[Stripe Checkout] Failed to save answers, rolling back request", {
-        requestId: request.id,
+      logger.error("[Stripe Checkout] Failed to save answers, rolling back intake", {
+        intakeId: intake.id,
       }, new Error(answersError.message))
-      await supabase.from("requests").delete().eq("id", request.id)
+      await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
 
-    // 6. Get the price ID
+    // 7. Get the price ID
     const priceId = getPriceIdForRequest({
       category: input.category,
       subtype: input.subtype,
@@ -201,16 +228,15 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
     })
 
     if (!priceId) {
-      // Clean up the created request
-      await supabase.from("requests").delete().eq("id", request.id)
+      await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
-    // 7. Build success and cancel URLs with validation
-    const successUrl = `${baseUrl}/patient/requests/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`
-    const cancelUrl = `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`
+    // 8. Build success and cancel URLs
+    const successUrl = `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`
+    const cancelUrl = `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`
 
-    // 8. Build checkout session params
+    // 9. Build checkout session params
     const sessionParams = {
       line_items: [
         {
@@ -222,21 +248,22 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
-        request_id: request.id,
+        intake_id: intake.id,
         patient_id: patientId,
         category: input.category,
         subtype: input.subtype,
+        service_slug: serviceSlug,
       },
       customer: stripeCustomerId || undefined,
       customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
       customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
     }
 
-    // 9. Create Stripe checkout session
+    // 10. Create Stripe checkout session
     let session
     try {
       logger.info("Creating Stripe checkout session", { 
-        requestId: request.id, 
+        intakeId: intake.id, 
         category: input.category,
         hasPriceId: !!priceId 
       })
@@ -246,84 +273,64 @@ export async function createRequestAndCheckoutAction(input: CreateCheckoutInput)
         hasUrl: !!session.url 
       })
     } catch (stripeError: unknown) {
-      await supabase.from("requests").delete().eq("id", request.id)
+      await supabase.from("intakes").delete().eq("id", intake.id)
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
       logger.error("Stripe checkout session creation failed", { 
         error: errorMessage, 
-        requestId: request.id,
+        intakeId: intake.id,
         category: input.category 
       })
 
-      // Check for URL-related errors
-      if (errorMessage.toLowerCase().includes("url") || errorMessage.includes("Invalid") || errorMessage.includes("valid")) {
-        return { success: false, error: `Server configuration error: ${errorMessage}` }
-      }
       if (errorMessage.includes("No such price")) {
         return { 
           success: false, 
-          error: "This service is temporarily unavailable. Please try again later or contact support at help@instantmed.com.au if this continues. [ERR_PRICE_CONFIG]" 
+          error: "This service is temporarily unavailable. Please try again later. [ERR_PRICE_CONFIG]" 
         }
       }
       return { 
         success: false, 
-        error: `Payment system error. Please try again or contact support at help@instantmed.com.au [ERR_STRIPE: ${errorMessage.substring(0, 50)}]` 
+        error: `Payment system error. Please try again. [ERR_STRIPE]` 
       }
     }
 
     if (!session.url) {
-      // Clean up
       logger.error("Stripe session created but no URL returned", { sessionId: session.id })
-      await supabase.from("requests").delete().eq("id", request.id)
+      await supabase.from("intakes").delete().eq("id", intake.id)
       return { 
         success: false, 
-        error: "Failed to create checkout session. Please try again or contact support at help@instantmed.com.au" 
+        error: "Failed to create checkout session. Please try again." 
       }
     }
 
-    // 10. Create payment record
-    const { error: paymentError } = await supabase.from("payments").insert({
-      request_id: request.id,
-      stripe_session_id: session.id,
-      amount: session.amount_total || 0,
-      currency: session.currency || "aud",
-      status: "created",
-    })
-
-    if (paymentError) {
-      // Don't fail - the payment record is for tracking, Stripe is the source of truth
-    }
-
-    // 10. Track the active checkout session on the request
+    // 11. Update intake with payment session ID
     await supabase
-      .from("requests")
-      .update({ active_checkout_session_id: session.id })
-      .eq("id", request.id)
+      .from("intakes")
+      .update({ payment_id: session.id })
+      .eq("id", intake.id)
 
     logger.info("Checkout session created successfully", { 
-      requestId: request.id, 
+      intakeId: intake.id, 
       sessionId: session.id 
     })
-    return { success: true, checkoutUrl: session.url }
+    return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    logger.error("Unexpected error in createRequestAndCheckoutAction", { 
+    logger.error("Unexpected error in createIntakeAndCheckoutAction", { 
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined 
     })
     return {
       success: false,
-      error: `Something went wrong. Please try again or contact support at help@instantmed.com.au if this continues. [ERR_CHECKOUT: ${errorMessage.substring(0, 30)}]`,
+      error: `Something went wrong. Please try again or contact support. [ERR_CHECKOUT]`,
     }
   }
 }
 
 /**
- * Retry payment for an existing request with pending_payment status
- * Now uses existing Stripe customer if available
+ * Retry payment for an existing intake with pending_payment status
  */
-export async function retryPaymentForRequestAction(requestId: string): Promise<CheckoutResult> {
+export async function retryPaymentForIntakeAction(intakeId: string): Promise<CheckoutResult> {
   try {
-    // 1. Get authenticated user
     const authUser = await getAuthenticatedUserWithProfile()
     if (!authUser) {
       return { success: false, error: "You must be logged in" }
@@ -332,40 +339,38 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     const patientId = authUser.profile.id
     const patientEmail = authUser.user.email
 
-    // 2. Get the Supabase service role client
     const supabase = createServiceRoleClient()
 
-    // 3. Fetch the existing request with ownership check
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
-      .select("*")
-      .eq("id", requestId)
+    // Fetch the existing intake with ownership check
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select("*, service:services!service_id(slug, price_cents)")
+      .eq("id", intakeId)
       .eq("patient_id", patientId)
       .single()
 
-    if (requestError || !request) {
+    if (intakeError || !intake) {
       return { success: false, error: "Request not found" }
     }
 
-    // 4. Verify the request is in pending_payment status
-    if (request.payment_status !== "pending_payment") {
+    // Verify the intake is in pending_payment status
+    if (intake.status !== "pending_payment" && intake.payment_status !== "pending") {
       return { success: false, error: "This request has already been paid or is not awaiting payment" }
     }
 
-    // 5. Get the price ID using existing request data
+    // Get the price ID using service data
+    const service = intake.service as { slug: string; price_cents: number } | null
     const priceId = getPriceIdForRequest({
-      category: request.category as ServiceCategory,
-      subtype: request.subtype || "",
+      category: service?.slug?.includes("med-cert") ? "medical_certificate" : "prescription",
+      subtype: "",
       answers: {},
     })
 
-    // 6. Get base URL for redirects
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {
       return { success: false, error: "Server configuration error. Please contact support." }
     }
 
-    // 7. Build checkout session params
     const sessionParams = {
       line_items: [
         {
@@ -374,13 +379,11 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
         },
       ],
       mode: "payment" as const,
-      success_url: `${baseUrl}/patient/requests/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/patient/requests/cancelled?request_id=${request.id}`,
+      success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
       metadata: {
-        request_id: request.id,
+        intake_id: intake.id,
         patient_id: patientId,
-        category: request.category || "",
-        subtype: request.subtype || "",
         is_retry: "true",
       },
       customer: authUser.profile.stripe_customer_id || undefined,
@@ -388,16 +391,11 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
       customer_creation: !authUser.profile.stripe_customer_id && patientEmail ? "always" as const : undefined,
     }
 
-    // 8. Create new Stripe checkout session for retry
     let session
     try {
       session = await stripe.checkout.sessions.create(sessionParams)
     } catch (stripeError: unknown) {
-      // IMPORTANT: Do NOT delete the request on retry - user's data must be preserved
       if (stripeError instanceof Error) {
-        if (stripeError.message.includes("Invalid URL")) {
-          return { success: false, error: "Server configuration error. Please contact support." }
-        }
         if (stripeError.message.includes("No such price")) {
           return { success: false, error: "This service is temporarily unavailable. Please try again later." }
         }
@@ -406,36 +404,21 @@ export async function retryPaymentForRequestAction(requestId: string): Promise<C
     }
 
     if (!session.url) {
-      // Do NOT delete request - it's a retry, the original data must be preserved
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // 9. Create a new payment record for the retry session
-    // Don't use upsert - each session should have its own payment record
-    // The old payment record stays as 'expired' for audit trail
-    const { error: paymentError } = await supabase.from("payments").insert({
-      request_id: request.id,
-      stripe_session_id: session.id,
-      amount: session.amount_total || 0,
-      currency: session.currency || "aud",
-      status: "created",
-    })
-
-    if (paymentError) {
-      // Don't fail - the payment record is for tracking, Stripe is the source of truth
-    }
-
-    // 10. Track the active checkout session on the request
+    // Update intake with new payment session ID
     await supabase
-      .from("requests")
-      .update({ active_checkout_session_id: session.id })
-      .eq("id", request.id)
+      .from("intakes")
+      .update({ payment_id: session.id })
+      .eq("id", intake.id)
 
-    return { success: true, checkoutUrl: session.url }
+    return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch {
     return {
       success: false,
-      error: "Something went wrong. Please try again or contact support if the problem persists.",
+      error: "Something went wrong. Please try again or contact support.",
     }
   }
 }
+

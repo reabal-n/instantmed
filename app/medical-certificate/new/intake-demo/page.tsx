@@ -40,7 +40,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { format, addDays } from "date-fns"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { toast } from "sonner"
 import { useIntakeAnalytics } from "@/lib/hooks/use-intake-analytics"
@@ -262,7 +262,7 @@ export default function IntakeDemoPage() {
       
       if (isSignedIn && profile) {
         // Authenticated checkout
-        result = await createRequestAndCheckoutAction({
+        result = await createIntakeAndCheckoutAction({
           category: "medical_certificate",
           subtype: selectedPurpose || "work",
           type: "medical_certificate",

@@ -20,7 +20,7 @@ import {
   User,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
 import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
@@ -326,7 +326,7 @@ export function PrescriptionFlowClient({
 
     try {
       const answers = buildAnswers()
-      const result = await createRequestAndCheckoutAction({
+      const result = await createIntakeAndCheckoutAction({
         category: "prescription",
         subtype,
         type: "script",

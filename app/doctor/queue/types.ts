@@ -1,7 +1,7 @@
-import type { RequestWithPatient } from "@/types/db"
+import type { IntakeWithPatient } from "@/types/db"
 
 export interface QueueClientProps {
-  requests: RequestWithPatient[]
+  intakes: IntakeWithPatient[]
   doctorId: string
   doctorName?: string
 }

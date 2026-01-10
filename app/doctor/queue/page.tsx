@@ -1,33 +1,23 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { getAllRequestsByStatus } from "@/lib/data/requests"
+import { getDoctorQueue } from "@/lib/data/intakes"
 import { QueueClient } from "./queue-client"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
-
 export const dynamic = "force-dynamic"
+
 export default async function DoctorQueuePage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     redirect("/sign-in")
   }
 
-  // Fetch both pending and awaiting_prescribe requests
-  const [pendingRequests, awaitingPrescribeRequests] = await Promise.all([
-    getAllRequestsByStatus("pending"),
-    getAllRequestsByStatus("awaiting_prescribe"),
-  ])
-
-  // Combine and sort by oldest first (FIFO queue)
-  // Pending requests come first, then awaiting_prescribe
-  const allRequests = [...pendingRequests, ...awaitingPrescribeRequests]
-  const sortedRequests = allRequests.sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  )
+  // Fetch all intakes in queue (paid, in_review, pending_info)
+  // Already sorted by priority and SLA
+  const intakes = await getDoctorQueue()
 
   return (
     <QueueClient
-      requests={sortedRequests}
+      intakes={intakes}
       doctorId={profile.id}
       doctorName={profile.full_name}
     />

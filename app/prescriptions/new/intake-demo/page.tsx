@@ -38,7 +38,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { type Medication } from "@/lib/data/medications"
-import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { toast } from "sonner"
 import { useIntakeAnalytics } from "@/lib/hooks/use-intake-analytics"
@@ -331,7 +331,7 @@ export default function RepeatPrescriptionDemoPage() {
       
       if (isSignedIn && profile) {
         // Authenticated checkout
-        result = await createRequestAndCheckoutAction({
+        result = await createIntakeAndCheckoutAction({
           category: "prescription",
           subtype: "repeat",
           type: "repeat_script",

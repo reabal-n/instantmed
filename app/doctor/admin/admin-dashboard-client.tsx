@@ -6,75 +6,77 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectItem } from "@/components/ui/select"
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
-import { Eye, Clock, CheckCircle, FileText, Search, Send, Calendar, AlertTriangle, FlaskConical } from "lucide-react"
-import type { RequestWithPatient } from "@/types/db"
-import { toast } from "sonner"
-import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
-import { formatCategory, formatSubtype } from "@/lib/format-utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { 
+  Eye, 
+  Clock, 
+  CheckCircle, 
+  XCircle,
+  FileText, 
+  Search, 
+  Send, 
+  Users,
+  TrendingUp,
+} from "lucide-react"
+import type { IntakeWithPatient } from "@/types/db"
+import { formatIntakeStatus, formatServiceType } from "@/lib/data/intakes"
 
 interface AdminDashboardClientProps {
-  allRequests: RequestWithPatient[]
+  allIntakes: IntakeWithPatient[]
   stats: {
     total: number
-    pending: number
+    in_queue: number
     approved: number
     declined: number
-    needs_follow_up: number
+    pending_info: number
+    scripts_pending: number
   }
-  /** @deprecated doctorName is passed but not used in the current implementation */
-  doctorName?: string
+  doctorName: string
 }
 
 export function AdminDashboardClient({
-  allRequests,
+  allIntakes,
   stats,
+  doctorName,
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [scriptSentFilter, setScriptSentFilter] = useState<string>("all")
-  const [localRequests, setLocalRequests] = useState(allRequests)
-  const [testMode, setTestMode] = useState(getIsTestMode())
+  const [serviceFilter, setServiceFilter] = useState<string>("all")
 
-  // Filter requests
-  const filteredRequests = useMemo(() => {
-    return localRequests.filter((request) => {
+  // Filter intakes
+  const filteredIntakes = useMemo(() => {
+    return allIntakes.filter((intake) => {
+      const patient = intake.patient as { full_name?: string; suburb?: string } | undefined
+      const service = intake.service as { type?: string } | undefined
+      
       // Search filter
       const matchesSearch =
-        request.patient.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        request.patient.suburb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchQuery.toLowerCase())
+        patient?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        patient?.suburb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        intake.id.toLowerCase().includes(searchQuery.toLowerCase())
 
       // Status filter
-      const matchesStatus = statusFilter === "all" || request.status === statusFilter
+      const matchesStatus = statusFilter === "all" || intake.status === statusFilter
 
-      // Category filter
-      const matchesCategory = categoryFilter === "all" || request.category === categoryFilter
+      // Service filter
+      const matchesService = serviceFilter === "all" || service?.type === serviceFilter
 
-      // Script sent filter
-      const matchesScriptSent =
-        scriptSentFilter === "all" ||
-        (scriptSentFilter === "sent" && request.script_sent) ||
-        (scriptSentFilter === "pending" && !request.script_sent && request.status === "approved")
-
-      return matchesSearch && matchesStatus && matchesCategory && matchesScriptSent
+      return matchesSearch && matchesStatus && matchesService
     })
-  }, [localRequests, searchQuery, statusFilter, categoryFilter, scriptSentFilter])
+  }, [allIntakes, searchQuery, statusFilter, serviceFilter])
 
-  // Calculate age from DOB
-  const calculateAge = (dob: string): number => {
-    const birthDate = new Date(dob)
-    const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, string> = {
+      paid: "bg-blue-100 text-blue-800",
+      in_review: "bg-amber-100 text-amber-800",
+      approved: "bg-emerald-100 text-emerald-800",
+      declined: "bg-red-100 text-red-800",
+      completed: "bg-gray-100 text-gray-800",
+      awaiting_script: "bg-purple-100 text-purple-800",
+      pending_info: "bg-orange-100 text-orange-800",
     }
-    return age
+    return variants[status] || "bg-gray-100 text-gray-800"
   }
 
   const getInitials = (name: string) => {
@@ -83,374 +85,207 @@ export function AdminDashboardClient({
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
-            Pending
-          </Badge>
-        )
-      case "approved":
-        return (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-            Approved
-          </Badge>
-        )
-      case "declined":
-        return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-            Declined
-          </Badge>
-        )
-      case "needs_follow_up":
-        return (
-          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-            Follow-up
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const handleScriptSentToggle = async (requestId: string, currentValue: boolean) => {
-    // Optimistic update
-    setLocalRequests((prev) =>
-      prev.map((r) =>
-        r.id === requestId
-          ? { ...r, script_sent: !currentValue, script_sent_at: !currentValue ? new Date().toISOString() : null }
-          : r,
-      ),
-    )
-
-    try {
-      const response = await fetch("/api/doctor/script-sent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId, scriptSent: !currentValue }),
-      })
-
-      if (!response.ok) throw new Error("Failed to update")
-      toast.success(!currentValue ? "Script marked as sent" : "Script marked as not sent")
-    } catch {
-      // Revert on error
-      setLocalRequests((prev) =>
-        prev.map((r) =>
-          r.id === requestId
-            ? { ...r, script_sent: currentValue, script_sent_at: currentValue ? r.script_sent_at : null }
-            : r,
-        ),
-      )
-      toast.error("Failed to update script status")
-    }
-  }
-
-  // Stats for approved requests without script sent
-  const pendingScripts = localRequests.filter((r) => r.status === "approved" && !r.script_sent).length
-  const todayRequests = localRequests.filter((r) => {
-    const today = new Date().toDateString()
-    return new Date(r.created_at).toDateString() === today
-  }).length
-
-  const handleTestModeToggle = () => {
-    const newValue = !testMode
-    setTestModeOverride(newValue)
-    setTestMode(newValue)
-    toast.success(newValue ? "Test mode enabled" : "Test mode disabled")
+      .slice(0, 2)
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Admin Dashboard</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Complete overview of all patient requests and fulfillment status
-            </p>
-          </div>
-          <Button
-            variant={testMode ? "default" : "outline"}
-            size="sm"
-            onClick={handleTestModeToggle}
-            className="rounded-xl gap-2"
-          >
-            <FlaskConical className="h-4 w-4" />
-            {testMode ? "Test Mode ON" : "Test Mode OFF"}
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Complete overview of all intakes • Dr. {doctorName}
+        </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Total</span>
-            <FileText className="h-4 w-4 text-muted-foreground/60" />
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{stats.total}</div>
-        </div>
-
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Pending Review</span>
-            <Clock className="h-4 w-4 text-violet-500" />
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{stats.pending}</div>
-        </div>
-
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Scripts to Send</span>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-orange-600">{pendingScripts}</div>
-        </div>
-
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Today</span>
-            <Calendar className="h-4 w-4 text-primary" />
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{todayRequests}</div>
-        </div>
-
-        <div
-          className="glass-card rounded-2xl p-5 hover-lift animate-fade-in-up opacity-0"
-          style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Completed</span>
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-foreground">{stats.approved}</div>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">In Queue</p>
+                <p className="text-2xl font-bold">{stats.in_queue}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Approved</p>
+                <p className="text-2xl font-bold">{stats.approved}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <XCircle className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Declined</p>
+                <p className="text-2xl font-bold">{stats.declined}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Send className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Scripts Pending</p>
+                <p className="text-2xl font-bold">{stats.scripts_pending}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Needs Info</p>
+                <p className="text-2xl font-bold">{stats.pending_info}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Filters & Search */}
-      <div
-        className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0"
-        style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}
-      >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, suburb, or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-xl bg-white/50 border-white/40"
-            />
+      {/* Filters */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            All Intakes ({filteredIntakes.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, suburb, or ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+            >
+              <option value="all">All Statuses</option>
+              <option value="paid">In Queue</option>
+              <option value="in_review">In Review</option>
+              <option value="approved">Approved</option>
+              <option value="declined">Declined</option>
+              <option value="awaiting_script">Awaiting Script</option>
+              <option value="completed">Completed</option>
+            </select>
+            <select
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+              className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+            >
+              <option value="all">All Services</option>
+              <option value="med_certs">Medical Certificates</option>
+              <option value="repeat_rx">Repeat Scripts</option>
+              <option value="consults">Consultations</option>
+            </select>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Select
-              selectedKeys={statusFilter ? [statusFilter] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string
-                setStatusFilter(selected || "all")
-              }}
-              placeholder="Status"
-              className="w-[140px]"
-              classNames={{
-                trigger: "rounded-xl bg-white/50 border-white/40",
-              }}
-            >
-              <SelectItem key="all">All Status</SelectItem>
-              <SelectItem key="pending">Pending</SelectItem>
-              <SelectItem key="approved">Approved</SelectItem>
-              <SelectItem key="declined">Declined</SelectItem>
-              <SelectItem key="needs_follow_up">Follow-up</SelectItem>
-            </Select>
-
-            <Select
-              selectedKeys={categoryFilter ? [categoryFilter] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string
-                setCategoryFilter(selected || "all")
-              }}
-              placeholder="Category"
-              className="w-[150px]"
-              classNames={{
-                trigger: "rounded-xl bg-white/50 border-white/40",
-              }}
-            >
-              <SelectItem key="all">All Categories</SelectItem>
-              <SelectItem key="medical_certificate">Med Cert</SelectItem>
-              <SelectItem key="prescription">Prescription</SelectItem>
-              <SelectItem key="referral">Referral</SelectItem>
-            </Select>
-
-            <Select
-              selectedKeys={scriptSentFilter ? [scriptSentFilter] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string
-                setScriptSentFilter(selected || "all")
-              }}
-              placeholder="Script Status"
-              className="w-[150px]"
-              classNames={{
-                trigger: "rounded-xl bg-white/50 border-white/40",
-              }}
-            >
-              <SelectItem key="all">All Scripts</SelectItem>
-              <SelectItem key="pending">Pending Send</SelectItem>
-              <SelectItem key="sent">Already Sent</SelectItem>
-            </Select>
-          </div>
-        </div>
-
-        <div className="mt-4 text-sm text-muted-foreground">
-          Showing {filteredRequests.length} of {localRequests.length} requests
-        </div>
-      </div>
-
-      {/* Requests Table */}
-      <div
-        className="glass-card rounded-2xl overflow-hidden animate-fade-in-up opacity-0"
-        style={{ animationDelay: "0.45s", animationFillMode: "forwards" }}
-      >
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-white/30 hover:bg-white/30">
-                <TableHead className="w-[50px]">Script</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRequests.length > 0 ? (
-                filteredRequests.map((request, index) => {
-                  const patientAge = calculateAge(request.patient.date_of_birth)
-                  const showScriptCheckbox = request.status === "approved"
-
-                  return (
-                    <TableRow
-                      key={request.id}
-                      className="animate-fade-in opacity-0 hover:bg-white/40 transition-colors"
-                      style={{ animationDelay: `${0.05 * index}s`, animationFillMode: "forwards" }}
-                    >
-                      <TableCell>
-                        {showScriptCheckbox && (
-                          <TooltipProvider>
-                            <Tooltip content={request.script_sent ? "Script sent via external platform" : "Mark as sent"}>
-                              <div className="flex items-center justify-center">
-                                <Checkbox
-                                  isSelected={request.script_sent}
-                                  onValueChange={() => handleScriptSentToggle(request.id, request.script_sent)}
-                                  className="data-[selected=true]:bg-indigo-500 data-[selected=true]:border-indigo-500"
-                                />
-                              </div>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border-2 border-white/50 shadow-sm">
-                            <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs">
-                              {getInitials(request.patient.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-foreground">{request.patient.full_name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {patientAge}y • {request.patient.phone || "No phone"}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge
-                            variant="outline"
-                            className="w-fit text-xs bg-indigo-50 border-indigo-200 text-indigo-700"
-                          >
-                            {formatCategory(request.category)}
-                          </Badge>
-                          {request.subtype && (
-                            <span className="text-xs text-muted-foreground">{formatSubtype(request.subtype)}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(request.status)}
-                          {request.script_sent && (
-                            <TooltipProvider>
-                              <Tooltip
-                                content={`Sent ${
-                                  request.script_sent_at
-                                    ? new Date(request.script_sent_at).toLocaleDateString("en-AU")
-                                    : ""
-                                }`}
-                              >
-                                <Send className="h-3.5 w-3.5 text-indigo-500" />
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(request.created_at).toLocaleDateString("en-AU", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {request.patient.suburb}, {request.patient.state}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link 
-                          href={`/doctor/requests/${request.id}`}
-                          className="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium border-2 bg-white/50 hover:bg-white/80 border-white/40 transition-all"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          View
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center">
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <FileText className="h-8 w-8 opacity-50" />
-                      <p>No requests found matching your filters</p>
-                    </div>
-                  </TableCell>
+          {/* Table */}
+          <div className="rounded-lg border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Patient</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {filteredIntakes.length > 0 ? (
+                  filteredIntakes.map((intake) => {
+                    const patient = intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
+                    const service = intake.service as { name?: string; short_name?: string } | undefined
+                    
+                    return (
+                      <TableRow key={intake.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="text-xs bg-primary/10">
+                                {getInitials(patient?.full_name || "?")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{patient?.full_name || "Unknown"}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {patient?.suburb}{patient?.state ? `, ${patient.state}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{service?.short_name || service?.name || "—"}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadge(intake.status)}>
+                            {formatIntakeStatus(intake.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(intake.created_at).toLocaleDateString("en-AU", {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/doctor/intakes/${intake.id}`}>
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      No intakes found matching your filters
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

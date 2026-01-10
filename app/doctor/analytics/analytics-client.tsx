@@ -2,153 +2,265 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  Legend,
 } from "recharts"
-import { TrendingUp, Clock, CheckCircle, DollarSign, FileText, Calendar, Activity } from "lucide-react"
-import type { DashboardAnalytics } from "@/types/db"
+import { 
+  TrendingUp, 
+  TrendingDown,
+  Clock, 
+  CheckCircle, 
+  DollarSign, 
+  FileText, 
+  Zap,
+  Activity,
+  Stethoscope,
+  Pill,
+  ClipboardList,
+  Users,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+
+export interface AnalyticsData {
+  totalIntakes: number
+  todayIntakes: number
+  todayApproved: number
+  pendingInQueue: number
+  statusCounts: Record<string, number>
+  serviceTypeCounts: Record<string, number>
+  avgResponseMinutes: number
+  totalRevenue: number
+  thisWeekRevenue: number
+  todayRevenue: number
+  intakeTrend: number
+  revenueTrend: number
+  dailyData: { date: string; count: number; approved: number }[]
+  priorityCount: number
+  priorityPercentage: number
+  approvalRate: number
+}
 
 interface AnalyticsClientProps {
-  analytics: DashboardAnalytics
+  analytics: AnalyticsData
+  doctorName: string
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
+function TrendBadge({ value, suffix = "%" }: { value: number; suffix?: string }) {
+  if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>
+  const isPositive = value > 0
+  return (
+    <div className={cn(
+      "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
+      isPositive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+    )}>
+      {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+      {isPositive ? "+" : ""}{value}{suffix}
+    </div>
+  )
+}
 
-const formatCategoryLabel = (type: string) => {
-  switch (type) {
-    case "medical_certificate":
-      return "Med Certs"
-    case "prescription":
-      return "Scripts"
-    case "referral":
-      return "Referrals"
-    default:
-      return type
+function formatServiceType(type: string): string {
+  const labels: Record<string, string> = {
+    med_certs: "Medical Certificates",
+    repeat_rx: "Repeat Scripts",
+    consults: "Consultations",
+    other: "Other",
   }
+  return labels[type] || type
 }
 
-export function AnalyticsClient({ analytics }: AnalyticsClientProps) {
-  const statCards = [
-    {
-      title: "Requests Today",
-      value: analytics.requests_today,
-      icon: FileText,
-      color: "text-primary",
-      bgColor: "bg-blue-50",
-    },
-    {
-      title: "This Week",
-      value: analytics.requests_this_week,
-      icon: Calendar,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-    },
-    {
-      title: "Avg Review Time",
-      value: `${analytics.avg_review_time_hours}h`,
-      icon: Clock,
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-    },
-    {
-      title: "Approval Rate",
-      value: `${analytics.approval_rate}%`,
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-    },
-    {
-      title: "Revenue Today",
-      value: `$${analytics.revenue_today.toFixed(0)}`,
-      icon: DollarSign,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-    },
-    {
-      title: "Revenue This Month",
-      value: `$${analytics.revenue_this_month.toFixed(0)}`,
-      icon: TrendingUp,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
-    },
-  ]
+function formatStatus(status: string): string {
+  const labels: Record<string, string> = {
+    pending_payment: "Awaiting Payment",
+    paid: "In Queue",
+    in_review: "Under Review",
+    approved: "Approved",
+    declined: "Declined",
+    completed: "Completed",
+    pending_info: "Needs Info",
+  }
+  return labels[status] || status
+}
 
-  // Format data for charts
-  const pieData = analytics.requests_by_type.map((item) => ({
-    name: formatCategoryLabel(item.type),
-    value: item.count,
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+}
+
+export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps) {
+  const serviceData = Object.entries(analytics.serviceTypeCounts).map(([type, count]) => ({
+    name: formatServiceType(type),
+    count,
+    fill: type === "med_certs" ? "#3b82f6" : type === "repeat_rx" ? "#10b981" : type === "consults" ? "#f59e0b" : "#8b5cf6",
   }))
 
-  const lineData = analytics.requests_by_day.map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" }),
-    requests: item.count,
-  }))
-
-  // Generate heatmap data (24 hours x intensity)
-  const maxHourCount = Math.max(...analytics.requests_by_hour.map((h) => h.count), 1)
-  const heatmapData = analytics.requests_by_hour.map((item) => ({
-    hour: `${item.hour.toString().padStart(2, "0")}:00`,
-    count: item.count,
-    intensity: item.count / maxHourCount,
-  }))
+  const statusData = Object.entries(analytics.statusCounts)
+    .filter(([status]) => ["paid", "approved", "declined", "in_review"].includes(status))
+    .map(([status, count]) => ({
+      name: formatStatus(status),
+      count,
+      fill: status === "approved" ? "#10b981" : status === "declined" ? "#ef4444" : status === "paid" ? "#3b82f6" : "#f59e0b",
+    }))
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground mt-1">Overview of platform activity and performance</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Performance overview for Dr. {doctorName}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-muted-foreground">Last 7 days</p>
+          <TrendBadge value={analytics.intakeTrend} suffix="% intakes" />
+        </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {statCards.map((stat) => (
-          <div key={stat.title} className="overflow-hidden">
-            <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{stat.title}</p>
-                  <p className="text-xl font-semibold">{stat.value}</p>
-                </div>
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Today's Intakes */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-100">
+                <FileText className="h-5 w-5 text-blue-600" />
               </div>
-            </CardContent>
-            </Card>
-          </div>
-        ))}
+              <div>
+                <p className="text-sm text-muted-foreground">Today</p>
+                <p className="text-2xl font-bold">{analytics.todayIntakes}</p>
+                <p className="text-xs text-muted-foreground">{analytics.todayApproved} approved</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pending Queue */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-100">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">In Queue</p>
+                <p className="text-2xl font-bold">{analytics.pendingInQueue}</p>
+                <p className="text-xs text-muted-foreground">awaiting review</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Response Time */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-100">
+                <Activity className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Avg Response</p>
+                <p className="text-2xl font-bold">{formatMinutes(analytics.avgResponseMinutes)}</p>
+                <p className="text-xs text-muted-foreground">turnaround time</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Approval Rate */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-100">
+                <CheckCircle className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Approval Rate</p>
+                <p className="text-2xl font-bold">{analytics.approvalRate}%</p>
+                <p className="text-xs text-muted-foreground">{analytics.statusCounts.approved || 0} approved</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-emerald-600 font-medium">Today's Revenue</p>
+                <p className="text-3xl font-bold text-emerald-700">${analytics.todayRevenue.toFixed(0)}</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-emerald-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">This Week</p>
+                <p className="text-3xl font-bold text-blue-700">${analytics.thisWeekRevenue.toFixed(0)}</p>
+                <TrendBadge value={analytics.revenueTrend} suffix="%" />
+              </div>
+              <TrendingUp className="h-8 w-8 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">All Time</p>
+                <p className="text-3xl font-bold text-purple-700">${analytics.totalRevenue.toFixed(0)}</p>
+                <p className="text-xs text-purple-500">{analytics.totalIntakes} total intakes</p>
+              </div>
+              <Users className="h-8 w-8 text-purple-400" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Requests Over Time */}
+        {/* Daily Activity Chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              Requests Over Time
+              Daily Activity (Last 7 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+            <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} tickLine={false} allowDecimals={false} />
+                <BarChart data={analytics.dailyData} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 11 }} 
+                    tickLine={false} 
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 11 }} 
+                    tickLine={false} 
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
                   <Tooltip
                     contentStyle={{
                       borderRadius: "8px",
@@ -156,83 +268,112 @@ export function AnalyticsClient({ analytics }: AnalyticsClientProps) {
                       boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                     }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="requests"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 3 }}
-                    activeDot={{ r: 5 }}
+                  <Legend />
+                  <Bar 
+                    dataKey="count" 
+                    name="Received"
+                    fill="#3b82f6" 
+                    radius={[4, 4, 0, 0]} 
                   />
-                </LineChart>
+                  <Bar 
+                    dataKey="approved" 
+                    name="Approved"
+                    fill="#10b981" 
+                    radius={[4, 4, 0, 0]} 
+                  />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Requests by Type */}
+        {/* Service Breakdown */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Requests by Type</CardTitle>
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              By Service Type
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    formatter={(value) => <span className="text-sm">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="space-y-4">
+              {serviceData.map((service) => {
+                const percentage = analytics.totalIntakes > 0 
+                  ? Math.round((service.count / analytics.totalIntakes) * 100) 
+                  : 0
+                return (
+                  <div key={service.name} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        {service.name.includes("Medical") && <Stethoscope className="h-4 w-4 text-blue-500" />}
+                        {service.name.includes("Script") && <Pill className="h-4 w-4 text-emerald-500" />}
+                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-amber-500" />}
+                        <span className="font-medium">{service.name}</span>
+                      </div>
+                      <span className="text-muted-foreground">{service.count} ({percentage}%)</span>
+                    </div>
+                    <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%`, backgroundColor: service.fill }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+              {serviceData.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Busiest Hours Heatmap */}
+      {/* Status Breakdown */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Busiest Hours (This Month)
-          </CardTitle>
+          <CardTitle className="text-base font-medium">Status Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[120px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={heatmapData} barCategoryGap="10%">
-                <XAxis dataKey="hour" tick={{ fontSize: 10 }} tickLine={false} interval={1} />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(value) => [`${value} requests`, "Count"]}
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "1px solid hsl(var(--border))",
-                  }}
-                />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+              <p className="text-2xl font-bold text-blue-700">{analytics.statusCounts.paid || 0}</p>
+              <p className="text-sm text-blue-600">In Queue</p>
+            </div>
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+              <p className="text-2xl font-bold text-amber-700">{analytics.statusCounts.in_review || 0}</p>
+              <p className="text-sm text-amber-600">Under Review</p>
+            </div>
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+              <p className="text-2xl font-bold text-emerald-700">{analytics.statusCounts.approved || 0}</p>
+              <p className="text-sm text-emerald-600">Approved</p>
+            </div>
+            <div className="p-4 rounded-xl bg-red-50 border border-red-100">
+              <p className="text-2xl font-bold text-red-700">{analytics.statusCounts.declined || 0}</p>
+              <p className="text-sm text-red-600">Declined</p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">Hours shown in AEST</p>
         </CardContent>
       </Card>
+
+      {/* Priority Stats */}
+      {analytics.priorityCount > 0 && (
+        <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-white">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-amber-100">
+                <Zap className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-medium">Priority Requests</p>
+                <p className="text-sm text-muted-foreground">
+                  {analytics.priorityCount} priority requests ({analytics.priorityPercentage}% of total)
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
