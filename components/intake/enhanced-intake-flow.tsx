@@ -720,7 +720,7 @@ export function EnhancedIntakeFlow({
     answers.patient_dob = state.dob
 
     return answers
-  }
+  }, [state])
 
   // Submit to Stripe - moved before goNext to fix initialization order
   const handleSubmit = useCallback(async () => {

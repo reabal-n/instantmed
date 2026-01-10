@@ -129,7 +129,7 @@ GlassCard.displayName = 'GlassCard'
 
 export interface GlassCardMotionProps
   extends Omit<HTMLMotionProps<'div'>, 'onAnimationStart' | 'onDrag' | 'onDragEnd' | 'onDragStart'>,
-    VariantProps<typeof glassCardVariants> {
+    Omit<VariantProps<typeof glassCardVariants>, 'transition'> {
   /** Glow color on hover */
   glowColor?: 'blue' | 'purple'
 }

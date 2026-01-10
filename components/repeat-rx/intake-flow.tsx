@@ -741,9 +741,11 @@ export function RepeatRxIntakeFlow({
       }
       
       if (user && isSignedIn) {
+        const userMetadata = user.user_metadata || {}
+        const userName = userMetadata.full_name || userMetadata.name || user.email?.split('@')[0] || ""
         const { profileId } = await createOrGetProfile(
           user.id,
-          user.fullName || "",
+          userName,
           ""
         )
         

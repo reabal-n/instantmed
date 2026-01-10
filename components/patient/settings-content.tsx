@@ -252,7 +252,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
                   <Button variant="outline">Sign Out This Device</Button>
                   <Button
                     variant="destructive"
-                    onClick={() => signOut({ redirectUrl: "/" })}
+                    onClick={() => signOut()}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out All Devices
