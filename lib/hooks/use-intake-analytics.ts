@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef } from "react"
+import { useCallback, useRef, useEffect } from "react"
 import posthog from "posthog-js"
 
 interface IntakeStep {
@@ -17,9 +17,16 @@ interface UseIntakeAnalyticsOptions {
  * Custom hook for tracking intake flow analytics with PostHog
  */
 export function useIntakeAnalytics({ flowType, steps }: UseIntakeAnalyticsOptions) {
-  const startTimeRef = useRef<number>(Date.now())
+  const startTimeRef = useRef<number>(0)
   const stepTimesRef = useRef<Record<number, number>>({})
   const trackedStepsRef = useRef<Set<number>>(new Set())
+  
+  // Initialize start time in effect to avoid calling Date.now() during render
+  useEffect(() => {
+    if (startTimeRef.current === 0) {
+      startTimeRef.current = Date.now()
+    }
+  }, [])
 
   // Track when flow starts
   const trackFlowStart = useCallback(() => {

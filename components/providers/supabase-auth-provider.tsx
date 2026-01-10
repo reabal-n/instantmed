@@ -56,8 +56,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         if (initialSession?.user?.id) {
           await fetchProfile(initialSession.user.id)
         }
-      } catch (error) {
-        console.error('Error initializing auth:', error)
+      } catch (_error) {
+        // Error initializing auth - ignore
       } finally {
         setIsLoading(false)
       }

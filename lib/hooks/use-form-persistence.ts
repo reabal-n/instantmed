@@ -61,8 +61,8 @@ export function useFormPersistence<T extends Record<string, unknown>>({
       } else {
         setIsRestored(true)
       }
-    } catch (error) {
-      console.error("Failed to restore form state:", error)
+    } catch {
+      // Failed to restore form state - ignore and start fresh
       localStorage.removeItem(storageKey)
       setIsRestored(true)
     }
@@ -84,8 +84,8 @@ export function useFormPersistence<T extends Record<string, unknown>>({
           }
           localStorage.setItem(storageKey, JSON.stringify(persistedData))
           setHasSavedDraft(true)
-        } catch (error) {
-          console.error("Failed to save form state:", error)
+        } catch {
+          // Failed to save form state - ignore
         }
       }, debounceMs)
     },
@@ -160,20 +160,21 @@ export function usePersistedState<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((prev: T) => T)) => void, () => void] {
-  const [state, setState] = useState<T>(initialValue)
   const storageKey = `instantmed_${key}`
-
-  // Load on mount
-  useEffect(() => {
+  
+  // Use lazy initialization to load from localStorage
+  const [state, setState] = useState<T>(() => {
+    if (typeof window === "undefined") return initialValue
     try {
       const saved = localStorage.getItem(storageKey)
       if (saved) {
-        setState(JSON.parse(saved))
+        return JSON.parse(saved) as T
       }
     } catch {
       // Ignore errors
     }
-  }, [storageKey])
+    return initialValue
+  })
 
   // Save on change
   const setPersistedState = useCallback(
