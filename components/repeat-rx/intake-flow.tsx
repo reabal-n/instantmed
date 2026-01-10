@@ -468,7 +468,6 @@ export function RepeatRxIntakeFlow({
   preferredPharmacy: _preferredPharmacy,
 }: RepeatRxIntakeProps) {
   const router = useRouter()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
   
