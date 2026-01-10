@@ -33,6 +33,7 @@ import {
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
+import type { User } from "@supabase/supabase-js"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
@@ -393,7 +394,7 @@ export function MedCertFlowClient({
   
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [_isLoading, setIsLoading] = useState(true)
   const isSignedIn = !!user
 
   // Auth state
@@ -432,13 +433,13 @@ export function MedCertFlowClient({
   const [step, setStep] = useState<FlowStep>("type")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_showEmergencyModal, setShowEmergencyModal] = useState(false)
+  const [_showEmergencyModal, _setShowEmergencyModal] = useState(false)
   const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   const isCarer = formData.certType === "carer"
-  const isRedFlag =
+  const _isRedFlag =
     formData.safetyAnswers.chestPain === true || 
     formData.safetyAnswers.severeSymptoms === true || 
     formData.safetyAnswers.emergency === true
