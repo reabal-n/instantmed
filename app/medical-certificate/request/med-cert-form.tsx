@@ -567,10 +567,11 @@ export function MedCertForm({
 
   // Check for returning users after OAuth and restore form state
   useEffect(() => {
+    // Check if we're returning from OAuth with saved form data (with localStorage TTL fallback)
+    const savedFormDataObj = loadFormData<typeof formData>(STORAGE_KEYS.MED_CERT_FORM)
+    const savedStep = loadFormData<FlowStep>(STORAGE_KEYS.MED_CERT_STEP)
+    
     const checkSession = async () => {
-      // Check if we're returning from OAuth with saved form data (with localStorage TTL fallback)
-      const savedFormDataObj = loadFormData<typeof formData>(STORAGE_KEYS.MED_CERT_FORM)
-      const savedStep = loadFormData<FlowStep>(STORAGE_KEYS.MED_CERT_STEP)
       
       if (savedFormDataObj) {
         setFormData((prev) => ({ ...prev, ...savedFormDataObj }))
