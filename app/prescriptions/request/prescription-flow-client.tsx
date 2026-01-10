@@ -415,7 +415,6 @@ export function PrescriptionFlowClient({
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const isSignedIn = !!user
 
   // Auth state
   const [patientId, setPatientId] = useState<string | null>(initialPatientId)
@@ -428,8 +427,6 @@ export function PrescriptionFlowClient({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_isGoogleLoading, _setIsGoogleLoading] = useState(false)
-  const [_signupMode, _setSignupMode] = useState<"new" | "existing">("new")
 
   // Form state - structured medication selection
   const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
@@ -459,7 +456,7 @@ export function PrescriptionFlowClient({
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [_authLoading, _setAuthLoading] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
   const [showEmailConfirm, setShowEmailConfirm] = useState(false)
 
   // Controlled substance warning
@@ -684,45 +681,137 @@ export function PrescriptionFlowClient({
     return SAFETY_QUESTIONS.some((q) => q.knockout && safetyAnswers[q.id] === true)
   }
 
-  // Handle Google auth - uses Clerk modal
-  const handleGoogleAuth = () => {
-    // Save form data before opening auth modal
-    const formState = {
-      rxType,
-      step,
-      selectedMedication,
-      prescribedBefore,
-      doseChanged,
-      condition,
-      otherCondition,
-      duration,
-      control,
-      sideEffects,
-      notes,
-      safetyAnswers,
-      medicareNumber,
-      irn,
-      dob,
-      fullName,
-      email,
-    }
-    sessionStorage.setItem("rx_form_data", JSON.stringify(formState))
-    sessionStorage.setItem("rx_form_step", step)
-    sessionStorage.setItem("pending_profile_dob", dob)
-    sessionStorage.setItem("pending_profile_name", fullName)
+  // Handle Google auth with Supabase
+  const handleGoogleAuth = async () => {
+    setAuthLoading(true)
+    setError(null)
+    
+    try {
+      // Save form data before auth
+      const formState = {
+        rxType,
+        step,
+        selectedMedication,
+        prescribedBefore,
+        doseChanged,
+        condition,
+        otherCondition,
+        duration,
+        control,
+        sideEffects,
+        notes,
+        safetyAnswers,
+        medicareNumber,
+        irn,
+        dob,
+        fullName,
+        email,
+      }
+      sessionStorage.setItem("rx_form_data", JSON.stringify(formState))
+      sessionStorage.setItem("rx_form_step", step)
+      sessionStorage.setItem("pending_profile_dob", dob)
+      sessionStorage.setItem("pending_profile_name", fullName)
 
-    // Redirect to login page
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+      const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.href)}`
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: callbackUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) {
+        setError(error.message || "Failed to sign in with Google")
+        setAuthLoading(false)
+      }
+      // If successful, user will be redirected to callback URL
+    } catch (err) {
+      setError("An unexpected error occurred")
+      setAuthLoading(false)
+      log.error("Google auth error", { error: err })
+    }
   }
 
-  // Handle email signup - redirect to login
-  const handleEmailSignup = () => {
-    // Save form data before redirecting
-    sessionStorage.setItem("pending_profile_name", fullName)
-    sessionStorage.setItem("pending_profile_dob", dob)
+  // Handle email signup/login with Supabase
+  const handleEmailSignup = async () => {
+    if (!email || !password) {
+      setError("Please enter your email and password")
+      return
+    }
 
-    // Redirect to login page
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+    setAuthLoading(true)
+    setError(null)
+
+    try {
+      if (isSignUp) {
+        // Sign up new user
+        if (!fullName) {
+          setError("Please enter your full name")
+          setAuthLoading(false)
+          return
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.href)}`,
+          },
+        })
+
+        if (error) {
+          setError(error.message || "Failed to create account")
+          setAuthLoading(false)
+        } else if (data.user && !data.session) {
+          // Email confirmation required
+          setShowEmailConfirm(true)
+          setAuthLoading(false)
+        } else if (data.session) {
+          // Auto-confirmed, proceed with profile creation
+          const pendingName = sessionStorage.getItem("pending_profile_name") || fullName
+          const pendingDob = sessionStorage.getItem("pending_profile_dob") || dob
+          
+          if (data.user) {
+            const { profileId } = await createOrGetProfile(data.user.id, pendingName, pendingDob)
+            if (profileId) {
+              sessionStorage.removeItem("pending_profile_name")
+              sessionStorage.removeItem("pending_profile_dob")
+              setPatientId(profileId)
+              setIsAuthenticated(true)
+              setNeedsOnboarding(false)
+              if (step === "signup") {
+                goTo("review")
+              }
+            }
+          }
+          setAuthLoading(false)
+        }
+      } else {
+        // Sign in existing user
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (error) {
+          setError(error.message || "Failed to sign in")
+          setAuthLoading(false)
+        }
+        // If successful, auth state change handler will update the UI
+      }
+    } catch (err) {
+      setError("An unexpected error occurred")
+      setAuthLoading(false)
+      log.error("Email auth error", { error: err })
+    }
   }
 
   // Handle submit
@@ -861,6 +950,7 @@ export function PrescriptionFlowClient({
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
+      setAuthLoading(false) // Reset loading state on auth state change
       
       if (session?.user && !isAuthenticated) {
         const pendingName = sessionStorage.getItem("pending_profile_name")
@@ -1452,7 +1542,7 @@ export function PrescriptionFlowClient({
                     )}
 
                     <Button
-                      onClick={handleEmailSignup}
+                      onPress={handleEmailSignup}
                       disabled={authLoading || (isSignUp ? !agreedToTerms : false)}
                       className="w-full h-11"
                     >
