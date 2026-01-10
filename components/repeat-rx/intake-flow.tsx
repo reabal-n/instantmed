@@ -87,7 +87,7 @@ interface RepeatRxIntakeProps {
 }
 
 // ============================================================================
-// PROGRESS INDICATOR
+// PROGRESS INDICATOR - Now uses CompactStepper from form-stepper.tsx
 // ============================================================================
 
 function ProgressIndicator({
@@ -108,48 +108,11 @@ function ProgressIndicator({
   const totalSteps = displaySteps.length
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-3">
-        {/* Compact progress dots */}
-        <div className="flex items-center gap-3 relative">
-          {displaySteps.map((step, i) => (
-            <div
-              key={step}
-              className={cn(
-                "w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300",
-                i <= currentIndex ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
-              )}
-            />
-          ))}
-          
-          {/* Animated progress overlay */}
-          <motion.div
-            initial={{ width: '12px' }}
-            animate={{
-              width: totalSteps === 3 
-                ? (currentIndex === 0 ? '24px' : currentIndex === 1 ? '60px' : '96px')
-                : totalSteps === 5
-                ? (currentIndex === 0 ? '24px' : currentIndex === 1 ? '48px' : currentIndex === 2 ? '72px' : currentIndex === 3 ? '96px' : '120px')
-                : `${((currentIndex + 1) / totalSteps) * 100}%`
-            }}
-            className="absolute -left-[6px] -top-[6px] -translate-y-1/2 h-2 bg-primary rounded-full"
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-              mass: 0.8,
-              bounce: 0.25,
-              duration: 0.6
-            }}
-          />
-        </div>
-        
-        {/* Step label */}
-        <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
-          Step {currentIndex + 1}/{totalSteps}
-        </span>
-      </div>
-    </div>
+    <CompactStepper 
+      current={currentIndex} 
+      total={totalSteps}
+      labels={displaySteps}
+    />
   )
 }
 
