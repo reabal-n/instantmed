@@ -14,6 +14,8 @@ import {
   RefreshCw,
   Pill,
   HelpCircle,
+  Eye,
+  EyeOff,
   X,
   Check,
   Pencil,
@@ -30,6 +32,8 @@ import {
   BadgeCheck,
   Phone,
   Save,
+  Eye,
+  EyeOff,
 } from "lucide-react"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createOrGetProfile } from "@/app/actions/create-profile"

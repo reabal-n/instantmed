@@ -3,25 +3,26 @@
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { useAuth } from "@/components/providers/supabase-auth-provider"
 
 export function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams?.get("redirect") || "/account"
-  const { isSignedIn, isLoaded } = useAuth()
+  const { isSignedIn, isLoading } = useAuth()
 
   useEffect(() => {
-    if (isLoaded) {
+    if (!isLoading) {
       if (isSignedIn) {
         // Already signed in, go to redirect destination
         router.replace(redirectTo)
       } else {
-        // Redirect to Clerk's sign-in page
-        const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(redirectTo)}`
+        // Redirect to sign-in page
+        const signInUrl = `/auth/login?redirect=${encodeURIComponent(redirectTo)}`
         router.replace(signInUrl)
       }
     }
-  }, [isLoaded, isSignedIn, router, redirectTo])
+  }, [isLoading, isSignedIn, router, redirectTo])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
