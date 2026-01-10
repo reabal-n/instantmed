@@ -394,7 +394,7 @@ export function MedCertFlowClient({
   
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
-  const [_isLoading, setIsLoading] = useState(true)
+  const [, setIsLoading] = useState(true)
   const isSignedIn = !!user
 
   // Auth state
@@ -433,16 +433,11 @@ export function MedCertFlowClient({
   const [step, setStep] = useState<FlowStep>("type")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_showEmergencyModal, _setShowEmergencyModal] = useState(false)
   const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   const isCarer = formData.certType === "carer"
-  const _isRedFlag =
-    formData.safetyAnswers.chestPain === true || 
-    formData.safetyAnswers.severeSymptoms === true || 
-    formData.safetyAnswers.emergency === true
 
   // Auto-save draft to localStorage (debounced)
   useEffect(() => {
