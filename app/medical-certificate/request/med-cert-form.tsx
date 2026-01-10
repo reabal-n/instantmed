@@ -711,7 +711,7 @@ export function MedCertForm({
 
       setFormData((prev) => ({
         ...prev,
-        email: email || user.primaryEmailAddress?.emailAddress || prev.email,
+        email: email || user.email || prev.email,
         fullName: profile?.full_name || name || prev.fullName,
         dateOfBirth: profile?.date_of_birth || dob || prev.dateOfBirth,
         medicareNumber: profile?.medicare_number || prev.medicareNumber,
