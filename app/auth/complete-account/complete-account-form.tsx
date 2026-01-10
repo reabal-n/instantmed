@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Check, Loader2 } from "lucide-react"
 import { Confetti } from "@/components/ui/confetti"
+import { useAuth } from "@/components/providers/supabase-auth-provider"
 
 export function CompleteAccountForm({
   requestId,
@@ -18,14 +19,13 @@ export function CompleteAccountForm({
   sessionId?: string
 }) {
   const router = useRouter()
-  const { openSignUp } = useAuth()
-  const { isSignedIn, isLoaded } = useAuth()
+  const { isSignedIn, isLoading } = useAuth()
 
   const [showConfetti, setShowConfetti] = useState(false)
   
   useEffect(() => {
     // If already signed in, redirect to success
-    if (isLoaded && isSignedIn && requestId) {
+    if (!isLoading && isSignedIn && requestId) {
       // Use a timeout to avoid synchronous setState in effect
       const confettiTimer = setTimeout(() => {
         setShowConfetti(true)
@@ -40,20 +40,19 @@ export function CompleteAccountForm({
         clearTimeout(redirectTimer)
       }
     }
-  }, [isLoaded, isSignedIn, requestId, router])
+  }, [isLoading, isSignedIn, requestId, router])
 
   const handleCreateAccount = () => {
-    // Open Clerk's sign-up modal with pre-filled email
-    openSignUp({
-      initialValues: {
-        emailAddress: email,
-      },
-      redirectUrl: `/patient/requests/success?request_id=${requestId}`,
-    })
+    // Redirect to register page with pre-filled email and redirect URL
+    const redirectUrl = `/patient/requests/success?request_id=${requestId}`
+    const registerUrl = email 
+      ? `/auth/register?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectUrl)}`
+      : `/auth/register?redirect=${encodeURIComponent(redirectUrl)}`
+    router.push(registerUrl)
   }
 
   // If already signed in, show success message
-  if (isLoaded && isSignedIn) {
+  if (!isLoading && isSignedIn) {
     return (
       <>
         <Confetti trigger={showConfetti} />
@@ -104,7 +103,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`/sign-in?redirect_url=/patient/requests/${requestId}`} className="text-primary hover:underline">
+        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/requests/success?request_id=${requestId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

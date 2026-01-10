@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react"
 import {
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   Clock,
@@ -13,12 +12,11 @@ import {
   TrendingUp,
   AlertCircle,
   MessageSquare,
-  User,
   ChevronRight,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectItem } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FloatingActionBar, FloatingActionBarContent } from "@/components/shell"
@@ -26,7 +24,6 @@ import { BUTTON_COPY, FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { TiltCard } from "@/components/shared/tilt-card"
-import { EmptyState } from "@/components/ui/empty-state"
 
 type RequestStatus = "submitted" | "in_review" | "approved" | "rejected" | "requires_info"
 type RequestType = "medical_certificate" | "prescription" | "consult"
@@ -164,7 +161,7 @@ export function PanelDoctorDashboard({
       toast.success(`${selectedIds.length} requests approved`, {
         description: "Changes saved ✓"
       })
-    } catch (error) {
+    } catch (_error) {
       // ROLLBACK on error
       setRequests(previousRequests)
       setSelectedRequests(new Set(selectedIds))
@@ -208,7 +205,7 @@ export function PanelDoctorDashboard({
       toast.success(`${selectedIds.length} requests declined`, {
         description: "Changes saved ✓"
       })
-    } catch (error) {
+    } catch (_error) {
       // ROLLBACK on error
       setRequests(previousRequests)
       setSelectedRequests(new Set(selectedIds))

@@ -28,7 +28,7 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle(redirectUrl || undefined)
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to sign in with Google')
     }
   }
@@ -50,7 +50,7 @@ function LoginForm() {
         router.push(redirectUrl || '/patient')
         router.refresh()
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('An error occurred during sign in')
     } finally {
       setIsSubmitting(false)

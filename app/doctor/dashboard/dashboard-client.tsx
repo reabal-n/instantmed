@@ -4,7 +4,6 @@ import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   Clock,
@@ -16,9 +15,6 @@ import {
   AlertCircle,
   Eye,
   MessageSquare,
-  MoreVertical,
-  Download,
-  Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,12 +23,6 @@ import {
   Select,
   SelectItem,
 } from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"

@@ -16,7 +16,6 @@ export async function POST(request: Request) {
     const apiKey = process.env.INTERNAL_API_KEY
     const authHeader = request.headers.get('authorization')
     let authorized = false
-    let rateLimitKey = 'api-key'
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
@@ -26,7 +25,6 @@ export async function POST(request: Request) {
         const { data: { user } } = await serverSupabase.auth.getUser()
         
         if (user) {
-          rateLimitKey = user.id
           
           // Apply rate limiting for authenticated users
           const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)

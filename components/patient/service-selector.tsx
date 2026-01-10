@@ -1,7 +1,6 @@
 'use client'
 
 import { FileText, Pill, MessageSquare } from 'lucide-react'
-import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
 import { TiltCard } from '@/components/shared/tilt-card'
 

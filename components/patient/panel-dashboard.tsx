@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import {
   FileText,
@@ -9,7 +8,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  CreditCard,
   ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/uix"

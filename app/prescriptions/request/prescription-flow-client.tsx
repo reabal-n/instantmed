@@ -9,13 +9,10 @@ import { Button, Input, Textarea } from "@heroui/react"
 import confetti from "canvas-confetti"
 import {
   ArrowLeft,
-  Loader2,
   CheckCircle,
   AlertTriangle,
   RefreshCw,
   Pill,
-  Eye,
-  EyeOff,
   HelpCircle,
   X,
   Check,
@@ -423,8 +420,8 @@ export function PrescriptionFlowClient({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const [signupMode, setSignupMode] = useState<"new" | "existing">("new")
+  const [_isGoogleLoading, _setIsGoogleLoading] = useState(false)
+  const [_signupMode, _setSignupMode] = useState<"new" | "existing">("new")
 
   // Form state - structured medication selection
   const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
@@ -454,7 +451,7 @@ export function PrescriptionFlowClient({
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [authLoading, setAuthLoading] = useState(false)
+  const [_authLoading, _setAuthLoading] = useState(false)
   const [showEmailConfirm, setShowEmailConfirm] = useState(false)
 
   // Controlled substance warning

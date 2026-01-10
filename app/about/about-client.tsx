@@ -2,10 +2,9 @@
 
 import Link from "next/link"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2 } from "lucide-react"
-import { Button, Chip } from "@heroui/react"
+import { Button } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { HolographicCard } from "@/components/effects/holographic-card"
 
 export function AboutClient() {
   return (

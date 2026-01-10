@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Shield, Lock, DollarSign, Clock, ArrowRight, FileText, Stethoscope, CheckCircle, Pill, UserCheck, Star } from 'lucide-react'
+import { Shield, Lock, DollarSign, Clock, ArrowRight, FileText, CheckCircle, UserCheck, Star } from 'lucide-react'
 import { Button } from "@heroui/react"
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts, trustSignals } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
 import { HolographicCard, PulseGlow } from '@/components/ui/glowing-effect'
-import { useState, useEffect } from 'react'
 
 const iconMap = {
   Shield,

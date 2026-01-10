@@ -17,23 +17,17 @@ import { toast } from "sonner"
 export function ResetPasswordClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, isLoaded } = useSignIn()
   
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [_isSuccess, _setIsSuccess] = useState(false)
   const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-
-    if (!isLoaded) {
-      setError("Authentication not ready. Please try again.")
-      return
-    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match")
@@ -75,7 +69,7 @@ export function ResetPasswordClient() {
     }
   }
 
-  if (isSuccess) {
+  if (_isSuccess) {
     return (
       <>
         <Navbar variant="marketing" />

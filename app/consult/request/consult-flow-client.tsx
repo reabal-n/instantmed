@@ -14,8 +14,6 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertTriangle,
-  Eye,
-  EyeOff,
   Pencil,
   Stethoscope,
 } from "lucide-react"
@@ -207,12 +205,12 @@ export function ConsultFlowClient({
 
   // Signup state
   const [isSignUp, setIsSignUp] = useState(true)
-  const [fullName, setFullName] = useState(userName || "")
-  const [email, setEmail] = useState(userEmail || "")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [authLoading, setAuthLoading] = useState(false)
+  const [fullName, _setFullName] = useState(userName || "")
+  const [email, _setEmail] = useState(userEmail || "")
+  const [password, _setPassword] = useState("")
+  const [_showPassword, _setShowPassword] = useState(false)
+  const [agreedToTerms, _setAgreedToTerms] = useState(false)
+  const [_authLoading, _setAuthLoading] = useState(false)
   const [showEmailConfirm, setShowEmailConfirm] = useState(false)
 
   // Safety knockout

@@ -81,9 +81,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: "Medication Not Found | InstantMed" }
   }
 
-  const description = getSimpleDescription(med)
-  const price = getMedicationPrice(med)
-
   return {
     title: `${med.name} Information | InstantMed`,
     description: `Learn about ${med.name}. Reviewed by Australian doctors.`,

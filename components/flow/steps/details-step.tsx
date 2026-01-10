@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Check, AlertCircle } from 'lucide-react'
 import { ButtonSpinner, Spinner } from '@/components/ui/unified-skeleton'
 import { FlowContent, FlowSection } from '../flow-content'

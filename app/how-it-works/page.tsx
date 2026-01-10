@@ -1,10 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
-import { TiltCard } from "@/components/shared/tilt-card"
-import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import {
   ClipboardList,

@@ -10,10 +10,6 @@ import {
   Lock,
   BadgeCheck,
   Phone,
-  ArrowLeft,
-  ArrowRight,
-  Loader2,
-  FileText,
   RotateCcw,
 } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"

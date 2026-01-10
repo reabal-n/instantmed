@@ -22,8 +22,6 @@ import {
   Calendar,
   User,
   Mail,
-  Eye,
-  EyeOff,
   RefreshCw,
   LogIn,
 } from "lucide-react"

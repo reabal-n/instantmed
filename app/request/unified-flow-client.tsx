@@ -13,13 +13,10 @@ import {
   FileText,
   Pill,
   Check,
-  Eye,
-  EyeOff,
   AlertTriangle,
   ExternalLink,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
-import { createOrGetProfile } from "@/app/actions/create-profile"
 import { createRequestAndCheckoutAction } from "@/lib/stripe/checkout"
 import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
@@ -257,9 +254,9 @@ export function UnifiedFlowClient({
   const { isSignedIn, user: clerkUser } = useAuth()
 
   // Auth state - use Clerk state when available
-  const [patientId, setPatientId] = useState(initialPatientId)
+  const [_patientId, _setPatientId] = useState(initialPatientId)
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuth || !!isSignedIn)
-  const [needsOnboarding, setNeedsOnboarding] = useState(initialNeedsOnboard)
+  const [_needsOnboarding, _setNeedsOnboarding] = useState(initialNeedsOnboard)
 
   // Flow state
   const [step, setStep] = useState<Step>(initialService ? "clinical" : "service")
@@ -313,12 +310,12 @@ export function UnifiedFlowClient({
   const [medicareValid, setMedicareValid] = useState(!!savedMedicare)
 
   // Account
-  const [authMode, setAuthMode] = useState<"signup" | "signin">("signup")
+  const [_authMode, _setAuthMode] = useState<"signup" | "signin">("signup")
   const [fullName, setFullName] = useState(userName || "")
   const [email, setEmail] = useState(userEmail || "")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [agreedTerms, setAgreedTerms] = useState(false)
+  const [password, _setPassword] = useState("")
+  const [_showPassword, _setShowPassword] = useState(false)
+  const [agreedTerms, _setAgreedTerms] = useState(false)
 
   // Initialize form state from props and saved draft
   const initialFormData = {
@@ -610,7 +607,7 @@ export function UnifiedFlowClient({
   }, [isSignedIn, clerkUser])
 
   // Auth handlers - use Clerk
-  const handleGoogleAuth = () => {
+  const _handleGoogleAuth = () => {
     // Open Clerk's sign-in modal with Google OAuth
     openSignIn({
       afterSignInUrl: window.location.href,
@@ -627,7 +624,7 @@ export function UnifiedFlowClient({
   }
 
   // Skip the email auth handlers since we're using Clerk
-  const handleEmailAuth = async () => {
+  const _handleEmailAuth = async () => {
     // Redirect to Clerk sign-in instead of using Supabase
     openSignIn({
       afterSignInUrl: window.location.href,

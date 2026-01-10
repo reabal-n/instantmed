@@ -28,7 +28,7 @@ function RegisterForm() {
   const handleGoogleSignUp = async () => {
     try {
       await signInWithGoogle(redirectUrl || undefined)
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to sign up with Google')
     }
   }
@@ -53,7 +53,7 @@ function RegisterForm() {
         toast.success('Account created! Please check your email to verify.')
         router.push('/auth/login?message=check_email')
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('An error occurred during registration')
     } finally {
       setIsSubmitting(false)
