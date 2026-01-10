@@ -31,7 +31,7 @@ export async function approveAndSendCert(
 ): Promise<ApproveCertResult> {
   try {
     // 1. Authenticate doctor
-    const authUser = await requireAuth("doctor")
+    await requireAuth("doctor")
     const doctorProfile = await getCurrentProfile()
 
     if (!doctorProfile || doctorProfile.role !== "doctor") {

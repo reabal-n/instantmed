@@ -122,8 +122,8 @@ export function CertReviewModal({
       await onConfirm(formData)
       onClose()
     } catch (error) {
-      console.error("Error confirming certificate:", error)
-      // Error handling is done in parent component
+      // Error handling is done in parent component via toast notifications
+      // Silently fail here - parent component will show error toast
     } finally {
       setIsSubmitting(false)
     }
