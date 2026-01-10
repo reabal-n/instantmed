@@ -210,7 +210,7 @@ export function QueueClient({
     return (
       r.patient.full_name.toLowerCase().includes(query) ||
       r.patient.medicare_number?.includes(query) ||
-      formatServiceType(service?.type).toLowerCase().includes(query)
+      formatServiceType(service?.type || "").toLowerCase().includes(query)
     )
   })
 
@@ -283,7 +283,7 @@ export function QueueClient({
                               <span className="font-medium truncate">{intake.patient.full_name}</span>
                               <span className="text-sm text-muted-foreground">{patientAge}y</span>
                               <Badge variant="outline" className="text-xs">
-                                {service?.short_name || formatServiceType(service?.type)}
+                                {service?.short_name || formatServiceType(service?.type || "")}
                               </Badge>
                               {intake.is_priority && (
                                 <Badge className="bg-amber-100 text-amber-700 border-amber-200 ml-2">

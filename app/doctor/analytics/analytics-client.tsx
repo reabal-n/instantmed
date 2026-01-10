@@ -199,7 +199,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-600 font-medium">Today's Revenue</p>
+                <p className="text-sm text-emerald-600 font-medium">Today&apos;s Revenue</p>
                 <p className="text-3xl font-bold text-emerald-700">${analytics.todayRevenue.toFixed(0)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-emerald-400" />
