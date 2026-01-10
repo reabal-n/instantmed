@@ -1,6 +1,7 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { isTestMode } from "@/lib/test-mode"
 
 const log = createLogger("test-actions")
@@ -134,23 +135,12 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
   const supabase = await createClient()
   const adminEmail = "me@reabal.ai"
 
-  // First, find if a user exists with this email via Clerk
-  const client = await clerkClient()
-  const users = await client.users.getUserList({ emailAddress: [adminEmail] })
-  const adminUser = users.data[0]
-
-  if (!adminUser) {
-    return {
-      success: false,
-      message: `No user found with email ${adminEmail}. Please sign up first, then run bootstrap.`,
-    }
-  }
-
-  // Check if profile exists using auth_user_id
+  // First, find if a user exists with this email via Supabase
+  // Check if profile exists with this email
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", adminUser.id)
+    .eq("email", adminEmail)
     .single()
 
   if (existingProfile) {
@@ -160,7 +150,7 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
       .update({
         role: "doctor",
       })
-      .eq("auth_user_id", adminUser.id)
+      .eq("id", existingProfile.id)
 
     if (updateError) {
       return { success: false, message: `Failed to update profile: ${updateError.message}` }
@@ -169,9 +159,21 @@ export async function bootstrapAdminUser(): Promise<{ success: boolean; message:
     return { success: true, message: `Updated ${adminEmail} to doctor role` }
   }
 
+  // Try to find auth user by email using service role client
+  const serviceClient = createServiceRoleClient()
+  const { data: { users } } = await serviceClient.auth.admin.listUsers()
+  const adminAuthUser = users?.find(u => u.email === adminEmail)
+
+  if (!adminAuthUser) {
+    return {
+      success: false,
+      message: `No user found with email ${adminEmail}. Please sign up first, then run bootstrap.`,
+    }
+  }
+
   // Create profile if doesn't exist
   const { error: insertError } = await supabase.from("profiles").insert({
-    auth_user_id: adminUser.id,
+    auth_user_id: adminAuthUser.id,
     email: adminEmail,
     full_name: "Dr. Admin",
     role: "doctor",

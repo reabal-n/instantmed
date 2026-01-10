@@ -29,7 +29,7 @@ export async function GET(_request: Request) {
 
   const { searchParams } = new URL(request.url)
   const email = searchParams.get("email")?.toLowerCase()
-  const userEmail = clerkUser.primaryEmailAddress?.emailAddress?.toLowerCase()
+  const userEmail = user.email?.toLowerCase()
 
   if (!email || !isAdminEmail(email)) {
     return NextResponse.json(
