@@ -3,16 +3,12 @@ import { createClient } from "@/lib/supabase/server"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 
-// Type for the raw Supabase response (patient is an array from join)
-interface RequestRow {
+interface IntakeRow {
   id: string
-  type: string
-  category: string | null
-  subtype: string | null
+  service_id: string
   status: string
-  script_sent: boolean
-  script_sent_at: string | null
-  clinical_note: string | null
+  is_priority: boolean
+  doctor_notes: string | null
   created_at: string
   updated_at: string
   patient: {
@@ -22,11 +18,14 @@ interface RequestRow {
     suburb: string | null
     state: string | null
   }[] | null
+  service: {
+    name: string
+    type: string
+  }[] | null
 }
 
 export async function GET() {
   try {
-    // Verify doctor auth via Clerk
     const { userId } = await auth()
 
     if (!userId) {
@@ -35,81 +34,77 @@ export async function GET() {
 
     const supabase = await createClient()
 
-    // Check if user is a doctor
     const { data: profile } = await supabase.from("profiles").select("role").eq("auth_user_id", userId).single()
 
-    if (!profile || profile.role !== "doctor") {
+    if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch all requests with patient info
-    const { data: requests, error } = await supabase
-      .from("requests")
+    const { data: intakes, error } = await supabase
+      .from("intakes")
       .select(`
         id,
-        type,
-        category,
-        subtype,
+        service_id,
         status,
-        script_sent,
-        script_sent_at,
-        clinical_note,
+        is_priority,
+        doctor_notes,
         created_at,
         updated_at,
-        patient:profiles!requests_patient_id_fkey (
+        patient:profiles!patient_id (
           full_name,
           date_of_birth,
           phone,
           suburb,
           state
+        ),
+        service:services!service_id (
+          name,
+          type
         )
       `)
       .order("created_at", { ascending: false })
 
     if (error) throw error
 
-    // Convert to CSV
     const headers = [
-      "Request ID",
+      "Intake ID",
       "Patient Name",
       "DOB",
       "Phone",
       "Location",
-      "Category",
-      "Subtype",
+      "Service",
+      "Type",
       "Status",
-      "Script Sent",
-      "Script Sent At",
-      "Clinical Note",
+      "Priority",
+      "Doctor Notes",
       "Created At",
     ]
 
-    const typedRequests = (requests || []) as RequestRow[]
-    const rows = typedRequests.map((r) => {
+    const typedIntakes = (intakes || []) as IntakeRow[]
+    const rows = typedIntakes.map((r) => {
       const patient = r.patient?.[0] || null
+      const service = r.service?.[0] || null
       return [
         r.id,
         patient?.full_name || "",
         patient?.date_of_birth || "",
         patient?.phone || "",
         `${patient?.suburb || ""}, ${patient?.state || ""}`,
-        r.category || "",
-        r.subtype || "",
+        service?.name || "",
+        service?.type || "",
         r.status,
-        r.script_sent ? "Yes" : "No",
-        r.script_sent_at || "",
-        (r.clinical_note || "").replace(/"/g, '""'),
+        r.is_priority ? "Yes" : "No",
+        (r.doctor_notes || "").replace(/"/g, '""'),
         r.created_at,
       ]
     })
 
     const csvContent = [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join("\n")
 
-    // Return CSV file
     return new NextResponse(csvContent, {
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="instantmed-requests-${new Date().toISOString().split("T")[0]}.csv"`,
+        "Content-Disposition": `attachment; filename="instantmed-intakes-${new Date().toISOString().split("T")[0]}.csv"`,
       },
     })
   } catch (error) {

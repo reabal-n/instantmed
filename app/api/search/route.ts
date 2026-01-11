@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   const results: Array<{
     id: string
-    type: "request" | "patient"
+    type: "intake" | "patient"
     title: string
     subtitle: string
     status?: string
@@ -31,37 +31,38 @@ export async function GET(request: NextRequest) {
 
   try {
     if (variant === "doctor" || variant === "admin") {
-      // Search requests with patient info
-      const { data: requests } = await supabase
-        .from("requests")
+      const { data: intakes } = await supabase
+        .from("intakes")
         .select(`
           id,
-          category,
-          subtype,
           status,
           created_at,
           patient:profiles!patient_id (
             id,
             full_name,
             medicare_number
+          ),
+          service:services!service_id (
+            name,
+            type
           )
         `)
-        .or(`patient.full_name.ilike.%${query}%,patient.medicare_number.ilike.%${query}%`)
         .order("created_at", { ascending: false })
-        .limit(10)
+        .limit(20)
 
-      if (requests) {
-        for (const req of requests) {
-          const patientData = req.patient as unknown as { id: string; full_name: string; medicare_number?: string } | null
+      if (intakes) {
+        for (const intake of intakes) {
+          const patientData = intake.patient as unknown as { id: string; full_name: string; medicare_number?: string } | null
+          const serviceData = intake.service as unknown as { name: string; type: string } | null
           if (patientData?.full_name?.toLowerCase().includes(query.toLowerCase()) ||
               patientData?.medicare_number?.includes(query)) {
             results.push({
-              id: req.id,
-              type: "request",
+              id: intake.id,
+              type: "intake",
               title: patientData?.full_name || "Unknown Patient",
-              subtitle: formatCategory(req.category) + (req.subtype ? ` - ${formatSubtype(req.subtype)}` : ""),
-              status: req.status,
-              href: `/doctor/intakes/${req.id}`,
+              subtitle: serviceData?.name || "Service",
+              status: intake.status,
+              href: `/doctor/intakes/${intake.id}`,
             })
           }
         }
@@ -99,24 +100,30 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (profile) {
-        const { data: requests } = await supabase
-          .from("requests")
-          .select("id, category, subtype, status, created_at")
+        const { data: intakes } = await supabase
+          .from("intakes")
+          .select(`
+            id,
+            status,
+            created_at,
+            service:services!service_id ( name )
+          `)
           .eq("patient_id", profile.id)
           .order("created_at", { ascending: false })
           .limit(10)
 
-        if (requests) {
-          for (const req of requests) {
-            const title = formatCategory(req.category)
+        if (intakes) {
+          for (const intake of intakes) {
+            const serviceData = intake.service as unknown as { name: string } | null
+            const title = serviceData?.name || "Service"
             if (title.toLowerCase().includes(query.toLowerCase())) {
               results.push({
-                id: req.id,
-                type: "request",
+                id: intake.id,
+                type: "intake",
                 title,
-                subtitle: new Date(req.created_at).toLocaleDateString("en-AU"),
-                status: req.status,
-                href: `/patient/intakes/${req.id}`,
+                subtitle: new Date(intake.created_at).toLocaleDateString("en-AU"),
+                status: intake.status,
+                href: `/patient/intakes/${intake.id}`,
               })
             }
           }
@@ -129,28 +136,6 @@ export async function GET(request: NextRequest) {
     log.error("Search error", { error: String(error) })
     return NextResponse.json({ error: "Search failed" }, { status: 500 })
   }
-}
-
-function formatCategory(category: string | null): string {
-  if (!category) return "Request"
-  const labels: Record<string, string> = {
-    medical_certificate: "Medical Certificate",
-    prescription: "Prescription",
-    referral: "Referral",
-  }
-  return labels[category] || category
-}
-
-function formatSubtype(subtype: string | null): string {
-  if (!subtype) return ""
-  const labels: Record<string, string> = {
-    work: "Work",
-    uni: "University",
-    carer: "Carer",
-    repeat: "Repeat",
-    chronic_review: "Chronic Review",
-  }
-  return labels[subtype] || subtype
 }
 
 function maskMedicare(medicare: string): string {

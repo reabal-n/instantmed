@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   
   try {
-    // Use Clerk for authentication
     const authResult = await auth()
     userId = authResult.userId
 
@@ -19,7 +18,6 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Verify user is a doctor using auth_user_id
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -30,22 +28,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const { request_ids, action, notes, doctor_id } = await request.json()
+    const { intake_ids, action, notes, doctor_id } = await request.json()
 
-    if (!request_ids || !Array.isArray(request_ids) || request_ids.length === 0) {
-      return NextResponse.json({ error: "Invalid request_ids" }, { status: 400 })
+    if (!intake_ids || !Array.isArray(intake_ids) || intake_ids.length === 0) {
+      return NextResponse.json({ error: "Invalid intake_ids" }, { status: 400 })
     }
 
-    if (!action || !["approve", "reject"].includes(action)) {
+    if (!action || !["approve", "decline"].includes(action)) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
-    // Update all requests
-    const updates = request_ids.map(async (id) => {
+    const updates = intake_ids.map(async (id: string) => {
       return supabase
-        .from("requests")
+        .from("intakes")
         .update({
-          status: action === "approve" ? "approved" : "rejected",
+          status: action === "approve" ? "approved" : "declined",
           doctor_notes: notes,
           doctor_id,
           updated_at: new Date().toISOString(),

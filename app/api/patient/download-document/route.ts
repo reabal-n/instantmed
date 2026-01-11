@@ -11,44 +11,45 @@ export async function GET(_request: Request) {
     }
 
     const url = new URL(_request.url)
-    const requestId = url.searchParams.get("requestId")
+    const intakeId = url.searchParams.get("intakeId") || url.searchParams.get("requestId")
 
-    if (!requestId) {
+    if (!intakeId) {
       return NextResponse.json(
-        { error: "Request ID is required" },
+        { error: "Intake ID is required" },
         { status: 400 }
       )
     }
 
     const supabase = await createClient()
 
-    // Verify request belongs to patient
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
-      .select("*")
-      .eq("id", requestId)
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select(`
+        id,
+        status,
+        service:services!service_id ( name, type )
+      `)
+      .eq("id", intakeId)
       .eq("patient_id", authUser.profile.id)
       .single()
 
-    if (requestError || !request) {
+    if (intakeError || !intake) {
       return NextResponse.json(
-        { error: "Request not found" },
+        { error: "Intake not found" },
         { status: 404 }
       )
     }
 
-    // Only approved requests can be downloaded
-    if (request.status !== "approved") {
+    if (intake.status !== "approved" && intake.status !== "completed") {
       return NextResponse.json(
         { error: "Document is not yet available" },
         { status: 403 }
       )
     }
 
-    // Get document from storage
     const { data: document, error: storageError } = await supabase.storage
       .from("documents")
-      .download(`requests/${requestId}/document`)
+      .download(`intakes/${intakeId}/document.pdf`)
 
     if (storageError || !document) {
       return NextResponse.json(
@@ -57,8 +58,8 @@ export async function GET(_request: Request) {
       )
     }
 
-    // Return document as blob
-    const filename = `${request.type}-${request.id}.pdf`
+    const serviceData = intake.service as unknown as { name: string; type: string } | null
+    const filename = `${serviceData?.type || "document"}-${intake.id}.pdf`
     return new NextResponse(document, {
       headers: {
         "Content-Type": "application/pdf",

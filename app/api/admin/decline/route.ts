@@ -64,68 +64,55 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { requestId, reason } = body
+    const { intakeId, reason } = body
 
-    if (!requestId) {
-      return NextResponse.json({ error: 'Missing requestId' }, { status: 400 })
+    if (!intakeId) {
+      return NextResponse.json({ error: 'Missing intakeId' }, { status: 400 })
     }
 
     const supabase = createServiceRoleClient()
 
-    // Check current request state before updating
-    const { data: currentRequest, error: fetchError } = await supabase
-      .from('requests')
-      .select('status, payment_status')
-      .eq('id', requestId)
+    const { data: currentIntake, error: fetchError } = await supabase
+      .from('intakes')
+      .select('status')
+      .eq('id', intakeId)
       .single()
 
-    if (fetchError || !currentRequest) {
-      return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    if (fetchError || !currentIntake) {
+      return NextResponse.json({ error: 'Intake not found' }, { status: 404 })
     }
 
-    // Validate payment status - can only decline paid requests
-    if (currentRequest.payment_status !== 'paid') {
+    if (!['paid', 'in_review', 'pending_info'].includes(currentIntake.status)) {
       return NextResponse.json({ 
-        error: 'Cannot decline unpaid request', 
-        code: 'PAYMENT_REQUIRED' 
-      }, { status: 400 })
-    }
-
-    // Validate current status allows decline
-    if (!['pending', 'needs_follow_up'].includes(currentRequest.status)) {
-      return NextResponse.json({ 
-        error: `Cannot decline request in ${currentRequest.status} status`, 
+        error: `Cannot decline intake in ${currentIntake.status} status`, 
         code: 'INVALID_STATUS' 
       }, { status: 400 })
     }
 
-    // Update request to declined with admin audit fields
     const { data: updated, error: updateError } = await supabase
-      .from('requests')
+      .from('intakes')
       .update({ 
         status: 'declined', 
         reviewed_by: 'admin', 
         reviewed_at: new Date().toISOString(), 
         updated_at: new Date().toISOString(),
-        clinical_notes: reason ? `Declined: ${reason}` : 'Request declined by admin'
+        doctor_notes: reason ? `Declined: ${reason}` : 'Declined by admin'
       })
-      .eq('id', requestId)
+      .eq('id', intakeId)
       .select()
       .single()
 
     if (updateError || !updated) {
-      log.error('Failed to decline request', { requestId }, updateError)
-      return NextResponse.json({ error: 'Failed to update request' }, { status: 500 })
+      log.error('Failed to decline intake', { intakeId }, updateError)
+      return NextResponse.json({ error: 'Failed to update intake' }, { status: 500 })
     }
 
-    // Fetch patient/profile for notifications
-    const { data: requestWithPatient, error: patientFetchError } = await supabase
-      .from('requests')
+    const { data: intakeWithPatient, error: patientFetchError } = await supabase
+      .from('intakes')
       .select(`
         id,
         patient_id,
-        category,
-        subtype,
+        service:services!service_id ( name, type ),
         patient:profiles!patient_id (
           id,
           full_name,
@@ -133,12 +120,12 @@ export async function POST(request: Request) {
           email
         )
       `)
-      .eq('id', requestId)
+      .eq('id', intakeId)
       .single()
 
-    if (patientFetchError || !requestWithPatient) {
-      log.error('Failed to fetch patient for notification', { requestId }, patientFetchError)
-      return NextResponse.json({ success: true }) // Request was declined, just notification failed
+    if (patientFetchError || !intakeWithPatient) {
+      log.error('Failed to fetch patient for notification', { intakeId }, patientFetchError)
+      return NextResponse.json({ success: true })
     }
 
     // Type-safe patient access
@@ -149,33 +136,32 @@ export async function POST(request: Request) {
       email: string | null
     }
 
-    // Supabase sometimes returns patient as an array due to join behavior
-    const patientRaw = requestWithPatient.patient
+    const patientRaw = intakeWithPatient.patient
     const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as PatientData | null
+    const serviceRaw = intakeWithPatient.service
+    const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { name: string; type: string } | null
 
     if (!patient) {
-      log.error('Patient data missing from request', { requestId })
+      log.error('Patient data missing from intake', { intakeId })
       return NextResponse.json({ success: true })
     }
 
-    // Get email from profile first, then fallback to auth lookup
     let patientEmail = patient.email
     if (!patientEmail && patient.auth_user_id) {
       patientEmail = await getUserEmailFromAuthUserId(patient.auth_user_id)
     }
 
-    // Fire notifications
     await notifyRequestStatusChange({
-      requestId,
+      requestId: intakeId,
       patientId: patient.id,
       patientEmail: patientEmail || '',
       patientName: patient.full_name || 'there',
-      requestType: requestWithPatient.category || 'request',
+      requestType: service?.type || 'med_certs',
       newStatus: 'declined',
       documentUrl: undefined,
     })
 
-    log.info('Request declined by admin', { requestId })
+    log.info('Intake declined by admin', { intakeId })
     return NextResponse.json({ success: true })
   } catch (err) {
     log.error('Unexpected error in admin decline', {}, err)

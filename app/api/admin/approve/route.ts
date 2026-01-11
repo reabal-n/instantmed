@@ -9,7 +9,7 @@ import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 const log = createLogger("admin-approve")
 
 export async function POST(request: Request) {
-  let body: { requestId?: string } | null = null
+  let body: { intakeId?: string } | null = null
   
   try {
     // Require either an internal API key OR an authenticated admin session
@@ -53,51 +53,47 @@ export async function POST(request: Request) {
     }
     
     body = await request.json()
-    const requestId = body?.requestId
+    const intakeId = body?.intakeId
 
-    if (!requestId) {
-      return NextResponse.json({ error: 'Missing requestId' }, { status: 400 })
+    if (!intakeId) {
+      return NextResponse.json({ error: 'Missing intakeId' }, { status: 400 })
     }
 
     const supabase = createServiceRoleClient()
 
-    // Update request to approved with admin audit fields
     const { data: updated, error: updateError } = await supabase
-      .from('requests')
+      .from('intakes')
       .update({ status: 'approved', reviewed_by: 'admin', reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq('id', requestId)
+      .eq('id', intakeId)
       .select()
       .single()
 
     if (updateError || !updated) {
-      return NextResponse.json({ error: 'Failed to update request' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to update intake' }, { status: 500 })
     }
 
-    // Fetch patient/profile and latest document (if any)
-    const { data: requestWithPatient } = await supabase
-      .from('requests')
+    const { data: intakeWithPatient } = await supabase
+      .from('intakes')
       .select(`
         id,
         patient_id,
-        category,
-        subtype,
+        service:services!service_id ( name, type ),
         patient:profiles!patient_id ( id, full_name, auth_user_id, email )
       `)
-      .eq('id', requestId)
+      .eq('id', intakeId)
       .single()
 
     const { data: document } = await supabase
       .from('documents')
       .select('id, pdf_url')
-      .eq('request_id', requestId)
+      .eq('intake_id', intakeId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
-    // Extract patient from the relation
-    const patientData = requestWithPatient?.patient as unknown as { id: string; full_name: string; auth_user_id: string | null; email: string | null } | null
+    const patientData = intakeWithPatient?.patient as unknown as { id: string; full_name: string; auth_user_id: string | null; email: string | null } | null
+    const serviceData = intakeWithPatient?.service as unknown as { name: string; type: string } | null
     
-    // Get email from profile or auth_user_id
     let patientEmail: string | null = patientData?.email ?? null
     if (!patientEmail && patientData?.auth_user_id) {
       patientEmail = await getUserEmailFromAuthUserId(patientData.auth_user_id)
@@ -105,20 +101,19 @@ export async function POST(request: Request) {
     
     const documentUrl = document?.pdf_url || null
 
-    // Fire notifications + email if document available
     await notifyRequestStatusChange({
-      requestId,
-      patientId: requestWithPatient?.patient_id || patientData?.id,
+      requestId: intakeId,
+      patientId: intakeWithPatient?.patient_id || patientData?.id,
       patientEmail: patientEmail || '',
       patientName: patientData?.full_name || 'there',
-      requestType: requestWithPatient?.category || 'request',
+      requestType: serviceData?.type || 'med_certs',
       newStatus: 'approved',
       documentUrl,
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    log.error('Admin approve failed', { requestId: body?.requestId }, error)
+    log.error('Admin approve failed', { intakeId: body?.intakeId }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

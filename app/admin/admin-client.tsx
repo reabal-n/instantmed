@@ -744,15 +744,6 @@ export function AdminClient({
                     {testMode ? "Enabled" : "Disabled"}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50">
-                  <div>
-                    <p className="font-medium">Bootstrap Tools</p>
-                    <p className="text-sm text-muted-foreground">Access database bootstrap utilities</p>
-                  </div>
-                  <Button variant="outline" size="sm" asChild className="rounded-xl">
-                    <Link href="/doctor/admin/bootstrap">Open</Link>
-                  </Button>
-                </div>
               </div>
             </div>
 
