@@ -9,9 +9,19 @@
 -- Create the extensions schema if it doesn't exist
 CREATE SCHEMA IF NOT EXISTS extensions;
 
+-- Drop dependent indexes first (they use pg_trgm operators)
+DROP INDEX IF EXISTS public.idx_artg_products_product_name_trgm;
+DROP INDEX IF EXISTS public.idx_artg_products_active_ingredients_trgm;
+
 -- Drop the extension from public and recreate in extensions
 DROP EXTENSION IF EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
+
+-- Recreate the indexes using the extension from its new schema
+CREATE INDEX IF NOT EXISTS idx_artg_products_product_name_trgm 
+  ON public.artg_products USING gin (product_name extensions.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_artg_products_active_ingredients_trgm 
+  ON public.artg_products USING gin (active_ingredients_raw extensions.gin_trgm_ops);
 
 -- Update the search function to use the new extension location
 DROP FUNCTION IF EXISTS public.search_artg_products(TEXT, INTEGER);
