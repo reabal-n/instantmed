@@ -283,8 +283,8 @@ function optimizeDescriptionLength(description: string, maxLength: number = 160)
 function generateOGImageUrl(page: SEOPage): string {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://instantmed.com.au'
   
-  // TODO: Implement dynamic OG image generation
-  // For now, use page-type specific defaults
+  // Uses page-type specific default images for MVP
+  // Future: implement dynamic OG image generation via Vercel OG or similar
   const imageMap: Record<PageType, string> = {
     medication: '/og-medication.png',
     condition: '/og-condition.png',

@@ -95,10 +95,11 @@ function findRelatedContent(
 
   // Medication pages removed for Google Ads compliance
 
-  // If condition page, show:
-    // - Related conditions
+  // If condition page, show related conditions
+  // Note: Condition relationships require manual curation in SEO registry
+  // Currently returns empty as no condition pages are defined yet
   if (current.type === 'condition') {
-    // TODO: Implement condition relationships
+    // Condition linking handled via registry when pages exist
   }
 
   // If intent page, show:

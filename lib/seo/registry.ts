@@ -278,8 +278,9 @@ export function detectThinContent(page: SEOPage): ContentQualityReport {
     issues.push(`Only ${faqCount} FAQs, minimum is ${minFAQs}`)
   }
   
-  // Calculate template reuse (simplified)
-  const templateReusePercent = 0.3 // TODO: Implement actual calculation
+  // Calculate template reuse (simplified - uses fixed estimate for MVP)
+  // Future: analyze actual content similarity across pages
+  const templateReusePercent = 0.3
   if (templateReusePercent > QUALITY_THRESHOLDS.maxTemplateReuse) {
     issues.push(`Template reuse ${(templateReusePercent * 100).toFixed(0)}% exceeds maximum ${(QUALITY_THRESHOLDS.maxTemplateReuse * 100).toFixed(0)}%`)
   }

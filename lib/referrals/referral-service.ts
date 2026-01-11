@@ -33,16 +33,29 @@ export async function generateReferralCode(patientId: string): Promise<string> {
 /**
  * Get referral statistics for a patient
  */
-export async function getReferralStats(_patientId: string): Promise<{
+export async function getReferralStats(patientId: string): Promise<{
   totalReferrals: number
   successfulReferrals: number
   pendingReferrals: number
 }> {
-  // TODO: Implement when referrals tracking table is created
-  // For now, return empty stats
+  const supabase = await createClient()
+
+  const { data: referrals, error } = await supabase
+    .from("referrals")
+    .select("status")
+    .eq("referrer_id", patientId)
+
+  if (error || !referrals) {
+    return {
+      totalReferrals: 0,
+      successfulReferrals: 0,
+      pendingReferrals: 0,
+    }
+  }
+
   return {
-    totalReferrals: 0,
-    successfulReferrals: 0,
-    pendingReferrals: 0,
+    totalReferrals: referrals.length,
+    successfulReferrals: referrals.filter(r => r.status === "completed").length,
+    pendingReferrals: referrals.filter(r => r.status === "pending").length,
   }
 }
