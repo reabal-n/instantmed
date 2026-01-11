@@ -31,7 +31,21 @@ export type AuditEventType =
 
 export type ActorType = "patient" | "guest" | "clinician" | "system"
 
-export type ClinicianDecision = "approved" | "declined" | "requires_consult"
+export type ClinicianDecision = "approved" | "declined" | "requires_consult" | "needs_call"
+
+/**
+ * Maps ClinicianDecision to standard triage terminology
+ * Per CLINICAL_BOUNDARIES_AND_DECISION_RULES.md:
+ * - approved -> Approved
+ * - needs_call / requires_consult -> Needs Call
+ * - declined -> Declined
+ */
+export function toTriageOutcome(decision: ClinicianDecision): "approved" | "needs_call" | "declined" {
+  if (decision === "requires_consult" || decision === "needs_call") {
+    return "needs_call"
+  }
+  return decision as "approved" | "declined"
+}
 
 // ============================================================================
 // MEDICATION DATA

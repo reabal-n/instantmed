@@ -105,6 +105,7 @@ export async function POST(
       approved: "approved",
       declined: "declined",
       requires_consult: "requires_consult",
+      needs_call: "requires_consult", // Alias for requires_consult
     }
     
     // Create clinician decision record

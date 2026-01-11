@@ -25,8 +25,9 @@ import {
 // ============================================================================
 
 interface DecisionBody {
-  decision: "approve" | "reject"
+  decision: "approve" | "reject" | "needs_call"
   rejectionReason?: string
+  needsCallReason?: string
   clinicalNotes?: string
 }
 
@@ -84,9 +85,16 @@ export async function PATCH(
     // Parse body
     const body: DecisionBody = await request.json()
 
-    if (!body.decision || !["approve", "reject"].includes(body.decision)) {
+    if (!body.decision || !["approve", "reject", "needs_call"].includes(body.decision)) {
       return NextResponse.json(
-        { success: false, error: "Invalid decision. Must be 'approve' or 'reject'" },
+        { success: false, error: "Invalid decision. Must be 'approve', 'reject', or 'needs_call'" },
+        { status: 400 }
+      )
+    }
+
+    if (body.decision === "needs_call" && !body.needsCallReason?.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Reason is required when requesting a call" },
         { status: 400 }
       )
     }
@@ -165,6 +173,55 @@ export async function PATCH(
         }),
         logOutcomeAssigned(requestId, "med_cert", profile.id, "declined"),
         logTriageDeclined(requestId, "med_cert", profile.id, body.rejectionReason || ""),
+        logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+      ])
+
+      return NextResponse.json({ success: true })
+    }
+
+    if (body.decision === "needs_call") {
+      // Update request as needs_call
+      const { error: updateError } = await supabase
+        .from("med_cert_requests")
+        .update({
+          status: "needs_call",
+          decision_at: now,
+          decision_by: profile.id,
+          needs_call_reason: body.needsCallReason,
+        })
+        .eq("id", requestId)
+
+      if (updateError) {
+        log.error("Failed to mark med cert request as needs_call", { error: updateError, requestId })
+        return NextResponse.json(
+          { success: false, error: "Failed to update request" },
+          { status: 500 }
+        )
+      }
+
+      // Log audit event (legacy)
+      await supabase.from("med_cert_audit_events").insert({
+        request_id: requestId,
+        event_type: "decision_needs_call",
+        actor_id: profile.id,
+        actor_role: "clinician",
+        event_data: {
+          needs_call_reason: body.needsCallReason,
+          clinical_notes: body.clinicalNotes || null,
+        },
+        ip_address: ip,
+        user_agent: headersList.get("user-agent"),
+      })
+
+      // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+      const { logTriageNeedsCall } = await import("@/lib/audit/compliance-audit")
+      await Promise.all([
+        logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+        logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "needs_call", true, undefined, {
+          needsCallReason: body.needsCallReason,
+        }),
+        logOutcomeAssigned(requestId, "med_cert", profile.id, "needs_call"),
+        logTriageNeedsCall(requestId, "med_cert", profile.id, body.needsCallReason),
         logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
       ])
 
