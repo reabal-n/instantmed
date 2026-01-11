@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Star, Quote, Users, Clock, Award } from "lucide-react"
+import { Star, Users, Clock, Award } from "lucide-react"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 
 interface Testimonial {

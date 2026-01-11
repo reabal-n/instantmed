@@ -154,9 +154,28 @@ export async function markScriptSentAction(
     return { success: false, error: "Failed to mark script sent" }
   }
 
+  // Send email notification to patient
+  try {
+    const { sendScriptSentEmail } = await import("@/lib/email/resend")
+    const { getIntakeWithDetails } = await import("@/lib/data/intakes")
+    
+    const intake = await getIntakeWithDetails(intakeId)
+    if (intake?.patient?.email) {
+      await sendScriptSentEmail(
+        intake.patient.email,
+        intake.patient.full_name || "Patient",
+        intakeId,
+        parchmentReference
+      )
+    }
+  } catch {
+    // Email is non-critical, don't fail the action
+  }
+
   revalidatePath("/doctor")
   revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
+  revalidatePath(`/patient/intakes/${intakeId}`)
 
   return { success: true }
 }
@@ -181,4 +200,36 @@ export async function addPatientNoteAction(
   }
 
   return { success: true }
+}
+
+export async function markAsRefundedAction(
+  intakeId: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
+  try {
+    const { markIntakeRefunded } = await import("@/lib/data/intakes")
+    const success = await markIntakeRefunded(intakeId, profile.id, reason)
+    
+    if (!success) {
+      return { success: false, error: "Failed to mark as refunded" }
+    }
+
+    revalidatePath("/doctor")
+    revalidatePath("/doctor/queue")
+    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidatePath(`/patient/intakes/${intakeId}`)
+
+    return { success: true }
+  } catch {
+    return { success: false, error: "Failed to mark as refunded" }
+  }
 }

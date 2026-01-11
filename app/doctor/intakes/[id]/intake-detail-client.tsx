@@ -41,7 +41,7 @@ import {
   Loader2,
   Send,
 } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction } from "@/app/doctor/queue/actions"
+import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
 
@@ -78,10 +78,12 @@ export function IntakeDetailClient({
   const [noteSaved, setNoteSaved] = useState(false)
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
   const [showScriptDialog, setShowScriptDialog] = useState(false)
+  const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [declineReason, setDeclineReason] = useState("")
   const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
   const [parchmentReference, setParchmentReference] = useState("")
+  const [refundReason, setRefundReason] = useState("")
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
@@ -135,6 +137,19 @@ export function IntakeDetailClient({
         setTimeout(() => router.push("/doctor/queue"), 2000)
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to mark script sent" })
+      }
+    })
+  }
+
+  const handleMarkRefunded = async () => {
+    startTransition(async () => {
+      const result = await markAsRefundedAction(intake.id, refundReason || undefined)
+      if (result.success) {
+        setShowRefundDialog(false)
+        setActionMessage({ type: "success", text: "Marked as refunded" })
+        setTimeout(() => router.push("/doctor/queue"), 2000)
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to mark as refunded" })
       }
     })
   }
@@ -385,6 +400,14 @@ export function IntakeDetailClient({
                 Decline
               </Button>
             )}
+
+            {/* Refund - show for paid intakes that haven't been refunded */}
+            {intake.payment_status === "paid" && (
+              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-amber-600 border-amber-300 hover:bg-amber-50">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Mark Refunded
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -455,6 +478,36 @@ export function IntakeDetailClient({
             <AlertDialogAction onClick={handleMarkScriptSent} disabled={isPending} className="bg-purple-600">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm Sent
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Refund Dialog */}
+      <AlertDialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as Refunded</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm that you have processed a refund for this request in Stripe. This will update the payment status to refunded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Refund Reason (optional)</Label>
+              <Textarea
+                placeholder="e.g., Patient requested cancellation"
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleMarkRefunded} disabled={isPending} className="bg-amber-600 hover:bg-amber-700">
+              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirm Refunded
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -422,7 +422,7 @@ export async function updateIntakeStatus(
 }
 
 /**
- * Update script sent status
+ * Update script sent status and mark as approved
  */
 export async function updateScriptSent(
   intakeId: string,
@@ -432,14 +432,21 @@ export async function updateScriptSent(
 ): Promise<boolean> {
   const supabase = await createClient()
 
+  const now = new Date().toISOString()
+  
   const { error } = await supabase
     .from("intakes")
     .update({
       script_sent: scriptSent,
-      script_sent_at: scriptSent ? new Date().toISOString() : null,
+      script_sent_at: scriptSent ? now : null,
       script_notes: scriptNotes || null,
       parchment_reference: parchmentReference || null,
-      updated_at: new Date().toISOString(),
+      // When script is sent, mark as approved/completed
+      status: scriptSent ? "approved" : undefined,
+      approved_at: scriptSent ? now : undefined,
+      decision: scriptSent ? "approved" : undefined,
+      decided_at: scriptSent ? now : undefined,
+      updated_at: now,
     })
     .eq("id", intakeId)
 
@@ -467,6 +474,35 @@ export async function saveDoctorNotes(intakeId: string, notes: string): Promise<
 
   if (error) {
     logger.error("Error saving doctor notes", {}, error instanceof Error ? error : new Error(String(error)))
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Mark intake as refunded (after manual Stripe refund)
+ */
+export async function markIntakeRefunded(
+  intakeId: string, 
+  doctorId: string, 
+  reason?: string
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("intakes")
+    .update({
+      payment_status: "refunded",
+      refunded_at: new Date().toISOString(),
+      refunded_by: doctorId,
+      refund_reason: reason || "Manual refund processed",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", intakeId)
+
+  if (error) {
+    logger.error("Error marking intake as refunded", {}, error instanceof Error ? error : new Error(String(error)))
     return false
   }
 

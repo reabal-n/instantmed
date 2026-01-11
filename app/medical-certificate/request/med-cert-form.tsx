@@ -47,7 +47,6 @@ import { saveFormData, loadFormData, clearFormData, STORAGE_KEYS } from "@/lib/s
 import { cn } from "@/lib/utils"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { 
-  cardInteractive, 
   pageTransitionDirectional,
   validationMessage,
   formFieldEntrance,
@@ -55,8 +54,8 @@ import {
 import { validators } from "@/lib/form-validation"
 import posthog from 'posthog-js'
 import { FormattedInput } from "@/components/ui/formatted-input"
-import { HelpTooltip, FieldLabelWithHelp } from "@/components/ui/help-tooltip"
-import { ContextualHelp, InfoCard } from "@/components/ui/contextual-help"
+import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
+import { InfoCard } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 
 // ============================================

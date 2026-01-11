@@ -487,7 +487,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
 function FAQItem({
   question,
   answer,
-  accentColor,
+  accentColor: _accentColor,
 }: {
   question: string
   answer: string

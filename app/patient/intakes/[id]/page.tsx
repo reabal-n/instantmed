@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeForPatient } from "@/lib/data/intakes"
+import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./client"
 import type { Metadata } from "next"
 
@@ -34,9 +35,17 @@ export default async function PatientIntakeDetailPage({
     notFound()
   }
   
+  // Fetch document for approved intakes
+  let document = null
+  if (intake.status === "approved" || intake.status === "completed") {
+    // Try med_cert_certificates table first, then fall back to documents table
+    document = await getMedCertCertificateForIntake(id) || await getLatestDocumentForIntake(id)
+  }
+  
   return (
     <IntakeDetailClient 
       intake={intake}
+      document={document}
       retryPayment={retry === "true"}
     />
   )

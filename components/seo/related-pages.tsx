@@ -11,7 +11,7 @@ interface RelatedPagesProps {
   pageType: 'condition' | 'certificate'
 }
 
-export function RelatedPages({ slug, pageType }: RelatedPagesProps) {
+export function RelatedPages({ slug: _slug, pageType: _pageType }: RelatedPagesProps) {
   // Condition pages have been removed, so this component returns null
   return null
 }

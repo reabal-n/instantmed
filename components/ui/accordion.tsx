@@ -18,7 +18,7 @@ export interface AccordionProps extends Omit<HeroAccordionProps, "selectionMode"
 function Accordion({
   children,
   type = "multiple",
-  collapsible = false,
+  collapsible: _collapsible = false,
   ...props
 }: AccordionProps) {
   // Map shadcn/ui API to HeroUI API

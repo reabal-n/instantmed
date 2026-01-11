@@ -49,13 +49,26 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
 
+  // Extended profile data (cast through unknown for optional fields not in base type)
+  const extProfile = profile as unknown as Record<string, unknown>
+  
   const [formData, setFormData] = useState({
     full_name: profile.full_name,
     phone: profile.phone || "",
+    date_of_birth: profile.date_of_birth || "",
     street_address: profile.street_address || "",
     suburb: profile.suburb || "",
     state: profile.state || "",
     postcode: profile.postcode || "",
+    emergency_contact_name: (extProfile.emergency_contact_name as string) || "",
+    emergency_contact_phone: (extProfile.emergency_contact_phone as string) || "",
+    preferred_pharmacy_name: (extProfile.preferred_pharmacy_name as string) || "",
+    preferred_pharmacy_address: (extProfile.preferred_pharmacy_address as string) || "",
+  })
+
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    email_notifications: extProfile.email_notifications !== false,
+    sms_notifications: extProfile.sms_notifications === true,
   })
 
   const [passwordData, setPasswordData] = useState({
@@ -77,6 +90,24 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
       toast.success("Profile updated successfully")
     } catch {
       toast.error("Failed to update profile")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    setIsSaving(true)
+    try {
+      const response = await fetch("/api/patient/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationPrefs),
+      })
+
+      if (!response.ok) throw new Error("Failed to update")
+      toast.success("Notification preferences saved")
+    } catch {
+      toast.error("Failed to save preferences")
     } finally {
       setIsSaving(false)
     }
@@ -211,13 +242,71 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
                     <Label htmlFor="dob">Date of Birth</Label>
                     <Input
                       id="dob"
-                      value={
-                        profile.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString("en-AU") : "Not set"
-                      }
-                      disabled
-                      className="rounded-xl bg-muted/50"
+                      type="date"
+                      value={formData.date_of_birth ? formData.date_of_birth.split("T")[0] : ""}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, date_of_birth: e.target.value }))}
+                      className="rounded-xl bg-white/50"
                     />
-                    <p className="text-xs text-muted-foreground">Contact support to correct your DOB</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="pt-6 border-t border-white/20">
+                <h3 className="font-medium text-foreground mb-4">Emergency Contact</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Someone we can contact in case of an emergency during a consultation.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_name">Contact Name</Label>
+                    <Input
+                      id="emergency_name"
+                      value={formData.emergency_contact_name}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, emergency_contact_name: e.target.value }))}
+                      placeholder="e.g., Jane Doe"
+                      className="rounded-xl bg-white/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_phone">Contact Phone</Label>
+                    <Input
+                      id="emergency_phone"
+                      value={formData.emergency_contact_phone}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                      placeholder="04XX XXX XXX"
+                      className="rounded-xl bg-white/50"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred Pharmacy */}
+              <div className="pt-6 border-t border-white/20">
+                <h3 className="font-medium text-foreground mb-4">Preferred Pharmacy</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Your preferred pharmacy for prescriptions (optional).
+                </p>
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pharmacy_name">Pharmacy Name</Label>
+                    <Input
+                      id="pharmacy_name"
+                      value={formData.preferred_pharmacy_name}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, preferred_pharmacy_name: e.target.value }))}
+                      placeholder="e.g., Chemist Warehouse"
+                      className="rounded-xl bg-white/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pharmacy_address">Pharmacy Address</Label>
+                    <Input
+                      id="pharmacy_address"
+                      value={formData.preferred_pharmacy_address}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, preferred_pharmacy_address: e.target.value }))}
+                      placeholder="e.g., 123 Main St, Sydney NSW 2000"
+                      className="rounded-xl bg-white/50"
+                    />
                   </div>
                 </div>
               </div>
@@ -379,16 +468,40 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
                     <p className="font-medium text-foreground">Email notifications</p>
                     <p className="text-sm text-muted-foreground">Receive updates about your requests via email</p>
                   </div>
-                  <Switch defaultChecked aria-label="Email notifications" />
+                  <Switch 
+                    checked={notificationPrefs.email_notifications}
+                    onCheckedChange={(checked) => setNotificationPrefs((prev) => ({ ...prev, email_notifications: checked }))}
+                    aria-label="Email notifications" 
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
                   <div>
-                    <p className="font-medium text-foreground">Marketing communications</p>
-                    <p className="text-sm text-muted-foreground">Receive tips and updates from InstantMed</p>
+                    <p className="font-medium text-foreground">SMS notifications</p>
+                    <p className="text-sm text-muted-foreground">Receive text messages about urgent updates</p>
                   </div>
-                  <Switch aria-label="Marketing communications" />
+                  <Switch 
+                    checked={notificationPrefs.sms_notifications}
+                    onCheckedChange={(checked) => setNotificationPrefs((prev) => ({ ...prev, sms_notifications: checked }))}
+                    aria-label="SMS notifications" 
+                  />
                 </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <Button onClick={handleSaveNotifications} disabled={isSaving} className="rounded-xl">
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Preferences
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>

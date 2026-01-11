@@ -6,7 +6,6 @@ import {
   Modal as HeroModal,
   ModalContent,
   ModalHeader,
-  ModalBody,
   ModalFooter,
   type ModalProps as HeroModalProps,
 } from "@heroui/react"

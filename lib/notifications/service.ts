@@ -73,7 +73,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
     declineReason,
   } = params
 
-  const actionUrl = `/patient/requests/${requestId}`
+  const actionUrl = `/patient/intakes/${requestId}`
 
   try {
     switch (newStatus) {
@@ -162,7 +162,7 @@ export async function notifyPaymentReceived(params: {
       type: "payment",
       title: "Payment received ✓",
       message: `Your payment of $${(amount / 100).toFixed(2)} has been confirmed. A doctor will review your request shortly.`,
-      actionUrl: `/patient/requests/${requestId}`,
+      actionUrl: `/patient/intakes/${requestId}`,
       metadata: { requestId, amount },
     })
 

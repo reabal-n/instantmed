@@ -96,7 +96,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
       setIsLoading(true)
       // Pass current URL so user comes back here after auth
       await signInWithGoogle(window.location.pathname + window.location.search)
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to sign in with Google")
       setIsLoading(false)
     }

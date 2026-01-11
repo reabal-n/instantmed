@@ -220,7 +220,7 @@ function ImageLightbox({
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [internalIndex, _setInternalIndex] = useState(currentIndex);
-  const [isSliding, setIsSliding] = useState(false);
+  const [isSliding, _setIsSliding] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const totalProjects = projects.length;

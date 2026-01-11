@@ -102,7 +102,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
     fill: type === "med_certs" ? "#3b82f6" : type === "repeat_rx" ? "#10b981" : type === "consults" ? "#f59e0b" : "#8b5cf6",
   }))
 
-  const statusData = Object.entries(analytics.statusCounts)
+  const _statusData = Object.entries(analytics.statusCounts)
     .filter(([status]) => ["paid", "approved", "declined", "in_review"].includes(status))
     .map(([status, count]) => ({
       name: formatStatus(status),

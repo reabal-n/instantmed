@@ -345,7 +345,9 @@ export interface GeneratedDocument {
   type: string // 'med_cert', 'referral', etc.
   subtype: string
   pdf_url: string
+  verification_code?: string | null // For document verification
   created_at: string // ISO timestamp
+  updated_at?: string // ISO timestamp
 }
 
 // Med cert draft data structure

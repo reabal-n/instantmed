@@ -6,17 +6,17 @@
  */
 
 import dynamic from 'next/dynamic'
-import { Skeleton, RequestListSkeleton, PageSkeleton } from '@/components/ui/unified-skeleton'
+import { Skeleton } from '@/components/ui/unified-skeleton'
 
 // Loading skeleton for PDF viewers
-const PDFLoadingSkeleton = () => (
+const _PDFLoadingSkeleton = () => (
   <div className="w-full h-96 bg-muted animate-pulse rounded-lg flex items-center justify-center">
     <p className="text-muted-foreground">Loading PDF viewer...</p>
   </div>
 )
 
 // Loading skeleton for charts
-const ChartLoadingSkeleton = () => (
+const _ChartLoadingSkeleton = () => (
   <div className="w-full h-64 space-y-3">
     <Skeleton className="h-4 w-24" />
     <Skeleton className="h-48 w-full" />

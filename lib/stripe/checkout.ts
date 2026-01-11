@@ -50,7 +50,8 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
     "medical_certificate:carer": "med-cert-carer",
     "prescription:repeat": "common-scripts",
     "prescription:chronic_review": "common-scripts",
-    "consult:general": "common-scripts",
+    "prescription:new": "gp-consult",
+    "consult:general": "gp-consult",
   }
   return slugMap[`${category}:${subtype}`] || slugMap[category] || "common-scripts"
 }

@@ -1,6 +1,9 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { sendViaResend } from "@/lib/email/resend"
+import { renderPaymentRetryEmailToHtml } from "@/lib/email/templates/payment-retry"
+import { env } from "@/lib/env"
 
 interface RetryPaymentRequest {
   invoiceId: string
@@ -66,14 +69,34 @@ export async function POST(request: Request) {
       )
     }
 
-    // Send email notification
-    // TODO: Implement email notification for retry
+    // Send email notification for payment retry
+    const paymentUrl = `${env.appUrl}/checkout?invoiceId=${invoiceId}`
+    const patientEmail = authUser.user?.email || authUser.profile.email
+    
+    if (patientEmail) {
+      const emailHtml = renderPaymentRetryEmailToHtml({
+        patientName: authUser.profile.full_name || "there",
+        requestType: invoice.description || "service",
+        amount: `$${((invoice.amount_cents || 0) / 100).toFixed(2)}`,
+        paymentUrl,
+      })
+
+      await sendViaResend({
+        to: patientEmail,
+        subject: "Complete your InstantMed payment",
+        html: emailHtml,
+        tags: [
+          { name: "category", value: "payment_retry" },
+          { name: "invoice_id", value: invoiceId },
+        ],
+      })
+    }
 
     return NextResponse.json(
       {
         success: true,
         message: "Payment retry initiated. Please check your email for next steps.",
-        paymentUrl: `/checkout?invoiceId=${invoiceId}`,
+        paymentUrl,
       },
       { status: 200 }
     )
