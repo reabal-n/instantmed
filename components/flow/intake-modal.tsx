@@ -105,7 +105,7 @@ export function IntakeModal({
                       aria-label="Close modal"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      transition={{ duration: 0.15 }}
+                      transition={{ duration: 0.3 }}
                     >
                       <X className="w-5 h-5" />
                     </motion.button>

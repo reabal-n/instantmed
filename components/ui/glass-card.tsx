@@ -32,28 +32,28 @@ const glassCardVariants = cva(
       variant: {
         /** Subtle glass - lightest, for nested elements */
         subtle: [
-          'bg-white/50 dark:bg-gray-900/40',
+          'bg-white/50 dark:bg-slate-900/40',
           'backdrop-blur-lg',
           'border-white/30 dark:border-white/8',
           'shadow-[0_8px_30px_rgba(0,0,0,0.04)]',
         ],
         /** Default glass - standard cards */
         default: [
-          'bg-white/70 dark:bg-gray-900/60',
+          'bg-white/70 dark:bg-slate-900/60',
           'backdrop-blur-xl',
           'border-white/40 dark:border-white/10',
           'shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
         ],
         /** Elevated glass - modals, popovers */
         elevated: [
-          'bg-white/85 dark:bg-gray-900/80',
+          'bg-white/85 dark:bg-slate-900/80',
           'backdrop-blur-2xl',
           'border-white/50 dark:border-white/15',
           'shadow-[0_25px_60px_rgba(0,0,0,0.15)]',
         ],
         /** Solid glass - high contrast needs */
         solid: [
-          'bg-white/95 dark:bg-gray-900/95',
+          'bg-white/95 dark:bg-slate-900/95',
           'backdrop-blur-xl',
           'border-white/60 dark:border-white/20',
           'shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
@@ -69,7 +69,7 @@ const glassCardVariants = cva(
         none: '',
         /** Lift with blue glow */
         lift: [
-          'hover:bg-white/85 dark:hover:bg-gray-900/80',
+          'hover:bg-white/85 dark:hover:bg-slate-900/80',
           'hover:-translate-y-1',
           'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
           'dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]',
@@ -81,7 +81,7 @@ const glassCardVariants = cva(
         ],
         /** Scale effect */
         scale: [
-          'hover:scale-[1.02]',
+          'hover:-translate-y-0.5',
           'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
         ],
       },
@@ -146,7 +146,7 @@ const GlassCardMotion = React.forwardRef<HTMLDivElement, GlassCardMotionProps>(
         case 'scale':
           return {
             whileHover: { 
-              scale: 1.02, 
+              y: -2, 
               boxShadow: glowColor === 'purple' 
                 ? '0 20px 40px rgba(139, 92, 246, 0.15)' 
                 : '0 20px 40px rgba(59, 130, 246, 0.12)',

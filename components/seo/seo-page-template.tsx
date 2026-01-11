@@ -207,7 +207,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 </div>
 
                 {/* Backdating */}
-                <div className="mb-16 p-6 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="mb-16 p-6 bg-dawn-50 dark:bg-dawn-900/20 rounded-lg border border-dawn-200 dark:border-dawn-800">
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
                     📅 Can we backdate certificates?
                   </h3>

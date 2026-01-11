@@ -27,10 +27,10 @@ function Tooltip({
       placement="top"
       showArrow
       classNames={{
-        base: "before:bg-white/90 dark:before:bg-gray-900/90",
+        base: "before:bg-white/90 dark:before:bg-slate-900/90",
         content: cn(
           // Glass surface
-          "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl",
+          "bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl",
           // Border
           "border border-white/50 dark:border-white/15",
           // Shape

@@ -48,7 +48,7 @@ export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
                 marginBottom: "8px",
               }}
             >
-              InstantMed
+              Lumen Health
             </div>
             <div style={{ fontSize: "12px", color: "#6b7280" }}>
               Telehealth Medical Certificates
@@ -82,7 +82,7 @@ export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
           <p style={{ fontSize: "16px", marginBottom: "16px" }}>Hi {patientName},</p>
 
           <p style={{ fontSize: "16px", marginBottom: "24px" }}>
-            Your Medical Certificate from InstantMed is attached to this email.
+            Your Medical Certificate from Lumen Health is attached to this email.
           </p>
 
           {/* CTA Button */}
@@ -170,7 +170,7 @@ export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
               margin: "0",
             }}
           >
-            InstantMed Pty Ltd · Australia
+            Lumen Health Pty Ltd · Australia
             <br />
             <a
               href={`${dashboardUrl.split("/patient")[0]}/privacy`}
@@ -214,7 +214,7 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 24px;">
       <div style="font-size: 24px; font-weight: bold; color: #00C9A7; margin-bottom: 8px;">
-        InstantMed
+        Lumen Health
       </div>
       <div style="font-size: 12px; color: #6b7280;">
         Telehealth Medical Certificates
@@ -233,7 +233,7 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     <p style="font-size: 16px; margin-bottom: 16px;">Hi ${patientName},</p>
     
     <p style="font-size: 16px; margin-bottom: 24px;">
-      Your Medical Certificate from InstantMed is attached to this email.
+      Your Medical Certificate from Lumen Health is attached to this email.
     </p>
     
     <!-- CTA Button -->
@@ -262,7 +262,7 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-      InstantMed Pty Ltd · Australia<br>
+      Lumen Health Pty Ltd · Australia<br>
       <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a>
     </p>
   </div>

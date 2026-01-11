@@ -118,7 +118,7 @@ export function SocialProofPopup() {
           exit={{ opacity: 0, x: -50, scale: 0.9 }}
           transition={{
             type: "spring",
-            stiffness: 400,
+            stiffness: 200,
             damping: 30,
           }}
           className="fixed bottom-24 left-4 z-40 hidden md:block"
@@ -155,8 +155,8 @@ export function SocialProofPopup() {
                   inset 0 -1px 0 rgba(0,0,0,0.05)
                 `,
               }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 200, damping: 25 }}
             >
               {/* Shimmer effect */}
               <motion.div
@@ -186,7 +186,7 @@ export function SocialProofPopup() {
                   }}
                   initial={{ rotate: -10, scale: 0.8 }}
                   animate={{ rotate: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 >
                   <Check className="w-5 h-5 text-white" strokeWidth={3} />
                   
@@ -195,9 +195,9 @@ export function SocialProofPopup() {
                     className="absolute -top-1 -right-1"
                     initial={{ scale: 0, rotate: -45 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-dawn-400" />
                   </motion.div>
                 </motion.div>
 

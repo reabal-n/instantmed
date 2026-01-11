@@ -380,7 +380,7 @@ export default function PerformanceAnxietyPage() {
               <div className="max-w-3xl mx-auto">
                 <div className="glass-card rounded-3xl p-4 lg:p-6 bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50">
                   <div className="flex gap-3">
-                    <Shield className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <Shield className="h-5 w-5 text-dawn-600 shrink-0 mt-0.5" />
                     <div>
                       <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">Important Safety Information</h3>
                       <p className="text-xs text-amber-800 dark:text-amber-300 mb-2">

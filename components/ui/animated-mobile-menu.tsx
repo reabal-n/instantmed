@@ -36,7 +36,7 @@ const sidebarVariants: Variants = {
     clipPath: "circle(0px at calc(100% - 44px) 44px)",
     transition: {
       delay: 0.15,
-      duration: 0.15,
+      duration: 0.3,
       ease: "easeOut",
     },
   },
@@ -180,7 +180,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
   return (
     <motion.li
       variants={itemVariants}
-      whileHover={{ scale: 1.02, x: 8 }}
+      whileHover={{ y: -2, x: 8 }}
       whileTap={{ scale: 0.98 }}
       className="list-none"
     >
@@ -319,7 +319,7 @@ export function AnimatedMobileMenu({
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
           // Glass surface
-          "bg-white/85 dark:bg-gray-900/80",
+          "bg-white/85 dark:bg-slate-900/80",
           "backdrop-blur-2xl",
           // Border
           "border-l border-white/50 dark:border-white/15",

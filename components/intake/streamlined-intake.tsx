@@ -92,7 +92,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
                   ? "bg-primary text-primary-foreground"
                   : i === currentIndex
                     ? "bg-primary/20 text-primary border-2 border-primary"
-                    : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+                    : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
               )}
             >
               {i < currentIndex ? <Check className="w-4 h-4" /> : i + 1}
@@ -101,7 +101,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
               <div
                 className={cn(
                   "h-0.5 w-12 sm:w-20 mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
+                  i < currentIndex ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
                 )}
               />
             )}
@@ -151,7 +151,7 @@ function SelectCard({
         "active:scale-[0.98]",
         selected
           ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
+          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -161,7 +161,7 @@ function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -202,7 +202,7 @@ function DurationChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
       )}
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.97 }}
@@ -230,7 +230,7 @@ function SymptomChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary/10 text-primary border border-primary"
-          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
+          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
       )}
     >
       {label}
@@ -495,13 +495,13 @@ export function StreamlinedIntake({
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-900/30 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm"
+                  className="p-4 rounded-2xl bg-dawn-50/80 dark:bg-dawn-900/30 backdrop-blur-xl border border-dawn-200/50 dark:border-dawn-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] text-sm"
                 >
                   <div className="flex gap-3">
-                    <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-2 text-amber-800">
+                    <Info className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" />
+                    <div className="space-y-2 text-dawn-800">
                       <p className="font-medium">Carer&apos;s Leave Certificate Requirements</p>
-                      <ul className="text-xs space-y-1 text-amber-700">
+                      <ul className="text-xs space-y-1 text-dawn-700">
                         <li>• You&apos;ll need to provide the name and relationship of the person you&apos;re caring for</li>
                         <li>• The certificate confirms you need time off to care for an immediate family member or household member</li>
                         <li>• No medical details about the person being cared for will be included</li>
@@ -519,7 +519,7 @@ export function StreamlinedIntake({
             <Button
               onClick={goNext}
               disabled={!formData.certType}
-              className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-base font-medium"
+              className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-base font-medium"
             >
               Continue
               <ChevronRight className="w-5 h-5 ml-1" />
@@ -550,13 +550,13 @@ export function StreamlinedIntake({
 
             {/* Carer-specific fields */}
             {formData.certType === "carer" && (
-              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <FormField label="Who are you caring for?" required error={errors.carerPatientName}>
                   <Input
                     placeholder="Patient's full name"
                     value={formData.carerPatientName}
                     onChange={(e) => updateField("carerPatientName", e.target.value)}
-                    className="h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                    className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                   />
                 </FormField>
                 <FormField label="Your relationship" required error={errors.carerRelationship}>
@@ -601,7 +601,7 @@ export function StreamlinedIntake({
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => updateField("startDate", e.target.value)}
-                className="h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
               />
             </FormField>
 
@@ -631,7 +631,7 @@ export function StreamlinedIntake({
                 placeholder="E.g., ongoing condition, specific requirements..."
                 value={formData.additionalNotes}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("additionalNotes", e.target.value)}
-                className="min-h-20 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
+                className="min-h-20 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200 resize-none"
               />
             </FormField>
 
@@ -700,7 +700,7 @@ export function StreamlinedIntake({
                   placeholder="As shown on Medicare card"
                   value={formData.fullName}
                   onChange={(e) => updateField("fullName", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
 
@@ -710,7 +710,7 @@ export function StreamlinedIntake({
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
 
@@ -719,13 +719,13 @@ export function StreamlinedIntake({
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => updateField("dateOfBirth", e.target.value)}
-                  className="h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
+                  className="h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-200"
                 />
               </FormField>
             </div>
 
             {/* Trust signals */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] text-sm text-muted-foreground">
               <Shield className="w-5 h-5 text-primary shrink-0" />
               <span>Your information is encrypted and secure. We never share your data.</span>
             </div>
@@ -767,8 +767,8 @@ export function StreamlinedIntake({
             </div>
 
             {/* Summary card */}
-            <div className="rounded-2xl border-2 border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
-              <div className="p-4 bg-white/50 dark:bg-gray-900/40 backdrop-blur-lg border-b border-white/40 dark:border-white/10">
+            <div className="rounded-2xl border-2 border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
+              <div className="p-4 bg-white/50 dark:bg-slate-900/40 backdrop-blur-lg border-b border-white/40 dark:border-white/10">
                 <div className="flex items-center gap-3">
                   {formData.certType === "work" && <Briefcase className="w-5 h-5 text-primary" />}
                   {formData.certType === "uni" && <GraduationCap className="w-5 h-5 text-primary" />}
@@ -809,7 +809,7 @@ export function StreamlinedIntake({
                   <span className="text-sm text-muted-foreground">Symptoms/Reason</span>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {formData.symptoms.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-xs">
+                      <span key={s} className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-xs">
                         {s}
                       </span>
                     ))}

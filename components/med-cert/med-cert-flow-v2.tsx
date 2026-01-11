@@ -54,7 +54,7 @@ const PROGRESS_STEPS = ["Details", "Review", "Pay"]
 const _MAX_ASYNC_DAYS = 3
 
 // Storage key for draft persistence (for future implementation)
-const _STORAGE_KEY = "instantmed_medcert_v2_draft"
+const _STORAGE_KEY = "LumenHealth_medcert_v2_draft"
 const _DRAFT_EXPIRY_HOURS = 24
 
 // ============================================================================
@@ -746,7 +746,7 @@ export function MedCertFlowV2({
                   </button>
 
                   {formData.durationDays === "extended" && (
-                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800 animate-fade-in">
+                    <div className="p-4 rounded-xl bg-dawn-50 border border-dawn-200 text-sm text-dawn-800 animate-fade-in">
                       <div className="flex items-start gap-2">
                         <Phone className="w-4 h-4 mt-0.5 shrink-0" />
                         <p>{MED_CERT_COPY.typeAndDates.extendedNote}</p>
@@ -992,14 +992,14 @@ export function MedCertFlowV2({
 
               {/* Escalation message */}
               {requiresCall && (
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="p-4 rounded-xl bg-dawn-50 border border-dawn-200">
                   <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <Phone className="w-5 h-5 text-dawn-600 mt-0.5" />
                     <div>
-                      <p className="font-medium text-amber-900">
+                      <p className="font-medium text-dawn-900">
                         {MED_CERT_COPY.confirmation.escalationMessage.heading}
                       </p>
-                      <p className="text-sm text-amber-800">
+                      <p className="text-sm text-dawn-800">
                         {MED_CERT_COPY.confirmation.escalationMessage.body}
                       </p>
                     </div>
@@ -1096,8 +1096,8 @@ export function MedCertFlowV2({
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-background rounded-2xl p-6 max-w-sm w-full space-y-4 animate-slide-up">
               <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
-                  <Phone className="w-6 h-6 text-amber-600" />
+                <div className="w-12 h-12 rounded-full bg-dawn-100 flex items-center justify-center mx-auto mb-3">
+                  <Phone className="w-6 h-6 text-dawn-600" />
                 </div>
                 <h2 className="text-lg font-semibold">
                   {MED_CERT_COPY.escalation.extendedDuration.heading}

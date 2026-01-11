@@ -184,7 +184,7 @@ function TestFillButton({ onFill }: { onFill: () => void }) {
     <button
       type="button"
       onClick={onFill}
-      className="mt-3 text-xs text-amber-600 hover:text-amber-700 underline underline-offset-2"
+      className="mt-3 text-xs text-dawn-600 hover:text-amber-700 underline underline-offset-2"
     >
       Fill with test details
     </button>
@@ -1021,7 +1021,7 @@ export function UnifiedFlowClient({
                 placeholder={COPY.prescription.medication.placeholder}
               />
               {isControlled && (
-                <p className="text-xs text-amber-600 flex items-center gap-1 mt-1">
+                <p className="text-xs text-dawn-600 flex items-center gap-1 mt-1">
                   <AlertTriangle className="w-3 h-3" />
                   {COPY.prescription.medication.controlled}
                 </p>
@@ -1138,7 +1138,7 @@ export function UnifiedFlowClient({
 
             {hasSafetyRisk ? (
               <div className="p-6 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-4">
-                <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto" />
+                <AlertTriangle className="w-12 h-12 text-dawn-500 mx-auto" />
                 <h3 className="font-semibold text-lg">{COPY.safety.knockout.heading}</h3>
                 <p className="text-sm text-muted-foreground">{COPY.safety.knockout.body}</p>
                 <Button variant="outline" className="gap-2 bg-transparent" onClick={() => window.open("tel:000")}>
@@ -1354,7 +1354,7 @@ export function UnifiedFlowClient({
                   <span>${service === "medcert" ? "19.95" : "24.95"}</span>
                 </div>
                 {form.priorityReview && (
-                  <div className="flex justify-between text-sm text-amber-600">
+                  <div className="flex justify-between text-sm text-dawn-600">
                     <span>Priority Review</span>
                     <span>+$10.00</span>
                   </div>

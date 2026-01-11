@@ -55,7 +55,7 @@ export function ContextualSocialProof({ service, variant = "mini", className }: 
       <div className={cn("flex items-center gap-2 text-sm text-muted-foreground", className)}>
         <div className="flex">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <Star key={i} className="w-3 h-3 fill-dawn-400 text-dawn-400" />
           ))}
         </div>
         <span className="truncate">&quot;{current.quote}&quot;</span>
@@ -85,7 +85,7 @@ export function ContextualSocialProof({ service, variant = "mini", className }: 
   // Mini variant
   return (
     <div className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
-      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+      <Star className="w-3 h-3 fill-dawn-400 text-dawn-400" />
       <span className="truncate max-w-[200px]">&quot;{current.quote}&quot;</span>
     </div>
   )

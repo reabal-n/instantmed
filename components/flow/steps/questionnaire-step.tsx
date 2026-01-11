@@ -129,12 +129,12 @@ export function QuestionnaireStep({
     >
       {/* Red flag warning for eligibility section */}
       {currentGroup.id === 'eligibility' && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="mb-6 p-4 bg-dawn-50 border border-dawn-200 rounded-lg">
           <div className="flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-dawn-600 shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-amber-800 mb-1">Important safety check</p>
-              <p className="text-amber-700">
+              <p className="font-medium text-dawn-800 mb-1">Important safety check</p>
+              <p className="text-dawn-700">
                 If you&apos;re experiencing a medical emergency, please call 000 immediately.
                 This service is for non-urgent conditions only.
               </p>

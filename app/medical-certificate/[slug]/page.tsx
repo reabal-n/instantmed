@@ -152,7 +152,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (validSubtypes.includes(slug)) {
     const info = subtypeInfo[slug]
     return {
-      title: `${info.title} Online | InstantMed Australia`,
+      title: `${info.title} Online | Lumen Health Australia`,
       description: info.description,
     }
   }
@@ -160,7 +160,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Check if it&apos;s a suburb SEO page
   const data = suburbs[slug]
   if (data) {
-    const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
+    const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | Lumen Health`
     const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Australian doctors, 15-minute turnaround. Valid for all employers.`
 
     return {
@@ -223,7 +223,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+          text: `Yes! Lumen Health provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
         },
       },
       {
@@ -339,7 +339,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
               <p className="text-gray-400 mb-6">
-                Join thousands of {data.name} residents who skip the waiting room with InstantMed.
+                Join thousands of {data.name} residents who skip the waiting room with Lumen Health.
               </p>
               <Link href="/medical-certificate/request">
                 <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">

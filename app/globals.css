@@ -42,8 +42,8 @@ main > div {
 }
 
 /* ================================
-   INSTANTMED PREMIUM DESIGN SYSTEM
-   Unified, Modern, Sleek Visual Style
+   LUMEN HEALTH DESIGN SYSTEM
+   Clarity Emerging — Morning Light
    ================================ */
 
 :root {
@@ -54,46 +54,74 @@ main > div {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 
-  /* InstantMed Design System: Light, airy, slightly warm - not sterile */
-  /* Backgrounds */
-  --background: #F9FAFB;
-  --foreground: #1a1a1a;
-  --card: #FFFFFF;
-  --card-foreground: #1a1a1a;
-  --popover: #FFFFFF;
-  --popover-foreground: #1a1a1a;
+  /* Lumen Design System: Morning light, calm, premium */
+  /* Sky — Primary cool tone */
+  --sky-50: #F7FAFC;
+  --sky-100: #EDF4F8;
+  --sky-200: #E1EEF5;
+  --sky-300: #C5DDF0;
+  --sky-400: #A8CCE8;
+  --sky-500: #8ABBE0;
   
-  /* Primary: Action blue */
-  --primary: #2563EB;
+  /* Dawn — Primary warm tone */
+  --dawn-50: #FFFAF5;
+  --dawn-100: #FEF3E8;
+  --dawn-200: #FCEBD8;
+  --dawn-300: #FBDCBA;
+  --dawn-400: #F9C992;
+  --dawn-500: #F5A962;
+  --dawn-600: #E8924A;
+  
+  /* Ivory — Neutral warm base */
+  --ivory-50: #FEFDFB;
+  --ivory-100: #FBF9F5;
+  --ivory-200: #F7F4ED;
+  --ivory-300: #F0EBE0;
+  
+  /* Peach — Soft accent */
+  --peach-50: #FFF8F5;
+  --peach-100: #FFEDE5;
+  --peach-200: #FFE0D4;
+  
+  /* Backgrounds */
+  --background: var(--sky-100);
+  --foreground: #2D3748;
+  --card: rgba(255, 255, 255, 0.75);
+  --card-foreground: #2D3748;
+  --popover: rgba(255, 255, 255, 0.90);
+  --popover-foreground: #2D3748;
+  
+  /* Primary: Dawn warmth */
+  --primary: var(--dawn-500);
   --primary-foreground: #ffffff;
   
-  /* Secondary: Soft lavender (for marketing only) */
-  --secondary: #F6F7FB;
-  --secondary-foreground: #1a1a1a;
+  /* Secondary: Sky cool */
+  --secondary: var(--sky-200);
+  --secondary-foreground: #2D3748;
   
-  /* Muted: Soft surfaces */
-  --muted: #F6F7FB;
-  --muted-foreground: #666666;
+  /* Muted: Soft ivory surfaces */
+  --muted: var(--ivory-100);
+  --muted-foreground: #5A6777;
   
-  /* Accents: Professional blue accent */
-  --accent: #4f46e5;
-  --accent-foreground: #ffffff;
+  /* Accents: Dawn light */
+  --accent: var(--dawn-400);
+  --accent-foreground: #2D3748;
   
-  /* Destructive states */
-  --destructive: #ef4444;
+  /* Destructive states — soft, not harsh */
+  --destructive: #E07A7A;
   --destructive-foreground: #ffffff;
   
-  /* Borders & inputs */
-  --border: rgba(0, 0, 0, 0.06);
-  --input: #F9FAFB;
-  --ring: #2563EB;
+  /* Borders & inputs — extremely subtle */
+  --border: rgba(197, 221, 240, 0.40);
+  --input: rgba(255, 255, 255, 0.60);
+  --ring: var(--dawn-400);
   
-  /* Charts */
-  --chart-1: #2563EB;
-  --chart-2: #4f46e5;
-  --chart-3: #22c55e;
-  --chart-4: #f59e0b;
-  --chart-5: #ef4444;
+  /* Charts — Morning palette */
+  --chart-1: var(--dawn-500);
+  --chart-2: var(--sky-400);
+  --chart-3: #6BBF8A;
+  --chart-4: var(--dawn-300);
+  --chart-5: #E07A7A;
   
   /* ================================
      UNIFIED SOFT RADIUS SYSTEM
@@ -138,60 +166,55 @@ main > div {
   --space-16: 4rem;     /* 64px */
   
   /* ================================
-     UNIFIED SHADOW SYSTEM
-     Premium soft shadows
+     LUMEN SHADOW SYSTEM
+     Soft, warm, never harsh
      ================================ */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
-  --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.16), 0 12px 24px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 24px rgba(37, 99, 235, 0.15);
-  --shadow-glow-lg: 0 0 48px rgba(37, 99, 235, 0.25);
+  --shadow-xs: 0 1px 3px rgba(197, 221, 240, 0.10);
+  --shadow-sm: 0 2px 8px rgba(197, 221, 240, 0.12);
+  --shadow-md: 0 4px 20px rgba(197, 221, 240, 0.15);
+  --shadow-lg: 0 8px 30px rgba(197, 221, 240, 0.20);
+  --shadow-xl: 0 12px 40px rgba(197, 221, 240, 0.25);
+  --shadow-2xl: 0 20px 60px rgba(197, 221, 240, 0.30);
+  --shadow-glow: 0 0 20px rgba(245, 169, 98, 0.15);
+  --shadow-glow-lg: 0 0 40px rgba(245, 169, 98, 0.25);
   
   /* Sidebar */
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #2563EB;
+  --sidebar: rgba(255, 255, 255, 0.80);
+  --sidebar-foreground: #2D3748;
+  --sidebar-primary: var(--dawn-500);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #F6F7FB;
-  --sidebar-accent-foreground: #1a1a1a;
-  --sidebar-border: rgba(0, 0, 0, 0.06);
-  --sidebar-ring: #2563EB;
+  --sidebar-accent: var(--sky-100);
+  --sidebar-accent-foreground: #2D3748;
+  --sidebar-border: rgba(197, 221, 240, 0.30);
+  --sidebar-ring: var(--dawn-400);
   
-  /* Status colors */
-  --success: #22c55e;
+  /* Status colors — soft, not harsh */
+  --success: #6BBF8A;
   --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #1a1a1a;
+  --warning: var(--dawn-400);
+  --warning-foreground: #2D3748;
   
-  /* Legacy/compat tokens */
-  --navy: #1a1a1a;
-  --indigo: #2563EB;
-  --violet: #4f46e5;
-  --violet-light: #eef2ff;
+  /* Legacy/compat tokens (mapped to Lumen palette) */
+  --navy: #2D3748;
+  --indigo: var(--sky-500);
+  --violet: var(--dawn-500);
+  --violet-light: var(--peach-50);
 
-  /* Rainbow button colors */
-  --color-1: 239 84% 67%;
-  --color-2: 262 83% 58%;
-  --color-3: 280 68% 60%;
-  --color-4: 330 81% 60%;
-  --color-5: 25 95% 53%;
+  /* Dawn gradient button colors */
+  --color-1: 28 90% 67%;
+  --color-2: 32 94% 65%;
+  --color-3: 200 60% 85%;
+  --color-4: 25 95% 70%;
+  --color-5: 35 95% 65%;
   
-  /* Light mode gradient orbs for parallax */
-  --gradient-orb-1: rgba(37, 99, 235, 0.08);
-  --gradient-orb-2: rgba(79, 70, 229, 0.06);
+  /* Light mode gradient orbs — dawn warmth */
+  --gradient-orb-1: rgba(245, 169, 98, 0.08);
+  --gradient-orb-2: rgba(197, 221, 240, 0.12);
   
-  /* Aurora background color variables */
+  /* Background color variables */
   --white: #ffffff;
-  --black: #000000;
+  --black: #2D3748;
   --transparent: transparent;
-  --blue-500: #3b82f6;
-  --indigo-300: #a5b4fc;
-  --blue-300: #93c5fd;
-  --violet-200: #ddd6fe;
-  --blue-400: #60a5fa;
 }
 
 /* Test mode banner active state */
@@ -200,64 +223,80 @@ main > div {
 }
 
 .dark {
-  /* Dark theme: maintain soft, calm aesthetic */
-  --background: #0a0a0b;
-  --foreground: #fafafa;
-  --card: #141416;
-  --card-foreground: #fafafa;
-  --popover: #141416;
-  --popover-foreground: #fafafa;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #1f1f23;
-  --secondary-foreground: #fafafa;
-  --muted: #1f1f23;
-  --muted-foreground: #a1a1aa;
-  --accent: #a78bfa;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  /* ================================
+     LUMEN DARK THEME: Quiet Night Sky
+     Deep, calm, with subtle star-like accents
+     ================================ */
+  
+  /* Night sky base - deep blue-black */
+  --background: #0B1120;
+  --foreground: #E8EEF4;
+  
+  /* Glass cards - translucent night panels */
+  --card: rgba(17, 24, 39, 0.75);
+  --card-foreground: #E8EEF4;
+  --popover: rgba(17, 24, 39, 0.90);
+  --popover-foreground: #E8EEF4;
+  
+  /* Primary - warm star glow */
+  --primary: var(--dawn-400);
+  --primary-foreground: #0B1120;
+  
+  /* Secondary - cool starlight */
+  --secondary: rgba(168, 204, 232, 0.12);
+  --secondary-foreground: #E8EEF4;
+  
+  /* Muted - distant nebula */
+  --muted: rgba(99, 102, 241, 0.08);
+  --muted-foreground: #94A3B8;
+  
+  /* Accent - bright star */
+  --accent: var(--dawn-300);
+  --accent-foreground: #0B1120;
+  
+  /* Status */
+  --destructive: #E07A7A;
   --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: #141416;
-  --ring: #6366f1;
-  --sidebar: #0a0a0b;
-  --sidebar-foreground: #fafafa;
   
-  /* Aurora background color variables (dark mode) */
-  --white: #ffffff;
-  --black: #000000;
+  /* Borders - subtle constellation lines */
+  --border: rgba(148, 163, 184, 0.12);
+  --input: rgba(17, 24, 39, 0.60);
+  --ring: var(--dawn-400);
+  
+  /* Sidebar - deep space panel */
+  --sidebar: rgba(11, 17, 32, 0.95);
+  --sidebar-foreground: #E8EEF4;
+  
+  /* Dark mode color variables */
+  --white: #F7FAFC;
+  --black: #1A2332;
   --transparent: transparent;
-  --blue-500: #3b82f6;
-  --indigo-300: #818cf8;
-  --blue-300: #60a5fa;
-  --violet-200: #c4b5fd;
-  --blue-400: #93c5fd;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1f1f23;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #6366f1;
+  --sidebar-primary: var(--dawn-400);
+  --sidebar-primary-foreground: #1A2332;
+  --sidebar-accent: rgba(197, 221, 240, 0.10);
+  --sidebar-accent-foreground: #F7FAFC;
+  --sidebar-border: rgba(197, 221, 240, 0.12);
+  --sidebar-ring: var(--dawn-400);
   
-  /* Dark mode shadows - softer with color */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.4);
-  --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.7), 0 12px 24px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 24px rgba(37, 99, 235, 0.25);
-  --shadow-glow-lg: 0 0 48px rgba(37, 99, 235, 0.35);
+  /* Dark mode shadows - starlight glow */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 40px rgba(168, 204, 232, 0.05);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.50), 0 0 60px rgba(168, 204, 232, 0.06);
+  --shadow-2xl: 0 20px 60px rgba(0, 0, 0, 0.60), 0 0 80px rgba(168, 204, 232, 0.08);
+  --shadow-glow: 0 0 20px rgba(249, 201, 146, 0.15), 0 0 40px rgba(168, 204, 232, 0.10);
+  --shadow-glow-lg: 0 0 40px rgba(249, 201, 146, 0.30);
   
   /* Dark mode gradient orbs */
-  --gradient-orb-1: rgba(37, 99, 235, 0.15);
-  --gradient-orb-2: rgba(79, 70, 229, 0.12);
+  --gradient-orb-1: rgba(249, 201, 146, 0.08);
+  --gradient-orb-2: rgba(168, 204, 232, 0.06);
 }
 
 @theme inline {
-  /* Typography: Inter for body, Lora for headings, JetBrains Mono for code */
-  --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
-  --font-heading: "Lora", "Lora Fallback", Georgia, serif;
+  /* Typography: Source Sans 3 for body, Lora for headings, JetBrains Mono for code */
+  --font-sans: "Source Sans 3", "Source Sans 3 Fallback", system-ui, sans-serif;
+  --font-serif: "Lora", "Lora Fallback", Georgia, serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -333,9 +372,9 @@ main > div {
      Consistent, premium headings
      ================================ */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
+    font-family: var(--font-serif);
     font-weight: 500;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     line-height: 1.25;
     color: var(--foreground);
   }

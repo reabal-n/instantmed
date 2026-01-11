@@ -90,7 +90,7 @@ export function SlideTransition({
         initial={{ opacity: 0, x }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -x }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        transition={{ type: "spring", stiffness: 200, damping: 30 }}
       >
         {children}
       </motion.div>

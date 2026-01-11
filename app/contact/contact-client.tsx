@@ -155,10 +155,10 @@ export function ContactClient() {
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <a
-                          href="mailto:hello@instantmed.com.au"
+                          href="mailto:hello@LumenHealth.com.au"
                           className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
                         >
-                          hello@instantmed.com.au
+                          hello@LumenHealth.com.au
                         </a>
                       </div>
                     </div>

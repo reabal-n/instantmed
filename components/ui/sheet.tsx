@@ -57,7 +57,7 @@ function Sheet({
             opacity: 1,
             transition: {
               type: "spring",
-              stiffness: 400,
+              stiffness: 200,
               damping: 30,
             },
           },
@@ -96,11 +96,11 @@ function SheetClose({
         "group absolute right-3 top-3 flex size-8 items-center justify-center",
         // Soft Pop Glass close button
         "rounded-full",
-        "bg-white/50 dark:bg-gray-800/50",
+        "bg-white/50 dark:bg-slate-800/50",
         "backdrop-blur-lg",
         "border border-white/30 dark:border-white/10",
         "transition-all duration-200",
-        "hover:bg-white/80 dark:hover:bg-gray-800/80",
+        "hover:bg-white/80 dark:hover:bg-slate-800/80",
         "hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)]",
         "active:scale-95",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -138,7 +138,7 @@ function SheetContent({
       className={cn(
         "flex flex-col gap-4",
         // Soft Pop Glass elevated surface
-        "bg-white/90 dark:bg-gray-900/90",
+        "bg-white/90 dark:bg-slate-900/90",
         "backdrop-blur-2xl",
         // Border based on side
         side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l border-white/40 dark:border-white/10 sm:max-w-sm rounded-l-3xl",

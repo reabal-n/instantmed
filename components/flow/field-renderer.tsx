@@ -279,7 +279,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                 key={String(opt.val)}
                 type="button"
                 onClick={() => onChange(opt.val)}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className={cn(
                   'py-3.5 px-4 rounded-xl border-2 font-medium text-sm',

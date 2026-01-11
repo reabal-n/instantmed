@@ -9,9 +9,6 @@ import { usePathname } from "next/navigation"
 const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
   "/medical-certificate": { name: "Medical Certificate", price: "$19.95", href: "/medical-certificate/new" },
   "/prescriptions": { name: "Prescription", price: "$29.95", href: "/prescriptions/new" },
-  "/womens-health": { name: "Women's Health", price: "$29.95", href: "/prescriptions/new" },
-  "/mens-health": { name: "Men's Health", price: "$29.95", href: "/prescriptions/new" },
-  "/weight-loss": { name: "Weight Loss Consult", price: "$49.95", href: "/weight-loss/request" },
 }
 
 const DEFAULT_CONFIG = { name: "cert or script", price: "$19.95", href: "/medical-certificate/new" }

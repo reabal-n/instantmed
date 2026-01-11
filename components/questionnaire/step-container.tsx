@@ -93,7 +93,7 @@ export function OptionCard({
       disabled={disabled}
       className={cn(
         "w-full p-4 rounded-2xl border-2 text-left transition-all duration-200",
-        "hover:scale-[1.02] active:scale-[0.98]",
+        "hover:-translate-y-0.5 active:scale-[0.98]",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
           ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
@@ -223,7 +223,7 @@ export function YesNoButtons({
         disabled={disabled}
         className={cn(
           "flex-1 p-4 rounded-xl border-2 font-medium transition-all duration-200",
-          "hover:scale-[1.02] active:scale-[0.98]",
+          "hover:-translate-y-0.5 active:scale-[0.98]",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           value === true
             ? "border-emerald-500 bg-emerald-50 text-emerald-700"
@@ -239,7 +239,7 @@ export function YesNoButtons({
         disabled={disabled}
         className={cn(
           "flex-1 p-4 rounded-xl border-2 font-medium transition-all duration-200",
-          "hover:scale-[1.02] active:scale-[0.98]",
+          "hover:-translate-y-0.5 active:scale-[0.98]",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           value === false
             ? "border-red-500 bg-red-50 text-red-700"

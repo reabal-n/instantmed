@@ -92,7 +92,7 @@ export function DoctorCredentialsCard({
     return (
       <div
         className={cn(
-          "rounded-xl border bg-white dark:bg-gray-900 p-4 flex items-start gap-4",
+          "rounded-xl border bg-white dark:bg-slate-900 p-4 flex items-start gap-4",
           className
         )}
       >
@@ -126,7 +126,7 @@ export function DoctorCredentialsCard({
             </div>
             {doctor.rating && (
               <div className="flex items-center gap-1 text-sm">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <Star className="h-4 w-4 fill-dawn-400 text-dawn-400" />
                 <span className="font-medium">{doctor.rating}</span>
               </div>
             )}
@@ -164,7 +164,7 @@ export function DoctorCredentialsCard({
       <DialogTrigger asChild>
         <button
           className={cn(
-            "rounded-2xl border bg-white dark:bg-gray-900 p-5 text-left hover:border-primary/50 transition-colors w-full",
+            "rounded-2xl border bg-white dark:bg-slate-900 p-5 text-left hover:border-primary/50 transition-colors w-full",
             className
           )}
         >
@@ -198,7 +198,7 @@ export function DoctorCredentialsCard({
                 </Badge>
                 {doctor.rating && (
                   <Badge variant="secondary">
-                    <Star className="h-3 w-3 mr-1 fill-amber-400 text-amber-400" />
+                    <Star className="h-3 w-3 mr-1 fill-dawn-400 text-dawn-400" />
                     {doctor.rating} ({doctor.reviewCount} reviews)
                   </Badge>
                 )}
@@ -271,20 +271,20 @@ export function DoctorCredentialsCard({
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+            <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
               <Clock className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
               <p className="text-lg font-bold">{doctor.yearsExperience}+</p>
               <p className="text-xs text-muted-foreground">Years exp.</p>
             </div>
             {doctor.rating && (
-              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <Star className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
+                <Star className="h-5 w-5 mx-auto text-dawn-500 mb-1" />
                 <p className="text-lg font-bold">{doctor.rating}</p>
                 <p className="text-xs text-muted-foreground">Rating</p>
               </div>
             )}
             {doctor.reviewCount && (
-              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
                 <Award className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                 <p className="text-lg font-bold">{doctor.reviewCount}</p>
                 <p className="text-xs text-muted-foreground">Reviews</p>
@@ -346,7 +346,7 @@ export function TrustBadgeStrip({ className }: { className?: string }) {
     { icon: Shield, label: "AHPRA Registered", color: "text-green-600" },
     { icon: CheckCircle2, label: "Australian Doctors", color: "text-primary" },
     { icon: Clock, label: "15 Min Response", color: "text-purple-600" },
-    { icon: Award, label: "4.9★ Rating", color: "text-amber-600" },
+    { icon: Award, label: "4.9★ Rating", color: "text-dawn-600" },
   ]
 
   return (

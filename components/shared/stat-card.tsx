@@ -41,7 +41,7 @@ export function StatCard({ title, value, icon, trend, className, delay = 0 }: St
     <div
       className={cn(
         // Glass surface
-        "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+        "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
         // Border
         "border border-white/40 dark:border-white/10",
         // Shape
@@ -49,7 +49,7 @@ export function StatCard({ title, value, icon, trend, className, delay = 0 }: St
         // Glow shadow based on trend
         getGlowColor(),
         // Hover effects
-        "hover:bg-white/90 dark:hover:bg-gray-900/80",
+        "hover:bg-white/90 dark:hover:bg-slate-900/80",
         "hover:shadow-[0_12px_40px_rgb(59,130,246,0.2)] dark:hover:shadow-[0_12px_40px_rgb(139,92,246,0.2)]",
         // Animation
         "transition-all duration-300 ease-out",

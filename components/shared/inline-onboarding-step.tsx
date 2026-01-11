@@ -256,7 +256,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     state === s
                       ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                   }`}
                 >
                   {s}
@@ -294,7 +294,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
       {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
 
       {expiryWarning && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-start gap-2">
+        <div className="p-3 rounded-xl bg-dawn-50 border border-dawn-200 text-sm text-dawn-700 flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{expiryWarning}</span>
         </div>
@@ -370,7 +370,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
                     expiryMonth === m.value
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
+                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {m.label}
@@ -386,7 +386,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 whitespace-nowrap ${
                     expiryYear === y
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
+                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {y}

@@ -17,28 +17,30 @@ interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   glowColor?: "blue" | "purple" | "emerald" | "none"
 }
 
+// Lumen Glass styles - Night sky compatible in dark mode
 const glassStyles = {
   subtle: cn(
-    "bg-white/50 dark:bg-gray-900/40",
+    "bg-white/60 dark:bg-slate-900/50",
     "backdrop-blur-lg",
-    "border border-white/30 dark:border-white/8",
+    "border border-sky-300/25 dark:border-slate-400/10",
   ),
   normal: cn(
-    "bg-white/70 dark:bg-gray-900/60",
+    "bg-white/75 dark:bg-slate-900/60",
     "backdrop-blur-xl",
-    "border border-white/40 dark:border-white/10",
+    "border border-sky-300/35 dark:border-slate-400/12",
   ),
   elevated: cn(
-    "bg-white/85 dark:bg-gray-900/80",
+    "bg-white/90 dark:bg-slate-900/75",
     "backdrop-blur-2xl",
-    "border border-white/50 dark:border-white/15",
+    "border border-sky-300/45 dark:border-slate-400/15",
   ),
 }
 
+// Lumen glow colors - warm dawn (light) / subtle starlight (dark)
 const glowColors = {
-  blue: "hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)]",
-  purple: "hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]",
-  emerald: "hover:shadow-[0_20px_40px_rgba(34,197,94,0.15)]",
+  blue: "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)] dark:hover:shadow-[0_8px_30px_rgba(148,163,184,0.15)]",
+  purple: "hover:shadow-[0_8px_30px_rgba(245,169,98,0.20)] dark:hover:shadow-[0_8px_30px_rgba(249,201,146,0.12)]",
+  emerald: "hover:shadow-[0_8px_30px_rgba(107,191,138,0.20)] dark:hover:shadow-[0_8px_30px_rgba(134,239,172,0.12)]",
   none: "",
 }
 
@@ -55,29 +57,27 @@ export function GlassCard({
     <motion.div
       className={cn(
         "relative rounded-2xl",
-        // Soft Pop Glass surface
+        // Lumen Glass surface
         glassStyles[glass],
-        // Soft shadow (not black!)
-        "shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+        // Lumen soft shadow (sky-tinted)
+        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
         // Hover glow
         hover && glowColors[glowColor],
         // Transition
         "transition-shadow duration-300",
         className,
       )}
-      // Spring physics motion
+      // Lumen gentle motion
       whileHover={hover ? {
-        y: -4,
-        scale: 1.01,
+        y: -2,
         transition: {
-          type: "spring",
-          stiffness: 400,
-          damping: 30,
+          duration: 0.3,
+          ease: [0.25, 0.1, 0.25, 1],
         },
       } : undefined}
       whileTap={pressable ? {
-        scale: 0.98,
-        transition: { duration: 0.1 },
+        y: 0,
+        transition: { duration: 0.2 },
       } : undefined}
       {...props}
     >
@@ -106,7 +106,7 @@ export function GlassPanel({
       className={cn(
         "relative rounded-2xl",
         glassStyles[glass],
-        "shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
         className,
       )}
     >

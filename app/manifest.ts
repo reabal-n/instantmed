@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "InstantMed - Online Doctor Consultations",
-    short_name: "InstantMed",
+    name: "Lumen Health - Online Doctor Consultations",
+    short_name: "Lumen Health",
     description: "Medical certificates, prescriptions, and referrals online from AHPRA-registered Australian GPs",
     start_url: "/",
     display: "standalone",

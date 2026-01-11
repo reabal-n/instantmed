@@ -403,7 +403,7 @@ export function IntakeDetailClient({
 
             {/* Refund - show for paid intakes that haven't been refunded */}
             {intake.payment_status === "paid" && (
-              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-amber-600 border-amber-300 hover:bg-amber-50">
+              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-dawn-600 border-amber-300 hover:bg-amber-50">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Mark Refunded
               </Button>
@@ -505,7 +505,7 @@ export function IntakeDetailClient({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleMarkRefunded} disabled={isPending} className="bg-amber-600 hover:bg-amber-700">
+            <AlertDialogAction onClick={handleMarkRefunded} disabled={isPending} className="bg-dawn-600 hover:bg-amber-700">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm Refunded
             </AlertDialogAction>

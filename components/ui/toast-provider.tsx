@@ -121,14 +121,14 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
   const colors = {
     success: 'bg-green-50 border-green-200 text-green-800',
     error: 'bg-red-50 border-red-200 text-red-800',
-    warning: 'bg-amber-50 border-amber-200 text-amber-800',
+    warning: 'bg-dawn-50 border-dawn-200 text-dawn-800',
     info: 'bg-blue-50 border-primary text-blue-800',
   }
 
   const iconColors = {
     success: 'text-green-500',
     error: 'text-red-500',
-    warning: 'text-amber-500',
+    warning: 'text-dawn-500',
     info: 'text-blue-500',
   }
 

@@ -227,7 +227,7 @@ export function MedicationCombobox({
             "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             "transition-all duration-200",
             hasValidSelection && "border-green-500 bg-green-50/50",
-            showError && !hasValidSelection && "border-amber-500",
+            showError && !hasValidSelection && "border-dawn-500",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           aria-label="Search medications"
@@ -298,11 +298,11 @@ export function MedicationCombobox({
 
       {/* Blocked substance warning */}
       {isBlocked && (
-        <div className="mt-2 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="mt-2 p-3 rounded-xl bg-dawn-50 border border-dawn-200 flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-dawn-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs text-amber-800 font-medium">Controlled Substance</p>
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-xs text-dawn-800 font-medium">Controlled Substance</p>
+            <p className="text-xs text-dawn-700 mt-0.5">
               Schedule 8 and controlled substances cannot be prescribed through this service. 
               Please see your regular GP.
             </p>
@@ -312,7 +312,7 @@ export function MedicationCombobox({
 
       {/* Validation error */}
       {showError && !isBlocked && (
-        <p className="mt-1.5 text-xs text-amber-600 flex items-center gap-1">
+        <p className="mt-1.5 text-xs text-dawn-600 flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
           {error || "Please select a medication from the list"}
         </p>

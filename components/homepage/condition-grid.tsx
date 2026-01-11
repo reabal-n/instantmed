@@ -28,16 +28,6 @@ const conditions: Condition[] = [
     popular: true,
   },
   {
-    id: "weight-loss",
-    icon: "⚖️",
-    name: "Weight Loss",
-    tagline: "Doctor-led weight management support.",
-    price: "$149",
-    href: "/weight-loss",
-    color: "#10B981",
-    popular: true,
-  },
-  {
     id: "cold-flu",
     icon: "🤧",
     name: "Cold & Flu",
@@ -52,7 +42,7 @@ const conditions: Condition[] = [
     name: "UTI",
     tagline: "You know the feeling. Let's fix it.",
     price: "$39",
-    href: "/womens-health?condition=uti",
+    href: "/prescriptions",
     color: "#EC4899",
   },
   {
@@ -70,7 +60,7 @@ const conditions: Condition[] = [
     name: "Hair Loss",
     tagline: "Fighting the inevitable.",
     price: "$39",
-    href: "/mens-health?condition=hair-loss",
+    href: "/prescriptions",
     color: "#4f46e5",
   },
   {
@@ -79,7 +69,7 @@ const conditions: Condition[] = [
     name: "Contraception",
     tagline: "Planning ahead.",
     price: "$39",
-    href: "/womens-health?condition=contraception",
+    href: "/prescriptions",
     color: "#F472B6",
   },
   {
@@ -106,7 +96,7 @@ const conditions: Condition[] = [
     name: "Erectile Dysfunction",
     tagline: "Discreet. No awkward chats.",
     price: "$39",
-    href: "/mens-health?condition=ed",
+    href: "/prescriptions",
     color: "#3B82F6",
   },
   {
@@ -195,7 +185,7 @@ export function ConditionGrid() {
                   className="absolute top-3 right-3 z-10"
                   initial={{ scale: 0, rotate: -10 }}
                   animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, duration: 0.15, ease: "easeOut" }}
+                  transition={{ delay: 0.2, duration: 0.3, ease: "easeOut" }}
                 >
                   <div 
                     className="text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-lg"
@@ -225,7 +215,7 @@ export function ConditionGrid() {
                   boxShadow: `inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px ${condition.color}15`,
                 }}
                 whileHover={{ scale: 1.1, rotate: 3 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
               >
                 <span className="drop-shadow-sm">{condition.icon}</span>
               </motion.div>

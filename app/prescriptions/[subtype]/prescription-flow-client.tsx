@@ -775,7 +775,7 @@ export function PrescriptionFlowClient({
         style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
       >
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTriangle className="h-5 w-5 text-dawn-600" />
           <h3 className="font-semibold text-foreground">Safety screening</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">Please answer honestly - this helps us ensure your safety.</p>

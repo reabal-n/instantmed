@@ -211,7 +211,7 @@ export function Tilt3D({
   const glareX = useMotionValue(50)
   const glareY = useMotionValue(50)
 
-  const springConfig = { stiffness: 300, damping: 20 }
+  const springConfig = { stiffness: 200, damping: 20 }
   const smoothRotateX = useSpring(rotateX, springConfig)
   const smoothRotateY = useSpring(rotateY, springConfig)
 

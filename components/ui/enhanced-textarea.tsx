@@ -140,7 +140,7 @@ export function EnhancedTextarea({
               isAtLimit
                 ? "text-red-600 dark:text-red-400"
                 : isNearLimit
-                ? "text-amber-600 dark:text-amber-400"
+                ? "text-dawn-600 dark:text-dawn-400"
                 : "text-muted-foreground"
             )}
           >

@@ -26,7 +26,7 @@ export default async function PatientIntakesPage() {
       case "declined":
         return <XCircle className="h-4 w-4 text-red-500" />
       case "pending_info":
-        return <AlertCircle className="h-4 w-4 text-amber-500" />
+        return <AlertCircle className="h-4 w-4 text-dawn-500" />
       default:
         return <Clock className="h-4 w-4 text-blue-500" />
     }

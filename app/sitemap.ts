@@ -26,19 +26,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : 0.8,
   }))
 
-  // Category hubs
-  const categoryHubs = [
-    { slug: 'mens-health', priority: 0.8 },
-    { slug: 'womens-health', priority: 0.8 },
-    { slug: 'weight-loss', priority: 0.7 },
-  ]
-  const categoryRoutes = categoryHubs.map(({ slug, priority }) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority,
-  }))
-
   // Audience pages
   const audiencePages = ['students', 'tradies', 'corporate', 'shift-workers']
   const audienceRoutes = audiencePages.map((slug) => ({
@@ -50,7 +37,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...routes,
-    ...categoryRoutes,
     ...audienceRoutes,
   ]
 }

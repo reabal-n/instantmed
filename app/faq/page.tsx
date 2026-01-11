@@ -11,9 +11,9 @@ import { MessageCircle, HelpCircle } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "FAQs | InstantMed",
+  title: "FAQs | Lumen Health",
   description:
-    "Frequently asked questions about InstantMed online medical consultations, prescriptions, and certificates.",
+    "Frequently asked questions about Lumen Health online medical consultations, prescriptions, and certificates.",
 }
 
 const faqCategories = [
@@ -22,12 +22,12 @@ const faqCategories = [
     emoji: "💡",
     faqs: [
       {
-        q: "What is InstantMed?",
+        q: "What is Lumen Health?",
         a: "We're an Australian telehealth service that connects you with registered GPs for medical certificates and prescription renewals. You submit your request online, and a doctor reviews it. They may approve it, request more information, or recommend an in-person consultation if needed.",
       },
       {
         q: "Is this service legal and legitimate?",
-        a: "100% legitimate. InstantMed is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified GPs who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
+        a: "100% legitimate. Lumen Health is operated by AHPRA-registered medical practitioners in Australia. All consultations are conducted by qualified GPs who follow the same clinical standards as in-person consultations. You can verify any doctor's registration on the public AHPRA register.",
       },
       {
         q: "How long does it take?",
@@ -149,7 +149,7 @@ export default function FAQPage() {
                 Got questions? <span className="text-gradient-mint">We&apos;ve got answers.</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
-                Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
+                Everything you need to know about Lumen Health. Can&apos;t find your answer?{" "}
                 <Link href="/contact" className="text-[#2563EB] hover:underline">
                   Hit us up
                 </Link>

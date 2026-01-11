@@ -68,7 +68,7 @@ export function StatsSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.3 }}
-                  className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl"
+                  className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl"
                 >
                   <div className="flex items-start gap-3">
                     <Image
@@ -97,7 +97,7 @@ export function StatsSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="absolute -top-6 -right-6 w-32 h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-gray-800 rotate-6 hidden md:block"
+                className="absolute -top-6 -right-6 w-32 h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 rotate-6 hidden md:block"
               >
                 <Image
                   src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop"
@@ -113,7 +113,7 @@ export function StatsSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5 }}
-                className="absolute -bottom-6 -left-6 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-gray-800 -rotate-6 hidden md:block"
+                className="absolute -bottom-6 -left-6 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 -rotate-6 hidden md:block"
               >
                 <Image
                   src="https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=200&h=200&fit=crop"
@@ -151,7 +151,7 @@ export function StatsSection() {
                   <BlurFade key={stat.label} delay={0.3 + i * 0.1}>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${stat.color}10, transparent)` }} />
-                      <div className="relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-gray-700/40">
+                      <div className="relative bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-slate-700/40">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                           style={{ background: `linear-gradient(135deg, ${stat.color}20, ${stat.color}10)` }}
@@ -178,10 +178,10 @@ export function StatsSection() {
                       alt="Patient"
                       width={40}
                       height={40}
-                      className="rounded-full border-2 border-white dark:border-gray-800 shadow-sm"
+                      className="rounded-full border-2 border-white dark:border-slate-800 shadow-sm"
                     />
                   ))}
-                  <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center border-2 border-white dark:border-gray-800 text-white text-xs font-bold">
+                  <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center border-2 border-white dark:border-slate-800 text-white text-xs font-bold">
                     +2k
                   </div>
                 </div>

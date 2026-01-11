@@ -186,7 +186,7 @@ export function AddressAutocomplete({
           className={className}
           disabled={disabled}
         />
-        <p className="text-xs text-amber-600">Address autocomplete unavailable. Enter manually.</p>
+        <p className="text-xs text-dawn-600">Address autocomplete unavailable. Enter manually.</p>
       </div>
     )
   }

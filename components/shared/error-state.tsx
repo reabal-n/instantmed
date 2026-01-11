@@ -31,8 +31,8 @@ const errorConfig: Record<
     icon: AlertTriangle,
     defaultTitle: "Something went wrong",
     defaultMessage: "We hit an unexpected bump. Your data is safe.",
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50",
   },
   network: {
     icon: WifiOff,
@@ -45,8 +45,8 @@ const errorConfig: Record<
     icon: CreditCard,
     defaultTitle: "Payment not completed",
     defaultMessage: "No worries — your answers are saved. You can complete payment when ready.",
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50",
   },
   "not-found": {
     icon: FileX,
@@ -59,8 +59,8 @@ const errorConfig: Record<
     icon: Clock,
     defaultTitle: "Request timed out",
     defaultMessage: "This is taking longer than expected. Please try again.",
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50",
   },
   validation: {
     icon: AlertTriangle,

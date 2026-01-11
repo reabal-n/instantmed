@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
 import { getIntakeWithDetails, getPatientIntakes } from "@/lib/data/intakes"
 import { IntakeDetailClient } from "./intake-detail-client"
+import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +26,9 @@ export default async function DoctorIntakeDetailPage({
   if (!intake) {
     notFound()
   }
+
+  // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+  await logClinicianOpenedRequest(id, "intake", profile.id)
 
   // Fetch patient's previous intakes for history
   const patientHistory = await getPatientIntakes(intake.patient.id)

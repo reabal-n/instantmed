@@ -29,11 +29,11 @@ export default function Error({
   return (
     <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-dawn-50/20 dark:to-dawn-950/10" />
       
       {/* Animated gradient orbs */}
       <motion.div 
-        className="absolute top-1/3 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl"
+        className="absolute top-1/3 left-1/3 w-80 h-80 bg-dawn-500/10 rounded-full blur-3xl"
         animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -49,12 +49,12 @@ export default function Error({
           <div className="relative">
             {/* Glow effect */}
             <motion.div
-              className="absolute inset-0 rounded-3xl bg-amber-500/20 blur-xl"
+              className="absolute inset-0 rounded-3xl bg-dawn-500/20 blur-xl"
               animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <div className="relative bg-card/80 backdrop-blur-md rounded-3xl p-8 border border-amber-200/50 dark:border-amber-500/20 shadow-2xl">
-              <AlertTriangle className="h-14 w-14 text-amber-500" />
+            <div className="relative bg-card/80 backdrop-blur-md rounded-3xl p-8 border border-amber-200/50 dark:border-dawn-500/20 shadow-2xl">
+              <AlertTriangle className="h-14 w-14 text-dawn-500" />
             </div>
           </div>
         </motion.div>

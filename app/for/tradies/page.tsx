@@ -66,8 +66,8 @@ export default function TradiesPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 interactive-pill cursor-default">
-                    <HardHat className="w-3.5 h-3.5 text-amber-600" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-dawn-500/10 border border-dawn-500/20 mb-4 interactive-pill cursor-default">
+                    <HardHat className="w-3.5 h-3.5 text-dawn-600" />
                     <span className="text-xs font-medium text-amber-700">Built for Tradies</span>
                   </div>
 
@@ -82,7 +82,7 @@ export default function TradiesPage() {
                   </p>
 
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white text-sm px-6">
+                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-white text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -91,15 +91,15 @@ export default function TradiesPage() {
                   {/* Speed badges */}
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
-                      <Zap className="h-3.5 w-3.5 text-amber-500" />
+                      <Zap className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">15 min turnaround</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
-                      <Smartphone className="h-3.5 w-3.5 text-amber-500" />
+                      <Smartphone className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">100% on your phone</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
-                      <Shield className="h-3.5 w-3.5 text-amber-500" />
+                      <Shield className="h-3.5 w-3.5 text-dawn-500" />
                       <span className="font-medium text-muted-foreground">Boss-proof</span>
                     </div>
                   </div>
@@ -111,19 +111,19 @@ export default function TradiesPage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-amber-500/20 bg-amber-50/30 dark:bg-amber-950/10">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-dawn-500/20 bg-amber-50/30 dark:bg-amber-950/10">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-amber-600">2 min</div>
+                      <div className="text-2xl font-bold mb-1 text-dawn-600">2 min</div>
                       <div className="text-xs text-muted-foreground">to fill out</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-amber-600">15 min</div>
+                      <div className="text-2xl font-bold mb-1 text-dawn-600">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-amber-600">Email</div>
+                      <div className="text-2xl font-bold mb-1 text-dawn-600">Email</div>
                       <div className="text-xs text-muted-foreground">straight to your inbox</div>
                     </div>
                   </div>
@@ -161,7 +161,7 @@ export default function TradiesPage() {
                     },
                   ].map((item) => (
                     <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
-                      <item.icon className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                      <item.icon className="h-5 w-5 text-dawn-500 shrink-0 mt-0.5" />
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground">{item.desc}</p>
@@ -204,7 +204,7 @@ export default function TradiesPage() {
                     <div key={item.name} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
                         ))}
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
@@ -230,10 +230,10 @@ export default function TradiesPage() {
                     { title: "Repeat Scripts", desc: "Blood pressure, reflux, etc.", price: "From $29.95" },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4 text-center">
-                      <Wrench className="h-6 w-6 mx-auto mb-2 text-amber-500" />
+                      <Wrench className="h-6 w-6 mx-auto mb-2 text-dawn-500" />
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
-                      <span className="text-xs text-amber-600 font-medium">{item.price}</span>
+                      <span className="text-xs text-dawn-600 font-medium">{item.price}</span>
                     </div>
                   ))}
                 </div>
@@ -283,13 +283,13 @@ export default function TradiesPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-amber-500/20 bg-amber-50/30 dark:bg-amber-950/10">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-dawn-500/20 bg-amber-50/30 dark:bg-amber-950/10">
                   <h2 className="text-2xl font-bold mb-3">Sorted in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your cert on your phone. No stuffing around.
                   </p>
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white text-sm h-12 px-8">
+                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-white text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -304,15 +304,15 @@ export default function TradiesPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/for/shift-workers" className="text-amber-500 hover:underline">
+                <Link href="/for/shift-workers" className="text-dawn-500 hover:underline">
                   Shift Workers
                 </Link>
                 {" • "}
-                <Link href="/medical-certificate" className="text-amber-500 hover:underline">
+                <Link href="/medical-certificate" className="text-dawn-500 hover:underline">
                   All Medical Certificates
                 </Link>
                 {" • "}
-                <Link href="/prescriptions" className="text-amber-500 hover:underline">
+                <Link href="/prescriptions" className="text-dawn-500 hover:underline">
                   Prescriptions
                 </Link>
               </p>

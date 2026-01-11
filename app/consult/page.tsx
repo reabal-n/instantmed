@@ -203,7 +203,7 @@ export default function ConsultPage() {
                 </ul>
               </div>
               <div className="glass-card rounded-2xl p-6">
-                <h3 className="font-semibold text-amber-600 mb-3">⚠ Not suitable for</h3>
+                <h3 className="font-semibold text-dawn-600 mb-3">⚠ Not suitable for</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• Emergencies (call 000)</li>
                   <li>• Physical examinations</li>

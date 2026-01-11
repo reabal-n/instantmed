@@ -265,7 +265,7 @@ export function SymptomChecker({
           "rounded-xl border p-4",
           result.severity === "critical"
             ? "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
-            : "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
+            : "border-dawn-300 bg-dawn-50 dark:border-dawn-800 dark:bg-dawn-950/30",
           className
         )}
       >
@@ -273,7 +273,7 @@ export function SymptomChecker({
           <div
             className={cn(
               "h-10 w-10 rounded-full flex items-center justify-center",
-              result.severity === "critical" ? "bg-red-500" : "bg-amber-500"
+              result.severity === "critical" ? "bg-red-500" : "bg-dawn-500"
             )}
           >
             <AlertTriangle className="h-5 w-5 text-white" />
@@ -283,7 +283,7 @@ export function SymptomChecker({
             <h4
               className={cn(
                 "font-semibold",
-                result.severity === "critical" ? "text-red-800" : "text-amber-800"
+                result.severity === "critical" ? "text-red-800" : "text-dawn-800"
               )}
             >
               {result.severity === "critical"
@@ -293,7 +293,7 @@ export function SymptomChecker({
             <p
               className={cn(
                 "text-sm mt-1",
-                result.severity === "critical" ? "text-red-700" : "text-amber-700"
+                result.severity === "critical" ? "text-red-700" : "text-dawn-700"
               )}
             >
               {result.message}
@@ -309,7 +309,7 @@ export function SymptomChecker({
               {result.yellowFlags.map((flag) => (
                 <Badge
                   key={flag}
-                  className="text-xs bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  className="text-xs bg-dawn-200 text-dawn-800 hover:bg-dawn-300"
                 >
                   {flag}
                 </Badge>
@@ -340,7 +340,7 @@ export function SymptomChecker({
               <div className="mt-4">
                 <Button
                   onClick={handleContinue}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  className="bg-dawn-600 hover:bg-dawn-700 text-white"
                 >
                   I understand, continue anyway
                 </Button>

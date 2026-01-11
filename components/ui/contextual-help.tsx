@@ -111,11 +111,11 @@ export function InfoCard({
       defaultIcon: Info,
     },
     warning: {
-      bg: "bg-amber-50",
-      border: "border-amber-100",
-      iconColor: "text-amber-600",
-      titleColor: "text-amber-900",
-      textColor: "text-amber-700",
+      bg: "bg-dawn-50",
+      border: "border-dawn-100",
+      iconColor: "text-dawn-600",
+      titleColor: "text-dawn-900",
+      textColor: "text-dawn-700",
       defaultIcon: AlertCircle,
     },
     error: {

@@ -303,7 +303,7 @@ export function QueueClient({
                               waitSeverity === "critical"
                                 ? "text-red-600"
                                 : waitSeverity === "warning"
-                                  ? "text-amber-600"
+                                  ? "text-dawn-600"
                                   : "text-muted-foreground"
                             }`}
                           >

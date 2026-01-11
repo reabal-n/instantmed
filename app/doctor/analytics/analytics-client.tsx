@@ -149,7 +149,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-amber-100">
-                <Clock className="h-5 w-5 text-amber-600" />
+                <Clock className="h-5 w-5 text-dawn-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">In Queue</p>
@@ -307,7 +307,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
                       <div className="flex items-center gap-2">
                         {service.name.includes("Medical") && <Stethoscope className="h-4 w-4 text-blue-500" />}
                         {service.name.includes("Script") && <Pill className="h-4 w-4 text-emerald-500" />}
-                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-amber-500" />}
+                        {service.name.includes("Consult") && <Users className="h-4 w-4 text-dawn-500" />}
                         <span className="font-medium">{service.name}</span>
                       </div>
                       <span className="text-muted-foreground">{service.count} ({percentage}%)</span>
@@ -342,7 +342,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
             </div>
             <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
               <p className="text-2xl font-bold text-amber-700">{analytics.statusCounts.in_review || 0}</p>
-              <p className="text-sm text-amber-600">Under Review</p>
+              <p className="text-sm text-dawn-600">Under Review</p>
             </div>
             <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
               <p className="text-2xl font-bold text-emerald-700">{analytics.statusCounts.approved || 0}</p>
@@ -358,11 +358,11 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Priority Stats */}
       {analytics.priorityCount > 0 && (
-        <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-white">
+        <Card className="border-amber-200 bg-gradient-to-r from-dawn-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-amber-100">
-                <Zap className="h-6 w-6 text-amber-600" />
+                <Zap className="h-6 w-6 text-dawn-600" />
               </div>
               <div>
                 <p className="font-medium">Priority Requests</p>

@@ -277,7 +277,7 @@ export function CompactStepper({
               key={index}
               className={cn(
                 'w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300',
-                index <= current ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+                index <= current ? 'bg-primary' : 'bg-gray-300 dark:bg-slate-600'
               )}
               aria-label={labels?.[index]}
             />

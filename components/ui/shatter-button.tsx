@@ -82,7 +82,7 @@ export function ShatterButton({
           scale: isShattered ? 0 : 1,
           opacity: isShattered ? 0 : 1,
         }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.3 }}
         whileHover={disabled ? {} : { scale: 1.05 }}
         whileTap={disabled ? {} : { scale: 0.95 }}
         style={{
@@ -218,7 +218,7 @@ export function ShatterButtonLink({
           scale: isShattered ? 0 : 1,
           opacity: isShattered ? 0 : 1,
         }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: 0.3 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         style={{

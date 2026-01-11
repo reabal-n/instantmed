@@ -71,7 +71,7 @@ export function ProgressIndicator({
           className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-green-500 rounded-full"
           transition={{
             type: "spring",
-            stiffness: 300,
+            stiffness: 200,
             damping: 20,
             mass: 0.8,
             bounce: 0.25,
@@ -95,7 +95,7 @@ export function ProgressIndicator({
                 animate={{ opacity: 1, width: "64px", scale: 1 }}
                 transition={{
                   type: "spring",
-                  stiffness: 400,
+                  stiffness: 200,
                   damping: 15,
                   mass: 0.8,
                   bounce: 0.25,

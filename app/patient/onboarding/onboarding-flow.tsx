@@ -301,7 +301,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-300",
                         state === s
                           ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                       )}
                     >
                       {s}
@@ -376,7 +376,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-400 flex items-start gap-2"
+                  className="p-4 rounded-xl bg-dawn-500/5 border border-dawn-500/20 text-sm text-amber-700 dark:text-dawn-400 flex items-start gap-2"
                 >
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{expiryWarning}</span>
@@ -426,7 +426,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         "w-12 h-12 rounded-xl text-base font-semibold transition-all duration-300",
                         irn === n
                           ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                          : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                       )}
                     >
                       {n}
@@ -453,7 +453,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                           "py-2 rounded-lg text-xs font-medium transition-all duration-300",
                           expiryMonth === m.value
                             ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                            : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
+                            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
                         )}
                       >
                         {m.label}
@@ -471,7 +471,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                           "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-300 shrink-0",
                           expiryYear === y
                             ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                            : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-gray-900/80 border border-white/40 dark:border-white/10"
+                            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
                         )}
                       >
                         {y}
@@ -499,7 +499,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   onClick={() => setConsentMyhr(!consentMyhr)}
                   className={cn(
                     "relative w-14 h-8 rounded-full transition-all duration-300 shrink-0",
-                    consentMyhr ? "bg-primary shadow-[0_8px_30px_rgb(59,130,246,0.3)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
+                    consentMyhr ? "bg-primary shadow-[0_8px_30px_rgb(59,130,246,0.3)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
                   )}
                 >
                   <span

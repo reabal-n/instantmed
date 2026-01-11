@@ -10,8 +10,9 @@ interface SkyBackgroundProps {
 }
 
 /**
- * SkyBackground - Blue sky with clouds background matching Dreelio style
- * Features parallax scrolling and floating cloud animations
+ * SkyBackground - Lumen Health morning light background
+ * Soft sky gradient with gentle floating clouds
+ * Features parallax scrolling and slow, intentional animations
  */
 export const SkyBackground = ({
   className,
@@ -57,15 +58,26 @@ export const SkyBackground = ({
         )}
         aria-hidden="true"
       >
-        {/* Sky gradient background */}
+        {/* Lumen sky gradient - morning light palette */}
         <div
           className="absolute inset-0"
           style={{
             background: `linear-gradient(to bottom, 
-              #87CEEB 0%, 
-              #B0E0E6 30%, 
-              #E0F6FF 60%, 
-              #F0F8FF 100%
+              #C5DDF0 0%, 
+              #E1EEF5 25%, 
+              #EDF4F8 50%, 
+              #F7FAFC 100%
+            )`,
+          }}
+        />
+        
+        {/* Subtle dawn warmth overlay at horizon */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to top, 
+              rgba(254, 243, 232, 0.3) 0%, 
+              transparent 40%
             )`,
           }}
         />
@@ -95,8 +107,8 @@ export const SkyBackground = ({
             y: scrollY * 0.05 + cloudOffsets.cloud1,
           }}
           transition={{
-            x: { type: "spring", stiffness: 50, damping: 30 },
-            y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+            x: { type: "spring", stiffness: 30, damping: 25 },
+            y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
           }}
         />
 
@@ -125,8 +137,8 @@ export const SkyBackground = ({
             y: scrollY * 0.03 + cloudOffsets.cloud2,
           }}
           transition={{
-            x: { type: "spring", stiffness: 50, damping: 30 },
-            y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+            x: { type: "spring", stiffness: 30, damping: 25 },
+            y: { duration: 10, repeat: Infinity, ease: "easeInOut" },
           }}
         />
 
@@ -154,8 +166,8 @@ export const SkyBackground = ({
             y: scrollY * 0.04 + cloudOffsets.cloud3,
           }}
           transition={{
-            x: { type: "spring", stiffness: 50, damping: 30 },
-            y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
+            x: { type: "spring", stiffness: 30, damping: 25 },
+            y: { duration: 9, repeat: Infinity, ease: "easeInOut" },
           }}
         />
 
@@ -183,8 +195,8 @@ export const SkyBackground = ({
             y: scrollY * 0.06 + cloudOffsets.cloud4,
           }}
           transition={{
-            x: { type: "spring", stiffness: 50, damping: 30 },
-            y: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
+            x: { type: "spring", stiffness: 30, damping: 25 },
+            y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
           }}
         />
 

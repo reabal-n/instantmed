@@ -448,7 +448,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                           ? opt.color === 'emerald'
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                             : opt.color === 'amber'
-                            ? 'border-amber-500 bg-amber-50 text-amber-700'
+                            ? 'border-dawn-500 bg-dawn-50 text-dawn-700'
                             : 'border-red-500 bg-red-50 text-red-700'
                           : 'border-slate-200 hover:border-slate-300 text-slate-600'
                       )}
@@ -486,7 +486,7 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
                           ? opt.value === 'severe'
                             ? 'border-red-500 bg-red-50 text-red-700'
                             : opt.value === 'moderate'
-                            ? 'border-amber-500 bg-amber-50 text-amber-700'
+                            ? 'border-dawn-500 bg-dawn-50 text-dawn-700'
                             : 'border-emerald-500 bg-emerald-50 text-emerald-700'
                           : 'border-slate-200 hover:border-slate-300 text-slate-600'
                       )}
@@ -612,9 +612,9 @@ export function PrescriptionDetailsStep({ onComplete }: PrescriptionDetailsStepP
 
         {/* Info notices */}
         <div className="space-y-3 pt-2">
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-dawn-50 border border-dawn-100">
+            <AlertTriangle className="w-4 h-4 text-dawn-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-dawn-800">
               Some medications (like Schedule 8 controlled substances) can&apos;t be prescribed
               online. The doctor will let you know if an in-person visit is needed.
             </p>

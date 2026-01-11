@@ -144,7 +144,7 @@ function EmergencyBanner({
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg border border-red-200/50 dark:border-red-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(239,68,68,0.1)] transition-all duration-300">
+      <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-red-200/50 dark:border-red-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(239,68,68,0.1)] transition-all duration-300">
         <Checkbox
           checked={accepted}
           onCheckedChange={(checked) => onAccept(checked === true)}
@@ -237,7 +237,7 @@ function AuthStep({
           <Button
             onClick={onSignIn}
             disabled={isLoading}
-            className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <ButtonSpinner className="mr-2" />
@@ -258,13 +258,13 @@ function AuthStep({
             variant="outline"
             onClick={onGuest}
             disabled={isLoading}
-            className="w-full h-12 rounded-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {REPEAT_RX_COPY.auth.guestButton}
           </Button>
         </div>
         
-        <div className="p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
+        <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
           <p className="text-xs font-medium text-muted-foreground">
             Sign in for the best experience:
           </p>
@@ -375,16 +375,16 @@ function PillButton({
       aria-pressed={selected}
       className={cn(
         "min-h-[44px] px-4 py-2 rounded-full text-sm font-medium",
-        "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+        "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
         "border-2 border-white/40 dark:border-white/10",
         "transition-all duration-300 ease-out",
         selected
           ? "border-primary/50 bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
-          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]"
+          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]"
       )}
-      whileHover={selected ? {} : { scale: 1.02, y: -1 }}
+      whileHover={selected ? {} : { y: -2 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ type: "spring", stiffness: 200, damping: 30 }}
     >
       {children}
     </motion.button>
@@ -392,7 +392,7 @@ function PillButton({
 }
 
 // ============================================================================
-// FORM INPUT (with InstantMed styling)
+// FORM INPUT (with Lumen Health styling)
 // ============================================================================
 
 function FormInput({
@@ -755,7 +755,7 @@ export function RepeatRxIntakeFlow({
       <div className="min-h-screen bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         {/* Header */}
         {currentStep !== "auth" && currentStep !== "confirmation" && (
-          <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
+          <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
             <div className="max-w-lg mx-auto px-3 py-2">
               <div className="flex items-center gap-2 mb-2">
                 {currentStep !== "medication" && (
@@ -837,9 +837,9 @@ export function RepeatRxIntakeFlow({
                   </div>
                   
                   {medication && (
-                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
+                    <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
                       <p className="text-sm font-medium">{REPEAT_RX_COPY.steps.medication.strengthConfirm}</p>
-                      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-lg border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
                         <div className="flex-1">
                           <p className="font-medium text-sm">{medication.medication_name}</p>
                           <p className="text-sm text-muted-foreground">
@@ -915,7 +915,7 @@ export function RepeatRxIntakeFlow({
                     value={prescriber}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrescriber(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.prescriberPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 </FormInput>
                 
@@ -929,7 +929,7 @@ export function RepeatRxIntakeFlow({
                     value={indication}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndication(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.indicationPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 </FormInput>
                 
@@ -943,7 +943,7 @@ export function RepeatRxIntakeFlow({
                     value={currentDose}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentDose(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.history.currentDosePlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 </FormInput>
                 
@@ -1007,7 +1007,7 @@ export function RepeatRxIntakeFlow({
                       value={sideEffectsDetails}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSideEffectsDetails(e.target.value)}
                       placeholder={REPEAT_RX_COPY.steps.safety.sideEffectsPlaceholder}
-                      className="min-h-[100px] rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                      className="min-h-[100px] rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                     />
                   </FormInput>
                 )}
@@ -1047,7 +1047,7 @@ export function RepeatRxIntakeFlow({
                     value={allergyDetails}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAllergyDetails(e.target.value)}
                     placeholder={REPEAT_RX_COPY.steps.safety.allergyPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                   </FormInput>
                 </ProgressiveSection>
@@ -1070,11 +1070,11 @@ export function RepeatRxIntakeFlow({
                     key={key}
                     className={cn(
                       "flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
-                      "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+                      "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                       "border-white/40 dark:border-white/10",
                       pmhxFlags[key as keyof typeof pmhxFlags]
                         ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                        : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                        : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                     )}
                   >
                     <Checkbox
@@ -1097,7 +1097,7 @@ export function RepeatRxIntakeFlow({
                       otherDetails: e.target.value,
                     }))}
                     placeholder={REPEAT_RX_COPY.steps.medical_history.otherPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 )}
               </div>
@@ -1116,7 +1116,7 @@ export function RepeatRxIntakeFlow({
                   value={otherMedsInput}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherMedsInput(e.target.value)}
                   placeholder={REPEAT_RX_COPY.steps.medical_history.otherMedsPlaceholder}
-                  className="min-h-[100px] rounded-xl bg-white/60 dark:bg-gray-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                  className="min-h-[100px] rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
                 </FormInput>
               </ProgressiveSection>
@@ -1137,11 +1137,11 @@ export function RepeatRxIntakeFlow({
                 <label
                   className={cn(
                     "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
-                    "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+                    "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                     "border-white/40 dark:border-white/10",
                     gpAttestationAccepted
                       ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                      : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                      : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                   )}
                 >
                   <Checkbox
@@ -1163,11 +1163,11 @@ export function RepeatRxIntakeFlow({
                 <label
                   className={cn(
                     "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
-                    "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl",
+                    "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                     "border-white/40 dark:border-white/10",
                     termsAccepted
                       ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                      : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                      : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                   )}
                 >
                   <Checkbox
@@ -1201,7 +1201,7 @@ export function RepeatRxIntakeFlow({
               
               <div className="space-y-4">
                 {/* Medication */}
-                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">
@@ -1222,7 +1222,7 @@ export function RepeatRxIntakeFlow({
                 </div>
                 
                 {/* History summary */}
-                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
+                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
                   <div className="flex items-start justify-between">
                     <p className="text-xs text-muted-foreground">
                       {REPEAT_RX_COPY.steps.review.history}
@@ -1253,7 +1253,7 @@ export function RepeatRxIntakeFlow({
                 </div>
                 
                 {/* Attestations */}
-                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
+                <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-2">
                   <p className="text-xs text-muted-foreground">
                     {REPEAT_RX_COPY.steps.review.attestations}
                   </p>
@@ -1285,7 +1285,7 @@ export function RepeatRxIntakeFlow({
                 subtitle={REPEAT_RX_COPY.payment.subtitle}
               />
               
-              <div className="p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
+              <div className="p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">Total</span>
                   <span className="text-2xl font-bold text-primary">
@@ -1323,7 +1323,7 @@ export function RepeatRxIntakeFlow({
               </div>
               
               {/* Timeline */}
-              <div className="p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+              <div className="p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                 <div className="space-y-4">
                   {REPEAT_RX_COPY.confirmation.timeline.map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
@@ -1352,7 +1352,7 @@ export function RepeatRxIntakeFlow({
                 </div>
               </div>
               
-              <div className="p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
+              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
                 <p className="font-medium text-sm">{REPEAT_RX_COPY.confirmation.whatNext}</p>
                 <ol className="space-y-2">
                   {REPEAT_RX_COPY.confirmation.steps.map((step, i) => (
@@ -1369,7 +1369,7 @@ export function RepeatRxIntakeFlow({
               
               <Button
                 onClick={() => router.push("/patient/requests")}
-                className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
                 {REPEAT_RX_COPY.confirmation.trackStatus}
                 <ChevronRight className="w-4 h-4 ml-2" />
@@ -1380,7 +1380,7 @@ export function RepeatRxIntakeFlow({
         
         {/* Footer */}
         {currentStep !== "auth" && currentStep !== "confirmation" && (
-          <footer className="fixed bottom-0 inset-x-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-4 safe-area-pb">
+          <footer className="fixed bottom-0 inset-x-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-4 safe-area-pb">
             <div className="max-w-lg mx-auto space-y-3">
               {/* Trust strip */}
               <TrustStrip />
@@ -1409,7 +1409,7 @@ export function RepeatRxIntakeFlow({
                       goToStep("confirmation")
                     }}
                     disabled={isLoading}
-                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <>
@@ -1427,7 +1427,7 @@ export function RepeatRxIntakeFlow({
                   <Button
                     onClick={checkEligibility}
                     disabled={!canContinue() || isCheckingEligibility}
-                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCheckingEligibility ? (
                       <>
@@ -1445,7 +1445,7 @@ export function RepeatRxIntakeFlow({
                   <Button
                     onClick={goNext}
                     disabled={!canContinue()}
-                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {REPEAT_RX_COPY.nav.continue}
                     <ArrowRight className="w-4 h-4 ml-2" />

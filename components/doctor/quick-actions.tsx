@@ -92,7 +92,7 @@ export function QuickActions({
       description: "Request additional information",
       icon: MessageSquare,
       shortcut: "⌘ I",
-      color: "text-amber-600 bg-amber-100 hover:bg-amber-200",
+      color: "text-dawn-600 bg-dawn-100 hover:bg-dawn-200",
       action: onRequestInfo,
     },
   ]
@@ -257,13 +257,13 @@ export function WorkloadStats({ pending, reviewed, priorityCount }: WorkloadStat
           <p className="text-xs text-muted-foreground">Reviewed</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-amber-600">{priorityCount}</p>
+          <p className="text-2xl font-bold text-dawn-600">{priorityCount}</p>
           <p className="text-xs text-muted-foreground">Priority</p>
         </div>
       </div>
 
       {priorityCount > 0 && (
-        <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700 flex items-center gap-2">
+        <div className="mt-3 p-2 rounded-lg bg-dawn-50 border border-dawn-200 text-xs text-dawn-700 flex items-center gap-2">
           <Zap className="h-3.5 w-3.5" />
           {priorityCount} priority {priorityCount === 1 ? "request" : "requests"} waiting
         </div>

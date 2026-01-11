@@ -34,7 +34,7 @@ export function IntakeDetailClient({ intake, document }: IntakeDetailClientProps
       case "declined":
         return <XCircle className="h-5 w-5 text-red-500" />
       case "pending_info":
-        return <AlertCircle className="h-5 w-5 text-amber-500" />
+        return <AlertCircle className="h-5 w-5 text-dawn-500" />
       default:
         return <Clock className="h-5 w-5 text-blue-500" />
     }

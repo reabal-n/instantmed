@@ -16,9 +16,6 @@ import {
   ClipboardList,
   Settings,
   Zap,
-  Heart,
-  Shield,
-  Scale,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import {
@@ -60,29 +57,6 @@ const services = [
   },
 ]
 
-const healthVerticals = [
-  {
-    title: "Women's Health",
-    href: "/womens-health",
-    description: "UTI, contraception & more",
-    icon: Heart,
-    color: "text-pink-500",
-  },
-  {
-    title: "Men's Health",
-    href: "/mens-health",
-    description: "ED, hair loss & testing",
-    icon: Shield,
-    color: "text-blue-500",
-  },
-  {
-    title: "Weight Loss",
-    href: "/weight-loss",
-    description: "Weight management consultation",
-    icon: Scale,
-    color: "text-indigo-500",
-  },
-]
 
 // Animation variants for 3D flip effect
 const itemVariants = {
@@ -101,8 +75,8 @@ const glowVariants = {
     opacity: 1,
     scale: 2,
     transition: {
-      opacity: { duration: 0.15, ease: "easeOut" },
-      scale: { duration: 0.15, ease: "easeOut" },
+      opacity: { duration: 0.3, ease: "easeOut" },
+      scale: { duration: 0.3, ease: "easeOut" },
     },
   },
 }
@@ -111,7 +85,7 @@ const navGlowVariants = {
   initial: { opacity: 0 },
   hover: {
     opacity: 1,
-    transition: { duration: 0.15, ease: "easeOut" },
+    transition: { duration: 0.3, ease: "easeOut" },
   },
 }
 
@@ -306,11 +280,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           />
           <div className="relative z-10 flex items-center justify-between px-4 py-2">
             {/* Logo */}
-            <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="InstantMed home">
+            <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="Lumen Health home">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600">
                 <Zap className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               </div>
-              <span className="text-sm font-semibold text-foreground">InstantMed</span>
+              <span className="text-sm font-semibold text-foreground">Lumen Health</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -332,7 +306,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     
                     {servicesDropdownOpen && (
                       <div className="absolute top-full left-0 pt-2 z-[100]">
-                        <div className="w-64 bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-2xl shadow-[0_12px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_12px_40px_rgb(139,92,246,0.2)] p-2 space-y-1">
+                        <div className="w-64 bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-2xl shadow-[0_12px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_12px_40px_rgb(139,92,246,0.2)] p-2 space-y-1">
                           <div className="px-2 py-1.5">
                             <p className="text-xs font-medium text-muted-foreground">Core Services</p>
                           </div>
@@ -346,23 +320,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                               <div>
                                 <p className="text-sm font-medium">{service.title}</p>
                                 <p className="text-xs text-muted-foreground">{service.description}</p>
-                              </div>
-                            </Link>
-                          ))}
-                          <div className="h-px bg-border my-1" />
-                          <div className="px-2 py-1.5">
-                            <p className="text-xs font-medium text-muted-foreground">Health Programs</p>
-                          </div>
-                          {healthVerticals.map((vertical) => (
-                            <Link
-                              key={vertical.href}
-                              href={vertical.href}
-                              className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group"
-                            >
-                              <vertical.icon className={cn("h-4 w-4", vertical.color)} />
-                              <div>
-                                <p className="text-sm font-medium">{vertical.title}</p>
-                                <p className="text-xs text-muted-foreground">{vertical.description}</p>
                               </div>
                             </Link>
                           ))}
@@ -545,7 +502,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">InstantMed</span>
+            <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Lumen Health</span>
           </Link>
         }
         footer={
@@ -597,29 +554,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               />
             ))}
             <AnimatedMobileMenu.Divider />
-            <AnimatedMobileMenu.Section title="Health Programs" />
-            {healthVerticals.map((vertical, index) => (
-              <AnimatedMobileMenu.Item
-                key={vertical.href}
-                item={{
-                  label: vertical.title,
-                  href: vertical.href,
-                  description: vertical.description,
-                  icon: <vertical.icon className="h-5 w-5" />,
-                }}
-                index={index + services.length}
-                onClose={() => setMobileMenuOpen(false)}
-              />
-            ))}
-            <AnimatedMobileMenu.Divider />
             <AnimatedMobileMenu.Item
               item={{ label: "How it works", href: "/how-it-works", icon: <Zap className="h-5 w-5" /> }}
-              index={services.length + healthVerticals.length}
+              index={services.length}
               onClose={() => setMobileMenuOpen(false)}
             />
             <AnimatedMobileMenu.Item
               item={{ label: "Pricing", href: "/pricing", icon: <FileText className="h-5 w-5" /> }}
-              index={services.length + healthVerticals.length + 1}
+              index={services.length + 1}
               onClose={() => setMobileMenuOpen(false)}
             />
           </>

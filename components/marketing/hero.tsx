@@ -142,7 +142,7 @@ export function Hero() {
             }}
           >
             <HolographicCard borderRadius="1rem" intensity={0.6}>
-              <div className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.25)] transition-all duration-300 cursor-default">
+              <div className="bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.25)] transition-all duration-300 cursor-default">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center flex-shrink-0 shadow-[0_4px_15px_rgb(59,130,246,0.2)]">
                     <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-primary" />
@@ -167,7 +167,7 @@ export function Hero() {
               y: { duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }
             }}
           >
-            <div className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.3)] transition-all duration-300 cursor-default group">
+            <div className="bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(59,130,246,0.2)] border border-white/50 dark:border-white/15 hover:shadow-[0_12px_40px_rgb(59,130,246,0.3)] transition-all duration-300 cursor-default group">
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Doctor Profile Image */}
                 <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full overflow-hidden ring-2 ring-primary/30 group-hover:ring-primary/60 group-hover:shadow-[0_0_20px_rgb(59,130,246,0.3)] flex-shrink-0 transition-all duration-300">
@@ -186,7 +186,7 @@ export function Hero() {
                     <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Doctor reviews</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-dawn-500 fill-dawn-500 flex-shrink-0" />
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">4.9 rating</p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export function Hero() {
           >
             <PulseGlow color="#22c55e" duration={2} scale={1.03}>
               <motion.div 
-                className="bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(34,197,94,0.25)] border border-emerald-400/50 dark:border-emerald-500/30 hover:shadow-[0_12px_40px_rgb(34,197,94,0.35)] transition-all duration-300 cursor-default"
+                className="bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(34,197,94,0.25)] border border-emerald-400/50 dark:border-emerald-500/30 hover:shadow-[0_12px_40px_rgb(34,197,94,0.35)] transition-all duration-300 cursor-default"
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
               >

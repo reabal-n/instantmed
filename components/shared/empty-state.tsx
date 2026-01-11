@@ -33,7 +33,7 @@ export function EmptyState({
       className={cn(
         "flex flex-col items-center justify-center py-12 px-4 text-center",
         // Glass container
-        "bg-white/50 dark:bg-gray-900/40 backdrop-blur-xl",
+        "bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl",
         "border border-white/40 dark:border-white/10",
         "rounded-3xl",
         "shadow-[0_8px_30px_rgb(59,130,246,0.1)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.1)]",
@@ -85,7 +85,7 @@ export function EmptyState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
           <Button asChild className="rounded-full shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] transition-all duration-300">
@@ -101,7 +101,7 @@ export function EmptyState({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
           <Button onClick={onAction} className="rounded-full shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] transition-all duration-300">

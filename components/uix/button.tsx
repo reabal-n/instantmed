@@ -71,7 +71,7 @@ export function Button({
       isIconOnly={isIconSize}
       className={cn(
         "font-medium transition-all duration-200 ease-out",
-        "hover:scale-[1.02] active:scale-[0.98]",
+        "hover:-translate-y-0.5 active:scale-[0.98]",
         variant === "default" && "shadow-md hover:shadow-lg",
         variant === "link" && "underline-offset-4 hover:underline shadow-none hover:shadow-none",
         variant === "ghost" && "shadow-none hover:shadow-sm",

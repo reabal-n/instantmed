@@ -201,7 +201,7 @@ export function LiveChatWidget() {
               <Bot className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <p className="font-semibold text-primary-foreground">InstantMed</p>
+              <p className="font-semibold text-primary-foreground">Lumen Health</p>
               <p className="text-xs text-primary-foreground/70">Usually replies instantly</p>
             </div>
           </div>

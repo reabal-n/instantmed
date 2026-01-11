@@ -176,7 +176,7 @@ export function FloatingBadge({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ y: -2 }}
     >
       <span className="relative flex h-2 w-2">
         <span 
@@ -184,7 +184,7 @@ export function FloatingBadge({
             "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
             color === "primary" ? "bg-primary" : 
             color === "success" ? "bg-emerald-500" :
-            color === "warning" ? "bg-amber-500" : "bg-primary"
+            color === "warning" ? "bg-dawn-500" : "bg-primary"
           )} 
         />
         <span 
@@ -192,7 +192,7 @@ export function FloatingBadge({
             "relative inline-flex rounded-full h-2 w-2",
             color === "primary" ? "bg-primary" : 
             color === "success" ? "bg-emerald-500" :
-            color === "warning" ? "bg-amber-500" : "bg-primary"
+            color === "warning" ? "bg-dawn-500" : "bg-primary"
           )} 
         />
       </span>
@@ -338,7 +338,7 @@ interface IconBadgeProps {
 const iconBadgeVariants = {
   primary: "bg-primary/10 text-primary",
   success: "bg-emerald-500/10 text-emerald-500",
-  warning: "bg-amber-500/10 text-amber-500",
+  warning: "bg-dawn-500/10 text-dawn-500",
   danger: "bg-red-500/10 text-red-500",
   info: "bg-violet-500/10 text-violet-500",
 }

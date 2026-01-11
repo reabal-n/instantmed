@@ -70,10 +70,10 @@ const POPULAR_MEDICATIONS = [
   { id: "contraceptive", label: "Contraceptive Pill", emoji: "💊", searchTerm: "contraceptive", color: "from-rose-50 to-pink-50 border-rose-200/60 hover:border-rose-300" },
   { id: "asthma", label: "Asthma Inhaler", emoji: "🌬️", searchTerm: "ventolin", color: "from-sky-50 to-cyan-50 border-sky-200/60 hover:border-sky-300" },
   { id: "bloodpressure", label: "Blood Pressure", emoji: "❤️", searchTerm: "blood pressure", color: "from-red-50 to-rose-50 border-red-200/60 hover:border-red-300" },
-  { id: "cholesterol", label: "Cholesterol", emoji: "🫀", searchTerm: "statin", color: "from-orange-50 to-amber-50 border-orange-200/60 hover:border-orange-300" },
+  { id: "cholesterol", label: "Cholesterol", emoji: "🫀", searchTerm: "statin", color: "from-orange-50 to-dawn-50 border-orange-200/60 hover:border-orange-300" },
   { id: "thyroid", label: "Thyroid", emoji: "🦋", searchTerm: "thyroxine", color: "from-violet-50 to-purple-50 border-violet-200/60 hover:border-violet-300" },
   { id: "diabetes", label: "Diabetes", emoji: "📊", searchTerm: "metformin", color: "from-emerald-50 to-teal-50 border-emerald-200/60 hover:border-emerald-300" },
-  { id: "reflux", label: "Reflux/Heartburn", emoji: "🔥", searchTerm: "omeprazole", color: "from-amber-50 to-yellow-50 border-amber-200/60 hover:border-amber-300" },
+  { id: "reflux", label: "Reflux/Heartburn", emoji: "🔥", searchTerm: "omeprazole", color: "from-dawn-50 to-yellow-50 border-amber-200/60 hover:border-amber-300" },
   { id: "anxiety", label: "Mental Health", emoji: "🧠", searchTerm: "sertraline", color: "from-indigo-50 to-blue-50 border-indigo-200/60 hover:border-indigo-300" },
 ]
 
@@ -538,11 +538,11 @@ export default function RepeatPrescriptionDemoPage() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
+            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-dawn-50 to-orange-50 dark:from-dawn-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
           >
             <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm">
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <AlertCircle className="w-4 h-4 text-dawn-600 dark:text-dawn-400" />
                 <span className="text-amber-800 dark:text-amber-200">
                   We found your saved progress
                 </span>
@@ -737,7 +737,7 @@ export default function RepeatPrescriptionDemoPage() {
                                   <span className="font-semibold text-foreground">{med.generic}</span>
                                   <span className="text-xs text-muted-foreground">{med.strength}</span>
                                   {med.schedule === "S8" && (
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-dawn-400 font-medium">
                                       Call needed
                                     </span>
                                   )}
@@ -883,7 +883,7 @@ export default function RepeatPrescriptionDemoPage() {
                           {selectedMedication.notes && (
                             <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
                               <div className="flex items-start gap-2">
-                                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                <AlertCircle className="w-4 h-4 text-dawn-600 dark:text-dawn-400 mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-amber-700 dark:text-amber-300">
                                   {selectedMedication.notes}
                                 </p>
@@ -1165,7 +1165,7 @@ export default function RepeatPrescriptionDemoPage() {
                       
                       // Different pastel colors for each option
                       const colors = [
-                        { bg: "from-amber-50 to-orange-50", border: "border-amber-200 dark:border-amber-700", icon: "from-amber-400 to-orange-400", text: "text-amber-700 dark:text-amber-400" },
+                        { bg: "from-dawn-50 to-orange-50", border: "border-amber-200 dark:border-amber-700", icon: "from-dawn-400 to-orange-400", text: "text-amber-700 dark:text-dawn-400" },
                         { bg: "from-sky-50 to-cyan-50", border: "border-sky-200 dark:border-sky-700", icon: "from-sky-400 to-cyan-400", text: "text-sky-700 dark:text-sky-400" },
                         { bg: "from-emerald-50 to-teal-50", border: "border-emerald-200 dark:border-emerald-700", icon: "from-emerald-400 to-teal-400", text: "text-emerald-700 dark:text-emerald-400" },
                         { bg: "from-violet-50 to-purple-50", border: "border-violet-200 dark:border-violet-700", icon: "from-violet-400 to-purple-400", text: "text-violet-700 dark:text-violet-400" },
@@ -1270,7 +1270,7 @@ export default function RepeatPrescriptionDemoPage() {
                           className={cn(
                             "relative p-4 rounded-2xl border-2 text-left transition-all duration-200",
                             isSelected && !option.warning && "border-green-400 dark:border-green-600 bg-green-50/50 dark:bg-green-900/20",
-                            isSelected && option.warning && "border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-900/20",
+                            isSelected && option.warning && "border-dawn-400 dark:border-dawn-600 bg-amber-50/50 dark:bg-amber-900/20",
                             !isSelected && "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                           )}
                         >
@@ -1281,7 +1281,7 @@ export default function RepeatPrescriptionDemoPage() {
                               animate={{ scale: 1 }}
                               className={cn(
                                 "absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center",
-                                option.warning ? "bg-amber-500" : "bg-green-500"
+                                option.warning ? "bg-dawn-500" : "bg-green-500"
                               )}
                             >
                               <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -1294,7 +1294,7 @@ export default function RepeatPrescriptionDemoPage() {
                           <p className={cn(
                             "font-semibold text-sm mb-1",
                             isSelected && !option.warning && "text-green-700 dark:text-green-400",
-                            isSelected && option.warning && "text-amber-700 dark:text-amber-400",
+                            isSelected && option.warning && "text-amber-700 dark:text-dawn-400",
                             !isSelected && "text-foreground"
                           )}>
                             {option.label}
@@ -1318,7 +1318,7 @@ export default function RepeatPrescriptionDemoPage() {
                       >
                         <div className="flex items-start gap-3">
                           <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
-                            <Phone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            <Phone className="w-4 h-4 text-dawn-600 dark:text-dawn-400" />
                           </div>
                           <div>
                             <p className="font-medium text-amber-800 dark:text-amber-200 text-sm">
@@ -1417,7 +1417,7 @@ export default function RepeatPrescriptionDemoPage() {
                           className="pl-4 border-l-2 border-amber-300 dark:border-amber-700"
                         >
                           <div className="space-y-2">
-                            <label className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                            <label className="text-sm font-medium text-amber-700 dark:text-dawn-400">
                               Briefly tell us what changed?
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -1430,7 +1430,7 @@ export default function RepeatPrescriptionDemoPage() {
                               className={cn(
                                 "min-h-[80px] resize-none rounded-xl border-2",
                                 "border-amber-200 dark:border-amber-800",
-                                "focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20",
+                                "focus:border-dawn-400 focus:ring-2 focus:ring-dawn-400/20",
                                 "placeholder:text-muted-foreground/60"
                               )}
                             />
@@ -1477,7 +1477,7 @@ export default function RepeatPrescriptionDemoPage() {
                           className="pl-4 border-l-2 border-amber-300 dark:border-amber-700"
                         >
                           <div className="space-y-2">
-                            <label className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                            <label className="text-sm font-medium text-amber-700 dark:text-dawn-400">
                               What are you taking?
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -1490,7 +1490,7 @@ export default function RepeatPrescriptionDemoPage() {
                               className={cn(
                                 "min-h-[80px] resize-none rounded-xl border-2",
                                 "border-amber-200 dark:border-amber-800",
-                                "focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20",
+                                "focus:border-dawn-400 focus:ring-2 focus:ring-dawn-400/20",
                                 "placeholder:text-muted-foreground/60"
                               )}
                             />

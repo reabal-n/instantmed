@@ -80,7 +80,7 @@ function LoginForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 text-base font-medium gap-3 mb-6"
+          className="w-full h-12 text-base font-medium gap-3 mb-6 border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-none hover:shadow-soft"
           onClick={handleGoogleSignIn}
           disabled={isLoading || isSubmitting}
         >
@@ -135,7 +135,7 @@ function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -160,7 +160,7 @@ function LoginForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
+          <Button type="submit" className="w-full h-12 text-base font-medium bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -176,7 +176,7 @@ function LoginForm() {
           Don&apos;t have an account?{' '}
           <Link 
             href={redirectUrl ? `/auth/register?redirect=${encodeURIComponent(redirectUrl)}` : '/auth/register'} 
-            className="text-primary hover:underline font-medium"
+            className="text-primary-600 hover:text-primary-700 hover:underline font-medium"
           >
             Sign up
           </Link>
@@ -194,17 +194,17 @@ export default function LoginPage() {
         <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-xl font-bold text-white">I</span>
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
+                <span className="text-xl font-bold text-amber-950">L</span>
               </div>
-              <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                InstantMed
+              <span className="text-2xl font-bold text-foreground group-hover:text-dawn-600 transition-colors">
+                Lumen Health
               </span>
             </Link>
             
             <h1 className="text-4xl font-bold text-foreground mb-4 leading-tight">
               Healthcare that actually works
-              <span className="text-primary">.</span>
+              <span className="text-dawn-500">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               Medical certificates and prescriptions delivered in under an hour. 
@@ -220,14 +220,14 @@ export default function LoginPage() {
                 <span>AHPRA-registered Australian doctors</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-dawn-500/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-dawn-500" />
                 </div>
                 <span>Average review time under 15 minutes</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-violet-500" />
+                <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-teal-500" />
                 </div>
                 <span>Bank-level encryption for all data</span>
               </div>

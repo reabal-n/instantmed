@@ -148,9 +148,9 @@ export function FormGroup({
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
+              className="text-xs text-dawn-600 dark:text-dawn-400 flex items-center gap-1"
             >
-              <span className="w-1 h-1 rounded-full bg-amber-500" />
+              <span className="w-1 h-1 rounded-full bg-dawn-500" />
               {warning}
             </motion.p>
           )}

@@ -237,7 +237,7 @@ export function MedicareOCR({ onResult, onError, className }: MedicareOCRProps) 
                 {ocrResult.confidence >= 50 ? (
                   <Check className="h-4 w-4 text-green-600" />
                 ) : (
-                  <AlertCircle className="h-4 w-4 text-amber-500" />
+                  <AlertCircle className="h-4 w-4 text-dawn-500" />
                 )}
                 <span className="font-medium">
                   {ocrResult.confidence >= 50 ? "Details detected" : "Partial detection"}
@@ -262,7 +262,7 @@ export function MedicareOCR({ onResult, onError, className }: MedicareOCRProps) 
                 </div>
               </div>
               {ocrResult.confidence < 50 && (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-dawn-600">
                   Some details couldn&apos;t be detected. Please verify and enter manually.
                 </p>
               )}

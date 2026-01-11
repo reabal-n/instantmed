@@ -236,7 +236,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = suburbs[suburb]
   if (!data) return {}
 
-  const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | InstantMed`
+  const title = `Medical Certificate Online ${data.name} | 15 Min Turnaround | Lumen Health`
   const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Australian doctors, 15-minute turnaround. Valid for all employers. No waiting rooms, no appointments.`
 
   return {
@@ -282,7 +282,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+          text: `Yes! Lumen Health provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
         },
       },
       {
@@ -307,7 +307,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
-    name: `InstantMed - Online Medical Certificates ${data.name}`,
+    name: `Lumen Health - Online Medical Certificates ${data.name}`,
     description: `Online medical certificates for ${data.name} residents`,
     areaServed: {
       "@type": "City",
@@ -414,7 +414,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <div className="mx-auto max-w-2xl text-center">
                 <div className="flex justify-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-5 w-5 fill-dawn-400 text-dawn-400" />
                   ))}
                 </div>
                 <blockquote className="text-lg mb-4">&quot;{data.testimonial.quote}&quot;</blockquote>
@@ -475,7 +475,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 {[
                   {
                     q: `Can I get a medical certificate online in ${data.name}?`,
-                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
+                    a: `Yes! Lumen Health provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically within 15 minutes.`,
                   },
                   {
                     q: "Will my employer accept this certificate?",
@@ -508,7 +508,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
               <p className="text-muted-foreground mb-6">
-                Join thousands of {data.name} residents who skip the waiting room with InstantMed.
+                Join thousands of {data.name} residents who skip the waiting room with Lumen Health.
               </p>
               <Link href="/medical-certificate/request">
                 <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">

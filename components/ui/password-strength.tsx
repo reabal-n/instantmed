@@ -39,7 +39,7 @@ function getStrengthLabel(strength: number): { label: string; color: string } {
     case 2:
       return { label: "Fair", color: "text-orange-500" }
     case 3:
-      return { label: "Good", color: "text-amber-500" }
+      return { label: "Good", color: "text-dawn-500" }
     case 4:
       return { label: "Strong", color: "text-emerald-500" }
     default:
@@ -55,7 +55,7 @@ function getBarColor(strength: number, index: number): string {
     case 2:
       return "bg-orange-500"
     case 3:
-      return "bg-amber-500"
+      return "bg-dawn-500"
     case 4:
       return "bg-emerald-500"
     default:

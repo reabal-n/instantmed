@@ -278,7 +278,7 @@ const mainAvatarVariants = {
     y: -20,
     opacity: 0,
     transition: {
-      duration: 0.15,
+      duration: 0.3,
     },
   },
 }
@@ -360,7 +360,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
             height: "6rem",
             transition: {
               height: {
-                duration: 0.15,
+                duration: 0.3,
                 ease: "easeOut",
               },
             },

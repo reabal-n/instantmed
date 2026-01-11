@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ArrowRight, FileText, Pill, Zap, Heart, Shield, Scale, ChevronDown } from 'lucide-react'
+import { Menu, X, ArrowRight, FileText, Pill, Zap, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { siteConfig } from '@/lib/marketing/homepage'
@@ -25,30 +25,6 @@ const services = [
     href: '/start?service=consult',
     description: 'New prescriptions & dose changes',
     icon: Zap,
-  },
-]
-
-const healthPrograms = [
-  {
-    label: 'Women\'s Health',
-    href: '/womens-health',
-    description: 'UTI, contraception & more',
-    icon: Heart,
-    color: 'text-pink-500',
-  },
-  {
-    label: 'Men\'s Health',
-    href: '/mens-health',
-    description: 'ED, hair loss & testing',
-    icon: Shield,
-    color: 'text-blue-500',
-  },
-  {
-    label: 'Weight Loss',
-    href: '/weight-loss',
-    description: 'Weight management consultation',
-    icon: Scale,
-    color: 'text-indigo-500',
   },
 ]
 
@@ -127,23 +103,6 @@ export function MarketingNavbar() {
                           </div>
                         </Link>
                       ))}
-                      <div className="border-t border-border my-2" />
-                      <p className="text-xs font-medium text-muted-foreground px-3 py-1">Health Programs</p>
-                      {healthPrograms.map((program) => (
-                        <Link
-                          key={program.href}
-                          href={program.href}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group"
-                        >
-                          <div className="p-2 rounded-lg bg-muted group-hover:bg-muted/80 transition-colors">
-                            <program.icon className={cn("h-4 w-4", program.color)} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{program.label}</p>
-                            <p className="text-xs text-muted-foreground">{program.description}</p>
-                          </div>
-                        </Link>
-                      ))}
                     </div>
                   </div>
                 )}
@@ -214,27 +173,6 @@ export function MarketingNavbar() {
                 <div>
                   <p className="text-sm font-medium text-foreground">{service.label}</p>
                   <p className="text-xs text-muted-foreground">{service.description}</p>
-                </div>
-              </Link>
-            ))}
-
-            <div className="border-t border-border my-4" />
-
-            {/* Health Programs */}
-            <p className="text-xs font-medium text-muted-foreground px-4">Health Programs</p>
-            {healthPrograms.map((program) => (
-              <Link
-                key={program.href}
-                href={program.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors"
-              >
-                <div className="p-2 rounded-lg bg-muted">
-                  <program.icon className={cn("h-5 w-5", program.color)} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{program.label}</p>
-                  <p className="text-xs text-muted-foreground">{program.description}</p>
                 </div>
               </Link>
             ))}

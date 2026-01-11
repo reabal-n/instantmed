@@ -136,7 +136,7 @@ export function EnhancedValidatedInput({
                   className={cn(
                     "text-xs font-medium transition-colors",
                     remainingChars !== null && remainingChars < 10
-                      ? "text-amber-600 dark:text-amber-400"
+                      ? "text-dawn-600 dark:text-dawn-400"
                       : remainingChars === 0
                       ? "text-red-600 dark:text-red-400"
                       : "text-muted-foreground"

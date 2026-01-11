@@ -25,7 +25,7 @@ const MinimalToggle = React.forwardRef<HTMLInputElement, React.InputHTMLAttribut
           "absolute inset-0 cursor-pointer rounded-[30px] bg-gray-300 transition ease-in-out",
           "before:absolute before:bottom-[0.2em] before:left-[0.2em] before:h-[1.4em] before:w-[1.4em]",
           "before:rounded-[20px] before:bg-gray-400 before:transition before:duration-300 before:content-['']",
-          "dark:bg-gray-700 dark:before:bg-gray-400"
+          "dark:bg-slate-700 dark:before:bg-slate-400"
         )} />
       </label>
     )

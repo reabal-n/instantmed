@@ -18,7 +18,7 @@ export default async function PaymentCancelledPage({
         <div className="glass-card rounded-3xl p-8 text-center">
           {/* Cancelled Icon */}
           <div className="mx-auto w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-6">
-            <XCircle className="w-10 h-10 text-amber-600" />
+            <XCircle className="w-10 h-10 text-dawn-600" />
           </div>
 
           {/* Title */}

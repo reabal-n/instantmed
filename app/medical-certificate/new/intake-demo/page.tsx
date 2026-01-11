@@ -426,11 +426,11 @@ export default function IntakeDemoPage() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
+            className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-dawn-50 to-orange-50 dark:from-dawn-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800"
           >
             <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm">
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <AlertCircle className="w-4 h-4 text-dawn-600 dark:text-dawn-400" />
                 <span className="text-amber-800 dark:text-amber-200">
                   We found your saved progress
                 </span>
@@ -528,7 +528,7 @@ export default function IntakeDemoPage() {
                   </span>
                   <span className="text-slate-300 dark:text-slate-600">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <Sparkles className="w-4 h-4 text-dawn-500" />
                     No phone call
                   </span>
                 </motion.div>
@@ -864,7 +864,7 @@ export default function IntakeDemoPage() {
                               className={cn(
                                 "py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200",
                                 customEndDate
-                                  ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 shadow-md"
+                                  ? "bg-gradient-to-br from-dawn-50 to-orange-50 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-dawn-400 shadow-md"
                                   : "bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-700 text-foreground hover:border-slate-300 hover:shadow-sm"
                               )}
                             >
@@ -949,7 +949,7 @@ export default function IntakeDemoPage() {
                           // Unique pastel gradient for each symptom
                           const colors = [
                             { bg: "from-rose-50 to-pink-50", border: "border-rose-200/60", text: "text-rose-700 dark:text-rose-400" },
-                            { bg: "from-amber-50 to-orange-50", border: "border-amber-200/60", text: "text-amber-700 dark:text-amber-400" },
+                            { bg: "from-dawn-50 to-orange-50", border: "border-amber-200/60", text: "text-amber-700 dark:text-dawn-400" },
                             { bg: "from-emerald-50 to-teal-50", border: "border-emerald-200/60", text: "text-emerald-700 dark:text-emerald-400" },
                             { bg: "from-sky-50 to-cyan-50", border: "border-sky-200/60", text: "text-sky-700 dark:text-sky-400" },
                             { bg: "from-violet-50 to-purple-50", border: "border-violet-200/60", text: "text-violet-700 dark:text-violet-400" },
@@ -1139,7 +1139,7 @@ export default function IntakeDemoPage() {
                         <motion.p
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="text-xs text-amber-600 dark:text-amber-400 mt-1"
+                          className="text-xs text-dawn-600 dark:text-dawn-400 mt-1"
                         >
                           We&apos;ll make sure your doctor knows.
                         </motion.p>
@@ -1170,7 +1170,7 @@ export default function IntakeDemoPage() {
                         <motion.p
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="text-xs text-amber-600 dark:text-amber-400 mt-1"
+                          className="text-xs text-dawn-600 dark:text-dawn-400 mt-1"
                         >
                           Different rules apply — we&apos;ll guide you through it.
                         </motion.p>

@@ -29,12 +29,12 @@ export function Footer() {
             <Link
               href="/"
               className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-foreground"
-              aria-label="InstantMed home"
+              aria-label="Lumen Health home"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2563EB] to-[#4f46e5]">
-                <Zap className="h-4 w-4 text-white" aria-hidden="true" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-dawn-400 to-dawn-500 shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
+                <Zap className="h-4 w-4 text-dawn-950" aria-hidden="true" />
               </div>
-              InstantMed
+              Lumen Health
             </Link>
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               Medical certificates & prescriptions — handled online by real Australian doctors.
@@ -80,21 +80,6 @@ export function Footer() {
               </div>
             </nav>
 
-            {/* Health Programs column */}
-            <nav className="hidden md:flex flex-col gap-1 md:gap-4" aria-label="Health Programs">
-              <h4 className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Programs</h4>
-              <div className="flex flex-col gap-2 text-sm items-start">
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/womens-health">
-                  Women&apos;s Health
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/mens-health">
-                  Men&apos;s Health
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/weight-loss">
-                  Weight Loss
-                </Link>
-              </div>
-            </nav>
           </div>
         </div>
       </div>

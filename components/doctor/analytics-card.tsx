@@ -209,7 +209,7 @@ export function AnalyticsCard({
               { color: "bg-indigo-500", label: "Medical Certificates", value: "847" },
               { color: "bg-violet-500", label: "Prescriptions", value: "423" },
               { color: "bg-emerald-500", label: "Approval Rate", value: `${data.approvalRate}%` },
-              { color: "bg-amber-500", label: "Avg. Response", value: data.avgResponseTime },
+              { color: "bg-dawn-500", label: "Avg. Response", value: data.avgResponseTime },
             ].map((item, index) => (
               <div
                 key={item.label}

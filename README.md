@@ -1,6 +1,6 @@
-# InstantMed
+# Lumen Health
 
-An asynchronous telehealth platform for medical certificates and prescriptions built for the Australian healthcare market.
+An asynchronous telehealth platform for medical certificates and prescriptions built for the Australian healthcare market. Designed with a premium, solarpunk-inspired aesthetic — warm, hopeful, and human.
 
 ## Tech Stack
 

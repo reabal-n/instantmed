@@ -25,22 +25,22 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   pressable = false,
   ...props 
 }, ref) => {
-  // Soft Pop Glass intensity variants
+  // Lumen Glass intensity variants - Night sky compatible
   const glassStyles = {
     subtle: cn(
-      "bg-white/50 dark:bg-gray-900/40",
+      "bg-white/60 dark:bg-slate-900/50",
       "backdrop-blur-lg",
-      "border border-white/30 dark:border-white/8",
+      "border border-sky-300/25 dark:border-slate-400/10",
     ),
     normal: cn(
-      "bg-white/70 dark:bg-gray-900/60",
+      "bg-white/75 dark:bg-slate-900/60",
       "backdrop-blur-xl",
-      "border border-white/40 dark:border-white/10",
+      "border border-sky-300/35 dark:border-slate-400/12",
     ),
     elevated: cn(
-      "bg-white/85 dark:bg-gray-900/80",
+      "bg-white/90 dark:bg-slate-900/75",
       "backdrop-blur-2xl",
-      "border border-white/50 dark:border-white/15",
+      "border border-sky-300/45 dark:border-slate-400/15",
     ),
   }
 
@@ -51,22 +51,22 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
       style={style}
       classNames={{
         base: cn(
-          // Soft Pop Glass surface
+          // Lumen Glass surface
           glassStyles[glass],
           // Geometry: rounded-2xl for cards
           "rounded-2xl",
-          // Soft glow shadow (not black!)
-          "shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
-          // Motion: hover lift with colored glow
+          // Lumen soft shadow (sky-tinted)
+          "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
+          // Motion: gentle hover lift
           "transition-all duration-300 ease-out",
           hoverable && [
-            "hover:bg-white/85 dark:hover:bg-gray-900/80",
-            "hover:-translate-y-1",
-            "hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]",
-            "dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]",
+            "hover:bg-white/85 dark:hover:bg-slate-900/70",
+            "hover:-translate-y-0.5",
+            "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
+            "dark:hover:shadow-[0_8px_30px_rgba(148,163,184,0.12)]",
           ],
-          // Press effect
-          pressable && "active:scale-[0.98]",
+          // Press effect - subtle
+          pressable && "active:translate-y-0",
         ),
       }}
       {...props}

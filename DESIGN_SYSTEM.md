@@ -1,16 +1,16 @@
-# InstantMed Design System
+# Lumen Health Design System
 
-**Version:** 2.0  
-**Last Updated:** April 2026  
-**Purpose:** Unified design language for calm, competent, human telehealth experience
+**Version:** 2.1  
+**Last Updated:** January 2026  
+**Purpose:** Unified design language for calm, radiant, human telehealth experience with subtle solarpunk aesthetic
 
 ---
 
 ## Philosophy
 
-> **Calm, Competent, Human**
+> **Calm, Radiant, Human**
 >
-> Every design decision passes the "2am anxiety test" — would this feel reassuring to someone anxious at 2am waiting for medical care?
+> Every design decision passes the "2am anxiety test" — would this feel reassuring to someone anxious at 2am waiting for medical care? Our solarpunk-inspired aesthetic brings warmth and hope, like sunlight through glass. *Lumen* means light — we illuminate the path to better health.
 
 ---
 
@@ -67,39 +67,42 @@ Tight: leading-tight (1.25)     // For headings only
 
 ---
 
-## Color System
+## Color System (Solarpunk Palette)
 
 ### Primary Palette
 
-**Blue (Primary)** — Professional, trustworthy
+**Amber (Primary)** — Sunlight, warmth, radiant health
 ```tsx
-primary-50:  #eff6ff  // Lightest backgrounds
-primary-100: #dbeafe  // Hover states
-primary-200: #bfdbfe  // Borders
-primary:     #2563EB  // Primary actions
-primary-600: #2563eb  // Active states
-primary-700: #1d4ed8  // Dark mode
+primary-50:  #fffbeb  // Lightest backgrounds (warm cream)
+primary-100: #fef3c7  // Hover states
+primary-300: #fcd34d  // Borders, highlights
+primary:     #f59e0b  // Primary actions (golden amber)
+primary-600: #d97706  // Active states
+primary-700: #b45309  // Dark mode
 ```
 
-**Violet (Secondary)** — Calm, modern
+**Teal (Secondary)** — Nature, growth, calm
 ```tsx
-secondary:    #8b5cf6  // Secondary actions
-secondary-50: #f3f0ff  // Light backgrounds
+secondary:    #14b8a6  // Secondary actions
+secondary-50: #f0fdfa  // Light backgrounds
+secondary-400: #2dd4bf // Highlights
+secondary-600: #0d9488 // Active states
 ```
 
-**Emerald (Success)** — Positive, healthy
+**Emerald (Success)** — Verdant life, vitality
 ```tsx
 success: #22c55e  // Confirmations, success states
+success-50: #f0fdf4  // Light backgrounds
 ```
 
-**Amber (Warning)** — Attention, not alarm
+**Orange (Warning)** — Warm attention, not alarm
 ```tsx
-warning: #f59e0b  // Warnings (calm, not shouty)
+warning: #fb923c  // Warnings (warm, not harsh)
 ```
 
-**Red (Danger)** — Emergency, critical
+**Rose (Danger)** — Soft alert, care needed
 ```tsx
-danger: #ef4444  // Errors, critical actions
+danger: #fb7185  // Errors, critical actions (warm rose, not harsh red)
 ```
 
 ### Neutrals

@@ -4,7 +4,7 @@ import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { X, RotateCcw, Trash2 } from "lucide-react"
 
-const STORAGE_KEY = "instantmed_form_draft"
+const STORAGE_KEY = "lumenhealth_form_draft"
 const EXPIRY_HOURS = 24
 
 interface FormDraft {

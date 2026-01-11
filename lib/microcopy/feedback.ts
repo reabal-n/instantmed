@@ -13,7 +13,7 @@ export const FEEDBACK_MESSAGES = {
   // Success states
   paymentReceived: "Payment received 👍",
   certificateIssued: "Certificate issued",
-  prescriptionIssued: "Prescription issued",
+  prescriptionApproved: "Request approved — e-script sent separately",
   saved: "Saved",
   submitted: "Submitted. A doctor will review this soon.",
   updated: "Updated",

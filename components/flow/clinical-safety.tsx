@@ -154,23 +154,23 @@ interface SafetyDisclaimerProps {
 
 export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclaimerProps) {
   return (
-    <div className={cn("p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3", className)}>
+    <div className={cn("p-4 rounded-xl bg-dawn-50 border border-dawn-200 space-y-3", className)}>
       <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+        <AlertTriangle className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" aria-hidden="true" />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-amber-800">Important safety notice</p>
-          <p className="text-sm text-amber-700">
+          <p className="text-sm font-medium text-dawn-800">Important safety notice</p>
+          <p className="text-sm text-dawn-700">
             If you&apos;re experiencing a medical emergency, please call 000 immediately.
           </p>
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-lg bg-white border border-amber-200 cursor-pointer hover:bg-amber-50/50 transition-colors">
+      <label className="flex items-start gap-3 p-3 rounded-lg bg-white border border-dawn-200 cursor-pointer hover:bg-dawn-50/50 transition-colors">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-5 w-5 rounded border-amber-300 text-primary focus:ring-primary"
+          className="mt-0.5 h-5 w-5 rounded border-dawn-300 text-primary focus:ring-primary"
         />
         <div className="space-y-0.5">
           <span className="text-sm font-medium text-foreground">

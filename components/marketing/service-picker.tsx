@@ -83,8 +83,8 @@ export function ServicePicker() {
         >
           <motion.div 
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 interactive-pill cursor-default"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            whileHover={{ y: -2 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
             <span className="text-xs font-medium text-foreground/80">Get started in minutes</span>
@@ -148,7 +148,7 @@ export function ServicePicker() {
                       "hover:bg-white/80 dark:hover:bg-white/10",
                       "hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30",
                       "transition-all duration-300",
-                      "group-hover:scale-[1.02]"
+                      "group-hover:-translate-y-0.5"
                     )}>
                       {/* Gradient header strip */}
                       <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />

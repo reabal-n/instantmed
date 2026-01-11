@@ -45,7 +45,7 @@ const typeColors = {
   prescription: "bg-purple-100 text-purple-600",
   medical_certificate: "bg-blue-100 text-primary",
   referral: "bg-emerald-100 text-emerald-600",
-  pathology: "bg-amber-100 text-amber-600",
+  pathology: "bg-dawn-100 text-dawn-600",
   consultation: "bg-gray-100 text-gray-600",
 }
 
@@ -305,14 +305,14 @@ export function HealthSummary({ allergies = [], conditions = [], medications = [
 
       {/* Current Conditions */}
       {conditions.length > 0 && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+        <div className="p-3 rounded-xl bg-dawn-50 border border-dawn-200">
           <div className="flex items-center gap-2 mb-2">
-            <Activity className="h-4 w-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-700">Conditions</span>
+            <Activity className="h-4 w-4 text-dawn-600" />
+            <span className="text-sm font-medium text-dawn-700">Conditions</span>
           </div>
           <div className="flex flex-wrap gap-1">
             {conditions.map((condition, i) => (
-              <Badge key={i} variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
+              <Badge key={i} variant="outline" className="bg-dawn-100 text-dawn-700 border-dawn-200">
                 {condition}
               </Badge>
             ))}

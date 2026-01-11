@@ -5,6 +5,15 @@ import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 import type { ClinicianDecision } from "@/types/repeat-rx"
+import {
+  logClinicianReviewedRequest,
+  logClinicianSelectedOutcome,
+  logOutcomeAssigned,
+  logTriageApproved,
+  logTriageDeclined,
+  logTriageNeedsCall,
+  logExternalPrescribingIndicated,
+} from "@/lib/audit/compliance-audit"
 
 interface DecisionPayload {
   decision: ClinicianDecision
@@ -132,7 +141,7 @@ export async function POST(
       throw new Error(`Failed to update request: ${updateError.message}`)
     }
     
-    // Log audit event
+    // Log audit event (legacy)
     await supabase.from("audit_events").insert({
       request_id: id,
       patient_id: existingRequest.patient_id,
@@ -148,6 +157,40 @@ export async function POST(
       ip_address: request.headers.get("x-forwarded-for") || "unknown",
       user_agent: request.headers.get("user-agent") || "unknown",
     })
+    
+    // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+    const ip = request.headers.get("x-forwarded-for") || undefined
+    const userAgent = request.headers.get("user-agent") || undefined
+    const triageOutcome = body.decision === "approved" ? "approved" 
+      : body.decision === "requires_consult" ? "needs_call" 
+      : "declined"
+    
+    const compliancePromises = [
+      logClinicianReviewedRequest(id, "repeat_rx", profile.id, undefined, ip, userAgent),
+      logClinicianSelectedOutcome(id, "repeat_rx", profile.id, triageOutcome, 
+        body.decision === "requires_consult", undefined, {
+          decisionReason: body.decisionReason,
+        }),
+      logOutcomeAssigned(id, "repeat_rx", profile.id, triageOutcome),
+    ]
+    
+    if (body.decision === "approved") {
+      compliancePromises.push(
+        logTriageApproved(id, "repeat_rx", profile.id, { repeatsGranted: body.repeatsGranted }),
+        // Repeat Rx requires external prescribing (Parchment/PBS)
+        logExternalPrescribingIndicated(id, "repeat_rx", profile.id, "Parchment/PBS")
+      )
+    } else if (body.decision === "declined") {
+      compliancePromises.push(
+        logTriageDeclined(id, "repeat_rx", profile.id, body.decisionReason)
+      )
+    } else if (body.decision === "requires_consult") {
+      compliancePromises.push(
+        logTriageNeedsCall(id, "repeat_rx", profile.id, body.decisionReason)
+      )
+    }
+    
+    await Promise.all(compliancePromises)
     
     // Send notification to patient (email/SMS)
     try {

@@ -85,7 +85,7 @@ export function BottomSheet({
               transition={{
                 type: "spring",
                 damping: 30,
-                stiffness: 300,
+                stiffness: 200,
               }}
               className={cn(
                 "fixed bottom-0 left-0 right-0 z-50",

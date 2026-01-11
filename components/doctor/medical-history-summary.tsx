@@ -33,7 +33,7 @@ interface MedicalHistoryData {
   currentMedications: string[]
   chronicConditions: string[]
   
-  // History with InstantMed
+  // History with Lumen Health
   previousRequests: {
     id: string
     type: string
@@ -74,7 +74,7 @@ export function MedicalHistorySummary({
     <div
       className={cn(
         "rounded-2xl border overflow-hidden",
-        hasRedFlags ? "border-amber-200 bg-amber-50/30" : "border-gray-200 bg-white",
+        hasRedFlags ? "border-dawn-200 bg-dawn-50/30" : "border-gray-200 bg-white",
         className
       )}
     >
@@ -124,7 +124,7 @@ export function MedicalHistorySummary({
             </Badge>
           )}
           {data.hasChronicConditions && (
-            <Badge variant="outline" className="border-amber-500 text-amber-700 flex items-center gap-1">
+            <Badge variant="outline" className="border-dawn-500 text-dawn-700 flex items-center gap-1">
               <Heart className="h-3 w-3" />
               Conditions
             </Badge>
@@ -185,7 +185,7 @@ export function MedicalHistorySummary({
             {data.chronicConditions.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium flex items-center gap-2 mb-2">
-                  <Heart className="h-4 w-4 text-amber-500" />
+                  <Heart className="h-4 w-4 text-dawn-500" />
                   Chronic Conditions
                 </h4>
                 <div className="flex flex-wrap gap-1.5">

@@ -354,7 +354,7 @@ function ControlledWarning({ onClose }: { onClose: () => void }) {
       <div className="bg-background rounded-2xl p-5 max-w-sm w-full space-y-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <AlertTriangle className="w-5 h-5 text-dawn-600" />
           </div>
           <div>
             <h2 className="font-semibold">{RX_MICROCOPY.controlled.title}</h2>
@@ -384,7 +384,7 @@ function SafetyKnockout() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center">
       <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-        <AlertTriangle className="w-8 h-8 text-amber-600" />
+        <AlertTriangle className="w-8 h-8 text-dawn-600" />
       </div>
       <h1 className="text-xl font-semibold mb-2">{RX_MICROCOPY.safety.knockoutTitle}</h1>
       <p className="text-sm text-muted-foreground max-w-xs mb-6">{RX_MICROCOPY.safety.knockoutBody}</p>
@@ -1157,7 +1157,7 @@ export function PrescriptionFlowClient({
                     }}
                     className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
                       prescribedBefore === false
-                        ? "border-amber-500 bg-amber-50 text-amber-700"
+                        ? "border-dawn-500 bg-amber-50 text-amber-700"
                         : "border-border/60 hover:border-border"
                     }`}
                   >
@@ -1177,7 +1177,7 @@ export function PrescriptionFlowClient({
                     }}
                     className={`flex-1 p-3 rounded-xl border text-sm font-medium transition-all ${
                       doseChanged === true
-                        ? "border-amber-500 bg-amber-50 text-amber-700"
+                        ? "border-dawn-500 bg-amber-50 text-amber-700"
                         : "border-border/60 hover:border-border"
                     }`}
                   >
@@ -1205,7 +1205,7 @@ export function PrescriptionFlowClient({
               {isGatingBlocked && (
                 <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-4">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-dawn-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium text-amber-900">This request requires a general consultation</p>
                       <p className="text-sm text-amber-700 mt-1">
@@ -1340,7 +1340,7 @@ export function PrescriptionFlowClient({
               />
               <p className="text-xs text-right text-muted-foreground">{notes.length}/500</p>
               {notes.length === 0 && (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-dawn-600">
                   This information helps the doctor assess whether this medication is appropriate for you
                 </p>
               )}

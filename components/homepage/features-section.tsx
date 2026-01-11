@@ -43,7 +43,7 @@ export function FeaturesSection() {
   return (
     <section id="features" ref={sectionRef} className="px-4 py-20 sm:py-28 relative overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-linear-to-b from-background via-[#f0fdf4]/50 dark:via-gray-900/50 to-background" />
+      <div className="absolute inset-0 bg-linear-to-b from-background via-[#f0fdf4]/50 dark:via-slate-900/50 to-background" />
       
       {/* Animated background blobs */}
       <motion.div
@@ -106,7 +106,7 @@ export function FeaturesSection() {
                 <MagneticGlow glowColor={`${service.color}40`}>
                   <SpotlightCard spotlightColor={`${service.color}30`} className="h-full">
                     <div className={`relative rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1`}>
-                      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-[22px] overflow-hidden h-full">
+                      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[22px] overflow-hidden h-full">
                         {/* Image section */}
                         <div className="relative h-48 overflow-hidden">
                           <Image
@@ -119,7 +119,7 @@ export function FeaturesSection() {
                           
                           {/* Price tag */}
                           <motion.div
-                            className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg"
+                            className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg"
                             whileHover={{ scale: 1.05 }}
                           >
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
@@ -132,7 +132,7 @@ export function FeaturesSection() {
                               background: `linear-gradient(135deg, ${service.color}, ${service.color}cc)`,
                             }}
                             whileHover={{ scale: 1.1, rotate: 5 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 17 }}
                           >
                             <Icon className="h-6 w-6 text-white" />
                           </motion.div>

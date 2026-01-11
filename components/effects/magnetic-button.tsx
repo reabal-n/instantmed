@@ -74,7 +74,7 @@ export function MagneticButton({
         }}
         transition={{
           type: "spring",
-          stiffness: 400,
+          stiffness: 200,
           damping: 17,
         }}
       >

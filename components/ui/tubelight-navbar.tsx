@@ -64,7 +64,7 @@ export function TubelightNavBar({ items, className }: NavBarProps) {
                   className="absolute inset-0 w-full bg-primary/5 rounded-full -z-10"
                   initial={false}
                   transition={{
-                    duration: 0.15,
+                    duration: 0.3,
                     ease: "easeOut",
                   }}
                 />

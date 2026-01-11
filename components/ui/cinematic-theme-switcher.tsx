@@ -189,7 +189,7 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
         />
         {/* Background Icons */}
         <div className={`absolute inset-0 flex items-center justify-between ${isCompact ? "px-2.5" : "px-4"}`}>
-          <Sun size={iconSize} className={isDark ? "text-yellow-100" : "text-amber-600"} />
+          <Sun size={iconSize} className={isDark ? "text-yellow-100" : "text-dawn-600"} />
           <Moon size={iconSize} className={isDark ? "text-yellow-100" : "text-slate-700"} />
         </div>
 
@@ -228,7 +228,7 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
           }}
           transition={{
             type: "spring",
-            stiffness: 300, // Fast, responsive movement
+            stiffness: 200, // Fast, responsive movement
             damping: 20, // Bouncy feel with slight overshoot
           }}
         >
@@ -283,7 +283,7 @@ export default function CinematicThemeSwitcher({ size = "default" }: CinematicTh
             {isDark ? (
               <Moon size={iconSize} className="text-yellow-200" />
             ) : (
-              <Sun size={iconSize} className="text-amber-500" />
+              <Sun size={iconSize} className="text-dawn-500" />
             )}
           </div>
         </motion.div>

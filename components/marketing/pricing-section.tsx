@@ -65,7 +65,7 @@ export function PricingSection() {
                 {/* Popular badge */}
                 {tier.popular && (
                   <div
-                    className="absolute -top-2 -right-2 bg-amber-400 text-zinc-900 
+                    className="absolute -top-2 -right-2 bg-dawn-400 text-zinc-900 
                     font-handwritten px-3 py-1 rounded-full rotate-12 text-sm border-2 border-zinc-900"
                   >
                     Popular!
@@ -138,11 +138,11 @@ export function PricingSection() {
                     "hover:translate-x-[-2px] hover:translate-y-[-2px]",
                     tier.popular
                       ? [
-                          "bg-amber-400 text-zinc-900",
-                          "hover:bg-amber-300",
-                          "active:bg-amber-400",
-                          "dark:hover:bg-amber-300",
-                          "dark:active:bg-amber-400",
+                          "bg-dawn-400 text-zinc-900",
+                          "hover:bg-dawn-300",
+                          "active:bg-dawn-400",
+                          "dark:hover:bg-dawn-300",
+                          "dark:active:bg-dawn-400",
                         ]
                       : [
                           "bg-zinc-50 dark:bg-zinc-800",

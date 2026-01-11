@@ -27,9 +27,9 @@ const statusConfig = {
   },
   warning: {
     icon: AlertCircle,
-    bgColor: "bg-amber-100 dark:bg-amber-900/30",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    ringColor: "ring-amber-500/20",
+    bgColor: "bg-dawn-100 dark:bg-dawn-900/30",
+    iconColor: "text-dawn-600 dark:text-dawn-400",
+    ringColor: "ring-dawn-500/20",
   },
   info: {
     icon: Info,

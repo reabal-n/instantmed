@@ -65,24 +65,24 @@ function RegisterForm() {
       {/* Mobile logo */}
       <div className="lg:hidden text-center mb-8">
         <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-xl font-bold text-white">I</span>
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
+            <span className="text-xl font-bold text-amber-950">L</span>
           </div>
-          <span className="text-2xl font-bold text-foreground">InstantMed</span>
+          <span className="text-2xl font-bold text-foreground">Lumen Health</span>
         </Link>
       </div>
 
       <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground">Create an account</h2>
-          <p className="text-muted-foreground mt-1">Get started with InstantMed</p>
+          <p className="text-muted-foreground mt-1">Get started with Lumen Health</p>
         </div>
 
         {/* Google Sign Up */}
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 text-base font-medium gap-3 mb-6"
+          className="w-full h-12 text-base font-medium gap-3 mb-6 border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-none hover:shadow-soft"
           onClick={handleGoogleSignUp}
           disabled={isLoading || isSubmitting}
         >
@@ -177,7 +177,7 @@ function RegisterForm() {
             <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
+          <Button type="submit" className="w-full h-12 text-base font-medium bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -193,7 +193,7 @@ function RegisterForm() {
           Already have an account?{' '}
           <Link 
             href={redirectUrl ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}` : '/auth/login'} 
-            className="text-primary hover:underline font-medium"
+            className="text-primary-600 hover:text-primary-700 hover:underline font-medium"
           >
             Sign in
           </Link>
@@ -201,9 +201,9 @@ function RegisterForm() {
 
         <p className="text-center text-xs text-muted-foreground mt-4">
           By creating an account, you agree to our{' '}
-          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
+          <Link href="/terms" className="text-primary-600 hover:underline">Terms of Service</Link>
           {' '}and{' '}
-          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+          <Link href="/privacy" className="text-primary-600 hover:underline">Privacy Policy</Link>
         </p>
       </div>
     </div>
@@ -256,17 +256,17 @@ export default function RegisterPage() {
         <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-linear-to-br from-primary/5 to-transparent">
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-xl font-bold text-white">I</span>
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
+                <span className="text-xl font-bold text-amber-950">L</span>
               </div>
-              <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                InstantMed
+              <span className="text-2xl font-bold text-foreground group-hover:text-dawn-600 transition-colors">
+                Lumen Health
               </span>
             </Link>
             
             <h1 className="text-4xl font-bold text-foreground mb-4 leading-tight">
               Join thousands of Australians
-              <span className="text-primary">.</span>
+              <span className="text-dawn-500">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               Create your free account and get your first medical certificate 
@@ -282,14 +282,14 @@ export default function RegisterPage() {
                 <span>Free account, pay only when you need care</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-dawn-500/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-dawn-500" />
                 </div>
                 <span>Get reviewed in under 15 minutes</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-violet-500" />
+                <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-teal-500" />
                 </div>
                 <span>Your data is always secure and private</span>
               </div>
@@ -299,11 +299,11 @@ export default function RegisterPage() {
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-secondary border-2 border-white" />
+                  <div key={i} className="w-8 h-8 rounded-full bg-linear-to-br from-dawn-400 to-teal-500 border-2 border-white" />
                 ))}
               </div>
               <div>
-                <div className="flex items-center gap-1 text-amber-500">
+                <div className="flex items-center gap-1 text-dawn-500">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} className="w-3 h-3 fill-current" />
                   ))}

@@ -40,8 +40,8 @@ interface StatusBadgeConfig {
 
 const statusConfig: Record<StatusVariant, StatusBadgeConfig> = {
   pending: {
-    bg: "bg-amber-100 dark:bg-amber-950/30",
-    text: "text-amber-700 dark:text-amber-400",
+    bg: "bg-dawn-100 dark:bg-dawn-950/30",
+    text: "text-dawn-700 dark:text-dawn-400",
     icon: Clock,
   },
   "in-review": {
@@ -89,8 +89,8 @@ const statusConfig: Record<StatusVariant, StatusBadgeConfig> = {
     icon: CheckCircle,
   },
   warning: {
-    bg: "bg-amber-100 dark:bg-amber-950/30",
-    text: "text-amber-700 dark:text-amber-400",
+    bg: "bg-dawn-100 dark:bg-dawn-950/30",
+    text: "text-dawn-700 dark:text-dawn-400",
     icon: AlertCircle,
   },
   danger: {
@@ -285,7 +285,7 @@ const featureConfig = {
     label: "Popular",
   },
   beta: {
-    bg: "bg-gradient-to-r from-amber-500 to-orange-500",
+    bg: "bg-gradient-to-r from-dawn-500 to-orange-500",
     label: "Beta",
   },
   pro: {

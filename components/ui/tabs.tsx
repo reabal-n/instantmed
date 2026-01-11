@@ -41,7 +41,7 @@ function Tabs({
       classNames={{
         // Soft Pop Glass tab list container
         tabList: cn(
-          "bg-white/60 dark:bg-gray-900/40",
+          "bg-white/60 dark:bg-slate-900/40",
           "backdrop-blur-xl",
           "border border-white/40 dark:border-white/10",
           "rounded-full",
@@ -56,7 +56,7 @@ function Tabs({
         ),
         // Active tab with glow
         cursor: cn(
-          "bg-white dark:bg-gray-800",
+          "bg-white dark:bg-slate-800",
           "shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
           "dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
         ),
@@ -80,7 +80,7 @@ function TabsList({
       className={cn(
         // Soft Pop Glass tab list (standalone)
         "inline-flex items-center gap-1 p-1",
-        "bg-white/60 dark:bg-gray-900/40",
+        "bg-white/60 dark:bg-slate-900/40",
         "backdrop-blur-xl",
         "border border-white/40 dark:border-white/10",
         "rounded-full",
@@ -108,7 +108,7 @@ function TabsTrigger({
         "rounded-full px-4 py-2",
         "transition-all duration-200",
         "hover:bg-white/50 dark:hover:bg-white/10",
-        "data-[selected=true]:bg-white dark:data-[selected=true]:bg-gray-800",
+        "data-[selected=true]:bg-white dark:data-[selected=true]:bg-slate-800",
         "data-[selected=true]:shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
         "dark:data-[selected=true]:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
         className

@@ -521,7 +521,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                   ) : summary.suggestedAction.recommendation === "decline" ? (
                     <ThumbsDown className="w-4 h-4 text-red-600" />
                   ) : (
-                    <MessageSquare className="w-4 h-4 text-amber-600" />
+                    <MessageSquare className="w-4 h-4 text-dawn-600" />
                   )}
                   <span className="font-semibold capitalize">
                     {summary.suggestedAction.recommendation}
@@ -563,13 +563,13 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                       className={cn(
                         "p-3 rounded-lg border-2 text-center transition-all",
                         decision === "requires_consult"
-                          ? "border-amber-500 bg-amber-50"
+                          ? "border-dawn-500 bg-amber-50"
                           : "border-border hover:border-amber-300"
                       )}
                     >
                       <MessageSquare className={cn(
                         "w-5 h-5 mx-auto mb-1",
-                        decision === "requires_consult" ? "text-amber-600" : "text-muted-foreground"
+                        decision === "requires_consult" ? "text-dawn-600" : "text-muted-foreground"
                       )} />
                       <span className="text-xs font-medium">Consult</span>
                     </button>

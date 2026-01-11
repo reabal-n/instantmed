@@ -107,7 +107,7 @@ export function QueueStatus({
       className={cn(
         "rounded-2xl border p-4 sm:p-5",
         isPriority
-          ? "bg-linear-to-br from-amber-50 to-orange-50 border-amber-200 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800"
+          ? "bg-linear-to-br from-dawn-50 to-orange-50 border-dawn-200 dark:from-dawn-950/30 dark:to-orange-950/30 dark:border-dawn-800"
           : "bg-linear-to-br from-blue-50 to-cyan-50 border-primary dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-primary",
         className
       )}
@@ -118,7 +118,7 @@ export function QueueStatus({
           <div
             className={cn(
               "h-8 w-8 rounded-full flex items-center justify-center",
-              isPriority ? "bg-amber-500" : "bg-primary"
+              isPriority ? "bg-dawn-500" : "bg-primary"
             )}
           >
             {isPriority ? (
@@ -160,7 +160,7 @@ export function QueueStatus({
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3">
         {/* Position */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-gray-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -179,7 +179,7 @@ export function QueueStatus({
         </div>
 
         {/* ETA */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-gray-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -188,7 +188,7 @@ export function QueueStatus({
         </div>
 
         {/* Total in queue */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-gray-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -204,12 +204,12 @@ export function QueueStatus({
           <span>Review</span>
           <span>Complete</span>
         </div>
-        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             className={cn(
               "h-full rounded-full",
               isPriority
-                ? "bg-linear-to-r from-amber-500 to-orange-500"
+                ? "bg-linear-to-r from-dawn-500 to-orange-500"
                 : "bg-linear-to-r from-blue-500 to-cyan-500"
             )}
             initial={{ width: "10%" }}

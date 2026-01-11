@@ -151,7 +151,7 @@ export function MorphingCardStack({
                   exit={{ opacity: 0, scale: 0.8, x: -200 }}
                   transition={{
                     type: "spring",
-                    stiffness: 300,
+                    stiffness: 200,
                     damping: 25,
                   }}
                   drag={isTopCard ? "x" : false}
@@ -159,7 +159,7 @@ export function MorphingCardStack({
                   dragElastic={0.7}
                   onDragStart={() => setIsDragging(true)}
                   onDragEnd={handleDragEnd}
-                  whileDrag={{ scale: 1.02, cursor: "grabbing" }}
+                  whileDrag={{ y: -2, cursor: "grabbing" }}
                   onClick={() => {
                     if (isDragging) return
                     setExpandedCard(isExpanded ? null : card.id)

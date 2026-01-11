@@ -147,7 +147,7 @@ export function PremiumActionCard({
         delay,
         ease: [0.21, 0.47, 0.32, 0.98] 
       }}
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       className="group block"
     >

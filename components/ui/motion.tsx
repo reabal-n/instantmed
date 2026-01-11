@@ -5,83 +5,123 @@ import { motion, type Variants, type Transition, AnimatePresence } from "framer-
 import { cn } from "@/lib/utils"
 
 /**
- * Soft Pop Glass Motion System
+ * Lumen Health Motion System
  * 
- * Spring physics presets and animation utilities for the design system.
- * All interactive elements should use these for consistent feel.
+ * Motion exists to confirm, not to impress.
+ * All animation is slow, intentional, and subtle.
+ * No bounce, snap, or aggressive acceleration.
  */
 
 // ===========================================
-// SPRING PHYSICS PRESETS (Linear Style)
+// LUMEN MOTION PRESETS (Calm, Intentional)
 // ===========================================
 
 export const springPresets = {
-  /** Snappy spring - for buttons, small interactions */
-  snappy: {
-    type: "spring",
-    stiffness: 400,
-    damping: 30,
-  } as Transition,
-  
-  /** Bouncy spring - for celebratory animations */
-  bouncy: {
-    type: "spring",
-    stiffness: 300,
-    damping: 20,
-  } as Transition,
-  
-  /** Smooth spring - for page transitions, modals */
-  smooth: {
-    type: "spring",
-    stiffness: 200,
-    damping: 25,
-  } as Transition,
-  
-  /** Gentle spring - for subtle movements */
+  /** Gentle - for most interactions (default) */
   gentle: {
     type: "spring",
-    stiffness: 150,
-    damping: 20,
+    stiffness: 200,
+    damping: 30,
+    mass: 1,
   } as Transition,
+  
+  /** Calm - for modals, page transitions */
+  calm: {
+    type: "spring",
+    stiffness: 150,
+    damping: 25,
+    mass: 1,
+  } as Transition,
+  
+  /** Smooth - for subtle movements */
+  smooth: {
+    type: "spring",
+    stiffness: 120,
+    damping: 20,
+    mass: 1,
+  } as Transition,
+  
+  /** @deprecated Use gentle instead - kept for backwards compat */
+  snappy: {
+    type: "spring",
+    stiffness: 200,
+    damping: 30,
+    mass: 1,
+  } as Transition,
+  
+  /** @deprecated Use gentle instead - kept for backwards compat */
+  bouncy: {
+    type: "spring",
+    stiffness: 200,
+    damping: 30,
+    mass: 1,
+  } as Transition,
+}
+
+// Lumen easing functions (CSS-compatible)
+export const lumenEasing = {
+  standard: [0.4, 0, 0.2, 1] as [number, number, number, number],
+  gentle: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+  calm: [0.33, 0, 0.2, 1] as [number, number, number, number],
+}
+
+// Lumen durations
+export const lumenDurations = {
+  fast: 0.2,      // 200ms
+  normal: 0.3,    // 300ms
+  slow: 0.4,      // 400ms
+  slower: 0.5,    // 500ms
 }
 
 // ===========================================
 // VARIANT PRESETS
 // ===========================================
 
-/** Hover variants for interactive elements */
+/** Hover variants for interactive elements - Lumen: subtle, not energetic */
 export const hoverVariants: Variants = {
   rest: { 
     scale: 1,
+    y: 0,
   },
   hover: { 
-    scale: 1.02,
-    transition: springPresets.snappy,
+    scale: 1.01,
+    y: -2,
+    transition: {
+      duration: lumenDurations.normal,
+      ease: lumenEasing.gentle,
+    },
   },
   tap: { 
-    scale: 0.98,
-    transition: { duration: 0.1 },
+    scale: 0.99,
+    y: 0,
+    transition: { duration: lumenDurations.fast },
   },
 }
 
-/** Modal/dialog entrance variants */
+/** Modal/dialog entrance variants - Lumen: slow, intentional */
 export const modalVariants: Variants = {
   hidden: { 
     opacity: 0, 
-    scale: 0.95,
-    y: 20,
+    scale: 0.98,
+    y: 8,
   },
   visible: { 
     opacity: 1, 
     scale: 1,
     y: 0,
-    transition: springPresets.smooth,
+    transition: {
+      duration: lumenDurations.slow,
+      ease: lumenEasing.gentle,
+    },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: 20,
-    transition: { duration: 0.2, ease: "easeOut" },
+    scale: 0.98,
+    y: 8,
+    transition: { 
+      duration: lumenDurations.fast, 
+      ease: lumenEasing.standard,
+    },
   },
 }
 
@@ -96,16 +136,19 @@ export const fadeInVariants: Variants = {
   },
 }
 
-/** Slide-up variants for cards, list items */
+/** Slide-up variants for cards, list items - Lumen: gentle rise */
 export const slideUpVariants: Variants = {
   hidden: { 
     opacity: 0, 
-    y: 20,
+    y: 12,
   },
   visible: { 
     opacity: 1, 
     y: 0,
-    transition: springPresets.gentle,
+    transition: {
+      duration: lumenDurations.normal,
+      ease: lumenEasing.gentle,
+    },
   },
 }
 
@@ -120,18 +163,19 @@ export const staggerContainerVariants: Variants = {
   },
 }
 
-/** Stagger item for list children */
+/** Stagger item for list children - Lumen: no scale, just opacity + position */
 export const staggerItemVariants: Variants = {
   hidden: { 
     opacity: 0, 
-    y: 20,
-    scale: 0.95,
+    y: 12,
   },
   visible: { 
     opacity: 1, 
     y: 0,
-    scale: 1,
-    transition: springPresets.gentle,
+    transition: {
+      duration: lumenDurations.normal,
+      ease: lumenEasing.gentle,
+    },
   },
 }
 
@@ -164,28 +208,30 @@ export function MotionCard({
   return (
     <motion.div
       className={cn(
-        // Soft Pop Glass surface
-        "bg-white/70 dark:bg-gray-900/60",
+        // Lumen Glass surface
+        "bg-white/75 dark:bg-slate-900/60",
         "backdrop-blur-xl",
-        "border border-white/40 dark:border-white/10",
+        "border border-sky-300/35 dark:border-white/10",
         "rounded-2xl",
-        "shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+        "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
         className
       )}
       initial="hidden"
       animate="visible"
       variants={slideUpVariants}
       whileHover={hover ? { 
-        y: -4, 
-        scale: 1.01,
-        boxShadow: "0 20px 40px rgba(59, 130, 246, 0.12)",
-        transition: springPresets.snappy,
+        y: -2, 
+        boxShadow: "0 8px 30px rgba(197, 221, 240, 0.20)",
+        transition: {
+          duration: lumenDurations.normal,
+          ease: lumenEasing.gentle,
+        },
       } : undefined}
       whileTap={pressable ? { 
-        scale: 0.98,
-        transition: { duration: 0.1 },
+        scale: 0.99,
+        transition: { duration: lumenDurations.fast },
       } : undefined}
-      transition={{ ...springPresets.gentle, delay }}
+      transition={{ duration: lumenDurations.normal, ease: lumenEasing.gentle, delay }}
       {...(props as any)}
     >
       {children}
@@ -209,20 +255,21 @@ export function MotionButton({
   glowColor = "primary",
   ...props 
 }: MotionButtonProps) {
+  // Lumen glow styles - warm dawn tones
   const glowStyles = {
-    primary: "hover:shadow-[0_12px_40px_rgba(59,130,246,0.35)]",
-    accent: "hover:shadow-[0_12px_40px_rgba(139,92,246,0.35)]",
-    success: "hover:shadow-[0_12px_40px_rgba(34,197,94,0.35)]",
-    danger: "hover:shadow-[0_12px_40px_rgba(239,68,68,0.35)]",
+    primary: "hover:shadow-[0_8px_30px_rgba(245,169,98,0.30)]",
+    accent: "hover:shadow-[0_8px_30px_rgba(197,221,240,0.25)]",
+    success: "hover:shadow-[0_8px_30px_rgba(107,191,138,0.25)]",
+    danger: "hover:shadow-[0_8px_30px_rgba(224,122,122,0.25)]",
   }
 
   return (
     <motion.button
       className={cn(
-        "font-semibold rounded-full",
-        "shadow-[0_8px_30px_rgba(59,130,246,0.25)]",
+        "font-sans font-semibold rounded-xl",
+        "shadow-[0_4px_20px_rgba(245,169,98,0.25)]",
         glowStyles[glowColor],
-        "transition-shadow duration-200",
+        "transition-shadow duration-300",
         className
       )}
       variants={hoverVariants}
@@ -323,12 +370,12 @@ export function MotionModal({ children, isOpen, className, ...props }: MotionMod
       {isOpen && (
         <motion.div
           className={cn(
-            // Soft Pop Glass elevated surface
-            "bg-white/85 dark:bg-gray-900/80",
+            // Lumen Glass elevated surface
+            "bg-white/90 dark:bg-slate-900/85",
             "backdrop-blur-2xl",
-            "border border-white/50 dark:border-white/15",
+            "border border-sky-300/45 dark:border-white/15",
             "rounded-3xl",
-            "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
+            "shadow-[0_20px_60px_rgba(197,221,240,0.30)]",
             className
           )}
           variants={modalVariants}
@@ -356,9 +403,9 @@ export function MotionScale({ children, className, ...props }: MotionScaleProps)
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={springPresets.bouncy}
+      transition={{ duration: lumenDurations.normal, ease: lumenEasing.gentle }}
       {...(props as any)}
     >
       {children}

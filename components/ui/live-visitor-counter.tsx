@@ -123,7 +123,7 @@ export function LiveVisitorCounter({
         {visibleAvatars.map((url, index) => (
           <div
             key={index}
-            className="h-5 w-5 rounded-full border border-white dark:border-gray-800 overflow-hidden"
+            className="h-5 w-5 rounded-full border border-white dark:border-slate-800 overflow-hidden"
             style={{ backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length] }}
           >
             <Image

@@ -9,11 +9,11 @@ import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Repeat Prescription | InstantMed",
+  title: "Repeat Prescription | Lumen Health",
   description:
     "Request a repeat of your existing medication online. AHPRA-registered doctors, same-day electronic scripts.",
   openGraph: {
-    title: "Repeat Prescription | InstantMed",
+    title: "Repeat Prescription | Lumen Health",
     description: "Same medication, same dose, less hassle. Get your repeat prescription online.",
     type: "website",
     images: [
@@ -21,13 +21,13 @@ export const metadata: Metadata = {
         url: "/og/repeat-prescription.png",
         width: 1200,
         height: 630,
-        alt: "InstantMed Repeat Prescription",
+        alt: "Lumen Health Repeat Prescription",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Repeat Prescription | InstantMed",
+    title: "Repeat Prescription | Lumen Health",
     description: "Same medication, same dose, less hassle. Get your repeat prescription online.",
   },
   robots: {

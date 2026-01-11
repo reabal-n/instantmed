@@ -45,8 +45,8 @@ export function ErrorState({
     },
     network: {
       icon: WifiOff,
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-600',
+      iconBg: 'bg-dawn-100',
+      iconColor: 'text-dawn-600',
       defaultTitle: 'No connection',
       defaultMessage: 'Check your internet and try again.',
     },
@@ -59,8 +59,8 @@ export function ErrorState({
     },
     eligibility: {
       icon: AlertTriangle,
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-600',
+      iconBg: 'bg-dawn-100',
+      iconColor: 'text-dawn-600',
       defaultTitle: 'Not eligible',
       defaultMessage: 'Based on your answers, this service may not be right for you.',
     },
@@ -103,8 +103,8 @@ export function ErrorState({
 
       {/* Emergency notice for eligibility */}
       {variant === 'eligibility' && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 max-w-sm">
-          <p className="text-xs text-amber-800">
+        <div className="bg-dawn-50 border border-dawn-200 rounded-xl p-4 mb-6 max-w-sm">
+          <p className="text-xs text-dawn-800">
             <strong>If this is an emergency:</strong> Call 000 immediately.
           </p>
         </div>

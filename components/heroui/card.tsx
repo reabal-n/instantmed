@@ -25,17 +25,17 @@ export function Card({
   // Soft Pop Glass intensity variants
   const glassVariants = {
     subtle: cn(
-      "bg-white/50 dark:bg-gray-900/40",
+      "bg-white/50 dark:bg-slate-900/40",
       "backdrop-blur-lg",
       "border border-white/30 dark:border-white/8",
     ),
     normal: cn(
-      "bg-white/70 dark:bg-gray-900/60",
+      "bg-white/70 dark:bg-slate-900/60",
       "backdrop-blur-xl",
       "border border-white/40 dark:border-white/10",
     ),
     elevated: cn(
-      "bg-white/85 dark:bg-gray-900/80",
+      "bg-white/85 dark:bg-slate-900/80",
       "backdrop-blur-2xl",
       "border border-white/50 dark:border-white/15",
     ),
@@ -57,7 +57,7 @@ export function Card({
           // Motion: hover lift with colored glow
           "transition-all duration-300 ease-out",
           isHoverable && [
-            "hover:bg-white/85 dark:hover:bg-gray-900/80",
+            "hover:bg-white/85 dark:hover:bg-slate-900/80",
             "hover:-translate-y-1",
             "hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]",
             "dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]",

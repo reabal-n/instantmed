@@ -382,7 +382,7 @@ export function MagneticCard({
   const rotateY = useMotionValue(0)
   const scaleValue = useMotionValue(1)
   
-  const springConfig = { damping: 20, stiffness: 300 }
+  const springConfig = { damping: 20, stiffness: 200 }
   const springRotateX = useSpring(rotateX, springConfig)
   const springRotateY = useSpring(rotateY, springConfig)
   const springScale = useSpring(scaleValue, springConfig)

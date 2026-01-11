@@ -5,13 +5,11 @@
 
 import {
   Heart,
-  Scale,
   Brain,
   Droplet,
   Pill,
   User,
   Sparkles,
-  Activity,
 } from "lucide-react"
 
 export interface ConsultationType {
@@ -34,162 +32,6 @@ export interface ConsultationQuestion {
 }
 
 export const CONSULTATION_TYPES: ConsultationType[] = [
-  {
-    id: "mens-health",
-    label: "Men's Health",
-    description: "ED, hair loss, testosterone",
-    icon: Activity,
-    requiresCall: false,
-    questions: [
-      {
-        id: "concern",
-        question: "What brings you here today?",
-        type: "select",
-        required: true,
-        options: [
-          "Erectile dysfunction",
-          "Hair loss / balding",
-          "Testosterone concerns",
-          "Performance anxiety",
-          "Other men's health issue",
-        ],
-      },
-      {
-        id: "duration",
-        question: "How long have you been experiencing this?",
-        type: "select",
-        required: true,
-        options: [
-          "Less than 1 month",
-          "1-3 months",
-          "3-6 months",
-          "6-12 months",
-          "Over a year",
-        ],
-      },
-      {
-        id: "details",
-        question: "Please provide more details about your concern",
-        type: "textarea",
-        required: true,
-        placeholder: "Describe your symptoms, concerns, or what you're looking for help with...",
-      },
-      {
-        id: "medical-history",
-        question: "Any relevant medical history?",
-        type: "textarea",
-        required: false,
-        placeholder: "Heart conditions, diabetes, medications, etc.",
-        helperText: "This helps our doctors provide safe, appropriate treatment",
-      },
-    ],
-  },
-  {
-    id: "womens-health",
-    label: "Women's Health",
-    description: "Contraception, UTI, period concerns",
-    icon: Heart,
-    requiresCall: false,
-    questions: [
-      {
-        id: "concern",
-        question: "What do you need help with?",
-        type: "select",
-        required: true,
-        options: [
-          "Contraception / birth control",
-          "UTI / cystitis",
-          "Period problems",
-          "Menopause symptoms",
-          "PCOS",
-          "Emergency contraception",
-          "Other women's health issue",
-        ],
-      },
-      {
-        id: "urgency",
-        question: "How urgent is this concern?",
-        type: "select",
-        required: true,
-        options: [
-          "Immediate (today)",
-          "This week",
-          "Routine / not urgent",
-        ],
-      },
-      {
-        id: "details",
-        question: "Please tell us more",
-        type: "textarea",
-        required: true,
-        placeholder: "Describe your symptoms or what you need help with...",
-      },
-    ],
-  },
-  {
-    id: "weight-loss",
-    label: "Weight Loss",
-    description: "Weight management support",
-    icon: Scale,
-    requiresCall: true,
-    questions: [
-      {
-        id: "current-weight",
-        question: "What is your current weight? (kg)",
-        type: "number",
-        required: true,
-        placeholder: "e.g., 85",
-      },
-      {
-        id: "goal-weight",
-        question: "What is your goal weight? (kg)",
-        type: "number",
-        required: true,
-        placeholder: "e.g., 75",
-      },
-      {
-        id: "height",
-        question: "What is your height? (cm)",
-        type: "number",
-        required: true,
-        placeholder: "e.g., 175",
-      },
-      {
-        id: "previous-attempts",
-        question: "Have you tried losing weight before?",
-        type: "select",
-        required: true,
-        options: [
-          "Never tried",
-          "Diet and exercise",
-          "Weight management treatment",
-          "Multiple approaches",
-        ],
-      },
-      {
-        id: "medical-conditions",
-        question: "Do you have any of these conditions?",
-        type: "multiselect",
-        required: false,
-        options: [
-          "Diabetes (Type 1 or 2)",
-          "High blood pressure",
-          "High cholesterol",
-          "Thyroid issues",
-          "PCOS",
-          "Heart disease",
-          "None of these",
-        ],
-      },
-      {
-        id: "goals",
-        question: "What are your main goals?",
-        type: "textarea",
-        required: true,
-        placeholder: "e.g., Improve health, feel more energetic, fit into old clothes...",
-      },
-    ],
-  },
   {
     id: "mental-health",
     label: "Mental Health",

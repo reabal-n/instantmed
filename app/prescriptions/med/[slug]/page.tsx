@@ -202,13 +202,13 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
             {/* Side Effects */}
             <div className="p-6 rounded-xl border bg-card">
               <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 text-dawn-500" />
                 Possible side effects
               </h2>
               <ul className="space-y-2">
                 {sideEffects.map((effect) => (
                   <li key={effect} className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-500 mt-1">•</span>
+                    <span className="text-dawn-500 mt-1">•</span>
                     {effect}
                   </li>
                 ))}

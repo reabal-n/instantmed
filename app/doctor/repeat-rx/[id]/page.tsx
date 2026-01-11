@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { auth } from "@/lib/auth"
 import { RepeatRxReviewClient } from "./review-client"
+import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 
 // Generate metadata for SEO
 // Prevent static generation to avoid Clerk publishableKey build errors
@@ -91,7 +92,7 @@ async function getRequestData(id: string) {
     return { error: "not_found", data: null }
   }
   
-  // Log that clinician viewed this request
+  // Log that clinician viewed this request (legacy)
   await supabase.from("audit_events").insert({
     request_id: id,
     patient_id: request.patient_id,
@@ -102,6 +103,9 @@ async function getRequestData(id: string) {
     actor_type: "clinician",
     actor_id: profile.id,
   })
+  
+  // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+  await logClinicianOpenedRequest(id, "repeat_rx", profile.id)
   
   return { error: null, data: { request, clinicianId: profile.id } }
 }

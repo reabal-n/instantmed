@@ -133,7 +133,7 @@ function StartFlowContent() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-8 text-center"
+          className="max-w-md w-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-8 text-center"
         >
           <div className="w-16 h-16 rounded-full bg-red-100/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="h-8 w-8 text-red-600" />

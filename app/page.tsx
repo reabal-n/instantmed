@@ -8,7 +8,6 @@ import {
   FAQSection,
   CTASection,
   MarketingFooter,
-  HealthCategories,
   PlatformStats,
 } from '@/components/marketing'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
@@ -57,11 +56,6 @@ export default function HomePage() {
         {/* Core services - what we offer */}
         <ParallaxSection speed={0.25}>
           <ServicePicker />
-        </ParallaxSection>
-        
-        {/* Specialized health verticals */}
-        <ParallaxSection speed={0.3}>
-          <HealthCategories />
         </ParallaxSection>
         
         {/* How it works - 3 steps */}

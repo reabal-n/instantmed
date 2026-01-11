@@ -108,7 +108,7 @@ export function RequestStatusTimeline({
                 className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center",
                   step.status === "complete" && "bg-emerald-100 text-emerald-600",
-                  step.status === "current" && "bg-amber-100 text-amber-600",
+                  step.status === "current" && "bg-dawn-100 text-dawn-600",
                   step.status === "upcoming" && "bg-gray-100 text-gray-400",
                   step.status === "error" && "bg-red-100 text-red-600",
                 )}

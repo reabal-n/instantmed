@@ -50,7 +50,7 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ y: -2 }}
           >
             {text}
           </motion.h2>

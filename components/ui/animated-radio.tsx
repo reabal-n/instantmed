@@ -59,7 +59,7 @@ export function AnimatedRadio({
               className={`cursor-pointer text-xl py-2 px-1 block transition-all duration-300 ease-in-out ${
                 selectedValue === option.value
                   ? "text-purple-600 dark:text-purple-300"
-                  : "text-gray-600 dark:text-gray-500"
+                  : "text-gray-600 dark:text-slate-500"
               }`}
             >
               {option.label}

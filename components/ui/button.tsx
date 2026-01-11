@@ -41,54 +41,55 @@ const sizeMap: Record<string, HeroButtonProps["size"]> = {
   "icon-lg": "lg",
 }
 
-// Soft Pop Glass variant styles
+// Lumen Design System variant styles
 const glassVariantStyles: Record<string, string> = {
   default: cn(
-    // Glow shadow - colored, not black
-    "shadow-[0_8px_30px_rgb(59,130,246,0.25)]",
-    "hover:shadow-[0_12px_40px_rgb(59,130,246,0.35)]",
-    // Spring motion
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.02]",
-    "active:scale-[0.98]",
+    // Dawn glow shadow - warm, not blue
+    "shadow-[0_4px_20px_rgba(245,169,98,0.25)]",
+    "hover:shadow-[0_8px_30px_rgba(245,169,98,0.30)]",
+    // Lumen motion - gentle, intentional
+    "transition-all duration-300 ease-out",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0",
   ),
   destructive: cn(
-    "shadow-[0_8px_30px_rgb(239,68,68,0.25)]",
-    "hover:shadow-[0_12px_40px_rgb(239,68,68,0.35)]",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.02]",
-    "active:scale-[0.98]",
+    "shadow-[0_4px_20px_rgba(224,122,122,0.20)]",
+    "hover:shadow-[0_8px_30px_rgba(224,122,122,0.25)]",
+    "transition-all duration-300 ease-out",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0",
   ),
   outline: cn(
-    // Glass surface
-    "bg-white/70 dark:bg-gray-900/60",
+    // Lumen Glass surface
+    "bg-white/75 dark:bg-slate-900/60",
     "backdrop-blur-xl",
-    "border-white/40 dark:border-white/10",
-    "hover:bg-white/90 dark:hover:bg-gray-900/80",
-    "hover:shadow-[0_8px_30px_rgb(59,130,246,0.15)]",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.02]",
-    "active:scale-[0.98]",
+    "border-sky-300/40 dark:border-white/10",
+    "hover:bg-white/85 dark:hover:bg-slate-900/70",
+    "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
+    "transition-all duration-300 ease-out",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0",
   ),
   secondary: cn(
-    // Glass surface
-    "bg-white/60 dark:bg-gray-900/50",
+    // Lumen Glass surface - sky tone
+    "bg-white/60 dark:bg-slate-900/50",
     "backdrop-blur-lg",
-    "shadow-[0_8px_30px_rgb(139,92,246,0.15)]",
-    "hover:shadow-[0_12px_40px_rgb(139,92,246,0.25)]",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.02]",
-    "active:scale-[0.98]",
+    "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
+    "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
+    "transition-all duration-300 ease-out",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0",
   ),
   ghost: cn(
-    "hover:bg-primary/5",
-    "transition-all duration-200 ease-out",
-    "hover:scale-[1.02]",
-    "active:scale-[0.98]",
+    "hover:bg-dawn-50 dark:hover:bg-dawn-500/10",
+    "transition-all duration-300 ease-out",
+    "hover:-translate-y-0.5",
+    "active:translate-y-0",
   ),
   link: cn(
     "bg-transparent hover:bg-transparent",
     "underline-offset-4 hover:underline",
+    "text-dawn-600 hover:text-dawn-700",
   ),
 }
 
@@ -116,9 +117,9 @@ function Button({
       radius="full" // Soft Pop Glass: pill-shaped buttons
       isIconOnly={isIconOnly}
       className={cn(
-        // Base styles
-        "font-semibold",
-        // Soft Pop Glass variant styles
+        // Base styles - Lumen typography
+        "font-sans font-semibold",
+        // Lumen variant styles
         glassVariantStyles[variant],
         // Ensure minimum touch target on mobile (accessibility)
         "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0",
@@ -126,8 +127,8 @@ function Button({
         "select-none",
         // Smooth transform origin
         "origin-center",
-        // Accessibility: Focus visible styles
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        // Accessibility: Focus visible styles - dawn ring
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2",
         className
       )}
       {...props}
@@ -140,7 +141,7 @@ function Button({
     return (
       <RippleEffect
         enabled={ripple}
-        color={variant === "default" ? "rgba(255, 255, 255, 0.5)" : "rgba(59, 130, 246, 0.2)"}
+        color={variant === "default" ? "rgba(255, 255, 255, 0.4)" : "rgba(245, 169, 98, 0.15)"}
       >
         {buttonContent}
       </RippleEffect>

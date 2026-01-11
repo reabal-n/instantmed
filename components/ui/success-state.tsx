@@ -115,7 +115,7 @@ export function SuccessState({
           animate={{ scale: 1 }}
           transition={{
             type: "spring",
-            stiffness: 300,
+            stiffness: 200,
             damping: 20,
             delay: 0.2,
           }}

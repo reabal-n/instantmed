@@ -27,7 +27,7 @@ function DropdownMenu({
       classNames={{
         content: cn(
           // Glass surface
-          "bg-white/85 dark:bg-gray-900/80 backdrop-blur-xl",
+          "bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl",
           // Border
           "border border-white/50 dark:border-white/15",
           // Shape

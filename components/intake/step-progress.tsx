@@ -58,7 +58,7 @@ export function StepProgress({
             className="absolute -left-[6px] top-[3px] h-[2px] bg-primary rounded-full z-0"
             transition={{
               type: "spring",
-              stiffness: 300,
+              stiffness: 200,
               damping: 20,
               mass: 0.8,
               bounce: 0.25,
@@ -79,7 +79,7 @@ export function StepProgress({
                     className={cn(
                       "w-1.5 h-1.5 rounded-full transition-colors duration-300",
                       (isCompleted || isCurrent) && "bg-primary",
-                      !isCompleted && !isCurrent && "bg-gray-300 dark:bg-gray-600"
+                      !isCompleted && !isCurrent && "bg-gray-300 dark:bg-slate-600"
                     )}
                   />
                 </div>

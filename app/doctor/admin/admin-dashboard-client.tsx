@@ -172,7 +172,7 @@ export function AdminDashboardClient({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <TrendingUp className="h-5 w-5 text-dawn-500" />
               <div>
                 <p className="text-xs text-muted-foreground">Needs Info</p>
                 <p className="text-2xl font-bold">{stats.pending_info}</p>

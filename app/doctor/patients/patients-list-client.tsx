@@ -96,7 +96,7 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Incomplete</span>
-            <XCircle className="h-4 w-4 text-amber-500" />
+            <XCircle className="h-4 w-4 text-dawn-500" />
           </div>
           <div className="mt-2 text-3xl font-semibold text-foreground">
             {patients.filter((p) => !p.onboarding_completed).length}

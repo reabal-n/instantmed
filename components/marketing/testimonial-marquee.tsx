@@ -35,7 +35,7 @@ const testimonials: Testimonial[] = [
     name: "Emma L.",
     location: "Brisbane",
     rating: 5,
-    text: "I was skeptical at first, but InstantMed exceeded my expectations. Quick, easy, and legitimate.",
+    text: "I was skeptical at first, but Lumen Health exceeded my expectations. Quick, easy, and legitimate.",
     service: "med-cert",
   },
   {
@@ -102,7 +102,7 @@ export function TestimonialMarquee() {
       <TestimonialsColumnsWrapper
         testimonials={testimonialsForColumns}
         title="What our patients say"
-        subtitle="Join thousands of Australians who trust InstantMed for their healthcare needs."
+        subtitle="Join thousands of Australians who trust Lumen Health for their healthcare needs."
         badgeText="Trusted by thousands"
         className="py-16 lg:py-20 bg-content2/30"
       />
@@ -125,13 +125,13 @@ export function TestimonialMarquee() {
               key={stat.label}
               className="text-center"
               whileHover={{ y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              transition={{ type: "spring", stiffness: 200, damping: 25 }}
             >
               <div className="text-2xl md:text-3xl font-bold text-foreground mb-1">{stat.value}</div>
               {stat.showStars && (
                 <div className="flex justify-center gap-0.5 mb-1">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="w-3 h-3 fill-dawn-400 text-dawn-400" />
                   ))}
                 </div>
               )}

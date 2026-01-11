@@ -70,7 +70,7 @@ const reviews = [
     name: "Ryan P.",
     location: "Darwin",
     rating: 5,
-    text: "Living remote, nearest GP is 2 hours away. InstantMed is a game changer up here.",
+    text: "Living remote, nearest GP is 2 hours away. Lumen Health is a game changer up here.",
     date: "1 week ago",
   },
 ]

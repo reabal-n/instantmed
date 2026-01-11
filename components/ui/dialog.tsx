@@ -46,7 +46,7 @@ function Dialog({
             scale: 1,
             transition: {
               type: "spring",
-              stiffness: 400,
+              stiffness: 200,
               damping: 30,
             },
           },
@@ -106,7 +106,7 @@ function DialogContent({
     <ModalContent
       className={cn(
         // Soft Pop Glass elevated surface
-        "bg-white/85 dark:bg-gray-900/80",
+        "bg-white/85 dark:bg-slate-900/80",
         "backdrop-blur-2xl",
         "border border-white/50 dark:border-white/15",
         // Geometry: rounded-3xl for modals

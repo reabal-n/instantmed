@@ -244,7 +244,6 @@ export const symptomPages: SymptomPage[] = [
       related: [
         { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment Options' },
         { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment' },
-        { type: 'category', slug: 'mens-health', title: "Men's Health Services" },
       ],
     },
     symptom: {
@@ -311,7 +310,7 @@ export const symptomPages: SymptomPage[] = [
         'Follow-up available to track progress',
       ],
       ctaText: 'Get Hair Loss Treatment',
-      ctaUrl: '/mens-health?condition=hairloss',
+      ctaUrl: '/prescriptions',
     },
   },
 

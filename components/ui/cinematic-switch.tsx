@@ -38,7 +38,7 @@ export function CinematicSwitch({
     : (isOn ? "#34d399" : "#52525b"); // Emerald-400 vs Zinc-600 for default
 
   const onLabelColor = variant === "safety"
-    ? (isOn ? "text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-zinc-700")
+    ? (isOn ? "text-dawn-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-zinc-700")
     : (isOn ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "text-zinc-700");
 
   return (

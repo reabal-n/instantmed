@@ -29,17 +29,17 @@ function Textarea({
         mainWrapper: "bg-transparent",
         inputWrapper: cn(
           // Soft Pop Glass surface
-          "bg-white/60 dark:bg-gray-900/40",
+          "bg-white/60 dark:bg-slate-900/40",
           "backdrop-blur-lg",
           "border border-white/30 dark:border-white/10",
           // Motion
           "transition-all duration-200",
           // Hover state
           "hover:border-primary/30",
-          "hover:bg-white/70 dark:hover:bg-gray-900/50",
+          "hover:bg-white/70 dark:hover:bg-slate-900/50",
           // Focus state with glow
           "data-[focused=true]:border-primary/50",
-          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-gray-900/60",
+          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60",
           "data-[focused=true]:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
           // Mobile optimizations
           "min-h-[100px] md:min-h-0"

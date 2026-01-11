@@ -20,8 +20,8 @@ export default function AuthError({
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-linear-to-b from-background to-muted/30">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 mb-6">
-          <AlertTriangle className="h-8 w-8 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-dawn-500/10 mb-6">
+          <AlertTriangle className="h-8 w-8 text-dawn-500" />
         </div>
 
         <h1 className="text-2xl font-bold mb-2">Authentication Error</h1>

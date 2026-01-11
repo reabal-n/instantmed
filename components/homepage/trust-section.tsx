@@ -71,7 +71,7 @@ export function TrustSection() {
             className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl mb-3 text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Why Aussies trust InstantMed
+            Why Aussies trust Lumen Health
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
             We built this because GP waitlists are ridiculous and you shouldn&apos;t need to take a half-day off work for a

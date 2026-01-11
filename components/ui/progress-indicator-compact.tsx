@@ -47,7 +47,7 @@ export function ProgressIndicatorCompact({
             key={step}
             className={cn(
               "w-1.5 h-1.5 rounded-full relative z-10 transition-colors duration-300",
-              step <= currentStep ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+              step <= currentStep ? "bg-primary" : "bg-gray-300 dark:bg-slate-600"
             )}
           />
         ))}
@@ -62,7 +62,7 @@ export function ProgressIndicatorCompact({
           className="absolute -left-[6px] -top-[6px] -translate-y-1/2 h-2 bg-primary rounded-full"
           transition={{
             type: "spring",
-            stiffness: 300,
+            stiffness: 200,
             damping: 20,
             mass: 0.8,
             bounce: 0.25,

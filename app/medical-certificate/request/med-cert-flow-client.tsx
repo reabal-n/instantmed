@@ -309,7 +309,7 @@ function TileButton({
         ${
           selected
             ? "border-primary bg-primary/5 shadow-sm"
-            : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
         }
         ${className}
       `}
@@ -320,7 +320,7 @@ function TileButton({
       {Icon && !emoji && (
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
           }`}
           aria-hidden="true"
         >
@@ -361,7 +361,7 @@ function ChipButton({
         ${
           selected
             ? "bg-primary text-primary-foreground shadow-sm"
-            : "bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-gray-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
         }
       `}
     >
@@ -1054,7 +1054,7 @@ export function MedCertFlowClient({
             />
 
             {formData.duration === "specific" && (
-              <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <legend className="sr-only">Specific date range</legend>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -1137,7 +1137,7 @@ export function MedCertFlowClient({
 
             {/* Carer details */}
             {isCarer && (
-              <fieldset className="space-y-3 p-4 rounded-2xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <fieldset className="space-y-3 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <legend className="sr-only">Person being cared for</legend>
                 <div className="space-y-1">
                   <Label htmlFor="carer-name" className="text-sm font-medium">
@@ -1221,7 +1221,7 @@ export function MedCertFlowClient({
             {/* Emergency disclaimer - integrated as checkbox */}
             <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-900/30 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] space-y-3">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+                <AlertTriangle className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-amber-800">Important</p>
                   <p className="text-sm text-amber-700">
@@ -1230,7 +1230,7 @@ export function MedCertFlowClient({
                 </div>
               </div>
               
-              <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-gray-900/80 hover:shadow-[0_4px_12px_rgb(245,158,11,0.1)] transition-all duration-300">
+              <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(245,158,11,0.1)] transition-all duration-300">
                 <input
                   type="checkbox"
                   checked={formData.safetyAnswers.notEmergency === true}

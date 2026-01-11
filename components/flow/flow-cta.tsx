@@ -106,7 +106,7 @@ export function FlowCTA({
     <div
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40',
-        'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10',
+        'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10',
         'px-4 py-4 sm:py-5',
         'safe-area-pb', // Support for notch devices
         className
@@ -135,13 +135,13 @@ export function FlowCTA({
               )}
               {syncStatus === 'error' && (
                 <>
-                  <CloudOff className="h-3 w-3 text-amber-500" />
-                  <span className="text-amber-600">Changes saved locally</span>
+                  <CloudOff className="h-3 w-3 text-dawn-500" />
+                  <span className="text-dawn-600">Changes saved locally</span>
                 </>
               )}
               {syncStatus === 'pending' && (
                 <>
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-dawn-400 animate-pulse" />
                   <span className="text-slate-400">Unsaved changes</span>
                 </>
               )}
@@ -165,7 +165,7 @@ export function FlowCTA({
                 state === 'enabled' && [
                   'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
                   'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
-                  'hover:scale-[1.02] active:scale-[0.98]',
+                  'hover:-translate-y-0.5 active:scale-[0.98]',
                 ],
                 state === 'disabled' && [
                   'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed',
@@ -177,8 +177,8 @@ export function FlowCTA({
                 ],
               ],
               variant === 'secondary' && [
-                'bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10',
-                'hover:bg-white/85 dark:hover:bg-gray-900/80',
+                'bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10',
+                'hover:bg-white/85 dark:hover:bg-slate-900/80',
                 'shadow-[0_4px_16px_rgb(0,0,0,0.04)]',
               ]
             )}
@@ -219,14 +219,14 @@ export function FlowCTA({
               className="flex items-center justify-center gap-2"
             >
               {state === 'disabled' && fieldsRemaining && fieldsRemaining > 0 && (
-                <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                <AlertCircle className="h-3.5 w-3.5 text-dawn-500" />
               )}
               {isComplete && state !== 'loading' && (
                 <Check className="h-3.5 w-3.5 text-indigo-500" />
               )}
               <span className={cn(
                 'text-xs',
-                state === 'disabled' && fieldsRemaining ? 'text-amber-600' : 'text-slate-400'
+                state === 'disabled' && fieldsRemaining ? 'text-dawn-600' : 'text-slate-400'
               )}>
                 {dynamicHelper}
               </span>
@@ -276,7 +276,7 @@ export function InlineFlowCTA({
           !disabled && [
             'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
             'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
-            'hover:scale-[1.02] active:scale-[0.98]',
+            'hover:-translate-y-0.5 active:scale-[0.98]',
           ],
           disabled && [
             'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed shadow-none',

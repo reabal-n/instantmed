@@ -57,7 +57,7 @@ export function UnifiedProgressIndicator({
           className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
           transition={{
             type: "spring",
-            stiffness: 300,
+            stiffness: 200,
             damping: 20,
             mass: 0.8,
             bounce: 0.25,
@@ -80,7 +80,7 @@ export function UnifiedProgressIndicator({
               animate={{ opacity: 1, width: "64px", scale: 1 }}
               transition={{
                 type: "spring",
-                stiffness: 400,
+                stiffness: 200,
                 damping: 15,
                 mass: 0.8,
                 bounce: 0.25,
@@ -100,7 +100,7 @@ export function UnifiedProgressIndicator({
               flex: isExpanded ? 1 : "inherit",
             }}
             className={cn(
-              "px-4 py-3 rounded-full text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 flex-1 w-56 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+              "px-4 py-3 rounded-full text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 flex-1 w-56 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]",
               !isExpanded && "w-44"
             )}
           >

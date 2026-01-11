@@ -12,8 +12,6 @@ export {
   medCertConfig,
   commonScriptsConfig,
   prescriptionConfig,
-  weightConfig,
-  mensHealthConfig,
 } from './configs'
 
 // Store

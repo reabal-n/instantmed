@@ -11,6 +11,14 @@ import { assertApprovalInvariants, ApprovalInvariantError } from "@/lib/approval
 import { getApiAuth } from "@/lib/auth"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
+import {
+  logClinicianReviewedRequest,
+  logClinicianSelectedOutcome,
+  logOutcomeAssigned,
+  logTriageApproved,
+  logTriageDeclined,
+  logNoPrescribingInPlatform,
+} from "@/lib/audit/compliance-audit"
 
 // ============================================================================
 // TYPES
@@ -135,7 +143,7 @@ export async function PATCH(
         )
       }
 
-      // Log audit event
+      // Log audit event (legacy)
       await supabase.from("med_cert_audit_events").insert({
         request_id: requestId,
         event_type: "decision_rejected",
@@ -148,6 +156,17 @@ export async function PATCH(
         ip_address: ip,
         user_agent: headersList.get("user-agent"),
       })
+
+      // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+      await Promise.all([
+        logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+        logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "declined", false, undefined, {
+          rejectionReason: body.rejectionReason,
+        }),
+        logOutcomeAssigned(requestId, "med_cert", profile.id, "declined"),
+        logTriageDeclined(requestId, "med_cert", profile.id, body.rejectionReason || ""),
+        logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+      ])
 
       return NextResponse.json({ success: true })
     }
@@ -268,7 +287,7 @@ export async function PATCH(
       )
     }
 
-    // Log audit event for approval decision
+    // Log audit event for approval decision (legacy)
     await supabase.from("med_cert_audit_events").insert({
       request_id: requestId,
       event_type: "decision_approved",
@@ -281,6 +300,17 @@ export async function PATCH(
       ip_address: ip,
       user_agent: headersList.get("user-agent"),
     })
+
+    // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+    await Promise.all([
+      logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+      logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "approved", false, undefined, {
+        certificateId: certId,
+      }),
+      logOutcomeAssigned(requestId, "med_cert", profile.id, "approved"),
+      logTriageApproved(requestId, "med_cert", profile.id, { certificateId: certId }),
+      logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+    ])
 
     return NextResponse.json({
       success: true,

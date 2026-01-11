@@ -63,7 +63,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
 
   const getUrgencyColor = (days: number) => {
     if (days <= 3) return "text-red-600 bg-red-50 border-red-200"
-    if (days <= 7) return "text-amber-600 bg-amber-50 border-amber-200"
+    if (days <= 7) return "text-dawn-600 bg-dawn-50 border-dawn-200"
     return "text-primary bg-blue-50 border-primary"
   }
 
@@ -77,7 +77,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn("rounded-2xl border bg-white dark:bg-gray-900 overflow-hidden", className)}
+      className={cn("rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden", className)}
     >
       {/* Header */}
       <div className="px-4 py-3 border-b bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
@@ -123,7 +123,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
                         refill.daysRemaining <= 3
                           ? "text-red-600"
                           : refill.daysRemaining <= 7
-                            ? "text-amber-600"
+                            ? "text-dawn-600"
                             : "text-muted-foreground"
                       )}
                     >
@@ -152,7 +152,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
                       refill.daysRemaining <= 3
                         ? "bg-red-600 hover:bg-red-700"
                         : refill.daysRemaining <= 7
-                          ? "bg-amber-600 hover:bg-amber-700"
+                          ? "bg-dawn-600 hover:bg-dawn-700"
                           : ""
                     )}
                     asChild
@@ -171,7 +171,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
 
       {/* Show more link if there are more than 3 */}
       {visibleRefills.length > 3 && (
-        <div className="px-4 py-2 border-t bg-gray-50 dark:bg-gray-800/50">
+        <div className="px-4 py-2 border-t bg-gray-50 dark:bg-slate-800/50">
           <Link
             href="/patient/prescriptions"
             className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -199,7 +199,7 @@ export function RefillBanner({ refill }: { refill: RefillItem }) {
         "flex items-center justify-between gap-3 px-4 py-2 text-sm",
         refill.daysRemaining <= 3
           ? "bg-red-50 text-red-800 dark:bg-red-950/50 dark:text-red-200"
-          : "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200"
+          : "bg-dawn-50 text-dawn-800 dark:bg-dawn-950/50 dark:text-dawn-200"
       )}
     >
       <div className="flex items-center gap-2">

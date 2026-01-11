@@ -192,7 +192,7 @@ export function AnimatedRadio({
             className="w-2.5 h-2.5 rounded-full bg-primary"
             initial={false}
             animate={checked ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           />
         </motion.div>
       </div>

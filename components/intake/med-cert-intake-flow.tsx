@@ -129,13 +129,13 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                 )}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
               >
                 {isCompleted && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
                   >
                     <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                   </motion.div>
@@ -145,7 +145,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                     className="w-1.5 h-1.5 bg-primary rounded-full"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
                   />
                 )}
               </motion.div>
@@ -323,7 +323,7 @@ export function MedCertIntakeFlow({
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
+                x: { type: "spring", stiffness: 200, damping: 30 },
                 opacity: { duration: 0.2 },
               }}
               className="px-6 py-6 sm:px-8 sm:py-8"

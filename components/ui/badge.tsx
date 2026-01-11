@@ -57,7 +57,7 @@ function Badge({
         glowStyles[variant],
         // Glass effect for outline variant
         variant === "outline" && [
-          "bg-white/60 dark:bg-gray-900/40",
+          "bg-white/60 dark:bg-slate-900/40",
           "backdrop-blur-lg",
           "border-white/40 dark:border-white/10",
         ],

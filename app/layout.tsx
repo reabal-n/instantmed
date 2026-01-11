@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter, Lora, JetBrains_Mono, Caveat } from "next/font/google"
+import { Source_Sans_3, Lora, JetBrains_Mono, Caveat } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
@@ -8,6 +8,7 @@ import { SocialProofPopup } from "@/components/shared/social-proof-popup"
 import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { SkyBackground } from "@/components/ui/sky-background"
+import { NightSkyBackground } from "@/components/ui/night-sky-background"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { SupabaseAuthProvider } from "@/components/providers/supabase-auth-provider"
@@ -16,15 +17,16 @@ import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import Script from "next/script"
 import "./globals.css"
 
-const inter = Inter({
+const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
 })
 
 const lora = Lora({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-serif",
   display: "swap",
   weight: ["400", "500", "600", "700"],
 })
@@ -44,8 +46,8 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "InstantMed - Online Doctor Consultations Australia | Med Certs & Scripts",
-    template: "%s | InstantMed",
+    default: "Lumen Health - Online Doctor Consultations Australia | Med Certs & Scripts",
+    template: "%s | Lumen Health",
   },
   description:
     "An asynchronous telehealth platform for Australians to get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) online. AHPRA-registered doctors review requests asynchronously (no video calls). Mobile-optimized, Medicare-friendly, with built-in safety features and secure payment processing.",
@@ -59,21 +61,21 @@ export const metadata: Metadata = {
     "repeat request online",
     "telehealth GP",
     "virtual doctor",
-    "InstantMed",
+    "Lumen Health",
   ],
-  authors: [{ name: "InstantMed" }],
-  creator: "InstantMed",
-  publisher: "InstantMed",
-  metadataBase: new URL("https://instantmed.com.au"),
+  authors: [{ name: "Lumen Health" }],
+  creator: "Lumen Health",
+  publisher: "Lumen Health",
+  metadataBase: new URL("https://lumenhealth.com.au"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_AU",
-    url: "https://instantmed.com.au",
-    siteName: "InstantMed",
-    title: "InstantMed - Online Doctor Consultations Australia",
+    url: "https://lumenhealth.com.au",
+    siteName: "Lumen Health",
+    title: "Lumen Health - Online Doctor Consultations Australia",
     description:
       "An asynchronous telehealth platform for Australians. Get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.",
     images: [
@@ -81,13 +83,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "InstantMed - Instant care. Real doctors. Zero nonsense.",
+        alt: "Lumen Health - Radiant care. Real doctors. Zero nonsense.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "InstantMed - Online Doctor Consultations Australia",
+    title: "Lumen Health - Online Doctor Consultations Australia",
     description: "Asynchronous telehealth platform for Australians. Medical certificates ($19.95), prescriptions ($29.95), and consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls required.",
     images: ["/og-image.png"],
   },
@@ -113,7 +115,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#6366f1",
+  themeColor: "#F5A962",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -126,10 +128,10 @@ function JsonLd() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
-    name: "InstantMed",
+    name: "Lumen Health",
     description: "Online telehealth consultations with Australian-registered GPs",
-    url: "https://instantmed.com.au",
-    logo: "https://instantmed.com.au/logo.png",
+    url: "https://lumenhealth.com.au",
+    logo: "https://lumenhealth.com.au/logo.png",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
@@ -171,7 +173,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+      className={`${sourceSans.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -197,6 +199,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <HeroUIProviderWrapper>
               <SkyBackground fullPage />
+              <NightSkyBackground starCount={100} showShootingStars />
               <SkipToContent />
               <div id="main-content" className="page-enter relative z-10">
                 {children}

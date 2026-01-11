@@ -94,7 +94,7 @@ export function AutoSaveIndicator({
     <div className="text-xs text-muted-foreground flex items-center gap-1">
       {status === 'saving' && (
         <>
-          <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-dawn-500 animate-pulse" />
           Saving...
         </>
       )}

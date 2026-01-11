@@ -74,7 +74,7 @@ export function SLACountdown({ targetTime, status, className }: SLACountdownProp
       className={cn(
         'rounded-2xl overflow-hidden',
         isUrgent || timeRemaining.isOverdue 
-          ? 'bg-linear-to-br from-amber-500 to-orange-500'
+          ? 'bg-linear-to-br from-dawn-500 to-orange-500'
           : 'bg-linear-to-br from-emerald-500 to-emerald-600',
         className
       )}

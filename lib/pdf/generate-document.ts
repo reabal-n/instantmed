@@ -1,7 +1,14 @@
-import { generateMedCertHTML, type MedCertTemplateData } from "./med-cert-template"
-import { generatePrescriptionHTML, type PrescriptionTemplateData } from "./prescription-template"
+/**
+ * Document Generation Module
+ * 
+ * ⛔ PRESCRIBING WORKFLOW BOUNDARY
+ * Prescription generation has been removed from Lumen Health.
+ * See PRESCRIBING_WORKFLOW_BOUNDARY.md for details.
+ */
 
-export type DocumentType = "med_cert" | "prescription"
+import { generateMedCertHTML, type MedCertTemplateData } from "./med-cert-template"
+
+export type DocumentType = "med_cert"
 
 /**
  * Generate a unique reference number for documents
@@ -9,7 +16,6 @@ export type DocumentType = "med_cert" | "prescription"
 export function generateReferenceNumber(type: DocumentType): string {
   const prefix = {
     med_cert: "MC",
-    prescription: "RX",
   }[type]
 
   const timestamp = Date.now().toString(36).toUpperCase()
@@ -20,16 +26,17 @@ export function generateReferenceNumber(type: DocumentType): string {
 
 /**
  * Generate HTML for a document based on type
+ * 
+ * Note: Only med_cert is supported. Prescription generation
+ * is not permitted within Lumen Health per PRESCRIBING_WORKFLOW_BOUNDARY.md
  */
 export function generateDocumentHTML(
   type: DocumentType,
-  data: MedCertTemplateData | PrescriptionTemplateData,
+  data: MedCertTemplateData,
 ): string {
   switch (type) {
     case "med_cert":
-      return generateMedCertHTML(data as MedCertTemplateData)
-    case "prescription":
-      return generatePrescriptionHTML(data as PrescriptionTemplateData)
+      return generateMedCertHTML(data)
     default:
       throw new Error(`Unknown document type: ${type}`)
   }

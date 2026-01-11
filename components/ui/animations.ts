@@ -1,8 +1,9 @@
 /**
- * Unified Animation Constants
+ * Lumen Health Animation Constants
  * 
- * Standardized animation system for consistent feel across platform
- * All animations respect prefers-reduced-motion
+ * Motion exists to confirm, not to impress.
+ * All animation is slow, intentional, and subtle.
+ * Respects prefers-reduced-motion.
  */
 
 import type { Variants, Transition } from "framer-motion"
@@ -18,20 +19,21 @@ function getPrefersReducedMotion(): boolean {
   return prefersReducedMotion
 }
 
-// Duration constants
+// Lumen duration constants - intentionally slower
 export const durations = {
-  fast: 0.15, // 150ms - snappy interactions
-  normal: 0.2, // 200ms - standard transitions
-  slow: 0.3, // 300ms - deliberate animations
-  slower: 0.4, // 400ms - page transitions
+  fast: 0.2,    // 200ms - quick confirmations
+  normal: 0.3,  // 300ms - standard transitions
+  slow: 0.4,    // 400ms - deliberate animations
+  slower: 0.5,  // 500ms - page transitions
 } as const
 
-// Easing functions
+// Lumen easing functions - gentle, calm
 export const easing = {
-  easeOut: [0.16, 1, 0.3, 1] as [number, number, number, number],
+  easeOut: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
   easeIn: [0.4, 0, 1, 1] as [number, number, number, number],
-  easeInOut: [0.4, 0, 0.2, 1] as [number, number, number, number],
-  spring: { type: "spring" as const, stiffness: 300, damping: 30 },
+  easeInOut: [0.33, 0, 0.2, 1] as [number, number, number, number],
+  gentle: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+  spring: { type: "spring" as const, stiffness: 200, damping: 30 },
 } as const
 
 // Base transition
@@ -203,11 +205,11 @@ export const pageTransition: Variants = {
 }
 
 /**
- * Modal/Dialog Animation
- * Scale + fade for modals
+ * Modal/Dialog Animation - Lumen: slow, intentional
+ * Gentle fade + minimal movement
  */
 export const modalAnimation: Variants = {
-  initial: { opacity: 0, scale: 0.95, y: 20 },
+  initial: { opacity: 0, scale: 0.98, y: 8 },
   animate: {
     opacity: 1,
     scale: 1,
@@ -215,21 +217,20 @@ export const modalAnimation: Variants = {
     transition: getPrefersReducedMotion()
       ? reducedTransition
       : {
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
+          duration: durations.slow,
+          ease: easing.gentle,
         },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: 20,
+    scale: 0.98,
+    y: 8,
     transition: { duration: durations.fast },
   },
 }
 
 /**
- * Bottom Sheet Animation
+ * Bottom Sheet Animation - Lumen: smooth slide
  * Slide up from bottom
  */
 export const bottomSheetAnimation: Variants = {
@@ -239,33 +240,31 @@ export const bottomSheetAnimation: Variants = {
     transition: prefersReducedMotion
       ? reducedTransition
       : {
-          type: "spring",
-          damping: 30,
-          stiffness: 300,
+          duration: durations.slow,
+          ease: easing.gentle,
         },
   },
   exit: {
     y: "100%",
-    transition: { duration: durations.normal },
+    transition: { duration: durations.normal, ease: easing.easeOut },
   },
 }
 
 /**
- * Hover Lift Animation
+ * Hover Lift Animation - Lumen: subtle, not energetic
  * For cards, buttons
  */
 export const hoverLift = {
-  scale: 1.02,
   y: -2,
-  transition: { duration: durations.fast },
+  transition: { duration: durations.normal, ease: easing.gentle },
 }
 
 /**
- * Press Animation
+ * Press Animation - Lumen: minimal, confirmatory
  * For button clicks
  */
 export const press = {
-  scale: 0.98,
+  y: 0,
   transition: { duration: durations.fast },
 }
 

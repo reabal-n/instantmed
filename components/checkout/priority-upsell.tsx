@@ -23,8 +23,8 @@ export function PriorityUpsell({ selected, onToggle, basePrice: _basePrice, clas
       className={cn(
         "w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
         selected
-          ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
-          : "border-border hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/10",
+          ? "border-dawn-500 bg-dawn-50 dark:bg-dawn-950/20"
+          : "border-border hover:border-dawn-300 hover:bg-dawn-50/50 dark:hover:bg-dawn-950/10",
         className,
       )}
     >
@@ -32,7 +32,7 @@ export function PriorityUpsell({ selected, onToggle, basePrice: _basePrice, clas
         <div
           className={cn(
             "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
-            selected ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-600 dark:bg-amber-900/30",
+            selected ? "bg-dawn-500 text-white" : "bg-dawn-100 text-dawn-600 dark:bg-dawn-900/30",
           )}
         >
           <Zap className="w-5 h-5" />
@@ -45,8 +45,8 @@ export function PriorityUpsell({ selected, onToggle, basePrice: _basePrice, clas
               className={cn(
                 "text-sm font-bold px-2 py-0.5 rounded-full transition-colors",
                 selected
-                  ? "bg-amber-500 text-white"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
+                  ? "bg-dawn-500 text-white"
+                  : "bg-dawn-100 text-dawn-700 dark:bg-dawn-900/50 dark:text-dawn-300",
               )}
             >
               +$10
@@ -71,7 +71,7 @@ export function PriorityUpsell({ selected, onToggle, basePrice: _basePrice, clas
         <div
           className={cn(
             "shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-            selected ? "border-amber-500 bg-amber-500" : "border-muted-foreground/30",
+            selected ? "border-dawn-500 bg-dawn-500" : "border-muted-foreground/30",
           )}
         >
           {selected && <CheckCircle className="w-3 h-3 text-white" />}

@@ -71,8 +71,8 @@ const errorConfig: Record<
       "Check if you're connected to the internet",
       "Clear your browser cache and try again",
     ],
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-950/20",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50 dark:bg-dawn-950/20",
   },
   network: {
     icon: WifiOff,
@@ -95,8 +95,8 @@ const errorConfig: Record<
       "Try a different card",
       "Contact support for assistance",
     ],
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-950/20",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50 dark:bg-dawn-950/20",
   },
   "not-found": {
     icon: FileX,
@@ -119,8 +119,8 @@ const errorConfig: Record<
       "Try again in a moment",
       "Contact support if this continues",
     ],
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-950/20",
+    iconColor: "text-dawn-500",
+    bgColor: "bg-dawn-50 dark:bg-dawn-950/20",
   },
   validation: {
     icon: AlertTriangle,

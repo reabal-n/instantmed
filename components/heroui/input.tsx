@@ -28,13 +28,13 @@ export function Input({
         // Soft Pop Glass input styling
         inputWrapper: cn(
           // Glass surface
-          "bg-white/60 dark:bg-gray-900/40",
+          "bg-white/60 dark:bg-slate-900/40",
           "backdrop-blur-lg",
           "border border-white/30 dark:border-white/10",
           // Focus state with glow
           "hover:border-primary/30",
           "data-[focused=true]:border-primary/50",
-          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-gray-900/60",
+          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60",
           "data-[focused=true]:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
           // Motion
           "transition-all duration-200",

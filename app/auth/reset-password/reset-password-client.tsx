@@ -144,7 +144,7 @@ export function ResetPasswordClient() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12">
+              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12 bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -158,14 +158,14 @@ export function ResetPasswordClient() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
                 Sign in
               </Link>
             </p>
             
             <p className="text-center text-sm text-muted-foreground mt-4">
               Note: Clerk manages password resets. If this page doesn&apos;t work, use the{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
                 sign-in page
               </Link>
               {" "}and click &quot;Forgot password?&quot;

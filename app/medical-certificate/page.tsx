@@ -10,7 +10,7 @@ import { DoctorsOnline, CompletionTime } from "@/components/shared/urgency-indic
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Online Medical Certificate Australia | Same Day Sick Note | InstantMed",
+  title: "Online Medical Certificate Australia | Same Day Sick Note | Lumen Health",
   description:
     "Get an online medical certificate in under an hour. Valid for work, uni, or carer's leave. From $19.95. No phone calls, no video. AHPRA-registered Australian doctors.",
   keywords: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "medical certificate australia",
   ],
   openGraph: {
-    title: "Online Medical Certificate | Under 1 Hour | InstantMed",
+    title: "Online Medical Certificate | Under 1 Hour | Lumen Health",
     description: "Need a sickie cert? Sorted in under an hour. Valid for work, uni or carer's leave. From $19.95.",
     url: "https://instantmed.com.au/medical-certificate",
   },

@@ -20,7 +20,7 @@ import {
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Why Trust InstantMed? | AHPRA Registered Doctors",
+  title: "Why Trust Lumen Health? | AHPRA Registered Doctors",
   description:
     "Learn about our doctor verification process, data security, Medicare compliance, and how we ensure safe, legitimate telehealth consultations.",
 }
@@ -31,7 +31,7 @@ export default function TrustPage() {
       icon: UserCheck,
       title: "AHPRA-Registered Doctors",
       description:
-        "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA). We verify credentials before they join and continuously monitor registration status.",
+        "Every doctor on Lumen Health is registered with the Australian Health Practitioner Regulation Agency (AHPRA). We verify credentials before they join and continuously monitor registration status.",
       details: [
         "All doctors hold current AHPRA registration",
         "We verify credentials directly with AHPRA",
@@ -106,7 +106,7 @@ export default function TrustPage() {
                 Your health. <span className="text-primary">Our responsibility.</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                InstantMed is built on a foundation of trust, transparency, and clinical excellence. Here&apos;s how we keep
+                Lumen Health is built on a foundation of trust, transparency, and clinical excellence. Here&apos;s how we keep
                 you safe.
               </p>
               <div className="flex flex-wrap justify-center gap-4">

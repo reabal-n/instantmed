@@ -186,7 +186,6 @@ export const intentPages: IntentPage[] = [
       related: [
         { type: 'condition', slug: 'uti', title: 'UTI Information & Treatment' },
         { type: 'medication', slug: 'trimethoprim', title: 'Trimethoprim for UTI' },
-        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
       ],
     },
     intent: {
@@ -523,7 +522,6 @@ export const intentPages: IntentPage[] = [
     links: {
       related: [
         { type: 'condition', slug: 'contraception', title: 'Regular Contraception Options' },
-        { type: 'category', slug: 'womens-health', title: "Women's Health Services" },
       ],
     },
     intent: {
@@ -624,7 +622,7 @@ export const intentPages: IntentPage[] = [
     },
     conversion: {
       primaryCTA: 'Get Hair Loss Treatment',
-      ctaUrl: '/mens-health?condition=hairloss',
+      ctaUrl: '/prescriptions',
     },
   },
 

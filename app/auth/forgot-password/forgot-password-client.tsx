@@ -57,7 +57,7 @@ export function ForgotPasswordClient() {
               </p>
               <p className="text-sm text-muted-foreground">
                 Didn&apos;t receive the email? Check your spam folder or{" "}
-                <button onClick={() => setIsSuccess(false)} className="text-primary hover:underline">
+                <button onClick={() => setIsSuccess(false)} className="text-primary-600 hover:text-primary-700 hover:underline">
                   try again
                 </button>
               </p>
@@ -109,7 +109,7 @@ export function ForgotPasswordClient() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12">
+              <Button type="submit" disabled={isLoading} className="w-full rounded-xl h-12 bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -123,7 +123,7 @@ export function ForgotPasswordClient() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/auth/login" className="text-primary hover:underline">
+              <Link href="/auth/login" className="text-primary-600 hover:text-primary-700 hover:underline">
                 Sign in
               </Link>
             </p>
