@@ -10,7 +10,7 @@ export const MICROCOPY = {
   // Global
   turnaround: "Usually within 1 hour (8am–10pm AEST)",
   doctorReview: "A GP will review your information",
-  noPhone: "No phone call needed",
+  noPhone: "Usually no call required",
   mayRequest: "We may request further details if needed",
 
   // Step: Type

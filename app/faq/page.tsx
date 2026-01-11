@@ -67,7 +67,7 @@ const faqCategories = [
   },
   {
     title: "Prescriptions",
-    emoji: "💊",
+    emoji: "📝",
     faqs: [
       {
         q: "What medications can you prescribe?",
@@ -151,7 +151,7 @@ export default function FAQPage() {
               <p className="mt-6 text-lg text-muted-foreground">
                 Everything you need to know about Lumen Health. Can&apos;t find your answer?{" "}
                 <Link href="/contact" className="text-[#2563EB] hover:underline">
-                  Hit us up
+                  Get in touch
                 </Link>
               </p>
             </div>

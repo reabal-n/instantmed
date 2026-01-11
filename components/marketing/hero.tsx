@@ -47,7 +47,7 @@ export function Hero() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                 </span>
-                <span className="text-xs sm:text-sm font-medium text-foreground/80 spacing-premium">Australia&apos;s fastest online GP</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground/80 spacing-premium">Online GP consultations</span>
               </div>
             </motion.div>
 
@@ -75,8 +75,8 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              Med certs &amp; repeat requests with no phone call required.
-              New requests just need a quick 2-min consult.
+              Med certs and repeat requests reviewed by Australian doctors.
+              Most sorted without a phone call.
             </motion.p>
 
             {/* CTAs */}
@@ -215,7 +215,7 @@ export function Hero() {
                     <CheckCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 leading-tight">Approved ✓</p>
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 leading-tight">Review complete</p>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">12 min total</p>
                   </div>
                 </div>

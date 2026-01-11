@@ -8,7 +8,7 @@ export const REPEAT_RX_COPY = {
   // Page titles
   titles: {
     main: "Repeat Prescription",
-    subtitle: "Same medication, same dose, less hassle.",
+    subtitle: "For stable, ongoing medications",
     intake: "Let's get you sorted",
   },
 
@@ -126,8 +126,8 @@ export const REPEAT_RX_COPY = {
   eligibility: {
     checking: "Checking eligibility...",
     approved: {
-      title: "Good news!",
-      subtitle: "You're eligible for a repeat prescription",
+      title: "Ready to submit",
+      subtitle: "Your request is ready for doctor review",
       next: "Proceed to payment",
     },
     declined: {

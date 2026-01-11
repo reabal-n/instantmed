@@ -47,7 +47,7 @@ const conditions: Condition[] = [
   },
   {
     id: "blood-pressure",
-    icon: "💊",
+    icon: "❤️",
     name: "Blood Pressure",
     tagline: "Keep the numbers where they should be.",
     price: "$39",
@@ -65,7 +65,7 @@ const conditions: Condition[] = [
   },
   {
     id: "contraception",
-    icon: "💊",
+    icon: "📝",
     name: "Contraception",
     tagline: "Planning ahead.",
     price: "$39",

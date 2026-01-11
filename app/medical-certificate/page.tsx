@@ -109,8 +109,8 @@ export default function MedicalCertificatePage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-6 animate-slide-up-delay-2">
-              Get a valid medical certificate for work or uni. Reviewed by real Australian GPs. No phone calls, no video
-              chats. Just fill in the form and go back to bed.
+              Get a valid medical certificate for work or uni. Reviewed by real Australian GPs.
+              Fill in a quick form, and we&apos;ll take it from there.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm mb-10 animate-slide-up-delay-2">

@@ -42,7 +42,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     verified: true,
     avatar: "/middle-aged-australian-man-with-glasses-friendly-p.jpg",
-    emoji: "💊",
+    emoji: "👍",
   },
   {
     id: 3,
@@ -146,7 +146,7 @@ const testimonials: Testimonial[] = [
     rating: 4,
     verified: true,
     avatar: "/young-australian-man-creative-professional-headsho.jpg",
-    emoji: "🩺",
+    emoji: "✅",
   },
 ]
 

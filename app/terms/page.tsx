@@ -51,7 +51,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">3. Nature of Services</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Lumen Health provides asynchronous telehealth consultations for non-emergency medical needs. Our services
+                Lumen Health provides online telehealth consultations for non-emergency medical needs. Our services
                 are not a substitute for emergency care. If you are experiencing a medical emergency, call 000
                 immediately or go to your nearest emergency department.
               </p>

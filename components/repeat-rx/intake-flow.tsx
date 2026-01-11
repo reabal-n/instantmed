@@ -30,7 +30,7 @@ import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import type { User } from "@supabase/supabase-js"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
+import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
 import type {
   RepeatRxStep,
@@ -38,7 +38,7 @@ import type {
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
 import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
-import { ContextualHelp } from "@/components/ui/contextual-help"
+import { ContextualHelp as _ContextualHelp } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 import { CompactStepper } from "@/components/ui/form-stepper"
 
@@ -477,7 +477,8 @@ export function RepeatRxIntakeFlow({
   const [error, setError] = useState<string | null>(null)
   
   // Form state
-  const [medication, setMedication] = useState<SelectedMedication | null>(null)
+  const [medication, setMedication] = useState<SelectedArtgProduct | null>(null)
+  const [_medicationSearchUsed, setMedicationSearchUsed] = useState(false)
   const [_strengthConfirmed, _setStrengthConfirmed] = useState(false)
   
   // History answers
@@ -514,6 +515,11 @@ export function RepeatRxIntakeFlow({
   const [gpAttestationAccepted, setGpAttestationAccepted] = useState(false)
   const [_gpAttestationTimestamp, setGpAttestationTimestamp] = useState<string | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  
+  // Pharmacy preference (default: eToken via SMS)
+  const [deliveryMethod, setDeliveryMethod] = useState<"etoken" | "pharmacy">("etoken")
+  const [pharmacyName, setPharmacyName] = useState("")
+  const [pharmacyLocation, setPharmacyLocation] = useState("")
   
   // Eligibility
   const [_eligibilityResult, setEligibilityResult] = useState<EligibilityResult | null>(null)
@@ -805,7 +811,7 @@ export function RepeatRxIntakeFlow({
           {currentStep === "medication" && (
             <div className="space-y-6 animate-step-enter">
               <StepHeader
-                emoji="💊"
+                emoji="📋"
                 title={REPEAT_RX_COPY.steps.medication.title}
                 subtitle={REPEAT_RX_COPY.steps.medication.subtitle}
               />
@@ -820,19 +826,12 @@ export function RepeatRxIntakeFlow({
               {emergencyAccepted && (
                 <div className="space-y-4 animate-fade-in">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm font-medium">
-                        {REPEAT_RX_COPY.steps.medication.title}
-                      </Label>
-                      <ContextualHelp
-                        content="Search for your medication by name. We'll help you find the exact strength and form."
-                        variant="help"
-                      />
-                    </div>
-                    <MedicationCombobox
+                    <MedicationSearch
                       value={medication}
-                      onChange={setMedication}
-                      placeholder={REPEAT_RX_COPY.steps.medication.placeholder}
+                      onChange={(product) => {
+                        setMedicationSearchUsed(true)
+                        setMedication(product)
+                      }}
                     />
                   </div>
                   
@@ -841,10 +840,17 @@ export function RepeatRxIntakeFlow({
                       <p className="text-sm font-medium">{REPEAT_RX_COPY.steps.medication.strengthConfirm}</p>
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{medication.medication_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {medication.strength} {medication.form}
-                          </p>
+                          <p className="font-medium text-sm">{medication.product_name}</p>
+                          {medication.active_ingredients_raw && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {medication.active_ingredients_raw}
+                            </p>
+                          )}
+                          {medication.dosage_form && (
+                            <p className="text-xs text-muted-foreground/70">
+                              {medication.dosage_form}
+                            </p>
+                          )}
                         </div>
                         <CheckCircle className="w-5 h-5 text-green-600" />
                       </div>
@@ -1187,6 +1193,92 @@ export function RepeatRxIntakeFlow({
                   </span>
                 </label>
               </div>
+              
+              {/* Pharmacy Preference */}
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-medium">How would you like to receive your prescription?</Label>
+                <div className="space-y-2">
+                  <label
+                    className={cn(
+                      "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
+                      "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
+                      deliveryMethod === "etoken"
+                        ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
+                        : "border-white/40 dark:border-white/10 hover:border-primary/40"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      checked={deliveryMethod === "etoken"}
+                      onChange={() => setDeliveryMethod("etoken")}
+                      className="mt-1 h-4 w-4 text-primary"
+                    />
+                    <div className="space-y-0.5">
+                      <span className="text-sm font-medium block">eToken via SMS (recommended)</span>
+                      <span className="text-xs text-muted-foreground block">
+                        Receive a digital prescription token on your phone. Present at any pharmacy.
+                      </span>
+                    </div>
+                  </label>
+                  
+                  <label
+                    className={cn(
+                      "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
+                      "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
+                      deliveryMethod === "pharmacy"
+                        ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
+                        : "border-white/40 dark:border-white/10 hover:border-primary/40"
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      checked={deliveryMethod === "pharmacy"}
+                      onChange={() => setDeliveryMethod("pharmacy")}
+                      className="mt-1 h-4 w-4 text-primary"
+                    />
+                    <div className="space-y-0.5">
+                      <span className="text-sm font-medium block">Send to a specific pharmacy</span>
+                      <span className="text-xs text-muted-foreground block">
+                        We&apos;ll send the prescription directly to your pharmacy.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+                
+                {deliveryMethod === "pharmacy" && (
+                  <div className="space-y-3 p-4 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-white/30 dark:border-white/10">
+                    <div className="space-y-2">
+                      <Label htmlFor="pharmacy-name" className="text-sm font-medium">
+                        Pharmacy name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="pharmacy-name"
+                        value={pharmacyName}
+                        onChange={(e) => setPharmacyName(e.target.value)}
+                        placeholder="e.g., Priceline Pharmacy"
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pharmacy-location" className="text-sm font-medium">
+                        Location or email <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="pharmacy-location"
+                        value={pharmacyLocation}
+                        onChange={(e) => setPharmacyLocation(e.target.value)}
+                        placeholder="e.g., 123 Main St, Sydney or pharmacy@email.com"
+                        className="h-11 rounded-xl"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enter the suburb/address or pharmacy email address
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           
@@ -1207,10 +1299,17 @@ export function RepeatRxIntakeFlow({
                       <p className="text-xs text-muted-foreground mb-1">
                         {REPEAT_RX_COPY.steps.review.medication}
                       </p>
-                      <p className="font-medium">{medication?.display}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {medication?.strength} {medication?.form}
-                      </p>
+                      <p className="font-medium">{medication?.product_name}</p>
+                      {medication?.active_ingredients_raw && (
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {medication.active_ingredients_raw}
+                        </p>
+                      )}
+                      {medication?.dosage_form && (
+                        <p className="text-xs text-muted-foreground/70">
+                          {medication.dosage_form}
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => goToStep("medication")}

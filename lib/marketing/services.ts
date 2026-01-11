@@ -172,8 +172,8 @@ export const commonScriptsConfig: ServiceConfig = {
   slug: 'common-scripts',
   flowSlug: 'common-scripts',
   name: 'Prescription Renewals',
-  shortName: 'Scripts',
-  tagline: 'Continue your regular medication without the GP wait',
+  shortName: 'Repeats',
+  tagline: 'Continue your regular medication with a doctor review',
   description: 'Get repeat prescriptions for ongoing medications. Our doctors review your request and send scripts directly to your pharmacy.',
   
   heroTitle: 'Renew your prescription from home',

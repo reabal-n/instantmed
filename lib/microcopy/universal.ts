@@ -10,7 +10,7 @@ export const COPY = {
     turnaround: "Most done in under an hour",
     turnaroundLong: "Most requests completed within 1 hour (8am–10pm AEST)",
     doctorReview: "A doctor reviews every request",
-    noPhone: "Handled online, no phone call needed",
+    noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
     price: {
       medcert: "$19.99",
@@ -30,7 +30,7 @@ export const COPY = {
       },
       prescription: {
         label: "Prescription",
-        description: "Refills, repeats, the usual.",
+        description: "For treatments you already take.",
         icon: "Pill",
       },
     },
@@ -58,7 +58,7 @@ export const COPY = {
         { id: "migraine", label: "Migraine", emoji: "🤕" },
         { id: "fever", label: "Fever", emoji: "🌡️" },
         { id: "fatigue", label: "Fatigue", emoji: "😴" },
-        { id: "period", label: "Period pain", emoji: "💊" },
+        { id: "period", label: "Period pain", emoji: "😖" },
         { id: "respiratory", label: "Respiratory", emoji: "😷" },
         { id: "other", label: "Other", emoji: "✏️" },
       ],

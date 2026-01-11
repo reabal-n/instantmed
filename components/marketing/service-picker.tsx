@@ -204,8 +204,8 @@ export function ServicePicker() {
                               </>
                             ) : (
                               <>
-                                <PhoneOff className="h-3 w-3 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_4px_rgba(16,185,129,0.5)] flex-shrink-0" />
-                                <span className="text-emerald-600 dark:text-emerald-400 font-medium">No call needed</span>
+                                <PhoneOff className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <span className="text-muted-foreground">Usually no call</span>
                               </>
                             )}
                           </span>

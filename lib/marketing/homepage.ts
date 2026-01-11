@@ -3,7 +3,7 @@
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Med certs & scripts — done in an hour",
+  tagline: "Med certs and repeats — sorted in under an hour",
   operatingHours: {
     weekdays: "7am – 10pm AEST",
     weekends: "8am – 8pm AEST",
@@ -111,8 +111,8 @@ export const proofMetrics = [
     icon: "Zap",
   },
   {
-    label: "No video calls",
-    value: "Async only",
+    label: "Doctor reviewed",
+    value: "Every request",
     icon: "MessageSquare",
   },
   {
@@ -161,7 +161,7 @@ export const featuredServices = [
   },
   {
     title: "Prescriptions",
-    description: "For your regular treatments — the ones you already take. Skip the 3-week GP wait.",
+    description: "For treatments you already take. Reviewed by a doctor and sent to your pharmacy.",
     priceFrom: 19.95,
     href: "/start?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your pharmacy"],
@@ -179,7 +179,7 @@ export const pricingTiers = [
       "Works with any chemist",
       "eScript or paper",
     ],
-    cta: "Get a script",
+    cta: "Start request",
     href: "/start?service=repeat-script",
     popular: false,
     icon: "Pill",
