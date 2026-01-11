@@ -17,12 +17,15 @@ interface EnhancedSelectionButtonProps {
   gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red" | "primary-subtle"
 }
 
-const gradientClasses = {
-  "blue-purple": "from-blue-500 via-purple-500 to-pink-500",
-  "purple-pink": "from-purple-500 via-pink-500 to-rose-500",
-  "teal-emerald": "from-teal-400 via-emerald-500 to-green-500",
-  "orange-red": "from-orange-400 via-red-500 to-pink-500",
-  "primary-subtle": "from-blue-600 to-indigo-600",
+// Lumen brand: No purple/violet, no high-energy gradients
+// Selection states use subtle lightness shifts, not color jumps
+// Gradient prop kept for API compatibility but no longer used
+const _gradientClasses = {
+  "blue-purple": "", // Deprecated
+  "purple-pink": "", // Deprecated  
+  "teal-emerald": "", // Deprecated
+  "orange-red": "", // Deprecated
+  "primary-subtle": "", // Deprecated
 }
 
 export function EnhancedSelectionButton({
@@ -34,34 +37,36 @@ export function EnhancedSelectionButton({
   icon: Icon,
   label,
   description,
-  gradient = "blue-purple",
+  gradient: _gradient = "blue-purple",
 }: EnhancedSelectionButtonProps) {
   const baseClasses = "relative transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
   
+  // Lumen brand: Selections feel like light settling, not color switching
+  // Subtle outline emphasis, gentle surface change, soft light shift
   const variantClasses = {
     chip: cn(
       "px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium",
       selected
-        ? `bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] ${gradient === "primary-subtle" ? "shadow-blue-500/20" : "shadow-purple-500/25"}`
-        : "bg-white border-2 border-gray-200 hover:border-purple-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-gray-700"
+        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        : "bg-white/90 dark:bg-slate-900/60 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
     ),
     card: cn(
       "w-full p-5 rounded-2xl border-2 text-left",
       selected
-        ? `border-transparent bg-gradient-to-br ${gradientClasses[gradient]} text-white shadow-[0_6px_20px_rgba(0,0,0,0.12)] shadow-purple-500/15`
-        : "border-gray-200 !bg-white hover:border-purple-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] text-gray-900"
+        ? "bg-sky-50/80 dark:bg-sky-900/20 border-sky-300/60 dark:border-sky-600/40 text-slate-800 dark:text-slate-200 shadow-[0_2px_12px_rgba(138,187,224,0.12)]"
+        : "border-slate-200/60 dark:border-slate-700/40 bg-white/90 dark:bg-slate-900/60 hover:border-slate-300 hover:bg-white text-slate-800 dark:text-slate-200"
     ),
     option: cn(
       "w-full p-3 min-h-[64px] rounded-xl border-2 flex items-center gap-2.5 text-left",
       selected
-        ? `border-transparent bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)]`
-        : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-gray-900"
+        ? "bg-sky-50/80 dark:bg-sky-900/20 border-sky-300/60 dark:border-sky-600/40 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(138,187,224,0.12)]"
+        : "border-slate-200/60 dark:border-slate-700/40 bg-white/90 dark:bg-slate-900/60 hover:border-slate-300 hover:bg-white text-slate-800 dark:text-slate-200"
     ),
     default: cn(
       "px-4 py-2 rounded-lg",
       selected
-        ? `bg-gradient-to-r ${gradientClasses[gradient]} text-white shadow-md`
-        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border border-sky-300/60"
+        : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
     ),
   }
 
@@ -76,37 +81,29 @@ export function EnhancedSelectionButton({
       aria-pressed={selected}
     >
       {variant === "option" && Icon && (
-        <motion.div
+        <div
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all",
+            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300",
             selected
-              ? "bg-white/20 backdrop-blur-sm"
-              : "bg-gray-100 text-gray-600"
+              ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           )}
-          animate={{
-            scale: selected ? [1, 1.1, 1] : 1,
-          }}
-          transition={{ duration: 0.3 }}
         >
           <Icon className="w-4 h-4" />
-        </motion.div>
+        </div>
       )}
 
       {variant === "card" && Icon && (
-        <motion.div
+        <div
           className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all",
+            "w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all duration-300",
             selected
-              ? "bg-white/20 backdrop-blur-sm"
-              : "bg-gray-100 text-gray-600"
+              ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           )}
-          animate={{
-            scale: selected ? [1, 1.1, 1] : 1,
-          }}
-          transition={{ duration: 0.3 }}
         >
           <Icon className="w-6 h-6" />
-        </motion.div>
+        </div>
       )}
 
       <div className="flex-1 min-w-0">
@@ -119,41 +116,19 @@ export function EnhancedSelectionButton({
         {!label && !description && children}
       </div>
 
+      {/* Calm checkmark indicator for selected state */}
       {selected && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            type: "spring",
-            stiffness: 500,
-            damping: 15,
-            mass: 0.5,
-          }}
+        <div
           className={cn(
-            "shrink-0",
-            variant === "option" || variant === "card" ? "w-5 h-5" : "w-4 h-4"
+            "shrink-0 flex items-center justify-center rounded-full transition-all duration-300",
+            variant === "option" || variant === "card" ? "w-5 h-5 bg-sky-100 dark:bg-sky-800/40" : "w-4 h-4"
           )}
         >
-          <Check className={cn("w-full h-full", variant === "chip" && "text-white")} />
-        </motion.div>
-      )}
-
-      {/* Animated background glow for selected state */}
-      {selected && variant !== "chip" && (
-        <motion.div
-          className={cn(
-            "absolute inset-0 rounded-xl bg-gradient-to-r opacity-20 blur-xl -z-10",
-            gradientClasses[gradient]
-          )}
-          animate={{
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+          <Check className={cn(
+            "text-sky-600 dark:text-sky-400",
+            variant === "option" || variant === "card" ? "w-3 h-3" : "w-full h-full"
+          )} />
+        </div>
       )}
     </motion.button>
   )

@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button, Input, Textarea } from "@heroui/react"
-import confetti from "canvas-confetti"
+// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import {
   ArrowLeft,
   CheckCircle,
@@ -39,7 +39,7 @@ import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
-import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
+import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
@@ -295,30 +295,34 @@ function OptionTile({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+      className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
         selected
-          ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-          : "border-border/60 bg-white/50 hover:border-primary/40 hover:bg-white/80"
+          ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+          : "border-slate-200/60 dark:border-slate-700/40 bg-white/90 dark:bg-slate-900/60 hover:border-slate-300 hover:bg-white"
       }`}
     >
       <div className="flex items-center gap-3">
         {emoji && (
-          <span className={`text-2xl ${selected ? "animate-bounce-once" : ""}`}>{emoji}</span>
+          <span className="text-2xl">{emoji}</span>
         )}
         {Icon && !emoji && (
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+              selected 
+                ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400" 
+                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+            }`}
           >
             <Icon className="w-5 h-5" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className={`font-medium transition-colors ${selected ? "text-primary" : "text-foreground"}`}>{label}</p>
+          <p className={`font-medium transition-colors ${selected ? "text-slate-800 dark:text-slate-200" : "text-slate-700 dark:text-slate-300"}`}>{label}</p>
           {description && <p className="text-sm text-muted-foreground mt-0.5">{description}</p>}
         </div>
         {selected && (
-          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center animate-scale-in">
-            <Check className="w-4 h-4 text-primary-foreground" />
+          <div className="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-800/40 flex items-center justify-center">
+            <Check className="w-3 h-3 text-sky-600 dark:text-sky-400" />
           </div>
         )}
       </div>
@@ -326,7 +330,7 @@ function OptionTile({
   )
 }
 
-// Pill button with animation
+// Pill button - calm selection styling per brand guidelines
 function PillButton({
   selected,
   onClick,
@@ -337,8 +341,10 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-        selected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted hover:bg-muted/80 border border-border/40"
+      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+        selected 
+          ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]" 
+          : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
       }`}
     >
       {emoji && <span className="mr-1.5">{emoji}</span>}
@@ -429,7 +435,7 @@ export function PrescriptionFlowClient({
   const [error, setError] = useState<string | null>(null)
 
   // Form state - structured medication selection
-  const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
+  const [selectedMedication, setSelectedMedication] = useState<SelectedArtgProduct | null>(null)
   
   // Gating questions state
   const [prescribedBefore, setPrescribedBefore] = useState<boolean | null>(null)
@@ -822,14 +828,6 @@ export function PrescriptionFlowClient({
       return
     }
 
-    // Trigger confetti on submission
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { x: 0.5, y: 0.6 },
-      colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
-    })
-
     setIsSubmitting(true)
     setError(null)
 
@@ -839,12 +837,11 @@ export function PrescriptionFlowClient({
         subtype: rxType || "repeat",
         type: "script",
         answers: {
-          // AMT-backed structured medication data
-          amt_code: selectedMedication?.amt_code,
-          medication_display: selectedMedication?.display,
-          medication_name: selectedMedication?.medication_name,
-          medication_form: selectedMedication?.form,
-          medication_strength: selectedMedication?.strength,
+          // ARTG-backed structured medication data
+          artg_id: selectedMedication?.artg_id,
+          medication_name: selectedMedication?.product_name,
+          active_ingredients: selectedMedication?.active_ingredients_raw,
+          dosage_form: selectedMedication?.dosage_form,
           // Gating answers
           prescribed_before: prescribedBefore,
           dose_changed: doseChanged,
@@ -991,7 +988,7 @@ export function PrescriptionFlowClient({
       <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
         {/* Draft Recovery Modal */}
         {showRecoveryPrompt && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -1112,10 +1109,9 @@ export function PrescriptionFlowClient({
                   methylphenidate (Ritalin/Concerta), oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine.
                 </p>
               </div>
-              <MedicationCombobox
+              <MedicationSearch
                 value={selectedMedication}
                 onChange={setSelectedMedication}
-                placeholder="Search for your medication (e.g. Atorvastatin 20mg)"
               />
             </div>
           )}
@@ -1575,11 +1571,20 @@ export function PrescriptionFlowClient({
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.medication}</p>
-                    <p className="text-sm font-medium">{selectedMedication?.display || "Not selected"}</p>
+                    <p className="text-sm font-medium">{selectedMedication?.product_name || "Not selected"}</p>
                     {selectedMedication && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {selectedMedication.medication_name} • {selectedMedication.strength} {selectedMedication.form}
-                      </p>
+                      <>
+                        {selectedMedication.active_ingredients_raw && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {selectedMedication.active_ingredients_raw}
+                          </p>
+                        )}
+                        {selectedMedication.dosage_form && (
+                          <p className="text-xs text-muted-foreground/70">
+                            {selectedMedication.dosage_form}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                   <button onClick={() => goTo("medication")} className="p-1 hover:bg-muted rounded">

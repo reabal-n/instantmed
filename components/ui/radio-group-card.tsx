@@ -27,11 +27,19 @@ const RadioCard = React.forwardRef<
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left shadow-sm transition-all",
-      "bg-white",
-      "hover:shadow-md hover:-translate-y-0.5",
-      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
-      "data-[state=checked]:border-black data-[state=checked]:shadow-lg data-[state=checked]:-translate-y-1",
+      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-300",
+      // Calm glass surface
+      "bg-white/90 dark:bg-slate-900/60 backdrop-blur-sm",
+      "border-slate-200/60 dark:border-slate-700/40",
+      "shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+      // Subtle hover - light settling effect
+      "hover:bg-white hover:border-slate-300/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+      // Focus state
+      "focus-visible:outline-2 focus-visible:outline-ring/70",
+      // Selected state - subtle emphasis, not celebratory
+      "data-[state=checked]:bg-sky-50/80 dark:data-[state=checked]:bg-sky-900/20",
+      "data-[state=checked]:border-sky-300/60 dark:data-[state=checked]:border-sky-600/40",
+      "data-[state=checked]:shadow-[0_2px_8px_rgba(138,187,224,0.15)]",
       "disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
@@ -45,11 +53,12 @@ const RadioCard = React.forwardRef<
       <p className="text-sm text-muted-foreground">{description}</p>
     )}
 
-    {/* Glowing green dot indicator */}
+    {/* Subtle checkmark indicator - calm confirmation */}
     <RadioGroupPrimitive.Indicator className="absolute top-3 right-3">
-      <span className="relative flex size-3">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
-        <span className="relative inline-flex size-3 rounded-full bg-green-500 shadow-[0_0_6px_2px_rgba(34,197,94,0.6)]"></span>
+      <span className="flex size-5 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-800/40">
+        <svg className="size-3 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
       </span>
     </RadioGroupPrimitive.Indicator>
   </RadioGroupPrimitive.Item>

@@ -9,7 +9,7 @@ import {
   Input,
   Textarea,
 } from "@heroui/react"
-import confetti from "canvas-confetti"
+// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import {
   ArrowLeft,
   CheckCircle,
@@ -120,7 +120,7 @@ function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: stri
 // Safety knockout component
 function SafetyKnockout() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-red-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-ivory-50 dark:bg-slate-950">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -331,12 +331,6 @@ export function ConsultFlowClient({
       return
     }
 
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    })
-
     setIsSubmitting(true)
     setError(null)
 
@@ -444,7 +438,7 @@ export function ConsultFlowClient({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-ivory-50 dark:bg-slate-950">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
@@ -673,7 +667,7 @@ export function ConsultFlowClient({
                   </div>
 
                   <Button
-                    className="w-full h-11 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
                     onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
@@ -787,7 +781,7 @@ export function ConsultFlowClient({
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (
             <Button
-              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="w-full h-12 rounded-full text-base bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
               disabled={!canContinue()}
               onClick={() => {
                 if (step === "safety" && checkSafetyKnockout()) {

@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import confetti from "canvas-confetti"
+// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -206,11 +206,11 @@ function TrustStrip() {
         <TooltipTrigger asChild>
           <div className="flex items-center gap-1 cursor-help">
             <Shield className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
-            <span>HIPAA compliant</span>
+            <span>Privacy compliant</span>
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs">We follow strict healthcare privacy standards</p>
+          <p className="text-xs">We follow Australian healthcare privacy standards</p>
         </TooltipContent>
       </Tooltip>
     </div>
@@ -302,25 +302,26 @@ function TileButton({
       onClick={onClick}
       aria-pressed={selected}
       className={`
-        w-full min-h-[48px] p-4 rounded-2xl border-2 transition-all duration-200
+        w-full min-h-[48px] p-4 rounded-2xl border-2 transition-all duration-300
         flex items-center gap-3 text-left
-        hover:scale-[1.02] active:scale-[0.98]
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2
         ${
           selected
-            ? "border-primary bg-primary/5 shadow-sm"
-            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+            ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+            : "bg-white/90 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
         }
         ${className}
       `}
     >
       {emoji && (
-        <span className={`text-2xl ${selected ? "animate-bounce-once" : ""}`}>{emoji}</span>
+        <span className="text-2xl">{emoji}</span>
       )}
       {Icon && !emoji && (
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+            selected 
+              ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400" 
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           }`}
           aria-hidden="true"
         >
@@ -331,7 +332,11 @@ function TileButton({
         <span className="font-medium text-sm block">{label}</span>
         {description && <span className="text-xs text-muted-foreground block truncate">{description}</span>}
       </div>
-      {selected && <Check className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />}
+      {selected && (
+        <div className="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-800/40 flex items-center justify-center">
+          <Check className="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" aria-hidden="true" />
+        </div>
+      )}
     </button>
   )
 }
@@ -355,13 +360,13 @@ function ChipButton({
       disabled={disabled}
       aria-pressed={selected}
       className={`
-        min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium transition-all
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+        min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2
         disabled:opacity-50 disabled:cursor-not-allowed
         ${
           selected
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+            ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+            : "bg-white/90 dark:bg-slate-900/60 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
         }
       `}
     >
@@ -897,14 +902,6 @@ export function MedCertFlowClient({
       symptoms_count: formData.selectedSymptoms.length,
     })
 
-    // Trigger confetti on submission
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { x: 0.5, y: 0.6 },
-      colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
-    })
-
     setIsSubmitting(true)
     setError(null)
 
@@ -1218,42 +1215,58 @@ export function MedCertFlowClient({
               </p>
             </div>
 
-            {/* Emergency disclaimer - integrated as checkbox */}
-            <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-900/30 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 shadow-[0_4px_16px_rgb(245,158,11,0.15)] space-y-3">
+            {/* Safety confirmation - calm, serious tone */}
+            <div className="p-4 rounded-2xl bg-ivory-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 space-y-3">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" aria-hidden="true" />
+                <AlertTriangle className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-amber-800">Important</p>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Important</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     If you&apos;re experiencing a medical emergency, call 000.
                   </p>
                 </div>
               </div>
               
-              <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-amber-200/50 dark:border-amber-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(245,158,11,0.1)] transition-all duration-300">
-                <input
-                  type="checkbox"
-                  checked={formData.safetyAnswers.notEmergency === true}
-                  onChange={(e) => setFormData((prev) => ({ 
-                    ...prev, 
-                    safetyAnswers: { ...prev.safetyAnswers, notEmergency: e.target.checked } 
-                  }))}
-                  className="mt-0.5 h-5 w-5 rounded border-amber-300 text-primary focus:ring-primary"
-                />
+              {/* iOS-style toggle for safety confirmation */}
+              <label className="flex items-center justify-between gap-4 p-3 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-700/30 cursor-pointer">
                 <div className="space-y-0.5">
-                  <span className="text-sm font-medium text-foreground">
-                    I confirm this is not a medical emergency
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    This is not a medical emergency
                   </span>
-                  <span className="text-xs text-muted-foreground block">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 block">
                     I understand this is a non-urgent telehealth service
                   </span>
+                </div>
+                <div 
+                  role="switch"
+                  aria-checked={formData.safetyAnswers.notEmergency === true}
+                  onClick={() => setFormData((prev) => ({ 
+                    ...prev, 
+                    safetyAnswers: { ...prev.safetyAnswers, notEmergency: !prev.safetyAnswers.notEmergency } 
+                  }))}
+                  onKeyDown={(e) => e.key === 'Enter' && setFormData((prev) => ({ 
+                    ...prev, 
+                    safetyAnswers: { ...prev.safetyAnswers, notEmergency: !prev.safetyAnswers.notEmergency } 
+                  }))}
+                  tabIndex={0}
+                  className={`relative inline-flex h-8 w-[52px] shrink-0 cursor-pointer rounded-full border transition-all duration-300 ${
+                    formData.safetyAnswers.notEmergency 
+                      ? "bg-[#6BBF8A] border-[#6BBF8A]/40" 
+                      : "bg-slate-200/80 dark:bg-slate-700/60 border-slate-300/30 dark:border-slate-600/30"
+                  }`}
+                >
+                  <span 
+                    className={`pointer-events-none inline-block h-[26px] w-[26px] rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition-transform duration-300 mt-[2px] ${
+                      formData.safetyAnswers.notEmergency ? "translate-x-[24px]" : "translate-x-[2px]"
+                    }`}
+                  />
                 </div>
               </label>
               
               {formData.safetyAnswers.notEmergency && (
-                <div className="flex items-center gap-2 text-emerald-600">
+                <div className="flex items-center gap-2 text-[#6BBF8A]">
                   <CheckCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">Ready to continue</span>
+                  <span className="text-sm">Ready to continue</span>
                 </div>
               )}
             </div>
@@ -1272,6 +1285,20 @@ export function MedCertFlowClient({
             </div>
 
             <div className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="John Smith"
+                  className="h-11 rounded-xl"
+                  autoComplete="name"
+                />
+              </div>
+
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email address</Label>
@@ -1762,7 +1789,7 @@ export function MedCertFlowClient({
     <TooltipProvider>
       {/* Draft Recovery Prompt */}
       {showRecoveryPrompt && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">

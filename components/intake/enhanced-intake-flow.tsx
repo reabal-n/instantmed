@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import confetti from "canvas-confetti"
+// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import {
   ArrowRight,
   ArrowLeft,
@@ -17,12 +17,9 @@ import {
   Shield,
   Pill,
   Stethoscope,
-  PhoneOff,
-  Star,
   Phone,
   Edit2,
   ChevronDown,
-  Users,
   Zap,
   TrendingUp,
   X,
@@ -52,7 +49,7 @@ import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
-import { MedicationSearch } from "@/components/medication/medication-search"
+import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
 import posthog from "posthog-js"
 
 // ============================================
@@ -99,6 +96,10 @@ interface IntakeState {
   medicationDosage: string
   lastPrescribed: string
   pharmacyPreference: string
+  
+  // ARTG medication search audit fields
+  medicationSearchUsed: boolean
+  selectedArtgProduct: SelectedArtgProduct | null
   
   // Consult specific
   consultReason: string
@@ -394,6 +395,8 @@ export function EnhancedIntakeFlow({
     medicationDosage: "",
     lastPrescribed: "",
     pharmacyPreference: savedPreferences.lastPharmacy || "",
+    medicationSearchUsed: false,
+    selectedArtgProduct: null,
     consultReason: "",
     safetyConfirmed: false,
     hasEmergencySymptoms: false,
@@ -712,6 +715,11 @@ export function EnhancedIntakeFlow({
       answers.last_prescribed = state.lastPrescribed
       answers.pharmacy_preference = state.pharmacyPreference
       answers.is_repeat = state.service === "repeat-script"
+      // ARTG audit fields
+      answers.medication_search_used = state.medicationSearchUsed
+      answers.medication_selected = state.selectedArtgProduct !== null
+      answers.selected_artg_id = state.selectedArtgProduct?.artg_id || null
+      answers.selected_medication_name = state.selectedArtgProduct?.product_name || null
     }
 
     // Patient details
@@ -792,17 +800,7 @@ export function EnhancedIntakeFlow({
       }
 
       if (result.success && result.checkoutUrl) {
-        // Trigger confetti before redirect
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        })
-
-        // Small delay for confetti to show
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // Redirect to Stripe checkout
+        // Redirect to Stripe checkout - calm transition, no celebration
         window.location.href = result.checkoutUrl
       } else {
         // PostHog: Track checkout error
@@ -909,19 +907,13 @@ export function EnhancedIntakeFlow({
       case "service":
         return (
           <motion.div className="space-y-3">
-            {/* Urgency messaging */}
-            <Alert 
-              variant="info" 
-              showIcon={false}
-              className="border-primary/20 bg-primary/5 shadow-[0_0_8px_rgba(99,102,241,0.15)] dark:shadow-[0_0_8px_rgba(99,102,241,0.25)] flex items-center justify-center py-1.5 px-2"
-            >
-              <div className="flex items-center justify-center gap-1.5">
-                <Clock className="w-3 h-3 shrink-0" />
-                <AlertDescription className="text-[11px] leading-tight text-center">
-                  Most requests reviewed within 1 hour • Doctors online now
-                </AlertDescription>
-              </div>
-            </Alert>
+            {/* Service timing note - calm, not urgent */}
+            <div className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-sky-50/60 dark:bg-sky-900/20 border border-sky-200/40 dark:border-sky-700/30">
+              <Clock className="w-3 h-3 shrink-0 text-slate-500" />
+              <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                Most requests reviewed within an hour
+              </span>
+            </div>
 
             <RadioGroup
               value={state.service || undefined}
@@ -942,9 +934,9 @@ export function EnhancedIntakeFlow({
                     <div className="flex items-center justify-between w-full mt-2">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         {service.noCall && (
-                          <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
-                            <PhoneOff className="w-3 h-3" />
-                            No call
+                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            Quick review
                           </span>
                         )}
                         <span className="font-medium text-foreground">{service.price}</span>
@@ -1176,14 +1168,14 @@ export function EnhancedIntakeFlow({
           <motion.div className="space-y-4">
             {/* Repeat vs New */}
             {state.service === "repeat-script" ? (
-              <div className="py-2 px-3 bg-green-50 border border-green-200 rounded-xl">
-                <div className="flex items-center gap-2 text-green-800">
-                  <PhoneOff className="w-3.5 h-3.5" />
+              <div className="py-2 px-3 bg-muted/50 border border-border rounded-xl">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5" />
                   <span className="text-xs font-medium">
-                    No phone call needed for repeats
+                    Doctor reviews your request
                   </span>
-                  <span className="text-[10px] text-green-700">
-                    • Prescription token will be sent via SMS
+                  <span className="text-[10px]">
+                    • E-script sent via SMS if approved
                   </span>
                 </div>
               </div>
@@ -1201,28 +1193,17 @@ export function EnhancedIntakeFlow({
               </div>
             )}
 
-            {/* Medication Search */}
-            <FormField
-              label="Medication name"
-              required
-              error={errors.medicationName}
-            >
-              <MedicationSearch
-                value={state.medicationName}
-                onChange={(medication, customValue) => {
-                  if (medication) {
-                    updateField("medicationName", medication.name)
-                    // Auto-fill dosage if only one strength available
-                    if (medication.strengths.length === 1) {
-                      updateField("medicationDosage", medication.strengths[0])
-                    }
-                  } else if (customValue) {
-                    updateField("medicationName", customValue)
-                  }
-                }}
-                placeholder="Search for a medication..."
-              />
-            </FormField>
+            {/* Medication Search - ARTG Reference Database */}
+            <MedicationSearch
+              value={state.selectedArtgProduct}
+              onChange={(product) => {
+                updateField("medicationSearchUsed", true)
+                updateField("selectedArtgProduct", product)
+                if (product) {
+                  updateField("medicationName", product.product_name)
+                }
+              }}
+            />
 
             {/* Dosage */}
             <FormField label="Dosage & strength (if known)">
@@ -1280,41 +1261,49 @@ export function EnhancedIntakeFlow({
               onEmergency={() => updateField("hasEmergencySymptoms", true)}
             />
 
-            {/* Safety confirmation */}
+            {/* Safety confirmation - iOS-style toggle per brand guidelines */}
             {symptomCheckResult.severity !== "critical" && (
               <div className="space-y-4">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={state.safetyConfirmed}
-                      onChange={(e) =>
-                        updateField("safetyConfirmed", e.target.checked)
-                      }
-                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
+                <div className="p-4 bg-ivory-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 rounded-xl">
+                  <label className="flex items-center justify-between gap-4 cursor-pointer">
                     <div className="text-sm">
-                      <p className="font-medium text-green-800">
-                        I confirm this is not a medical emergency
+                      <p className="font-medium text-slate-800 dark:text-slate-200">
+                        This is not a medical emergency
                       </p>
-                      <p className="text-green-700">
+                      <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">
                         I understand this is a non-urgent telehealth service
                       </p>
+                    </div>
+                    <div 
+                      role="switch"
+                      aria-checked={state.safetyConfirmed}
+                      onClick={() => updateField("safetyConfirmed", !state.safetyConfirmed)}
+                      onKeyDown={(e) => e.key === 'Enter' && updateField("safetyConfirmed", !state.safetyConfirmed)}
+                      tabIndex={0}
+                      className={cn(
+                        "relative inline-flex h-8 w-[52px] shrink-0 cursor-pointer rounded-full border transition-all duration-300",
+                        state.safetyConfirmed 
+                          ? "bg-[#6BBF8A] border-[#6BBF8A]/40" 
+                          : "bg-slate-200/80 dark:bg-slate-700/60 border-slate-300/30 dark:border-slate-600/30"
+                      )}
+                    >
+                      <span 
+                        className={cn(
+                          "pointer-events-none inline-block h-[26px] w-[26px] rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)] transition-transform duration-300 mt-[2px]",
+                          state.safetyConfirmed ? "translate-x-[24px]" : "translate-x-[2px]"
+                        )}
+                      />
                     </div>
                   </label>
                 </div>
 
                 {state.safetyConfirmed && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-green-600"
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium">
-                      Great! You&apos;re ready to continue
+                  <div className="flex items-center gap-2 text-[#6BBF8A]">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm">
+                      Ready to continue
                     </span>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             )}
@@ -1426,30 +1415,17 @@ export function EnhancedIntakeFlow({
         
         return (
           <motion.div className="space-y-4" data-intake-form>
-            {/* Trust indicators at top */}
-            <div className="flex flex-wrap items-center justify-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-              <div className="flex items-center gap-2 text-sm">
-                <Shield className="w-4 h-4 text-green-700" />
-                <span className="text-green-800 font-medium">AHPRA Registered</span>
+            {/* Trust indicators - calm, professional */}
+            <div className="flex flex-wrap items-center justify-center gap-4 p-3 bg-ivory-50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/30 rounded-xl">
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <Shield className="w-3.5 h-3.5" />
+                <span>AHPRA-registered doctors</span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="w-4 h-4 text-green-700" />
-                <span className="text-green-800 font-medium">10,000+ Patients</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Star className="w-4 h-4 text-green-700 fill-green-700" />
-                <span className="text-green-800 font-medium">4.9/5 Rating</span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Usually reviewed within an hour</span>
               </div>
             </div>
-
-            {/* Urgency messaging */}
-            <Alert variant="info" className="border-primary/20 bg-primary/5">
-              <Zap className="w-4 h-4" />
-              <AlertTitle className="text-sm font-medium">Usually reviewed within 1 hour</AlertTitle>
-              <AlertDescription className="text-xs text-muted-foreground mt-1">
-                Our doctors are online now. Most requests are completed quickly.
-              </AlertDescription>
-            </Alert>
 
             {/* Summary card - Enhanced with edit capability */}
             <div className="p-5 bg-linear-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -1499,15 +1475,15 @@ export function EnhancedIntakeFlow({
                 </span>
               </motion.div>
 
-              {/* No call badge */}
+              {/* No call badge - subtle secondary messaging */}
               {selectedService?.noCall && (
                 <motion.div 
-                  className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-lg"
+                  className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-lg"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <PhoneOff className="w-4 h-4" />
-                  <span className="font-medium">No phone call required</span>
+                  <Clock className="w-4 h-4" />
+                  <span>Doctor reviews your request</span>
                 </motion.div>
               )}
             </div>
@@ -1717,22 +1693,9 @@ export function EnhancedIntakeFlow({
               </Alert>
             )}
 
-            {/* Trust badges - Enhanced */}
-            <div className="flex flex-wrap gap-3 justify-center p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center gap-1.5 text-xs">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span className="font-medium text-foreground">AHPRA Verified</span>
-              </div>
-              <span className="text-muted-foreground">•</span>
-              <div className="flex items-center gap-1.5 text-xs">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-medium text-foreground">4.9/5 Rating</span>
-              </div>
-              <span className="text-muted-foreground">•</span>
-              <div className="flex items-center gap-1.5 text-xs">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="font-medium text-foreground">98% Approval</span>
-              </div>
+            {/* Trust note - calm, not salesy */}
+            <div className="text-center text-xs text-slate-500 dark:text-slate-400">
+              Reviewed by AHPRA-registered Australian doctors
             </div>
           </motion.div>
         )

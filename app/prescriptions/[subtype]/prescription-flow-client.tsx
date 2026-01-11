@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import confetti from "canvas-confetti"
+// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
@@ -23,7 +23,7 @@ import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
-import { MedicationCombobox, type SelectedMedication } from "@/components/prescriptions/medication-combobox"
+import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
 
 interface PrescriptionFlowClientProps {
   category: string
@@ -127,7 +127,7 @@ const chronicControlOptions = [
   { id: "poorly_controlled", label: "Poorly controlled" },
 ]
 
-// Pill button component
+// Pill button component - calm selection styling per brand guidelines
 const PillButton = ({
   selected,
   onClick,
@@ -140,17 +140,17 @@ const PillButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
-        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-        : "bg-white/60 text-foreground hover:bg-white/80 border border-white/40"
+        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
     }`}
   >
     {children}
   </button>
 )
 
-// Multi-select pill button
+// Multi-select pill button - calm selection styling per brand guidelines
 const MultiPillButton = ({
   selected,
   onClick,
@@ -163,10 +163,10 @@ const MultiPillButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
-        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-        : "bg-white/60 text-foreground hover:bg-white/80 border border-white/40"
+        ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
     }`}
   >
     {children}
@@ -197,7 +197,7 @@ export function PrescriptionFlowClient({
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   // Common form state
-  const [selectedMedication, setSelectedMedication] = useState<SelectedMedication | null>(null)
+  const [selectedMedication, setSelectedMedication] = useState<SelectedArtgProduct | null>(null)
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [redFlagValues, setRedFlagValues] = useState<Record<string, boolean>>(
     Object.fromEntries(redFlags.map((rf) => [rf.id, false])),
@@ -241,12 +241,11 @@ export function PrescriptionFlowClient({
 
   const buildAnswers = (): Record<string, unknown> => {
     const baseAnswers = {
-      // AMT-backed structured medication data
-      amt_code: selectedMedication?.amt_code,
-      medication_display: selectedMedication?.display,
-      medication_name: selectedMedication?.medication_name,
-      medication_form: selectedMedication?.form,
-      medication_strength: selectedMedication?.strength,
+      // ARTG-backed structured medication data
+      artg_id: selectedMedication?.artg_id,
+      medication_name: selectedMedication?.product_name,
+      active_ingredients: selectedMedication?.active_ingredients_raw,
+      dosage_form: selectedMedication?.dosage_form,
       additional_notes: additionalNotes,
       red_flags: redFlagValues,
     }
@@ -311,14 +310,6 @@ export function PrescriptionFlowClient({
       setStep("auth")
       return
     }
-
-    // Trigger confetti on submission
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { x: 0.5, y: 0.6 },
-      colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
-    })
 
     setIsSubmitting(true)
     setHasSubmitted(true) // Prevent double-click
@@ -601,13 +592,9 @@ export function PrescriptionFlowClient({
 
         {/* Medication name - common for all subtypes */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">
-            Medication name and strength <span className="text-red-500">*</span>
-          </Label>
-          <MedicationCombobox
+          <MedicationSearch
             value={selectedMedication}
             onChange={setSelectedMedication}
-            placeholder="Search for your medication (e.g., Lexapro 10mg)"
           />
         </div>
 

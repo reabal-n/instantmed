@@ -45,27 +45,24 @@ function Switch({
           className
         ),
         wrapper: cn(
-          // Larger size for iOS feel
+          // iOS-style sizing
           "w-[52px] h-[32px]",
-          // Base glass track
-          "bg-slate-200 dark:bg-slate-700",
-          "border border-slate-300/50 dark:border-slate-600/50",
-          // Selected state with vibrant color
-          "group-data-[selected=true]:bg-gradient-to-r group-data-[selected=true]:from-primary group-data-[selected=true]:to-blue-500",
-          "group-data-[selected=true]:shadow-[0_0_16px_rgb(59,130,246,0.35)]",
-          "group-data-[selected=true]:border-primary/30",
-          // Snappy spring transition
-          "transition-all duration-200 ease-out"
+          // Neutral off state - calm, muted
+          "bg-slate-200/80 dark:bg-slate-700/60",
+          "border border-slate-300/30 dark:border-slate-600/30",
+          // Selected state - soft sage green confirmation, no glow
+          "group-data-[selected=true]:bg-[#6BBF8A]",
+          "group-data-[selected=true]:border-[#6BBF8A]/40",
+          // Gentle transition
+          "transition-all duration-300 ease-out"
         ),
         thumb: cn(
-          // Larger thumb for iOS feel
+          // iOS-style thumb
           "w-[26px] h-[26px]",
-          // Glass thumb with depth
-          "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.15),0_1px_2px_rgba(0,0,0,0.1)]",
-          // Selected glow
-          "group-data-[selected=true]:shadow-[0_2px_8px_rgba(0,0,0,0.15),0_0_12px_rgba(255,255,255,0.4)]",
-          // Snappy spring transition for thumb movement
-          "transition-all duration-200 ease-out"
+          // Clean white thumb with subtle shadow
+          "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)]",
+          // Gentle transition
+          "transition-all duration-300 ease-out"
         ),
         startContent: "hidden",
         endContent: "hidden",

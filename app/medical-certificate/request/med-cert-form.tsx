@@ -257,12 +257,11 @@ function DurationChip({
         "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         selected
-          ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(59,130,246,0.15)]"
+          ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 text-sky-800 dark:text-sky-200 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+          : "hover:border-slate-300 hover:bg-white"
       )}
-      whileHover={selected ? {} : { scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ duration: 0.3 }}
     >
       {label}
     </motion.button>
@@ -284,19 +283,18 @@ function SymptomChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        // Glass surface
+        // Calm glass surface per brand guidelines
         "min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium",
-        "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
-        "border-2 border-white/40 dark:border-white/10",
+        "bg-white/90 dark:bg-slate-900/60",
+        "border-2 border-slate-200/60 dark:border-slate-700/40",
         "transition-all duration-300 ease-out",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2",
         selected
-          ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.25)]"
-          : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgb(59,130,246,0.12)]"
+          ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 text-sky-800 dark:text-sky-200 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+          : "hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
       )}
-      whileHover={selected ? {} : { scale: 1.02, y: -1 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ duration: 0.3 }}
     >
       {label}
     </motion.button>
@@ -1092,12 +1090,12 @@ export function MedCertForm({
                         aria-pressed={formData.carerRelationship === rel}
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-300",
-                          "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
-                          "border-2 border-white/40 dark:border-white/10",
-                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                          "bg-white/90 dark:bg-slate-900/60",
+                          "border-2 border-slate-200/60 dark:border-slate-700/40",
+                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2",
                           formData.carerRelationship === rel
-                            ? "border-primary/50 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                            : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.12)]"
+                            ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 text-sky-800 dark:text-sky-200 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+                            : "hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
                         )}
                       >
                         {rel}
@@ -1643,7 +1641,7 @@ export function MedCertForm({
     <main
       ref={mainRef}
       tabIndex={-1}
-      className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col"
+      className="min-h-screen bg-ivory-50 dark:bg-slate-950 flex flex-col"
       aria-label="Medical certificate request"
     >
       {/* Header */}
@@ -1724,7 +1722,7 @@ export function MedCertForm({
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || isRedFlag}
-              className="flex-1 h-12 rounded-full gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="flex-1 h-12 rounded-full gap-2 bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
             >
               {isSubmitting ? (
                 <>
@@ -1742,7 +1740,7 @@ export function MedCertForm({
             <Button
               onClick={goNext}
               disabled={!canProceed()}
-              className="flex-1 h-12 rounded-full gap-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-12 rounded-full gap-2 bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue
               <ArrowRight className="w-5 h-5" />
