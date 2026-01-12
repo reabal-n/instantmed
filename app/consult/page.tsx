@@ -6,10 +6,10 @@ import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-confi
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: 'Online GP Consultation | Speak with a Doctor | Lumen Health',
+  title: 'Online GP Consultation | Speak with a Doctor | InstantMed',
   description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
   openGraph: {
-    title: 'Online GP Consultation | Lumen Health',
+    title: 'Online GP Consultation | InstantMed',
     description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
     type: 'website',
   },

@@ -30,7 +30,7 @@ const posts: Record<
     content: [
       "Getting sick is inconvenient enough without having to drag yourself to a waiting room. The good news? In Australia, you can now get a legitimate medical certificate online from an AHPRA-registered doctor.",
       "## How Online Medical Certificates Work",
-      "Online telehealth services like Lumen Health allow you to complete a health questionnaire from your phone or computer. A real doctor reviews your information and, if appropriate, issues a medical certificate.",
+      "Online telehealth services like InstantMed allow you to complete a health questionnaire from your phone or computer. A real doctor reviews your information and, if appropriate, issues a medical certificate.",
       "The process typically takes under an hour during business hours. You'll receive a PDF certificate that&apos;s legally valid and accepted by Australian employers.",
       "## What You'll Need",
       "- A valid Medicare card\n- Your symptoms and how long you&apos;ve been unwell\n- The dates you need covered\n- Your employer's name (optional)",
@@ -57,7 +57,7 @@ const posts: Record<
     content: [
       "The short answer is no — you always need a doctor to prescribe medication in Australia. But thanks to telehealth, you don&apos;t always need to see them face-to-face.",
       "## How Telehealth Prescriptions Work",
-      "Services like Lumen Health connect you with AHPRA-registered doctors who review your medical history and current needs. If a prescription is appropriate, they can issue an electronic prescription (e-script) that&apos;s sent directly to your phone.",
+      "Services like InstantMed connect you with AHPRA-registered doctors who review your medical history and current needs. If a prescription is appropriate, they can issue an electronic prescription (e-script) that&apos;s sent directly to your phone.",
       "## What Can Be Prescribed Online?",
       "Many common medications can be prescribed via telehealth, including:\n- Blood pressure medication (repeats)\n- Contraceptive pills\n- Cholesterol medication\n- Some antibiotics (for UTIs, skin infections)\n- Asthma preventers",
       "## What Can't Be Prescribed Online?",
@@ -98,7 +98,7 @@ const posts: Record<
     category: "Telehealth",
     image: "/doctor-video-call-telehealth.jpg",
     relatedLinks: [
-      { href: "/how-it-works", text: "How Lumen Health Works" },
+      { href: "/how-it-works", text: "How InstantMed Works" },
       { href: "/faq", text: "FAQs" },
     ],
   },
@@ -117,7 +117,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return {}
 
   return {
-    title: `${post.title} | Lumen Health Blog`,
+    title: `${post.title} | InstantMed Blog`,
     description: post.excerpt,
     openGraph: {
       title: post.title,
@@ -154,7 +154,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     datePublished: post.date,
     publisher: {
       "@type": "Organization",
-      name: "Lumen Health",
+      name: "InstantMed",
     },
   }
 

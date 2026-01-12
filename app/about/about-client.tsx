@@ -19,7 +19,7 @@ export function AboutClient() {
             <div className="max-w-4xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
                 <Heart className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-foreground/80">About Lumen Health</span>
+                <span className="text-xs font-medium text-foreground/80">About InstantMed</span>
               </div>
               <h1
                 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3"
@@ -52,7 +52,7 @@ export function AboutClient() {
                   <h2 className="text-2xl font-bold mb-4">Our Story</h2>
                   <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                     <p>
-                      Lumen Health was born from frustration. We were tired of waiting weeks for GP appointments, taking
+                      InstantMed was born from frustration. We were tired of waiting weeks for GP appointments, taking
                       half-days off work for simple script renewals, and dealing with the endless paperwork that comes
                       with traditional healthcare.
                     </p>
@@ -62,7 +62,7 @@ export function AboutClient() {
                       review your request in minutes?
                     </p>
                     <p>
-                      So we built Lumen Health. A platform that connects you with real, AHPRA-registered Australian doctors
+                      So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors
                       who can review your requests quickly and professionally—all without the hassle of phone calls, video
                       chats, or waiting rooms.
                     </p>
@@ -205,7 +205,7 @@ export function AboutClient() {
                   Ready to experience better healthcare?
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Join thousands of Australians who have made the switch to Lumen Health.
+                  Join thousands of Australians who have made the switch to InstantMed.
                 </p>
                 <Button 
                   as={Link}

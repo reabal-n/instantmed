@@ -69,7 +69,7 @@ export function BenefitsSection() {
                 </span>
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
-                We built Lumen Health because waiting 3 weeks for a GP appointment is insane. 
+                We built InstantMed because waiting 3 weeks for a GP appointment is insane. 
                 Get the care you need, when you need it.
               </p>
             </BlurFade>
@@ -118,7 +118,7 @@ export function BenefitsSection() {
                           <Zap className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-sm">Lumen Health</p>
+                          <p className="font-semibold text-sm">InstantMed</p>
                           <p className="text-xs text-muted-foreground">Your health, simplified</p>
                         </div>
                       </div>

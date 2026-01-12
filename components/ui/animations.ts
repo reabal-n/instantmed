@@ -1,5 +1,5 @@
 /**
- * Lumen Health Animation Constants
+ * InstantMed Animation Constants
  * 
  * Motion exists to confirm, not to impress.
  * All animation is slow, intentional, and subtle.

@@ -73,31 +73,14 @@ export function getDisplayPriceForCategory(category: ServiceCategory): string {
   }
 }
 
-export const PRIORITY_REVIEW_PRICE = 1000 // $10.00 in cents
-export const AFTER_HOURS_PRICE = 3995 // $39.95 in cents
-
 /**
- * Calculate total price including add-ons
+ * Calculate base price for a service category (in cents)
  */
-export function calculateTotalPrice(
-  category: ServiceCategory,
-  options: { priorityReview?: boolean; afterHours?: boolean } = {},
-): number {
+export function getBasePriceCents(category: ServiceCategory): number {
   const basePrices: Record<ServiceCategory, number> = {
     medical_certificate: 1995,
     prescription: 2995,
     consult: 4995,
   }
-
-  let total = basePrices[category] || 1995
-
-  if (options.priorityReview) {
-    total += PRIORITY_REVIEW_PRICE
-  }
-
-  if (options.afterHours) {
-    total += AFTER_HOURS_PRICE - basePrices[category] // After hours replaces base price
-  }
-
-  return total
+  return basePrices[category] || 1995
 }

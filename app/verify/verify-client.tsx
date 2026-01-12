@@ -92,7 +92,7 @@ export function VerifyClient() {
         </div>
         <h1 className="text-3xl font-bold text-foreground">Document Verification</h1>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Verify the authenticity of medical certificates and documents issued by Lumen Health.
+          Verify the authenticity of medical certificates and documents issued by InstantMed.
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export function VerifyClient() {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-emerald-900">Document Verified</h3>
-                    <p className="text-emerald-700">This is a valid document issued by Lumen Health.</p>
+                    <p className="text-emerald-700">This is a valid document issued by InstantMed.</p>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export function VerifyClient() {
 
                 {/* Trust Note */}
                 <p className="text-xs text-emerald-600 text-center">
-                  This verification confirms the document was issued through Lumen Health&apos;s secure platform.
+                  This verification confirms the document was issued through InstantMed&apos;s secure platform.
                 </p>
               </div>
             ) : (
@@ -223,7 +223,7 @@ export function VerifyClient() {
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
                         <li>The code may have been entered incorrectly</li>
                         <li>The document may have been issued before our verification system</li>
-                        <li>The document may not have been issued by Lumen Health</li>
+                        <li>The document may not have been issued by InstantMed</li>
                       </ul>
                     </div>
                   </div>

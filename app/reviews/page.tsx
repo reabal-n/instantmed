@@ -5,10 +5,10 @@ import { ReviewsClientPageComponent as ReviewsClientPage } from "./reviewsClient
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Patient Reviews | Lumen Health",
+  title: "Patient Reviews | InstantMed",
   description:
-    "Read real reviews from Australian patients who've used Lumen Health for medical certificates, prescriptions, and referrals.",
-  keywords: ["telehealth reviews", "online doctor reviews", "Lumen Health reviews", "Australia telehealth"],
+    "Read real reviews from Australian patients who've used InstantMed for medical certificates, prescriptions, and referrals.",
+  keywords: ["telehealth reviews", "online doctor reviews", "InstantMed reviews", "Australia telehealth"],
 }
 
 export default function ReviewsPage() {

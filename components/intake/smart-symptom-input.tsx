@@ -225,12 +225,12 @@ export function SmartSymptomInput({
           onChange={(e) => onChange(e.target.value.slice(0, maxLength))}
           placeholder={getContextPlaceholder()}
           className={cn(
-            "min-h-[120px] resize-none rounded-xl transition-all duration-200",
-            "bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg",
-            "border-slate-200/60 dark:border-slate-700/40",
-            "focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.1)]",
-            !isValid && value.length > 0 && "border-amber-400/50",
-            isValid && "border-green-400/50"
+            "min-h-[120px] resize-none transition-all duration-200",
+            "bg-white dark:bg-slate-900",
+            "border border-input",
+            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            !isValid && value.length > 0 && "border-amber-400",
+            isValid && "border-green-500"
           )}
           onFocus={() => value.length >= 2 && setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}

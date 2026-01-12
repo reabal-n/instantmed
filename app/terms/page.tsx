@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Terms of Service | Lumen Health",
-  description: "Terms and conditions for using Lumen Health telehealth services.",
+  title: "Terms of Service | InstantMed",
+  description: "Terms and conditions for using InstantMed telehealth services.",
 }
 
 export default function TermsPage() {
@@ -31,7 +31,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using Lumen Health&apos;s services, you agree to be bound by these Terms of Service. If you do
+                By accessing or using InstantMed&apos;s services, you agree to be bound by these Terms of Service. If you do
                 not agree to these terms, please do not use our services. We reserve the right to modify these terms at
                 any time.
               </p>
@@ -39,7 +39,7 @@ export default function TermsPage() {
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">2. Eligibility</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">To use Lumen Health, you must:</p>
+              <p className="text-muted-foreground leading-relaxed mb-4">To use InstantMed, you must:</p>
               <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                 <li>Be at least 18 years of age (or have parental/guardian consent)</li>
                 <li>Be located in Australia at the time of consultation</li>
@@ -51,7 +51,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">3. Nature of Services</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Lumen Health provides online telehealth consultations for non-emergency medical needs. Our services
+                InstantMed provides online telehealth consultations for non-emergency medical needs. Our services
                 are not a substitute for emergency care. If you are experiencing a medical emergency, call 000
                 immediately or go to your nearest emergency department.
               </p>
@@ -88,7 +88,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">7. Limitation of Liability</h2>
               <p className="text-muted-foreground leading-relaxed">
-                To the maximum extent permitted by law, Lumen Health shall not be liable for any indirect, incidental,
+                To the maximum extent permitted by law, InstantMed shall not be liable for any indirect, incidental,
                 special, consequential, or punitive damages arising from your use of our services. Our total liability
                 shall not exceed the amount paid by you for the specific service giving rise to the claim.
               </p>

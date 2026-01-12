@@ -71,7 +71,7 @@ export function DashboardSidebar({
             </div>
             <div>
               <span className="text-lg font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                Lumen Health
+                InstantMed
               </span>
               <p className="text-xs text-muted-foreground capitalize">{variant} Portal</p>
             </div>

@@ -46,7 +46,7 @@ const comparisonCards: DisplayCardProps[] = [
     icon: <Clock className="size-4 text-emerald-300" />,
     title: "45 min average",
     description: "Most requests done in under an hour",
-    date: "Lumen Health",
+    date: "InstantMed",
     iconClassName: "bg-emerald-800",
     titleClassName: "text-emerald-400",
     className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0",
@@ -82,7 +82,7 @@ const ComparisonStats = () => {
           >
             Why Aussies choose{" "}
             <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
-              Lumen Health
+              InstantMed
             </span>
           </h2>
           <p className="text-lg text-muted-foreground">

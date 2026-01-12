@@ -23,7 +23,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Got my medical certificate in under 30 minutes. The doctor was professional and the whole process was seamless.",
     service: "med-cert",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Sarah&backgroundColor=b6e3f4",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Sarah&backgroundColor=b6e3f4",
   },
   {
     id: 2,
@@ -32,7 +32,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Finally a telehealth that doesn't make you wait 3 days. Script sorted same day.",
     service: "prescription",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=James&backgroundColor=c0aede",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=James&backgroundColor=c0aede",
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Was skeptical but the doctor was legit thorough. Employer accepted my cert no questions.",
     service: "med-cert",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Emma&backgroundColor=ffd5dc",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Emma&backgroundColor=ffd5dc",
   },
   {
     id: 4,
@@ -50,7 +50,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "4am and needed a script before my flight. Done in 15 mins. Unreal service.",
     service: "prescription",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Michael&backgroundColor=d1f4d1",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Michael&backgroundColor=d1f4d1",
   },
   {
     id: 5,
@@ -59,7 +59,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "No awkward video call, just answered questions and got my prescription. So easy.",
     service: "prescription",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Jessica&backgroundColor=ffdfba",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Jessica&backgroundColor=ffdfba",
   },
   {
     id: 6,
@@ -68,7 +68,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Repeat script for my blood pressure meds. Usually takes a week to see my GP. This took 12 mins.",
     service: "prescription",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=David&backgroundColor=bae1ff",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=David&backgroundColor=bae1ff",
   },
   {
     id: 7,
@@ -77,7 +77,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Real Australian doctors, not some overseas call centre. Actually listened to my concerns.",
     service: "med-cert",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Sophie&backgroundColor=e0bbff",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Sophie&backgroundColor=e0bbff",
   },
   {
     id: 8,
@@ -86,7 +86,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Pricing upfront, no hidden fees. Wish my regular GP was this transparent.",
     service: "med-cert",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Chris&backgroundColor=c1e7c1",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Chris&backgroundColor=c1e7c1",
   },
   {
     id: 9,
@@ -95,16 +95,16 @@ const testimonials: Testimonial[] = [
     rating: 5,
     text: "Got a sick note for work while lying in bed with the flu. This is how healthcare should work.",
     service: "med-cert",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Lisa&backgroundColor=ffc8dd",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Lisa&backgroundColor=ffc8dd",
   },
   {
     id: 10,
     name: "Ryan P.",
     location: "Darwin",
     rating: 5,
-    text: "Living remote, nearest GP is 2 hours away. Lumen Health is a game changer up here.",
+    text: "Living remote, nearest GP is 2 hours away. InstantMed is a game changer up here.",
     service: "prescription",
-    avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Ryan&backgroundColor=a2d2ff",
+    avatar: "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Ryan&backgroundColor=a2d2ff",
   },
 ]
 
@@ -122,7 +122,7 @@ export function TestimonialMarquee() {
       <TestimonialsColumnsWrapper
         testimonials={testimonialsForColumns}
         title="Real patients. Real results."
-        subtitle="See why thousands of Australians choose Lumen Health."
+        subtitle="See why thousands of Australians choose InstantMed."
         badgeText="4.9 ★ from 2,400+ reviews"
         className="py-16 lg:py-20 bg-content2/30"
       />

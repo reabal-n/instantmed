@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ArrowRight, FileText, Pill, Zap, ChevronDown } from 'lucide-react'
+import { Menu, X, ArrowRight, FileText, Pill, Stethoscope, ChevronDown } from 'lucide-react'
+import { BrandLogo } from '@/components/shared/brand-logo'
 import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
-import { siteConfig } from '@/lib/marketing/homepage'
 
 const services = [
   {
@@ -24,7 +24,7 @@ const services = [
     label: 'General Consult',
     href: '/start?service=consult',
     description: 'New prescriptions & dose changes',
-    icon: Zap,
+    icon: Stethoscope,
   },
 ]
 
@@ -62,14 +62,7 @@ export function MarketingNavbar() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-all">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-foreground">
-                {siteConfig.name}
-              </span>
-            </Link>
+            <BrandLogo size="md" />
 
             {/* Desktop nav */}
             <div className="hidden lg:flex items-center gap-1">

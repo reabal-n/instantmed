@@ -15,9 +15,9 @@ const faqs: FAQItem[] = [
   {
     id: 1,
     category: "General",
-    question: "How does Lumen Health work?",
+    question: "How does InstantMed work?",
     answer:
-      "Lumen Health connects you with Australian registered doctors through our secure telehealth platform. Simply complete our health questionnaire, pay the consultation fee, and a doctor will review your case. Once approved, your medical certificate or prescription is sent directly to your email.",
+      "InstantMed connects you with Australian registered doctors through our secure telehealth platform. Simply complete our health questionnaire, pay the consultation fee, and a doctor will review your case. Once approved, your medical certificate or prescription is sent directly to your email.",
   },
   {
     id: 2,

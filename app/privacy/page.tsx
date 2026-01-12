@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Privacy Policy | Lumen Health",
-  description: "How Lumen Health collects, uses, and protects your personal and health information.",
+  title: "Privacy Policy | InstantMed",
+  description: "How InstantMed collects, uses, and protects your personal and health information.",
 }
 
 export default function PrivacyPage() {
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Lumen Health (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy and complying with the Privacy
+                InstantMed (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy and complying with the Privacy
                 Act 1988 (Cth) and the Australian Privacy Principles (APPs). This policy explains how we collect, use,
                 disclose, and protect your personal and health information.
               </p>

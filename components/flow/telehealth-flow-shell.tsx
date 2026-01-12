@@ -360,7 +360,7 @@ export function TelehealthFlowShell({
           <div className="max-w-md mx-auto space-y-2">
             <div className="flex items-center justify-between">
               <Link href="/" className="text-sm font-semibold text-primary">
-                Lumen Health
+                InstantMed
               </Link>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" aria-hidden="true" />

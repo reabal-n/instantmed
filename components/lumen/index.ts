@@ -1,7 +1,7 @@
 /**
  * Lumen Design System Components
  * 
- * Brand-aligned component variants for Lumen Health.
+ * Brand-aligned component variants for InstantMed.
  * These components embody the "Clarity Emerging" visual personality:
  * - Calm, premium, restrained
  * - Morning light palette (sky blues, dawn warmth)

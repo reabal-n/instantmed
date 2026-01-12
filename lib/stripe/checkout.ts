@@ -16,7 +16,6 @@ interface CreateCheckoutInput {
   type: string
   answers: Record<string, unknown>
   serviceSlug?: string // Service slug to look up service_id
-  isPriority?: boolean // Priority review upsell
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -174,7 +173,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const serviceSlug = input.serviceSlug || getServiceSlug(input.category, input.subtype)
     const { data: service, error: serviceError } = await supabase
       .from("services")
-      .select("id, price_cents, priority_fee_cents")
+      .select("id, price_cents")
       .eq("slug", serviceSlug)
       .eq("is_active", true)
       .single()
@@ -191,10 +190,8 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         patient_id: patientId,
         service_id: service.id,
         status: "pending_payment",
-        is_priority: input.isPriority || false,
-        priority_review: input.isPriority || false,
         payment_status: "pending",
-        amount_cents: service.price_cents + (input.isPriority ? service.priority_fee_cents : 0),
+        amount_cents: service.price_cents,
       })
       .select()
       .single()

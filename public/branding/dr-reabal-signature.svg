@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="260" height="90" viewBox="0 0 260 90" role="img" aria-label="Dr Reabal Najjar signature">
-  <style>
-    .sig { fill: none; stroke: #1b4f72; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .text { font: 14px 'Helvetica Neue', Arial, sans-serif; fill: #1b4f72; }
-  </style>
-  <path class="sig" d="M10 55 C30 20, 60 20, 80 50 S130 90, 150 45 190 20, 230 60" />
-  <path class="sig" d="M40 65 Q70 40 100 65" />
-  <text x="12" y="82" class="text">Dr Reabal Najjar • AHPRA MED0002576546</text>
-</svg>

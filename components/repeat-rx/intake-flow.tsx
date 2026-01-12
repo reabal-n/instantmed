@@ -393,7 +393,7 @@ function PillButton({
 }
 
 // ============================================================================
-// FORM INPUT (with Lumen Health styling)
+// FORM INPUT (with InstantMed styling)
 // ============================================================================
 
 function FormInput({

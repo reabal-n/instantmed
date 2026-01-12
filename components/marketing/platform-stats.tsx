@@ -57,7 +57,7 @@ export function PlatformStats() {
             Trusted by thousands
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Real results, real people. Here&apos;s why Australians choose Lumen Health.
+            Real results, real people. Here&apos;s why Australians choose InstantMed.
           </p>
         </motion.div>
 

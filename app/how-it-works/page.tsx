@@ -21,7 +21,7 @@ import {
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "How It Works | Lumen Health",
+  title: "How It Works | InstantMed",
   description:
     "Get a medical certificate or prescription reviewed by an Australian doctor. Submit online, receive a response usually within hours.",
 }
@@ -247,7 +247,7 @@ export default function HowItWorksPage() {
                 >
                   Sound familiar?
                 </h2>
-                <p className="text-sm text-muted-foreground">Here&apos;s how real people use Lumen Health</p>
+                <p className="text-sm text-muted-foreground">Here&apos;s how real people use InstantMed</p>
               </div>
 
               <div className="space-y-3 max-w-4xl mx-auto">

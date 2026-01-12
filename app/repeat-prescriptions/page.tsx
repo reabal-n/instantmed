@@ -6,10 +6,10 @@ import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: 'Online Repeat Prescriptions | Same-Day Scripts | Lumen Health',
+  title: 'Online Repeat Prescriptions | Same-Day Scripts | InstantMed',
   description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments needed.',
   openGraph: {
-    title: 'Online Repeat Prescriptions | Lumen Health',
+    title: 'Online Repeat Prescriptions | InstantMed',
     description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy.',
     type: 'website',
   },

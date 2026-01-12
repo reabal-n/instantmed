@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!cityData) return {}
 
   return {
-    title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state} | Lumen Health`,
+    title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state} | InstantMed`,
     description: `Get online doctor consultations in ${cityData.name}. Medical certificates and prescriptions from AHPRA-registered doctors. Serving all of ${cityData.state}.`,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,
@@ -128,7 +128,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `online prescription ${cityData.name.toLowerCase()}`,
     ],
     openGraph: {
-      title: `Online Doctor ${cityData.name} | Lumen Health`,
+      title: `Online Doctor ${cityData.name} | InstantMed`,
       description: `Telehealth consultations for ${cityData.name} residents. Fast, affordable, and convenient.`,
     },
     alternates: {
@@ -153,7 +153,7 @@ export default async function CityPage({ params }: PageProps) {
   const localSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
-    name: `Lumen Health - Online Doctor ${cityData.name}`,
+    name: `InstantMed - Online Doctor ${cityData.name}`,
     description: `Online doctor consultations for ${cityData.name} residents`,
     areaServed: {
       "@type": "City",
@@ -284,7 +284,7 @@ export default async function CityPage({ params }: PageProps) {
           {/* Why Telehealth */}
           <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Why {cityData.name} Residents Choose Lumen Health</h2>
+              <h2 className="text-xl font-bold mb-6 text-center">Why {cityData.name} Residents Choose InstantMed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   "No need to leave home or work",
@@ -308,7 +308,7 @@ export default async function CityPage({ params }: PageProps) {
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
               <p className="text-muted-foreground mb-6">
-                Join thousands of {cityData.name} residents who trust Lumen Health for their telehealth needs.
+                Join thousands of {cityData.name} residents who trust InstantMed for their telehealth needs.
               </p>
               <Link href="/request">
                 <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">

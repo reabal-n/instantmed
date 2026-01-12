@@ -6,7 +6,7 @@ import { motion, type Variants, type Transition, AnimatePresence } from "framer-
 import { cn } from "@/lib/utils"
 
 /**
- * Lumen Health Motion System
+ * InstantMed Motion System
  * 
  * Motion exists to confirm, not to impress.
  * All animation is slow, intentional, and subtle.

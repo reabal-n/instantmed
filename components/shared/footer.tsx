@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Zap } from "lucide-react"
+import { BrandLogo } from "@/components/shared/brand-logo"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -26,16 +26,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-10 px-2 md:px-8 flex-1 w-full">
           {/* Brand section */}
           <div className="flex flex-col items-start gap-2">
-            <Link
-              href="/"
-              className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-foreground"
-              aria-label="InstantMed home"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-dawn-400 to-dawn-500 shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
-                <Zap className="h-4 w-4 text-dawn-950" aria-hidden="true" />
-              </div>
-              InstantMed
-            </Link>
+            <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               Medical certificates & prescriptions — handled online by real Australian doctors.
             </p>

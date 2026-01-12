@@ -10,11 +10,11 @@ import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: "Health Blog | Telehealth Tips & Guides | Lumen Health",
+  title: "Health Blog | Telehealth Tips & Guides | InstantMed",
   description:
     "Expert health articles from Australian doctors. Learn about telehealth, medical certificates, prescriptions, and when to see a GP in person.",
   openGraph: {
-    title: "Lumen Health Health Blog",
+    title: "InstantMed Health Blog",
     description: "Health tips and telehealth guides from Australian doctors.",
   },
 }

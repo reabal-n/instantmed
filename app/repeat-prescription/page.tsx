@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
-  title: 'Repeat Prescription Online | Same-Day E-Script | Lumen Health',
+  title: 'Repeat Prescription Online | Same-Day E-Script | InstantMed',
   description:
     'Request a repeat prescription online from AHPRA-registered Australian doctors. Same medication, same dose. E-script sent to your phone. $29.95.',
   alternates: {

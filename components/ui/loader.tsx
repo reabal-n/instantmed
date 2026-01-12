@@ -63,7 +63,7 @@ export function LoaderWithText({
 }
 
 // =============================================================================
-// PREMIUM BRANDED LOADER - With Lumen Health logo animation
+// PREMIUM BRANDED LOADER - With InstantMed logo animation
 // =============================================================================
 
 export function PremiumLoader({ 
@@ -109,7 +109,7 @@ export function PremiumLoader({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Lumen Health
+            InstantMed
           </motion.span>
         )}
         <motion.p 

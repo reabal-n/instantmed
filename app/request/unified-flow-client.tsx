@@ -21,7 +21,6 @@ import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { COPY, isControlledSubstance } from "@/lib/microcopy/universal"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { isTestMode, TEST_DATA } from "@/lib/test-mode"
-import { PriorityUpsell } from "@/components/checkout/priority-upsell"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
 import { UnifiedProgressIndicator } from "@/components/intake/unified-progress-indicator"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
@@ -65,7 +64,6 @@ interface FormData {
   fullName: string
   dob: string
   phone: string
-  priorityReview: boolean
   agreedTerms: boolean
 }
 
@@ -325,7 +323,6 @@ export function UnifiedFlowClient({
     fullName: userName || "",
     dob: "",
     phone: "",
-    priorityReview: false,
     agreedTerms: false,
   }
 
@@ -696,7 +693,7 @@ export function UnifiedFlowClient({
         category,
         subtype,
         type: service,
-        answers: { ...details, priorityReview: form.priorityReview },
+        answers: { ...details },
       })
 
       if (result.error) throw new Error(result.error)
@@ -713,7 +710,7 @@ export function UnifiedFlowClient({
   // Get price
   const getPrice = () => {
     const basePrice = service === "medcert" ? 19.95 : 29.95
-    return (basePrice + (form.priorityReview ? 10 : 0)).toFixed(2)
+    return basePrice.toFixed(2)
   }
 
   // Can continue from clinical step?
@@ -1336,31 +1333,12 @@ export function UnifiedFlowClient({
               </div>
               <hr />
 
-              {/* Add this in the review step, before the payment button */}
-              <div className="pt-4 border-t">
-                <PriorityUpsell
-                  selected={form.priorityReview}
-                  onToggle={(selected) => setForm({ ...form, priorityReview: selected })}
-                  basePrice={service === "medcert" ? 19.95 : 29.95}
-                />
-              </div>
-
               {/* Price summary */}
               <div className="p-4 bg-muted/50 rounded-xl space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between font-semibold">
                   <span>
                     {service === "medcert" ? "Medical Certificate" : "Prescription"}
                   </span>
-                  <span>${service === "medcert" ? "19.95" : "29.95"}</span>
-                </div>
-                {form.priorityReview && (
-                  <div className="flex justify-between text-sm text-dawn-600">
-                    <span>Priority Review</span>
-                    <span>+$10.00</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-semibold pt-2 border-t">
-                  <span>Total</span>
                   <span>${getPrice()}</span>
                 </div>
               </div>

@@ -68,14 +68,14 @@ function RegisterForm() {
           <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
             <span className="text-xl font-bold text-amber-950">L</span>
           </div>
-          <span className="text-2xl font-bold text-foreground">Lumen Health</span>
+          <span className="text-2xl font-bold text-foreground">InstantMed</span>
         </Link>
       </div>
 
       <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground">Create an account</h2>
-          <p className="text-muted-foreground mt-1">Get started with Lumen Health</p>
+          <p className="text-muted-foreground mt-1">Get started with InstantMed</p>
         </div>
 
         {/* Google Sign Up */}
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                 <span className="text-xl font-bold text-amber-950">L</span>
               </div>
               <span className="text-2xl font-bold text-foreground group-hover:text-dawn-600 transition-colors">
-                Lumen Health
+                InstantMed
               </span>
             </Link>
             

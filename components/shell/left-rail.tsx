@@ -65,7 +65,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
       {/* Header */}
       <div className="h-16 border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
         {isExpanded && (
-          <span className="font-semibold text-primary">Lumen Health</span>
+          <span className="font-semibold text-primary">InstantMed</span>
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -159,7 +159,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
       {isExpanded && (
         <div className="p-4 border-t border-gray-200 shrink-0">
           <p className="text-xs text-gray-500 text-center">
-            Lumen Health © {new Date().getFullYear()}
+            InstantMed © {new Date().getFullYear()}
           </p>
         </div>
       )}

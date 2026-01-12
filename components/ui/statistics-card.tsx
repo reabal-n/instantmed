@@ -41,7 +41,7 @@ const Stats = ({
     { value: 25, label: "competitor 2", delay: 0.4 },
     {
       value: 99,
-      label: "Lumen Health",
+      label: "InstantMed",
       className: "bg-primary",
       showToolTip: true,
       delay: 0.6,

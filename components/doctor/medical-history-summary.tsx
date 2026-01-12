@@ -33,7 +33,7 @@ interface MedicalHistoryData {
   currentMedications: string[]
   chronicConditions: string[]
   
-  // History with Lumen Health
+  // History with InstantMed
   previousRequests: {
     id: string
     type: string

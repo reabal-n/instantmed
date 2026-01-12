@@ -198,7 +198,7 @@ export default function LoginPage() {
                 <span className="text-xl font-bold text-amber-950">L</span>
               </div>
               <span className="text-2xl font-bold text-foreground group-hover:text-dawn-600 transition-colors">
-                Lumen Health
+                InstantMed
               </span>
             </Link>
             

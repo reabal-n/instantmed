@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Zap } from 'lucide-react'
+import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
 
 const TapeDecoration = () => (
@@ -27,15 +27,7 @@ export function MarketingFooter() {
         <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-10 px-2 md:px-8 flex-1 w-full">
           {/* Brand section */}
           <div className="flex flex-col items-start gap-2">
-            <Link
-              href="/"
-              className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-foreground"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2563EB] to-[#4f46e5]">
-                <Zap className="h-4 w-4 text-white" />
-              </div>
-              {siteConfig.name}
-            </Link>
+            <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               Medical certificates & consultations — handled online by real Australian doctors.
             </p>
