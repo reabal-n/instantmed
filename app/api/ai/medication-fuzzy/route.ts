@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { createClient } from "@/lib/supabase/server"
 
@@ -91,7 +90,7 @@ export async function POST(req: NextRequest) {
     if (!hasLocalMatch && query.length >= 3) {
       try {
         const { text } = await generateText({
-          model: openai("gpt-4o-mini"),
+          model: "openai/gpt-4o-mini",
           prompt: `You are a medication name interpreter. The user typed: "${query}"
 
 This might be:

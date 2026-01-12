@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 
 export const runtime = "edge"
@@ -51,7 +50,7 @@ Rules:
 Return ONLY a JSON array of strings, nothing else. Example: ["mild fever since yesterday", "affecting my sleep", "gradually improving"]`
 
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       prompt,
     })
 

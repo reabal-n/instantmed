@@ -14,7 +14,6 @@
     "import:artg": "npx tsx scripts/import_artg.ts"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.7",
     "@edge-runtime/cookies": "^6.0.0",
     "@heroui/react": "^2.8.6",
     "@heroui/system": "^2.4.24",

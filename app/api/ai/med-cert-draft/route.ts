@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -79,9 +78,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check for OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
-      log.error("OPENAI_API_KEY not configured")
+    // Check for AI Gateway API key (or OIDC on Vercel)
+    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
+      log.error("AI_GATEWAY_API_KEY not configured")
       return NextResponse.json(
         { success: false, error: "AI service not configured", draft: null },
         { status: 503 }
@@ -113,9 +112,9 @@ export async function POST(request: NextRequest) {
     // Format context for the prompt
     const context = formatMedCertContext(answers, patient)
 
-    // Generate med cert draft using AI
+    // Generate med cert draft via Vercel AI Gateway
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       system: MED_CERT_DRAFT_PROMPT,
       prompt: `Generate a medical certificate statement for:\n\n${context}`,
     })

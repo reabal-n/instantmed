@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { createClient } from "@/lib/supabase/server"
 
@@ -175,7 +174,7 @@ Return ONLY the summary text, no labels or formatting.`
 
     // Generate summary
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       prompt,
     })
 
