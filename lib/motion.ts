@@ -66,29 +66,25 @@ export const easing = {
 // Use for interactive elements, modals, and micro-interactions
 
 export const spring = {
-  /** Snappy spring - buttons, small interactions */
+  /** Snappy - simple tween for performance */
   snappy: { 
-    type: "spring" as const, 
-    stiffness: 400, 
-    damping: 30 
+    duration: 0.15, 
+    ease: 'easeOut' 
   } as Transition,
-  /** Smooth spring - page transitions, modals */
+  /** Smooth - slightly longer */
   smooth: { 
-    type: "spring" as const, 
-    stiffness: 200, 
-    damping: 25 
+    duration: 0.2, 
+    ease: 'easeOut' 
   } as Transition,
-  /** Bouncy spring - celebratory animations */
+  /** Bouncy - same as snappy (no bounce) */
   bouncy: { 
-    type: "spring" as const, 
-    stiffness: 300, 
-    damping: 20 
+    duration: 0.15, 
+    ease: 'easeOut' 
   } as Transition,
-  /** Gentle spring - subtle movements */
+  /** Gentle - subtle */
   gentle: { 
-    type: "spring" as const, 
-    stiffness: 150, 
-    damping: 20 
+    duration: 0.2, 
+    ease: 'easeOut' 
   } as Transition,
 }
 
@@ -436,16 +432,13 @@ export const glowHover = {
  */
 export const hoverLiftGlow = {
   whileHover: {
-    y: -4,
-    scale: 1.01,
-    boxShadow: '0 20px 40px rgba(59, 130, 246, 0.12)',
-    transition: spring.snappy,
+    y: -2,
+    transition: { duration: 0.15, ease: 'easeOut' },
   } as TargetAndTransition,
   whileTap: {
     y: 0,
     scale: 0.98,
-    boxShadow: '0 8px 30px rgba(59, 130, 246, 0.08)',
-    transition: { duration: duration.instant },
+    transition: { duration: 0.1 },
   } as TargetAndTransition,
 }
 
@@ -454,16 +447,13 @@ export const hoverLiftGlow = {
  */
 export const hoverLiftGlowPurple = {
   whileHover: {
-    y: -4,
-    scale: 1.01,
-    boxShadow: '0 20px 40px rgba(139, 92, 246, 0.15)',
-    transition: spring.snappy,
+    y: -2,
+    transition: { duration: 0.15, ease: 'easeOut' },
   } as TargetAndTransition,
   whileTap: {
     y: 0,
     scale: 0.98,
-    boxShadow: '0 8px 30px rgba(139, 92, 246, 0.10)',
-    transition: { duration: duration.instant },
+    transition: { duration: 0.1 },
   } as TargetAndTransition,
 }
 

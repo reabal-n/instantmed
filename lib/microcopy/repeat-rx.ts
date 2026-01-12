@@ -141,7 +141,7 @@ export const REPEAT_RX_COPY = {
       subtitle: "Based on your answers, a brief consult is recommended",
       reason: "This ensures we can prescribe safely for you",
       bookConsult: "Book a brief consult",
-      consultPrice: "$24.95",
+      consultPrice: "$49.95",
     },
     redFlags: {
       title: "We noticed a few things",

@@ -39,7 +39,7 @@ export function EnhancedSelectionButton({
   description,
   gradient: _gradient = "blue-purple",
 }: EnhancedSelectionButtonProps) {
-  const baseClasses = "relative transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+  const baseClasses = "relative transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
   
   // Lumen brand: Selections feel like light settling, not color switching
   // Subtle outline emphasis, gentle surface change, soft light shift
@@ -74,16 +74,15 @@ export function EnhancedSelectionButton({
     <motion.button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: variant === "chip" ? 1.02 : 1.01 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.1 }}
       className={cn(baseClasses, variantClasses[variant], className)}
       aria-pressed={selected}
     >
       {variant === "option" && Icon && (
         <div
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300",
+            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150",
             selected
               ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400"
               : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
@@ -96,7 +95,7 @@ export function EnhancedSelectionButton({
       {variant === "card" && Icon && (
         <div
           className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all duration-300",
+            "w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-colors duration-150",
             selected
               ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400"
               : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
@@ -120,7 +119,7 @@ export function EnhancedSelectionButton({
       {selected && (
         <div
           className={cn(
-            "shrink-0 flex items-center justify-center rounded-full transition-all duration-300",
+            "shrink-0 flex items-center justify-center rounded-full",
             variant === "option" || variant === "card" ? "w-5 h-5 bg-sky-100 dark:bg-sky-800/40" : "w-4 h-4"
           )}
         >

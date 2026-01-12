@@ -1890,7 +1890,7 @@ export function MedCertFlowClient({
                   </>
                 ) : (
                   <>
-                    Pay $29.95
+                    Pay $19.95
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}

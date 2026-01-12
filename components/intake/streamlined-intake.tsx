@@ -824,7 +824,7 @@ export function StreamlinedIntake({
                 <p className="font-semibold">Total</p>
                 <p className="text-xs text-muted-foreground">Reviewed by Australian doctor</p>
               </div>
-              <p className="text-2xl font-bold text-primary">$19.99</p>
+              <p className="text-2xl font-bold text-primary">$19.95</p>
             </div>
 
             {errors.submit && (

@@ -19,7 +19,6 @@ import {
   Stethoscope,
   Phone,
   Edit2,
-  ChevronDown,
   Zap,
   TrendingUp,
   X,
@@ -37,7 +36,7 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, CheckCircle2 } from "lucide-react"
 import { EnhancedSelectionButton } from "@/components/intake/enhanced-selection-button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+// Collapsible removed - additional details now always visible
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAnnouncement } from "@/components/ui/live-region"
 import {
@@ -150,7 +149,7 @@ const SERVICES: Array<{
     title: "Medical Certificate",
     subtitle: "Sick leave, carer's leave, study",
     icon: FileText,
-    price: "$29.95",
+    price: "$19.95",
     time: "Under 30 min",
     noCall: true,
     popular: true,
@@ -161,7 +160,7 @@ const SERVICES: Array<{
     title: "Repeat Prescription",
     subtitle: "Medication you already take",
     icon: Pill,
-    price: "$19.95",
+    price: "$29.95",
     time: "Under 30 min",
     noCall: true,
     gpCost: "$60-90",
@@ -171,7 +170,7 @@ const SERVICES: Array<{
     title: "New Prescription",
     subtitle: "First-time medication",
     icon: Stethoscope,
-    price: "$29.95",
+    price: "$49.95",
     time: "Under 30 min",
     noCall: false,
     gpCost: "$80-120",
@@ -181,7 +180,7 @@ const SERVICES: Array<{
     title: "General Consult",
     subtitle: "New prescriptions & dose changes",
     icon: Zap,
-    price: "$44.95",
+    price: "$49.95",
     time: "Under 30 min",
     noCall: false,
     gpCost: "$80-120",
@@ -654,6 +653,8 @@ export function EnhancedIntakeFlow({
           if (!state.duration) newErrors.duration = "Please select duration"
           if (state.symptoms.length === 0)
             newErrors.symptoms = "Please select at least one symptom"
+          if (!state.symptomDetails || state.symptomDetails.length < 20)
+            newErrors.symptomDetails = "Please describe your symptoms (minimum 20 characters)"
         } else if (state.service === "repeat-script" || state.service === "new-script") {
           if (!state.medicationName)
             newErrors.medicationName = "Please enter medication name"
@@ -1098,32 +1099,26 @@ export function EnhancedIntakeFlow({
                 </div>
               </FormField>
 
-              {/* Brief details - Progressive disclosure */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-target mb-2">
-                  <span>Add additional details (optional)</span>
-                  <ChevronDown className="w-4 h-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <FormField
-                    label="Anything else?"
-                    hint="Any additional information that might help"
-                    example="e.g., Started feeling unwell yesterday evening, have been resting since"
-                  >
-                    <EnhancedTextarea
-                      label=""
-                      value={state.symptomDetails}
-                      onChange={(value) => updateField("symptomDetails", value)}
-                      placeholder="Additional details for the doctor..."
-                      minRows={2}
-                      className="resize-none touch-target"
-                      maxLength={500}
-                      showCharacterCounter={true}
-                      helperText="Optional: Add any additional details that might help the doctor"
-                    />
-                  </FormField>
-                </CollapsibleContent>
-              </Collapsible>
+              {/* Additional details - Required */}
+              <FormField
+                label="Tell us more about your symptoms"
+                required
+                hint="This helps our doctors understand your situation"
+                example="e.g., Started feeling unwell yesterday evening, have been resting since"
+                error={errors.symptomDetails}
+              >
+                <EnhancedTextarea
+                  label=""
+                  value={state.symptomDetails}
+                  onChange={(value) => updateField("symptomDetails", value)}
+                  placeholder="Describe your symptoms and how you're feeling..."
+                  minRows={3}
+                  className="resize-none touch-target"
+                  maxLength={500}
+                  showCharacterCounter={true}
+                  helperText="Minimum 20 characters required"
+                />
+              </FormField>
 
               {/* Email collection for cart abandonment recovery - only for guests */}
               {!isAuthenticated && (
@@ -1983,11 +1978,11 @@ export function EnhancedIntakeFlow({
                 (step === "safety" && (symptomCheckResult.severity === "critical" || !state.safetyConfirmed)) ||
                 (isLastStep && !state.agreedToTerms) ||
                 // Only check errors relevant to current step to prevent disabled state when going back
-                !!(step === "details" && (errors.medicationName || errors.symptoms || errors.certType || errors.duration || errors.consultReason)) ||
+                !!(step === "details" && (errors.medicationName || errors.symptoms || errors.symptomDetails || errors.certType || errors.duration || errors.consultReason)) ||
                 !!(step === "account" && (errors.firstName || errors.lastName || errors.email || errors.phone || errors.dob)) ||
                 !!(step === "review" && errors.agreedToTerms)
               }
-              className="bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary-600 hover:to-primary-700 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
+              className="bg-linear-to-r from-primary to-primary/80 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary/90 hover:to-primary/70 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
             >
               {isSubmitting
                 ? "Processing..."

@@ -49,20 +49,10 @@ export function UnifiedProgressIndicator({
 
         {/* Animated progress overlay */}
         <motion.div
-          initial={{ width: "12px", height: "24px", x: 0 }}
-          animate={{
-            width: `${progressWidth}px`,
-            x: 0,
-          }}
-          className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
-          transition={{
-            type: "spring",
-            stiffness: 200,
-            damping: 20,
-            mass: 0.8,
-            bounce: 0.25,
-            duration: 0.6,
-          }}
+          initial={{ width: "12px" }}
+          animate={{ width: `${progressWidth}px` }}
+          className="absolute -left-[8px] -top-[8px] -translate-y-1/2 h-3 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
+          transition={{ duration: 0.2, ease: "easeOut" }}
         />
       </div>
 
@@ -76,17 +66,9 @@ export function UnifiedProgressIndicator({
         >
           {!isExpanded && onBack && (
             <motion.button
-              initial={{ opacity: 0, width: 0, scale: 0.8 }}
-              animate={{ opacity: 1, width: "64px", scale: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 200,
-                damping: 15,
-                mass: 0.8,
-                bounce: 0.25,
-                duration: 0.6,
-                opacity: { duration: 0.2 },
-              }}
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: "64px" }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               onClick={onBack}
               className="px-4 py-3 text-black flex items-center justify-center bg-gray-100 font-semibold rounded-full hover:bg-gray-50 hover:border transition-colors flex-1 w-16 text-sm"
             >
@@ -100,22 +82,16 @@ export function UnifiedProgressIndicator({
               flex: isExpanded ? 1 : "inherit",
             }}
             className={cn(
-              "px-4 py-3 rounded-full text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 flex-1 w-56 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]",
+              "px-4 py-3 rounded-full text-white bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 transition-opacity duration-150 flex-1 w-56 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]",
               !isExpanded && "w-44"
             )}
           >
-            <div className="flex items-center font-[600] justify-center gap-2 text-sm">
+            <div className="flex items-center font-semibold justify-center gap-2 text-sm">
               {isLastStep && (
                 <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 15,
-                    mass: 0.5,
-                    bounce: 0.4,
-                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
                 >
                   <CircleCheck size={16} />
                 </motion.div>

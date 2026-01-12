@@ -712,7 +712,7 @@ export function UnifiedFlowClient({
 
   // Get price
   const getPrice = () => {
-    const basePrice = service === "medcert" ? 19.95 : 24.95
+    const basePrice = service === "medcert" ? 19.95 : 29.95
     return (basePrice + (form.priorityReview ? 10 : 0)).toFixed(2)
   }
 
@@ -1341,7 +1341,7 @@ export function UnifiedFlowClient({
                 <PriorityUpsell
                   selected={form.priorityReview}
                   onToggle={(selected) => setForm({ ...form, priorityReview: selected })}
-                  basePrice={service === "medcert" ? 19.95 : 24.95}
+                  basePrice={service === "medcert" ? 19.95 : 29.95}
                 />
               </div>
 
@@ -1351,7 +1351,7 @@ export function UnifiedFlowClient({
                   <span>
                     {service === "medcert" ? "Medical Certificate" : "Prescription"}
                   </span>
-                  <span>${service === "medcert" ? "19.95" : "24.95"}</span>
+                  <span>${service === "medcert" ? "19.95" : "29.95"}</span>
                 </div>
                 {form.priorityReview && (
                   <div className="flex justify-between text-sm text-dawn-600">

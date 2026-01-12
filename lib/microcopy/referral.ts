@@ -19,7 +19,7 @@ export const REFERRAL_COPY = {
     heading: "Request a test referral",
     subtitle: "A GP will review your request and issue a referral if clinically appropriate.",
     cta: "Start request",
-    price: "$29.99",
+    price: "$49.95",
     features: [
       "GP reviews your clinical information",
       "Referral issued if appropriate",
@@ -175,7 +175,7 @@ export const REFERRAL_COPY = {
   payment: {
     heading: "Complete payment",
     subtitle: "A GP will review and issue a referral if clinically appropriate",
-    price: "$29.99",
+    price: "$49.95",
     includes: ["GP review of your request", "Referral issued if appropriate", "Valid at any collection centre"],
     disclaimer:
       "A GP will assess whether a referral is clinically appropriate. Some tests may require an in-person consultation. Advanced imaging (CT/MRI) requires clear clinical indication.",

@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
@@ -80,9 +79,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
-      log.error("OPENAI_API_KEY not configured")
+    // Check for AI Gateway API key (or OIDC on Vercel)
+    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
+      log.error("AI_GATEWAY_API_KEY not configured")
       return new Response(
         JSON.stringify({ error: "AI service not configured" }),
         { status: 503, headers: { "Content-Type": "application/json" } }
@@ -107,9 +106,9 @@ export async function POST(request: NextRequest) {
       userId: user?.id || "anonymous"
     })
 
-    // Stream the response
+    // Stream the response via Vercel AI Gateway
     const result = streamText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       system: SYSTEM_PROMPT,
       messages,
     })

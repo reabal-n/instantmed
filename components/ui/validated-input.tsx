@@ -117,7 +117,7 @@ export function ValidatedInput({
             isValid && touched && "text-green-700 dark:text-green-400"
           ),
           inputWrapper: cn(
-            "bg-white border border-slate-200 shadow-none",
+            "bg-transparent border-0 shadow-none",
             "transition-all duration-200",
             "hover:border-slate-300",
             "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",

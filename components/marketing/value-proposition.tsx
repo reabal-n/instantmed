@@ -170,7 +170,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={Stethoscope}
             title="New Prescriptions"
             description="First-time medications"
-            price="$29.95"
+            price="$49.95"
             time="2 min call"
             variant="blue"
           />
@@ -178,7 +178,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
             icon={Stethoscope}
             title="Men's & Women's Health"
             description="Sensitive health consultations"
-            price="$29.95"
+            price="$49.95"
             time="2 min call"
             variant="blue"
           />

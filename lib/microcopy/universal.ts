@@ -13,8 +13,8 @@ export const COPY = {
     noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
     price: {
-      medcert: "$19.99",
-      prescription: "$19.99",
+      medcert: "$19.95",
+      prescription: "$29.95",
     },
   },
 

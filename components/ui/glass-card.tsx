@@ -21,8 +21,8 @@ const glassCardVariants = cva(
     // Consistent 1px border
     'border',
     // Transitions
-    'transition-[transform,box-shadow,border-color,background-color]',
-    'duration-300',
+    'transition-colors',
+    'duration-150',
     'ease-out',
     // Focus styles
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
@@ -67,22 +67,17 @@ const glassCardVariants = cva(
       },
       hover: {
         none: '',
-        /** Lift with blue glow */
+        /** Lift - simple opacity change */
         lift: [
-          'hover:bg-white/85 dark:hover:bg-slate-900/80',
-          'hover:-translate-y-1',
-          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
-          'dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.15)]',
+          'hover:bg-white/90 dark:hover:bg-slate-900/85',
         ],
-        /** Glow effect only */
+        /** Glow - simple border change */
         glow: [
-          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)]',
-          'dark:hover:shadow-[0_20px_40px_rgba(139,92,246,0.18)]',
+          'hover:border-slate-300 dark:hover:border-slate-600',
         ],
-        /** Scale effect */
+        /** Scale - simple opacity */
         scale: [
-          'hover:-translate-y-0.5',
-          'hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
+          'hover:bg-white/90 dark:hover:bg-slate-900/85',
         ],
       },
       clickable: {

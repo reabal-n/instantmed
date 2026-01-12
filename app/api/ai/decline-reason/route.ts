@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -54,9 +53,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check for OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
-      log.error("OPENAI_API_KEY not configured")
+    // Check for AI Gateway API key (or OIDC on Vercel)
+    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
+      log.error("AI_GATEWAY_API_KEY not configured")
       return NextResponse.json(
         { success: false, error: "AI service not configured", reason: null },
         { status: 503 }
@@ -70,9 +69,9 @@ export async function POST(request: NextRequest) {
       internalReason?: string 
     }
 
-    // Generate decline reason using AI
+    // Generate decline reason via Vercel AI Gateway
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       system: DECLINE_REASON_PROMPT,
       prompt: `Generate a patient-facing decline message for a ${requestType || "telehealth"} request.${internalReason ? `\n\nInternal context (DO NOT include in message): ${internalReason}` : ""}`,
     })

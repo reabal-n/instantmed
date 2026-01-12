@@ -1590,7 +1590,7 @@ export function MedCertForm({
                     <p className="text-xs text-muted-foreground">{getCertTypeLabel()}</p>
                   </div>
                 </div>
-                <p className="text-lg font-semibold">$19.99</p>
+                <p className="text-lg font-semibold">$19.95</p>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-border">

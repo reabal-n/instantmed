@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -75,9 +74,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check for OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
-      log.error("OPENAI_API_KEY not configured")
+    // Check for AI Gateway API key (or OIDC on Vercel)
+    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
+      log.error("AI_GATEWAY_API_KEY not configured")
       return NextResponse.json(
         { success: false, error: "AI service not configured", note: null },
         { status: 503 }
@@ -98,9 +97,9 @@ export async function POST(request: NextRequest) {
     // Format intake data for the prompt
     const intakeContext = formatIntakeForPrompt(answers)
 
-    // Generate clinical note using AI
+    // Generate clinical note via Vercel AI Gateway
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model: "openai/gpt-4o-mini",
       system: CLINICAL_NOTE_PROMPT,
       prompt: `Generate a clinical note based on this patient intake:\n\n${intakeContext}`,
     })
