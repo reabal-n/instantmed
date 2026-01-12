@@ -75,7 +75,7 @@ export function HowItWorks() {
                     icon: <Icon className="size-4 text-white" />,
                     title: step.title,
                     description: step.description,
-                    date: originalIndex === 0 ? "2 minutes" : originalIndex === 1 ? "~15 minutes" : "Instant",
+                    date: originalIndex === 0 ? "2 minutes" : originalIndex === 1 ? "Under 30 min" : "Instant",
                     iconClassName: colors.icon,
                     titleClassName: colors.title,
                     iconBgClassName: colors.bg,

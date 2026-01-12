@@ -42,6 +42,8 @@ import {
   MapPin,
   RefreshCw,
   Zap,
+  History,
+  Pill,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction } from "./actions"
 import type { QueueClientProps } from "./types"
@@ -62,6 +64,8 @@ export function QueueClient({
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
+  const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
+  const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
 
   // Real-time subscription for intakes
   useEffect(() => {
@@ -188,6 +192,40 @@ export function QueueClient({
     })
   }
 
+  // Fetch patient history when expanding an intake
+  const fetchPatientHistory = async (patientId: string) => {
+    if (patientHistory[patientId] || loadingHistory[patientId]) return
+    
+    setLoadingHistory(prev => ({ ...prev, [patientId]: true }))
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('intakes')
+        .select('id, status, created_at, service:services(type, short_name)')
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      if (data) {
+        setPatientHistory(prev => ({
+          ...prev,
+          [patientId]: {
+            intakes: data.map(d => ({
+              id: d.id,
+              status: d.status,
+              created_at: d.created_at,
+              service_type: (d.service as { type?: string; short_name?: string })?.short_name || (d.service as { type?: string })?.type || 'Request'
+            }))
+          }
+        }))
+      }
+    } catch (_error) {
+      // Silent fail - patient history is supplementary information
+    } finally {
+      setLoadingHistory(prev => ({ ...prev, [patientId]: false }))
+    }
+  }
+
   // Sort intakes: priority first, then by SLA deadline, then by created_at
   const sortedIntakes = useMemo(() => {
     return [...intakes].sort((a, b) => {
@@ -264,7 +302,7 @@ export function QueueClient({
                 onOpenChange={() => setExpandedId(isExpanded ? null : intake.id)}
               >
                 <Card className={`transition-all ${isExpanded ? "ring-2 ring-primary/20" : ""}`}>
-                  <CollapsibleTrigger asChild>
+                  <CollapsibleTrigger asChild onClick={() => fetchPatientHistory(intake.patient_id)}>
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-4">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0">
@@ -365,6 +403,48 @@ export function QueueClient({
                           <FileText className="h-3.5 w-3.5 mr-1" />
                           View full details & questionnaire responses
                         </Link>
+                      </div>
+
+                      {/* Patient History */}
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                          <History className="h-4 w-4 text-muted-foreground" />
+                          Patient History
+                        </h4>
+                        {loadingHistory[intake.patient_id] ? (
+                          <p className="text-sm text-muted-foreground">Loading history...</p>
+                        ) : patientHistory[intake.patient_id]?.intakes?.length > 0 ? (
+                          <div className="space-y-2">
+                            {patientHistory[intake.patient_id].intakes
+                              .filter(h => h.id !== intake.id)
+                              .slice(0, 5)
+                              .map(historyItem => (
+                                <div key={historyItem.id} className="flex items-center justify-between text-sm py-1.5 px-2 bg-white dark:bg-slate-700 rounded">
+                                  <div className="flex items-center gap-2">
+                                    {historyItem.service_type.includes('script') ? (
+                                      <Pill className="h-3.5 w-3.5 text-muted-foreground" />
+                                    ) : (
+                                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                    )}
+                                    <span>{historyItem.service_type}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <Badge variant={historyItem.status === 'approved' || historyItem.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                                      {historyItem.status}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(historyItem.created_at).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            {patientHistory[intake.patient_id].intakes.filter(h => h.id !== intake.id).length === 0 && (
+                              <p className="text-sm text-muted-foreground">First request from this patient</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">First request from this patient</p>
+                        )}
                       </div>
 
                       {/* Doctor Notes */}

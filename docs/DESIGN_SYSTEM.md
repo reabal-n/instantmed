@@ -10,7 +10,7 @@
 
 > **Calm, Radiant, Human**
 >
-> Every design decision passes the "2am anxiety test" — would this feel reassuring to someone anxious at 2am waiting for medical care? Our solarpunk-inspired aesthetic brings warmth and hope, like sunlight through glass. *Lumen* means light — we illuminate the path to better health.
+> Our solarpunk-inspired aesthetic brings warmth and hope, like sunlight through glass. *Lumen* means light — we illuminate the path to better health.
 
 ---
 

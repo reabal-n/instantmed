@@ -143,6 +143,7 @@ const SERVICES: Array<{
   time: string
   noCall: boolean
   popular?: boolean
+  gpCost?: string
 }> = [
   {
     id: "med-cert",
@@ -150,9 +151,10 @@ const SERVICES: Array<{
     subtitle: "Sick leave, carer's leave, study",
     icon: FileText,
     price: "$29.95",
-    time: "~15 mins",
+    time: "Under 30 min",
     noCall: true,
     popular: true,
+    gpCost: "$60-90",
   },
   {
     id: "repeat-script",
@@ -160,8 +162,9 @@ const SERVICES: Array<{
     subtitle: "Medication you already take",
     icon: Pill,
     price: "$19.95",
-    time: "~15 mins",
+    time: "Under 30 min",
     noCall: true,
+    gpCost: "$60-90",
   },
   {
     id: "new-script",
@@ -169,8 +172,9 @@ const SERVICES: Array<{
     subtitle: "First-time medication",
     icon: Stethoscope,
     price: "$29.95",
-    time: "2 min call",
+    time: "Under 30 min",
     noCall: false,
+    gpCost: "$80-120",
   },
   {
     id: "consult",
@@ -178,8 +182,9 @@ const SERVICES: Array<{
     subtitle: "New prescriptions & dose changes",
     icon: Zap,
     price: "$44.95",
-    time: "~15 mins",
+    time: "Under 30 min",
     noCall: false,
+    gpCost: "$80-120",
   },
 ]
 
@@ -939,7 +944,12 @@ export function EnhancedIntakeFlow({
                             Quick review
                           </span>
                         )}
-                        <span className="font-medium text-foreground">{service.price}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{service.price}</span>
+                          {service.gpCost && (
+                            <span className="text-[10px] text-muted-foreground">vs {service.gpCost} GP</span>
+                          )}
+                        </div>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {service.time}
@@ -1114,6 +1124,25 @@ export function EnhancedIntakeFlow({
                   </FormField>
                 </CollapsibleContent>
               </Collapsible>
+
+              {/* Email collection for cart abandonment recovery - only for guests */}
+              {!isAuthenticated && (
+                <FormField
+                  label="Your email"
+                  required
+                  error={errors.email}
+                  hint="We'll send your certificate here"
+                >
+                  <Input
+                    type="email"
+                    value={state.email}
+                    onChange={(e) => updateField("email", e.target.value)}
+                    placeholder="you@example.com"
+                    className="h-11"
+                    autoComplete="email"
+                  />
+                </FormField>
+              )}
             </motion.div>
           )
         }
@@ -1159,6 +1188,25 @@ export function EnhancedIntakeFlow({
                   A doctor may call you for a quick 2-minute consultation to discuss your needs
                 </AlertDescription>
               </Alert>
+
+              {/* Email collection for cart abandonment recovery - only for guests */}
+              {!isAuthenticated && (
+                <FormField
+                  label="Your email"
+                  required
+                  error={errors.email}
+                  hint="We'll send your results here"
+                >
+                  <Input
+                    type="email"
+                    value={state.email}
+                    onChange={(e) => updateField("email", e.target.value)}
+                    placeholder="you@example.com"
+                    className="h-11"
+                    autoComplete="email"
+                  />
+                </FormField>
+              )}
             </motion.div>
           )
         }
@@ -1237,6 +1285,25 @@ export function EnhancedIntakeFlow({
                 ))}
               </div>
             </div>
+
+            {/* Email collection for cart abandonment recovery - only for guests */}
+            {!isAuthenticated && (
+              <FormField
+                label="Your email"
+                required
+                error={errors.email}
+                hint="We'll send your e-script details here"
+              >
+                <Input
+                  type="email"
+                  value={state.email}
+                  onChange={(e) => updateField("email", e.target.value)}
+                  placeholder="you@example.com"
+                  className="h-11"
+                  autoComplete="email"
+                />
+              </FormField>
+            )}
           </motion.div>
         )
 
@@ -1486,6 +1553,68 @@ export function EnhancedIntakeFlow({
                   <span>Doctor reviews your request</span>
                 </motion.div>
               )}
+
+              {/* Price Breakdown */}
+              <div className="pt-3 border-t border-slate-200/50">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">{selectedService?.title}</span>
+                  <span>{selectedService?.price}</span>
+                </div>
+                {state.service === "med-cert" && state.startDate && (() => {
+                  const selectedDate = new Date(state.startDate)
+                  const today = new Date()
+                  today.setHours(0, 0, 0, 0)
+                  const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
+                  if (daysDiff > 3) {
+                    return (
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-muted-foreground">Backdating fee</span>
+                        <span>$10.00</span>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+                <div className="flex justify-between font-semibold text-base pt-2 border-t border-dashed border-slate-200">
+                  <span>Total</span>
+                  <span className="text-primary">{selectedService?.price}</span>
+                </div>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="flex items-center justify-center gap-3 pt-3">
+                <span className="text-xs text-muted-foreground">Pay with</span>
+                <div className="flex items-center gap-2">
+                  {/* Apple Pay */}
+                  <div className="h-7 px-2 bg-black rounded flex items-center justify-center">
+                    <svg className="h-4 w-auto" viewBox="0 0 50 21" fill="white">
+                      <path d="M9.4 6.7c-.5.6-1.3 1.1-2.1 1-.1-.8.3-1.6.7-2.2.5-.6 1.4-1.1 2.1-1.1.1.8-.2 1.7-.7 2.3zm.7 1.2c-1.2-.1-2.2.7-2.7.7-.6 0-1.4-.6-2.4-.6-1.2 0-2.3.7-3 1.8-1.3 2.2-.3 5.5.9 7.3.6.9 1.4 1.9 2.4 1.9 1 0 1.3-.6 2.5-.6 1.2 0 1.4.6 2.5.6 1 0 1.7-.9 2.3-1.8.7-1 1-2 1-2.1-.1 0-2-.8-2-3 0-1.9 1.5-2.8 1.6-2.8-.9-1.3-2.3-1.4-2.8-1.4h-.3z"/>
+                      <path d="M21.3 4.3c2.6 0 4.4 1.8 4.4 4.4 0 2.6-1.9 4.4-4.5 4.4h-2.9v4.6h-2.1V4.3h5.1zm-2.9 7h2.4c1.8 0 2.8-1 2.8-2.6 0-1.6-1-2.6-2.8-2.6h-2.4v5.2zm8.8 2.8c0-1.7 1.3-2.7 3.6-2.8l2.6-.2v-.7c0-1.1-.7-1.7-1.9-1.7-1.1 0-1.8.5-2 1.3h-1.9c.1-1.8 1.6-3.1 4-3.1 2.3 0 3.8 1.2 3.8 3.2v6.6h-1.9v-1.6h-.1c-.6 1.1-1.8 1.8-3.1 1.8-2 0-3.1-1.2-3.1-2.8zm6.3-.8v-.8l-2.4.2c-1.2.1-1.9.6-1.9 1.4 0 .8.7 1.4 1.8 1.4 1.4 0 2.5-.9 2.5-2.2zm4.2 5.6v-1.6c.1 0 .5.1.9.1 1.2 0 1.8-.5 2.2-1.8l.2-.7-3.7-10.2h2.2l2.6 8.4h.1l2.6-8.4h2.1l-3.8 10.7c-.9 2.5-1.9 3.3-4 3.3-.4.1-.8.1-1.4.2z"/>
+                    </svg>
+                  </div>
+                  {/* Google Pay */}
+                  <div className="h-7 px-2 bg-white border border-slate-200 rounded flex items-center justify-center">
+                    <svg className="h-4 w-auto" viewBox="0 0 41 17" fill="none">
+                      <path d="M19.5 8.4v5h-1.6V1.6h4.2c1 0 1.9.3 2.6 1 .7.6 1.1 1.5 1.1 2.5s-.4 1.9-1.1 2.5c-.7.7-1.6 1-2.6 1l-2.6-.2zm0-5.3v3.8h2.6c.6 0 1.1-.2 1.5-.6.4-.4.6-.9.6-1.3 0-.5-.2-1-.6-1.3-.4-.4-.9-.6-1.5-.6h-2.6z" fill="#5F6368"/>
+                      <path d="M30 5.2c1.2 0 2.1.3 2.8 1 .7.7 1 1.6 1 2.7v5.5h-1.5v-1.2h-.1c-.6 1-1.5 1.5-2.6 1.5-1 0-1.8-.3-2.4-.9-.6-.6-.9-1.3-.9-2.1 0-.9.3-1.6 1-2.2.6-.5 1.5-.8 2.5-.8.9 0 1.6.2 2.2.5v-.4c0-.6-.2-1.1-.7-1.5-.4-.4-1-.6-1.6-.6-.9 0-1.6.4-2.1 1.2l-1.4-.9c.8-1.2 1.9-1.8 3.8-1.8zm-2.1 6.4c0 .4.2.8.5 1.1.4.3.8.5 1.3.5.7 0 1.3-.3 1.8-.8.5-.5.8-1.1.8-1.7-.5-.4-1.1-.6-2-.6-.6 0-1.2.2-1.6.5-.5.3-.8.6-.8 1z" fill="#5F6368"/>
+                      <path d="M41 5.5l-5.3 12.2h-1.6l2-4.3-3.5-7.9h1.7l2.5 6.2h.1l2.5-6.2H41z" fill="#5F6368"/>
+                      <path d="M13.3 7.1c0-.5 0-.9-.1-1.4H6.8v2.6h3.7c-.2.9-.7 1.7-1.4 2.2v1.8h2.3c1.3-1.2 2.1-3 2.1-5.2h-.2z" fill="#4285F4"/>
+                      <path d="M6.8 14c1.9 0 3.5-.6 4.6-1.7l-2.3-1.8c-.6.4-1.4.7-2.4.7-1.8 0-3.4-1.2-3.9-2.9H.5v1.9C1.6 12.5 4 14 6.8 14z" fill="#34A853"/>
+                      <path d="M2.9 8.3c-.3-.9-.3-1.8 0-2.6V3.8H.5C-.5 5.8-.5 8.2.5 10.1l2.4-1.8z" fill="#FBBC04"/>
+                      <path d="M6.8 2.8c1 0 2 .3 2.7 1l2-2C10.3.7 8.7 0 6.8 0 4 0 1.6 1.5.5 3.8l2.4 1.9c.5-1.7 2.1-2.9 3.9-2.9z" fill="#EA4335"/>
+                    </svg>
+                  </div>
+                  {/* Visa/MC */}
+                  <div className="flex items-center gap-1">
+                    <div className="h-5 w-8 bg-slate-100 rounded flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-blue-600">VISA</span>
+                    </div>
+                    <div className="h-5 w-8 bg-slate-100 rounded flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-orange-500">MC</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Patient info - Editable */}

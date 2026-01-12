@@ -35,6 +35,9 @@ const nextConfig = {
     }, {
       protocol: "https",
       hostname: "svgl.app"
+    }, {
+      protocol: "https",
+      hostname: "api.dicebear.com"
     }]
   },
   serverExternalPackages: ["@supabase/ssr"],

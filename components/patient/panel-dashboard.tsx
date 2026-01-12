@@ -9,6 +9,10 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronRight,
+  Plus,
+  AlertTriangle,
+  Lightbulb,
+  Heart,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import { usePanel, DrawerPanel } from "@/components/panels"
@@ -16,6 +20,7 @@ import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { motion } from "framer-motion"
 
 /**
  * Panel-Based Patient Dashboard
@@ -45,6 +50,42 @@ interface Prescription {
   status: "active" | "expired"
 }
 
+// Health tips for engagement
+const HEALTH_TIPS = [
+  {
+    id: "hydration",
+    icon: Heart,
+    title: "Stay hydrated",
+    content: "Drinking enough water helps your body recover faster when you're unwell.",
+  },
+  {
+    id: "sleep",
+    icon: Clock,
+    title: "Prioritise rest",
+    content: "Quality sleep is essential for immune function and recovery.",
+  },
+  {
+    id: "medications",
+    icon: Pill,
+    title: "Take medications as directed",
+    content: "Always complete your prescribed course, even if you feel better.",
+  },
+]
+
+// Check if prescription needs renewal soon (within 14 days)
+function needsRenewalSoon(renewalDate: string): boolean {
+  const renewal = new Date(renewalDate)
+  const today = new Date()
+  const daysUntilRenewal = Math.ceil((renewal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return daysUntilRenewal <= 14 && daysUntilRenewal > 0
+}
+
+function getDaysUntilRenewal(renewalDate: string): number {
+  const renewal = new Date(renewalDate)
+  const today = new Date()
+  return Math.ceil((renewal.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
+
 interface PatientDashboardProps {
   fullName: string
   intakes?: Intake[]
@@ -69,6 +110,11 @@ export function PanelDashboard({
 
   const pendingIntakes = intakes.filter((r) => r.status === "paid" || r.status === "in_review" || r.status === "pending_info")
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
+  const prescriptionsNeedingRenewal = prescriptions.filter((p) => p.status === "active" && needsRenewalSoon(p.renewal_date))
+  
+  // Deterministic health tip based on day of week
+  const tipIndex = new Date().getDay() % HEALTH_TIPS.length
+  const dailyTip = HEALTH_TIPS[tipIndex]
 
   const handleViewIntake = (intake: Intake) => {
     openPanel({
@@ -154,6 +200,34 @@ export function PanelDashboard({
         )}
       </section>
 
+      {/* Prescription Renewal Reminders */}
+      {prescriptionsNeedingRenewal.length > 0 && (
+        <section>
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+            <div className="flex items-center gap-2 text-amber-700">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="font-semibold">Renewal reminders</h3>
+            </div>
+            {prescriptionsNeedingRenewal.map((rx) => (
+              <div key={rx.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
+                <div>
+                  <p className="font-medium text-gray-900">{rx.medication_name}</p>
+                  <p className="text-sm text-amber-600">
+                    Renews in {getDaysUntilRenewal(rx.renewal_date)} days
+                  </p>
+                </div>
+                <Link href="/repeat-prescription/request">
+                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                    <Pill className="w-4 h-4 mr-1" />
+                    Renew now
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Active Prescriptions */}
       {prescriptions.length > 0 && (
         <section>
@@ -197,6 +271,39 @@ export function PanelDashboard({
           </div>
         </section>
       )}
+
+      {/* Health Tips Section */}
+      <section className="mt-8">
+        <div className="p-5 rounded-xl bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Lightbulb className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">{dailyTip.title}</h3>
+              <p className="text-sm text-gray-600">{dailyTip.content}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Floating Action Button - New Request */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-50"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+      >
+        <Link href="/start">
+          <Button
+            size="lg"
+            className="h-14 px-6 rounded-full shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all hover:-translate-y-1"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            New request
+          </Button>
+        </Link>
+      </motion.div>
     </div>
   )
 }

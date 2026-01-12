@@ -64,7 +64,7 @@ export function Hero() {
               </span>
               <br className="hidden sm:block" />
               <span className="text-foreground/90"> — sorted in </span>
-              <span className="text-premium-gradient font-bold">15 minutes</span>
+              <span className="text-premium-gradient font-bold">under 30 mins</span>
               <span className="text-foreground/90">.</span>
             </motion.h1>
 

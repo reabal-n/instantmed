@@ -11,6 +11,7 @@ interface StepProgressProps {
   className?: string
   showTimeEstimate?: boolean
   timeEstimates?: number[] // minutes per step
+  combinedSteps?: number[][] // e.g. [[1,2], [3]] to visually combine steps
 }
 
 export function StepProgress({ 
@@ -27,6 +28,27 @@ export function StepProgress({
   const remainingTime = showTimeEstimate && timeEstimates.length > 0
     ? timeEstimates.slice(currentStep - 1).reduce((sum, time) => sum + time, 0)
     : null
+  
+  // Combined visual steps: Service | Details & Safety | Account | Review
+  // Maps original step indices to visual groups
+  const getVisualSteps = () => {
+    if (!steps) return []
+    // Combine Details (index 1) and Safety (index 2) into one visual step
+    const visualSteps: { label: string; originalIndices: number[] }[] = []
+    let i = 0
+    while (i < steps.length) {
+      if (steps[i] === 'Details' && steps[i + 1] === 'Safety') {
+        visualSteps.push({ label: 'Details', originalIndices: [i, i + 1] })
+        i += 2
+      } else {
+        visualSteps.push({ label: steps[i], originalIndices: [i] })
+        i++
+      }
+    }
+    return visualSteps
+  }
+  
+  const visualSteps = getVisualSteps()
 
   // Compact mode for headers (when used in tight spaces)
   const isCompact = className?.includes('compact') || false
@@ -103,17 +125,28 @@ export function StepProgress({
           })}
         </div>
 
-        {/* Time estimate */}
+        {/* Time estimate - Prominent "2 minutes left" */}
         {showTimeEstimate && remainingTime !== null && remainingTime > 0 && (
-          <div className="flex justify-center mt-1">
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-              ~{remainingTime} min
-            </span>
+          <div className="flex justify-center mt-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10">
+              <svg className="w-3 h-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <span className="text-xs font-medium text-primary">
+                {remainingTime <= 2 ? 'Almost done!' : `~${remainingTime} min left`}
+              </span>
+            </div>
           </div>
         )}
       </div>
     )
   }
+  
+  // Use visual steps for display if available
+  const displaySteps = visualSteps.length > 0 ? visualSteps : steps?.map((s, i) => ({ label: s, originalIndices: [i] })) || []
+  const visualCurrentStep = displaySteps.findIndex(vs => vs.originalIndices.includes(currentStep - 1)) + 1
+  const visualTotalSteps = displaySteps.length
 
   return (
     <div className={cn("w-full", className)}>
@@ -180,20 +213,25 @@ export function StepProgress({
         </div>
       )}
 
-      {/* Time estimate */}
+      {/* Time estimate - Prominent display */}
       {showTimeEstimate && remainingTime !== null && remainingTime > 0 && (
-        <div className="flex justify-center mt-1">
-          <span className="text-xs text-muted-foreground">
-            ~{remainingTime} min remaining
-          </span>
+        <div className="flex justify-center mt-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
+            <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            <span className="text-sm font-medium text-primary">
+              {remainingTime <= 2 ? 'Almost done!' : `~${remainingTime} min left`}
+            </span>
+          </div>
         </div>
       )}
 
       {/* Simple step counter for mobile */}
       <div className="flex justify-center mt-2 sm:hidden">
         <span className="text-xs text-muted-foreground">
-          Step {currentStep} of {totalSteps}
-          {remainingTime !== null && remainingTime > 0 && ` • ~${remainingTime} min left`}
+          Step {visualCurrentStep || currentStep} of {visualTotalSteps || totalSteps}
         </span>
       </div>
     </div>

@@ -20,7 +20,7 @@ function CreditCardIcon({ className }: { className?: string }) {
 }
 
 const features = [
-  { Icon: ClockPremium, text: "~15 min turnaround" },
+  { Icon: ClockPremium, text: "Under 30 min review" },
   { Icon: ShieldPremiumAlt, text: "AHPRA registered doctors" },
   { Icon: CreditCardIcon, text: "7 days a week" },
 ]
