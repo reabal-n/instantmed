@@ -15,6 +15,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function ConsultPage() {
+export default function GeneralConsultPage() {
   return <ServiceFunnelPage config={generalConsultFunnelConfig} />
 }

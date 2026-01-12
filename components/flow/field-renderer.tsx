@@ -4,6 +4,8 @@ import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { HelpCircle, Check, AlertCircle, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { IOSToggle, SegmentedControl } from '@/components/ui/ios-toggle'
+import { MedicationSearch, type MedicationSelection } from './medication-search'
 import type { FieldConfig } from '@/lib/flow'
 
 export interface FieldRendererProps {
@@ -36,6 +38,28 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
       case 'text':
       case 'email':
       case 'phone':
+        // Special case: medication_name field uses MedicationSearch component
+        if (field.id === 'medication_name') {
+          const medValue = value as MedicationSelection | string | null
+          // Convert string to MedicationSelection format if needed
+          const selection: MedicationSelection | null = 
+            typeof medValue === 'string' && medValue 
+              ? { medicationId: null, name: medValue, isManualEntry: true }
+              : (medValue as MedicationSelection | null)
+          
+          return (
+            <MedicationSearch
+              value={selection}
+              onChange={(sel) => {
+                // Store just the medication name string for form compatibility
+                onChange(sel?.name || '')
+              }}
+              placeholder={field.placeholder}
+              error={error}
+            />
+          )
+        }
+        
         return (
           <input
             ref={inputRef as React.RefObject<HTMLInputElement>}
@@ -66,17 +90,49 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
         )
 
       case 'textarea':
+        const textValue = (value as string) || ''
+        const minLen = field.validation?.minLength || 0
+        const maxLen = field.validation?.maxLength
+        const charCount = textValue.length
+        const needsMoreChars = minLen > 0 && charCount < minLen
+        
         return (
-          <textarea
-            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-            value={(value as string) || ''}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={field.placeholder}
-            rows={3}
-            className={cn(inputBaseClass, 'px-4 py-3 resize-none')}
-          />
+          <div className="space-y-1.5">
+            <textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+              value={textValue}
+              onChange={(e) => onChange(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder={field.placeholder}
+              rows={3}
+              className={cn(inputBaseClass, 'px-4 py-3 resize-none')}
+            />
+            {/* Character count indicator - shows when focused or under minimum */}
+            {(isFocused || needsMoreChars) && minLen > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-between text-xs"
+              >
+                <span className={cn(
+                  needsMoreChars ? 'text-amber-600' : 'text-slate-400'
+                )}>
+                  {needsMoreChars 
+                    ? `${minLen - charCount} more characters needed`
+                    : 'Minimum met'
+                  }
+                </span>
+                <span className={cn(
+                  'tabular-nums',
+                  needsMoreChars ? 'text-amber-600' : 'text-slate-400',
+                  maxLen && charCount > maxLen && 'text-red-500'
+                )}>
+                  {charCount}{maxLen ? `/${maxLen}` : ''}
+                </span>
+              </motion.div>
+            )}
+          </div>
         )
 
       case 'date':
@@ -293,6 +349,25 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
               </motion.button>
             ))}
           </div>
+        )
+
+      case 'toggle':
+        return (
+          <IOSToggle
+            checked={value === true}
+            onChange={(checked) => onChange(checked)}
+            size="md"
+          />
+        )
+
+      case 'segmented':
+        return (
+          <SegmentedControl
+            value={(value as string) || ''}
+            onChange={(val) => onChange(val)}
+            options={field.options?.map(opt => ({ value: opt.value, label: opt.label })) || []}
+            className="w-full"
+          />
         )
 
       default:

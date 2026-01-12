@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { ButtonSpinner, Spinner } from '@/components/ui/unified-skeleton'
 import { FlowContent, FlowSection } from '../flow-content'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { IOSToggle } from '@/components/ui/ios-toggle'
 import { useFlowStore, useFlowIdentity } from '@/lib/flow'
 import type { FlowConfig, IdentityData, ConsentType } from '@/lib/flow'
 import { cn } from '@/lib/utils'
@@ -298,40 +299,28 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
           </FlowSection>
         )}
 
-        {/* Consents */}
+        {/* Consents - Using iOS toggles per refined spec */}
         <FlowSection title="Agreements">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {REQUIRED_CONSENTS.map((consent) => {
               const isAccepted = acceptedConsents.has(consent.type)
               return (
-                <label
+                <div
                   key={consent.type}
                   className={cn(
-                    'flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
+                    'p-4 rounded-xl border-2 transition-all duration-200',
                     isAccepted
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-emerald-500 bg-emerald-50/50'
+                      : 'border-slate-200 bg-white'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'shrink-0 w-5 h-5 rounded border-2 mt-0.5',
-                      'flex items-center justify-center',
-                      isAccepted
-                        ? 'border-emerald-500 bg-emerald-500'
-                        : 'border-slate-300'
-                    )}
-                  >
-                    {isAccepted && <Check className="w-3 h-3 text-white" />}
-                  </div>
-                  <span className="text-sm text-slate-700">{consent.label}</span>
-                  <input
-                    type="checkbox"
+                  <IOSToggle
                     checked={isAccepted}
                     onChange={() => toggleConsent(consent.type)}
-                    className="sr-only"
+                    label={consent.label}
+                    size="md"
                   />
-                </label>
+                </div>
               )
             })}
           </div>

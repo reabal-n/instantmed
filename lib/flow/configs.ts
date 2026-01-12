@@ -1,72 +1,59 @@
-import type { FlowConfig, FlowStep, QuestionnaireConfig, FieldConfig } from './types'
+import type { FlowConfig, FlowStep, QuestionnaireConfig } from './types'
 
 // ============================================
-// SIMPLIFIED 3-STEP MODEL
+// 5-STEP MODEL PER REFINED SPEC
 // ============================================
 
-const simplifiedSteps: FlowStep[] = [
+const refinedSteps: FlowStep[] = [
+  { id: 'safety', label: 'Safety check', shortLabel: 'Safety' },
   { id: 'questions', label: 'Health questions', shortLabel: 'Questions' },
   { id: 'details', label: 'Your details', shortLabel: 'Details' },
   { id: 'checkout', label: 'Review & pay', shortLabel: 'Pay' },
 ]
 
-// For services that need service selection first
-const _withServiceStep: FlowStep[] = [
-  { id: 'service', label: 'Select service', shortLabel: 'Service' },
-  ...simplifiedSteps,
+// ============================================
+// SAFETY SCREENING SYMPTOMS (Step 2 - Hard Gate)
+// Displayed in dedicated SafetyStep component
+// Uses iOS-style toggle for confirmation
+// ============================================
+
+export const SAFETY_SCREENING_SYMPTOMS = [
+  'Chest pain or pressure',
+  'Severe difficulty breathing',
+  'Sudden weakness on one side (stroke signs)',
+  'Severe allergic reaction (swelling, can\'t breathe)',
+  'Thoughts of self-harm or suicide',
 ]
 
 // ============================================
-// SHARED ELIGIBILITY FIELDS (Safety screening)
-// ============================================
-
-const emergencyScreening: FieldConfig = {
-  id: 'emergency_symptoms',
-  type: 'checkbox',
-  label: 'Please confirm you are NOT currently experiencing:',
-  description: 'Select if any apply. These require emergency care.',
-  options: [
-    { value: 'chest_pain', label: 'Chest pain or pressure', isDisqualifying: true },
-    { value: 'difficulty_breathing', label: 'Severe difficulty breathing', isDisqualifying: true },
-    { value: 'sudden_weakness', label: 'Sudden weakness on one side', isDisqualifying: true },
-    { value: 'severe_headache', label: 'Worst headache of your life', isDisqualifying: true },
-    { value: 'suicidal_thoughts', label: 'Thoughts of self-harm', isDisqualifying: true },
-    { value: 'none', label: 'None of the above - I\'m safe to continue' },
-  ],
-  validation: { required: true },
-  isRedFlag: true,
-  redFlagMessage: 'If you\'re experiencing a medical emergency, call 000 immediately.',
-}
-
-// ============================================
 // MEDICAL CERTIFICATE CONFIG
+// Per spec: 3-day max, all text fields mandatory
 // ============================================
 
 const medCertQuestionnaire: QuestionnaireConfig = {
-  id: 'med_cert_v3',
-  version: '3.0',
-  eligibilityFields: [emergencyScreening],
+  id: 'med_cert_v4',
+  version: '4.0',
+  eligibilityFields: [], // Safety now handled in dedicated step
   groups: [
     {
-      id: 'absence',
-      title: 'Absence details',
-      description: 'Quick info about your time off',
+      id: 'certificate',
+      title: 'Certificate details',
+      description: 'Tell us about the certificate you need',
       fields: [
         {
           id: 'certificate_type',
-          type: 'radio',
+          type: 'segmented',
           label: 'What type of certificate do you need?',
           options: [
             { value: 'sick_leave', label: 'Sick leave' },
             { value: 'carers_leave', label: 'Carer\'s leave' },
             { value: 'fitness', label: 'Fitness for work/study' },
-            { value: 'medical_appointment', label: 'Medical appointment' },
           ],
           validation: { required: true },
         },
         {
           id: 'absence_dates',
-          type: 'radio',
+          type: 'segmented',
           label: 'When do you need the certificate for?',
           options: [
             { value: 'today', label: 'Today only' },
@@ -79,6 +66,7 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           id: 'start_date',
           type: 'date',
           label: 'Start date',
+          description: 'Earliest: yesterday',
           showIf: { fieldId: 'absence_dates', operator: 'equals', value: 'multi_day' },
           validation: { required: true },
         },
@@ -86,29 +74,32 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           id: 'end_date',
           type: 'date',
           label: 'End date',
+          description: 'Maximum 3 days total',
           showIf: { fieldId: 'absence_dates', operator: 'equals', value: 'multi_day' },
           validation: { required: true },
         },
         {
           id: 'employer_name',
           type: 'text',
-          label: 'Employer/institution name (optional)',
+          label: 'Employer or institution name',
           placeholder: 'Will appear on certificate',
+          validation: { required: true, minLength: 2 },
         },
       ],
     },
     {
-      id: 'reason',
+      id: 'condition',
       title: 'Your condition',
+      description: 'Help us understand what you\'re experiencing',
       fields: [
         {
           id: 'reason_category',
-          type: 'radio',
-          label: 'What\'s the main reason?',
+          type: 'segmented',
+          label: 'What is the main reason for your absence?',
           options: [
-            { value: 'cold_flu', label: 'Cold, flu, or respiratory' },
-            { value: 'gastro', label: 'Stomach/digestive issues' },
-            { value: 'injury', label: 'Injury or pain' },
+            { value: 'cold_flu', label: 'Cold/flu/respiratory' },
+            { value: 'gastro', label: 'Stomach/digestive' },
+            { value: 'injury', label: 'Injury/pain' },
             { value: 'mental_health', label: 'Mental health' },
             { value: 'migraine', label: 'Migraine/headache' },
             { value: 'other', label: 'Other' },
@@ -116,51 +107,58 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           validation: { required: true },
         },
         {
-          id: 'symptoms_brief',
+          id: 'symptoms_description',
           type: 'textarea',
-          label: 'Briefly describe your symptoms',
-          placeholder: 'e.g., Fever, body aches, unable to work',
-          validation: { required: true, minLength: 10, maxLength: 500 },
+          label: 'Describe your symptoms and how they\'re affecting you',
+          placeholder: 'e.g., I\'ve had a fever since yesterday, severe body aches, and I can\'t concentrate at work...',
+          helpText: 'This helps the doctor write your certificate',
+          validation: { required: true, minLength: 20, maxLength: 500 },
         },
         {
           id: 'severity',
-          type: 'radio',
-          label: 'How are you feeling?',
+          type: 'segmented',
+          label: 'How severe are your symptoms?',
           options: [
-            { value: 'mild', label: 'Mild - Resting helps' },
-            { value: 'moderate', label: 'Moderate - Hard to function' },
-            { value: 'severe', label: 'Severe - Can\'t do daily activities' },
+            { value: 'mild', label: 'Mild' },
+            { value: 'moderate', label: 'Moderate' },
+            { value: 'severe', label: 'Severe' },
           ],
           validation: { required: true },
         },
       ],
     },
     {
-      id: 'medical_quick',
-      title: 'Quick medical check',
+      id: 'medical_background',
+      title: 'Medical background',
+      description: 'A few quick questions for safety',
       fields: [
         {
-          id: 'allergies',
-          type: 'radio',
-          label: 'Any medication allergies?',
-          options: [
-            { value: 'no', label: 'No known allergies' },
-            { value: 'yes', label: 'Yes' },
-          ],
+          id: 'has_allergies',
+          type: 'toggle',
+          label: 'Do you have any medication allergies?',
           validation: { required: true },
         },
         {
-          id: 'allergy_list',
-          type: 'text',
-          label: 'List allergies',
-          showIf: { fieldId: 'allergies', operator: 'equals', value: 'yes' },
+          id: 'allergy_details',
+          type: 'textarea',
+          label: 'List your allergies',
+          placeholder: 'e.g., Penicillin - causes rash',
+          showIf: { fieldId: 'has_allergies', operator: 'equals', value: true },
+          validation: { required: true, minLength: 5 },
+        },
+        {
+          id: 'takes_medications',
+          type: 'toggle',
+          label: 'Are you currently taking any medications?',
           validation: { required: true },
         },
         {
-          id: 'current_meds',
-          type: 'text',
-          label: 'Current medications (if any)',
-          placeholder: 'Leave blank if none',
+          id: 'medication_details',
+          type: 'textarea',
+          label: 'List your current medications',
+          placeholder: 'e.g., Paracetamol 500mg twice daily',
+          showIf: { fieldId: 'takes_medications', operator: 'equals', value: true },
+          validation: { required: true, minLength: 5 },
         },
       ],
     },
@@ -174,12 +172,11 @@ export const medCertConfig: FlowConfig = {
   serviceDescription: 'Sick leave, carer\'s leave, or fitness certificates',
   category: 'medical-certificate',
   icon: 'FileText',
-  steps: simplifiedSteps,
+  steps: refinedSteps,
   questionnaire: medCertQuestionnaire,
   pricing: {
-    basePriceCents: 2495,
+    basePriceCents: 2995,
     priorityFeeCents: 1000,
-    backdatingFeeCents: 1000,
   },
   requirements: {
     requiresAuth: false,
@@ -187,26 +184,28 @@ export const medCertConfig: FlowConfig = {
     requiresIdVerification: false,
   },
   estimatedTime: '~15 mins',
-  features: ['No phone call needed', 'Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
+  features: ['Doctor reviewed', 'Same-day delivery', 'Employer-ready PDF'],
 }
 
 // ============================================
-// COMMON SCRIPTS CONFIG
+// REPEAT PRESCRIPTION CONFIG
+// Per spec: all text fields mandatory with minimums
 // ============================================
 
-const commonScriptsQuestionnaire: QuestionnaireConfig = {
-  id: 'common_scripts_v1',
-  version: '1.0',
-  eligibilityFields: [emergencyScreening],
+const prescriptionQuestionnaire: QuestionnaireConfig = {
+  id: 'prescription_v2',
+  version: '2.0',
+  eligibilityFields: [], // Safety now handled in dedicated step
   groups: [
     {
       id: 'medication',
       title: 'Your medication',
+      description: 'Tell us about the medication you need',
       fields: [
         {
           id: 'script_type',
-          type: 'radio',
-          label: 'What do you need?',
+          type: 'segmented',
+          label: 'What type of script do you need?',
           options: [
             { value: 'repeat', label: 'Repeat of existing script' },
             { value: 'new', label: 'New prescription' },
@@ -216,7 +215,7 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
         {
           id: 'medication_category',
           type: 'select',
-          label: 'Medication category',
+          label: 'What category of medication?',
           options: [
             { value: 'contraceptive', label: 'Contraceptive pill' },
             { value: 'blood_pressure', label: 'Blood pressure' },
@@ -233,20 +232,19 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
         {
           id: 'medication_name',
           type: 'text',
-          label: 'Medication name',
+          label: 'Medication name and strength',
           placeholder: 'e.g., Metformin 500mg',
-          validation: { required: true },
-          helpText: 'Include strength if you know it',
+          helpText: 'Start typing to search. Doctor will review.',
+          validation: { required: true, minLength: 3 },
         },
         {
           id: 'last_prescribed',
-          type: 'radio',
-          label: 'When was this last prescribed?',
+          type: 'segmented',
+          label: 'When was this medication last prescribed to you?',
           options: [
             { value: 'within_6mo', label: 'Within 6 months' },
-            { value: '6mo_1yr', label: '6 months to 1 year' },
+            { value: '6mo_1yr', label: '6-12 months ago' },
             { value: 'over_1yr', label: 'Over 1 year ago' },
-            { value: 'never', label: 'Never (new medication)' },
           ],
           showIf: { fieldId: 'script_type', operator: 'equals', value: 'repeat' },
           validation: { required: true },
@@ -255,22 +253,24 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
           id: 'reason_for_new',
           type: 'textarea',
           label: 'Why do you need this medication?',
-          placeholder: 'Describe your condition briefly',
+          placeholder: 'Describe your condition and why you believe this medication is appropriate...',
+          helpText: 'This helps the doctor assess your request',
           showIf: { fieldId: 'script_type', operator: 'equals', value: 'new' },
-          validation: { required: true, minLength: 20 },
+          validation: { required: true, minLength: 30, maxLength: 500 },
         },
       ],
     },
     {
-      id: 'safety',
+      id: 'safety_check',
       title: 'Safety check',
+      description: 'Important questions about your medication history',
       fields: [
         {
           id: 'side_effects',
-          type: 'radio',
-          label: 'Any problems with this medication?',
+          type: 'segmented',
+          label: 'Have you experienced any problems or side effects with this medication?',
           options: [
-            { value: 'no', label: 'No issues - works well' },
+            { value: 'no', label: 'No issues' },
             { value: 'minor', label: 'Minor side effects' },
             { value: 'major', label: 'Significant side effects' },
           ],
@@ -280,42 +280,50 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
         {
           id: 'side_effect_details',
           type: 'textarea',
-          label: 'What side effects?',
+          label: 'Describe the side effects you\'ve experienced',
+          placeholder: 'e.g., Mild nausea for the first few days...',
           showIf: { fieldId: 'side_effects', operator: 'not_equals', value: 'no' },
+          validation: { required: true, minLength: 10 },
         },
         {
-          id: 'allergies',
-          type: 'radio',
-          label: 'Any medication allergies?',
-          options: [
-            { value: 'no', label: 'No' },
-            { value: 'yes', label: 'Yes' },
-          ],
+          id: 'has_allergies',
+          type: 'toggle',
+          label: 'Do you have any medication allergies?',
           validation: { required: true },
         },
         {
-          id: 'allergy_list',
-          type: 'text',
-          label: 'List allergies',
-          showIf: { fieldId: 'allergies', operator: 'equals', value: 'yes' },
+          id: 'allergy_details',
+          type: 'textarea',
+          label: 'List your allergies',
+          placeholder: 'e.g., Penicillin - causes rash',
+          showIf: { fieldId: 'has_allergies', operator: 'equals', value: true },
+          validation: { required: true, minLength: 5 },
+        },
+        {
+          id: 'takes_other_meds',
+          type: 'toggle',
+          label: 'Are you taking any other medications?',
           validation: { required: true },
         },
         {
-          id: 'other_medications',
-          type: 'text',
-          label: 'Other current medications',
-          placeholder: 'List any other meds you take',
+          id: 'other_medication_details',
+          type: 'textarea',
+          label: 'List your other medications',
+          placeholder: 'e.g., Aspirin 100mg daily, Vitamin D...',
+          showIf: { fieldId: 'takes_other_meds', operator: 'equals', value: true },
+          validation: { required: true, minLength: 5 },
         },
       ],
     },
     {
       id: 'delivery',
       title: 'Delivery',
+      description: 'How would you like to receive your script?',
       fields: [
         {
           id: 'delivery_method',
-          type: 'radio',
-          label: 'How would you like your script?',
+          type: 'segmented',
+          label: 'How would you like to receive your script?',
           options: [
             { value: 'escript', label: 'E-script (to your phone)' },
             { value: 'pharmacy', label: 'Send to pharmacy' },
@@ -325,9 +333,10 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
         {
           id: 'pharmacy_details',
           type: 'text',
-          label: 'Pharmacy name & suburb',
+          label: 'Pharmacy name and suburb',
           placeholder: 'e.g., Chemist Warehouse Bondi',
           showIf: { fieldId: 'delivery_method', operator: 'equals', value: 'pharmacy' },
+          validation: { required: true, minLength: 5 },
         },
       ],
     },
@@ -337,12 +346,12 @@ const commonScriptsQuestionnaire: QuestionnaireConfig = {
 export const commonScriptsConfig: FlowConfig = {
   id: 'common-scripts',
   serviceSlug: 'common-scripts',
-  serviceName: 'Common Prescriptions',
+  serviceName: 'Repeat Prescription',
   serviceDescription: 'Repeat scripts for ongoing medications',
   category: 'common-scripts',
   icon: 'Pill',
-  steps: simplifiedSteps,
-  questionnaire: commonScriptsQuestionnaire,
+  steps: refinedSteps,
+  questionnaire: prescriptionQuestionnaire,
   pricing: {
     basePriceCents: 1995,
     priorityFeeCents: 1000,
@@ -353,7 +362,7 @@ export const commonScriptsConfig: FlowConfig = {
     requiresIdVerification: false,
   },
   estimatedTime: '~15 mins',
-  features: ['No phone call needed', 'E-script available', 'Sent to your pharmacy', 'Medication review'],
+  features: ['Doctor reviewed', 'E-script available', 'Sent to your pharmacy'],
 }
 
 // Keep prescription config as alias
@@ -378,7 +387,7 @@ export function getAllServiceSlugs(): string[] {
   return ['medical-certificate', 'common-scripts']
 }
 
-// Service categories for display
+// Service categories for display (per brand voice guidelines)
 export const serviceCategories = [
   {
     slug: 'medical-certificate',
@@ -388,17 +397,15 @@ export const serviceCategories = [
     time: '~15 mins',
     icon: 'FileText',
     popular: true,
-    noCallRequired: true,
-    features: ['No phone call needed', 'Same-day delivery', 'Employer-ready PDF', 'Backdating available'],
+    features: ['Doctor reviewed', 'Same-day delivery', 'Employer-ready PDF'],
   },
   {
     slug: 'common-scripts',
-    name: 'Repeat Prescriptions',
+    name: 'Repeat Prescription',
     description: 'Repeat scripts for ongoing medications',
     price: '$19.95',
     time: '~15 mins',
     icon: 'Pill',
-    noCallRequired: true,
-    features: ['No phone call needed', 'E-script available', 'Sent to your pharmacy'],
+    features: ['Doctor reviewed', 'E-script available', 'Sent to your pharmacy'],
   },
 ]

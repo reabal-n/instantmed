@@ -5,10 +5,26 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 
+// Step transition animation variants (~250ms ease-out horizontal slide)
+const stepVariants = {
+  initial: { x: 50, opacity: 0 },
+  animate: { 
+    x: 0, 
+    opacity: 1,
+    transition: { type: 'tween', duration: 0.25, ease: 'easeOut' }
+  },
+  exit: { 
+    x: -50, 
+    opacity: 0,
+    transition: { type: 'tween', duration: 0.2, ease: 'easeIn' }
+  },
+}
+
 import {
   FlowShell,
   FlowContent,
   ServiceStep,
+  SafetyScreeningStep,
   UnifiedQuestionsStep,
   DetailsStep,
 } from '@/components/flow'
@@ -175,37 +191,55 @@ function StartFlowContent() {
     )
   }
 
-  // Render current step (simplified 3-step flow)
+  // Render current step (5-step flow per refined spec)
+  // Wrapped in motion.div for horizontal slide transition
   const renderStep = () => {
-    switch (currentStepId) {
-      case 'service':
-        return <ServiceStep onServiceSelect={handleServiceSelect} />
+    const stepContent = (() => {
+      switch (currentStepId) {
+        case 'service':
+          return <ServiceStep onServiceSelect={handleServiceSelect} />
 
-      case 'questions':
-        return (
-          <UnifiedQuestionsStep
-            config={config}
-            onEligibilityFail={handleEligibilityFail}
-          />
-        )
+        case 'safety':
+          return <SafetyScreeningStep />
 
-      case 'details':
-        return <DetailsStep config={config} />
+        case 'questions':
+          return (
+            <UnifiedQuestionsStep
+              config={config}
+              onEligibilityFail={handleEligibilityFail}
+            />
+          )
 
-      case 'checkout':
-        // This should redirect to /checkout
-        handleFlowComplete()
-        return (
-          <FlowContent title="Redirecting..." description="">
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
-            </div>
-          </FlowContent>
-        )
+        case 'details':
+          return <DetailsStep config={config} />
 
-      default:
-        return <ServiceStep onServiceSelect={handleServiceSelect} />
-    }
+        case 'checkout':
+          // This should redirect to /checkout
+          handleFlowComplete()
+          return (
+            <FlowContent title="Redirecting..." description="">
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
+              </div>
+            </FlowContent>
+          )
+
+        default:
+          return <ServiceStep onServiceSelect={handleServiceSelect} />
+      }
+    })()
+
+    return (
+      <motion.div
+        key={currentStepId}
+        variants={stepVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
+        {stepContent}
+      </motion.div>
+    )
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, AlertTriangle, Check, ArrowRight, Loader2, Shield } from 'lucide-react'
 import { FieldRenderer } from '../field-renderer'
@@ -8,6 +8,14 @@ import { useFlowStore, useFlowAnswers } from '@/lib/flow'
 import type { FlowConfig, QuestionGroup, FieldConfig } from '@/lib/flow'
 import { cn } from '@/lib/utils'
 import posthog from 'posthog-js'
+
+// Shake animation for validation errors
+const shakeAnimation = {
+  shake: {
+    x: [0, -10, 10, -10, 10, -5, 5, 0],
+    transition: { duration: 0.5 }
+  }
+}
 
 interface UnifiedQuestionsStepProps {
   config: FlowConfig
@@ -30,6 +38,9 @@ export function UnifiedQuestionsStep({
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep } = useFlowStore()
   
+  // Refs for scroll to first error
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  
   // Track which accordion sections are expanded
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['eligibility', config.questionnaire.groups[0]?.id])
@@ -38,6 +49,7 @@ export function UnifiedQuestionsStep({
   // Track completion state
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const [shouldShake, setShouldShake] = useState(false)
   
   // Check if a field should be visible (conditional logic)
   const isFieldVisible = useCallback((field: FieldConfig): boolean => {
@@ -93,13 +105,26 @@ export function UnifiedQuestionsStep({
     return { passed: true, reason: null }
   }, [answers, config.questionnaire.eligibilityFields])
   
-  // Check if a group is complete
+  // Check if a group is complete (including minLength validation)
   const isGroupComplete = useCallback((group: QuestionGroup): boolean => {
     for (const field of group.fields) {
       if (!isFieldVisible(field)) continue
       if (field.validation?.required) {
         const value = answers[field.id]
-        if (!value || (typeof value === 'string' && value.trim() === '')) {
+        // Check if value exists
+        if (value === undefined || value === null) {
+          return false
+        }
+        // Check string/textarea fields
+        if (typeof value === 'string') {
+          if (value.trim() === '') return false
+          // Check minLength for textarea/text fields
+          if (field.validation.minLength && value.length < field.validation.minLength) {
+            return false
+          }
+        }
+        // Check toggle fields (must be explicitly true or false, not undefined)
+        if (field.type === 'toggle' && typeof value !== 'boolean') {
           return false
         }
       }
@@ -137,22 +162,65 @@ export function UnifiedQuestionsStep({
     })
   }
   
-  // Handle field change
+  // Handle field change with validation
   const handleFieldChange = (fieldId: string, value: unknown) => {
+    // Enforce 3-day maximum for medical certificate end dates
+    if (fieldId === 'end_date' && answers.start_date) {
+      const startDate = new Date(answers.start_date as string)
+      const endDate = new Date(value as string)
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      // Maximum 3 days total (0, 1, or 2 days after start = 1, 2, or 3 total days)
+      if (daysDiff > 2) {
+        const maxEndDate = new Date(startDate)
+        maxEndDate.setDate(maxEndDate.getDate() + 2)
+        value = maxEndDate.toISOString().split('T')[0]
+      }
+    }
+    
+    // Enforce earliest start date = yesterday for medical certificates
+    if (fieldId === 'start_date') {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      yesterday.setHours(0, 0, 0, 0)
+      
+      const selectedDate = new Date(value as string)
+      if (selectedDate < yesterday) {
+        value = yesterday.toISOString().split('T')[0]
+      }
+    }
+    
     updateAnswer(fieldId, value)
   }
   
-  // Handle continue
+  // Handle continue with shake animation and scroll to first error
   const handleContinue = async () => {
     if (!isFormComplete) {
       setShowValidationErrors(true)
-      // Expand all incomplete sections
-      const incomplete = new Set<string>()
-      if (!eligibilityStatus.passed) incomplete.add('eligibility')
+      setShouldShake(true)
+      
+      // Reset shake after animation
+      setTimeout(() => setShouldShake(false), 500)
+      
+      // Find first incomplete section and scroll to it
+      const incompleteSections: string[] = []
+      if (!eligibilityStatus.passed) incompleteSections.push('eligibility')
       for (const group of config.questionnaire.groups) {
-        if (!isGroupComplete(group)) incomplete.add(group.id)
+        if (!isGroupComplete(group)) incompleteSections.push(group.id)
       }
-      setExpandedSections(incomplete)
+      
+      // Expand all incomplete sections
+      setExpandedSections(new Set(incompleteSections))
+      
+      // Scroll to first incomplete section after a brief delay for expansion
+      if (incompleteSections.length > 0) {
+        setTimeout(() => {
+          const firstIncompleteRef = sectionRefs.current[incompleteSections[0]]
+          if (firstIncompleteRef) {
+            firstIncompleteRef.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }, 100)
+      }
       return
     }
     
@@ -198,8 +266,10 @@ export function UnifiedQuestionsStep({
     if (visibleFields.length === 0) return null
     
     return (
-      <div 
+      <motion.div 
         key={id}
+        ref={(el) => { sectionRefs.current[id] = el }}
+        animate={shouldShake && status !== 'complete' ? shakeAnimation.shake : {}}
         className={cn(
           'border rounded-xl overflow-hidden transition-all',
           status === 'complete' && 'border-emerald-200 bg-emerald-50/30',
@@ -284,7 +354,7 @@ export function UnifiedQuestionsStep({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     )
   }
   

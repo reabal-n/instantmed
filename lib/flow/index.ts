@@ -12,6 +12,7 @@ export {
   medCertConfig,
   commonScriptsConfig,
   prescriptionConfig,
+  SAFETY_SCREENING_SYMPTOMS,
 } from './configs'
 
 // Store

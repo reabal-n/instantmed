@@ -2,12 +2,13 @@
 // FLOW ENGINE TYPES
 // ============================================
 
-// Simplified 3-4 step model
+// 5-step model per refined spec
 export type FlowStepId = 
-  | 'service'       // Select service (skipped if pre-selected)
-  | 'questions'     // All health questions (grouped, progressive disclosure)
-  | 'details'       // Identity + auth (combined)
-  | 'checkout'      // Payment & confirmation
+  | 'service'       // Step 1: Select service (auto-advance after 150ms)
+  | 'safety'        // Step 2: Safety screening (hard gate with iOS toggle)
+  | 'questions'     // Step 3: Service-specific questions (branched content)
+  | 'details'       // Step 4: Identity + auth + 3 consent toggles
+  | 'checkout'      // Step 5: Review & pay + accuracy toggle + Stripe
 
 // Service categories
 export type ServiceCategory = 
@@ -70,6 +71,8 @@ export type FieldType =
   | 'multiselect'
   | 'boolean'
   | 'file'
+  | 'toggle'           // iOS-style toggle for binary confirmations
+  | 'segmented'        // Segmented control for mutually exclusive options
 
 export interface FieldOption {
   value: string

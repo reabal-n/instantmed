@@ -37,5 +37,6 @@ export {
   DetailsStep, 
   PrescriptionDetailsStep,
   SafetyCheckStep,
+  SafetyScreeningStep,
   AuthStep,
 } from './steps'

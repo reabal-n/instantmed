@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: 'Online Repeat Prescriptions | Same-Day Scripts | Lumen Health',
-  description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments, no waiting rooms.',
+  description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy. No appointments needed.',
   openGraph: {
     title: 'Online Repeat Prescriptions | Lumen Health',
     description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy.',
@@ -15,6 +15,6 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PrescriptionsPage() {
+export default function RepeatPrescriptionsPage() {
   return <ServiceFunnelPage config={repeatScriptFunnelConfig} />
 }

@@ -1,20 +1,20 @@
 import type { Metadata } from 'next'
-import { ServiceLandingPage } from '@/components/marketing/service-landing-page'
-import { medicalCertificatesConfig } from '@/lib/marketing/services'
+import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
+import { medCertFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: medicalCertificatesConfig.metaTitle,
-  description: medicalCertificatesConfig.metaDescription,
+  title: 'Online Medical Certificates | Same-Day Delivery | Lumen Health',
+  description: 'Get a valid medical certificate from an Australian doctor in under an hour. Accepted by all employers. No appointments, no waiting rooms.',
   openGraph: {
-    title: medicalCertificatesConfig.metaTitle,
-    description: medicalCertificatesConfig.metaDescription,
+    title: 'Online Medical Certificates | Lumen Health',
+    description: 'Get a valid medical certificate from an Australian doctor in under an hour. Accepted by all employers.',
     type: 'website',
   },
 }
 
 export default function MedicalCertificatesPage() {
-  return <ServiceLandingPage config={medicalCertificatesConfig} />
+  return <ServiceFunnelPage config={medCertFunnelConfig} />
 }

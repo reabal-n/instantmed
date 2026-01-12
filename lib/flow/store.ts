@@ -69,8 +69,8 @@ function createInitialState(): ExtendedFlowState {
   }
 }
 
-// Simplified step order for navigation (3-4 steps max)
-const STEP_ORDER: FlowStepId[] = ['service', 'questions', 'details', 'checkout']
+// 5-step order per refined intake spec
+const STEP_ORDER: FlowStepId[] = ['service', 'safety', 'questions', 'details', 'checkout']
 
 // Debounce timer
 let saveTimer: NodeJS.Timeout | null = null

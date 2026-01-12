@@ -6,7 +6,7 @@ import { ArrowRight, Clock, PhoneOff, Check, Users, Star } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { Divider } from '@heroui/react'
-import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium, AHPRALogo, TGALogo } from '@/components/icons/certification-logos'
+import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { MagneticButton } from '@/components/effects/magnetic-button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
@@ -357,44 +357,16 @@ export function ServicePicker() {
           })}
         </motion.div>
         
-        {/* Trust Footer - Improved */}
-        <motion.div 
-          className="mt-10 pt-8 border-t border-border/30"
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
+        {/* Simple note */}
+        <motion.p 
+          className="text-center text-xs text-muted-foreground mt-8"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {/* Primary trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-4">
-            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-emerald-500/5 dark:bg-emerald-400/10 border border-emerald-500/20">
-              <AHPRALogo className="w-6 h-6" />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-foreground">AHPRA Registered</span>
-                <span className="text-[10px] text-muted-foreground">Australian doctors only</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-blue-500/5 dark:bg-blue-400/10 border border-blue-500/20">
-              <TGALogo className="w-6 h-6" />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-foreground">TGA Compliant</span>
-                <span className="text-[10px] text-muted-foreground">Meets all regulations</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-amber-500/5 dark:bg-amber-400/10 border border-amber-500/20">
-              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-foreground">Full Refund Guarantee</span>
-                <span className="text-[10px] text-muted-foreground">If we can&apos;t help</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Secondary note */}
-          <p className="text-center text-[11px] text-muted-foreground/70">
-            Medicare rebates don&apos;t apply, but PBS subsidies may apply at pharmacy
-          </p>
-        </motion.div>
+          Medicare rebates don&apos;t apply, but PBS subsidies may apply at pharmacy
+        </motion.p>
       </div>
     </section>
   )
