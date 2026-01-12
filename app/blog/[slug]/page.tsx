@@ -108,7 +108,7 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

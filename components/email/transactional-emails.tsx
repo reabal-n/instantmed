@@ -2,7 +2,7 @@
  * Transactional Email Templates
  * 
  * Email templates for request status updates and re-engagement.
- * All templates follow the Lumen Health brand style.
+ * All templates follow the InstantMed brand style.
  */
 
 interface BaseEmailProps {
@@ -53,7 +53,7 @@ export function renderRequestInReviewEmail({
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 24px;">
       <div style="font-size: 24px; font-weight: bold; color: #00C9A7; margin-bottom: 8px;">
-        Lumen Health
+        InstantMed
       </div>
     </div>
     
@@ -103,7 +103,7 @@ export function renderRequestInReviewEmail({
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-      Lumen Health Pty Ltd · Australia<br>
+      InstantMed Pty Ltd · Australia<br>
       <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a>
     </p>
   </div>
@@ -133,7 +133,7 @@ export function renderRequestApprovedEmail({
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 24px;">
       <div style="font-size: 24px; font-weight: bold; color: #00C9A7; margin-bottom: 8px;">
-        Lumen Health
+        InstantMed
       </div>
     </div>
     
@@ -179,7 +179,7 @@ export function renderRequestApprovedEmail({
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-      Lumen Health Pty Ltd · Australia<br>
+      InstantMed Pty Ltd · Australia<br>
       <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a>
     </p>
   </div>
@@ -208,7 +208,7 @@ export function renderReEngagementEmail({
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 24px;">
       <div style="font-size: 24px; font-weight: bold; color: #00C9A7; margin-bottom: 8px;">
-        Lumen Health
+        InstantMed
       </div>
     </div>
     
@@ -253,7 +253,7 @@ export function renderReEngagementEmail({
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-      Lumen Health Pty Ltd · Australia<br>
+      InstantMed Pty Ltd · Australia<br>
       <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a><br>
       <a href="${baseUrl}/unsubscribe" style="color: #9ca3af;">Unsubscribe from these emails</a>
     </p>
@@ -284,7 +284,7 @@ export function renderCartAbandonmentEmail({
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 24px;">
       <div style="font-size: 24px; font-weight: bold; color: #00C9A7; margin-bottom: 8px;">
-        Lumen Health
+        InstantMed
       </div>
     </div>
     
@@ -329,7 +329,7 @@ export function renderCartAbandonmentEmail({
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-      Lumen Health Pty Ltd · Australia<br>
+      InstantMed Pty Ltd · Australia<br>
       <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a>
     </p>
   </div>

@@ -1,10 +1,10 @@
-# System Brief — Lumen Health
+# System Brief — InstantMed
 
-• Production domain: https://www.lumenhealth.com.au (previously instantmed.com.au)
-• Hosting: Vercel (project name: lumen-health)
+• Production domain: https://instantmed.com.au
+• Hosting: Vercel (project name: instantmed)
 • Auth: Supabase Auth (email/password + Google)
 • Database: Supabase Postgres
-• Emails: Resend via Supabase SMTP (sender: hello@lumenhealth.com.au)
+• Emails: Resend via Supabase SMTP (sender: hello@instantmed.com.au)
 • Payments: Stripe Checkout
 • DB invariant: profiles.auth_user_id == auth.users.id (1 row per user)
 • RLS: enabled on all tables, policies must be minimal + deterministic

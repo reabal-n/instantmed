@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import type { Metadata } from "next"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {

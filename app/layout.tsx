@@ -46,8 +46,8 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lumen Health - Online Doctor Consultations Australia | Med Certs & Scripts",
-    template: "%s | Lumen Health",
+    default: "InstantMed - Online Doctor Consultations Australia | Med Certs & Scripts",
+    template: "%s | InstantMed",
   },
   description:
     "An asynchronous telehealth platform for Australians to get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) online. AHPRA-registered doctors review requests asynchronously (no video calls). Mobile-optimized, Medicare-friendly, with built-in safety features and secure payment processing.",
@@ -61,21 +61,21 @@ export const metadata: Metadata = {
     "repeat request online",
     "telehealth GP",
     "virtual doctor",
-    "Lumen Health",
+    "InstantMed",
   ],
-  authors: [{ name: "Lumen Health" }],
-  creator: "Lumen Health",
-  publisher: "Lumen Health",
-  metadataBase: new URL("https://lumenhealth.com.au"),
+  authors: [{ name: "InstantMed" }],
+  creator: "InstantMed",
+  publisher: "InstantMed",
+  metadataBase: new URL("https://instantmed.com.au"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_AU",
-    url: "https://lumenhealth.com.au",
-    siteName: "Lumen Health",
-    title: "Lumen Health - Online Doctor Consultations Australia",
+    url: "https://instantmed.com.au",
+    siteName: "InstantMed",
+    title: "InstantMed - Online Doctor Consultations Australia",
     description:
       "An asynchronous telehealth platform for Australians. Get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.",
     images: [
@@ -83,13 +83,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Lumen Health - Radiant care. Real doctors. Zero nonsense.",
+        alt: "InstantMed - Real doctors. Zero nonsense.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lumen Health - Online Doctor Consultations Australia",
+    title: "InstantMed - Online Doctor Consultations Australia",
     description: "Asynchronous telehealth platform for Australians. Medical certificates ($19.95), prescriptions ($29.95), and consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls required.",
     images: ["/og-image.png"],
   },
@@ -128,10 +128,10 @@ function JsonLd() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
-    name: "Lumen Health",
+    name: "InstantMed",
     description: "Online telehealth consultations with Australian-registered GPs",
-    url: "https://lumenhealth.com.au",
-    logo: "https://lumenhealth.com.au/logo.png",
+    url: "https://instantmed.com.au",
+    logo: "https://instantmed.com.au/logo.png",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",

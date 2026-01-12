@@ -6,7 +6,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 // Local SEO Pages - Top 10 Australian cities

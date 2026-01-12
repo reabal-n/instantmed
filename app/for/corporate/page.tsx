@@ -5,7 +5,7 @@ import { ArrowRight, Shield, Zap, Building2, Clock, Star, Briefcase, Mail, Lock 
 import Link from "next/link"
 import type { Metadata } from "next"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = {

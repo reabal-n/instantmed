@@ -3,7 +3,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { CompleteAccountForm } from "./complete-account-form"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export const metadata = {

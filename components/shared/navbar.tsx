@@ -280,11 +280,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           />
           <div className="relative z-10 flex items-center justify-between px-4 py-2">
             {/* Logo */}
-            <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="Lumen Health home">
+            <Link href="/" className="relative z-10 flex items-center gap-1.5 group" aria-label="InstantMed home">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600">
                 <Zap className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               </div>
-              <span className="text-sm font-semibold text-foreground">Lumen Health</span>
+              <span className="text-sm font-semibold text-foreground">InstantMed</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -502,7 +502,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Lumen Health</span>
+            <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">InstantMed</span>
           </Link>
         }
         footer={

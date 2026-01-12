@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import confetti from "canvas-confetti"
 import {
   ArrowLeft,
@@ -144,15 +144,14 @@ function EmergencyBanner({
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-red-200/50 dark:border-red-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(239,68,68,0.1)] transition-all duration-300">
-        <Checkbox
-          checked={accepted}
-          onCheckedChange={(checked) => onAccept(checked === true)}
-          className="mt-0.5 h-5 w-5 rounded border-red-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-        />
-        <span className="text-sm text-red-900 font-medium">
+      <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-red-200/50 dark:border-red-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(239,68,68,0.1)] transition-all duration-300">
+        <span className="text-sm text-red-900 font-medium flex-1">
           {REPEAT_RX_COPY.emergency.checkbox}
         </span>
+        <Switch
+          checked={accepted}
+          onCheckedChange={(checked) => onAccept(checked)}
+        />
       </label>
       
       {accepted && timestamp && (
@@ -1075,7 +1074,7 @@ export function RepeatRxIntakeFlow({
                   <label
                     key={key}
                     className={cn(
-                      "flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
+                      "flex items-center justify-between gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
                       "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                       "border-white/40 dark:border-white/10",
                       pmhxFlags[key as keyof typeof pmhxFlags]
@@ -1083,15 +1082,14 @@ export function RepeatRxIntakeFlow({
                         : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                     )}
                   >
-                    <Checkbox
+                    <span className="text-sm font-medium flex-1">{label}</span>
+                    <Switch
                       checked={pmhxFlags[key as keyof typeof pmhxFlags] as boolean}
                       onCheckedChange={(checked) => setPmhxFlags(prev => ({
                         ...prev,
-                        [key]: checked === true,
+                        [key]: checked,
                       }))}
-                      className="h-5 w-5"
                     />
-                    <span className="text-sm font-medium">{label}</span>
                   </label>
                 ))}
                 
@@ -1142,7 +1140,7 @@ export function RepeatRxIntakeFlow({
                 {/* GP Attestation */}
                 <label
                   className={cn(
-                    "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
+                    "flex items-center justify-between gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
                     "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                     "border-white/40 dark:border-white/10",
                     gpAttestationAccepted
@@ -1150,12 +1148,7 @@ export function RepeatRxIntakeFlow({
                       : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                   )}
                 >
-                  <Checkbox
-                    checked={gpAttestationAccepted}
-                    onCheckedChange={(checked) => handleGpAttestationAccept(checked === true)}
-                    className="mt-0.5 h-5 w-5"
-                  />
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <span className="text-sm font-medium block">
                       {REPEAT_RX_COPY.steps.attestation.gpAttestation}
                     </span>
@@ -1163,12 +1156,16 @@ export function RepeatRxIntakeFlow({
                       {REPEAT_RX_COPY.steps.attestation.gpNote}
                     </span>
                   </div>
+                  <Switch
+                    checked={gpAttestationAccepted}
+                    onCheckedChange={(checked) => handleGpAttestationAccept(checked)}
+                  />
                 </label>
                 
                 {/* Terms */}
                 <label
                   className={cn(
-                    "flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
+                    "flex items-center justify-between gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300",
                     "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
                     "border-white/40 dark:border-white/10",
                     termsAccepted
@@ -1176,12 +1173,7 @@ export function RepeatRxIntakeFlow({
                       : "hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                   )}
                 >
-                  <Checkbox
-                    checked={termsAccepted}
-                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                    className="mt-0.5 h-5 w-5"
-                  />
-                  <span className="text-sm">
+                  <span className="text-sm flex-1">
                     {REPEAT_RX_COPY.steps.attestation.termsAccept}{" "}
                     <Link href="/terms" className="text-primary underline">
                       {REPEAT_RX_COPY.steps.attestation.termsLink}
@@ -1191,6 +1183,10 @@ export function RepeatRxIntakeFlow({
                       {REPEAT_RX_COPY.steps.attestation.privacyLink}
                     </Link>
                   </span>
+                  <Switch
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked)}
+                  />
                 </label>
               </div>
               

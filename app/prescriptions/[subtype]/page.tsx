@@ -21,7 +21,7 @@ const subtypeInfo: Record<string, { title: string; description: string }> = {
   },
 }
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export default async function PrescriptionSubtypePage({

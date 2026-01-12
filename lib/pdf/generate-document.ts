@@ -2,7 +2,7 @@
  * Document Generation Module
  * 
  * ⛔ PRESCRIBING WORKFLOW BOUNDARY
- * Prescription generation has been removed from Lumen Health.
+ * Prescription generation has been removed from InstantMed Health.
  * See PRESCRIBING_WORKFLOW_BOUNDARY.md for details.
  */
 
@@ -28,7 +28,7 @@ export function generateReferenceNumber(type: DocumentType): string {
  * Generate HTML for a document based on type
  * 
  * Note: Only med_cert is supported. Prescription generation
- * is not permitted within Lumen Health per PRESCRIBING_WORKFLOW_BOUNDARY.md
+ * is not permitted within InstantMed Health per PRESCRIBING_WORKFLOW_BOUNDARY.md
  */
 export function generateDocumentHTML(
   type: DocumentType,

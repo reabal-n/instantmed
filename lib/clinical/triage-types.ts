@@ -4,7 +4,7 @@
  * Defines the core triage outcome types and clinical boundary types
  * as specified in CLINICAL_BOUNDARIES_AND_DECISION_RULES.md
  * 
- * Platform Role: Lumen Health is NOT a prescribing system.
+ * Platform Role: InstantMed Health is NOT a prescribing system.
  * It is an intake, triage, and documentation platform.
  */
 

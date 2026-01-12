@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { auth } from "@/lib/auth"
 import { NotificationsClient } from "./notifications-client"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 export const metadata = {

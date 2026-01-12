@@ -3,7 +3,7 @@
  * 
  * This file has been deprecated in accordance with PRESCRIBING_WORKFLOW_BOUNDARY.md
  * 
- * Lumen Health does NOT generate prescriptions.
+ * InstantMed Health does NOT generate prescriptions.
  * All prescribing occurs externally via dedicated prescribing platforms (e.g., Parchment).
  * 
  * This stub exists to maintain type compatibility during migration.
@@ -31,13 +31,13 @@ export interface PrescriptionTemplateData {
 }
 
 /**
- * @deprecated Prescription generation is not permitted within Lumen Health.
+ * @deprecated Prescription generation is not permitted within InstantMed Health.
  * See PRESCRIBING_WORKFLOW_BOUNDARY.md for details.
  * Prescriptions must be created in external prescribing systems.
  */
 export function generatePrescriptionHTML(_data: PrescriptionTemplateData): never {
   throw new Error(
-    "PRESCRIBING BOUNDARY VIOLATION: Lumen Health does not generate prescriptions. " +
+    "PRESCRIBING BOUNDARY VIOLATION: InstantMed Health does not generate prescriptions. " +
     "Prescriptions must be created in external prescribing systems (e.g., Parchment). " +
     "See PRESCRIBING_WORKFLOW_BOUNDARY.md for details."
   )

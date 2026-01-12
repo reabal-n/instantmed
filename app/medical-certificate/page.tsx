@@ -6,7 +6,7 @@ import { ArrowRight, Clock, Briefcase, Heart, Calendar, Zap, HelpCircle } from "
 import { ContextualSocialProof, ServiceStats } from "@/components/shared/contextual-social-proof"
 import { DoctorsOnline, CompletionTime } from "@/components/shared/urgency-indicators"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {

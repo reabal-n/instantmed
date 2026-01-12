@@ -23,11 +23,10 @@ Last updated: 2025-01-12
    - Test mode uses `price_test_*`, production uses `price_live_*`
 
 2. **Configure Webhooks**
-   - Create webhook endpoint: `https://instantmed.com.au/api/webhooks/stripe`
+   - Create webhook endpoint: `https://<your-domain>/api/stripe/webhook`
    - Events to subscribe:
-     - `payment_intent.succeeded`
-     - `payment_intent.payment_failed`
      - `checkout.session.completed`
+     - `checkout.session.expired`
    - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
 
 3. **Test Payment Flow**

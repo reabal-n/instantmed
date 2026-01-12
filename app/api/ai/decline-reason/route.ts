@@ -1,51 +1,101 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth, auth } from "@/lib/auth"
+import { generateText } from "ai"
+import { openai } from "@ai-sdk/openai"
+import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-const log = createLogger("route")
+import { createClient } from "@/lib/supabase/server"
+
+const log = createLogger("ai-decline-reason")
 
 /**
  * AI Decline Reason Generation
  * 
- * This feature is DISABLED by default. To enable:
- * 1. Install: pnpm add @ai-sdk/openai ai
- * 2. Set VERCEL_AI_GATEWAY_API_KEY in environment
- * 3. Replace this stub with the full implementation
+ * Generates a compassionate, professional decline reason for patient communication.
+ * IMPORTANT: This is a DRAFT only - requires doctor review and approval
+ * before sending to patient.
  */
 
+const DECLINE_REASON_PROMPT = `You are helping an Australian GP write a compassionate decline message for a telehealth patient.
+
+The doctor has decided not to approve this request. Generate a brief, professional message that:
+
+1. Is empathetic and respectful
+2. Does NOT reveal specific clinical reasoning (privacy/liability)
+3. Suggests appropriate next steps (visit local GP, call healthdirect 1800 022 222 if urgent)
+4. Maintains the patient's dignity
+5. Is concise (2-3 sentences max)
+6. Uses Australian English spelling
+
+NEVER include:
+- Specific diagnoses or clinical judgments
+- Anything that could be seen as medical advice
+- Promises or guarantees
+
+Example tone:
+"Unfortunately, your request couldn't be approved through our online service. For your situation, we recommend speaking with a GP in person who can conduct a proper examination. If you're concerned, healthdirect (1800 022 222) can provide guidance."`
+
 export async function POST(request: NextRequest) {
-  // Suppress unused variable warning
-  void request;
-  
   try {
     // Rate limiting
-    const { userId } = await auth()
-    if (userId) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', userId)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user?.id) {
+      const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
       if (rateLimitResponse) {
         return rateLimitResponse
       }
     }
     
-    // Require doctor authentication even for disabled feature
+    // Require doctor authentication
     const { profile } = await requireAuth("doctor")
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Feature disabled - AI SDK not installed
-    return NextResponse.json(
-      { 
-        success: false,
-        error: "AI decline reason generation is disabled. Please install @ai-sdk/openai and ai packages to enable this feature.",
-        reason: null,
-      },
-      { status: 503 }
-    )
+    // Check for OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      log.error("OPENAI_API_KEY not configured")
+      return NextResponse.json(
+        { success: false, error: "AI service not configured", reason: null },
+        { status: 503 }
+      )
+    }
+
+    // Parse request body
+    const body = await request.json()
+    const { requestType, internalReason } = body as { 
+      requestType?: string
+      internalReason?: string 
+    }
+
+    // Generate decline reason using AI
+    const { text } = await generateText({
+      model: openai("gpt-4o-mini"),
+      system: DECLINE_REASON_PROMPT,
+      prompt: `Generate a patient-facing decline message for a ${requestType || "telehealth"} request.${internalReason ? `\n\nInternal context (DO NOT include in message): ${internalReason}` : ""}`,
+    })
+
+    log.info("Decline reason generated", { 
+      doctorId: profile.id,
+      requestType,
+      reasonLength: text.length 
+    })
+
+    return NextResponse.json({
+      success: true,
+      reason: text,
+      isDraft: true,
+      generatedAt: new Date().toISOString(),
+      generatedBy: "ai",
+      requiresApproval: true,
+    })
+
   } catch (error) {
-    log.error("Error in decline-reason route", { error })
+    log.error("Error generating decline reason", { error })
     return NextResponse.json(
-      { error: "Failed to process request" },
+      { success: false, error: "Failed to generate reason", reason: null },
       { status: 500 }
     )
   }

@@ -2,7 +2,7 @@ import { getOrCreateAuthenticatedUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { OnboardingFlow } from "./onboarding-flow"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export default async function PatientOnboardingPage({

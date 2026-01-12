@@ -235,8 +235,8 @@ export async function getSupabaseAuth() {
 }
 
 /**
- * Clerk-compatible auth() function for server components/actions.
- * Returns { userId } to match Clerk's pattern.
+ * Auth function for server components/actions.
+ * Returns { userId } for use in server-side authentication checks.
  */
 export async function auth(): Promise<{ userId: string | null; redirectToSignIn: () => never }> {
   const supabase = await createClient()

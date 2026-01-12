@@ -3,13 +3,13 @@
  * 
  * See PRESCRIBING_WORKFLOW_BOUNDARY.md for full documentation.
  * 
- * Core Principle: Lumen Health does NOT prescribe.
+ * Core Principle: InstantMed Health does NOT prescribe.
  * It facilitates intake, triage, and clinician review.
  * All prescribing decisions and actions occur OUTSIDE the platform.
  */
 
 /**
- * Actions that are PERMITTED within Lumen Health
+ * Actions that are PERMITTED within InstantMed Health
  */
 export const PERMITTED_ACTIONS = [
   "collect_patient_information",
@@ -22,7 +22,7 @@ export const PERMITTED_ACTIONS = [
 ] as const
 
 /**
- * Actions that are PROHIBITED within Lumen Health
+ * Actions that are PROHIBITED within InstantMed Health
  */
 export const PROHIBITED_ACTIONS = [
   "generate_prescription",
@@ -45,7 +45,7 @@ export type ProhibitedAction = typeof PROHIBITED_ACTIONS[number]
 export class PrescribingBoundaryViolation extends Error {
   constructor(action: string) {
     super(
-      `PRESCRIBING BOUNDARY VIOLATION: "${action}" is not permitted within Lumen Health. ` +
+      `PRESCRIBING BOUNDARY VIOLATION: "${action}" is not permitted within InstantMed Health. ` +
       `Prescribing must occur in external systems. See PRESCRIBING_WORKFLOW_BOUNDARY.md`
     )
     this.name = "PrescribingBoundaryViolation"

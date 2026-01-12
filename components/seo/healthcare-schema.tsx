@@ -8,13 +8,13 @@ interface OrganizationSchemaProps {
  * Schema.org structured data for healthcare organization
  * Helps search engines understand the business and improves SEO
  */
-export function OrganizationSchema({ baseUrl = "https://lumenhealth.com.au" }: OrganizationSchemaProps) {
+export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: OrganizationSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "MedicalOrganization",
     "@id": `${baseUrl}/#organization`,
-    name: "Lumen Health",
-    alternateName: "Lumen Health Australia",
+    name: "InstantMed",
+    alternateName: "InstantMed Australia",
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     image: `${baseUrl}/og-image.png`,
@@ -23,7 +23,7 @@ export function OrganizationSchema({ baseUrl = "https://lumenhealth.com.au" }: O
     foundingDate: "2024",
     founders: [{
       "@type": "Person",
-      name: "Lumen Health Team"
+      name: "InstantMed Team"
     }],
     address: {
       "@type": "PostalAddress",
@@ -57,17 +57,17 @@ export function OrganizationSchema({ baseUrl = "https://lumenhealth.com.au" }: O
     contactPoint: [{
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "hello@lumenhealth.com.au",
+      email: "hello@instantmed.com.au",
       availableLanguage: ["English"]
     }],
     sameAs: [
-      "https://www.facebook.com/lumenhealthau",
-      "https://twitter.com/lumenhealthau",
-      "https://www.instagram.com/lumenhealthau"
+      "https://www.facebook.com/instantmedau",
+      "https://twitter.com/instantmedau",
+      "https://www.instagram.com/instantmedau"
     ],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Lumen Health Services",
+      name: "InstantMed Services",
       itemListElement: [
         {
           "@type": "Offer",
@@ -112,7 +112,7 @@ export function MedicalServiceSchema({
   name, 
   description, 
   price,
-  baseUrl = "https://lumenhealth.com.au" 
+  baseUrl = "https://instantmed.com.au" 
 }: MedicalServiceSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -212,11 +212,11 @@ interface LocalBusinessSchemaProps {
 /**
  * Schema.org local business for location pages
  */
-export function LocalBusinessSchema({ city, state, baseUrl = "https://lumenhealth.com.au" }: LocalBusinessSchemaProps) {
+export function LocalBusinessSchema({ city, state, baseUrl = "https://instantmed.com.au" }: LocalBusinessSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
-    name: `Lumen Health ${city}`,
+    name: `InstantMed ${city}`,
     url: `${baseUrl}/locations/${city.toLowerCase().replace(/\s+/g, '-')}`,
     parentOrganization: {
       "@type": "MedicalOrganization",
@@ -268,7 +268,7 @@ export function ReviewAggregateSchema({
   const schema = {
     "@context": "https://schema.org",
     "@type": "MedicalOrganization",
-    name: "Lumen Health",
+    name: "InstantMed",
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue,

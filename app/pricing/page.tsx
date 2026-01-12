@@ -8,7 +8,7 @@ import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 
 export const dynamic = "force-dynamic"
 export const metadata = {

@@ -15,7 +15,7 @@ import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
 
-// Prevent static generation to avoid Clerk publishableKey build errors
+// Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 export default function HomePage() {

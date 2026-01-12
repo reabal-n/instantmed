@@ -3,10 +3,9 @@
 import { useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import confetti from "canvas-confetti"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import {
   ArrowRight,
@@ -26,6 +25,7 @@ import {
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { MED_CERT_COPY } from "@/lib/microcopy/med-cert-v2"
 import { SYMPTOM_OPTIONS, CARER_RELATIONSHIPS } from "@/types/med-cert"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { 
   MedCertStep, 
   CertificateType, 
@@ -313,15 +313,14 @@ function EmergencyBanner({
         </div>
       </div>
 
-      <label className="flex items-start gap-3 p-3 rounded-xl bg-white border border-red-200 cursor-pointer hover:bg-red-50/50 transition-colors">
-        <Checkbox
-          checked={accepted}
-          onCheckedChange={(checked) => onAccept(checked === true)}
-          className="mt-0.5 h-5 w-5 rounded border-red-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-        />
-        <span className="text-sm text-red-900 font-medium">
+      <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white border border-red-200 cursor-pointer hover:bg-red-50/50 transition-colors">
+        <span className="text-sm text-red-900 font-medium flex-1">
           {MED_CERT_COPY.emergency.checkbox}
         </span>
+        <Switch
+          checked={accepted}
+          onCheckedChange={(checked) => onAccept(checked)}
+        />
       </label>
 
       {accepted && timestamp && (
@@ -529,34 +528,59 @@ export function MedCertFlowV2({
       const endDate = new Date(startDate)
       endDate.setDate(endDate.getDate() + durationDays - 1)
 
-      // Build audit payload
-      const auditPayload = {
-        symptomsSelected: formData.symptoms,
-        otherSymptomText: formData.otherSymptomDetails,
-        durationDays,
-        startDate: formData.startDate,
-        endDate: endDate.toISOString().split("T")[0],
-        emergencyDisclaimerConfirmed: formData.emergencyDisclaimerConfirmed,
-        emergencyDisclaimerTimestamp: formData.emergencyDisclaimerTimestamp,
-        patientConfirmation: {
-          confirmedAccurate: patientConfirmedAccurate,
-          confirmedTimestamp: new Date().toISOString(),
-        },
-        templateVersion: "2.0.0",
+      // Build answers payload for intake_answers table
+      const answers = {
+        // Certificate details
+        certificate_type: formData.certificateType,
+        start_date: formData.startDate,
+        end_date: endDate.toISOString().split("T")[0],
+        duration_days: durationDays,
+        
+        // Symptoms
+        symptoms: formData.symptoms,
+        other_symptom_details: formData.otherSymptomDetails || null,
+        
+        // Carer details (if applicable)
+        carer_person_name: formData.carerPersonName || null,
+        carer_relationship: formData.carerRelationship || null,
+        
+        // Compliance / safety confirmation
+        emergency_disclaimer_confirmed: formData.emergencyDisclaimerConfirmed,
+        emergency_disclaimer_timestamp: formData.emergencyDisclaimerTimestamp,
+        patient_confirmed_accurate: patientConfirmedAccurate,
+        patient_confirmed_timestamp: new Date().toISOString(),
+        
+        // Audit metadata
+        template_version: "2.0.0",
+        submitted_at: new Date().toISOString(),
       }
 
-      // TODO: Submit to API
-      // eslint-disable-next-line no-console
-      if (process.env.NODE_ENV === 'development') console.log("Submitting med cert request:", auditPayload)
+      // Determine service slug based on certificate type
+      const serviceSlug = formData.certificateType === "carer" 
+        ? "med-cert-carer" 
+        : "med-cert-sick"
 
-      // Success - show confetti and go to confirmation
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { x: 0.5, y: 0.6 },
+      // Create intake and redirect to Stripe checkout
+      const result = await createIntakeAndCheckoutAction({
+        category: "medical_certificate",
+        subtype: formData.certificateType || "work",
+        type: `med-cert-${formData.certificateType || "work"}`,
+        answers,
+        serviceSlug,
       })
 
-      goToStep("confirmation")
+      if (!result.success) {
+        setError(result.error || MED_CERT_COPY.errors.generic)
+        return
+      }
+
+      if (result.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = result.checkoutUrl
+      } else {
+        // Fallback - should not happen but handle gracefully
+        setError("Unable to create checkout session. Please try again.")
+      }
     } catch {
       setError(MED_CERT_COPY.errors.generic)
     } finally {
@@ -898,14 +922,13 @@ export function MedCertFlowV2({
                 </div>
               </div>
 
-              {/* Attestation checkbox */}
-              <label className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/50 transition-colors">
-                <Checkbox
+              {/* Attestation toggle */}
+              <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card cursor-pointer hover:bg-muted/50 transition-colors">
+                <span className="text-sm flex-1">{MED_CERT_COPY.review.attestation.label}</span>
+                <Switch
                   checked={patientConfirmedAccurate}
-                  onCheckedChange={(checked) => setPatientConfirmedAccurate(checked === true)}
-                  className="mt-0.5 h-5 w-5"
+                  onCheckedChange={(checked) => setPatientConfirmedAccurate(checked)}
                 />
-                <span className="text-sm">{MED_CERT_COPY.review.attestation.label}</span>
               </label>
 
               <p className="text-xs text-center text-muted-foreground">

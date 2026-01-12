@@ -29,12 +29,12 @@ export function Footer() {
             <Link
               href="/"
               className="flex flex-row gap-2 items-center justify-start text-2xl font-bold text-foreground"
-              aria-label="Lumen Health home"
+              aria-label="InstantMed home"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-dawn-400 to-dawn-500 shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
                 <Zap className="h-4 w-4 text-dawn-950" aria-hidden="true" />
               </div>
-              Lumen Health
+              InstantMed
             </Link>
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               Medical certificates & prescriptions — handled online by real Australian doctors.
