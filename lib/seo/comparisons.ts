@@ -28,7 +28,8 @@ export interface ComparisonPage extends Omit<SEOPage, 'type'> {
   }
   content: {
     intro: string
-    uniqueBlocks: any[] // Required by SEOPage but not used in comparisons
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required by SEOPage but not used in comparisons
+    uniqueBlocks: any[]
     keyDifferences: {
       heading: string
       itemA: string

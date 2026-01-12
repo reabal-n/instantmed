@@ -16,7 +16,7 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
-  buttonVariant = "ghost",
+  buttonVariant: _buttonVariant = "ghost",
   formatters,
   components,
   ...props
@@ -187,7 +187,8 @@ function CalendarDayButton({
   }, [modifiers.focused])
 
   // Filter out props that are incompatible with our Button component
-  const { value, ...buttonProps } = props as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DayPicker button props type compatibility
+  const { value: _value, ...buttonProps } = props as any
 
   return (
     <Button

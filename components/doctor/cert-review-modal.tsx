@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Loader2, Calendar, User, FileText } from "lucide-react"
 import type { RequestWithDetails } from "@/types/db"
+import { AiReviewSummary } from "@/components/doctor/ai-review-summary"
 
 interface CertReviewModalProps {
   open: boolean
@@ -152,6 +153,13 @@ export function CertReviewModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* AI-Generated Review Summary */}
+          <AiReviewSummary
+            requestId={request.id}
+            requestType="med_cert"
+            autoGenerate={true}
+          />
+
           {/* Patient Information (Read-only) */}
           <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
             <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">

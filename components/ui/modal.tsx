@@ -82,7 +82,7 @@ function ModalClose({
   )
 }
 
-function ModalOverlay({ className }: { className?: string }) {
+function ModalOverlay({ className: _className }: { className?: string }) {
   return null // Handled by HeroUI Modal
 }
 
@@ -90,7 +90,7 @@ function ModalContent({
   className,
   children,
   showClose = true,
-  size = "md",
+  size: _size = "md",
   ...props
 }: Omit<React.ComponentProps<typeof HeroModalContent>, "size"> & {
   showClose?: boolean
@@ -101,7 +101,7 @@ function ModalContent({
       className={cn("bg-background border border-default-100", className)}
       {...props}
     >
-      {children as any}
+      {children as React.ReactNode}
       {showClose && <ModalClose />}
     </HeroModalContent>
   )

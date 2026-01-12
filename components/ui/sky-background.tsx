@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 interface SkyBackgroundProps {
   className?: string;
@@ -10,276 +9,96 @@ interface SkyBackgroundProps {
 }
 
 /**
- * SkyBackground - Lumen Health morning light background
- * Soft sky gradient with gentle floating clouds
- * Features parallax scrolling and slow, intentional animations
+ * SkyBackground - Simplified morning sky with CSS animations
+ * 5 clouds across 3 layers, pure CSS drift, minimal JS
+ * Only visible in light mode (dark mode uses NightSkyBackground)
  */
 export const SkyBackground = ({
   className,
   fullPage = false,
 }: SkyBackgroundProps) => {
-  const [scrollY, setScrollY] = useState(0);
-  const [animationOffset, setAnimationOffset] = useState(0);
-
+  // Minimal scroll listener for parallax CSS variable
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
+    let ticking = false;
+    const updateScrollY = () => {
+      document.documentElement.style.setProperty('--scroll-y', String(window.scrollY));
+      ticking = false;
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollY);
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
-  
-  // Use an interval to update animation offset instead of calling Date.now() in render
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationOffset(Date.now());
-    }, 100); // Update every 100ms for smooth animation
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Pre-calculate sine values to avoid impure function calls in render
-  const cloudOffsets = useMemo(() => ({
-    cloud1: Math.sin(animationOffset / 5000) * 10,
-    cloud2: Math.sin(animationOffset / 6000 + 1) * 12,
-    cloud3: Math.sin(animationOffset / 5500 + 2) * 8,
-    cloud4: Math.sin(animationOffset / 4800 + 0.5) * 6,
-    cloud5: Math.sin(animationOffset / 7000 + 3) * 5,
-    cloud6: Math.sin(animationOffset / 6500 + 4) * 7,
-    cloud7: Math.sin(animationOffset / 8000 + 5) * 4,
-  }), [animationOffset]);
 
   if (fullPage) {
     return (
       <div
         className={cn(
           "fixed inset-0 -z-10 overflow-hidden pointer-events-none",
+          "opacity-100 dark:opacity-0 transition-opacity duration-700",
           className
         )}
         aria-hidden="true"
       >
-        {/* Lumen sky gradient - morning light palette */}
+        {/* Sky gradient */}
         <div
           className="absolute inset-0"
           style={{
             background: `linear-gradient(to bottom, 
-              #C5DDF0 0%, 
-              #E1EEF5 25%, 
-              #EDF4F8 50%, 
-              #F7FAFC 100%
+              #B8D4E8 0%, 
+              #D4E6F1 20%, 
+              #E8F1F8 45%, 
+              #F5F9FC 70%,
+              #FDFEFE 100%
             )`,
           }}
         />
         
-        {/* Subtle dawn warmth overlay at horizon */}
+        {/* Single sun glow - CSS animation */}
+        <div
+          className="absolute -top-20 -right-20 w-[500px] h-[500px] animate-sun-glow"
+          style={{
+            background: `radial-gradient(circle, 
+              rgba(255, 240, 220, 0.45) 0%, 
+              rgba(255, 230, 200, 0.2) 35%,
+              transparent 70%
+            )`,
+          }}
+        />
+        
+        {/* Dawn warmth at horizon */}
         <div
           className="absolute inset-0"
           style={{
             background: `linear-gradient(to top, 
-              rgba(254, 243, 232, 0.3) 0%, 
-              transparent 40%
+              rgba(254, 243, 232, 0.2) 0%, 
+              transparent 30%
             )`,
           }}
         />
 
-        {/* Cloud 1 - Left side, large prominent cloud */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "450px",
-            height: "220px",
-            left: "-80px",
-            top: "8%",
-            background: "white",
-            borderRadius: "220px",
-            filter: "blur(25px)",
-            opacity: 0.95,
-            boxShadow: `
-              200px 0 0 -40px white,
-              120px 70px 0 -30px white,
-              280px 40px 0 -50px white,
-              160px 100px 0 -35px white,
-              320px 20px 0 -45px white
-            `,
-          }}
-          animate={{
-            x: scrollY * 0.1,
-            y: scrollY * 0.05 + cloudOffsets.cloud1,
-          }}
-          transition={{
-            x: { type: "spring", stiffness: 30, damping: 25 },
-            y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 2 - Right side, middle - large and prominent */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "500px",
-            height: "250px",
-            right: "-100px",
-            top: "35%",
-            background: "white",
-            borderRadius: "250px",
-            filter: "blur(28px)",
-            opacity: 0.92,
-            boxShadow: `
-              220px 0 0 -45px white,
-              130px 80px 0 -35px white,
-              300px 50px 0 -55px white,
-              180px 110px 0 -40px white,
-              350px 30px 0 -50px white
-            `,
-          }}
-          animate={{
-            x: -scrollY * 0.08,
-            y: scrollY * 0.03 + cloudOffsets.cloud2,
-          }}
-          transition={{
-            x: { type: "spring", stiffness: 30, damping: 25 },
-            y: { duration: 10, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 3 - Left side, bottom - medium size */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "380px",
-            height: "190px",
-            left: "-60px",
-            bottom: "12%",
-            background: "white",
-            borderRadius: "190px",
-            filter: "blur(22px)",
-            opacity: 0.9,
-            boxShadow: `
-              180px 0 0 -35px white,
-              100px 60px 0 -28px white,
-              240px 35px 0 -45px white,
-              140px 90px 0 -32px white
-            `,
-          }}
-          animate={{
-            x: scrollY * 0.12,
-            y: scrollY * 0.04 + cloudOffsets.cloud3,
-          }}
-          transition={{
-            x: { type: "spring", stiffness: 30, damping: 25 },
-            y: { duration: 9, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 4 - Right side, top - medium prominent */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "350px",
-            height: "175px",
-            right: "-50px",
-            top: "15%",
-            background: "white",
-            borderRadius: "175px",
-            filter: "blur(20px)",
-            opacity: 0.88,
-            boxShadow: `
-              160px 0 0 -30px white,
-              90px 55px 0 -25px white,
-              210px 30px 0 -40px white,
-              130px 80px 0 -28px white
-            `,
-          }}
-          animate={{
-            x: -scrollY * 0.15,
-            y: scrollY * 0.06 + cloudOffsets.cloud4,
-          }}
-          transition={{
-            x: { type: "spring", stiffness: 30, damping: 25 },
-            y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 5 - Center-left, floating */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "320px",
-            height: "160px",
-            left: "8%",
-            top: "55%",
-            background: "white",
-            borderRadius: "160px",
-            filter: "blur(18px)",
-            opacity: 0.85,
-            boxShadow: `
-              150px 0 0 -25px white,
-              80px 50px 0 -20px white,
-              190px 25px 0 -35px white,
-              110px 70px 0 -22px white
-            `,
-          }}
-          animate={{
-            y: scrollY * 0.02 + cloudOffsets.cloud5,
-          }}
-          transition={{
-            y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 6 - Right side, lower */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "340px",
-            height: "170px",
-            right: "5%",
-            bottom: "20%",
-            background: "white",
-            borderRadius: "170px",
-            filter: "blur(20px)",
-            opacity: 0.87,
-            boxShadow: `
-              160px 0 0 -28px white,
-              90px 55px 0 -22px white,
-              200px 30px 0 -38px white,
-              120px 75px 0 -25px white
-            `,
-          }}
-          animate={{
-            y: scrollY * 0.025 + cloudOffsets.cloud6,
-          }}
-          transition={{
-            y: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Cloud 7 - Upper center, smaller accent */}
-        <motion.div
-          className="absolute"
-          style={{
-            width: "280px",
-            height: "140px",
-            left: "50%",
-            top: "5%",
-            transform: "translateX(-50%)",
-            background: "white",
-            borderRadius: "140px",
-            filter: "blur(16px)",
-            opacity: 0.8,
-            boxShadow: `
-              130px 0 0 -20px white,
-              70px 45px 0 -18px white,
-              170px 25px 0 -32px white
-            `,
-          }}
-          animate={{
-            y: scrollY * 0.03 + cloudOffsets.cloud7,
-          }}
-          transition={{
-            y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
+        {/* Back layer - 2 large slow clouds */}
+        <div className="absolute inset-0 sky-layer-back">
+          <div className="cloud cloud-back-1" />
+          <div className="cloud cloud-back-2" />
+        </div>
+        
+        {/* Mid layer - 2 medium clouds */}
+        <div className="absolute inset-0 sky-layer-mid">
+          <div className="cloud cloud-mid-1" />
+          <div className="cloud cloud-mid-2" />
+        </div>
+        
+        {/* Front layer - 1 small cloud */}
+        <div className="absolute inset-0 sky-layer-front">
+          <div className="cloud cloud-front-1" />
+        </div>
       </div>
     );
   }

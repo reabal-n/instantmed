@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- HeroUI wrapper requires type assertions for compatibility */
 "use client"
 
 import * as React from "react"
@@ -75,7 +76,7 @@ interface DropdownMenuContentProps extends React.ComponentProps<"div"> {
 
 function DropdownMenuContent({
   children,
-  align,
+  align: _align,
   className,
   ...props
 }: DropdownMenuContentProps) {
@@ -118,7 +119,6 @@ function DropdownMenuItem({
   ...props
 }: DropdownMenuItemProps) {
   // HeroUI requires a key prop, so we generate one from children if not provided
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const itemKey = (props as any).key || String(children) || `dropdown-item-${++dropdownItemCounter}`
   
   // Map shadcn/ui API to HeroUI API

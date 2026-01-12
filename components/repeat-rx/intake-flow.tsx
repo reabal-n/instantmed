@@ -41,6 +41,8 @@ import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
 import { ContextualHelp as _ContextualHelp } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 import { CompactStepper } from "@/components/ui/form-stepper"
+import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
+import { SmartValidation } from "@/components/intake/smart-validation"
 
 // ============================================================================
 // CONSTANTS
@@ -700,7 +702,7 @@ export function RepeatRxIntakeFlow({
       case "medication":
         return medication !== null && emergencyAccepted
       case "history":
-        return lastPrescribed && stability && prescriber.trim() && indication.trim() && currentDose.trim() && doseChanged !== null
+        return lastPrescribed && stability && prescriber.trim() && isSymptomInputValid(indication, 10) && currentDose.trim() && doseChanged !== null
       case "safety":
         return sideEffects !== null && pregnantOrBreastfeeding !== null
       case "medical_history":
@@ -924,19 +926,18 @@ export function RepeatRxIntakeFlow({
                   />
                 </FormInput>
                 
-                {/* Indication */}
-                <FormInput
-                  label={REPEAT_RX_COPY.steps.history.indication}
-                  required
-                  helpText="What condition or reason you take this medication for (e.g., high blood pressure, diabetes)"
-                >
-                  <Input
-                    value={indication}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndication(e.target.value)}
-                    placeholder={REPEAT_RX_COPY.steps.history.indicationPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
-                  />
-                </FormInput>
+                {/* Indication - with AI-assisted input */}
+                <SmartSymptomInput
+                  value={indication}
+                  onChange={setIndication}
+                  label="Why do you take this medication?"
+                  placeholder="e.g., I've been taking this for high blood pressure for 3 years..."
+                  context="repeat_rx"
+                  minLength={10}
+                  maxLength={500}
+                  required={true}
+                  helperText="Describe why you need this medication renewed (minimum 10 characters)"
+                />
                 
                 {/* Current dose */}
                 <FormInput
@@ -1285,6 +1286,23 @@ export function RepeatRxIntakeFlow({
                 emoji="👀"
                 title={REPEAT_RX_COPY.steps.review.title}
                 subtitle={REPEAT_RX_COPY.steps.review.subtitle}
+              />
+              
+              {/* AI-powered pre-submission validation */}
+              <SmartValidation
+                formType="repeat_rx"
+                formData={{
+                  medication,
+                  indication,
+                  currentDose,
+                  lastPrescribed,
+                  stability,
+                  prescriber,
+                  doseChanged,
+                  sideEffects,
+                  pregnantOrBreastfeeding,
+                }}
+                autoValidate={true}
               />
               
               <div className="space-y-4">

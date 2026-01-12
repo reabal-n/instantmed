@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Test sitemap functions
  * Run: npx tsx scripts/test_sitemap.ts

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Framer Motion wrapper requires type assertions for HTMLAttributes compatibility */
 "use client"
 
 import * as React from "react"

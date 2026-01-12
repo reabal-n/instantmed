@@ -20,7 +20,8 @@ import { getCanonicalUrl, getRobotsConfig } from './registry'
 
 const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
-    const med = page as any // Cast to medication type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to medication type for dynamic access
+    const med = page as any
     const brandInfo = med.medication?.brandNames?.length > 0 
       ? ` (${med.medication.brandNames[0]})` 
       : ''
@@ -32,6 +33,7 @@ const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   intent: (page) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
     const intentPage = page as any
     const urgency = intentPage.intent?.urgency === 'immediate' ? 'Urgent ' : ''
     return `${urgency}${page.h1} | Online Doctors Australia | InstantMed`
@@ -76,6 +78,7 @@ const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
 
 const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to medication type
     const med = page as any
     const use = med.clinicalInfo?.uses?.[0] || 'various conditions'
     const turnaround = med.consultInfo?.turnaroundTime || '24 hours'
@@ -87,6 +90,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   intent: (page) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
     const intentPage = page as any
     return `${intentPage.intent?.userNeed}. ${page.content.intro.substring(0, 100)}... Australian doctors available 7 days.`
   },
@@ -148,6 +152,7 @@ function generateKeywords(page: SEOPage): string[] {
       `treat ${page.slug} online`,
     )
   } else if (page.type === 'intent') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
     const intentPage = page as any
     generatedKeywords.push(...(intentPage.intent?.alternateQueries || []))
   }
@@ -357,6 +362,7 @@ export function generateMedicalBusinessSchema() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Medication schema is dynamic
 export function generateDrugSchema(medication: any) {
   return {
     '@context': 'https://schema.org',

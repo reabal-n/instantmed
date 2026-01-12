@@ -13,6 +13,7 @@ interface InteractiveCardProps {
   /** Enable click scale effect */
   clickable?: boolean
   /** Custom animation variants */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Framer Motion variants are dynamic
   variants?: any
 }
 

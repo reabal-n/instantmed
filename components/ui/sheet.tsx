@@ -5,7 +5,7 @@ import {
   Modal as HeroModal,
   ModalContent,
   ModalHeader,
-  ModalBody,
+  ModalBody as _ModalBody,
   ModalFooter,
   type ModalProps as HeroModalProps,
 } from "@heroui/react"
@@ -117,11 +117,11 @@ function SheetClose({
   )
 }
 
-function SheetPortal({ children }: { children: React.ReactNode }) {
+function _SheetPortal({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function SheetOverlay({ className }: { className?: string }) {
+function _SheetOverlay({ className: _className }: { className?: string }) {
   return null // Handled by HeroUI Modal
 }
 

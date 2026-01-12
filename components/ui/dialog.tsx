@@ -74,6 +74,7 @@ function DialogTrigger({
   ...props
 }: React.ComponentProps<"button"> & { asChild?: boolean }) {
   if (asChild && React.isValidElement(children)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.cloneElement requires any for props spread
     return React.cloneElement(children, props as any)
   }
   return <button {...props}>{children}</button>
@@ -90,14 +91,14 @@ function DialogClose({
   return <button {...props}>{children}</button>
 }
 
-function DialogOverlay({ className }: { className?: string }) {
+function DialogOverlay({ className: _className }: { className?: string }) {
   return null // Handled by HeroUI Modal
 }
 
 function DialogContent({
   className,
   children,
-  showCloseButton = true,
+  showCloseButton: _showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof ModalContent> & {
   showCloseButton?: boolean

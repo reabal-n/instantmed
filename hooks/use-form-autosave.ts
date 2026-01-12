@@ -17,12 +17,12 @@ import { useEffect, useCallback, useRef } from 'react'
 interface AutosaveOptions {
   debounceMs?: number
   storage?: 'local' | 'session'
-  onSave?: (data: any) => void
-  onLoad?: (data: any) => void
+  onSave?: (data: unknown) => void
+  onLoad?: (data: unknown) => void
   onError?: (error: Error) => void
 }
 
-export function useFormAutosave<T extends Record<string, any>>(
+export function useFormAutosave<T extends Record<string, unknown>>(
   formId: string,
   options: AutosaveOptions = {}
 ) {
@@ -75,12 +75,13 @@ export function useFormAutosave<T extends Record<string, any>>(
         // toast.success('Draft saved', { description: 'Your progress is saved' })
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
           console.error('Form autosave error', error)
         }
         onError?.(error as Error)
       }
     }, debounceMs)
-  }, [formId, debounceMs, storageKey, timestampKey, getStorage, onSave, onError])
+  }, [debounceMs, storageKey, timestampKey, getStorage, onSave, onError])
 
   /**
    * Clear saved form data
@@ -94,6 +95,7 @@ export function useFormAutosave<T extends Record<string, any>>(
       storageInterface.removeItem(timestampKey)
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error('Form clear error', error)
       }
       onError?.(error as Error)
@@ -131,6 +133,7 @@ export function useFormAutosave<T extends Record<string, any>>(
       return parsed as T
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error('Form load error', error)
       }
       onError?.(error as Error)
@@ -211,7 +214,7 @@ export function useUnsavedChangesWarning(hasUnsavedChanges: boolean) {
 /**
  * Combined hook for form autosave with React Hook Form
  */
-export function useFormAutosaveWithRHF<T extends Record<string, any>>(
+export function useFormAutosaveWithRHF<T extends Record<string, unknown>>(
   formId: string,
   watch: () => T,
   options: AutosaveOptions = {}

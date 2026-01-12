@@ -67,7 +67,7 @@ const WrappedPopoverContent = React.forwardRef<
     side?: "top" | "right" | "bottom" | "left"
     onPointerDownOutside?: (event: PointerEvent) => void
   }
->(({ side, onPointerDownOutside, ...props }, ref) => {
+>(({ side: _side, onPointerDownOutside: _onPointerDownOutside, ...props }, _ref) => {
   // Note: HeroUI handles placement on the Popover component, not the content
   // The side and onPointerDownOutside props are accepted for API compatibility
   return <PopoverContent {...props} />

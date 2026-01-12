@@ -9,11 +9,13 @@ import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { SkyBackground } from "@/components/ui/sky-background"
 import { NightSkyBackground } from "@/components/ui/night-sky-background"
+import { ScrollProgress } from "@/components/ui/scroll-progress"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 import { SupabaseAuthProvider } from "@/components/providers/supabase-auth-provider"
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
+import { ChatIntakeButton } from "@/components/chat/chat-intake"
 import Script from "next/script"
 import "./globals.css"
 
@@ -200,6 +202,7 @@ export default function RootLayout({
             <HeroUIProviderWrapper>
               <SkyBackground fullPage />
               <NightSkyBackground starCount={100} showShootingStars />
+              <ScrollProgress color="gradient" />
               <SkipToContent />
               <div id="main-content" className="page-enter relative z-10">
                 {children}
@@ -207,6 +210,7 @@ export default function RootLayout({
               <Toaster position="top-center" richColors />
               <SocialProofPopup />
               <StickyCTABar />
+              <ChatIntakeButton />
               <Analytics />
               <WebVitalsReporter />
               <PostHogIdentify />

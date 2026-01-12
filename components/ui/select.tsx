@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- HeroUI wrapper requires type assertions for compatibility */
 "use client"
 
 import * as React from "react"
@@ -79,7 +80,7 @@ function SelectGroup({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function SelectValue({ placeholder }: { placeholder?: string }) {
+function SelectValue({ placeholder: _placeholder }: { placeholder?: string }) {
   return null // Handled by HeroUI Select
 }
 

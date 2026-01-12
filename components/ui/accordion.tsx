@@ -31,6 +31,7 @@ function Accordion({
       className={cn("w-full", props.className)}
       {...props}
     >
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- HeroUI type compatibility */}
       {children as any}
     </HeroAccordion>
   )

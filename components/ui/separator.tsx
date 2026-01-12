@@ -12,7 +12,7 @@ export interface SeparatorProps extends HeroDividerProps {
 function Separator({
   className,
   orientation = "horizontal",
-  decorative = true,
+  decorative: _decorative = true,
   ...props
 }: SeparatorProps) {
   return (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- HeroUI wrapper requires type assertions for compatibility */
 "use client"
 
 import * as React from "react"
@@ -121,7 +122,7 @@ function TabsTrigger({
 }
 
 function TabsContent({
-  value,
+  value: _value,
   children,
   className,
   ...props

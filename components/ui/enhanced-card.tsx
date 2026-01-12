@@ -18,7 +18,7 @@ export function EnhancedCard({
   children,
   className,
   glowColor = "blue",
-  useGlowCard = false,
+  useGlowCard: _useGlowCard = false,
   useSpotlight = true,
   hoverable = true,
   onClick,

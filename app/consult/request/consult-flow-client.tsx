@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
+import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
@@ -296,7 +297,7 @@ export function ConsultFlowClient({
       case "reason":
         return !!consultReason
       case "details":
-        return consultDetails.trim().length > 10
+        return isSymptomInputValid(consultDetails, 10)
       case "safety":
         return Object.keys(safetyAnswers).length === SAFETY_QUESTIONS.length
       case "medicare":
@@ -519,20 +520,18 @@ export function ConsultFlowClient({
                 subtitle="Please provide details about your concern"
               />
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Describe your concern in detail
-                  </label>
-                  <Textarea
-                    value={consultDetails}
-                    onChange={(e) => setConsultDetails(e.target.value)}
-                    placeholder="Please describe your symptoms, how long you&apos;ve had them, and any relevant medical history..."
-                    className="min-h-[120px]"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Minimum 10 characters ({consultDetails.length}/10)
-                  </p>
-                </div>
+                {/* AI-assisted symptom/concern input */}
+                <SmartSymptomInput
+                  value={consultDetails}
+                  onChange={setConsultDetails}
+                  label="Describe your concern in detail"
+                  placeholder="Please describe your symptoms, how long you've had them, and any relevant medical history..."
+                  context="consult"
+                  minLength={10}
+                  maxLength={500}
+                  required={true}
+                  helperText="Please describe what you'd like to discuss (minimum 10 characters)"
+                />
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     Current medications (optional)

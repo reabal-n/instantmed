@@ -48,6 +48,8 @@ export function MedicationSearch({
   const [options, setOptions] = useState<ArtgProduct[]>([])
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [announcement, setAnnouncement] = useState("")
+  const [correctedQuery, setCorrectedQuery] = useState<string | null>(null)
+  const [isAiAssisted, setIsAiAssisted] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
@@ -64,12 +66,32 @@ export function MedicationSearch({
     if (query.length < 2) {
       setOptions([])
       setIsOpen(false)
+      setCorrectedQuery(null)
+      setIsAiAssisted(false)
       return
     }
 
     setIsLoading(true)
 
     try {
+      // Use AI-powered fuzzy search for better typo/brand name matching
+      const fuzzyResponse = await fetch("/api/ai/medication-fuzzy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      })
+      const fuzzyData = await fuzzyResponse.json()
+
+      if (fuzzyData.results && fuzzyData.results.length > 0) {
+        setOptions(fuzzyData.results)
+        setIsOpen(true)
+        setCorrectedQuery(fuzzyData.correctedQuery)
+        setIsAiAssisted(fuzzyData.aiAssisted || false)
+        setAnnouncement(`${fuzzyData.results.length} medication${fuzzyData.results.length === 1 ? '' : 's'} found`)
+        return
+      }
+
+      // Fallback to standard search if fuzzy returns nothing
       const response = await fetch(
         `/api/medications/search?q=${encodeURIComponent(query)}&limit=15`
       )
@@ -77,11 +99,14 @@ export function MedicationSearch({
 
       if (data.error) {
         setOptions([])
+        setCorrectedQuery(null)
+        setIsAiAssisted(false)
       } else {
         const results = data.results || []
         setOptions(results)
         setIsOpen(results.length > 0)
-        // Announce results for screen readers
+        setCorrectedQuery(null)
+        setIsAiAssisted(false)
         if (results.length > 0) {
           setAnnouncement(`${results.length} medication${results.length === 1 ? '' : 's'} found`)
         } else {
@@ -90,6 +115,8 @@ export function MedicationSearch({
       }
     } catch {
       setOptions([])
+      setCorrectedQuery(null)
+      setIsAiAssisted(false)
     } finally {
       setIsLoading(false)
     }
@@ -255,6 +282,17 @@ export function MedicationSearch({
           role="listbox"
           id="artg-listbox"
         >
+          {/* Typo correction or AI assistance indicator */}
+          {(correctedQuery || isAiAssisted) && (
+            <li className="px-4 py-2 bg-primary/5 border-b text-xs text-muted-foreground">
+              {correctedQuery && (
+                <span>Showing results for <strong className="text-primary">{correctedQuery}</strong></span>
+              )}
+              {isAiAssisted && !correctedQuery && (
+                <span>✨ Smart search active</span>
+              )}
+            </li>
+          )}
           {options.map((option, index) => (
             <li
               key={option.artg_id}

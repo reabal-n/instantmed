@@ -72,6 +72,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  * 
  * Throttle function calls for performance (e.g., scroll handlers)
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic function type requires any for flexibility
 export function useThrottle<T extends (...args: any[]) => any>(
   func: T,
   delay: number

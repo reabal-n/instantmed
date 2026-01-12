@@ -71,7 +71,7 @@ function AlertDialogPortal({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function AlertDialogOverlay({ className }: { className?: string }) {
+function AlertDialogOverlay({ className: _className }: { className?: string }) {
   return null // Handled by HeroUI Modal
 }
 

@@ -28,7 +28,7 @@ export function EnhancedTextarea({
   className,
   ...props
 }: EnhancedTextareaProps) {
-  const [focused, setFocused] = useState(false)
+  const [_focused, setFocused] = useState(false)
   const [touched, setTouched] = useState(false)
   
   const characterCount = value.length

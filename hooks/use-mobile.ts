@@ -20,7 +20,7 @@ export function useMobile() {
       setIsTouch(
         "ontouchstart" in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore
+        // @ts-ignore -- msMaxTouchPoints is a legacy IE/Edge property for touch detection
         navigator.msMaxTouchPoints > 0
       )
     }

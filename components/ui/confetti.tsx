@@ -9,6 +9,7 @@ interface ConfettiProps {
     spread?: number
     origin?: { x?: number; y?: number }
     colors?: string[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- canvas-confetti accepts arbitrary options
     [key: string]: any
   }
   onComplete?: () => void

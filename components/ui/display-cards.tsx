@@ -20,7 +20,7 @@ function DisplayCard({
   title = "Featured",
   description = "Discover amazing content",
   date = "Just now",
-  iconClassName = "text-blue-500",
+  iconClassName: _iconClassName = "text-blue-500",
   titleClassName = "text-blue-500",
   iconBgClassName = "bg-blue-800",
 }: DisplayCardProps) {

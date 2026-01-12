@@ -8,7 +8,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 // Removed confetti - per brand guidelines, interface should feel calm, not celebratory
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   ArrowRight,
   ArrowLeft,
@@ -38,6 +37,8 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/comp
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
+import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
+import { SmartValidation } from "@/components/intake/smart-validation"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { SessionProgress } from "@/components/shell"
@@ -417,6 +418,7 @@ export function MedCertFlowClient({
     specificDateTo: "",
     selectedSymptoms: [] as string[],
     otherSymptom: "",
+    symptomDescription: "", // Mandatory symptom description for AI and certificate
     carerPatientName: "",
     carerRelationship: null as string | null,
     additionalNotes: "", // Notes for the doctor
@@ -768,22 +770,17 @@ export function MedCertFlowClient({
       case "startDate":
         return !!formData.startDate
       case "symptoms":
-        // Must have symptoms, notes (if extended), and emergency confirmation
+        // Must have symptom description (min 10 chars) and emergency confirmation
+        const hasValidDescription = isSymptomInputValid(formData.symptomDescription, 10)
         if (isCarer) {
           return (
-            formData.selectedSymptoms.length > 0 &&
+            hasValidDescription &&
             !!formData.carerPatientName &&
             !!formData.carerRelationship &&
             formData.safetyAnswers.notEmergency === true
           )
         }
-        // For extended leave, require notes
-        const days = getDurationDays(formData.duration!)
-        const needsNotes = days > 2 || formData.duration === "4-7" || formData.duration === "1-2weeks"
-        if (needsNotes && !formData.additionalNotes.trim()) {
-          return false
-        }
-        return formData.selectedSymptoms.length > 0 && formData.safetyAnswers.notEmergency === true
+        return hasValidDescription && formData.safetyAnswers.notEmergency === true
       case "patientDetails":
         return (
           !!formData.email &&
@@ -1120,7 +1117,8 @@ export function MedCertFlowClient({
         )
 
       case "symptoms":
-        const needsDetailedNotes = getDurationDays(formData.duration!) > 2 || 
+        // Extended leave flag (unused now but kept for potential future use)
+        const _needsDetailedNotes = getDurationDays(formData.duration!) > 2 || 
           formData.duration === "4-7" || 
           formData.duration === "1-2weeks"
         
@@ -1165,10 +1163,10 @@ export function MedCertFlowClient({
               </fieldset>
             )}
 
-            {/* Symptoms */}
+            {/* Quick symptom selection */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                {isCarer ? "What symptoms are they experiencing?" : "What symptoms do you have?"}
+                {isCarer ? "Select symptoms they have" : "Select your symptoms"} (optional)
               </Label>
               <TagsSelector
                 tags={SYMPTOMS.map((s) => ({ id: s, label: s }))}
@@ -1178,42 +1176,17 @@ export function MedCertFlowClient({
               />
             </div>
 
-            {formData.selectedSymptoms.includes("Other") && (
-              <div className="space-y-1">
-                <Label htmlFor="other-symptom" className="text-sm font-medium">
-                  Please describe
-                </Label>
-                <Input
-                  id="other-symptom"
-                  placeholder="Brief description of symptoms"
-                  value={formData.otherSymptom}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, otherSymptom: e.target.value }))}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-            )}
-
-            {/* Additional notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-sm font-medium">
-                {needsDetailedNotes 
-                  ? "Why do you need extended leave? (required)" 
-                  : "Anything else the doctor should know? (optional)"}
-              </Label>
-              <Textarea
-                id="notes"
-                value={formData.additionalNotes}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
-                placeholder={needsDetailedNotes 
-                  ? "Please describe your condition and why you need more than 2 days..." 
-                  : "e.g. symptoms started yesterday, feeling worse today..."}
-                className="min-h-[80px] resize-none rounded-xl"
-                maxLength={500}
-              />
-              <p className="text-xs text-right text-muted-foreground">
-                {formData.additionalNotes.length}/500
-              </p>
-            </div>
+            {/* Mandatory symptom description with AI assistance */}
+            <SmartSymptomInput
+              value={formData.symptomDescription}
+              onChange={(value) => setFormData((prev) => ({ ...prev, symptomDescription: value }))}
+              context="med_cert"
+              isCarer={isCarer}
+              minLength={10}
+              maxLength={500}
+              required={true}
+              helperText="Please describe your symptoms in detail (minimum 10 characters)"
+            />
 
             {/* Safety confirmation - calm, serious tone */}
             <div className="p-4 rounded-2xl bg-ivory-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 space-y-3">
@@ -1442,6 +1415,13 @@ export function MedCertFlowClient({
               subtitle={MICROCOPY.review.subtitle}
               stepNumber={2} // Updated step number
               totalSteps={3} // Updated totalSteps count
+            />
+
+            {/* AI-powered pre-submission validation */}
+            <SmartValidation
+              formType="med_cert"
+              formData={formData}
+              autoValidate={true}
             />
 
             <div className="rounded-xl border border-border bg-white divide-y divide-border">

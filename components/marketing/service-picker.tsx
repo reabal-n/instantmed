@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Clock, Phone, PhoneOff, Check, Users, Star } from 'lucide-react'
+import { ArrowRight, Clock, PhoneOff, Check, Users, Star } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
-import { Chip, Divider } from '@heroui/react'
+import { Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium, AHPRALogo, TGALogo } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
 import { MagneticButton } from '@/components/effects/magnetic-button'
@@ -44,10 +44,10 @@ const colorConfig: Record<string, {
 }
 
 // Service metadata for additional info
-const serviceMetadata: Record<string, { time: string; needsCall: boolean; gpCost: string }> = {
-  'med-cert': { time: 'Under 30 min', needsCall: false, gpCost: '$60-90' },
-  'scripts': { time: 'Under 30 min', needsCall: false, gpCost: '$60-90' },
-  'consult': { time: 'Under 30 min', needsCall: true, gpCost: '$80-120' },
+const serviceMetadata: Record<string, { time: string; callNote: string; gpCost: string; savings: string }> = {
+  'med-cert': { time: 'Reviewed within an hour', callNote: 'No call needed', gpCost: '$60-90', savings: '$40–70' },
+  'scripts': { time: 'Reviewed within an hour', callNote: 'No call needed', gpCost: '$60-90', savings: '$30–60' },
+  'consult': { time: 'Reviewed within an hour', callNote: 'Brief call if needed', gpCost: '$80-120', savings: '$30–70' },
 }
 
 // Live stats (would be fetched from API in production)
@@ -194,7 +194,7 @@ export function ServicePicker() {
                       </div>
                     )}
                     
-                    {/* Glassmorphic card */}
+                    {/* Glassmorphic card - elevated styling for popular */}
                     <div className={cn(
                       "relative h-full rounded-2xl overflow-hidden flex flex-col",
                       "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
@@ -203,7 +203,13 @@ export function ServicePicker() {
                       "hover:bg-white/80 dark:hover:bg-white/10",
                       "hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30",
                       "transition-all duration-300",
-                      "group-hover:-translate-y-0.5"
+                      "group-hover:-translate-y-0.5",
+                      // #1: Elevate popular card
+                      service.popular && [
+                        "scale-[1.02] lg:scale-105",
+                        "ring-2 ring-emerald-500/30 dark:ring-emerald-400/30",
+                        "shadow-xl shadow-emerald-500/10 dark:shadow-emerald-400/10",
+                      ]
                     )}>
                       {/* Gradient header strip */}
                       <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />
@@ -222,6 +228,13 @@ export function ServicePicker() {
                           />
                           <Icon className="w-5 h-5 relative z-10" style={{ color: colors.accent }} />
                         </motion.div>
+                        
+                        {/* #3: Benefit question above title */}
+                        {'benefitQuestion' in service && service.benefitQuestion && (
+                          <p className="text-[11px] font-medium text-primary mb-0.5">
+                            {service.benefitQuestion}
+                          </p>
+                        )}
                         
                         {/* Title */}
                         <h3 className="text-base font-semibold text-foreground mb-0.5 group-hover:text-primary transition-colors duration-300">
@@ -245,24 +258,15 @@ export function ServicePicker() {
                           </ul>
                         )}
                         
-                        {/* Meta info */}
-                        <div className="flex items-center gap-2 text-xs min-h-[18px]">
+                        {/* Meta info - #6: clearer time, #7: reframed call messaging */}
+                        <div className="flex items-center gap-3 text-[11px] min-h-[18px]">
                           <span className="flex items-center gap-1 text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             {meta.time}
                           </span>
-                          <span className="flex items-center gap-1">
-                            {meta.needsCall ? (
-                              <>
-                                <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                <span className="text-muted-foreground">Quick call</span>
-                              </>
-                            ) : (
-                              <>
-                                <PhoneOff className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                <span className="text-muted-foreground">Usually no call</span>
-                              </>
-                            )}
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <PhoneOff className="h-3 w-3 shrink-0" />
+                            {meta.callNote}
                           </span>
                         </div>
                         
@@ -277,21 +281,18 @@ export function ServicePicker() {
                       <Divider className="opacity-50" />
                       
                       <div className="flex items-center justify-between px-3 py-2.5 flex-shrink-0">
-                        {/* Price with comparison anchoring */}
+                        {/* #2: Price with savings framing */}
                         <div className="flex flex-col">
-                          <Chip 
-                            color={colors.chipColor} 
-                            variant="flat" 
-                            size="sm"
-                            classNames={{
-                              base: "interactive-pill",
-                              content: "font-medium"
-                            }}
-                          >
-                            ${service.priceFrom.toFixed(2)}
-                          </Chip>
-                          <span className="text-[9px] text-muted-foreground mt-0.5">
-                            vs {meta.gpCost} GP visit
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-semibold text-foreground">
+                              ${service.priceFrom.toFixed(2)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              {meta.gpCost}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                            Save {meta.savings} vs GP
                           </span>
                         </div>
                         
@@ -314,8 +315,9 @@ export function ServicePicker() {
                               boxShadow: `0 8px 24px -4px ${colors.accent}40, 0 4px 12px -2px ${colors.accent}30`,
                             }}
                           >
+                            {/* #4: Custom CTA per service */}
                             <span className="relative z-10 flex items-center gap-1">
-                              Start now
+                              {'cta' in service ? service.cta : 'Start now'}
                               <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
                             </span>
                             {/* Shimmer effect */}
@@ -325,6 +327,21 @@ export function ServicePicker() {
                           </div>
                         </MagneticButton>
                       </div>
+                      
+                      {/* #5: Testimonial for popular card */}
+                      {service.popular && 'testimonial' in service && service.testimonial && (
+                        <div className="px-3 pb-2 pt-1 border-t border-border/30">
+                          <div className="flex items-center gap-2 text-[10px]">
+                            <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                            <span className="text-muted-foreground italic">
+                              &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
+                            </span>
+                            <span className="text-muted-foreground/70">
+                              — {(service.testimonial as { quote: string; author: string }).author}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Disclaimer for General Consult */}
                       {service.id === 'consult' && (
@@ -340,25 +357,43 @@ export function ServicePicker() {
           })}
         </motion.div>
         
-        {/* Trust Badges - TGA/AHPRA */}
+        {/* Trust Footer - Improved */}
         <motion.div 
-          className="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-border/50"
+          className="mt-10 pt-8 border-t border-border/30"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
-            <AHPRALogo className="w-5 h-5" />
-            <span className="text-xs text-muted-foreground">AHPRA Registered</span>
+          {/* Primary trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-4">
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-emerald-500/5 dark:bg-emerald-400/10 border border-emerald-500/20">
+              <AHPRALogo className="w-6 h-6" />
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-foreground">AHPRA Registered</span>
+                <span className="text-[10px] text-muted-foreground">Australian doctors only</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-blue-500/5 dark:bg-blue-400/10 border border-blue-500/20">
+              <TGALogo className="w-6 h-6" />
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-foreground">TGA Compliant</span>
+                <span className="text-[10px] text-muted-foreground">Meets all regulations</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-amber-500/5 dark:bg-amber-400/10 border border-amber-500/20">
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-foreground">Full Refund Guarantee</span>
+                <span className="text-[10px] text-muted-foreground">If we can&apos;t help</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
-            <TGALogo className="w-5 h-5" />
-            <span className="text-xs text-muted-foreground">TGA Compliant</span>
-          </div>
-          <div className="text-xs text-muted-foreground px-3 py-1.5">
+          
+          {/* Secondary note */}
+          <p className="text-center text-[11px] text-muted-foreground/70">
             Medicare rebates don&apos;t apply, but PBS subsidies may apply at pharmacy
-          </div>
+          </p>
         </motion.div>
       </div>
     </section>
