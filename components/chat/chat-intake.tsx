@@ -473,14 +473,18 @@ export function ChatIntakeButton() {
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)}
         onComplete={(data) => {
-          // Navigate to appropriate intake page with collected data
+          // Navigate to appropriate intake page with collected data as query params
           const serviceType = data.service_type as string
+          // Encode collected data as base64 to preserve structure
+          const encodedData = btoa(JSON.stringify(data))
+          const prefillParam = `?prefill=${encodeURIComponent(encodedData)}`
+          
           if (serviceType === "med_cert") {
-            window.location.href = "/medical-certificate/request"
+            window.location.href = `/medical-certificate/request${prefillParam}`
           } else if (serviceType === "repeat_rx") {
-            window.location.href = "/prescriptions/repeat"
+            window.location.href = `/prescriptions/repeat${prefillParam}`
           } else if (serviceType === "consult") {
-            window.location.href = "/consult"
+            window.location.href = `/consult${prefillParam}`
           }
           setIsOpen(false)
         }}

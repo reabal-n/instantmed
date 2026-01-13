@@ -6,6 +6,116 @@ import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("ai-chat-intake")
 
+// Emergency keywords that trigger hard-block (server-side, not prompt-only)
+const EMERGENCY_KEYWORDS = [
+  "chest pain",
+  "chest pains",
+  "heart attack",
+  "can't breathe",
+  "cant breathe",
+  "cannot breathe",
+  "difficulty breathing",
+  "hard to breathe",
+  "struggling to breathe",
+  "shortness of breath",
+  "stroke",
+  "paralysis",
+  "paralyzed",
+  "numbness",
+  "slurred speech",
+  "face drooping",
+  "severe bleeding",
+  "heavy bleeding",
+  "unconscious",
+  "passed out",
+  "seizure",
+  "fitting",
+  "convulsion",
+]
+
+const SELF_HARM_KEYWORDS = [
+  "suicide",
+  "suicidal",
+  "kill myself",
+  "end my life",
+  "want to die",
+  "don't want to live",
+  "dont want to live",
+  "self harm",
+  "self-harm",
+  "hurt myself",
+  "cutting myself",
+  "overdose",
+]
+
+// Emergency response payloads (not AI-generated)
+const EMERGENCY_RESPONSE = {
+  type: "emergency_block",
+  message: `I'm concerned about what you've shared. This sounds like a medical emergency that needs immediate attention.
+
+**Please call 000 (Triple Zero) immediately** or go to your nearest emergency department.
+
+If you're unsure, you can also call Healthdirect on 1800 022 222 for 24/7 health advice.
+
+InstantMed is not able to help with medical emergencies. Your safety is the priority right now.`,
+  buttons: ["[Call 000]", "[Find nearest ED]"],
+}
+
+const SELF_HARM_RESPONSE = {
+  type: "crisis_block", 
+  message: `I hear that you're going through a really difficult time. Your feelings are valid, and support is available.
+
+**Please reach out to one of these services now:**
+
+- **Lifeline**: 13 11 14 (24/7 crisis support)
+- **Beyond Blue**: 1300 22 4636
+- **Kids Helpline**: 1800 55 1800 (if under 25)
+
+If you're in immediate danger, please call 000.
+
+These services are free, confidential, and staffed by people who genuinely want to help. You don't have to face this alone.`,
+  buttons: ["[Call Lifeline 13 11 14]", "[Chat with Beyond Blue]"],
+}
+
+/**
+ * Check messages for emergency/crisis keywords
+ * Returns response payload if blocked, null otherwise
+ */
+function checkForEmergency(messages: Array<{ role: string; content: string }>): {
+  blocked: boolean
+  response?: typeof EMERGENCY_RESPONSE | typeof SELF_HARM_RESPONSE
+  reason?: string
+} {
+  // Only check user messages
+  const userMessages = messages.filter(m => m.role === "user")
+  const latestUserMessage = userMessages[userMessages.length - 1]?.content?.toLowerCase() || ""
+  const allUserText = userMessages.map(m => m.content.toLowerCase()).join(" ")
+
+  // Check self-harm first (more specific response needed)
+  for (const keyword of SELF_HARM_KEYWORDS) {
+    if (latestUserMessage.includes(keyword) || allUserText.includes(keyword)) {
+      return {
+        blocked: true,
+        response: SELF_HARM_RESPONSE,
+        reason: `self_harm_keyword: ${keyword}`,
+      }
+    }
+  }
+
+  // Check emergency keywords
+  for (const keyword of EMERGENCY_KEYWORDS) {
+    if (latestUserMessage.includes(keyword)) {
+      return {
+        blocked: true,
+        response: EMERGENCY_RESPONSE,
+        reason: `emergency_keyword: ${keyword}`,
+      }
+    }
+  }
+
+  return { blocked: false }
+}
+
 /**
  * AI Chat Intake - Conversational intake form
  * 
@@ -99,6 +209,22 @@ export async function POST(request: NextRequest) {
         JSON.stringify({ error: "Messages array required" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       )
+    }
+
+    // HARD-BLOCK: Check for emergency/crisis keywords BEFORE calling AI
+    const emergencyCheck = checkForEmergency(messages)
+    if (emergencyCheck.blocked && emergencyCheck.response) {
+      log.warn("Emergency keyword detected - blocking AI call", {
+        reason: emergencyCheck.reason,
+        userId: user?.id || "anonymous",
+      })
+      
+      // Return fixed response (not AI-generated) as a streaming-compatible format
+      const responseText = `${emergencyCheck.response.message}\n\n${emergencyCheck.response.buttons.join(" ")}`
+      return new Response(responseText, {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      })
     }
 
     log.info("Chat intake request", { 

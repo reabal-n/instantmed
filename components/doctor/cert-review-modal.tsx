@@ -16,6 +16,7 @@ import {
 import { Loader2, Calendar, User, FileText } from "lucide-react"
 import type { RequestWithDetails } from "@/types/db"
 import { AiReviewSummary } from "@/components/doctor/ai-review-summary"
+import { AIDraftsPanel } from "@/components/doctor/ai-drafts-panel"
 
 interface CertReviewModalProps {
   open: boolean
@@ -153,6 +154,20 @@ export function CertReviewModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* AI-Generated Drafts Panel */}
+          <AIDraftsPanel
+            intakeId={request.id}
+            onMedCertDataChange={(data) => {
+              // Update form with AI-generated data if available
+              if (data.startDate && typeof data.startDate === "string") {
+                setFormData(prev => ({ ...prev, startDate: data.startDate as string }))
+              }
+              if (data.endDate && typeof data.endDate === "string") {
+                setFormData(prev => ({ ...prev, endDate: data.endDate as string }))
+              }
+            }}
+          />
+
           {/* AI-Generated Review Summary */}
           <AiReviewSummary
             requestId={request.id}

@@ -5,6 +5,7 @@ import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
+import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 
 const log = createLogger("stripe-webhook")
 
@@ -287,6 +288,29 @@ export async function POST(request: Request) {
           })
         }
       }
+
+      // STEP 6: Generate AI drafts (fire-and-forget, non-blocking)
+      // This generates clinical note + med cert drafts for doctor review
+      generateDraftsForIntake(intakeId)
+        .then((result) => {
+          if (result.success) {
+            log.info("AI drafts generated", {
+              intakeId,
+              skipped: result.skipped,
+              clinicalNote: result.clinicalNote?.status,
+              medCert: result.medCert?.status,
+            })
+          } else {
+            log.warn("AI draft generation failed (non-fatal)", {
+              intakeId,
+              error: result.error,
+            })
+          }
+        })
+        .catch((err) => {
+          // Never fail the webhook due to draft generation errors
+          log.error("AI draft generation error (non-fatal)", { intakeId }, err)
+        })
 
       const duration = Date.now() - startTime
       log.info("Payment processed successfully", {

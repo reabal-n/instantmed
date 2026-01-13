@@ -526,3 +526,31 @@ export interface MedCertDraft {
 
 export type MedCertDraftInsert = Omit<MedCertDraft, "id" | "created_at" | "updated_at">
 export type MedCertDraftUpdate = Partial<Omit<MedCertDraft, "id" | "created_at" | "updated_at">>
+
+// ============================================
+// AI DOCUMENT DRAFTS (for AI-generated content)
+// ============================================
+
+export type AIDocumentDraftType = "clinical_note" | "med_cert"
+export type AIDocumentDraftStatus = "ready" | "failed" | "pending"
+
+export interface AIDocumentDraft {
+  id: string
+  intake_id: string
+  type: AIDocumentDraftType
+  content: Record<string, unknown>
+  model: string
+  is_ai_generated: boolean
+  status: AIDocumentDraftStatus
+  error: string | null
+  prompt_tokens: number | null
+  completion_tokens: number | null
+  generation_duration_ms: number | null
+  validation_errors: unknown[] | null
+  ground_truth_errors: unknown[] | null
+  created_at: string
+  updated_at: string
+}
+
+export type AIDocumentDraftInsert = Omit<AIDocumentDraft, "id" | "created_at" | "updated_at">
+export type AIDocumentDraftUpdate = Partial<Omit<AIDocumentDraft, "id" | "created_at" | "updated_at">>
