@@ -7,6 +7,8 @@ import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from 
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
+import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
+import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 
 const logger = createLogger("stripe-checkout")
 
@@ -113,6 +115,59 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
         }
+      }
+    }
+
+    // SERVER-SIDE SAFETY ENFORCEMENT
+    // Evaluate safety rules for ALL service categories to prevent client-side bypass
+    const serviceSlugForSafety = input.serviceSlug || getServiceSlug(input.category, input.subtype)
+    const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
+    
+    // Track safety outcome for analytics (P3-9)
+    trackSafetyOutcome({
+      serviceSlug: serviceSlugForSafety,
+      outcome: safetyCheck.outcome,
+      riskTier: safetyCheck.riskTier,
+      triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      triggeredRuleCount: safetyCheck.triggeredRuleIds.length,
+      evaluationDurationMs: 0, // Server-side check doesn't track duration
+    })
+    
+    if (!safetyCheck.isAllowed) {
+      logger.warn("Safety check blocked checkout", {
+        serviceSlug: serviceSlugForSafety,
+        outcome: safetyCheck.outcome,
+        riskTier: safetyCheck.riskTier,
+        triggeredRules: safetyCheck.triggeredRuleIds,
+      })
+      
+      // Track safety block event
+      trackSafetyBlock({
+        serviceSlug: serviceSlugForSafety,
+        outcome: safetyCheck.outcome,
+        blockReason: safetyCheck.blockReason || "Unknown reason",
+        triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      })
+      
+      // Return appropriate error based on outcome
+      if (safetyCheck.outcome === 'DECLINE') {
+        return {
+          success: false,
+          error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular GP.",
+        }
+      }
+      
+      if (safetyCheck.outcome === 'REQUIRES_CALL') {
+        return {
+          success: false,
+          error: safetyCheck.blockReason || "This request requires a phone consultation. Please contact us to proceed.",
+        }
+      }
+      
+      // REQUEST_MORE_INFO - should not reach checkout, but handle gracefully
+      return {
+        success: false,
+        error: safetyCheck.blockReason || "Additional information is required. Please go back and complete all questions.",
       }
     }
 

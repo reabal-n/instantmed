@@ -16,6 +16,7 @@ export type ServiceCategory =
   | 'prescription'
   | 'mental-health'
   | 'common-scripts'
+  | 'consult'
 
 export interface FlowStep {
   id: FlowStepId

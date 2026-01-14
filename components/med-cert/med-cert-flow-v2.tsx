@@ -522,6 +522,18 @@ export function MedCertFlowV2({
     setError(null)
 
     try {
+      // Save draft to localStorage before checkout (ensures data isn't lost)
+      try {
+        const draft = {
+          formData,
+          patientConfirmedAccurate,
+          savedAt: new Date().toISOString(),
+        }
+        localStorage.setItem('instantmed_medcert_checkout_draft', JSON.stringify(draft))
+      } catch {
+        // Non-blocking - continue with checkout even if save fails
+      }
+
       // Calculate end date
       const startDate = new Date(formData.startDate!)
       const durationDays = typeof formData.durationDays === "number" ? formData.durationDays : 1

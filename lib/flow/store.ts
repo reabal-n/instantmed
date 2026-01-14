@@ -77,6 +77,13 @@ let saveTimer: NodeJS.Timeout | null = null
 const SAVE_DEBOUNCE_MS = 1500
 const _MAX_RETRY_COUNT = 3
 
+// Validation result type
+export interface ValidationResult {
+  isValid: boolean
+  missingFields: string[]
+  errors: Record<string, string>
+}
+
 // Extended actions for sync
 interface ExtendedFlowActions extends FlowActions {
   // Sync actions
@@ -91,6 +98,8 @@ interface ExtendedFlowActions extends FlowActions {
     currentGroupIndex: number
     data: Record<string, unknown>
   }) => void
+  // Aggregate validation
+  validateAllRequiredFields: () => ValidationResult
 }
 
 interface FlowStore extends ExtendedFlowState, ExtendedFlowActions {}
@@ -442,6 +451,65 @@ export const useFlowStore = create<FlowStore>()(
           pendingChanges: false,
           syncStatus: 'saved',
         })
+      },
+
+      // ============================================
+      // AGGREGATE VALIDATION
+      // ============================================
+
+      validateAllRequiredFields: () => {
+        const state = get()
+        const missingFields: string[] = []
+        const errors: Record<string, string> = {}
+
+        // Must have a service selected
+        if (!state.serviceSlug) {
+          missingFields.push('serviceSlug')
+          errors['serviceSlug'] = 'Please select a service'
+        }
+
+        // Check safety confirmation (emergency_symptoms should be empty/none)
+        const emergencySymptoms = state.answers.emergency_symptoms as string[] | undefined
+        if (emergencySymptoms && emergencySymptoms.length > 0 && !emergencySymptoms.includes('none')) {
+          missingFields.push('emergency_symptoms')
+          errors['emergency_symptoms'] = 'Emergency symptoms detected - please seek immediate care'
+        }
+
+        // Check identity data for details step
+        const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth']
+        if (state.identityData) {
+          for (const field of identityFields) {
+            const value = state.identityData[field as keyof typeof state.identityData]
+            if (!value) {
+              missingFields.push(field)
+              errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`
+            }
+          }
+        } else {
+          // Check if identity fields are in answers (for guest checkout)
+          for (const field of ['patient_name', 'patient_email', 'patient_phone', 'patient_dob']) {
+            if (!state.answers[field]) {
+              missingFields.push(field)
+              errors[field] = `${field.replace(/_/g, ' ')} is required`
+            }
+          }
+        }
+
+        // Check consents
+        if (state.consentsGiven.length === 0) {
+          // Consents might be stored differently in some flows
+          const termsAgreed = state.answers.agreedToTerms || state.answers.terms_agreed
+          if (!termsAgreed) {
+            missingFields.push('consents')
+            errors['consents'] = 'Please agree to the terms and conditions'
+          }
+        }
+
+        return {
+          isValid: missingFields.length === 0,
+          missingFields,
+          errors,
+        }
       },
 
       clearDraft: () => {

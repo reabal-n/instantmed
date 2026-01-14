@@ -139,6 +139,51 @@ export function validateIntake(input: {
 // CONTROLLED SUBSTANCE CHECK
 // ============================================================================
 
+/**
+ * CONTROLLED SUBSTANCE DISCLAIMER
+ * Display this when a medication matches controlled substance patterns.
+ * Per audit requirements: no fuzzy matching, just explicit disclaimer.
+ */
+export const CONTROLLED_SUBSTANCE_DISCLAIMER = {
+  title: "This medication cannot be prescribed online",
+  message: "Schedule 8 medications and commonly abused substances require an in-person consultation with your regular GP for patient safety and regulatory compliance.",
+  blockedCategories: [
+    "Schedule 8 (S8) opioids (e.g., oxycodone, morphine, fentanyl)",
+    "Schedule 8 stimulants (e.g., dexamphetamine, methylphenidate)",
+    "Benzodiazepines (e.g., diazepam, alprazolam, temazepam)",
+    "Z-drugs (e.g., zolpidem, zopiclone)",
+    "Medicinal cannabis products",
+    "Testosterone and anabolic steroids",
+  ],
+  advice: "Please visit your regular GP or a bulk-billing clinic for these medications.",
+}
+
+/**
+ * List of commonly abused/S8 medications for display purposes
+ * Used in disclaimers and UI, not for matching (matching uses regex patterns below)
+ */
+export const COMMONLY_ABUSED_MEDICATIONS = [
+  // S8 Opioids
+  "Oxycodone (Endone, OxyContin, Targin)",
+  "Morphine (MS Contin, Kapanol)",
+  "Fentanyl (Durogesic)",
+  "Tramadol",
+  // S8 Stimulants  
+  "Dexamphetamine (Vyvanse)",
+  "Methylphenidate (Ritalin, Concerta)",
+  // Benzodiazepines
+  "Diazepam (Valium)",
+  "Alprazolam (Xanax)",
+  "Temazepam (Temaze)",
+  "Clonazepam (Rivotril)",
+  // Z-drugs
+  "Zolpidem (Stilnox)",
+  "Zopiclone (Imovane)",
+  // Other
+  "Medicinal cannabis (THC/CBD products)",
+  "Testosterone (all forms)",
+]
+
 const CONTROLLED_SUBSTANCE_PATTERNS = [
   // S8 Opioids
   /oxycodone|oxycontin|endone|targin/i,

@@ -754,6 +754,19 @@ export function EnhancedIntakeFlow({
     })
 
     try {
+      // Force save draft before checkout (ensures data isn't lost if user returns)
+      try {
+        const draft = {
+          ...state,
+          step,
+          savedAt: new Date().toISOString(),
+          checkoutAttempted: true,
+        }
+        localStorage.setItem("intake_flow_draft", JSON.stringify(draft))
+      } catch {
+        // Non-blocking - continue with checkout even if save fails
+      }
+
       // Validate required fields before proceeding
       if (!state.agreedToTerms) {
         setErrors({ agreedToTerms: "Please agree to the terms and conditions to continue" })
@@ -843,7 +856,7 @@ export function EnhancedIntakeFlow({
     } finally {
       setIsSubmitting(false)
     }
-  }, [isSubmitting, state, isAuthenticated, setIsSubmitting, setErrors, getStripeCategory, buildAnswersPayload])
+  }, [isSubmitting, state, step, isAuthenticated, setIsSubmitting, setErrors, getStripeCategory, buildAnswersPayload])
 
   // Navigate
   const goNext = useCallback(() => {

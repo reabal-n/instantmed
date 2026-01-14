@@ -240,9 +240,10 @@ export function loadPendingFlow(): PendingFlowState | null {
 
     const state = JSON.parse(data) as PendingFlowState
 
-    // Expire after 1 hour
+    // Expire after 24 hours (extended from 1 hour per P3-10)
     const savedAt = new Date(state.savedAt).getTime()
-    if (Date.now() - savedAt > 60 * 60 * 1000) {
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000
+    if (Date.now() - savedAt > TWENTY_FOUR_HOURS_MS) {
       return null
     }
 

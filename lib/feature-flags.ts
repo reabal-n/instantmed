@@ -11,6 +11,7 @@ export const FLAG_KEYS = {
   DISABLE_REPEAT_SCRIPTS: "disable_repeat_scripts",
   DISABLE_CONSULTS: "disable_consults",
   BLOCKED_MEDICATION_TERMS: "blocked_medication_terms",
+  SAFETY_SCREENING_SYMPTOMS: "safety_screening_symptoms",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -20,7 +21,17 @@ export interface FeatureFlags {
   disable_repeat_scripts: boolean
   disable_consults: boolean
   blocked_medication_terms: string[]
+  safety_screening_symptoms: string[]
 }
+
+// Default safety screening symptoms (hardcoded fallback)
+export const DEFAULT_SAFETY_SYMPTOMS = [
+  'Chest pain or pressure',
+  'Severe difficulty breathing',
+  'Sudden weakness on one side (stroke signs)',
+  'Severe allergic reaction (swelling, can\'t breathe)',
+  'Thoughts of self-harm or suicide',
+]
 
 // Default values (fallback if DB unavailable)
 const DEFAULT_FLAGS: FeatureFlags = {
@@ -28,6 +39,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
   disable_repeat_scripts: false,
   disable_consults: false,
   blocked_medication_terms: [],
+  safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
 }
 
 function getServiceClient() {
@@ -75,6 +87,8 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.disable_consults = row.value === true
       } else if (row.key === FLAG_KEYS.BLOCKED_MEDICATION_TERMS) {
         flags.blocked_medication_terms = Array.isArray(row.value) ? row.value : []
+      } else if (row.key === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS) {
+        flags.safety_screening_symptoms = Array.isArray(row.value) ? row.value : DEFAULT_SAFETY_SYMPTOMS
       }
     }
 
@@ -213,6 +227,17 @@ export async function updateFeatureFlag(
     logger.error("Unexpected error", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: "Unexpected error" }
   }
+}
+
+/**
+ * Get safety screening symptoms from feature flags
+ * Falls back to DEFAULT_SAFETY_SYMPTOMS if unavailable
+ */
+export async function getSafetyScreeningSymptoms(): Promise<string[]> {
+  const flags = await getFeatureFlags()
+  return flags.safety_screening_symptoms.length > 0 
+    ? flags.safety_screening_symptoms 
+    : DEFAULT_SAFETY_SYMPTOMS
 }
 
 /**
