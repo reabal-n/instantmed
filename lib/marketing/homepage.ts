@@ -61,7 +61,7 @@ export const serviceCategories = [
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
-    href: "/start?service=med-cert",
+    href: "/medical-certificate",
     popular: true,
     cta: "Get your certificate",
     benefits: [
@@ -84,7 +84,7 @@ export const serviceCategories = [
     icon: "Pill",
     color: "cyan",
     priceFrom: 29.95,
-    href: "/start?service=repeat-script",
+    href: "/repeat-prescription",
     popular: false,
     cta: "Request a script",
     benefits: [
@@ -103,7 +103,7 @@ export const serviceCategories = [
     icon: "Stethoscope",
     color: "violet",
     priceFrom: 49.95,
-    href: "/start?service=consult",
+    href: "/general-consult",
     popular: false,
     cta: "Book a consult",
     benefits: [
