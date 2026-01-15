@@ -16,7 +16,6 @@ import { ParallaxSection } from '@/components/ui/parallax-section'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
-import { DoctorAvailability } from '@/components/shared/doctor-availability'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 
@@ -84,8 +83,6 @@ export default function HomePage() {
       {/* Exit intent popup for abandoning users */}
       <ExitIntentPopup variant="discount" />
       
-      {/* Real-time doctor availability banner */}
-      <DoctorAvailability variant="banner" />
       
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
