@@ -129,9 +129,9 @@ export function WalletPassButton({
  */
 export function WalletPassOptions({
   certificateId,
-  patientName,
-  issueDate,
-  expiryDate,
+  patientName: _patientName,
+  issueDate: _issueDate,
+  expiryDate: _expiryDate,
   className
 }: WalletPassButtonProps) {
   return (
