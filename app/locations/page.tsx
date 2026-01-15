@@ -41,11 +41,11 @@ export default function LocationsPage() {
                 <Link
                   key={city.slug}
                   href={`/locations/${city.slug}`}
-                  className="flex items-center justify-between p-5 rounded-xl border bg-card hover:border-[#2563EB] transition-colors"
+                  className="flex items-center justify-between p-5 rounded-xl border bg-card hover:border-primary transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-[#2563EB]" />
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold">{city.name}</p>

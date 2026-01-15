@@ -287,7 +287,7 @@ export default function HowItWorksPage() {
                   Choose what you need and we&apos;ll handle the rest. Most requests are done within an hour.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button asChild size="lg" className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-8">
+                  <Button asChild size="lg" className="rounded-full btn-premium text-foreground font-semibold px-8">
                     <Link href="/medical-certificate">
                       Get Med Cert
                       <ArrowRight className="ml-2 w-4 h-4" />

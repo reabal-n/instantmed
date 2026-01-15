@@ -243,15 +243,15 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <div className="flex min-h-screen flex-col bg-[#0A0F1C] text-white">
+      <div className="flex min-h-screen flex-col bg-foreground text-white">
         <Navbar variant="marketing" />
 
         <main className="flex-1">
           {/* Hero */}
           <section className="relative px-4 py-16 md:py-24 overflow-hidden">
-            <div className="absolute inset-0 bg-linear-to-br from-[#2563EB]/10 via-transparent to-purple-500/5" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-purple-500/5" />
             <div className="relative mx-auto max-w-4xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-[#2563EB] text-sm mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm mb-6">
                 <MapPin className="h-4 w-4" />
                 {data.localFlair}
               </div>
@@ -259,7 +259,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
                 Medical Certificate Online
                 <br />
-                <span className="text-[#2563EB]">{data.name}</span>
+                <span className="text-primary">{data.name}</span>
               </h1>
 
               <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -269,21 +269,21 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <Zap className="h-4 w-4 text-[#2563EB]" />
+                  <Zap className="h-4 w-4 text-primary" />
                   ~15 min turnaround
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <Shield className="h-4 w-4 text-[#2563EB]" />
+                  <Shield className="h-4 w-4 text-primary" />
                   AHPRA verified doctors
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   Valid for all employers
                 </div>
               </div>
 
               <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C] font-semibold">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -323,8 +323,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   { step: "3", title: "Get your certificate", desc: "Receive your PDF certificate via email" },
                 ].map((item) => (
                   <div key={item.step} className="text-center">
-                    <div className="w-12 h-12 rounded-full bg-[#2563EB]/20 flex items-center justify-center mx-auto mb-4">
-                      <span className="text-[#2563EB] font-bold">{item.step}</span>
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                      <span className="text-primary font-bold">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-2">{item.title}</h3>
                     <p className="text-sm text-gray-400">{item.desc}</p>
@@ -342,7 +342,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 Join thousands of {data.name} residents who skip the waiting room with InstantMed.
               </p>
               <Link href="/medical-certificate/request">
-                <Button size="lg" className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-[#0A0F1C]">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -360,7 +360,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   .slice(0, 6)
                   .map(([key, s], i, arr) => (
                     <span key={key}>
-                      <Link href={`/medical-certificate/${key}`} className="text-[#2563EB] hover:underline">
+                      <Link href={`/medical-certificate/${key}`} className="text-primary hover:underline">
                         {s.name}
                       </Link>
                       {i < arr.length - 1 && " • "}

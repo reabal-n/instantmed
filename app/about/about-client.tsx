@@ -93,7 +93,7 @@ export function AboutClient() {
                     icon: Zap,
                     title: "Speed",
                     description: "We believe healthcare should be fast. Most requests are reviewed within an hour.",
-                    color: "#2563EB",
+                    color: "primary",
                   },
                   {
                     icon: Shield,

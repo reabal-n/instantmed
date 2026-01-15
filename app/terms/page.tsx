@@ -121,7 +121,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold mb-4">9. Contact</h2>
               <p className="text-muted-foreground leading-relaxed">
                 For questions about these terms, please contact us at{" "}
-                <a href="mailto:legal@instantmed.com.au" className="text-[#2563EB] hover:underline">
+                <a href="mailto:legal@instantmed.com.au" className="text-primary hover:underline">
                   legal@instantmed.com.au
                 </a>
                 .

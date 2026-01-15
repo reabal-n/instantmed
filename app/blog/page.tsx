@@ -79,10 +79,10 @@ export default function BlogPage() {
                       <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
                     </div>
                     <div className="p-5">
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                         {post.category}
                       </span>
-                      <h2 className="font-semibold mt-2 mb-2 group-hover:text-[#2563EB] transition-colors line-clamp-2">
+                      <h2 className="font-semibold mt-2 mb-2 group-hover:text-primary transition-colors line-clamp-2">
                         {post.title}
                       </h2>
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>

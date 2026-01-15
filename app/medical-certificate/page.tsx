@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
-import { ArrowRight, Clock, Briefcase, Heart, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap } from "lucide-react"
+import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap } from "lucide-react"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
@@ -13,12 +13,12 @@ import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-// Certificate types - only 2 tiers (no backdated/3+ day)
+// Certificate types - 3 tiers
 const CERT_TYPES = [
   {
     id: "personal",
     title: "Personal Sick Leave",
-    subtitle: "1-2 days off work or uni",
+    subtitle: "1-2 days off work",
     price: 19.95,
     time: "Under 1 hour",
     icon: Briefcase,
@@ -29,6 +29,21 @@ const CERT_TYPES = [
     color: "from-blue-500 to-blue-600",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/20",
+  },
+  {
+    id: "study",
+    title: "Study Leave",
+    subtitle: "Uni, TAFE or exams",
+    price: 19.95,
+    time: "Under 1 hour",
+    icon: GraduationCap,
+    description: "For special consideration, extensions, or missed assessments.",
+    benefits: ["Valid for all universities", "PDF emailed to you", "AHPRA-registered GP"],
+    popular: false,
+    href: "/start?service=med-cert",
+    color: "from-violet-500 to-purple-600",
+    bgColor: "bg-violet-500/10",
+    borderColor: "border-violet-500/20",
   },
   {
     id: "carer",
@@ -54,6 +69,10 @@ const FAQS = [
     answer: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers and universities.",
   },
   {
+    question: "Can I use this for uni or TAFE?",
+    answer: "Yes. Our certificates are accepted by all Australian universities and TAFEs for special consideration, extensions, or deferred exams.",
+  },
+  {
     question: "What if I'm actually quite sick?",
     answer: "Then you should definitely get a certificate. If we identify any red flags, we'll let you know if you should seek in-person care.",
   },
@@ -75,10 +94,12 @@ const FAQS = [
 const testimonials = [
   { text: '"Got my cert in 25 minutes while lying in bed with the flu. Lifesaver."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahM', name: 'Sarah M.', role: 'Sydney' },
   { text: '"My employer accepted it no questions asked. Super professional."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JamesT', name: 'James T.', role: 'Melbourne' },
+  { text: '"Used it for a uni extension. Got approved for special consideration the same day."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AmyW', name: 'Amy W.', role: 'UNSW Student' },
   { text: '"Much better than waiting 3 days for a GP appointment."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichelleK', name: 'Michelle K.', role: 'Brisbane' },
   { text: '"The doctor asked thorough follow-up questions. Felt legitimate."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidL', name: 'David L.', role: 'Perth' },
   { text: '"Used it for carer\'s leave. Process was simple and fast."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=EmmaR', name: 'Emma R.', role: 'Adelaide' },
   { text: '"Certificate looked exactly like what you\'d get from a clinic."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChrisB', name: 'Chris B.', role: 'Gold Coast' },
+  { text: '"Needed a cert for a deferred exam. Sorted in under an hour."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=TomH', name: 'Tom H.', role: 'UniMelb Student' },
 ]
 
 // Trust badges
@@ -183,7 +204,7 @@ export default function MedicalCertificatePage() {
 
                 {/* CTAs */}
                 <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
+                  className="flex flex-col sm:flex-row gap-4 justify-center mb-6"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
@@ -208,6 +229,17 @@ export default function MedicalCertificatePage() {
                     See how it works
                   </Button>
                 </motion.div>
+
+                {/* Guarantee badge */}
+                <motion.p 
+                  className="text-sm text-muted-foreground mb-10 flex items-center justify-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.35 }}
+                >
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  Full refund if we can&apos;t help
+                </motion.p>
 
                 {/* Trust signals row */}
                 <motion.div 
@@ -349,7 +381,7 @@ export default function MedicalCertificatePage() {
               </motion.div>
 
               {/* Cards */}
-              <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
                 {CERT_TYPES.map((cert, index) => (
                   <motion.div
                     key={cert.id}
@@ -359,7 +391,7 @@ export default function MedicalCertificatePage() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Link href={cert.href} className="group block h-full">
-                      <SpotlightReveal color={cert.popular ? "#2563EB" : "#e11d48"} borderRadius="1rem">
+                      <SpotlightReveal color={cert.id === 'personal' ? "#2563EB" : cert.id === 'study' ? "#7c3aed" : "#e11d48"} borderRadius="1rem">
                         <div className={cn(
                           "relative h-full rounded-2xl overflow-hidden flex flex-col",
                           "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
@@ -386,7 +418,7 @@ export default function MedicalCertificatePage() {
                             <div 
                               className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${cert.bgColor}`}
                             >
-                              <cert.icon className="w-6 h-6" style={{ color: cert.popular ? '#2563EB' : '#e11d48' }} />
+                              <cert.icon className="w-6 h-6" style={{ color: cert.id === 'personal' ? '#2563EB' : cert.id === 'study' ? '#7c3aed' : '#e11d48' }} />
                             </div>
 
                             {/* Title */}
@@ -427,6 +459,63 @@ export default function MedicalCertificatePage() {
                   </motion.div>
                 ))}
               </div>
+
+              {/* Guarantee badge */}
+              <motion.div 
+                className="mt-8 flex justify-center"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">Full refund if we can&apos;t help</span>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Who Accepts This */}
+        <ParallaxSection speed={0.15}>
+          <section className="py-12 lg:py-16">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
+                  Accepted everywhere
+                </h2>
+                <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+                  Our certificates meet Fair Work Act requirements and are accepted by all Australian employers, universities, and TAFEs.
+                </p>
+                
+                {/* Trust indicators */}
+                <div className="flex flex-wrap justify-center gap-4">
+                  {[
+                    { label: "All employers", sub: "Large & small businesses" },
+                    { label: "All universities", sub: "Go8, ATN, IRU & more" },
+                    { label: "TAFE & RTOs", sub: "Vocational education" },
+                    { label: "Government", sub: "Public sector" },
+                  ].map((item) => (
+                    <div 
+                      key={item.label}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/50"
+                    >
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <div className="text-left">
+                        <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                        <p className="text-xs text-muted-foreground">{item.sub}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </div>
           </section>
         </ParallaxSection>

@@ -160,7 +160,7 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-semibold mb-4">9. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have questions about this privacy policy or wish to make a complaint, please contact us at{" "}
-                <a href="mailto:privacy@instantmed.com.au" className="text-[#2563EB] hover:underline">
+                <a href="mailto:privacy@instantmed.com.au" className="text-primary hover:underline">
                   privacy@instantmed.com.au
                 </a>{" "}
                 or call 1300 123 456.
