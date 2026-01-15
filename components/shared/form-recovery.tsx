@@ -115,7 +115,7 @@ export function FormRecoveryModal({
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-[#0A0F1C]/60 backdrop-blur-sm" onClick={onDismiss} />
+      <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm" onClick={onDismiss} />
 
       {/* Modal */}
       <div className="relative w-full max-w-sm glass-card rounded-2xl p-6 animate-scale-in shadow-2xl">
@@ -139,7 +139,7 @@ export function FormRecoveryModal({
           </p>
 
           <div className="space-y-2">
-            <Button onClick={onRestore} className="w-full rounded-full btn-premium text-[#0A0F1C] font-medium">
+            <Button onClick={onRestore} className="w-full rounded-full btn-premium text-foreground font-medium">
               <RotateCcw className="w-4 h-4 mr-2" />
               Continue my request
             </Button>
