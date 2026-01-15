@@ -29,19 +29,16 @@ function Input({
         base: cn("w-full", className),
         mainWrapper: "border-none shadow-none bg-transparent",
         inputWrapper: cn(
-          // Lumen Glass surface
-          "bg-white/65 dark:bg-slate-900/40",
-          "backdrop-blur-lg",
-          "border border-sky-300/30 dark:border-white/10",
+          // Clean single-layer input styling
+          "bg-white dark:bg-slate-900",
+          "border border-slate-200 dark:border-slate-700",
           // Motion - gentle
-          "transition-all duration-300",
+          "transition-all duration-200",
           // Hover state
-          "hover:border-sky-300/50",
-          "hover:bg-white/75 dark:hover:bg-slate-900/50",
-          // Focus state with dawn glow
-          "data-[focused=true]:border-dawn-300/60",
-          "data-[focused=true]:bg-white/85 dark:data-[focused=true]:bg-slate-900/60",
-          "data-[focused=true]:shadow-[0_0_20px_rgba(245,169,98,0.15)]",
+          "hover:border-slate-300 dark:hover:border-slate-600",
+          // Focus state
+          "data-[focused=true]:border-primary",
+          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
           // Mobile optimizations
           "min-h-[48px] md:min-h-0",
           "text-base md:text-sm",
