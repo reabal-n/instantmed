@@ -1937,7 +1937,7 @@ export function EnhancedIntakeFlow({
   }, [errors, announce])
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
+    <div className="h-screen bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col overflow-hidden">
       {/* Screen reader announcements */}
       <LiveRegion />
       
@@ -2002,7 +2002,7 @@ export function EnhancedIntakeFlow({
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-20">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 overflow-y-auto">
         {/* Step title */}
         <motion.div
           key={step + "-title"}
@@ -2030,8 +2030,8 @@ export function EnhancedIntakeFlow({
         </AnimatePresence>
       </main>
 
-      {/* Footer CTA */}
-      <footer className="sticky bottom-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-2 pb-safe">
+      {/* Footer CTA - fixed position at bottom of flex container */}
+      <footer className="shrink-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3 pb-safe">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-center gap-3">
             {stepIndex > 0 && (

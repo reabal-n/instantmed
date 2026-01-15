@@ -1641,7 +1641,7 @@ export function MedCertForm({
     <main
       ref={mainRef}
       tabIndex={-1}
-      className="min-h-screen bg-ivory-50 dark:bg-slate-950 flex flex-col"
+      className="h-screen bg-ivory-50 dark:bg-slate-950 flex flex-col overflow-hidden"
       aria-label="Medical certificate request"
     >
       {/* Header */}
@@ -1670,7 +1670,7 @@ export function MedCertForm({
       />
 
       {/* Content */}
-      <div className="flex-1 px-4 py-6">
+      <div className="flex-1 px-4 py-6 overflow-y-auto">
         <div className="max-w-md mx-auto">
           <AnimatePresence mode="wait">
             {error && (
@@ -1703,8 +1703,8 @@ export function MedCertForm({
         </div>
       </div>
 
-      {/* Footer - sticky on mobile */}
-      <footer className="sticky bottom-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3 mt-auto">
+      {/* Footer - fixed at bottom of flex container */}
+      <footer className="shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3">
         <div className="max-w-md mx-auto flex gap-3">
           {step !== "type" && (
             <Button

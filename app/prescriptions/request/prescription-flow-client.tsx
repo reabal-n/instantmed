@@ -985,7 +985,7 @@ export function PrescriptionFlowClient({
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
+      <div className="h-screen bg-linear-to-b from-background to-muted/30 flex flex-col overflow-hidden">
         {/* Draft Recovery Modal */}
         {showRecoveryPrompt && (
           <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -1058,7 +1058,7 @@ export function PrescriptionFlowClient({
 
         {/* Content */}
         <main
-          className={`max-w-md mx-auto px-4 py-5 pb-24 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}
+          className={`flex-1 max-w-md mx-auto w-full px-4 py-5 overflow-y-auto transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"}`}
         >
           {/* Step: Type */}
           {step === "type" && (
@@ -1647,7 +1647,7 @@ export function PrescriptionFlowClient({
 
         {/* Footer */}
         {!showEmailConfirm && (
-          <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
+          <footer className="shrink-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
             <div className="max-w-md mx-auto space-y-3">
               {/* Save indicator & Emergency info */}
               <div className="flex items-center justify-between text-xs text-muted-foreground">

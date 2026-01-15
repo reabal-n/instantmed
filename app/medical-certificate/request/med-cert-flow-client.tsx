@@ -1781,7 +1781,7 @@ export function MedCertFlowClient({
       <main
         ref={mainRef}
         tabIndex={-1}
-        className="min-h-screen bg-background flex flex-col"
+        className="h-screen bg-background flex flex-col overflow-hidden"
         aria-label="Medical certificate request"
       >
         {/* Header */}
@@ -1808,7 +1808,7 @@ export function MedCertFlowClient({
         </header>
 
         {/* Content */}
-        <div className="flex-1 px-4 py-5 pb-24">
+        <div className="flex-1 px-4 py-5 overflow-y-auto">
           <div className="max-w-md mx-auto">
             {error && (
               <div ref={errorRef} tabIndex={-1} className="mb-4">
@@ -1820,8 +1820,8 @@ export function MedCertFlowClient({
           </div>
         </div>
 
-        {/* Footer - hide on auto-advance steps, show contextual actions */}
-        <footer className="sticky bottom-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
+        {/* Footer - fixed at bottom of flex container */}
+        <footer className="shrink-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-pb">
           <div className="max-w-md mx-auto flex gap-3">
             {/* Back button - show on most steps except first, start date, and payment */}
             {step !== "type" &&
