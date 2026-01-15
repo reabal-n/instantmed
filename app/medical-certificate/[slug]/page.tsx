@@ -262,21 +262,21 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 <span className="text-primary">{data.name}</span>
               </h1>
 
-              <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg text-background/70 mb-8 max-w-2xl mx-auto">
                 Get a valid medical certificate from AHPRA-registered doctors. No waiting rooms,
                 no appointments. Reviewed in ~15 minutes.
               </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-background/70">
                   <Zap className="h-4 w-4 text-primary" />
                   ~15 min turnaround
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-background/70">
                   <Shield className="h-4 w-4 text-primary" />
                   AHPRA verified doctors
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-background/70">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   Valid for all employers
                 </div>
@@ -289,7 +289,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </Button>
               </Link>
 
-              <p className="mt-4 text-sm text-gray-400">From $19.95 • No phone call required</p>
+              <p className="mt-4 text-sm text-background/60">From $19.95 • No phone call required</p>
             </div>
           </section>
 
@@ -302,10 +302,10 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                     <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <blockquote className="text-lg text-gray-200 mb-4">
+                <blockquote className="text-lg text-background/80 mb-4">
                   &ldquo;{data.testimonial.quote}&rdquo;
                 </blockquote>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-background/60">
                   — {data.testimonial.name}, {data.testimonial.occupation}
                 </p>
               </div>
@@ -327,7 +327,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                       <span className="text-primary font-bold">{item.step}</span>
                     </div>
                     <h3 className="font-semibold mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-400">{item.desc}</p>
+                    <p className="text-sm text-background/60">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -338,7 +338,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready in 15 minutes</h2>
-              <p className="text-gray-400 mb-6">
+              <p className="text-background/60 mb-6">
                 Join thousands of {data.name} residents who skip the waiting room with InstantMed.
               </p>
               <Link href="/medical-certificate/request">
@@ -353,7 +353,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
           {/* Other locations */}
           <section className="px-4 py-8 border-t border-white/10">
             <div className="mx-auto max-w-3xl">
-              <p className="text-sm text-gray-400 text-center">
+              <p className="text-sm text-background/60 text-center">
                 Also serving:{" "}
                 {Object.entries(suburbs)
                   .filter(([key]) => key !== slug)
