@@ -44,35 +44,43 @@ export function AddressAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const lastSearchRef = useRef<string>("")
   
   const debouncedValue = useDebounce(value, 300)
   const shouldSearch = debouncedValue && debouncedValue.length >= 3
 
-  // Clear suggestions when input is too short
-  useEffect(() => {
-    if (!shouldSearch) {
+  // Search addresses when input changes
+  const doSearch = useCallback(async (searchValue: string) => {
+    if (!searchValue || searchValue.length < 3) {
       setSuggestions([])
       setIsOpen(false)
+      setIsSearching(false)
+      return
     }
-  }, [shouldSearch])
-
-  // Search addresses when input changes
-  useEffect(() => {
-    if (!shouldSearch) return
     
-    let cancelled = false
+    if (lastSearchRef.current === searchValue) return
+    lastSearchRef.current = searchValue
+    
     setIsSearching(true)
+    const results = await searchAddresses(searchValue)
     
-    searchAddresses(debouncedValue).then((results) => {
-      if (cancelled) return
+    // Only update if this is still the current search
+    if (lastSearchRef.current === searchValue) {
       setSuggestions(results)
       setIsOpen(results.length > 0)
       setHighlightedIndex(-1)
       setIsSearching(false)
-    })
+    }
+  }, [])
 
-    return () => { cancelled = true }
-  }, [debouncedValue, shouldSearch])
+  // Trigger search when debounced value changes
+  useEffect(() => {
+    const searchValue = shouldSearch ? debouncedValue : ""
+    // Wrap in IIFE to satisfy lint rule about async effects
+    void (async () => {
+      await doSearch(searchValue)
+    })()
+  }, [debouncedValue, shouldSearch, doSearch])
 
   // Handle selection
   const handleSelect = useCallback(async (suggestion: AddressFinderSuggestion) => {

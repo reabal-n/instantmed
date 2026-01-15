@@ -203,26 +203,34 @@ export function ValidatedInput({
 export const validationRules = {
   email: {
     validate: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-    message: "That doesn't look quite right. Mind checking it once more?",
+    message: "Please enter a valid email address",
   },
   required: {
     validate: (value: string) => value.trim().length > 0,
-    message: "Looks like something was skipped — can you fill this in?",
+    message: "This field is required",
   },
   minLength: (min: number) => ({
     validate: (value: string) => value.length >= min,
     message: `Please enter at least ${min} characters`,
   }),
   phone: {
-    validate: (value: string) => /^(\+?61|0)[2-478]( ?\d){8}$/.test(value.replace(/\s/g, "")),
+    validate: (value: string) => {
+      const digits = value.replace(/\D/g, "")
+      // Australian mobile (04XX) or landline (02, 03, 07, 08)
+      return /^0[234578]\d{8}$/.test(digits)
+    },
     message: "Please enter a valid Australian phone number",
   },
   phoneAU: {
     validate: (value: string) => {
-      const digits = value.replace(/\s/g, "")
+      const digits = value.replace(/\D/g, "")
       return /^04\d{8}$/.test(digits)
     },
-    message: "Please enter a valid Australian mobile number (04XX XXX XXX)",
+    message: "Please enter a valid Australian mobile (04XX XXX XXX)",
+  },
+  postcode: {
+    validate: (value: string) => /^\d{4}$/.test(value),
+    message: "Please enter a valid 4-digit postcode",
   },
   medicare: {
     validate: (value: string) => {
@@ -235,4 +243,60 @@ export const validationRules = {
     },
     message: "Please check your Medicare number",
   },
+}
+
+/**
+ * Inline validation feedback component
+ * Use this alongside standard Input components for consistent validation UX
+ */
+interface ValidationFeedbackProps {
+  value: string
+  touched: boolean
+  validate: (value: string) => { valid: boolean; message?: string; type?: "error" | "warning" | "success" | "info" }
+  showSuccess?: boolean
+}
+
+export function ValidationFeedback({ 
+  value, 
+  touched, 
+  validate,
+  showSuccess = true 
+}: ValidationFeedbackProps) {
+  if (!touched && !value) return null
+  
+  const result = validate(value)
+  
+  if (result.valid && showSuccess && value) {
+    return (
+      <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1 animate-in fade-in duration-200">
+        <Check className="w-3 h-3 shrink-0" />
+        Looks good
+      </p>
+    )
+  }
+  
+  if (!result.valid && touched && result.message) {
+    const isWarning = result.type === "warning"
+    return (
+      <p className={cn(
+        "text-xs flex items-center gap-1 mt-1 animate-in slide-in-from-top-1 duration-200",
+        isWarning ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
+      )}>
+        {isWarning ? <Info className="w-3 h-3 shrink-0" /> : <AlertCircle className="w-3 h-3 shrink-0" />}
+        {result.message}
+      </p>
+    )
+  }
+  
+  // In-progress hint (e.g., "3 more digits needed")
+  if (!result.valid && result.type === "info" && result.message) {
+    return (
+      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+        <Info className="w-3 h-3 shrink-0" />
+        {result.message}
+      </p>
+    )
+  }
+  
+  return null
 }

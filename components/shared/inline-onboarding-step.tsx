@@ -11,6 +11,8 @@ import { AddressAutocomplete, type AddressComponents } from "@/components/ui/add
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, MapPin, CreditCard, ArrowLeft, AlertTriangle, HelpCircle } from "lucide-react"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
+import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { GlassRadioGroup } from "@/components/ui/glass-radio-group"
 
@@ -68,12 +70,24 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {}
-    if (!phone.trim()) newErrors.phone = "Phone number is required"
+    const phoneValidation = validateAustralianPhone(phone)
+    if (!phoneValidation.valid) {
+      newErrors.phone = phoneValidation.error || "Please enter a valid phone number"
+    }
     if (!addressLine1.trim()) newErrors.addressLine1 = "Address is required"
     if (!suburb.trim()) newErrors.suburb = "Suburb is required"
     if (!state) newErrors.state = "State is required"
-    if (!postcode.trim()) newErrors.postcode = "Postcode is required"
-    else if (!/^\d{4}$/.test(postcode)) newErrors.postcode = "Enter a valid 4-digit postcode"
+    if (!postcode.trim()) {
+      newErrors.postcode = "Postcode is required"
+    } else if (!/^\d{4}$/.test(postcode)) {
+      newErrors.postcode = "Enter a valid 4-digit postcode"
+    } else if (state) {
+      // Validate postcode matches selected state
+      const postcodeValidation = validatePostcodeState(postcode, state as "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA")
+      if (!postcodeValidation.valid) {
+        newErrors.postcode = postcodeValidation.error || "Postcode doesn't match state"
+      }
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }

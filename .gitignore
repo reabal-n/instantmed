@@ -54,6 +54,9 @@ storybook-static
 # Sanity
 .sanity/
 
+# Windsurf IDE config (contains local machine paths and secrets)
+.windsurf/
+
 node_modules
 node_modules 2
 .env

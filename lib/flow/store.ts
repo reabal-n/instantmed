@@ -475,6 +475,15 @@ export const useFlowStore = create<FlowStore>()(
           errors['emergency_symptoms'] = 'Emergency symptoms detected - please seek immediate care'
         }
 
+        // Determine if this is a prescription flow (requires Medicare/IHI for eScript)
+        const isPrescriptionFlow = state.serviceSlug && [
+          'prescription',
+          'repeat-script', 
+          'new-script',
+          'gp-consult',
+          'consult',
+        ].includes(state.serviceSlug)
+
         // Check identity data for details step
         const identityFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth']
         if (state.identityData) {
@@ -485,12 +494,52 @@ export const useFlowStore = create<FlowStore>()(
               errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`
             }
           }
+          
+          // For prescription flows: require address
+          if (isPrescriptionFlow) {
+            const addressFields = ['addressLine1', 'suburb', 'state', 'postcode']
+            for (const field of addressFields) {
+              const value = state.identityData[field as keyof typeof state.identityData]
+              if (!value) {
+                missingFields.push(field)
+                errors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required for prescriptions`
+              }
+            }
+            
+            // For prescription flows: require Medicare OR IHI (for eScript issuance)
+            const hasMedicare = state.identityData.medicareNumber && String(state.identityData.medicareNumber).length >= 10
+            const hasIHI = state.identityData.ihi && String(state.identityData.ihi).length >= 16
+            
+            if (!hasMedicare && !hasIHI) {
+              missingFields.push('medicareOrIhi')
+              errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
+            }
+          }
         } else {
           // Check if identity fields are in answers (for guest checkout)
           for (const field of ['patient_name', 'patient_email', 'patient_phone', 'patient_dob']) {
             if (!state.answers[field]) {
               missingFields.push(field)
               errors[field] = `${field.replace(/_/g, ' ')} is required`
+            }
+          }
+          
+          // For prescription flows in guest checkout: require address fields
+          if (isPrescriptionFlow) {
+            for (const field of ['patient_address', 'patient_suburb', 'patient_state', 'patient_postcode']) {
+              if (!state.answers[field]) {
+                missingFields.push(field)
+                errors[field] = `${field.replace(/patient_/g, '').replace(/_/g, ' ')} is required for prescriptions`
+              }
+            }
+            
+            // Require Medicare OR IHI
+            const hasMedicare = state.answers.patient_medicare && String(state.answers.patient_medicare).length >= 10
+            const hasIHI = state.answers.patient_ihi && String(state.answers.patient_ihi).length >= 16
+            
+            if (!hasMedicare && !hasIHI) {
+              missingFields.push('medicareOrIhi')
+              errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
             }
           }
         }

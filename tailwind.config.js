@@ -105,9 +105,16 @@ const config = {
         "slide-up": "slideUp 200ms ease-out forwards",
         aurora: "aurora 60s linear infinite",
         shimmer: "shimmer 2s infinite",
+        marquee: "marquee 30s linear infinite",
+        "marquee-slow": "marquee 45s linear infinite",
+        "marquee-fast": "marquee 20s linear infinite",
       },
       keyframes: {
         scroll: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+        marquee: {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },

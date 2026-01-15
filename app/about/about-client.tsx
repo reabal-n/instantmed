@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin } from "lucide-react"
 import { Button } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
+import { ComplianceBar } from "@/components/shared/compliance-marquee"
 
 export function AboutClient() {
   return (
@@ -129,6 +130,79 @@ export function AboutClient() {
           </div>
         </section>
 
+        {/* Our Doctors Section */}
+        <section className="px-4 py-12 sm:px-6 lg:py-16 bg-emerald-50/50 dark:bg-emerald-950/10">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 mb-4">
+                <Stethoscope className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Real Australian Doctors</span>
+              </div>
+              <h2
+                className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-3"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Every request reviewed by a real GP
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                There&apos;s no algorithm making decisions about your health. Every single request is reviewed by an 
+                AHPRA-registered Australian doctor who takes the time to understand your situation.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {/* Doctor credentials */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
+                  <GraduationCap className="w-7 h-7 text-emerald-600" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">AHPRA Verified</h3>
+                <p className="text-sm text-muted-foreground">
+                  Every doctor is registered with the Australian Health Practitioner Regulation Agency and holds a current medical license.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Experienced GPs</h3>
+                <p className="text-sm text-muted-foreground">
+                  Our doctors have years of clinical experience in Australian general practice. They know what they&apos;re doing.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Based in Australia</h3>
+                <p className="text-sm text-muted-foreground">
+                  Our doctors work from Australia and understand the Australian healthcare system, prescribing guidelines, and patient needs.
+                </p>
+              </div>
+            </div>
+
+            {/* Doctor quote */}
+            <div className="mt-10 max-w-2xl mx-auto">
+              <blockquote className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+                <p className="text-muted-foreground italic mb-4">
+                  &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <span className="font-semibold text-emerald-600">GP</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground text-sm">InstantMed Doctor</p>
+                    <p className="text-xs text-muted-foreground">AHPRA Registered GP</p>
+                  </div>
+                </div>
+              </blockquote>
+            </div>
+          </div>
+        </section>
+
         {/* Team */}
         <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -153,12 +227,12 @@ export function AboutClient() {
               <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
                 <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     AHPRA-Registered Doctors
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     All our doctors are fully registered with AHPRA and hold valid medical licenses to practice in
-                    Australia.
+                    Australia. You can verify any doctor&apos;s registration on the AHPRA website.
                   </p>
                 </div>
                 <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
@@ -167,7 +241,7 @@ export function AboutClient() {
                     Australian-Based
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Our team and servers are based in Australia, ensuring your data stays local and secure.
+                    Our team and servers are based in Australia, ensuring your data stays local and secure under Australian law.
                   </p>
                 </div>
                 <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
@@ -176,22 +250,25 @@ export function AboutClient() {
                     Privacy-First
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    We use bank-level encryption and comply with all Australian privacy laws and regulations.
+                    We use bank-level 256-bit encryption and comply with all Australian Privacy Principles and health records legislation.
                   </p>
                 </div>
                 <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Patient-Focused
+                    TGA Compliant
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Every decision we make is guided by what&apos;s best for patients, not profits.
+                    Our telehealth and e-prescribing services comply with Therapeutic Goods Administration regulations.
                   </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Compliance Bar */}
+        <ComplianceBar />
 
         {/* CTA */}
         <section className="px-4 py-12 sm:px-6 lg:py-16">

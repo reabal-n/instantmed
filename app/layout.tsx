@@ -16,6 +16,7 @@ import { SupabaseAuthProvider } from "@/components/providers/supabase-auth-provi
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { ChatIntakeButton } from "@/components/chat/chat-intake"
+import { NetworkStatus } from "@/components/ui/error-recovery"
 import Script from "next/script"
 import "./globals.css"
 
@@ -195,6 +196,7 @@ export default function RootLayout({
         <SupabaseAuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <HeroUIProviderWrapper>
+              <NetworkStatus />
               <SkyBackground fullPage />
               <NightSkyBackground starCount={100} showShootingStars />
               <ScrollProgress color="gradient" />

@@ -6,6 +6,11 @@ import { ArrowRight, Clock, Briefcase, Heart, Calendar, Zap, HelpCircle } from "
 import { ContextualSocialProof, ServiceStats } from "@/components/shared/contextual-social-proof"
 import { DoctorsOnline, CompletionTime } from "@/components/shared/urgency-indicators"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
+import { FAQSchema, BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+import { DoctorProfiles } from "@/components/shared/doctor-profiles"
+import { GoogleReviewsWidget } from "@/components/shared/google-reviews-widget"
+import { LiveActivityCounter } from "@/components/shared/live-activity-counter"
+import { EmployerTrustLogos } from "@/components/shared/employer-trust-logos"
 
 export const metadata: Metadata = {
   title: "Online Medical Certificate Australia | Same Day Sick Note | InstantMed",
@@ -82,8 +87,28 @@ const FAQS = [
 ]
 
 export default function MedicalCertificatePage() {
+  // Transform FAQs to schema format
+  const faqSchemaData = FAQS.map(faq => ({
+    question: faq.q,
+    answer: faq.a
+  }))
+
   return (
     <div className="flex min-h-screen flex-col bg-premium-mesh">
+      {/* SEO Structured Data */}
+      <FAQSchema faqs={faqSchemaData} />
+      <BreadcrumbSchema 
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "Medical Certificate", url: "https://instantmed.com.au/medical-certificate" }
+        ]} 
+      />
+      <MedicalServiceSchema 
+        name="Online Medical Certificate"
+        description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor. Available same day."
+        price="19.95"
+      />
+      
       <Navbar variant="marketing" />
 
       <main className="flex-1">
@@ -229,6 +254,18 @@ export default function MedicalCertificatePage() {
             <EmergencyDisclaimer />
           </div>
         </section>
+
+        {/* Live Activity Banner */}
+        <LiveActivityCounter variant="banner" />
+
+        {/* Employer Trust Logos */}
+        <EmployerTrustLogos variant="full" />
+
+        {/* Doctor Profiles */}
+        <DoctorProfiles variant="grid" maxDoctors={3} />
+
+        {/* Google Reviews */}
+        <GoogleReviewsWidget maxReviews={3} />
 
         {/* FAQ Section */}
         <section className="px-4 py-16">

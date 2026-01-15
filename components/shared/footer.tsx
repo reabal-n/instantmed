@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
+import { ComplianceMarquee } from "@/components/shared/compliance-marquee"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -75,6 +76,9 @@ export function Footer() {
         </div>
       </div>
 
+      {/* Scrolling Compliance Marquee */}
+      <ComplianceMarquee speed="slow" />
+
       {/* Bottom bar */}
       <div className="my-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center">
@@ -88,7 +92,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-muted-foreground/70 max-w-sm">
-          AHPRA-registered Australian doctors
+          All doctors AHPRA-registered. Telehealth services comply with Australian regulations.
         </p>
       </div>
     </footer>

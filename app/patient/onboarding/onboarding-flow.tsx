@@ -21,6 +21,8 @@ import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { completeOnboardingAction } from "./actions"
 import type { AustralianState } from "@/types/db"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
+import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { PageShell } from "@/components/ui/page-shell"
 import { FormStepper, type Step } from "@/components/ui/form-stepper"
 import { FormSection, FormGroup, FormActions } from "@/components/ui/form-section"
@@ -89,12 +91,24 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
 
   const validateStep1 = () => {
     const errors: Record<string, string> = {}
-    if (!phone.trim()) errors.phone = "Phone number is required"
+    const phoneValidation = validateAustralianPhone(phone)
+    if (!phoneValidation.valid) {
+      errors.phone = phoneValidation.error || "Please enter a valid phone number"
+    }
     if (!addressLine1.trim()) errors.addressLine1 = "Street address is required"
     if (!suburb.trim()) errors.suburb = "Suburb is required"
     if (!state) errors.state = "Please select your state"
-    if (!postcode.trim()) errors.postcode = "Postcode is required"
-    else if (!/^\d{4}$/.test(postcode)) errors.postcode = "Enter a valid 4-digit postcode"
+    if (!postcode.trim()) {
+      errors.postcode = "Postcode is required"
+    } else if (!/^\d{4}$/.test(postcode)) {
+      errors.postcode = "Enter a valid 4-digit postcode"
+    } else if (state) {
+      // Validate postcode matches selected state
+      const postcodeValidation = validatePostcodeState(postcode, state)
+      if (!postcodeValidation.valid) {
+        errors.postcode = postcodeValidation.error || "Postcode doesn't match state"
+      }
+    }
     setStep1Errors(errors)
     return Object.keys(errors).length === 0
   }

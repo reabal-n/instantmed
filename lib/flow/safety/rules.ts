@@ -273,6 +273,195 @@ const prescriptionRules: SafetyRule[] = [
 ]
 
 // ============================================
+// CONSULT / MEN'S HEALTH RULES
+// ============================================
+
+const consultRules: SafetyRule[] = [
+  ...emergencyRules,
+  // ----------------------------------------
+  // ABSOLUTE CONTRAINDICATION: Nitrates + PDE5 inhibitors
+  // Clinical: Sildenafil/tadalafil + nitrates = severe hypotension, potentially fatal
+  // TGA/AHPRA requirement - cannot prescribe ED meds to patients on nitrates
+  // ----------------------------------------
+  {
+    id: 'ed_nitrate_contraindication',
+    name: 'Nitrate Use - ED Contraindication',
+    description: 'Patient is taking nitrates and requesting ED medication - absolute contraindication',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
+      { fieldId: 'mens_heart_meds', operator: 'equals', value: true },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'critical',
+    patientMessage: 'ED medications (like Viagra or Cialis) cannot be safely used with nitrate medications (like GTN spray or Isosorbide). This combination can cause a dangerous drop in blood pressure. Please speak with your regular GP about safe alternatives.',
+    doctorNote: 'Patient on nitrates requesting ED medication - absolute contraindication per TGA guidelines. Declined for safety.',
+    priority: 950,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // HIGH RISK: Recent cardiovascular event + ED
+  // ----------------------------------------
+  {
+    id: 'ed_recent_cardiac_event',
+    name: 'Recent Cardiac Event - ED',
+    description: 'Patient had heart attack or stroke and requesting ED medication',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
+      { fieldId: 'mens_cardiovascular', operator: 'includes_any', value: ['heart_attack', 'stroke'] },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Due to your cardiovascular history, ED medications may not be safe for you. Please consult with your cardiologist or regular GP who knows your full medical history.',
+    doctorNote: 'History of MI/stroke - ED medications require in-person cardiology clearance',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // MEDIUM RISK: Uncontrolled blood pressure + ED
+  // ----------------------------------------
+  {
+    id: 'ed_uncontrolled_bp',
+    name: 'Uncontrolled Blood Pressure - ED',
+    description: 'Patient reports high/uncontrolled blood pressure and requesting ED medication',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+      { fieldId: 'mens_concern_type', operator: 'equals', value: 'ed' },
+      { fieldId: 'mens_blood_pressure', operator: 'equals', value: 'high' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'medium',
+    patientMessage: 'ED medications can affect blood pressure. Since you\'ve indicated high blood pressure, we\'d like to have a quick chat to ensure we can help you safely.',
+    doctorNote: 'High BP reported - phone assessment needed before ED medication',
+    priority: 600,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // UNDER 18: Age restriction for men's health (derived from DOB)
+  // ----------------------------------------
+  {
+    id: 'mens_health_under_18',
+    name: 'Under 18 - Men\'s Health',
+    description: 'Patient is under 18 for men\'s health consultation',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+      { 
+        fieldId: 'patient_age',
+        operator: 'lt',
+        value: 18,
+        derivedFrom: {
+          type: 'age',
+          fields: ['patient_dob'],
+        },
+      },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'This service is only available for adults 18 years and over. Please speak with your GP or a youth health service.',
+    doctorNote: 'Patient under 18 - not eligible for men\'s health program',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ============================================
+  // WOMEN'S HEALTH / OCP WHOMEC RULES
+  // Based on WHO Medical Eligibility Criteria for contraceptives
+  // ============================================
+  // ----------------------------------------
+  // BLOOD CLOT HISTORY - Absolute contraindication for combined OCP
+  // ----------------------------------------
+  {
+    id: 'ocp_blood_clot_contraindication',
+    name: 'Blood Clot History - OCP Contraindication',
+    description: 'Patient has personal or family history of blood clots - absolute contraindication for combined OCP',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
+      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Due to your history of blood clots, the combined contraceptive pill is not safe for you. Please speak with your GP about alternative contraception options like the mini-pill, implant, or IUD which may be suitable.',
+    doctorNote: 'Blood clot history - combined OCP contraindicated per WHOMEC Category 4. Declined for safety.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // MIGRAINE WITH AURA - Absolute contraindication for combined OCP
+  // ----------------------------------------
+  {
+    id: 'ocp_migraine_aura_contraindication',
+    name: 'Migraine with Aura - OCP Contraindication',
+    description: 'Patient has migraine with aura - absolute contraindication for combined OCP',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
+      { fieldId: 'womens_migraine_aura', operator: 'equals', value: true },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Migraines with visual disturbances (aura) increase stroke risk when combined with oestrogen-containing contraceptives. Please speak with your GP about progestogen-only options like the mini-pill, implant, or hormonal IUD.',
+    doctorNote: 'Migraine with aura - combined OCP contraindicated per WHOMEC Category 4. Stroke risk.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // SMOKER AGED >35 - Absolute contraindication for combined OCP
+  // ----------------------------------------
+  {
+    id: 'ocp_smoker_over_35_contraindication',
+    name: 'Smoker Over 35 - OCP Contraindication',
+    description: 'Patient is a smoker aged over 35 - absolute contraindication for combined OCP',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womens_concern_type', operator: 'equals', value: 'contraception' },
+      { fieldId: 'womens_smoker', operator: 'equals', value: true },
+      { fieldId: 'womens_over_35', operator: 'equals', value: true },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Smoking over age 35 significantly increases cardiovascular risk with oestrogen-containing contraceptives. Please speak with your GP about safer alternatives like the mini-pill, implant, or IUD.',
+    doctorNote: 'Smoker >35 - combined OCP contraindicated per WHOMEC Category 4. Cardiovascular risk.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // UNDER 18: Age restriction for hair loss
+  // ----------------------------------------
+  {
+    id: 'hair_loss_under_18',
+    name: 'Under 18 - Hair Loss',
+    description: 'Patient is under 18 for hair loss consultation',
+    conditions: [
+      { fieldId: 'consult_pathway', operator: 'equals', value: 'hair_loss' },
+      { 
+        fieldId: 'patient_age',
+        operator: 'lt',
+        value: 18,
+        derivedFrom: {
+          type: 'age',
+          fields: ['patient_dob'],
+        },
+      },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Hair loss treatment is only available for adults 18 years and over. Please speak with your GP.',
+    doctorNote: 'Patient under 18 - not eligible for hair loss treatment',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+]
+
+// ============================================
 // WEIGHT MANAGEMENT RULES
 // ============================================
 
@@ -283,7 +472,15 @@ const weightRules: SafetyRule[] = [
     name: 'Under 18',
     description: 'Patient is under 18 years old',
     conditions: [
-      { fieldId: 'age_18_plus', operator: 'equals', value: false },
+      { 
+        fieldId: 'patient_age',
+        operator: 'lt',
+        value: 18,
+        derivedFrom: {
+          type: 'age',
+          fields: ['patient_dob'],
+        },
+      },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
@@ -400,6 +597,14 @@ export const weightSafetyConfig: SafetyRulesConfig = {
   defaultRiskTier: 'low',
 }
 
+export const consultSafetyConfig: SafetyRulesConfig = {
+  serviceSlug: 'gp-consult',
+  version: '1.0',
+  rules: consultRules,
+  defaultOutcome: 'ALLOW',
+  defaultRiskTier: 'low',
+}
+
 // ============================================
 // CONFIG REGISTRY
 // ============================================
@@ -410,6 +615,8 @@ export const safetyConfigs: Record<string, SafetyRulesConfig> = {
   prescription: prescriptionSafetyConfig,
   'weight-management': weightSafetyConfig,
   weight: weightSafetyConfig,
+  'gp-consult': consultSafetyConfig,
+  consult: consultSafetyConfig,
 }
 
 export function getSafetyConfig(serviceSlug: string): SafetyRulesConfig | null {

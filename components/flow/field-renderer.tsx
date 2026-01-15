@@ -1,12 +1,25 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HelpCircle, Check, AlertCircle, ChevronDown } from 'lucide-react'
+import { HelpCircle, Check, AlertCircle, ChevronDown, AlertTriangle, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { IOSToggle, SegmentedControl } from '@/components/ui/ios-toggle'
 import { MedicationSearch, type MedicationSelection } from './medication-search'
 import type { FieldConfig } from '@/lib/flow'
+import { checkSymptoms } from '@/components/intake/symptom-checker'
+
+// Fields that should be scanned for red flag symptoms
+const RED_FLAG_SCAN_FIELDS = [
+  'primary_concern',
+  'symptoms_description',
+  'reason_for_new',
+  'new_med_reason',
+  'general_other_conditions',
+  'womens_symptoms',
+  'otherSymptom',
+  'consult_details',
+]
 
 export interface FieldRendererProps {
   field: FieldConfig
@@ -19,6 +32,20 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
   const [showHelp, setShowHelp] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+  // Real-time red flag scanning for textarea fields containing medical symptoms
+  const shouldScanForRedFlags = field.type === 'textarea' && RED_FLAG_SCAN_FIELDS.includes(field.id)
+  const textValueForScan = (shouldScanForRedFlags && typeof value === 'string') ? value : ''
+  
+  const redFlagResult = useMemo(() => {
+    if (!shouldScanForRedFlags || !textValueForScan || textValueForScan.length < 10) {
+      return null
+    }
+    return checkSymptoms([], textValueForScan)
+  }, [shouldScanForRedFlags, textValueForScan])
+  
+  const hasCriticalRedFlags = redFlagResult?.severity === 'critical'
+  const hasUrgentFlags = redFlagResult?.severity === 'urgent'
 
   // Shared input styles with focus glow
   const inputBaseClass = cn(
@@ -106,10 +133,97 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
               onBlur={() => setIsFocused(false)}
               placeholder={field.placeholder}
               rows={3}
-              className={cn(inputBaseClass, 'px-4 py-3 resize-none')}
+              className={cn(
+                inputBaseClass, 
+                'px-4 py-3 resize-none',
+                hasCriticalRedFlags && 'border-red-400 focus:border-red-500'
+              )}
             />
+            
+            {/* CRITICAL RED FLAG WARNING - Emergency symptoms detected */}
+            <AnimatePresence>
+              {hasCriticalRedFlags && redFlagResult && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 rounded-xl bg-red-50 border-2 border-red-200">
+                    <div className="flex items-start gap-3">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-red-800 text-sm">
+                          These symptoms need immediate attention
+                        </p>
+                        <p className="text-xs text-red-700 mt-1">
+                          {redFlagResult.message}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {redFlagResult.redFlags.map((flag) => (
+                            <span 
+                              key={flag} 
+                              className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full"
+                            >
+                              {flag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <a
+                            href="tel:000"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            Call 000
+                          </a>
+                          <a
+                            href="tel:131114"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-700 text-xs font-medium rounded-lg border border-red-200 hover:bg-red-50 transition-colors"
+                          >
+                            Lifeline: 13 11 14
+                          </a>
+                        </div>
+                        <p className="text-xs text-red-600 mt-2 font-medium">
+                          This service cannot help with emergency symptoms. Please seek immediate care.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {/* URGENT FLAG WARNING - Needs prompt attention but can continue */}
+            <AnimatePresence>
+              {hasUrgentFlags && !hasCriticalRedFlags && redFlagResult && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs text-amber-800 font-medium">
+                          These symptoms may need prompt attention
+                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                          Our doctors will prioritize your request if you continue.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
             {/* Character count indicator - shows when focused or under minimum */}
-            {(isFocused || needsMoreChars) && minLen > 0 && (
+            {(isFocused || needsMoreChars) && minLen > 0 && !hasCriticalRedFlags && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}

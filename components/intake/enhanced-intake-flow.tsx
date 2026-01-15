@@ -45,6 +45,9 @@ import {
 } from "@/components/intake/symptom-checker"
 import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
+import { SocialProofStrip } from "@/components/intake/social-proof-strip"
+import { DoctorAvailability } from "@/components/shared/doctor-availability"
+import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
@@ -1938,6 +1941,12 @@ export function EnhancedIntakeFlow({
       {/* Screen reader announcements */}
       <LiveRegion />
       
+      {/* Exit intent popup for save-for-later */}
+      <ExitIntentPopup variant="save" formData={state as unknown as Record<string, unknown>} />
+      
+      {/* Real-time doctor availability */}
+      <DoctorAvailability variant="banner" />
+      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-lg mx-auto px-3 py-2 flex items-start justify-between">
@@ -2069,9 +2078,9 @@ export function EnhancedIntakeFlow({
         </div>
 
         {step === "service" && (
-          <p className="text-center text-xs text-muted-foreground mt-2">
-            🔒 Secure checkout
-          </p>
+          <div className="mt-2">
+            <SocialProofStrip variant="minimal" />
+          </div>
         )}
       </footer>
     </div>

@@ -490,6 +490,11 @@ export function SafetyCheckStep({
             </div>
           </div>
 
+          {/* 
+            SAFETY: "Edit answers" button removed to prevent users from
+            changing responses to avoid phone consultation requirement.
+            If they made a genuine error, they can start a fresh request.
+          */}
           <div className="space-y-3">
             <Button
               onClick={handleRequestCall}
@@ -501,10 +506,10 @@ export function SafetyCheckStep({
 
             <Button
               variant="ghost"
-              onClick={() => window.history.back()}
+              onClick={() => window.location.href = '/'}
               className="w-full text-slate-500"
             >
-              Go back and edit my answers
+              Start a new request instead
             </Button>
           </div>
         </motion.div>
@@ -595,19 +600,17 @@ export function SafetyCheckStep({
           </ul>
         </div>
 
+        {/* 
+          SAFETY: "Edit answers" button intentionally removed.
+          Allowing users to edit answers after DECLINE would let them 
+          bypass safety gates by changing responses. Users must start fresh
+          or seek appropriate care as directed.
+        */}
         <div className="space-y-3">
           <Button
             variant="outline"
-            onClick={() => window.history.back()}
-            className="w-full h-12 rounded-xl"
-          >
-            Go back and edit my answers
-          </Button>
-
-          <Button
-            variant="ghost"
             onClick={handleDecline}
-            className="w-full text-slate-500"
+            className="w-full h-12 rounded-xl"
           >
             Return to home
           </Button>

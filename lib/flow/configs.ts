@@ -323,25 +323,17 @@ const prescriptionQuestionnaire: QuestionnaireConfig = {
     {
       id: 'delivery',
       title: 'Delivery',
-      description: 'How would you like to receive your script?',
+      description: 'Your prescription will be sent as an e-script',
       fields: [
         {
           id: 'delivery_method',
           type: 'segmented',
-          label: 'How would you like to receive your script?',
+          label: 'Delivery method',
+          description: 'All prescriptions are sent as e-scripts to your phone. You can take this to any pharmacy.',
           options: [
             { value: 'escript', label: 'E-script (to your phone)' },
-            { value: 'pharmacy', label: 'Send to pharmacy' },
           ],
           validation: { required: true },
-        },
-        {
-          id: 'pharmacy_details',
-          type: 'text',
-          label: 'Pharmacy name and suburb',
-          placeholder: 'e.g., Chemist Warehouse Bondi',
-          showIf: { fieldId: 'delivery_method', operator: 'equals', value: 'pharmacy' },
-          validation: { required: true, minLength: 5 },
         },
       ],
     },
@@ -367,7 +359,7 @@ export const commonScriptsConfig: FlowConfig = {
     requiresIdVerification: false,
   },
   estimatedTime: '~15 mins',
-  features: ['Doctor reviewed', 'E-script available', 'Sent to your pharmacy'],
+  features: ['Doctor reviewed', 'E-script to your phone', 'Use at any pharmacy'],
 }
 
 // Keep prescription config as alias
@@ -606,17 +598,8 @@ const consultQuestionnaire: QuestionnaireConfig = {
       title: 'Men\'s health assessment',
       description: 'Confidential questions to help our doctor assess your situation',
       fields: [
-        {
-          id: 'mens_age_confirm',
-          type: 'segmented',
-          label: 'Are you 18 years or older?',
-          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
-          options: [
-            { value: 'yes', label: 'Yes' },
-            { value: 'no', label: 'No' },
-          ],
-          validation: { required: true },
-        },
+        // Age confirmation removed - DOB is captured in details step
+        // Safety rules use derived age from DOB via patient_dob field
         {
           id: 'mens_concern_type',
           type: 'select',
@@ -933,17 +916,7 @@ const consultQuestionnaire: QuestionnaireConfig = {
           ],
           validation: { required: true },
         },
-        {
-          id: 'hair_age_confirm',
-          type: 'segmented',
-          label: 'Are you 18 years or older?',
-          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'hair_loss' },
-          options: [
-            { value: 'yes', label: 'Yes' },
-            { value: 'no', label: 'No' },
-          ],
-          validation: { required: true },
-        },
+        // Age confirmation removed - DOB captured in details step
         {
           id: 'hair_loss_pattern',
           type: 'select',
@@ -1063,17 +1036,8 @@ const consultQuestionnaire: QuestionnaireConfig = {
       title: 'Weight management assessment',
       description: 'Important questions to determine if weight loss medication is appropriate',
       fields: [
-        {
-          id: 'weight_age_confirm',
-          type: 'segmented',
-          label: 'Are you 18 years or older?',
-          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'weight_loss' },
-          options: [
-            { value: 'yes', label: 'Yes' },
-            { value: 'no', label: 'No' },
-          ],
-          validation: { required: true },
-        },
+        // Age confirmation removed - DOB captured in details step
+        // Safety rules check derived age >= 18 from patient_dob
         {
           id: 'weight_pregnancy_status',
           type: 'segmented',
@@ -1181,7 +1145,8 @@ const consultQuestionnaire: QuestionnaireConfig = {
         {
           id: 'weight_men2_thyroid_cancer',
           type: 'toggle',
-          label: 'Do you or any family members have a history of medullary thyroid cancer or MEN2 syndrome? (Important for medication safety)',
+          label: 'Do you or any close family members have a history of thyroid cancer?',
+          helpText: 'This is important for medication safety. If you\'re unsure, select No and mention it in your notes.',
           showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'weight_loss' },
           validation: { required: true },
         },
@@ -1313,7 +1278,7 @@ export const serviceCategories = [
     price: '$29.95',
     time: '~15 mins',
     icon: 'Pill',
-    features: ['Doctor reviewed', 'E-script available', 'Sent to your pharmacy'],
+    features: ['Doctor reviewed', 'E-script to your phone', 'Use at any pharmacy'],
   },
   {
     slug: 'gp-consult',

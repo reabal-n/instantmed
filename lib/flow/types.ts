@@ -183,6 +183,9 @@ export interface IdentityData {
   medicareNumber?: string
   medicareIrn?: string
   medicareExpiry?: string
+  
+  // Individual Healthcare Identifier (alternative to Medicare for eScript)
+  ihi?: string
 }
 
 export interface ConsentRecord {

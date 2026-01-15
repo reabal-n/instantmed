@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Edit2, Lock, Shield, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { ConfettiButton } from "@/components/ui/confetti"
+import { SecurityFooter } from "@/components/marketing/trust-badges"
 import type { FlowConfig } from "@/lib/intake/flow-engine"
 import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
@@ -58,6 +59,15 @@ export function SummaryPayment({
   // Generate structured summary
   const summary = generateDoctorSummary(config, data)
 
+  // Compute safety display value
+  const safetyDisplayValue = (() => {
+    if (data.emergency_symptoms && Array.isArray(data.emergency_symptoms)) {
+      const symptoms = data.emergency_symptoms as string[]
+      return symptoms.includes('none') ? 'None reported ✓' : symptoms.join(', ')
+    }
+    return null
+  })()
+
   // Trust badges
   const badges = [
     { icon: Shield, label: "AHPRA registered doctors" },
@@ -95,6 +105,22 @@ export function SummaryPayment({
             </div>
           ))}
         </div>
+
+        {/* Safety confirmations - show relevant safety answers */}
+        {(data.emergency_symptoms || data.safety_confirmed !== undefined) && (
+          <div className="p-4">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Safety Check</div>
+            {data.safety_confirmed === true && (
+              <SummaryRow 
+                label="Emergency symptoms" 
+                value="None reported ✓" 
+              />
+            )}
+            {safetyDisplayValue && (
+              <SummaryRow label="Emergency symptoms" value={safetyDisplayValue} />
+            )}
+          </div>
+        )}
 
         {/* Medicare */}
         <div className="p-4">
@@ -163,11 +189,11 @@ export function SummaryPayment({
           ) : (
             <>
               <Lock className="w-4 h-4 mr-2" />
-              Pay {price} & submit
+              Submit for review · {price}
             </>
           )}
         </ConfettiButton>
-        <p className="text-xs text-center text-muted-foreground mt-2">Secure payment via Stripe</p>
+        <SecurityFooter className="mt-4 border-t-0" />
       </div>
     </div>
   )

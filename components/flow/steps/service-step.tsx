@@ -1,7 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FileText, Pill, Stethoscope, Scale, User, Clock, Check, ArrowRight, ChevronDown, AlertCircle } from 'lucide-react'
 import { FlowContent } from '../flow-content'
 import { useFlowStore, useFlowService, serviceCategories } from '@/lib/flow'
 import { cn } from '@/lib/utils'
@@ -38,6 +39,7 @@ interface ServiceStepProps {
 }
 
 export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
+  const [showScope, setShowScope] = useState(false)
   const currentService = useFlowService()
   const { setServiceSlug, nextStep } = useFlowStore()
 
@@ -165,8 +167,62 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
         })}
       </motion.div>
 
+      {/* Service scope disclosure */}
+      <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowScope(!showScope)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-100/50 transition-colors"
+        >
+          <span className="text-xs sm:text-sm font-medium text-slate-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-slate-400" />
+            What we can and can&apos;t help with
+          </span>
+          <ChevronDown className={cn(
+            "w-4 h-4 text-slate-400 transition-transform",
+            showScope && "rotate-180"
+          )} />
+        </button>
+        
+        <AnimatePresence>
+          {showScope && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="px-4 pb-4 space-y-3 text-xs sm:text-sm">
+                <div>
+                  <p className="font-medium text-emerald-700 mb-1">✓ We can help with:</p>
+                  <ul className="text-slate-600 space-y-0.5 ml-4">
+                    <li>• Medical certificates for work, study, or carer&apos;s leave</li>
+                    <li>• Repeat prescriptions for medications you already take</li>
+                    <li>• Common conditions like UTIs, skin issues, cold &amp; flu</li>
+                    <li>• Men&apos;s and women&apos;s health consultations</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-medium text-red-700 mb-1">✗ We cannot help with:</p>
+                  <ul className="text-slate-600 space-y-0.5 ml-4">
+                    <li>• Emergency or life-threatening symptoms</li>
+                    <li>• Controlled substances (Schedule 8 medications)</li>
+                    <li>• Complex chronic disease management</li>
+                    <li>• Conditions requiring physical examination</li>
+                  </ul>
+                </div>
+                <p className="text-slate-500 italic pt-1">
+                  If unsure, start your request — our doctors will guide you to the right care.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Help text */}
-      <p className="mt-5 text-center text-xs sm:text-sm text-slate-400">
+      <p className="mt-4 text-center text-xs sm:text-sm text-slate-400">
         Not sure?{' '}
         <a href="/faq" className="text-emerald-600 hover:underline">
           See how it works
