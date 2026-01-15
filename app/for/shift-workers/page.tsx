@@ -79,7 +79,7 @@ export default function ShiftWorkersPage() {
                   </p>
 
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-6">
+                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -271,7 +271,7 @@ export default function ShiftWorkersPage() {
                   ].map((item) => (
                     <div key={item.step} className="glass-card rounded-xl text-center p-4">
                       <div className="h-10 w-10 rounded-lg bg-purple-600 flex items-center justify-center mx-auto mb-3">
-                        <span className="font-bold text-lg text-white">{item.step}</span>
+                        <span className="font-bold text-lg text-background">{item.step}</span>
                       </div>
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                       <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
@@ -333,7 +333,7 @@ export default function ShiftWorkersPage() {
                     Works around your roster, not the other way around.
                   </p>
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white text-sm h-12 px-8">
+                    <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

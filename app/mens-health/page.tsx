@@ -161,7 +161,7 @@ export default function MensHealthPage() {
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                     <Link href="/start?service=mens-health">
-                      <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6 w-full sm:w-auto">
+                      <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm px-6 w-full sm:w-auto">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
@@ -298,7 +298,7 @@ export default function MensHealthPage() {
 
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       1
                     </div>
                     <h3 className="text-sm font-semibold mb-1">Complete Questionnaire</h3>
@@ -307,7 +307,7 @@ export default function MensHealthPage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       2
                     </div>
                     <h3 className="text-sm font-semibold mb-1">Doctor Reviews</h3>
@@ -316,7 +316,7 @@ export default function MensHealthPage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                       3
                     </div>
                     <h3 className="text-sm font-semibold mb-1">Receive Treatment Plan</h3>
@@ -391,7 +391,7 @@ export default function MensHealthPage() {
                     Complete a confidential consultation in minutes. Our doctors are ready to help.
                   </p>
                   <Link href="/start?service=mens-health">
-                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-8 h-12">
+                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm px-8 h-12">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

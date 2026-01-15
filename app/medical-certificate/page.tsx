@@ -404,7 +404,7 @@ export default function MedicalCertificatePage() {
                           {/* Popular badge */}
                           {cert.popular && (
                             <div className="absolute top-0 right-4 z-20">
-                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-emerald-500/40">
+                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-emerald-500 to-teal-500 text-background text-xs font-bold tracking-wide uppercase shadow-lg shadow-emerald-500/40">
                                 Popular
                               </div>
                             </div>
@@ -558,7 +558,7 @@ export default function MedicalCertificatePage() {
                   >
                     <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
                       {/* Step number */}
-                      <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
+                      <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-background text-sm font-bold shadow-lg`}>
                         {step.number}
                       </div>
                       

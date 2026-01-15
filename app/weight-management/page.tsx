@@ -86,7 +86,7 @@ export default function WeightManagementPage() {
               </p>
 
               <Link href="/start?service=weight-management">
-                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white text-base px-8">
+                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-base px-8">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -111,24 +111,24 @@ export default function WeightManagementPage() {
           </section>
 
           {/* Stats Bar */}
-          <section className="px-4 py-8 bg-violet-600 text-white">
+          <section className="px-4 py-8 bg-violet-600 text-background">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-4 text-center">
                 <div>
                   <div className="text-3xl font-bold mb-1">10 min</div>
-                  <div className="text-sm text-white/80">health assessment</div>
+                  <div className="text-sm text-background/80">health assessment</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold mb-1">~2 hrs</div>
-                  <div className="text-sm text-white/80">doctor review</div>
+                  <div className="text-sm text-background/80">doctor review</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold mb-1">Same day</div>
-                  <div className="text-sm text-white/80">script if appropriate</div>
+                  <div className="text-sm text-background/80">script if appropriate</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold mb-1">Monthly</div>
-                  <div className="text-sm text-white/80">check-ins included</div>
+                  <div className="text-sm text-background/80">check-ins included</div>
                 </div>
               </div>
             </div>
@@ -319,7 +319,7 @@ export default function WeightManagementPage() {
                 Complete your health assessment in 10 minutes. A doctor will review your case and create a personalised plan.
               </p>
               <Link href="/start?service=weight-management">
-                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white">
+                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

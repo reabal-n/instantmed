@@ -389,7 +389,7 @@ export default async function GuidePage({ params }: PageProps) {
                   <div key={i} className="relative">
                     {/* Step number */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-primary text-background flex items-center justify-center font-bold shrink-0">
                         {i + 1}
                       </div>
                       <div className="flex-1 pt-1">

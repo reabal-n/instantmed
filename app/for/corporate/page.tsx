@@ -79,7 +79,7 @@ export default function CorporatePage() {
                   </p>
 
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-white text-sm px-6">
+                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -311,7 +311,7 @@ export default function CorporatePage() {
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-white text-sm h-12 px-8">
+                    <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

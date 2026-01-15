@@ -29,7 +29,7 @@ export default function NotFound() {
               className="bg-card/80 backdrop-blur-md rounded-3xl px-8 py-6 border border-border/50 shadow-2xl shadow-primary/5 animate-bounce"
             >
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
-                <Zap className="h-7 w-7 text-white" aria-hidden="true" />
+                <Zap className="h-7 w-7 text-background" aria-hidden="true" />
               </div>
             </div>
           </div>

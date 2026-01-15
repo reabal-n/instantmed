@@ -370,15 +370,15 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
                   <div className="text-4xl font-bold text-primary mb-1">2 min</div>
-                  <div className="text-sm text-white/70">to complete questionnaire</div>
+                  <div className="text-sm text-background/70">to complete questionnaire</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-primary mb-1">15 min</div>
-                  <div className="text-sm text-white/70">typical doctor review</div>
+                  <div className="text-sm text-background/70">typical doctor review</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-primary mb-1">Instant</div>
-                  <div className="text-sm text-white/70">PDF delivery to email</div>
+                  <div className="text-sm text-background/70">PDF delivery to email</div>
                 </div>
               </div>
             </div>

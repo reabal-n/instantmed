@@ -176,7 +176,7 @@ export default function HowItWorksPage() {
                       <div
                         className={`w-16 h-16 rounded-xl bg-linear-to-br ${step.color} flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 relative`}
                       >
-                        <step.icon className="w-6 h-6 text-white" />
+                        <step.icon className="w-6 h-6 text-background" />
                         <span className="absolute -top-1 -right-1 text-xl">{step.emoji}</span>
                       </div>
 

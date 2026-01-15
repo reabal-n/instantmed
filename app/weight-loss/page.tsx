@@ -178,7 +178,7 @@ export default function WeightLossPage() {
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                     <Link href="/start?service=weight-loss">
-                      <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white text-sm px-6 w-full sm:w-auto">
+                      <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-sm px-6 w-full sm:w-auto">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
@@ -372,7 +372,7 @@ export default function WeightLossPage() {
                     { step: 4, title: "Ongoing Support", desc: "Regular check-ins to monitor progress and adjust your plan as needed." },
                   ].map((item) => (
                     <div key={item.step} className="text-center">
-                      <div className="w-10 h-10 rounded-lg bg-violet-600 text-white flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                      <div className="w-10 h-10 rounded-lg bg-violet-600 text-background flex items-center justify-center mx-auto mb-3 text-lg font-bold">
                         {item.step}
                       </div>
                       <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
@@ -421,7 +421,7 @@ export default function WeightLossPage() {
                     Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option.
                   </p>
                   <Link href="/start?service=weight-loss">
-                    <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white text-sm px-8 h-12">
+                    <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-sm px-8 h-12">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

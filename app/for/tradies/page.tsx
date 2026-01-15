@@ -79,7 +79,7 @@ export default function TradiesPage() {
                   </p>
 
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-white text-sm px-6">
+                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -286,7 +286,7 @@ export default function TradiesPage() {
                     Get your cert on your phone. No stuffing around.
                   </p>
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-white text-sm h-12 px-8">
+                    <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>

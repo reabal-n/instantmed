@@ -79,7 +79,7 @@ export default function StudentsPage() {
                   </p>
 
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-6">
+                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -330,7 +330,7 @@ export default function StudentsPage() {
                     Don&apos;t miss your special consideration deadline. Get sorted now.
                   </p>
                   <Link href="/start?service=med-cert">
-                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm h-12 px-8">
+                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
