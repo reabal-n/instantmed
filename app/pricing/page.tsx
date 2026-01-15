@@ -100,12 +100,12 @@ export default function PricingPage() {
                   glowColor={service.color === '#2563EB' ? 'blue' : 'purple'}
                   customSize={true}
                   className={`card-premium rounded-2xl p-5 lg:p-6 animate-fade-in-up opacity-0 relative ${
-                    service.popular ? "ring-2 ring-[#2563EB] shadow-premium-xl" : "shadow-premium-lg"
+                    service.popular ? "ring-2 ring-primary shadow-premium-xl" : "shadow-premium-lg"
                   }`}
                   style={{ animationDelay: `${0.1 + idx * 0.1}s`, animationFillMode: "forwards" }}
                 >
                   {service.popular && (
-                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#2563EB] text-[#0A0F1C] shadow-lg font-medium text-xs">
+                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-lg font-medium text-xs">
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       Most Popular
                     </Badge>
@@ -145,8 +145,8 @@ export default function PricingPage() {
                     asChild
                     className={`w-full rounded-xl h-12 font-medium magnetic-button ${
                       service.popular
-                        ? "btn-premium text-[#0A0F1C] shadow-lg shadow-[#2563EB]/20 glow-pulse"
-                        : "bg-[#0A0F1C] hover:bg-[#0A0F1C]/90 text-white"
+                        ? "btn-premium text-primary-foreground shadow-lg shadow-primary/20 glow-pulse"
+                        : "bg-foreground hover:bg-foreground/90 text-background"
                     }`}
                   >
                     <Link href={service.href}>
@@ -217,7 +217,7 @@ export default function PricingPage() {
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-full btn-premium text-[#0A0F1C] font-semibold h-12 px-8 shadow-lg group"
+                  className="rounded-full btn-premium text-primary-foreground font-semibold h-12 px-8 shadow-lg group"
                 >
                   <Link href="/medical-certificate">
                     Start a consult

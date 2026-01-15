@@ -304,7 +304,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
               onClick={() => setFilter(filterOption)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 filter === filterOption
-                  ? "bg-[#2563EB] text-[#0A0F1C]"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-white/60 text-muted-foreground hover:bg-white/80"
               }`}
             >
@@ -331,7 +331,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 {Array.from({ length: 5 }).map((_, j) => (
                   <Star
                     key={j}
-                    className={`h-4 w-4 ${j < review.rating ? "text-[#F59E0B] fill-[#F59E0B]" : "text-gray-200"}`}
+                    className={`h-4 w-4 ${j < review.rating ? "text-amber-500 fill-amber-500" : "text-gray-200"}`}
                   />
                 ))}
               </div>
@@ -341,13 +341,13 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-[#2563EB]/20">
+                <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-primary/20">
                   <Image src={review.avatar || "/placeholder.svg"} alt={review.name} fill className="object-cover" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-semibold">{review.name}</p>
-                    {review.verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB]" />}
+                    {review.verified && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
@@ -356,7 +356,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
                 </div>
               </div>
               <div className="text-right">
-                <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
                   {review.service}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">{review.date}</p>
@@ -414,19 +414,19 @@ export function ReviewsClientPageComponent() {
               <TiltCard className="glass-card rounded-2xl p-6 lg:min-w-[280px]">
                 <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <p className="text-4xl font-bold text-[#2563EB]" style={{ fontFamily: "var(--font-mono)" }}>
+                    <p className="text-4xl font-bold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
                       {avgRating}
                     </p>
                     <div className="flex gap-0.5 mt-1 justify-center">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-4 w-4 ${i < Math.round(Number(avgRating)) ? "text-[#F59E0B] fill-[#F59E0B]" : "text-gray-200"}`}
+                          className={`h-4 w-4 ${i < Math.round(Number(avgRating)) ? "text-amber-500 fill-amber-500" : "text-gray-200"}`}
                         />
                       ))}
                     </div>
                   </div>
-                  <div className="border-l border-[#0A0F1C]/10 pl-4">
+                  <div className="border-l border-foreground/10 pl-4">
                     <p className="text-2xl font-bold" style={{ fontFamily: "var(--font-mono)" }}>
                       {totalReviews}+
                     </p>
@@ -481,7 +481,7 @@ export function ReviewsClientPageComponent() {
             </p>
             <Link
               href="/auth/register"
-              className="inline-flex items-center justify-center px-8 h-14 rounded-full btn-premium text-[#0A0F1C] font-semibold text-base shadow-lg group"
+              className="inline-flex items-center justify-center px-8 h-14 rounded-full btn-premium text-primary-foreground font-semibold text-base shadow-lg group"
             >
               Get started free
               <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
