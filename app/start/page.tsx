@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import { EnhancedIntakeFlow } from "@/components/intake/enhanced-intake-flow"
 import { Suspense } from "react"
+
+export const metadata: Metadata = {
+  title: "Get Started",
+  description: "Start your telehealth consultation with InstantMed. Get medical certificates, prescriptions, or doctor consultations online in minutes.",
+}
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
