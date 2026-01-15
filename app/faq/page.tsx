@@ -207,7 +207,7 @@ export default function FAQPage() {
                   Our support team is here to help. We typically respond within 2 hours (and yes, we&apos;re actually
                   helpful).
                 </p>
-                <Button asChild className="rounded-full btn-premium text-foreground">
+                <Button asChild className="rounded-full btn-premium text-primary-foreground">
                   <Link href="/contact">
                     <MessageCircle className="mr-2 w-4 h-4" />
                     Contact Support

@@ -365,7 +365,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           </section>
 
           {/* Speed Promise */}
-          <section className="px-4 py-10 bg-foreground text-white">
+          <section className="px-4 py-10 bg-foreground text-background">
             <div className="mx-auto max-w-4xl">
               <div className="grid gap-6 sm:grid-cols-3 text-center">
                 <div>
