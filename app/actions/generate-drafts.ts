@@ -13,6 +13,7 @@ import { generateText } from "ai"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { upsertDraft, draftsExist, deleteDrafts } from "@/lib/ai/drafts"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { safeParseClinicalNoteOutput, safeParseMedCertDraftOutput } from "@/lib/ai/schemas"
 import { validateClinicalNoteAgainstIntake, validateMedCertAgainstIntake } from "@/lib/ai/validation"
 
@@ -242,6 +243,20 @@ async function generateClinicalNoteDraft(
         validationErrors: parseResult.zodErrors,
       })
       
+      // Track failure in PostHog
+      try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+          distinctId: intakeId,
+          event: 'ai_draft_failed',
+          properties: {
+            intake_id: intakeId,
+            draft_type: 'clinical_note',
+            error: parseResult.error,
+          },
+        })
+      } catch { /* non-blocking */ }
+
       return { status: "failed", error: parseResult.error }
     }
 
@@ -286,6 +301,22 @@ async function generateClinicalNoteDraft(
       promptTokens: getUsage(result.usage).promptTokens,
       completionTokens: getUsage(result.usage).completionTokens,
     })
+
+    // Track in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: intakeId,
+        event: 'ai_draft_generated',
+        properties: {
+          intake_id: intakeId,
+          draft_type: 'clinical_note',
+          duration_ms: durationMs,
+          prompt_tokens: getUsage(result.usage).promptTokens,
+          completion_tokens: getUsage(result.usage).completionTokens,
+        },
+      })
+    } catch { /* non-blocking */ }
 
     return { status: "ready" }
 
@@ -348,6 +379,20 @@ async function generateMedCertDraft(
         validationErrors: parseResult.zodErrors,
       })
       
+      // Track failure in PostHog
+      try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+          distinctId: intakeId,
+          event: 'ai_draft_failed',
+          properties: {
+            intake_id: intakeId,
+            draft_type: 'med_cert',
+            error: parseResult.error,
+          },
+        })
+      } catch { /* non-blocking */ }
+
       return { status: "failed", error: parseResult.error }
     }
 
@@ -392,6 +437,22 @@ async function generateMedCertDraft(
       promptTokens: getUsage(result.usage).promptTokens,
       completionTokens: getUsage(result.usage).completionTokens,
     })
+
+    // Track in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: intakeId,
+        event: 'ai_draft_generated',
+        properties: {
+          intake_id: intakeId,
+          draft_type: 'med_cert',
+          duration_ms: durationMs,
+          prompt_tokens: getUsage(result.usage).promptTokens,
+          completion_tokens: getUsage(result.usage).completionTokens,
+        },
+      })
+    } catch { /* non-blocking */ }
 
     return { status: "ready" }
 

@@ -239,6 +239,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     }
 
     // 5. Create the intake with pending_payment status
+    // Store category and subtype at creation for reliable retry pricing
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .insert({
@@ -247,6 +248,8 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         status: "pending_payment",
         payment_status: "pending",
         amount_cents: service.price_cents,
+        category: input.category,
+        subtype: input.subtype,
       })
       .select()
       .single()
@@ -411,11 +414,26 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: "This request has already been paid or is not awaiting payment" }
     }
 
-    // Get the price ID using service data
+    // Expire previous checkout session if it exists (P2 fix)
+    if (intake.payment_id) {
+      try {
+        await stripe.checkout.sessions.expire(intake.payment_id)
+        logger.info("Expired previous checkout session", { sessionId: intake.payment_id, intakeId })
+      } catch (expireError) {
+        // Session may already be expired or completed, that's okay
+        logger.debug("Could not expire previous session (may be completed/expired)", { 
+          sessionId: intake.payment_id, 
+          error: expireError instanceof Error ? expireError.message : String(expireError)
+        })
+      }
+    }
+
+    // Get the price ID using stored category (P1 fix - no more fragile slug inference)
     const service = intake.service as { slug: string; price_cents: number } | null
+    const storedCategory = intake.category as ServiceCategory | null
     const priceId = getPriceIdForRequest({
-      category: service?.slug?.includes("med-cert") ? "medical_certificate" : "prescription",
-      subtype: "",
+      category: storedCategory || (service?.slug?.includes("med-cert") ? "medical_certificate" : "prescription"),
+      subtype: intake.subtype || "",
       answers: {},
     })
 

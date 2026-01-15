@@ -99,8 +99,8 @@ export function OneHourPromise() {
                   <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
                     <FileCheck className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-white mb-1">98%</p>
-                  <p className="text-sm text-indigo-100">approval rate</p>
+                  <p className="text-3xl font-bold text-white mb-1">AHPRA</p>
+                  <p className="text-sm text-indigo-100">registered doctors</p>
                 </div>
                 
                 <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">

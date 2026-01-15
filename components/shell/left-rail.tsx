@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Stethoscope,
-  ClipboardList
+  ClipboardList,
+  Activity
 } from 'lucide-react'
 import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
@@ -45,6 +46,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
   const navItems = userRole === 'patient' ? [
     { icon: Home, label: 'Overview', href: '/patient' },
     { icon: FileText, label: 'My Requests', href: '/patient/requests' },
+    { icon: Activity, label: 'Health Summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
     { icon: Settings, label: 'Settings', href: '/patient/settings' },
   ] : [

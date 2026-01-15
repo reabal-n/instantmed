@@ -139,11 +139,6 @@ function JsonLd() {
       "@type": "PostalAddress",
       addressCountry: "AU",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: -33.8688,
-      longitude: 151.2093,
-    },
     areaServed: {
       "@type": "Country",
       name: "Australia",

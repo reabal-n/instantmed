@@ -1,6 +1,6 @@
 "use server"
 
-import { logger } from "../logger"
+import { logger } from "@/lib/observability/logger"
 
 import { env } from "../env"
 
@@ -45,6 +45,43 @@ interface EmailResult {
   error?: string
 }
 
+// P1 FIX: Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelayMs: 1000, // 1 second
+  maxDelayMs: 10000, // 10 seconds
+}
+
+/**
+ * Calculate exponential backoff delay
+ */
+function getRetryDelay(attempt: number): number {
+  const delay = RETRY_CONFIG.baseDelayMs * Math.pow(2, attempt)
+  return Math.min(delay, RETRY_CONFIG.maxDelayMs)
+}
+
+/**
+ * Sleep for specified milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Check if error is retryable (network issues, rate limits, server errors)
+ */
+function isRetryableError(statusCode?: number, errorMessage?: string): boolean {
+  // Rate limit
+  if (statusCode === 429) return true
+  // Server errors
+  if (statusCode && statusCode >= 500) return true
+  // Network errors
+  if (errorMessage?.includes("fetch failed")) return true
+  if (errorMessage?.includes("ECONNRESET")) return true
+  if (errorMessage?.includes("ETIMEDOUT")) return true
+  return false
+}
+
 // ============================================
 // CORE EMAIL SENDER
 // ============================================
@@ -68,49 +105,79 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
     return { success: true, id: `dev-${Date.now()}` }
   }
 
-  try {
-    const body: Record<string, unknown> = {
-      from,
-      to: [to],
-      subject,
-      html,
-      reply_to: replyTo,
-      tags,
-    }
-
-    // Add attachments if provided
-    if (params.attachments && params.attachments.length > 0) {
-      body.attachments = params.attachments.map((att) => ({
-        filename: att.filename,
-        content: att.content,
-        type: att.type || "application/pdf",
-        disposition: att.disposition || "attachment",
-      }))
-    }
-
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    })
-
-    const data: ResendResponse = await response.json()
-
-    if (!response.ok) {
-      logger.error("[Resend Error] " + (data.error?.message || JSON.stringify(data.error)), data.error)
-      return { success: false, error: data.error?.message || "Failed to send email" }
-    }
-    logger.info(`[Resend] Email sent to ${to}, id: ${data.id}`)
-    return { success: true, id: data.id }
-  } catch (error) {
-    logger.error("[Resend Error] " + (error instanceof Error ? error.message : String(error)), {
-      error,
-    })
-    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
+  const body: Record<string, unknown> = {
+    from,
+    to: [to],
+    subject,
+    html,
+    reply_to: replyTo,
+    tags,
   }
+
+  // Add attachments if provided
+  if (params.attachments && params.attachments.length > 0) {
+    body.attachments = params.attachments.map((att) => ({
+      filename: att.filename,
+      content: att.content,
+      type: att.type || "application/pdf",
+      disposition: att.disposition || "attachment",
+    }))
+  }
+
+  // P1 FIX: Retry loop with exponential backoff
+  let lastError: string | undefined
+  
+  for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = getRetryDelay(attempt - 1)
+        logger.info(`[Resend] Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries} after ${delay}ms`, { to, subject })
+        await sleep(delay)
+      }
+
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      })
+
+      const data: ResendResponse = await response.json()
+
+      if (!response.ok) {
+        lastError = data.error?.message || "Failed to send email"
+        
+        // Check if we should retry
+        if (isRetryableError(response.status, lastError) && attempt < RETRY_CONFIG.maxRetries) {
+          logger.warn(`[Resend] Retryable error (${response.status}): ${lastError}`, { to, attempt })
+          continue
+        }
+        
+        logger.error("[Resend Error] " + lastError, data.error)
+        return { success: false, error: lastError }
+      }
+      
+      logger.info(`[Resend] Email sent to ${to}, id: ${data.id}${attempt > 0 ? ` (attempt ${attempt + 1})` : ""})`)
+      return { success: true, id: data.id }
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : "Unknown error"
+      
+      // Check if we should retry network errors
+      if (isRetryableError(undefined, lastError) && attempt < RETRY_CONFIG.maxRetries) {
+        logger.warn(`[Resend] Network error, will retry: ${lastError}`, { to, attempt })
+        continue
+      }
+      
+      logger.error("[Resend Error] " + lastError, { error })
+      return { success: false, error: lastError }
+    }
+  }
+
+  // Should not reach here, but safety return
+  return { success: false, error: lastError || "Max retries exceeded" }
 }
 
 // ============================================
@@ -209,7 +276,7 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
         <!-- View Request Link -->
         <p style="font-size: 14px; color: #666;">
           You can also view your request and download your certificate from your 
-          <a href="${appUrl}/patient/requests/${requestId}" style="color: #00C9A7; font-weight: 500;">patient dashboard</a>.
+          <a href="${appUrl}/patient/intakes/${requestId}" style="color: #00C9A7; font-weight: 500;">patient dashboard</a>.
         </p>
         
         <!-- Help -->
@@ -465,7 +532,7 @@ export async function sendRequestDeclinedEmail(
       </p>
       
       <p>
-        <a href="${appUrl}/patient/requests/${requestId}" style="display: inline-block; background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
+        <a href="${appUrl}/patient/intakes/${requestId}" style="display: inline-block; background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">
           View Request Details
         </a>
       </p>

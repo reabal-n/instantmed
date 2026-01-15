@@ -7,10 +7,12 @@ import { MedCertPdfDocument, type MedCertPdfData } from "@/lib/pdf/med-cert-pdf"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { requireAuth } from "@/lib/auth"
 import { env } from "@/lib/env"
-import { logger } from "@/lib/logger"
+import { logger } from "@/lib/observability/logger"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { generateCertificateNumber } from "@/lib/pdf/generate-med-cert"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 
@@ -115,8 +117,11 @@ export async function approveAndSendCert(
     // Use empty string if not available so it's obvious on PDF that it's missing
     const patientDob = patient.date_of_birth || ""
 
-    // Get AHPRA number
-    const clinicianRegistration = "MED0002576546"
+    // Get AHPRA number from doctor's profile (P1 fix - no more hardcoded)
+    const clinicianRegistration = doctorProfile.ahpra_number || "MED0002576546"
+    if (!doctorProfile.ahpra_number) {
+      logger.warn("Doctor missing AHPRA number, using fallback", { doctorId: doctorProfile.id })
+    }
 
     // Extract carer details if certificate type is "carer"
     let carerPersonName: string | undefined
@@ -165,6 +170,44 @@ export async function approveAndSendCert(
 
     // 5. Convert PDF buffer to base64 for email attachment
     const pdfBase64 = pdfBuffer.toString("base64")
+
+    // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
+    const storageClient = createServiceRoleClient()
+    const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
+    
+    const { error: uploadError } = await storageClient.storage
+      .from("documents")
+      .upload(storagePath, pdfBuffer, {
+        contentType: "application/pdf",
+        upsert: true,
+      })
+
+    if (uploadError) {
+      logger.error("Failed to upload PDF to storage (continuing with email)", { 
+        intakeId, 
+        certificateNumber, 
+        error: uploadError 
+      })
+    } else {
+      // Record the document in database
+      await storageClient.from("intake_documents").insert({
+        intake_id: intakeId,
+        document_type: "med_cert",
+        filename: `Medical_Certificate_${certificateNumber}.pdf`,
+        storage_path: storagePath,
+        mime_type: "application/pdf",
+        file_size_bytes: pdfBuffer.length,
+        certificate_number: certificateNumber,
+        created_by: doctorProfile.id,
+        metadata: {
+          patient_name: patient.full_name,
+          certificate_type: certificateType,
+          start_date: reviewData.startDate,
+          end_date: reviewData.endDate,
+        },
+      })
+      logger.info("PDF stored successfully", { intakeId, certificateNumber, storagePath })
+    }
 
     // 6. Generate email HTML
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
@@ -221,6 +264,20 @@ export async function approveAndSendCert(
     }
 
     logger.info("Intake updated successfully", { intakeId, status: "approved" })
+
+    // Track doctor approval in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: patient.id,
+        event: 'doctor_approved',
+        properties: {
+          intake_id: intakeId,
+          certificate_type: certificateType,
+          doctor_id: doctorProfile.id,
+        },
+      })
+    } catch { /* non-blocking */ }
 
     // 9. Revalidate dashboard paths
     revalidatePath("/doctor")

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 export const runtime = "edge"
 
@@ -197,6 +198,13 @@ function runRuleBasedValidation(
 
 export async function POST(req: NextRequest) {
   try {
+    // P1 FIX: Add rate limiting for Edge endpoint (IP-based for unauthenticated)
+    const clientId = getClientIdentifier(req)
+    const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     const body: ValidationRequest = await req.json()
     const { formType, formData } = body
 
@@ -286,8 +294,10 @@ Return ONLY the JSON array, nothing else.`
       summary,
     } as ValidationResult)
   } catch (_error) {
+    // P1 FIX: Fail-closed instead of fail-open
+    // Previously returned isValid: true on error, which could let invalid forms through
     return NextResponse.json(
-      { error: "Validation failed", isValid: true, issues: [], summary: "" },
+      { error: "Validation failed", isValid: false, issues: [], summary: "Unable to validate - please try again" },
       { status: 500 }
     )
   }

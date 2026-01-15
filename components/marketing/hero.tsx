@@ -125,10 +125,10 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           {[
-            { value: "10,000+", label: "Patients helped", icon: Users },
             { value: "4.9", label: "Average rating", icon: Star, showStars: true },
-            { value: "12 min", label: "Avg. response", icon: Zap },
-            { value: "98%", label: "Employer acceptance", icon: CheckCircle2 },
+            { value: "<30 min", label: "Typical response", icon: Zap },
+            { value: "7 days", label: "A week availability", icon: Users },
+            { value: "AHPRA", label: "Registered doctors", icon: CheckCircle2 },
           ].map((stat) => (
             <motion.div
               key={stat.label}

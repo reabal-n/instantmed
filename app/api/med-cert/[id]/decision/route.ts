@@ -1,3 +1,16 @@
+/**
+ * @deprecated This route is DEPRECATED - uses legacy med_cert_requests table.
+ * 
+ * The canonical approval flow is now:
+ * - @/app/actions/approve-cert.ts (server action using intakes table)
+ * - Called via @/app/doctor/intakes/[id]/document/actions.ts
+ * 
+ * This route is kept for backwards compatibility with any existing
+ * integrations but should not be used for new development.
+ * 
+ * Migration: All new approvals should go through the intakes-based flow.
+ */
+
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { headers } from "next/headers"

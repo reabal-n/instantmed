@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { XCircle, ArrowLeft, CreditCard } from "lucide-react"
+import { CancelledPageTracker } from "./tracker"
 
 export const dynamic = "force-dynamic"
 
@@ -13,6 +14,8 @@ export default async function PaymentCancelledPage({
   const intakeId = params.intake_id
 
   return (
+    <>
+      <CancelledPageTracker intakeId={intakeId} />
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="max-w-lg mx-auto px-4">
         <div className="glass-card rounded-3xl p-8 text-center">
@@ -54,5 +57,6 @@ export default async function PaymentCancelledPage({
         </div>
       </div>
     </div>
+    </>
   )
 }

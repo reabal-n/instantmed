@@ -40,6 +40,12 @@ export interface Intake {
   reference_number: string
   status: IntakeStatus
   previous_status: IntakeStatus | null
+  // Category stored at creation for reliable retry
+  category: string | null
+  subtype: string | null
+  // Concurrent review lock
+  claimed_by: string | null
+  claimed_at: string | null
   // Priority and SLA
   is_priority: boolean
   sla_deadline: string | null
@@ -98,6 +104,57 @@ export interface Intake {
   client_user_agent: string | null
   created_at: string
   updated_at: string
+}
+
+// Table: intake_documents (PDF storage)
+export interface IntakeDocument {
+  id: string
+  intake_id: string
+  document_type: string
+  filename: string
+  storage_path: string
+  mime_type: string
+  file_size_bytes: number | null
+  certificate_number: string | null
+  verification_code: string | null
+  metadata: Record<string, unknown>
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Table: decline_reason_templates
+export interface DeclineReasonTemplate {
+  id: string
+  code: string
+  label: string
+  description: string | null
+  email_template: string | null
+  display_order: number
+  is_active: boolean
+  requires_note: boolean
+  service_types: string[]
+  created_at: string
+  updated_at: string
+}
+
+// Table: stripe_webhook_dead_letter
+export interface WebhookDeadLetter {
+  id: string
+  event_id: string
+  event_type: string
+  session_id: string | null
+  intake_id: string | null
+  error_message: string
+  error_code: string | null
+  payload: Record<string, unknown> | null
+  retry_count: number
+  max_retries: number
+  last_retry_at: string | null
+  resolved_at: string | null
+  resolved_by: string | null
+  resolution_notes: string | null
+  created_at: string
 }
 
 // Table: intake_answers
@@ -258,6 +315,7 @@ export interface Profile {
   medicare_expiry_year: string | null
   // Doctor-specific fields
   ahpra_number?: string | null // AHPRA registration number for doctors
+  provider_number?: string | null // Medicare provider number for doctors
   // Consent and onboarding
   consent_myhr: boolean
   my_health_record_consent: boolean
@@ -548,6 +606,15 @@ export interface AIDocumentDraft {
   generation_duration_ms: number | null
   validation_errors: unknown[] | null
   ground_truth_errors: unknown[] | null
+  // Approval workflow fields (AI audit migration)
+  approved_by: string | null
+  approved_at: string | null
+  rejected_by: string | null
+  rejected_at: string | null
+  rejection_reason: string | null
+  version: number
+  edited_content: Record<string, unknown> | null
+  input_hash: string | null
   created_at: string
   updated_at: string
 }

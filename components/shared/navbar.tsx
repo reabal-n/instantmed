@@ -230,7 +230,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false)
+  const [_servicesDropdownOpen, _setServicesDropdownOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const { theme } = useTheme()
@@ -287,42 +287,40 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
-                  {/* Services Dropdown */}
-                  <div 
-                    className="relative"
-                    onMouseEnter={() => setServicesDropdownOpen(true)}
-                    onMouseLeave={() => setServicesDropdownOpen(false)}
-                  >
-                    <button 
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1"
+                  {/* Services Dropdown - Keyboard accessible via HeroUI */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button 
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1"
+                        aria-haspopup="menu"
+                      >
+                        Services
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      className="w-64 p-2"
                     >
-                      Services
-                      <ChevronDown className={cn("h-3 w-3 transition-transform", servicesDropdownOpen && "rotate-180")} />
-                    </button>
-                    
-                    {servicesDropdownOpen && (
-                      <div className="absolute top-full left-0 pt-2 z-[100]">
-                        <div className="w-64 bg-white/85 dark:bg-slate-900/80 backdrop-blur-xl border border-white/50 dark:border-white/15 rounded-2xl shadow-[0_12px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_12px_40px_rgb(139,92,246,0.2)] p-2 space-y-1">
-                          <div className="px-2 py-1.5">
-                            <p className="text-xs font-medium text-muted-foreground">Core Services</p>
-                          </div>
-                          {services.map((service) => (
-                            <Link
-                              key={service.href}
-                              href={service.href}
-                              className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group"
-                            >
-                              <service.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                              <div>
-                                <p className="text-sm font-medium">{service.title}</p>
-                                <p className="text-xs text-muted-foreground">{service.description}</p>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
+                      <div className="px-2 py-1.5">
+                        <p className="text-xs font-medium text-muted-foreground">Core Services</p>
                       </div>
-                    )}
-                  </div>
+                      {services.map((service) => (
+                        <DropdownMenuItem key={service.href} asChild className="p-0">
+                          <Link
+                            href={service.href}
+                            className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group w-full"
+                          >
+                            <service.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">{service.title}</p>
+                              <p className="text-xs text-muted-foreground">{service.description}</p>
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   <ScrollNavLink sectionId="how-it-works" isActive={pathname === "/how-it-works"}>
                     How it works

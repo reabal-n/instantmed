@@ -8,6 +8,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { SectionPill } from "@/components/ui/section-pill"
 import { GlowingBorder } from "@/components/ui/glowing-effect"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 const services = [
   {
@@ -16,7 +17,7 @@ const services = [
     description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     icon: FileText,
     href: "/medical-certificate",
-    price: "$29",
+    price: PRICING_DISPLAY.MED_CERT,
     estimatedTime: "~1 hour",
     popular: true,
     features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
@@ -30,7 +31,7 @@ const services = [
     description: "Need your regular medications? We'll send a script to your pharmacy.",
     icon: Pill,
     href: "/prescriptions",
-    price: "$39",
+    price: PRICING_DISPLAY.REPEAT_SCRIPT,
     estimatedTime: "~1 hour",
     popular: false,
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],

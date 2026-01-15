@@ -40,9 +40,9 @@ Sentry.init({
     "Non-Error promise rejection",
   ],
 
-  // Enable sending user PII (Personally Identifiable Information)
+  // Disable sending user PII (Personally Identifiable Information)
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 
   beforeSend(event) {
     // Don't send events in development

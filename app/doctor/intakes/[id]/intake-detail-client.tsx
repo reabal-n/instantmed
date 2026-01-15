@@ -44,6 +44,8 @@ import {
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
+import type { AIDraft } from "@/app/actions/draft-approval"
+import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithDetails
@@ -51,6 +53,7 @@ interface IntakeDetailClientProps {
   maskedMedicare: string
   previousIntakes?: IntakeWithPatient[]
   initialAction?: string
+  aiDrafts?: AIDraft[]
 }
 
 const DECLINE_REASONS: { code: DeclineReasonCode; label: string }[] = [
@@ -71,6 +74,7 @@ export function IntakeDetailClient({
   maskedMedicare,
   previousIntakes = [],
   initialAction,
+  aiDrafts = [],
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -295,6 +299,16 @@ export function IntakeDetailClient({
           )}
         </CardContent>
       </Card>
+
+      {/* AI-Generated Drafts */}
+      {aiDrafts.length > 0 && (
+        <DraftReviewPanel
+          drafts={aiDrafts}
+          intakeId={intake.id}
+          onDraftApproved={() => router.refresh()}
+          onDraftRejected={() => router.refresh()}
+        />
+      )}
 
       {/* Doctor Notes */}
       <Card>

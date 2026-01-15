@@ -3,6 +3,7 @@ import { streamText } from "ai"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
+import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 
 const log = createLogger("ai-chat-intake")
 
@@ -227,6 +228,33 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // P1 FIX: Check for prompt injection in user messages
+    const userMessages = messages.filter(m => m.role === "user")
+    const latestUserMessage = userMessages[userMessages.length - 1]?.content || ""
+    
+    const safetyCheck = checkAndSanitize(latestUserMessage, {
+      endpoint: "chat-intake",
+      userId: user?.id,
+    })
+    
+    if (safetyCheck.blocked) {
+      log.warn("Prompt injection blocked", {
+        userId: user?.id || "anonymous",
+        messageLength: latestUserMessage.length,
+      })
+      // Return a generic response that doesn't reveal the block reason
+      return new Response(
+        "I'm sorry, I couldn't process that message. Could you rephrase what you're looking for help with?",
+        { status: 200, headers: { "Content-Type": "text/plain" } }
+      )
+    }
+
+    // Sanitize messages before sending to AI
+    const sanitizedMessages = messages.map(m => ({
+      ...m,
+      content: m.role === "user" ? checkAndSanitize(m.content, { endpoint: "chat-intake" }).output : m.content
+    }))
+
     log.info("Chat intake request", { 
       messageCount: messages.length,
       userId: user?.id || "anonymous"
@@ -236,7 +264,7 @@ export async function POST(request: NextRequest) {
     const result = streamText({
       model: "openai/gpt-4o-mini",
       system: SYSTEM_PROMPT,
-      messages,
+      messages: sanitizedMessages,
     })
 
     return result.toTextStreamResponse()

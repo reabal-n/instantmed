@@ -25,10 +25,10 @@ const statsData = [
   },
   {
     icon: Users,
-    value: 50000,
-    label: "Patients Helped",
-    suffix: "+",
-    description: "And growing every day",
+    value: 7,
+    label: "Days a Week",
+    suffix: "",
+    description: "Available when you need us",
     color: "bg-violet-500",
   },
   {

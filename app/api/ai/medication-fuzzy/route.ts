@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { createClient } from "@/lib/supabase/server"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
 
 export const runtime = "edge"
 
@@ -8,7 +9,7 @@ export const runtime = "edge"
  * AI-Powered Medication Fuzzy Search
  * 
  * Uses GPT to interpret typos, brand names, and colloquial medication names
- * and map them to proper search terms for the ARTG database.
+ * and map them to proper search terms for the PBS API.
  * 
  * This is REFERENCE ONLY for patient recall, NOT for prescribing.
  */
@@ -65,6 +66,13 @@ const TYPO_CORRECTIONS: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
+    // P1 FIX: Add rate limiting for Edge endpoint (IP-based for unauthenticated)
+    const clientId = getClientIdentifier(req)
+    const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     const body: FuzzySearchRequest = await req.json()
     const { query } = body
 
@@ -123,35 +131,29 @@ Return ONLY the JSON array, nothing else:`,
       }
     }
 
-    // Step 4: Search the database with all terms
+    // Step 4: Search PBS API with all terms
     const allSearchTerms = [...new Set([...searchTerms, ...aiSuggestions])]
     
-    const supabase = await createClient()
     const results: Array<{
-      artg_id: string
-      product_name: string | null
-      active_ingredients_raw: string | null
-      dosage_form: string | null
-      route: string | null
+      pbs_code: string
+      drug_name: string
+      form: string | null
+      strength: string | null
+      manufacturer: string | null
       match_type: string
     }> = []
 
     // Search for each term
     for (const term of allSearchTerms.slice(0, 3)) {
-      const { data } = await supabase.rpc("search_artg_products", {
-        search_query: term,
-        result_limit: 5,
-      })
+      const pbsResults = await searchPBSItemsEnhanced(term, 5)
 
-      if (data) {
-        for (const row of data) {
-          // Avoid duplicates
-          if (!results.find(r => r.artg_id === row.artg_id)) {
-            results.push({
-              ...row,
-              match_type: term === normalizedQuery ? "exact" : "fuzzy",
-            })
-          }
+      for (const row of pbsResults) {
+        // Avoid duplicates
+        if (!results.find(r => r.pbs_code === row.pbs_code)) {
+          results.push({
+            ...row,
+            match_type: term === normalizedQuery ? "exact" : "fuzzy",
+          })
         }
       }
     }

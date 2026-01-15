@@ -153,7 +153,7 @@ export function SuccessCelebration({ type = "request", requestId, showConfetti =
           </Button>
           {requestId && (
             <Button asChild variant="outline" size="lg" className="w-full">
-              <Link href={`/patient/requests/${requestId}`}>{BUTTONS.viewRequest}</Link>
+              <Link href={`/patient/intakes/${requestId}`}>{BUTTONS.viewRequest}</Link>
             </Button>
           )}
         </div>

@@ -43,6 +43,7 @@ function generateStoragePath(
 
 /**
  * Get the public URL for a document in storage.
+ * @deprecated Use getSignedUrl for secure access
  */
 function getPublicUrl(storagePath: string): string {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -52,6 +53,34 @@ function getPublicUrl(storagePath: string): string {
   
   // Public bucket URL format
   return `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${storagePath}`
+}
+
+/**
+ * P1 FIX: Generate a signed URL for secure document access
+ * Signed URLs expire after the specified duration (default 7 days)
+ */
+export async function getSignedUrl(
+  storagePath: string,
+  expiresInSeconds: number = 7 * 24 * 60 * 60 // 7 days default
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const supabase = getStorageClient()
+    
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .createSignedUrl(storagePath, expiresInSeconds)
+
+    if (error || !data?.signedUrl) {
+      return { success: false, error: error?.message || "Failed to create signed URL" }
+    }
+
+    return { success: true, url: data.signedUrl }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    }
+  }
 }
 
 export interface UploadDocumentResult {
@@ -119,14 +148,18 @@ export async function uploadPdfBuffer(
           return { success: false, error: `Upload failed: ${retryError.message}` }
         }
 
-        const permanentUrl = getPublicUrl(retryPath)
+        // P1 FIX: Use signed URL instead of public URL
+        const signedResult = await getSignedUrl(retryPath)
+        const permanentUrl = signedResult.success ? signedResult.url! : getPublicUrl(retryPath)
         return { success: true, permanentUrl, storagePath: retryPath }
       }
 
       return { success: false, error: `Upload failed: ${uploadError.message}` }
     }
 
-    const permanentUrl = getPublicUrl(storagePath)
+    // P1 FIX: Use signed URL instead of public URL
+    const signedResult = await getSignedUrl(storagePath)
+    const permanentUrl = signedResult.success ? signedResult.url! : getPublicUrl(storagePath)
     return { success: true, permanentUrl, storagePath }
 
   } catch (error) {

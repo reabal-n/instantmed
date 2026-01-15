@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Check, Clock, PhoneOff, Phone } from 'lucide-react'
-import { Card, CardBody, CardFooter, Divider } from '@heroui/react'
+import { Divider } from '@heroui/react'
 import { 
   MensHealthIcon, 
   WomensHealthIcon, 

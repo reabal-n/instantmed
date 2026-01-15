@@ -343,6 +343,20 @@ const weightRules: SafetyRule[] = [
     services: ['weight-management'],
   },
   {
+    id: 'weight_men2_thyroid_cancer',
+    name: 'MEN2 or Medullary Thyroid Cancer History',
+    description: 'Patient or family has history of MEN2 syndrome or medullary thyroid cancer - absolute contraindication for GLP-1 agonists',
+    conditions: [
+      { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Due to your personal or family history of medullary thyroid cancer or MEN2 syndrome, GLP-1 weight loss medications are not suitable for you. Please discuss alternative options with your GP.',
+    doctorNote: 'MEN2/medullary thyroid cancer history - absolute contraindication for GLP-1 agonists per TGA guidelines',
+    priority: 950,
+    services: ['weight-management'],
+  },
+  {
     id: 'weight_heart_disease',
     name: 'Heart Disease',
     description: 'Patient has heart disease',

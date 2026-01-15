@@ -11,7 +11,7 @@ import { createClient } from "@supabase/supabase-js"
 import { MedCertPdfDocument, type MedCertPdfData } from "./med-cert-pdf"
 import { uploadPdfBuffer } from "../storage/documents"
 import { sendMedCertReadyEmail } from "../email/resend"
-import { logger } from "../logger"
+import { logger } from "@/lib/observability/logger"
 import crypto from "crypto"
 
 // ============================================================================
@@ -110,6 +110,27 @@ export async function generateMedCertPdf(
   } = params
 
   try {
+    // P0 FIX: Idempotency check - return existing certificate if one exists
+    const supabase = getServiceClient()
+    const { data: existingCert } = await supabase
+      .from("med_cert_certificates")
+      .select("id, pdf_url, pdf_hash")
+      .eq("request_id", requestId)
+      .eq("is_valid", true)
+      .maybeSingle()
+
+    if (existingCert) {
+      logger.info("[MedCertPdf] Certificate already exists, returning existing", {
+        requestId,
+        certificateId: existingCert.id,
+      })
+      return {
+        success: true,
+        certificateId: existingCert.id,
+        pdfUrl: existingCert.pdf_url,
+        pdfHash: existingCert.pdf_hash,
+      }
+    }
     const generatedAt = new Date().toISOString()
     const watermark = generateWatermark(certificateNumber)
 
@@ -133,17 +154,24 @@ export async function generateMedCertPdf(
 
     logger.info("[MedCertPdf] Generating PDF", { certificateNumber, requestId })
 
-    // Render PDF to stream using react-pdf
-    const pdfStream = await ReactPDF.renderToStream(
-      <MedCertPdfDocument data={pdfData} />
-    )
-
-    // Convert stream to buffer
-    const chunks: Buffer[] = []
-    for await (const chunk of pdfStream) {
-      chunks.push(Buffer.from(chunk))
-    }
-    const pdfBuffer = Buffer.concat(chunks)
+    // P2 FIX: Add timeout to PDF generation (30 seconds)
+    const PDF_TIMEOUT_MS = 30_000
+    
+    const pdfBuffer = await Promise.race([
+      (async () => {
+        const pdfStream = await ReactPDF.renderToStream(
+          <MedCertPdfDocument data={pdfData} />
+        )
+        const chunks: Buffer[] = []
+        for await (const chunk of pdfStream) {
+          chunks.push(Buffer.from(chunk))
+        }
+        return Buffer.concat(chunks)
+      })(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("PDF generation timed out after 30s")), PDF_TIMEOUT_MS)
+      ),
+    ])
 
     logger.info("[MedCertPdf] PDF rendered", { 
       certificateNumber, 
@@ -175,8 +203,6 @@ export async function generateMedCertPdf(
     })
 
     // Store certificate record in database
-    const supabase = getServiceClient()
-    
     const { data: certificate, error: insertError } = await supabase
       .from("med_cert_certificates")
       .insert({

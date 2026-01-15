@@ -19,9 +19,6 @@ import {
 } from "lucide-react"
 import type { Metadata } from "next"
 
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Performance Anxiety Consultation Online Australia | InstantMed",
   description:

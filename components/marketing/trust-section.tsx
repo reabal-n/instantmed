@@ -33,9 +33,9 @@ const trustCards: CardData[] = [
 ]
 
 const stats = [
-  { value: '50,000+', label: 'Requests completed', icon: Users },
-  { value: '<1 hour', label: 'Average turnaround', icon: Clock },
-  { value: '98%', label: 'Approval rate', icon: CheckCircle },
+  { value: '<30 min', label: 'Typical response', icon: Clock },
+  { value: '7 days', label: 'A week availability', icon: Users },
+  { value: 'AHPRA', label: 'Registered doctors', icon: CheckCircle },
   { value: '4.9★', label: 'Patient rating', icon: Award },
 ]
 

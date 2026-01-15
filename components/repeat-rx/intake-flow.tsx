@@ -30,7 +30,7 @@ import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import type { User } from "@supabase/supabase-js"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
 import { REPEAT_RX_COPY } from "@/lib/microcopy/repeat-rx"
 import type {
   RepeatRxStep,
@@ -478,7 +478,7 @@ export function RepeatRxIntakeFlow({
   const [error, setError] = useState<string | null>(null)
   
   // Form state
-  const [medication, setMedication] = useState<SelectedArtgProduct | null>(null)
+  const [medication, setMedication] = useState<SelectedPBSProduct | null>(null)
   const [_medicationSearchUsed, setMedicationSearchUsed] = useState(false)
   const [_strengthConfirmed, _setStrengthConfirmed] = useState(false)
   
@@ -841,15 +841,15 @@ export function RepeatRxIntakeFlow({
                       <p className="text-sm font-medium">{REPEAT_RX_COPY.steps.medication.strengthConfirm}</p>
                       <div className="flex items-center gap-3 p-3 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{medication.product_name}</p>
-                          {medication.active_ingredients_raw && (
+                          <p className="font-medium text-sm">{medication.drug_name}</p>
+                          {medication.strength && (
                             <p className="text-sm text-muted-foreground line-clamp-1">
-                              {medication.active_ingredients_raw}
+                              {medication.strength}
                             </p>
                           )}
-                          {medication.dosage_form && (
+                          {medication.form && (
                             <p className="text-xs text-muted-foreground/70">
-                              {medication.dosage_form}
+                              {medication.form}
                             </p>
                           )}
                         </div>
@@ -1313,15 +1313,15 @@ export function RepeatRxIntakeFlow({
                       <p className="text-xs text-muted-foreground mb-1">
                         {REPEAT_RX_COPY.steps.review.medication}
                       </p>
-                      <p className="font-medium">{medication?.product_name}</p>
-                      {medication?.active_ingredients_raw && (
+                      <p className="font-medium">{medication?.drug_name}</p>
+                      {medication?.strength && (
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {medication.active_ingredients_raw}
+                          {medication.strength}
                         </p>
                       )}
-                      {medication?.dosage_form && (
+                      {medication?.form && (
                         <p className="text-xs text-muted-foreground/70">
-                          {medication.dosage_form}
+                          {medication.form}
                         </p>
                       )}
                     </div>

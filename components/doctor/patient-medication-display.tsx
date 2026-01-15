@@ -14,23 +14,23 @@ import { cn } from "@/lib/utils"
  */
 
 interface PatientMedicationDisplayProps {
-  artgId: string | null
-  productName: string | null
-  activeIngredients?: string | null
-  dosageForm?: string | null
+  pbsCode: string | null
+  drugName: string | null
+  strength?: string | null
+  form?: string | null
   patientTypedValue?: string | null
   className?: string
 }
 
 export function PatientMedicationDisplay({
-  artgId,
-  productName,
-  activeIngredients,
-  dosageForm,
+  pbsCode,
+  drugName,
+  strength,
+  form,
   patientTypedValue,
   className,
 }: PatientMedicationDisplayProps) {
-  const hasSelection = artgId && productName
+  const hasSelection = pbsCode && drugName
   const hasTypedValue = patientTypedValue && !hasSelection
 
   if (!hasSelection && !hasTypedValue) {
@@ -62,26 +62,26 @@ export function PatientMedicationDisplay({
 
           {hasSelection ? (
             <>
-              <p className="font-medium text-foreground">{productName}</p>
-              {activeIngredients && (
+              <p className="font-medium text-foreground">{drugName}</p>
+              {strength && (
                 <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-                  {activeIngredients}
+                  {strength}
                 </p>
               )}
-              {dosageForm && (
+              {form && (
                 <p className="text-xs text-muted-foreground/70 mt-0.5">
-                  {dosageForm}
+                  {form}
                 </p>
               )}
               <p className="text-xs text-muted-foreground mt-2">
-                ARTG ID: {artgId}
+                PBS Code: {pbsCode}
               </p>
             </>
           ) : (
             <>
               <p className="font-medium text-foreground">{patientTypedValue}</p>
               <p className="text-xs text-muted-foreground mt-1 italic">
-                Custom entry (not matched to ARTG)
+                Custom entry (not matched to PBS)
               </p>
             </>
           )}

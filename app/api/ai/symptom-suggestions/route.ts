@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 export const runtime = "edge"
 
@@ -11,6 +12,13 @@ interface SuggestionRequest {
 
 export async function POST(req: NextRequest) {
   try {
+    // P1 FIX: Add rate limiting for Edge endpoint (IP-based for unauthenticated)
+    const clientId = getClientIdentifier(req)
+    const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     const body: SuggestionRequest = await req.json()
     const { input, context, isCarer } = body
 

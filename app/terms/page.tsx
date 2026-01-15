@@ -2,9 +2,6 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Terms of Service | InstantMed",
   description: "Terms and conditions for using InstantMed telehealth services.",
@@ -86,7 +83,33 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">7. Limitation of Liability</h2>
+              <h2 className="text-xl font-semibold mb-4">7. Telehealth Consent</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                By using InstantMed, you consent to receiving healthcare services via telehealth (online 
+                consultation). You understand and agree that:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                <li>
+                  Consultations are primarily conducted asynchronously (text-based) without video or phone calls, 
+                  unless the doctor determines otherwise
+                </li>
+                <li>
+                  A doctor may request a phone or video consultation if clinically necessary
+                </li>
+                <li>
+                  Electronic prescriptions and medical certificates are delivered via email or SMS
+                </li>
+                <li>
+                  Your health information is stored securely and may be accessed by treating clinicians
+                </li>
+                <li>
+                  Telehealth has limitations and some conditions require in-person examination
+                </li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">8. Limitation of Liability</h2>
               <p className="text-muted-foreground leading-relaxed">
                 To the maximum extent permitted by law, InstantMed shall not be liable for any indirect, incidental,
                 special, consequential, or punitive damages arising from your use of our services. Our total liability
@@ -95,7 +118,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">8. Contact</h2>
+              <h2 className="text-xl font-semibold mb-4">9. Contact</h2>
               <p className="text-muted-foreground leading-relaxed">
                 For questions about these terms, please contact us at{" "}
                 <a href="mailto:legal@instantmed.com.au" className="text-[#2563EB] hover:underline">

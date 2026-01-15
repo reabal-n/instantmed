@@ -84,19 +84,19 @@ export const SkyBackground = ({
         />
 
         {/* Back layer - 2 large slow clouds */}
-        <div className="absolute inset-0 sky-layer-back">
+        <div className="absolute inset-0 sky-layer-back motion-safe:animate-cloud-drift">
           <div className="cloud cloud-back-1" />
           <div className="cloud cloud-back-2" />
         </div>
         
         {/* Mid layer - 2 medium clouds */}
-        <div className="absolute inset-0 sky-layer-mid">
+        <div className="absolute inset-0 sky-layer-mid motion-safe:animate-cloud-drift">
           <div className="cloud cloud-mid-1" />
           <div className="cloud cloud-mid-2" />
         </div>
         
         {/* Front layer - 1 small cloud */}
-        <div className="absolute inset-0 sky-layer-front">
+        <div className="absolute inset-0 sky-layer-front motion-safe:animate-cloud-drift">
           <div className="cloud cloud-front-1" />
         </div>
       </div>

@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { getPostHogClient } from "@/lib/posthog-server"
 const log = createLogger("route")
 import { NextResponse } from "next/server"
 
@@ -107,6 +108,20 @@ export async function GET(
     const pdfBuffer = await pdfResponse.arrayBuffer()
 
     log.info(`[document-download] Successfully downloaded ${requestId} (${pdfBuffer.byteLength} bytes)`)
+
+    // Track document download in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: userId,
+        event: 'document_downloaded',
+        properties: {
+          intake_id: requestId,
+          document_type: 'med_cert',
+          file_size_bytes: pdfBuffer.byteLength,
+        },
+      })
+    } catch { /* non-blocking */ }
 
     // Return as downloadable PDF
     return new NextResponse(pdfBuffer, {

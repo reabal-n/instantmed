@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
+import { getPostHogClient } from "@/lib/posthog-server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
@@ -160,6 +161,20 @@ export async function POST(request: Request) {
       newStatus: 'declined',
       documentUrl: undefined,
     })
+
+    // Track doctor declined in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: patient.id,
+        event: 'doctor_declined',
+        properties: {
+          intake_id: intakeId,
+          service_type: service?.type,
+          has_reason: !!reason,
+        },
+      })
+    } catch { /* non-blocking */ }
 
     log.info('Intake declined by admin', { intakeId })
     return NextResponse.json({ success: true })

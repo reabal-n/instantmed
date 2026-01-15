@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, MapPin, CreditCard, ArrowLeft, AlertTriangle, HelpCircle } from "lucide-react"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
@@ -206,11 +207,18 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Address</Label>
-            <Input
-              placeholder="Street address"
+            <AddressAutocomplete
               value={addressLine1}
-              onChange={(e) => setAddressLine1(e.target.value)}
-              className={`h-11 rounded-xl bg-white/50 border-white/40 ${errors.addressLine1 ? "border-red-400" : ""}`}
+              onChange={setAddressLine1}
+              onAddressSelect={(address: AddressComponents) => {
+                setAddressLine1(address.addressLine1 || address.fullAddress)
+                setSuburb(address.suburb)
+                setState(address.state)
+                setPostcode(address.postcode)
+              }}
+              placeholder="Start typing your address..."
+              className="h-11 rounded-xl bg-white/50 border-white/40"
+              error={errors.addressLine1}
             />
             <Input
               placeholder="Apartment, unit, etc. (optional)"
@@ -218,7 +226,6 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               onChange={(e) => setAddressLine2(e.target.value)}
               className="h-11 rounded-xl bg-white/50 border-white/40"
             />
-            {errors.addressLine1 && <p className="text-xs text-red-500">{errors.addressLine1}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -45,7 +45,14 @@ import {
   History,
   Pill,
 } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction } from "./actions"
+import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
 import type { IntakeStatus } from "@/types/db"
@@ -60,7 +67,9 @@ export function QueueClient({
   const [searchQuery, setSearchQuery] = useState("")
   const [isPending, startTransition] = useTransition()
   const [declineDialog, setDeclineDialog] = useState<string | null>(null)
-  const [declineReason, setDeclineReason] = useState("")
+  const [declineReasonCode, setDeclineReasonCode] = useState("")
+  const [declineReasonNote, setDeclineReasonNote] = useState("")
+  const [declineTemplates, setDeclineTemplates] = useState<Array<{ code: string; label: string; description: string | null; requires_note: boolean }>>([])
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
@@ -157,15 +166,29 @@ export function QueueClient({
     })
   }
 
+  // Fetch decline templates on mount
+  useEffect(() => {
+    getDeclineReasonTemplatesAction().then((result) => {
+      if (result.success && result.templates) {
+        setDeclineTemplates(result.templates)
+      }
+    })
+  }, [])
+
+  const selectedTemplate = declineTemplates.find(t => t.code === declineReasonCode)
+  const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
+
   const handleDecline = async () => {
-    if (!declineDialog || !declineReason.trim()) return
+    if (!declineDialog || !declineReasonCode) return
+    if (requiresNote && !declineReasonNote.trim()) return
 
     startTransition(async () => {
-      const result = await declineIntakeAction(declineDialog, "other", declineReason)
+      const result = await declineIntakeAction(declineDialog, declineReasonCode, declineReasonNote || undefined)
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== declineDialog))
         setDeclineDialog(null)
-        setDeclineReason("")
+        setDeclineReasonCode("")
+        setDeclineReasonNote("")
       }
     })
   }
@@ -515,26 +538,65 @@ export function QueueClient({
       </div>
 
       {/* Decline Dialog */}
-      <Dialog open={!!declineDialog} onOpenChange={() => setDeclineDialog(null)}>
+      <Dialog open={!!declineDialog} onOpenChange={() => {
+        setDeclineDialog(null)
+        setDeclineReasonCode("")
+        setDeclineReasonNote("")
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Decline Request</DialogTitle>
             <DialogDescription>
-              Please provide a reason for declining this request.
+              Select a reason for declining. The patient will be notified by email.
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            placeholder="Reason for declining..."
-            value={declineReason}
-            onChange={(e) => setDeclineReason(e.target.value)}
-            className="min-h-[100px]"
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Reason</label>
+              <Select value={declineReasonCode} onValueChange={setDeclineReasonCode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a reason..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {declineTemplates.map((template) => (
+                    <SelectItem key={template.code} value={template.code}>
+                      {template.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedTemplate?.description && (
+                <p className="text-xs text-muted-foreground mt-1">{selectedTemplate.description}</p>
+              )}
+            </div>
+            {requiresNote && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Additional note {requiresNote ? "(required)" : "(optional)"}
+                </label>
+                <Textarea
+                  placeholder="Provide additional details for the patient..."
+                  value={declineReasonNote}
+                  onChange={(e) => setDeclineReasonNote(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+            )}
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeclineDialog(null)}>
+            <Button variant="outline" onClick={() => {
+              setDeclineDialog(null)
+              setDeclineReasonCode("")
+              setDeclineReasonNote("")
+            }}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDecline} disabled={!declineReason.trim() || isPending}>
-              Decline
+            <Button 
+              variant="destructive" 
+              onClick={handleDecline} 
+              disabled={!declineReasonCode || (requiresNote && !declineReasonNote.trim()) || isPending}
+            >
+              Decline & Notify Patient
             </Button>
           </DialogFooter>
         </DialogContent>

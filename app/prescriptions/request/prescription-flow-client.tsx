@@ -39,7 +39,7 @@ import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
-import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
@@ -435,7 +435,7 @@ export function PrescriptionFlowClient({
   const [error, setError] = useState<string | null>(null)
 
   // Form state - structured medication selection
-  const [selectedMedication, setSelectedMedication] = useState<SelectedArtgProduct | null>(null)
+  const [selectedMedication, setSelectedMedication] = useState<SelectedPBSProduct | null>(null)
   
   // Gating questions state
   const [prescribedBefore, setPrescribedBefore] = useState<boolean | null>(null)
@@ -837,11 +837,11 @@ export function PrescriptionFlowClient({
         subtype: rxType || "repeat",
         type: "script",
         answers: {
-          // ARTG-backed structured medication data
-          artg_id: selectedMedication?.artg_id,
-          medication_name: selectedMedication?.product_name,
-          active_ingredients: selectedMedication?.active_ingredients_raw,
-          dosage_form: selectedMedication?.dosage_form,
+          // PBS-backed structured medication data
+          pbs_code: selectedMedication?.pbs_code,
+          medication_name: selectedMedication?.drug_name,
+          strength: selectedMedication?.strength,
+          form: selectedMedication?.form,
           // Gating answers
           prescribed_before: prescribedBefore,
           dose_changed: doseChanged,
@@ -1571,17 +1571,17 @@ export function PrescriptionFlowClient({
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">{RX_MICROCOPY.review.medication}</p>
-                    <p className="text-sm font-medium">{selectedMedication?.product_name || "Not selected"}</p>
+                    <p className="text-sm font-medium">{selectedMedication?.drug_name || "Not selected"}</p>
                     {selectedMedication && (
                       <>
-                        {selectedMedication.active_ingredients_raw && (
+                        {selectedMedication.strength && (
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {selectedMedication.active_ingredients_raw}
+                            {selectedMedication.strength}
                           </p>
                         )}
-                        {selectedMedication.dosage_form && (
+                        {selectedMedication.form && (
                           <p className="text-xs text-muted-foreground/70">
-                            {selectedMedication.dosage_form}
+                            {selectedMedication.form}
                           </p>
                         )}
                       </>

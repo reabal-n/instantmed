@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth"
 import { getIntakeWithDetails, getPatientIntakes } from "@/lib/data/intakes"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
+import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 
 export const dynamic = "force-dynamic"
 
@@ -34,6 +35,9 @@ export default async function DoctorIntakeDetailPage({
   const patientHistory = await getPatientIntakes(intake.patient.id)
   const previousIntakes = patientHistory.filter(r => r.id !== id).slice(0, 5)
 
+  // Fetch AI drafts for this intake
+  const aiDrafts = await getAIDraftsForIntake(id)
+
   // Calculate patient age from DOB
   const calculateAge = (dob: string): number => {
     const birthDate = new Date(dob)
@@ -64,6 +68,7 @@ export default async function DoctorIntakeDetailPage({
       maskedMedicare={maskedMedicare}
       previousIntakes={previousIntakes}
       initialAction={action}
+      aiDrafts={aiDrafts}
     />
   )
 }

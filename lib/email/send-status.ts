@@ -1,7 +1,7 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { sendViaResend } from "./resend"
-import { logger } from "../logger"
+import { logger } from "@/lib/observability/logger"
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -145,7 +145,7 @@ const emailTemplates = {
         </p>
       ` : ""}
       <p>
-        <a href="${APP_URL}/patient/requests/${data.requestId}" class="button button-secondary">View in Dashboard</a>
+        <a href="${APP_URL}/patient/intakes/${data.requestId}" class="button button-secondary">View in Dashboard</a>
       </p>
       <div class="info-box">
         <p style="margin: 0; font-size: 14px;">
@@ -186,7 +186,7 @@ const emailTemplates = {
         </p>
       </div>
       <p>
-        <a href="${APP_URL}/patient/requests/${data.requestId}" class="button button-secondary">View Details</a>
+        <a href="${APP_URL}/patient/intakes/${data.requestId}" class="button button-secondary">View Details</a>
       </p>
       <p style="font-size: 14px; color: #737373;">
         If you have questions about this decision, please reply to this email.
@@ -207,7 +207,7 @@ const emailTemplates = {
         <p style="margin: 8px 0 0 0;">${data.message || "Please provide additional details about your request."}</p>
       </div>
       <p>
-        <a href="${APP_URL}/patient/requests/${data.requestId}" class="button">Respond Now</a>
+        <a href="${APP_URL}/patient/intakes/${data.requestId}" class="button">Respond Now</a>
       </p>
       <p style="font-size: 14px; color: #737373;">
         Please respond as soon as possible so we can continue processing your request.

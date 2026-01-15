@@ -5,9 +5,6 @@ import { ArrowRight, Shield, Zap, Building2, Clock, Star, Briefcase, Mail, Lock 
 import Link from "next/link"
 import type { Metadata } from "next"
 
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Medical Certificates for Corporate Workers | 15 Min | InstantMed",
   description: "Get a medical certificate before HR asks. 15-minute turnaround, delivered to your inbox. Professional, discreet, valid for all employers. No time off work needed.",

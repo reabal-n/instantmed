@@ -44,7 +44,11 @@ function shouldLog(level: LogLevel): boolean {
 function sanitizeContext(context: LogContext): LogContext {
   const sensitiveKeys = [
     'password', 'token', 'secret', 'key', 'auth', 
-    'medicare', 'credit', 'card', 'ssn', 'dob'
+    'medicare', 'credit', 'card', 'ssn', 'dob',
+    'address', 'street', 'postcode', 'suburb',
+    'phone', 'mobile', 'email',
+    'full_name', 'fullName', 'firstName', 'lastName',
+    'dateOfBirth', 'date_of_birth'
   ]
   
   const sanitized: LogContext = {}
@@ -177,6 +181,16 @@ export function createLogger(module: string, baseContext?: LogContext) {
     error: (message: string, context?: LogContext, error?: unknown) => 
       log('error', `[${module}] ${message}`, { ...baseContext, ...context }, error instanceof Error ? error : undefined),
   }
+}
+
+// No-op logger for silencing logs in specific contexts
+export const silentLogger = {
+  debug: () => {},
+  info: () => {},
+  warn: () => {},
+  error: () => {},
+  captureError: () => {},
+  child: () => silentLogger,
 }
 
 // Re-export for convenience

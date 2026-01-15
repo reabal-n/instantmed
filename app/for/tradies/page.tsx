@@ -5,9 +5,6 @@ import { ArrowRight, Shield, Zap, HardHat, Clock, Smartphone, Star, Wrench, Buil
 import Link from "next/link"
 import type { Metadata } from "next"
 
-// Prevent static generation to avoid Clerk publishableKey issues during build
-export const dynamic = "force-dynamic"
-
 export const metadata: Metadata = {
   title: "Medical Certificates for Tradies | 15 Min Script | InstantMed",
   description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Valid for all employers. No appointments, no waiting rooms. Built for tradies.",

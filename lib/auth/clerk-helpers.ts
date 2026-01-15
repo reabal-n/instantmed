@@ -18,7 +18,7 @@ export async function getUserEmailFromClerkId(clerkUserId: string): Promise<stri
     const client = await clerkClient()
     const user = await client.users.getUser(clerkUserId)
     return user.emailAddresses[0]?.emailAddress ?? null
-  } catch (error) {
+  } catch {
     // Fallback: try to get from profile
     try {
       const supabase = await createClient()

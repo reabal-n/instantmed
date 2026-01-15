@@ -5,33 +5,33 @@ import { Search, Loader2, Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /**
- * ARTG Medication Search - Patient Recall Only
+ * PBS Medication Search - Patient Recall Only
  *
- * This component helps patients recall medication names using TGA ARTG reference data.
+ * This component helps patients recall medication names using PBS (Pharmaceutical Benefits Scheme) data.
  * It is NOT a recommendation tool, prescribing tool, or clinical decision system.
  *
  * See: docs/MEDICATION_SEARCH_POLICY.md
  * See: docs/MEDICATION_SEARCH_SPEC.md
  */
 
-export interface ArtgProduct {
-  artg_id: string
-  product_name: string | null
-  active_ingredients_raw: string | null
-  dosage_form: string | null
-  route: string | null
+export interface PBSProduct {
+  pbs_code: string
+  drug_name: string
+  form: string | null
+  strength: string | null
+  manufacturer: string | null
 }
 
-export interface SelectedArtgProduct {
-  artg_id: string
-  product_name: string
-  active_ingredients_raw: string | null
-  dosage_form: string | null
+export interface SelectedPBSProduct {
+  pbs_code: string
+  drug_name: string
+  form: string | null
+  strength: string | null
 }
 
 interface MedicationSearchProps {
-  value: SelectedArtgProduct | null
-  onChange: (product: SelectedArtgProduct | null) => void
+  value: SelectedPBSProduct | null
+  onChange: (product: SelectedPBSProduct | null) => void
   disabled?: boolean
   className?: string
 }
@@ -42,10 +42,10 @@ export function MedicationSearch({
   disabled = false,
   className,
 }: MedicationSearchProps) {
-  const [inputValue, setInputValue] = useState(value?.product_name || "")
+  const [inputValue, setInputValue] = useState(value?.drug_name || "")
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [options, setOptions] = useState<ArtgProduct[]>([])
+  const [options, setOptions] = useState<PBSProduct[]>([])
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [announcement, setAnnouncement] = useState("")
   const [correctedQuery, setCorrectedQuery] = useState<string | null>(null)
@@ -58,7 +58,7 @@ export function MedicationSearch({
 
   useEffect(() => {
     if (value) {
-      setInputValue(value.product_name)
+      setInputValue(value.drug_name)
     }
   }, [value])
 
@@ -126,7 +126,7 @@ export function MedicationSearch({
     const newValue = e.target.value
     setInputValue(newValue)
 
-    if (value && newValue !== value.product_name) {
+    if (value && newValue !== value.drug_name) {
       onChange(null)
     }
 
@@ -139,17 +139,17 @@ export function MedicationSearch({
     }, 250)
   }
 
-  const handleSelect = (option: ArtgProduct) => {
-    if (!option.product_name) return
+  const handleSelect = (option: PBSProduct) => {
+    if (!option.drug_name) return
 
-    const selected: SelectedArtgProduct = {
-      artg_id: option.artg_id,
-      product_name: option.product_name,
-      active_ingredients_raw: option.active_ingredients_raw,
-      dosage_form: option.dosage_form,
+    const selected: SelectedPBSProduct = {
+      pbs_code: option.pbs_code,
+      drug_name: option.drug_name,
+      form: option.form,
+      strength: option.strength,
     }
     onChange(selected)
-    setInputValue(option.product_name)
+    setInputValue(option.drug_name)
     setIsOpen(false)
     setHighlightedIndex(-1)
   }
@@ -251,7 +251,7 @@ export function MedicationSearch({
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-autocomplete="list"
-          aria-controls="artg-listbox"
+          aria-controls="pbs-listbox"
           role="combobox"
         />
 
@@ -280,7 +280,7 @@ export function MedicationSearch({
           ref={listRef}
           className="absolute z-60 w-full mt-1 max-h-60 overflow-auto rounded-xl border bg-background shadow-lg"
           role="listbox"
-          id="artg-listbox"
+          id="pbs-listbox"
         >
           {/* Typo correction or AI assistance indicator */}
           {(correctedQuery || isAiAssisted) && (
@@ -295,7 +295,7 @@ export function MedicationSearch({
           )}
           {options.map((option, index) => (
             <li
-              key={option.artg_id}
+              key={option.pbs_code}
               onClick={() => handleSelect(option)}
               onMouseEnter={() => setHighlightedIndex(index)}
               className={cn(
@@ -306,15 +306,15 @@ export function MedicationSearch({
               role="option"
               aria-selected={highlightedIndex === index}
             >
-              <p className="text-sm font-medium">{option.product_name}</p>
-              {option.active_ingredients_raw && (
+              <p className="text-sm font-medium">{option.drug_name}</p>
+              {option.strength && (
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                  {option.active_ingredients_raw}
+                  {option.strength}
                 </p>
               )}
-              {option.dosage_form && (
+              {option.form && (
                 <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                  {option.dosage_form}
+                  {option.form}
                 </p>
               )}
             </li>

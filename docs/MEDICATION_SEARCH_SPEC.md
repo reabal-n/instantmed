@@ -2,11 +2,10 @@
 
 ## 1. Data Boundary (Hard Constraint)
 
-The `artg_products` table is a **read-only reference dataset**.
+The PBS API is a **read-only reference source** (Pharmaceutical Benefits Scheme).
 
 It must never be:
-- written to by patient flows
-- queried by eligibility logic
+- used by eligibility logic
 - used by approval or triage automation
 - used by AI systems for recommendations
 
@@ -26,11 +25,11 @@ Only permitted operation:
 
 ### Outputs (strict)
 Each result returns only:
-- `artg_id` 
-- `product_name` 
-- `active_ingredients_raw` 
-- `dosage_form` 
-- `route` 
+- `pbs_code` 
+- `drug_name` 
+- `strength` 
+- `form` 
+- `manufacturer` 
 
 ### API Rules
 - No ranking heuristics beyond text relevance
@@ -70,7 +69,7 @@ The UI must not:
 
 For clinician visibility only:
 - Display what the patient typed
-- Display the matched ARTG product (if selected)
+- Display the matched PBS item (if selected)
 
 Label clearly:
 > "Patient-selected (reference only)"
@@ -85,7 +84,7 @@ Log the following server-side:
 - intake_id
 - medication_search_used (boolean)
 - medication_selected (boolean)
-- selected_artg_id (nullable)
+- selected_pbs_code (nullable)
 
 Do NOT log:
 - keystrokes

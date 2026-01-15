@@ -216,14 +216,11 @@ export function EmergencyDialog({
             </p>
           </div>
 
-          {/* Override option */}
+          {/* Safety notice - no bypass allowed for critical symptoms */}
           <div className="pt-2 border-t">
-            <button
-              onClick={onClose}
-              className="w-full text-sm text-muted-foreground hover:text-foreground py-2"
-            >
-              I understand the risks and want to continue anyway
-            </button>
+            <p className="text-xs text-center text-red-600 font-medium py-2">
+              This service cannot proceed with these symptoms. Please seek emergency care.
+            </p>
           </div>
         </div>
       </DialogContent>

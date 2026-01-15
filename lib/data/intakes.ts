@@ -761,3 +761,33 @@ export function getIntakeStatusColor(status: IntakeStatus | string | null | unde
 
   return colorMap[status] || "default"
 }
+
+// ============================================
+// DOCUMENT HELPERS
+// ============================================
+
+/**
+ * Get documents for an intake
+ */
+export async function getIntakeDocuments(intakeId: string): Promise<Array<{
+  id: string
+  document_type: string
+  filename: string
+  certificate_number: string | null
+  created_at: string
+}>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("intake_documents")
+    .select("id, document_type, filename, certificate_number, created_at")
+    .eq("intake_id", intakeId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    logger.error("Error fetching intake documents", {}, error instanceof Error ? error : new Error(String(error)))
+    return []
+  }
+
+  return data || []
+}

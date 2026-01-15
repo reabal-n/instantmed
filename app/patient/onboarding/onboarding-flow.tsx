@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import {
   ArrowLeft, 
   ArrowRight, 
@@ -247,22 +248,25 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                 </div>
               </FormGroup>
 
-              {/* Address Line 1 */}
+              {/* Address Line 1 - with autocomplete */}
               <FormGroup
                 label="Street address"
                 htmlFor="address"
                 error={step1Errors.addressLine1}
                 required
               >
-                <Input
-                  id="address"
-                  placeholder="123 Example Street"
+                <AddressAutocomplete
                   value={addressLine1}
-                  onChange={(e) => setAddressLine1(e.target.value)}
-                  className={cn(
-                    "h-12 rounded-xl",
-                    step1Errors.addressLine1 && "input-error"
-                  )}
+                  onChange={setAddressLine1}
+                  onAddressSelect={(address: AddressComponents) => {
+                    setAddressLine1(address.addressLine1 || address.fullAddress)
+                    setSuburb(address.suburb)
+                    setState(address.state as AustralianState)
+                    setPostcode(address.postcode)
+                  }}
+                  placeholder="Start typing your address..."
+                  className="h-12 rounded-xl"
+                  error={step1Errors.addressLine1}
                 />
               </FormGroup>
 

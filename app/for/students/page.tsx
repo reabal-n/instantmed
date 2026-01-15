@@ -5,9 +5,6 @@ import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOp
 import Link from "next/link"
 import type { Metadata } from "next"
 
-// Prevent static generation for dynamic auth
-export const dynamic = "force-dynamic"
-
 export const metadata: Metadata = {
   title: "Medical Certificates for Uni Students | Special Consideration | InstantMed",
   description: "Get a medical certificate for university special consideration or missed exams. 15-minute turnaround. Accepted by all Australian universities. No GP wait times.",

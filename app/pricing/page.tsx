@@ -7,6 +7,7 @@ import { AnimatedIcon } from "@/components/shared/animated-icons"
 import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
+import { PRICING } from "@/lib/constants"
 
 // Prevent static generation for dynamic auth
 
@@ -19,7 +20,7 @@ export const metadata = {
 const services = [
   {
     name: "Medical Certificate",
-    price: 19.95,
+    price: PRICING.MED_CERT,
     description: "Work, uni, or carer's leave",
     features: ["Same-day delivery", "Accepted by all employers", "AHPRA-registered GP", "PDF via email"],
     popular: true,
@@ -29,7 +30,7 @@ const services = [
   },
   {
     name: "Prescription",
-    price: 29.95,
+    price: PRICING.REPEAT_SCRIPT,
     description: "Repeat scripts for ongoing meds",
     features: ["E-script to your phone", "Any pharmacy Australia-wide", "Fast turnaround", "SMS token delivery"],
     popular: false,
@@ -210,7 +211,7 @@ export default function PricingPage() {
               <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden">
                 <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
                 <h2 className="text-2xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
-                  Ready to skip the waiting room?
+                  Ready to get started?
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">Get started in under 2 minutes. Only pay if we can help.</p>
                 <Button

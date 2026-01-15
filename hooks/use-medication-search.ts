@@ -1,31 +1,31 @@
 import { useState, useCallback } from "react"
-import type { SelectedArtgProduct } from "@/components/intake/medication-search"
+import type { SelectedPBSProduct } from "@/components/intake/medication-search"
 
 /**
- * Hook for integrating ARTG medication search into intake forms.
+ * Hook for integrating PBS medication search into intake forms.
  *
  * Tracks:
  * - medication_search_used: whether the patient interacted with search
  * - medication_selected: whether they selected a result
- * - selected_artg_id: the ARTG ID if selected
- * - selected_medication_name: the product name
+ * - selected_pbs_code: the PBS code if selected
+ * - selected_medication_name: the drug name
  *
  * Per MEDICATION_SEARCH_SPEC.md section 5: Interaction Logging
  */
 
 export interface MedicationSearchState {
   searchUsed: boolean
-  selected: SelectedArtgProduct | null
+  selected: SelectedPBSProduct | null
 }
 
 export interface MedicationSearchActions {
-  setSelected: (product: SelectedArtgProduct | null) => void
+  setSelected: (product: SelectedPBSProduct | null) => void
   markSearchUsed: () => void
   reset: () => void
   getAuditData: () => {
     medication_search_used: boolean
     medication_selected: boolean
-    selected_artg_id: string | null
+    selected_pbs_code: string | null
     selected_medication_name: string | null
   }
 }
@@ -35,11 +35,11 @@ export function useMedicationSearch(): [
   MedicationSearchActions
 ] {
   const [searchUsed, setSearchUsed] = useState(false)
-  const [selected, setSelectedState] = useState<SelectedArtgProduct | null>(
+  const [selected, setSelectedState] = useState<SelectedPBSProduct | null>(
     null
   )
 
-  const setSelected = useCallback((product: SelectedArtgProduct | null) => {
+  const setSelected = useCallback((product: SelectedPBSProduct | null) => {
     setSelectedState(product)
     if (product) {
       setSearchUsed(true)
@@ -59,8 +59,8 @@ export function useMedicationSearch(): [
     return {
       medication_search_used: searchUsed,
       medication_selected: selected !== null,
-      selected_artg_id: selected?.artg_id ?? null,
-      selected_medication_name: selected?.product_name ?? null,
+      selected_pbs_code: selected?.pbs_code ?? null,
+      selected_medication_name: selected?.drug_name ?? null,
     }
   }, [searchUsed, selected])
 

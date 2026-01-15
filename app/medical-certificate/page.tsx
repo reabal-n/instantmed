@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Clock, Briefcase, Heart, Calendar, Zap, HelpCircle } from "lucide-react"
 import { ContextualSocialProof, ServiceStats } from "@/components/shared/contextual-social-proof"
 import { DoctorsOnline, CompletionTime } from "@/components/shared/urgency-indicators"
-
-// Prevent static generation for dynamic auth
-export const dynamic = "force-dynamic"
+import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 
 export const metadata: Metadata = {
   title: "Online Medical Certificate Australia | Same Day Sick Note | InstantMed",
@@ -222,6 +220,13 @@ export default function MedicalCertificatePage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Emergency Disclaimer */}
+        <section className="px-4 pb-8">
+          <div className="mx-auto max-w-2xl">
+            <EmergencyDisclaimer />
           </div>
         </section>
 

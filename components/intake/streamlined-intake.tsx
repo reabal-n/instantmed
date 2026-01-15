@@ -101,7 +101,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
               <div
                 className={cn(
                   "h-0.5 w-12 sm:w-20 mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
+                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
                 )}
               />
             )}
@@ -161,7 +161,7 @@ function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -519,7 +519,7 @@ export function StreamlinedIntake({
             <Button
               onClick={goNext}
               disabled={!formData.certType}
-              className="w-full h-12 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-base font-medium"
+              className="w-full h-12 rounded-full bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-base font-medium"
             >
               Continue
               <ChevronRight className="w-5 h-5 ml-1" />
@@ -870,7 +870,7 @@ export function StreamlinedIntake({
               </span>
               <span className="flex items-center gap-1">
                 <Check className="w-3.5 h-3.5" />
-                100% legitimate
+                AHPRA doctors
               </span>
             </div>
           </motion.div>

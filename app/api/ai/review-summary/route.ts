@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { createClient } from "@/lib/supabase/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createLogger } from "@/lib/observability/logger"
 
 export const runtime = "edge"
+
+const log = createLogger("ai-review-summary")
 
 /**
  * Doctor Review Summary Generator
@@ -51,6 +55,34 @@ interface ConsultAnswers {
 
 export async function POST(req: NextRequest) {
   try {
+    // P0 FIX: Add authentication - this endpoint exposes PHI
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      log.warn("Unauthorized review-summary attempt", { error: authError?.message })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Verify the user is a doctor
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("auth_user_id", user.id)
+      .single()
+
+    if (!profile || !["doctor", "admin"].includes(profile.role)) {
+      log.warn("Non-doctor attempted review-summary", { userId: user.id, role: profile?.role })
+      return NextResponse.json({ error: "Forbidden - doctors only" }, { status: 403 })
+    }
+
+    // Apply rate limiting (sensitive tier - 20/hour)
+    const rateLimitResponse = await applyRateLimit(req, "sensitive", user.id)
+    if (rateLimitResponse) {
+      log.warn("Rate limited review-summary", { userId: user.id })
+      return rateLimitResponse
+    }
+
     const body: ReviewSummaryRequest = await req.json()
     const { requestId, requestType } = body
 
@@ -58,8 +90,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Request ID required" }, { status: 400 })
     }
 
-    // Fetch the request data
-    const supabase = await createClient()
+    // Fetch the request data (supabase client already created above)
     const { data: request, error } = await supabase
       .from("requests")
       .select(`

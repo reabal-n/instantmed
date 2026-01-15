@@ -4,8 +4,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { auth } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/env"
 
-// Only allow in development/preview
-const IS_DEV = process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview"
+// Only allow in development (NOT preview - security risk)
+const IS_DEV = process.env.NODE_ENV === "development"
 
 export async function GET(_request: Request) {
   // Block in production

@@ -1,22 +1,32 @@
 'use client'
 
 import { useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import {
   Hero,
   ServicePicker,
-  HowItWorks,
-  FAQSection,
-  CTASection,
   MarketingFooter,
-  PlatformStats,
 } from '@/components/marketing'
-import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
 
-// Prevent static generation for dynamic auth
-export const dynamic = "force-dynamic"
+// Lazy load below-the-fold components for better LCP
+const HowItWorks = dynamic(() => import('@/components/marketing').then(mod => ({ default: mod.HowItWorks })), {
+  loading: () => <div className="h-96 animate-pulse bg-muted/20 rounded-xl" />,
+})
+const FAQSection = dynamic(() => import('@/components/marketing').then(mod => ({ default: mod.FAQSection })), {
+  loading: () => <div className="h-96 animate-pulse bg-muted/20 rounded-xl" />,
+})
+const CTASection = dynamic(() => import('@/components/marketing').then(mod => ({ default: mod.CTASection })), {
+  loading: () => <div className="h-64 animate-pulse bg-muted/20 rounded-xl" />,
+})
+const PlatformStats = dynamic(() => import('@/components/marketing').then(mod => ({ default: mod.PlatformStats })), {
+  loading: () => <div className="h-48 animate-pulse bg-muted/20 rounded-xl" />,
+})
+const TrustpilotReviews = dynamic(() => import('@/components/marketing/trustpilot-reviews').then(mod => ({ default: mod.TrustpilotReviews })), {
+  loading: () => <div className="h-64 animate-pulse bg-muted/20 rounded-xl" />,
+})
 
 export default function HomePage() {
   useEffect(() => {

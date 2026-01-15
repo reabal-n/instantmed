@@ -117,7 +117,7 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           label: 'Describe your symptoms and how they\'re affecting you',
           placeholder: 'e.g., I\'ve had a fever since yesterday, severe body aches, and I can\'t concentrate at work...',
           helpText: 'This helps the doctor write your certificate',
-          validation: { required: true, minLength: 20, maxLength: 500 },
+          validation: { required: true, minLength: 50, maxLength: 500 },
         },
         {
           id: 'severity',
@@ -397,7 +397,7 @@ const consultQuestionnaire: QuestionnaireConfig = {
           label: 'Describe your main concern',
           placeholder: 'Tell us in your own words what you\'d like help with today...',
           helpText: 'Be as detailed as you like — this helps our doctors understand your situation',
-          validation: { required: true, minLength: 20, maxLength: 1000 },
+          validation: { required: true, minLength: 50, maxLength: 1000 },
         },
         {
           id: 'consult_pathway',
@@ -711,6 +711,19 @@ const consultQuestionnaire: QuestionnaireConfig = {
           validation: { required: true, minLength: 3 },
         },
         {
+          id: 'mens_blood_pressure',
+          type: 'segmented',
+          label: 'Do you know your blood pressure?',
+          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'mens_health' },
+          options: [
+            { value: 'normal', label: 'Normal' },
+            { value: 'high', label: 'High' },
+            { value: 'low', label: 'Low' },
+            { value: 'unknown', label: "I don't know" },
+          ],
+          validation: { required: true },
+        },
+        {
           id: 'mens_lifestyle',
           type: 'checkbox',
           label: 'Which of these apply to you?',
@@ -861,15 +874,34 @@ const consultQuestionnaire: QuestionnaireConfig = {
         {
           id: 'womens_migraine_aura',
           type: 'toggle',
-          label: 'Do you get migraines with aura (visual disturbances)?',
+          label: 'Do you get migraines with warning signs like flashing lights, blind spots, or other visual disturbances?',
           showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
           validation: { required: true },
         },
         {
-          id: 'womens_smoker_over_35',
+          id: 'womens_smoker',
           type: 'toggle',
-          label: 'Are you a smoker and over 35 years old?',
+          label: 'Do you currently smoke?',
           showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+          validation: { required: true },
+        },
+        {
+          id: 'womens_over_35',
+          type: 'toggle',
+          label: 'Are you over 35 years old?',
+          showIf: { fieldId: 'womens_smoker', operator: 'equals', value: true },
+          validation: { required: true },
+        },
+        {
+          id: 'womens_blood_pressure',
+          type: 'segmented',
+          label: 'Do you know if you have high blood pressure?',
+          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'womens_health' },
+          options: [
+            { value: 'no', label: 'No' },
+            { value: 'yes', label: 'Yes' },
+            { value: 'unknown', label: "I don't know" },
+          ],
           validation: { required: true },
         },
         {
@@ -1145,6 +1177,13 @@ const consultQuestionnaire: QuestionnaireConfig = {
           placeholder: 'e.g., Hypothyroidism, on Thyroxine 100mcg',
           showIf: { fieldId: 'weight_thyroid', operator: 'equals', value: true },
           validation: { required: true, minLength: 5 },
+        },
+        {
+          id: 'weight_men2_thyroid_cancer',
+          type: 'toggle',
+          label: 'Do you or any family members have a history of medullary thyroid cancer or MEN2 syndrome? (Important for medication safety)',
+          showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'weight_loss' },
+          validation: { required: true },
         },
         {
           id: 'weight_pancreatitis',

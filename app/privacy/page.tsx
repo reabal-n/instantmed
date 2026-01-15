@@ -2,9 +2,6 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
 export const metadata = {
   title: "Privacy Policy | InstantMed",
   description: "How InstantMed collects, uses, and protects your personal and health information.",
@@ -108,7 +105,59 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">7. Contact Us</h2>
+              <h2 className="text-xl font-semibold mb-4">7. Cookies and Analytics</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We use cookies and similar tracking technologies to improve your experience and analyse how our 
+                platform is used. This helps us understand usage patterns and improve our services.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                <strong>Types of cookies we use:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                <li>
+                  <strong>Essential cookies:</strong> Required for the platform to function (e.g., authentication, session management)
+                </li>
+                <li>
+                  <strong>Analytics cookies:</strong> Help us understand how you use our platform
+                </li>
+                <li>
+                  <strong>Marketing cookies:</strong> Used to measure the effectiveness of our advertising
+                </li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                <strong>Third-party services we use:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                <li>
+                  <strong>PostHog:</strong> Product analytics to understand platform usage and improve user experience. 
+                  When you&apos;re signed in, we associate your activity with your account to provide better support.
+                </li>
+                <li>
+                  <strong>Vercel Analytics:</strong> Performance monitoring to ensure fast page loads
+                </li>
+                <li>
+                  <strong>Google Analytics:</strong> Marketing attribution to measure advertising effectiveness
+                </li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed mt-4">
+                You can manage cookie preferences through your browser settings. Note that disabling certain 
+                cookies may affect platform functionality.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">8. Data Retention</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                We retain your personal information for as long as necessary to provide our services and comply 
+                with legal obligations. Health records are retained in accordance with Australian health records 
+                legislation (typically 7 years from the date of last service, or until you turn 25 if you were 
+                a child when treated). You may request deletion of your account data, subject to our legal 
+                retention requirements.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">9. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have questions about this privacy policy or wish to make a complaint, please contact us at{" "}
                 <a href="mailto:privacy@instantmed.com.au" className="text-[#2563EB] hover:underline">

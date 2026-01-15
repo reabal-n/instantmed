@@ -48,8 +48,9 @@ import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
-import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
 import posthog from "posthog-js"
+import { PRICING_DISPLAY, GP_COMPARISON } from "@/lib/constants"
 
 // ============================================
 // UTILITIES
@@ -96,9 +97,9 @@ interface IntakeState {
   lastPrescribed: string
   pharmacyPreference: string
   
-  // ARTG medication search audit fields
+  // PBS medication search audit fields
   medicationSearchUsed: boolean
-  selectedArtgProduct: SelectedArtgProduct | null
+  selectedPBSProduct: SelectedPBSProduct | null
   
   // Consult specific
   consultReason: string
@@ -116,6 +117,7 @@ interface IntakeState {
   
   // Meta
   agreedToTerms: boolean
+  confirmedAccuracy: boolean
 }
 
 interface EnhancedIntakeFlowProps {
@@ -149,41 +151,41 @@ const SERVICES: Array<{
     title: "Medical Certificate",
     subtitle: "Sick leave, carer's leave, study",
     icon: FileText,
-    price: "$19.95",
+    price: PRICING_DISPLAY.MED_CERT,
     time: "Under 30 min",
     noCall: true,
     popular: true,
-    gpCost: "$60-90",
+    gpCost: GP_COMPARISON.STANDARD,
   },
   {
     id: "repeat-script",
     title: "Repeat Prescription",
     subtitle: "Medication you already take",
     icon: Pill,
-    price: "$29.95",
+    price: PRICING_DISPLAY.REPEAT_SCRIPT,
     time: "Under 30 min",
     noCall: true,
-    gpCost: "$60-90",
+    gpCost: GP_COMPARISON.STANDARD,
   },
   {
     id: "new-script",
     title: "New Prescription",
     subtitle: "First-time medication",
     icon: Stethoscope,
-    price: "$49.95",
+    price: PRICING_DISPLAY.NEW_SCRIPT,
     time: "Under 30 min",
     noCall: false,
-    gpCost: "$80-120",
+    gpCost: GP_COMPARISON.COMPLEX,
   },
   {
     id: "consult",
     title: "General Consult",
     subtitle: "New prescriptions & dose changes",
     icon: Zap,
-    price: "$49.95",
+    price: PRICING_DISPLAY.CONSULT,
     time: "Under 30 min",
     noCall: false,
-    gpCost: "$80-120",
+    gpCost: GP_COMPARISON.COMPLEX,
   },
 ]
 
@@ -400,7 +402,7 @@ export function EnhancedIntakeFlow({
     lastPrescribed: "",
     pharmacyPreference: savedPreferences.lastPharmacy || "",
     medicationSearchUsed: false,
-    selectedArtgProduct: null,
+    selectedPBSProduct: null,
     consultReason: "",
     safetyConfirmed: false,
     hasEmergencySymptoms: false,
@@ -410,6 +412,7 @@ export function EnhancedIntakeFlow({
     phone: userPhone || "",
     dob: userDob || "",
     agreedToTerms: false,
+    confirmedAccuracy: false,
   })
 
   // Save preferences when they change
@@ -721,11 +724,11 @@ export function EnhancedIntakeFlow({
       answers.last_prescribed = state.lastPrescribed
       answers.pharmacy_preference = state.pharmacyPreference
       answers.is_repeat = state.service === "repeat-script"
-      // ARTG audit fields
+      // PBS audit fields
       answers.medication_search_used = state.medicationSearchUsed
-      answers.medication_selected = state.selectedArtgProduct !== null
-      answers.selected_artg_id = state.selectedArtgProduct?.artg_id || null
-      answers.selected_medication_name = state.selectedArtgProduct?.product_name || null
+      answers.medication_selected = state.selectedPBSProduct !== null
+      answers.selected_pbs_code = state.selectedPBSProduct?.pbs_code || null
+      answers.selected_medication_name = state.selectedPBSProduct?.drug_name || null
     }
 
     // Patient details
@@ -1249,14 +1252,14 @@ export function EnhancedIntakeFlow({
               </div>
             )}
 
-            {/* Medication Search - ARTG Reference Database */}
+            {/* Medication Search - PBS Reference Database */}
             <MedicationSearch
-              value={state.selectedArtgProduct}
+              value={state.selectedPBSProduct}
               onChange={(product) => {
                 updateField("medicationSearchUsed", true)
-                updateField("selectedArtgProduct", product)
+                updateField("selectedPBSProduct", product)
                 if (product) {
-                  updateField("medicationName", product.product_name)
+                  updateField("medicationName", product.drug_name)
                 }
               }}
             />
@@ -1585,7 +1588,18 @@ export function EnhancedIntakeFlow({
                 })()}
                 <div className="flex justify-between font-semibold text-base pt-2 border-t border-dashed border-slate-200">
                   <span>Total</span>
-                  <span className="text-primary">{selectedService?.price}</span>
+                  <span className="text-primary">
+                    {(() => {
+                      const basePrice = parseFloat(selectedService?.price?.replace('$', '') || '0')
+                      const selectedDate = new Date(state.startDate)
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
+                      const hasBackdatingFee = state.service === "med-cert" && state.startDate && daysDiff > 3
+                      const total = hasBackdatingFee ? basePrice + 10 : basePrice
+                      return `$${total.toFixed(2)}`
+                    })()}
+                  </span>
                 </div>
               </div>
 
@@ -1803,6 +1817,27 @@ export function EnhancedIntakeFlow({
               </div>
             </div>
 
+            {/* Payment disclaimer - P0 compliance */}
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                <strong>Important:</strong> Your payment covers the doctor&apos;s review. If your request isn&apos;t suitable for telehealth, you&apos;ll receive a full refund.
+              </p>
+            </div>
+
+            {/* Accuracy confirmation - P1 compliance */}
+            <label className="flex items-start gap-3 cursor-pointer p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 touch-target">
+              <input
+                type="checkbox"
+                checked={state.confirmedAccuracy}
+                onChange={(e) => updateField("confirmedAccuracy", e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                aria-label="Confirm information accuracy"
+              />
+              <span className="text-sm text-muted-foreground">
+                I confirm the information I&apos;ve provided is accurate and complete
+              </span>
+            </label>
+
             {/* Terms */}
             <label className="flex items-start gap-3 cursor-pointer p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 touch-target">
               <input
@@ -1863,6 +1898,22 @@ export function EnhancedIntakeFlow({
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [stepIndex, step, errors, goBack])
+
+  // Warn user before closing with unsaved changes
+  useEffect(() => {
+    const hasUnsavedChanges = stepIndex > 0 && !isSubmitting
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?"
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [stepIndex, isSubmitting])
 
   // Screen reader announcements
   const { announce, LiveRegion } = useAnnouncement()
@@ -1989,7 +2040,7 @@ export function EnhancedIntakeFlow({
                 isSubmitting ||
                 (step === "service" && !state.service) ||
                 (step === "safety" && (symptomCheckResult.severity === "critical" || !state.safetyConfirmed)) ||
-                (isLastStep && !state.agreedToTerms) ||
+                (isLastStep && (!state.agreedToTerms || !state.confirmedAccuracy)) ||
                 // Only check errors relevant to current step to prevent disabled state when going back
                 !!(step === "details" && (errors.medicationName || errors.symptoms || errors.symptomDetails || errors.certType || errors.duration || errors.consultReason)) ||
                 !!(step === "account" && (errors.firstName || errors.lastName || errors.email || errors.phone || errors.dob)) ||
@@ -1997,13 +2048,21 @@ export function EnhancedIntakeFlow({
               }
               className="bg-linear-to-r from-primary to-primary/80 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:from-primary/90 hover:to-primary/70 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] min-w-[160px] h-12 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-[0_8px_30px_rgb(59,130,246,0.3)] flex items-center justify-center px-6"
             >
-              {isSubmitting
-                ? "Processing..."
-                : isLastStep
-                  ? `Pay ${SERVICES.find((s) => s.id === state.service)?.price}`
-                  : "Continue"}
-              {!isSubmitting && (
-                <ArrowRight className="w-5 h-5 ml-2" />
+              {isSubmitting ? (
+                <>
+                  <ButtonSpinner className="w-4 h-4 mr-2" />
+                  Preparing secure checkout...
+                </>
+              ) : isLastStep ? (
+                <>
+                  Pay {SERVICES.find((s) => s.id === state.service)?.price}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
               )}
             </button>
           </div>
@@ -2011,7 +2070,7 @@ export function EnhancedIntakeFlow({
 
         {step === "service" && (
           <p className="text-center text-xs text-muted-foreground mt-2">
-            🔒 Secure • No payment until review complete
+            🔒 Secure checkout
           </p>
         )}
       </footer>

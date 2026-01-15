@@ -17,16 +17,15 @@ All prescribing decisions occur **outside this platform**, within the clinician'
 ## 2. Data Source
 
 Medication data is sourced from:
-- Australian Register of Therapeutic Goods (ARTG)
-- Public TGA export
+- PBS (Pharmaceutical Benefits Scheme) API
+- Department of Health public API
 
-Stored fields are **reference metadata only**:
-- ARTG ID
-- Product name
-- Active ingredients (raw text)
-- Dosage form
-- Route of administration
-- Product type / category (if available)
+Fields are **reference metadata only**:
+- PBS Code
+- Drug name
+- Strength
+- Form
+- Manufacturer
 
 The dataset intentionally excludes:
 - dosing instructions

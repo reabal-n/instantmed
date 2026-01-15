@@ -206,3 +206,114 @@ export function CompactTimeline({ currentStatus, paymentStatus, className }: Com
     </div>
   )
 }
+
+// =============================================================================
+// ETA DISPLAY COMPONENT
+// =============================================================================
+
+interface ETADisplayProps {
+  currentStatus: string
+  paidAt?: string | null
+  slaDeadline?: string | null
+  isPriority?: boolean
+  queuePosition?: number
+  className?: string
+}
+
+/**
+ * Calculate and display estimated time to completion
+ * Based on SLA, queue position, and historical averages
+ */
+export function ETADisplay({
+  currentStatus,
+  paidAt: _paidAt,
+  slaDeadline,
+  isPriority = false,
+  queuePosition,
+  className,
+}: ETADisplayProps) {
+  // Don't show ETA for completed or declined requests
+  if (["approved", "declined", "completed", "cancelled"].includes(currentStatus)) {
+    return null
+  }
+
+  // Calculate time remaining
+  const getETAInfo = () => {
+    // If we have an SLA deadline, use that
+    if (slaDeadline) {
+      const deadline = new Date(slaDeadline)
+      const now = new Date()
+      const diffMs = deadline.getTime() - now.getTime()
+      
+      if (diffMs <= 0) {
+        return { text: "Being processed now", urgency: "high" as const }
+      }
+      
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+      
+      if (diffHours < 1) {
+        return { 
+          text: `~${diffMinutes} min remaining`, 
+          urgency: "high" as const 
+        }
+      } else if (diffHours < 4) {
+        return { 
+          text: `~${diffHours}h ${diffMinutes}m remaining`, 
+          urgency: "medium" as const 
+        }
+      } else {
+        return { 
+          text: `~${diffHours} hours remaining`, 
+          urgency: "low" as const 
+        }
+      }
+    }
+    
+    // Fallback estimates based on priority and queue position
+    if (isPriority) {
+      if (queuePosition && queuePosition <= 3) {
+        return { text: "Within 30 minutes", urgency: "high" as const }
+      }
+      return { text: "Within 4 hours", urgency: "medium" as const }
+    }
+    
+    // Standard estimates
+    if (queuePosition) {
+      if (queuePosition <= 5) {
+        return { text: "Within 1 hour", urgency: "medium" as const }
+      } else if (queuePosition <= 15) {
+        return { text: "Within 2-4 hours", urgency: "low" as const }
+      }
+    }
+    
+    return { text: "Within 24 hours", urgency: "low" as const }
+  }
+
+  const { text, urgency } = getETAInfo()
+
+  const urgencyColors = {
+    high: "text-amber-600 bg-amber-50 border-amber-200",
+    medium: "text-blue-600 bg-blue-50 border-blue-200",
+    low: "text-muted-foreground bg-muted/50 border-muted",
+  }
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <div
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border",
+          urgencyColors[urgency]
+        )}
+      >
+        <Clock className="w-3 h-3" />
+        <span>ETA: {text}</span>
+      </div>
+      {queuePosition && queuePosition > 0 && (
+        <span className="text-xs text-muted-foreground">
+          #{queuePosition} in queue
+        </span>
+      )}
+    </div>
+  )
+}

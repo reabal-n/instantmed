@@ -33,17 +33,35 @@ export function NightSkyBackground({
 }: NightSkyBackgroundProps) {
   const [mounted, setMounted] = useState(false)
   const [shootingStar, setShootingStar] = useState<{ x: number; y: number } | null>(null)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    // Reduce star count on mobile for performance
+    setIsMobile(window.innerWidth < 768)
   }, [])
 
-  // Generate stars deterministically based on count
+  // Check for reduced motion preference (separate effect to avoid cascading renders)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    // Only update if different from current state
+    if (mediaQuery.matches !== prefersReducedMotion) {
+      setPrefersReducedMotion(mediaQuery.matches)
+    }
+    
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [prefersReducedMotion])
+
+  // Generate stars deterministically based on count (reduced on mobile for performance)
+  const effectiveStarCount = isMobile ? Math.min(starCount, 40) : starCount
   const stars = useMemo<Star[]>(() => {
     if (!mounted) return []
     
     const generatedStars: Star[] = []
-    for (let i = 0; i < starCount; i++) {
+    for (let i = 0; i < effectiveStarCount; i++) {
       // Use seeded pseudo-random for consistent star placement
       const seed = i * 9301 + 49297
       const rand = () => ((seed * (i + 1)) % 233280) / 233280
@@ -59,11 +77,11 @@ export function NightSkyBackground({
       })
     }
     return generatedStars
-  }, [mounted, starCount])
+  }, [mounted, effectiveStarCount])
 
-  // Occasional shooting star
+  // Occasional shooting star (disabled for reduced motion)
   useEffect(() => {
-    if (!showShootingStars) return
+    if (!showShootingStars || prefersReducedMotion) return
 
     const triggerShootingStar = () => {
       setShootingStar({
@@ -84,7 +102,7 @@ export function NightSkyBackground({
 
     const timeout = scheduleNext()
     return () => clearTimeout(timeout)
-  }, [showShootingStars])
+  }, [showShootingStars, prefersReducedMotion])
 
   if (!mounted) return null
 
@@ -144,11 +162,11 @@ export function NightSkyBackground({
                 ? `0 0 ${star.size * 2}px rgba(255, 255, 255, ${star.opacity * 0.5})` 
                 : undefined,
             }}
-            animate={{
+            animate={prefersReducedMotion ? {} : {
               opacity: [star.opacity, star.opacity * 0.4, star.opacity],
               scale: [1, 1.2, 1],
             }}
-            transition={{
+            transition={prefersReducedMotion ? {} : {
               duration: star.twinkleDuration,
               delay: star.twinkleDelay,
               repeat: Infinity,
@@ -161,7 +179,7 @@ export function NightSkyBackground({
       {/* Shooting star */}
       {shootingStar && (
         <motion.div
-          className="absolute h-0.5 bg-gradient-to-r from-white via-white to-transparent rounded-full"
+          className="absolute h-0.5 bg-linear-to-r from-white via-white to-transparent rounded-full"
           style={{
             left: `${shootingStar.x}%`,
             top: `${shootingStar.y}%`,

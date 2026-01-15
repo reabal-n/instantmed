@@ -1,6 +1,6 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
-import { logger } from "@/lib/logger"
+import { logger } from "@/lib/observability/logger"
 import type { DashboardAnalytics } from "@/types/db"
 
 /**

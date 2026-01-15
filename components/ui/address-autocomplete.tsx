@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { MapPin, Loader2 } from "lucide-react"
+import { searchAddresses, getAddressMetadata, type AddressFinderSuggestion } from "@/lib/addressfinder/client"
+import { useDebounce } from "@/hooks/use-debounce"
 
 export interface AddressComponents {
   streetNumber: string
@@ -13,6 +15,8 @@ export interface AddressComponents {
   postcode: string
   country: string
   fullAddress: string
+  addressLine1?: string
+  addressLine2?: string | null
 }
 
 interface AddressAutocompleteProps {
@@ -25,104 +29,6 @@ interface AddressAutocompleteProps {
   disabled?: boolean
 }
 
-// Google Maps types are complex - using any is acceptable here with eslint-disable
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface GoogleMapsWindow extends Window {
-  google?: {
-    maps?: {
-      places?: {
-        Autocomplete: new (input: HTMLInputElement, options: unknown) => {
-          addListener: (event: string, callback: () => void) => void
-          getPlace: () => google.maps.places.PlaceResult
-        }
-      }
-    }
-  }
-  initGooglePlaces?: () => void
-}
-
-let isScriptLoaded = false
-let isScriptLoading = false
-const callbacks: (() => void)[] = []
-
-function loadGooglePlacesScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const win = window as unknown as GoogleMapsWindow
-    if (isScriptLoaded && win.google?.maps?.places) {
-      resolve()
-      return
-    }
-
-    if (isScriptLoading) {
-      callbacks.push(() => resolve())
-      return
-    }
-
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
-    if (!apiKey) {
-      reject(new Error("Google Places API key not configured"))
-      return
-    }
-
-    isScriptLoading = true
-
-    win.initGooglePlaces = () => {
-      isScriptLoaded = true
-      isScriptLoading = false
-      resolve()
-      callbacks.forEach((cb) => cb())
-      callbacks.length = 0
-    }
-
-    const script = document.createElement("script")
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlaces`
-    script.async = true
-    script.defer = true
-    script.onerror = () => {
-      isScriptLoading = false
-      reject(new Error("Failed to load Google Places API"))
-    }
-    document.head.appendChild(script)
-  })
-}
-
-function parseAddressComponents(place: any): AddressComponents {
-  const components: AddressComponents = {
-    streetNumber: "",
-    streetName: "",
-    suburb: "",
-    state: "",
-    postcode: "",
-    country: "",
-    fullAddress: place.formatted_address || "",
-  }
-
-  place.address_components?.forEach((component: any) => {
-    const types = component.types
-
-    if (types.includes("street_number")) {
-      components.streetNumber = component.long_name
-    }
-    if (types.includes("route")) {
-      components.streetName = component.long_name
-    }
-    if (types.includes("locality") || types.includes("sublocality")) {
-      components.suburb = component.long_name
-    }
-    if (types.includes("administrative_area_level_1")) {
-      components.state = component.short_name
-    }
-    if (types.includes("postal_code")) {
-      components.postcode = component.long_name
-    }
-    if (types.includes("country")) {
-      components.country = component.short_name
-    }
-  })
-
-  return components
-}
-
 export function AddressAutocomplete({
   value,
   onChange,
@@ -132,81 +38,155 @@ export function AddressAutocomplete({
   error,
   disabled,
 }: AddressAutocompleteProps) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<AddressFinderSuggestion[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<any>(null)
+  
+  const debouncedValue = useDebounce(value, 300)
+  const shouldSearch = debouncedValue && debouncedValue.length >= 3
 
-  const initAutocomplete = useCallback(() => {
-    const win = window as unknown as GoogleMapsWindow
-    if (!inputRef.current || !win.google?.maps?.places) return
+  // Clear suggestions when input is too short
+  useEffect(() => {
+    if (!shouldSearch) {
+      setSuggestions([])
+      setIsOpen(false)
+    }
+  }, [shouldSearch])
 
-    autocompleteRef.current = new win.google.maps.places.Autocomplete(inputRef.current, {
-      componentRestrictions: { country: "au" },
-      fields: ["address_components", "formatted_address", "geometry"],
-      types: ["address"],
+  // Search addresses when input changes
+  useEffect(() => {
+    if (!shouldSearch) return
+    
+    let cancelled = false
+    setIsSearching(true)
+    
+    searchAddresses(debouncedValue).then((results) => {
+      if (cancelled) return
+      setSuggestions(results)
+      setIsOpen(results.length > 0)
+      setHighlightedIndex(-1)
+      setIsSearching(false)
     })
 
-    autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace()
-      if (place?.address_components) {
-        const parsed = parseAddressComponents(place)
-        onChange(parsed.fullAddress)
-        onAddressSelect(parsed)
-      }
-    })
+    return () => { cancelled = true }
+  }, [debouncedValue, shouldSearch])
+
+  // Handle selection
+  const handleSelect = useCallback(async (suggestion: AddressFinderSuggestion) => {
+    setIsOpen(false)
+    setSuggestions([])
+    onChange(suggestion.full_address)
+
+    // Fetch full metadata
+    const metadata = await getAddressMetadata(suggestion.pxid)
+    if (metadata) {
+      onAddressSelect({
+        streetNumber: "",
+        streetName: "",
+        suburb: metadata.suburb,
+        state: metadata.state,
+        postcode: metadata.postcode,
+        country: "AU",
+        fullAddress: metadata.fullAddress,
+        addressLine1: metadata.addressLine1,
+        addressLine2: metadata.addressLine2,
+      })
+    }
   }, [onChange, onAddressSelect])
 
-  useEffect(() => {
-    loadGooglePlacesScript()
-      .then(() => {
-        setIsLoading(false)
-        initAutocomplete()
-      })
-      .catch((err) => {
-        setIsLoading(false)
-        setLoadError(err.message)
-      })
-  }, [initAutocomplete])
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!isOpen || suggestions.length === 0) return
 
-  // Reinitialize if input ref changes
-  useEffect(() => {
-    if (!isLoading && !loadError && inputRef.current) {
-      initAutocomplete()
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault()
+        setHighlightedIndex((prev) => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case "ArrowUp":
+        e.preventDefault()
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+        break
+      case "Enter":
+        e.preventDefault()
+        if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+          handleSelect(suggestions[highlightedIndex])
+        }
+        break
+      case "Escape":
+        setIsOpen(false)
+        break
     }
-  }, [isLoading, loadError, initAutocomplete])
+  }, [isOpen, suggestions, highlightedIndex, handleSelect])
 
-  if (loadError) {
-    return (
-      <div className="space-y-1">
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={className}
-          disabled={disabled}
-        />
-        <p className="text-xs text-dawn-600">Address autocomplete unavailable. Enter manually.</p>
-      </div>
-    )
-  }
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={isLoading ? "Loading..." : placeholder}
+          onKeyDown={handleKeyDown}
+          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+          placeholder={placeholder}
           className={cn("pl-10 pr-10", className, error && "border-red-500")}
-          disabled={disabled || isLoading}
+          disabled={disabled}
+          autoComplete="off"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          role="combobox"
         />
-        {isLoading && (
+        {isSearching && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
         )}
       </div>
+
+      {/* Suggestions dropdown */}
+      {isOpen && suggestions.length > 0 && (
+        <ul
+          role="listbox"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-border rounded-xl shadow-lg max-h-60 overflow-auto"
+        >
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={suggestion.pxid}
+              role="option"
+              aria-selected={index === highlightedIndex}
+              className={cn(
+                "px-4 py-3 cursor-pointer text-sm transition-colors",
+                index === highlightedIndex
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-muted"
+              )}
+              onClick={() => handleSelect(suggestion)}
+              onMouseEnter={() => setHighlightedIndex(index)}
+            >
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <span>{suggestion.full_address}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   )

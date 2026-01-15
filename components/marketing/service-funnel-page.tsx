@@ -29,6 +29,7 @@ import { Button } from '@heroui/react'
 import { cn } from '@/lib/utils'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
+import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -197,6 +198,13 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       {/* Section 6: Trust & Compliance */}
       <TrustSection config={config} colors={colors} />
       
+      {/* Emergency Disclaimer */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <EmergencyDisclaimer />
+        </div>
+      </section>
+      
       {/* Section 7: Social Proof */}
       <TestimonialsSection config={config} colors={colors} />
       
@@ -216,7 +224,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
   return (
     <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-background" />
+      <div className="absolute inset-0 bg-linear-to-b from-muted/50 to-background" />
       <div className={cn('absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-30', colors.light)} />
       
       <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
@@ -651,7 +659,7 @@ function TestimonialsSection({ config, colors: _colors }: { config: ServiceFunne
 
 function FinalCtaSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
   return (
-    <section className={cn('py-16 lg:py-24 bg-gradient-to-br', colors.gradient)}>
+    <section className={cn('py-16 lg:py-24 bg-linear-to-br', colors.gradient)}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -89,6 +89,19 @@ export function getVercelAIGatewayApiKey(): string {
 }
 
 /**
+ * Resend webhook secret for verifying webhook signatures
+ */
+export function getResendWebhookSecret(): string {
+  const key = process.env.RESEND_WEBHOOK_SECRET
+  if (!key) {
+    // eslint-disable-next-line no-console
+    if (process.env.NODE_ENV === 'development') console.warn("[env] RESEND_WEBHOOK_SECRET not set - webhook verification disabled")
+    return ""
+  }
+  return key
+}
+
+/**
  * Internal API secret for server-to-server calls
  * Required in all environments for security
  */
@@ -260,6 +273,9 @@ export const env = {
   },
   get vercelAIGatewayApiKey() {
     return getVercelAIGatewayApiKey()
+  },
+  get resendWebhookSecret() {
+    return getResendWebhookSecret()
   },
   get internalApiSecret() {
     return getInternalApiSecret()

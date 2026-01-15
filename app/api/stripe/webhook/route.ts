@@ -6,6 +6,8 @@ import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import * as Sentry from "@sentry/nextjs"
+import { getPostHogClient } from "@/lib/posthog-server"
 
 const log = createLogger("stripe-webhook")
 
@@ -103,6 +105,35 @@ async function recordEventError(
     .eq("event_id", eventId)
 }
 
+/**
+ * Add failed event to dead letter queue for manual resolution
+ */
+async function addToDeadLetterQueue(
+  supabase: ReturnType<typeof getServiceClient>,
+  eventId: string,
+  eventType: string,
+  sessionId: string | null,
+  intakeId: string | null,
+  errorMessage: string,
+  errorCode?: string,
+  payload?: Record<string, unknown>
+): Promise<void> {
+  try {
+    await supabase.from("stripe_webhook_dead_letter").insert({
+      event_id: eventId,
+      event_type: eventType,
+      session_id: sessionId,
+      intake_id: intakeId,
+      error_message: errorMessage,
+      error_code: errorCode || null,
+      payload: payload || null,
+    })
+    log.warn("Added to dead letter queue", { eventId, intakeId, errorMessage })
+  } catch (dlqError) {
+    log.error("Failed to add to dead letter queue", { eventId }, dlqError)
+  }
+}
+
 export async function POST(request: Request) {
   const startTime = Date.now()
   const body = await request.text()
@@ -186,9 +217,21 @@ export async function POST(request: Request) {
 
       if (fetchError || !currentIntake) {
         const errorMsg = `Intake not found: ${intakeId}`
-        log.error("CRITICAL: Intake not found", { intakeId }, fetchError)
+        log.error("CRITICAL: Intake not found - adding to dead letter queue", { intakeId }, fetchError)
         await recordEventError(supabase, event.id, errorMsg)
-        return NextResponse.json({ error: "Intake not found", processed: true }, { status: 200 })
+        // Add to dead letter queue for manual resolution
+        await addToDeadLetterQueue(
+          supabase,
+          event.id,
+          event.type,
+          session.id,
+          intakeId,
+          errorMsg,
+          "INTAKE_NOT_FOUND",
+          { amount: session.amount_total, payment_intent: session.payment_intent }
+        )
+        // Return 500 to force Stripe retry - intake might be created by a slow concurrent request
+        return NextResponse.json({ error: "Intake not found" }, { status: 500 })
       }
 
       // STEP 2: Guard against double-marking as paid
@@ -232,6 +275,17 @@ export async function POST(request: Request) {
           sessionId: session.id,
         }, intakeError)
         await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
+        // Add to dead letter queue for critical failures
+        await addToDeadLetterQueue(
+          supabase,
+          event.id,
+          event.type,
+          session.id,
+          intakeId,
+          `Intake update failed: ${intakeError.message}`,
+          "UPDATE_FAILED",
+          { amount: session.amount_total, payment_intent: session.payment_intent }
+        )
         return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
       }
 
@@ -240,6 +294,20 @@ export async function POST(request: Request) {
         newStatus: intakeData?.status,
         sessionId: session.id,
       })
+
+      // Track payment confirmed in PostHog
+      try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+          distinctId: patientId || intakeId,
+          event: 'webhook_payment_confirmed',
+          properties: {
+            intake_id: intakeId,
+            amount_cents: session.amount_total,
+            payment_method: session.payment_method_types?.[0],
+          },
+        })
+      } catch { /* non-blocking */ }
 
       // STEP 4: Save Stripe customer ID to profile (non-critical)
       if (session.customer && patientId) {
@@ -321,6 +389,10 @@ export async function POST(request: Request) {
       })
 
     } catch (error) {
+      Sentry.captureException(error, {
+        tags: { source: 'stripe-webhook', event_type: event.type },
+        extra: { eventId: event.id, intakeId },
+      })
       log.error("Unexpected error", { intakeId }, error)
       await recordEventError(supabase, event.id, error instanceof Error ? error.message : "Unknown error")
       return NextResponse.json({ error: "Internal error" }, { status: 500 })

@@ -3,6 +3,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendMedCertReadyEmail, sendRequestDeclinedEmail } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
+import { getPostHogClient } from "@/lib/posthog-server"
 const logger = createLogger("notifications-service")
 
 type NotificationType = "request_update" | "payment" | "document_ready" | "refill_reminder" | "system" | "promotion"
@@ -98,6 +99,16 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
             certType: requestType.includes("uni") ? "uni" : requestType.includes("carer") ? "carer" : "work",
           })
           logger.info("Approval email sent", { requestId, patientEmail })
+          
+          // Track email sent in PostHog
+          try {
+            const posthog = getPostHogClient()
+            posthog.capture({
+              distinctId: patientId,
+              event: 'email_sent',
+              properties: { template: 'approval', request_id: requestId },
+            })
+          } catch { /* non-blocking */ }
         }
         break
       }
@@ -116,6 +127,16 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         // Email notification
         await sendRequestDeclinedEmail(patientEmail, patientName, requestType, requestId, declineReason)
         logger.info("Decline email sent", { requestId, patientEmail })
+        
+        // Track email sent in PostHog
+        try {
+          const posthog = getPostHogClient()
+          posthog.capture({
+            distinctId: patientId,
+            event: 'email_sent',
+            properties: { template: 'decline', request_id: requestId },
+          })
+        } catch { /* non-blocking */ }
         break
       }
 

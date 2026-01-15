@@ -138,9 +138,9 @@ export function TestimonialMarquee() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {[
             { value: "4.9", label: "Rating", showStars: true },
-            { value: "12 min", label: "Avg. response" },
-            { value: "10,000+", label: "Patients helped" },
-            { value: "98%", label: "Accepted by employers" },
+            { value: "<30 min", label: "Typical response" },
+            { value: "7 days", label: "A week availability" },
+            { value: "AHPRA", label: "Registered doctors" },
           ].map((stat) => (
             <motion.div 
               key={stat.label}

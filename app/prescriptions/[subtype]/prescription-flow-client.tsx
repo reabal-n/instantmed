@@ -23,7 +23,7 @@ import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
-import { MedicationSearch, type SelectedArtgProduct } from "@/components/intake/medication-search"
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
 
 interface PrescriptionFlowClientProps {
   category: string
@@ -197,7 +197,7 @@ export function PrescriptionFlowClient({
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   // Common form state
-  const [selectedMedication, setSelectedMedication] = useState<SelectedArtgProduct | null>(null)
+  const [selectedMedication, setSelectedMedication] = useState<SelectedPBSProduct | null>(null)
   const [additionalNotes, setAdditionalNotes] = useState("")
   const [redFlagValues, setRedFlagValues] = useState<Record<string, boolean>>(
     Object.fromEntries(redFlags.map((rf) => [rf.id, false])),
@@ -241,11 +241,11 @@ export function PrescriptionFlowClient({
 
   const buildAnswers = (): Record<string, unknown> => {
     const baseAnswers = {
-      // ARTG-backed structured medication data
-      artg_id: selectedMedication?.artg_id,
-      medication_name: selectedMedication?.product_name,
-      active_ingredients: selectedMedication?.active_ingredients_raw,
-      dosage_form: selectedMedication?.dosage_form,
+      // PBS-backed structured medication data
+      pbs_code: selectedMedication?.pbs_code,
+      medication_name: selectedMedication?.drug_name,
+      strength: selectedMedication?.strength,
+      form: selectedMedication?.form,
       additional_notes: additionalNotes,
       red_flags: redFlagValues,
     }

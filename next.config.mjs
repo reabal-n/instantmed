@@ -41,17 +41,52 @@ const nextConfig = {
     }]
   },
   serverExternalPackages: ["@supabase/ssr"],
-  // Redirects for removed medication pages (Google Ads compliance)
+  // Redirects for removed medication pages (Google Ads compliance) and duplicate routes consolidation
   async redirects() {
-    return [{
-      source: "/medications",
-      destination: "/",
-      permanent: true
-    }, {
-      source: "/medications/:path*",
-      destination: "/",
-      permanent: true
-    }];
+    return [
+      // Medication pages redirect (Google Ads compliance)
+      {
+        source: "/medications",
+        destination: "/",
+        permanent: true
+      },
+      {
+        source: "/medications/:path*",
+        destination: "/",
+        permanent: true
+      },
+      // Consolidate duplicate service routes to canonical paths
+      {
+        source: "/medical-certificates",
+        destination: "/medical-certificate",
+        permanent: true
+      },
+      {
+        source: "/medical-certificates/:path*",
+        destination: "/medical-certificate/:path*",
+        permanent: true
+      },
+      {
+        source: "/repeat-prescription",
+        destination: "/prescriptions",
+        permanent: true
+      },
+      {
+        source: "/repeat-prescription/:path*",
+        destination: "/prescriptions/:path*",
+        permanent: true
+      },
+      {
+        source: "/repeat-prescriptions",
+        destination: "/prescriptions",
+        permanent: true
+      },
+      {
+        source: "/repeat-prescriptions/:path*",
+        destination: "/prescriptions/:path*",
+        permanent: true
+      }
+    ];
   },
   // PostHog reverse proxy rewrites
   async rewrites() {

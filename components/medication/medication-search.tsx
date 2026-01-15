@@ -194,13 +194,13 @@ export function MedicationSearch({
                   )}
                   
                   <p className="text-xs text-muted-foreground">
-                    {med.commonUses.slice(0, 2).join(", ")}
+                    {med.uses.slice(0, 2).join(", ")}
                   </p>
                   
-                  {med.strengths.length > 0 && (
+                  {med.dosages.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Available: {med.strengths.slice(0, 4).join(", ")}
-                      {med.strengths.length > 4 && ` +${med.strengths.length - 4} more`}
+                      Available: {med.dosages.slice(0, 4).join(", ")}
+                      {med.dosages.length > 4 && ` +${med.dosages.length - 4} more`}
                     </p>
                   )}
                 </div>
@@ -250,7 +250,7 @@ export function MedicationSearch({
               )}
               
               <div className="flex flex-wrap gap-2">
-                {selectedMed.commonUses.map((use) => (
+                {selectedMed.uses.map((use) => (
                   <span
                     key={use}
                     className="text-xs px-2 py-1 bg-white rounded-full border border-border"
@@ -260,10 +260,10 @@ export function MedicationSearch({
                 ))}
               </div>
 
-              {selectedMed.notes && (
+              {selectedMed.warnings.length > 0 && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
                   <AlertCircle className="w-3 h-3 inline mr-1" />
-                  {selectedMed.notes}
+                  {selectedMed.warnings[0]}
                 </p>
               )}
             </div>

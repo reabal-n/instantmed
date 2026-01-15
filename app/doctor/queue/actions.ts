@@ -110,14 +110,39 @@ export async function declineIntakeAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  // Get intake details for email before declining
+  const { getIntakeWithDetails } = await import("@/lib/data/intakes")
+  const intake = await getIntakeWithDetails(intakeId)
+  
   const success = await declineIntake(intakeId, profile.id, reasonCode, reasonNote)
   if (!success) {
     return { success: false, error: "Failed to decline" }
   }
 
+  // Send decline notification email (P0 fix)
+  if (intake?.patient?.email) {
+    try {
+      const { sendRequestDeclinedEmail } = await import("@/lib/email/resend")
+      const service = intake.service as { name?: string; type?: string } | undefined
+      const requestType = service?.name || "medical request"
+      
+      await sendRequestDeclinedEmail(
+        intake.patient.email,
+        intake.patient.full_name || "Patient",
+        requestType,
+        intakeId,
+        reasonNote || undefined
+      )
+    } catch {
+      // Email is important but non-blocking - continue silently
+      // Error is already logged in the email function
+    }
+  }
+
   revalidatePath("/doctor")
   revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
+  revalidatePath(`/patient/intakes/${intakeId}`)
 
   return { success: true }
 }
@@ -200,6 +225,107 @@ export async function addPatientNoteAction(
   }
 
   return { success: true }
+}
+
+/**
+ * Claim an intake for review (concurrent review lock)
+ */
+export async function claimIntakeAction(
+  intakeId: string,
+  force: boolean = false
+): Promise<{ success: boolean; error?: string; claimedBy?: string }> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
+  const { createClient } = await import("@/lib/supabase/server")
+  const supabase = await createClient()
+
+  // Use the database function for atomic claim
+  const { data, error } = await supabase.rpc("claim_intake_for_review", {
+    p_intake_id: intakeId,
+    p_doctor_id: profile.id,
+    p_force: force,
+  })
+
+  if (error) {
+    return { success: false, error: "Failed to claim intake" }
+  }
+
+  const result = data?.[0]
+  if (!result?.success) {
+    return { 
+      success: false, 
+      error: result?.error_message || "Intake already claimed",
+      claimedBy: result?.current_claimant 
+    }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Release claim on an intake
+ */
+export async function releaseIntakeClaimAction(
+  intakeId: string
+): Promise<{ success: boolean; error?: string }> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
+  const { createClient } = await import("@/lib/supabase/server")
+  const supabase = await createClient()
+
+  const { error } = await supabase.rpc("release_intake_claim", {
+    p_intake_id: intakeId,
+    p_doctor_id: profile.id,
+  })
+
+  if (error) {
+    return { success: false, error: "Failed to release claim" }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Get decline reason templates
+ */
+export async function getDeclineReasonTemplatesAction(): Promise<{
+  success: boolean
+  templates?: Array<{ code: string; label: string; description: string | null; requires_note: boolean }>
+  error?: string
+}> {
+  const { profile } = await requireAuth("doctor")
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const { createClient } = await import("@/lib/supabase/server")
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("decline_reason_templates")
+    .select("code, label, description, requires_note")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true })
+
+  if (error) {
+    return { success: false, error: "Failed to fetch templates" }
+  }
+
+  return { success: true, templates: data }
 }
 
 export async function markAsRefundedAction(

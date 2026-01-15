@@ -7,9 +7,9 @@ import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { MessageCircle, HelpCircle } from "lucide-react"
 
-// Prevent static generation for dynamic auth
-
+// Note: force-dynamic required due to Accordion component static rendering issues
 export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "FAQs | InstantMed",
   description:

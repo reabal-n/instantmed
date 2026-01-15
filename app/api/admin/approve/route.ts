@@ -5,6 +5,8 @@ import { createLogger } from "@/lib/observability/logger"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
+import { requireValidCsrf } from "@/lib/security/csrf"
+import { getClientIdentifier } from "@/lib/rate-limit/redis"
 
 const log = createLogger("admin-approve")
 
@@ -12,13 +14,31 @@ export async function POST(request: Request) {
   let body: { intakeId?: string } | null = null
   
   try {
+    // Get auth header first
+    const authHeader = request.headers.get('authorization')
+    const isApiKeyAuth = authHeader?.startsWith('Bearer ')
+
+    // CSRF protection (skip for API key auth, only for session-based)
+    if (!isApiKeyAuth) {
+      const csrfError = await requireValidCsrf(request)
+      if (csrfError) {
+        return csrfError
+      }
+    }
+
     // Require either an internal API key OR an authenticated admin session
     const apiKey = process.env.INTERNAL_API_KEY
-    const authHeader = request.headers.get('authorization')
     let authorized = false
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
+      // P1-3: Audit log API key usage
+      const clientIp = getClientIdentifier(request)
+      log.info('API key authentication used', { 
+        endpoint: '/api/admin/approve',
+        clientIp,
+        userAgent: request.headers.get('user-agent')?.slice(0, 100)
+      })
     } else {
       try {
         const serverSupabase = await createServerClient()
@@ -51,7 +71,7 @@ export async function POST(request: Request) {
       log.warn('Unauthorized admin approve attempt', { hasAuthHeader: !!authHeader })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     body = await request.json()
     const intakeId = body?.intakeId
 

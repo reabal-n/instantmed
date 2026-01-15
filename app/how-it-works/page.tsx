@@ -17,9 +17,6 @@ import {
   Heart,
 } from "lucide-react"
 
-// Prevent static generation for dynamic auth
-export const dynamic = "force-dynamic"
-
 export const metadata = {
   title: "How It Works | InstantMed",
   description:
