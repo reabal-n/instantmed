@@ -10,6 +10,7 @@ import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
+import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
@@ -233,7 +234,7 @@ export default function RepeatPrescriptionPage() {
 
                 {/* Guarantee badge */}
                 <motion.p 
-                  className="text-sm text-muted-foreground mb-10 flex items-center justify-center gap-2"
+                  className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.35 }}
@@ -241,6 +242,17 @@ export default function RepeatPrescriptionPage() {
                   <Shield className="w-4 h-4 text-emerald-500" />
                   Full refund if we can&apos;t help
                 </motion.p>
+
+                {/* Social proof indicators */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <ViewingNowIndicator service="repeat-prescription" />
+                  <LiveServiceCounter service="repeat-prescription" />
+                </motion.div>
 
                 {/* Trust signals row */}
                 <motion.div 
