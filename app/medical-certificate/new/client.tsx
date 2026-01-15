@@ -5,7 +5,7 @@ import { StreamlinedIntake, type IntakeFormData } from "@/components/intake/stre
 import { createClient } from "@/lib/supabase/client"
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { useConfetti } from "@/components/effects/confetti"
-import { useUser, useClerk } from "@clerk/nextjs"
+import { useAuth } from "@/components/providers/supabase-auth-provider"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("client")
 
@@ -29,11 +29,10 @@ export function MedCertIntakeClient({
   const router = useRouter()
   const supabase = createClient()
   const { fire: fireConfetti } = useConfetti()
-  const { user } = useUser()
-  const { openSignIn } = useClerk()
+  const { user, signInWithGoogle } = useAuth()
 
   const handleSubmit = async (data: IntakeFormData) => {
-    // Use Clerk user for authentication
+    // Use Supabase user for authentication
     if (!user) {
       throw new Error("Please sign in to continue")
     }
@@ -41,7 +40,7 @@ export function MedCertIntakeClient({
     // Get or create profile
     const profileResult = await createOrGetProfile(
       user.id,
-      data.fullName || user.fullName || "",
+      data.fullName || user.user_metadata?.full_name || "",
       data.dateOfBirth || ""
     )
 
@@ -96,11 +95,8 @@ export function MedCertIntakeClient({
   }
 
   const handleAuthRequired = () => {
-    // Use Clerk's sign-in modal
-    openSignIn({
-      afterSignInUrl: "/medical-certificate/new",
-      afterSignUpUrl: "/medical-certificate/new",
-    })
+    // Use Supabase Google sign-in
+    signInWithGoogle("/medical-certificate/new")
   }
 
   return (
