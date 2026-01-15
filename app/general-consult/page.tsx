@@ -1,17 +1,788 @@
-import type { Metadata } from 'next'
-import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
-import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Online GP Consultation | Speak with a Doctor | InstantMed',
-  description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice, prescriptions, or referrals.',
-  openGraph: {
-    title: 'Online GP Consultation | InstantMed',
-    description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
-    type: 'website',
+import Link from "next/link"
+import Image from "next/image"
+import { Navbar } from "@/components/shared/navbar"
+import { MarketingFooter } from "@/components/marketing"
+import { Button, Accordion, AccordionItem } from "@heroui/react"
+import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
+import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
+import { ParallaxSection } from "@/components/ui/parallax-section"
+import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
+import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
+import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
+
+// Consultation types
+const CONSULT_TYPES = [
+  {
+    id: "new-concern",
+    title: "New Health Concern",
+    subtitle: "Get assessed & treated",
+    price: 49.95,
+    time: "Within 2 hours",
+    icon: Stethoscope,
+    description: "For new symptoms or conditions you want a doctor to assess and advise on.",
+    benefits: ["Full clinical assessment", "Treatment advice", "Prescriptions if appropriate"],
+    popular: true,
+    href: "/start?service=consult",
+    color: "from-violet-500 to-purple-600",
+    bgColor: "bg-violet-500/10",
+    borderColor: "border-violet-500/20",
   },
+  {
+    id: "new-medication",
+    title: "New Medication",
+    subtitle: "Start a new treatment",
+    price: 49.95,
+    time: "Within 2 hours",
+    icon: FileText,
+    description: "Need to start a new medication? A doctor will assess if it is right for you.",
+    benefits: ["Medical assessment", "E-script to any pharmacy", "Follow-up messaging"],
+    popular: false,
+    href: "/start?service=consult",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
+  },
+  {
+    id: "referral",
+    title: "Referral Request",
+    subtitle: "Specialist or imaging",
+    price: 49.95,
+    time: "Within 2 hours",
+    icon: MessageCircle,
+    description: "Need a referral to a specialist, pathology, or imaging? Start here.",
+    benefits: ["Referral letters", "Pathology requests", "Imaging referrals"],
+    popular: false,
+    href: "/start?service=consult",
+    color: "from-emerald-500 to-green-600",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+  },
+]
+
+// Common concerns
+const COMMON_CONCERNS = [
+  { title: "Skin conditions", examples: "Rashes, acne, eczema, suspicious moles" },
+  { title: "Minor infections", examples: "UTI, sinus, ear, eye infections" },
+  { title: "Cold & flu", examples: "Respiratory symptoms, cough, sore throat" },
+  { title: "Allergies", examples: "Hay fever, food allergies, skin reactions" },
+  { title: "Mental health", examples: "Anxiety check-in, stress, low mood" },
+  { title: "Women's health", examples: "Contraception, period issues, UTI" },
+]
+
+// FAQ items
+const FAQS = [
+  {
+    question: "What can I consult about?",
+    answer: "Most non-urgent health concerns including skin conditions, minor infections, cold/flu symptoms, allergies, mental health check-ins, and requests for new medications or treatment advice.",
+  },
+  {
+    question: "Will the doctor call me?",
+    answer: "Usually yes. General consultations often require a phone or video call so the doctor can properly assess your situation. You will be notified when to expect the call.",
+  },
+  {
+    question: "Can I get a prescription?",
+    answer: "Yes, if clinically appropriate. The doctor will assess your needs and prescribe medication if suitable. We cannot prescribe Schedule 8 medications or benzodiazepines.",
+  },
+  {
+    question: "Can I get a referral?",
+    answer: "Yes. The doctor can provide referrals to specialists, pathology, or imaging if clinically indicated based on your consultation.",
+  },
+  {
+    question: "How is this different from a medical certificate?",
+    answer: "Medical certificates are for documenting illness for work or study. General consultations are for when you need actual medical advice, assessment, or treatment for a health concern.",
+  },
+  {
+    question: "What if you can not help?",
+    answer: "If your concern requires in-person examination or is outside our scope, we will advise you and provide a full refund.",
+  },
+]
+
+// Testimonials
+const testimonials = [
+  { text: '"Had a weird rash I was worried about. The doctor called, asked me to send photos, and diagnosed it quickly."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelT', name: 'Michael T.', role: 'Perth' },
+  { text: '"Needed advice about ongoing headaches. The doctor was thorough and referred me for tests."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SophieH', name: 'Sophie H.', role: 'Canberra' },
+  { text: '"Much better than I expected. The doctor actually called and spent time understanding my symptoms."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChrisB', name: 'Chris B.', role: 'Newcastle' },
+  { text: '"Got a referral to a dermatologist sorted in an hour. So much faster than waiting weeks for my GP."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JennyL', name: 'Jenny L.', role: 'Brisbane' },
+  { text: '"The doctor was genuinely helpful with my anxiety. Felt properly listened to."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MarkS', name: 'Mark S.', role: 'Melbourne' },
+  { text: '"Needed a new medication for my migraines. The doctor assessed properly and sent the script same day."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=EmmaK', name: 'Emma K.', role: 'Sydney' },
+]
+
+// Trust badges
+const trustBadges = [
+  { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
+  { name: "Clinical Standards", description: "Same as in-person care", icon: FileCheck, color: "text-blue-600" },
+  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-violet-600" },
+  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-amber-600" },
+]
+
+// How it works steps
+const steps = [
+  {
+    number: "01",
+    title: "Describe your concern",
+    description: "Tell us what is going on and answer health questions. This helps the doctor prepare.",
+    time: "3-5 min",
+    color: "from-violet-500 to-purple-600",
+    bgColor: "bg-violet-500/10",
+    borderColor: "border-violet-500/20",
+  },
+  {
+    number: "02",
+    title: "Doctor assessment",
+    description: "A GP reviews your information and will often call you to discuss further.",
+    time: "Within 2 hours",
+    color: "from-blue-500 to-blue-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
+  },
+  {
+    number: "03",
+    title: "Treatment plan",
+    description: "The doctor provides advice, prescriptions if appropriate, or referrals if needed.",
+    time: "Same day",
+    color: "from-emerald-500 to-green-600",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+  },
+]
+
+// Live stats
+const liveStats = {
+  reviewedToday: 34,
+  avgReviewTime: 45,
+  rating: 4.9,
 }
 
+// Doctor images
+const doctorImages = [
+  '/female-doctor-professional-headshot-warm-smile-aus.jpg',
+  '/middle-aged-australian-man-with-glasses-friendly-p.jpg',
+  '/indian-australian-woman-professional-headshot-smil.jpg',
+]
+
 export default function GeneralConsultPage() {
-  return <ServiceFunnelPage config={generalConsultFunnelConfig} />
+  return (
+    <div className="min-h-screen overflow-x-hidden">
+      <Navbar variant="marketing" />
+
+      <main className="relative">
+        {/* Hero Section */}
+        <ParallaxSection speed={0.2}>
+          <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              {/* Top badge */}
+              <motion.div 
+                className="flex justify-center mb-6"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  <span className="text-sm font-medium text-foreground/80">Doctors online now</span>
+                </div>
+              </motion.div>
+
+              {/* Main content */}
+              <div className="text-center max-w-4xl mx-auto">
+                <motion.h1 
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  Speak with a doctor.{' '}
+                  <span className="text-premium-gradient">Today.</span>
+                </motion.h1>
+
+                <motion.p 
+                  className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  A proper GP consultation without the clinic visit. Get assessed, treated, and back to feeling better.
+                </motion.p>
+
+                {/* CTAs */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row gap-4 justify-center mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  <Button 
+                    as={Link}
+                    href="/start?service=consult"
+                    color="primary"
+                    size="lg"
+                    className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                    endContent={<ArrowRight className="h-4 w-4" />}
+                  >
+                    Start your consult
+                  </Button>
+                  <Button 
+                    as={Link}
+                    href="#how-it-works"
+                    variant="bordered"
+                    size="lg"
+                    className="h-12 px-8"
+                  >
+                    See how it works
+                  </Button>
+                </motion.div>
+
+                {/* Guarantee badge */}
+                <motion.p 
+                  className="text-sm text-muted-foreground mb-10 flex items-center justify-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.35 }}
+                >
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  Full refund if we can&apos;t help
+                </motion.p>
+
+                {/* Trust signals row */}
+                <motion.div 
+                  className="flex flex-wrap justify-center gap-6 sm:gap-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  {[
+                    { icon: Stethoscope, text: "Real clinical assessment" },
+                    { icon: Phone, text: "Doctor calls you" },
+                    { icon: Shield, text: "AHPRA registered doctors" },
+                  ].map((signal) => (
+                    <div 
+                      key={signal.text} 
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
+                      <signal.icon className="h-4 w-4 text-primary/70" />
+                      <span>{signal.text}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Stats bar */}
+              <motion.div
+                className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+              >
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-foreground mb-1">$49.95</div>
+                  <p className="text-xs text-muted-foreground">Consultation fee</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-foreground mb-1">&lt;2 hrs</div>
+                  <p className="text-xs text-muted-foreground">Doctor response</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="flex justify-center gap-0.5 mb-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{liveStats.rating} rating</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-foreground mb-1">7 days</div>
+                  <p className="text-xs text-muted-foreground">A week</p>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Trust Badges */}
+        <ParallaxSection speed={0.15}>
+          <section className="py-12 lg:py-16">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <motion.div 
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                {trustBadges.map((badge, index) => (
+                  <motion.div
+                    key={badge.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
+                      <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
+                        <badge.icon className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Consultation Types */}
+        <ParallaxSection speed={0.25}>
+          <section className="py-12 lg:py-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+              {/* Section Header */}
+              <motion.div 
+                className="text-center mb-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
+                  How can we help?
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+                  Choose what best describes your situation. Same price, same quality care.
+                </p>
+              </motion.div>
+
+              {/* Live stats */}
+              <motion.div 
+                className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {doctorImages.map((src, i) => (
+                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background">
+                        <Image src={src} alt="AHPRA-registered doctor" fill className="object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-xs text-muted-foreground">AHPRA doctors</span>
+                </div>
+                <div className="h-4 w-px bg-border hidden sm:block" />
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Users className="w-3.5 h-3.5 text-primary" />
+                  <span><strong className="text-foreground">{liveStats.reviewedToday}</strong> consults today</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong> response</span>
+                </div>
+              </motion.div>
+
+              {/* Cards */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+                {CONSULT_TYPES.map((consult, index) => (
+                  <motion.div
+                    key={consult.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <Link href={consult.href} className="group block h-full">
+                      <SpotlightReveal color={consult.id === 'new-concern' ? "#7c3aed" : consult.id === 'new-medication' ? "#2563EB" : "#10b981"} borderRadius="1rem">
+                        <div className={cn(
+                          "relative h-full rounded-2xl overflow-hidden flex flex-col",
+                          "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
+                          "border border-white/20 dark:border-white/10",
+                          "shadow-lg shadow-black/5 dark:shadow-black/20",
+                          "hover:shadow-xl transition-all duration-300",
+                          "group-hover:-translate-y-1",
+                          consult.popular && "ring-2 ring-violet-500/30 dark:ring-violet-400/30"
+                        )}>
+                          {/* Popular badge */}
+                          {consult.popular && (
+                            <div className="absolute top-0 right-4 z-20">
+                              <div className="px-3 py-1.5 rounded-b-lg bg-linear-to-r from-violet-500 to-purple-500 text-background text-xs font-bold tracking-wide uppercase shadow-lg shadow-violet-500/40">
+                                Popular
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Gradient header */}
+                          <div className={`h-1.5 w-full bg-linear-to-r ${consult.color}`} />
+
+                          <div className="p-6 flex-1 flex flex-col">
+                            {/* Icon */}
+                            <div 
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${consult.bgColor}`}
+                            >
+                              <consult.icon className="w-6 h-6" style={{ color: consult.id === 'new-concern' ? '#7c3aed' : consult.id === 'new-medication' ? '#2563EB' : '#10b981' }} />
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                              {consult.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mb-3">{consult.subtitle}</p>
+
+                            {/* Description */}
+                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                              {consult.description}
+                            </p>
+
+                            {/* Benefits */}
+                            <ul className="space-y-2 mb-6 flex-1">
+                              {consult.benefits.map((benefit, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                  <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                                  <span>{benefit}</span>
+                                </li>
+                              ))}
+                            </ul>
+
+                            {/* Price and CTA */}
+                            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                              <div>
+                                <span className="text-2xl font-bold text-foreground">${consult.price.toFixed(2)}</span>
+                                <span className="text-xs text-muted-foreground ml-2">{consult.time}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
+                                Get started <ArrowRight className="w-4 h-4" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </SpotlightReveal>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Guarantee badge */}
+              <motion.div 
+                className="mt-8 flex justify-center"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">Full refund if we can&apos;t help</span>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Common Concerns */}
+        <ParallaxSection speed={0.15}>
+          <section className="py-12 lg:py-16">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                className="text-center mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
+                  Common things we help with
+                </h2>
+                <p className="text-muted-foreground text-sm max-w-xl mx-auto">
+                  Our doctors can help with most non-urgent health concerns. Here are some examples.
+                </p>
+              </motion.div>
+              
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {COMMON_CONCERNS.map((concern, index) => (
+                  <motion.div
+                    key={concern.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                  >
+                    <div className="p-4 rounded-xl bg-card/50 border border-border/50">
+                      <h3 className="font-semibold text-foreground text-sm mb-1">{concern.title}</h3>
+                      <p className="text-xs text-muted-foreground">{concern.examples}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Important Notice */}
+        <ParallaxSection speed={0.15}>
+          <section className="py-8">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                className="p-5 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-foreground text-sm mb-1">This is not for emergencies</h3>
+                    <p className="text-sm text-muted-foreground">
+                      If you have chest pain, difficulty breathing, severe symptoms, or any emergency — call <strong>000</strong> or go to your nearest emergency department immediately.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* How It Works */}
+        <ParallaxSection speed={0.2}>
+          <section id="how-it-works" className="py-16 lg:py-20 scroll-mt-20">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              {/* Section Header */}
+              <motion.div 
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground/80">How it works</span>
+                </div>
+                
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
+                  Three steps to feeling better
+                </h2>
+                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                  Start with a questionnaire, a doctor reviews and calls you, then you get your treatment plan.
+                </p>
+              </motion.div>
+
+              {/* Steps */}
+              <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={step.number}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ y: -4 }}
+                  >
+                    <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
+                      {/* Step number */}
+                      <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-background text-sm font-bold shadow-lg`}>
+                        {step.number}
+                      </div>
+                      
+                      {/* Content */}
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                        {step.description}
+                      </p>
+                      
+                      {/* Time badge */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 dark:bg-white/10 border border-black/5 dark:border-white/10">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs font-medium text-foreground">{step.time}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <motion.div 
+                className="flex flex-col items-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <Button
+                  as={Link}
+                  href="/start?service=consult"
+                  color="primary"
+                  size="lg"
+                  className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                  endContent={<ArrowRight className="h-4 w-4" />}
+                >
+                  Start your consult
+                </Button>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Doctor typically responds within 2 hours
+                </p>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Emergency Disclaimer */}
+        <section className="px-4 pb-8">
+          <div className="mx-auto max-w-2xl">
+            <EmergencyDisclaimer />
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <ParallaxSection speed={0.25}>
+          <section className="py-8 overflow-hidden">
+            <TestimonialsColumnsWrapper
+              testimonials={testimonials}
+              title="What our patients say"
+              subtitle="Real reviews from Australians who have used our service."
+              badgeText="Patient Reviews"
+              className="py-0 my-0"
+            />
+          </section>
+        </ParallaxSection>
+
+        {/* FAQ Section */}
+        <ParallaxSection speed={0.15}>
+          <section className="py-16 lg:py-20">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              {/* Section Header */}
+              <motion.div 
+                className="text-center mb-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground/80">FAQ</span>
+                </div>
+                
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
+                  Common questions
+                </h2>
+                <p className="text-muted-foreground max-w-lg mx-auto text-sm">
+                  Everything you need to know about our general consultations.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <Accordion 
+                  variant="splitted"
+                  defaultExpandedKeys={["0"]}
+                  className="gap-3"
+                >
+                  {FAQS.map((item, index) => (
+                    <AccordionItem
+                      key={index.toString()}
+                      aria-label={item.question}
+                      title={<span className="font-medium text-foreground">{item.question}</span>}
+                      classNames={{
+                        base: "bg-content1 border border-divider shadow-sm hover:border-primary/20 transition-colors",
+                        title: "text-foreground",
+                        content: "text-muted-foreground leading-relaxed pb-4",
+                      }}
+                    >
+                      {item.answer}
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+
+        {/* Final CTA */}
+        <ParallaxSection speed={0.2}>
+          <section className="py-16 lg:py-20 relative overflow-hidden">
+            <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <MagneticCard intensity={5} scale={1.01} borderRadius="1.5rem">
+                  <GradientBorderChase 
+                    colors={['#7c3aed', '#4f46e5', '#2563EB', '#4f46e5', '#7c3aed']}
+                    duration={4}
+                    borderWidth={2}
+                    borderRadius="1.5rem"
+                  >
+                    <div className="bg-linear-to-br from-primary/5 via-secondary/5 to-primary/5 rounded-3xl p-8 sm:p-12 text-center">
+                      {/* Badge */}
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                        <Stethoscope className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">Real GP consultations</span>
+                      </div>
+                      
+                      <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
+                        Ready to speak with a doctor?
+                      </h2>
+                      <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+                        Takes 3-5 minutes to get started. A doctor typically responds within 2 hours.
+                      </p>
+                      
+                      {/* Features */}
+                      <div className="flex flex-wrap justify-center gap-4 mb-8">
+                        {[
+                          { icon: Phone, text: "Doctor calls you" },
+                          { icon: Shield, text: "AHPRA registered" },
+                          { icon: CheckCircle2, text: "Full refund if we can't help" },
+                        ].map((feature) => (
+                          <div
+                            key={feature.text}
+                            className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-background/50 border border-divider"
+                          >
+                            <feature.icon className="h-4 w-4 text-primary" />
+                            <span>{feature.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button 
+                        as={Link}
+                        href="/start?service=consult"
+                        color="primary"
+                        size="lg"
+                        className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                        endContent={<ArrowRight className="h-4 w-4" />}
+                      >
+                        Start your consult
+                      </Button>
+                      
+                      <p className="mt-6 text-xs text-muted-foreground">
+                        $49.95 consultation fee • Prescriptions if appropriate
+                      </p>
+                    </div>
+                  </GradientBorderChase>
+                </MagneticCard>
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
+      </main>
+
+      <MarketingFooter />
+    </div>
+  )
 }
