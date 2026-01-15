@@ -64,7 +64,7 @@ export function BenefitsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Healthcare that{" "}
-                <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary to-[#4f46e5] bg-clip-text text-transparent">
                   fits your life
                 </span>
               </h2>
@@ -114,7 +114,7 @@ export function BenefitsSection() {
                     {/* App content */}
                     <div className="pt-14 px-4 pb-4 h-full overflow-hidden">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                           <Zap className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -152,8 +152,8 @@ export function BenefitsSection() {
                       {/* Mock service cards */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-                          <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 flex items-center justify-center">
-                            <Smartphone className="h-4 w-4 text-[#2563EB]" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Smartphone className="h-4 w-4 text-primary" />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium">Prescription</p>
@@ -182,7 +182,7 @@ export function BenefitsSection() {
                   className="absolute -top-4 -right-8 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl"
                 >
                   <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-[#2563EB]" />
+                    <Clock className="h-5 w-5 text-primary" />
                     <span className="text-sm font-semibold">45 min avg</span>
                   </div>
                 </motion.div>
@@ -195,7 +195,7 @@ export function BenefitsSection() {
                   <div className="flex items-center gap-2">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-[#F59E0B] text-[#F59E0B]" />
+                        <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
                       ))}
                     </div>
                     <span className="text-sm font-semibold">4.9</span>

@@ -19,7 +19,7 @@ const services = [
     title: "Medical Certificate",
     description: "Sick and need proof for work or uni? Get a valid certificate emailed to you.",
     color: "#2563EB",
-    gradient: "from-[#2563EB]/20 to-[#4f46e5]/20",
+    gradient: "from-primary/20 to-[#4f46e5]/20",
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
     href: "/medical-certificate",
     price: "$29",
@@ -47,7 +47,7 @@ export function FeaturesSection() {
       
       {/* Animated background blobs */}
       <motion.div
-        className="absolute top-0 right-0 w-[500px] h-[500px] bg-linear-to-br from-[#2563EB]/10 to-[#4f46e5]/10 rounded-full blur-3xl"
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-linear-to-br from-primary/10 to-[#4f46e5]/10 rounded-full blur-3xl"
         animate={{
           x: [0, 50, 0],
           y: [0, -30, 0],
@@ -154,11 +154,11 @@ export function FeaturesSection() {
                           
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1.5">
-                              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
+                              <CheckCircle2 className="h-4 w-4 text-primary" />
                               1 hour approval
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
+                              <CheckCircle2 className="h-4 w-4 text-primary" />
                               No calls needed
                             </span>
                           </div>

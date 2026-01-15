@@ -160,7 +160,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`h-4 w-4 ${i < testimonial.rating ? "text-[#F59E0B] fill-[#F59E0B]" : "text-gray-200"}`}
+                className={`h-4 w-4 ${i < testimonial.rating ? "text-amber-500 fill-amber-500" : "text-gray-200"}`}
               />
             ))}
           </div>
@@ -170,7 +170,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-[#2563EB]/20">
+            <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-primary/20">
               <Image
                 src={testimonial.avatar || "/placeholder.svg"}
                 alt={testimonial.name}
@@ -181,7 +181,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-semibold">{testimonial.name}</p>
-                {testimonial.verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB]" />}
+                {testimonial.verified && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
@@ -190,7 +190,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
             </div>
           </div>
           <div className="text-right">
-            <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+            <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
               {testimonial.service}
             </span>
           </div>

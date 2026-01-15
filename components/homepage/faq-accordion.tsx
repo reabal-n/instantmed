@@ -96,8 +96,8 @@ export function FAQAccordion({ limit, showCategories = false }: FAQAccordionProp
           <div
             className={`rounded-xl border transition-all duration-300 ${
               openId === faq.id
-                ? "bg-white/80 dark:bg-black/40 border-[#2563EB]/30 shadow-[0_8px_30px_rgb(0,226,181,0.1)]"
-                : "bg-white/50 dark:bg-black/20 border-white/20 dark:border-white/10 hover:border-[#2563EB]/20"
+                ? "bg-white/80 dark:bg-black/40 border-primary/30 shadow-[0_8px_30px_rgb(0,226,181,0.1)]"
+                : "bg-white/50 dark:bg-black/20 border-white/20 dark:border-white/10 hover:border-primary/20"
             }`}
           >
             <button
@@ -106,7 +106,7 @@ export function FAQAccordion({ limit, showCategories = false }: FAQAccordionProp
             >
               <div className="flex items-center gap-3">
                 {showCategories && faq.category && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                     {faq.category}
                   </span>
                 )}
@@ -115,7 +115,7 @@ export function FAQAccordion({ limit, showCategories = false }: FAQAccordionProp
               <div
                 className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                   openId === faq.id
-                    ? "bg-[#2563EB] text-white rotate-0"
+                    ? "bg-primary text-white rotate-0"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -133,7 +133,7 @@ export function FAQAccordion({ limit, showCategories = false }: FAQAccordionProp
                   className="overflow-hidden"
                 >
                   <div className="px-5 pb-5 pt-0">
-                    <div className="pl-0 border-l-2 border-[#2563EB]/30">
+                    <div className="pl-0 border-l-2 border-primary/30">
                       <p className="text-muted-foreground leading-relaxed pl-4">{faq.answer}</p>
                     </div>
                   </div>

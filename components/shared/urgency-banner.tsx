@@ -22,18 +22,18 @@ export function UrgencyBanner() {
   if (!isVisible) return null
 
   return (
-    <div className="bg-linear-to-r from-[#2563EB] to-[#00C9A0] text-[#0A0F1C] py-2 px-4 relative">
+    <div className="bg-linear-to-r from-primary to-[#00C9A0] text-foreground py-2 px-4 relative">
       <div className="container mx-auto flex items-center justify-center gap-4 text-sm font-medium">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0A0F1C]/40"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0A0F1C]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground/40"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-foreground"></span>
             </span>
             <Users className="w-4 h-4" />
             <span>{activeUsers} people online now</span>
           </div>
-          <span className="hidden sm:inline text-[#0A0F1C]/60">|</span>
+          <span className="hidden sm:inline text-foreground/60">|</span>
           <div className="hidden sm:flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
             <span>Average response: 2.4 hours today</span>
@@ -42,7 +42,7 @@ export function UrgencyBanner() {
       </div>
       <button
         onClick={() => setIsVisible(false)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-[#0A0F1C]/10 rounded transition-colors"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-foreground/10 rounded transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

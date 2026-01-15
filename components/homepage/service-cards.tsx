@@ -68,7 +68,7 @@ export function ServiceCards() {
     <section id="services" className="px-4 py-12 sm:py-16 lg:py-20 bg-mesh">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-10">
-          <span className="inline-block text-xs font-medium text-[#2563EB] mb-2 uppercase tracking-wide">
+          <span className="inline-block text-xs font-medium text-primary mb-2 uppercase tracking-wide">
             Our Services
           </span>
           <h2
@@ -135,10 +135,10 @@ export function ServiceCards() {
                   </div>
 
                   {/* Price + CTA */}
-                  <div className="pt-3 border-t border-[#0A0F1C]/5">
+                  <div className="pt-3 border-t border-foreground/5">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-base font-bold text-[#0A0F1C]">{service.price}</span>
+                        <span className="text-base font-bold text-foreground">{service.price}</span>
                         <span className="text-[10px] text-muted-foreground ml-0.5">AUD</span>
                       </div>
                       <span

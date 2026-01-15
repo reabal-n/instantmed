@@ -97,9 +97,9 @@ export function DynamicSocialProof() {
         }`}
       >
         {toast && (
-          <div className="glass-card rounded-lg px-3 py-2.5 shadow-lg border border-[#2563EB]/20 flex items-center gap-2.5 max-w-[300px]">
-            <div className="shrink-0 h-8 w-8 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-[#2563EB]" />
+          <div className="glass-card rounded-lg px-3 py-2.5 shadow-lg border border-primary/20 flex items-center gap-2.5 max-w-[300px]">
+            <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">
@@ -129,16 +129,16 @@ export function DynamicStatsBar() {
   }, [])
 
   return (
-    <section className="px-4 py-3 sm:px-6 bg-[#0A0F1C] overflow-hidden">
+    <section className="px-4 py-3 sm:px-6 bg-foreground overflow-hidden">
       <div className="flex items-center justify-center gap-6 sm:gap-12 text-white/90">
         <div className="flex items-center gap-1.5 whitespace-nowrap">
-          <TrendingUp className="h-4 w-4 text-[#2563EB]" />
+          <TrendingUp className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">
             <span className="tabular-nums">{todayCount}</span> requests today
           </span>
         </div>
         <div className="hidden sm:flex items-center gap-2 whitespace-nowrap">
-          <Star className="h-4 w-4 text-[#F59E0B] fill-[#F59E0B]" />
+          <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
           <span className="text-sm font-medium">4.9 star rating</span>
         </div>
         <div className="flex items-center gap-2 whitespace-nowrap">
@@ -207,7 +207,7 @@ export function RotatingReviews() {
     <div className={`transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0"}`}>
       <div className="flex items-center gap-1 mb-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} className="h-3 w-3 text-[#F59E0B] fill-[#F59E0B]" />
+          <Star key={i} className="h-3 w-3 text-amber-500 fill-amber-500" />
         ))}
       </div>
       <p className="text-sm italic text-muted-foreground">&quot;{review.text}&quot;</p>

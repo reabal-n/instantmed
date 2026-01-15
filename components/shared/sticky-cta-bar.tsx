@@ -55,11 +55,11 @@ export function StickyCTABar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden animate-slide-in-up">
-      <div className="bg-[#0A0F1C]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3 safe-area-inset-bottom">
+      <div className="bg-foreground/95 backdrop-blur-lg border-t border-white/10 px-4 py-3 safe-area-inset-bottom">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white flex items-center gap-1.5 truncate">
-              <Zap className="w-4 h-4 text-[#2563EB] shrink-0" />
+              <Zap className="w-4 h-4 text-primary shrink-0" />
               {config.name}
             </p>
             <p className="text-xs text-white/60">From {config.price} · Under 1 hour</p>
@@ -67,7 +67,7 @@ export function StickyCTABar() {
           <Button
             asChild
             size="sm"
-            className="rounded-full btn-premium text-[#0A0F1C] font-semibold px-5 shrink-0"
+            className="rounded-full btn-premium text-foreground font-semibold px-5 shrink-0"
           >
             <Link href={config.href}>Get Started</Link>
           </Button>

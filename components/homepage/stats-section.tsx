@@ -44,7 +44,7 @@ export function StatsSection() {
   return (
     <section className="px-4 py-16 sm:py-24 relative overflow-hidden">
       {/* Background with gradient */}
-      <div className="absolute inset-0 bg-linear-to-r from-[#2563EB]/5 via-transparent to-[#4f46e5]/5" />
+      <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-[#4f46e5]/5" />
       
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -81,7 +81,7 @@ export function StatsSection() {
                     <div className="flex-1">
                       <div className="flex items-center gap-1 mb-1">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+                          <Star key={i} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                         ))}
                       </div>
                       <p className="text-sm text-foreground">&quot;Got my prescription in 30 minutes. Absolute lifesaver!&quot;</p>
@@ -133,7 +133,7 @@ export function StatsSection() {
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Trusted by{" "}
-                <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary to-[#4f46e5] bg-clip-text text-transparent">
                   thousands
                 </span>{" "}
                 of Australians
@@ -181,7 +181,7 @@ export function StatsSection() {
                       className="rounded-full border-2 border-white dark:border-slate-800 shadow-sm"
                     />
                   ))}
-                  <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center border-2 border-white dark:border-slate-800 text-white text-xs font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-white dark:border-slate-800 text-white text-xs font-bold">
                     +2k
                   </div>
                 </div>

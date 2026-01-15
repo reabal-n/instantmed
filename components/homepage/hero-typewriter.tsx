@@ -57,8 +57,8 @@ export function HeroTypewriter() {
     <div className="relative mx-auto max-w-3xl text-center">
       <div className="inline-flex items-center gap-2 rounded-full backdrop-blur-xl bg-white/60 dark:bg-black/40 border border-white/40 dark:border-white/10 px-4 py-1.5 text-xs font-medium mb-6 animate-fade-in">
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2563EB] opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2563EB]" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
         </span>
         <span className="text-foreground">Doctors online now</span>
       </div>
@@ -146,13 +146,13 @@ export function HeroTypewriter() {
         >
           <Search className="h-5 w-5 text-muted-foreground/60" />
           <span className="text-muted-foreground text-left flex-1">What do you need help with today?</span>
-          <ArrowRight className="h-4 w-4 text-[#2563EB] group-hover:translate-x-1 transition-all" />
+          <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-all" />
         </Link>
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground animate-fade-in-up stagger-3">
         <span className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-[#2563EB]" />
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
           AHPRA-registered doctors
         </span>
         <span className="hidden sm:inline text-border">•</span>
