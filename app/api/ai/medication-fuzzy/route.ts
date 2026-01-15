@@ -91,12 +91,19 @@ export async function POST(req: NextRequest) {
       ? [correctedQuery, ...brandMatch]
       : [correctedQuery]
 
-    // Step 3: If no local match found and query looks like a typo, use AI
+    // Step 3: If no local match found and query looks like a typo, use AI (with timeout)
     let aiSuggestions: string[] = []
     const hasLocalMatch = correctedQuery !== normalizedQuery || brandMatch
     
-    if (!hasLocalMatch && query.length >= 3) {
+    // Only attempt AI if configured and no local match
+    const aiEnabled = !!(process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY || process.env.VERCEL)
+    
+    if (!hasLocalMatch && query.length >= 3 && aiEnabled) {
       try {
+        // Create abort controller with 3 second timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000)
+        
         const { text } = await generateText({
           model: "openai/gpt-4o-mini",
           prompt: `You are a medication name interpreter. The user typed: "${query}"
@@ -118,7 +125,10 @@ Examples:
 - "random word" → []
 
 Return ONLY the JSON array, nothing else:`,
+          abortSignal: controller.signal,
         })
+        
+        clearTimeout(timeoutId)
 
         // Parse AI response
         const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
@@ -127,7 +137,7 @@ Return ONLY the JSON array, nothing else:`,
           aiSuggestions = parsed.filter((s): s is string => typeof s === "string").slice(0, 3)
         }
       } catch {
-        // AI failed, continue with original query
+        // AI failed or timed out, continue with original query
       }
     }
 
