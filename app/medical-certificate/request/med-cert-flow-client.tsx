@@ -376,15 +376,6 @@ function ChipButton({
   )
 }
 
-function getDurationDays(duration: string): number {
-  if (duration === "1") return 1
-  if (duration === "2") return 2
-  if (duration === "3") return 3
-  if (duration === "4-7") return 4
-  if (duration === "1-2weeks") return 7
-  return 0
-}
-
 export function MedCertFlowClient({
   patientId: initialPatientId,
   isAuthenticated: initialIsAuthenticated,
@@ -1117,11 +1108,6 @@ export function MedCertFlowClient({
         )
 
       case "symptoms":
-        // Extended leave flag (unused now but kept for potential future use)
-        const _needsDetailedNotes = getDurationDays(formData.duration!) > 2 || 
-          formData.duration === "4-7" || 
-          formData.duration === "1-2weeks"
-        
         return (
           <section aria-labelledby="step-symptoms-heading" className="space-y-5 animate-step-enter">
             <StepHeader
