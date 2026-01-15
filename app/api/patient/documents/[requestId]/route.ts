@@ -8,15 +8,15 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("patient-documents")
 
 /**
- * GET /api/patient/documents/[documentId]
+ * GET /api/patient/documents/[requestId]
  * Download a document that belongs to the authenticated patient
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ documentId: string }> }
+  { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const { documentId } = await params
+    const { requestId: documentId } = await params
     const supabase = await createClient()
 
     // Get authenticated user

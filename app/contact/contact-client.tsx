@@ -66,11 +66,11 @@ export function ContactClient() {
           <div className="mx-auto max-w-lg text-center">
             <TiltCard className="p-10 animate-scale-in">
               <div
-                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-[#2563EB] to-[#00C9A0] flex items-center justify-center mb-6 animate-success-bounce"
+                className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-primary to-emerald-400 flex items-center justify-center mb-6 animate-success-bounce"
                 role="img"
                 aria-label="Success"
               >
-                <CheckCircle2 className="h-10 w-10 text-[#0A0F1C]" aria-hidden="true" />
+                <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
               </div>
               <div className="text-4xl mb-4" aria-hidden="true">
                 🎉
@@ -82,7 +82,7 @@ export function ContactClient() {
                 Thanks for reaching out. We typically respond within a few hours during business days. Keep an eye on
                 your inbox!
               </p>
-              <Button asChild className="rounded-full btn-premium magnetic-button text-[#0A0F1C]">
+              <Button asChild className="rounded-full btn-premium magnetic-button text-primary-foreground">
                 <Link href="/">
                   Back to Home
                   <ArrowRight className="ml-2 h-4 w-4 icon-spin-hover" aria-hidden="true" />
@@ -105,7 +105,7 @@ export function ContactClient() {
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
           <div
-            className="absolute top-20 right-1/4 w-72 h-72 bg-[#2563EB]/10 rounded-full blur-3xl"
+            className="absolute top-20 right-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl"
             aria-hidden="true"
           />
 
@@ -149,22 +149,22 @@ export function ContactClient() {
                   </h3>
                   <address className="space-y-5 not-italic">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
-                        <Mail className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <a
                           href="mailto:hello@LumenHealth.com.au"
-                          className="text-sm text-muted-foreground hover:text-[#2563EB] transition-colors"
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
                         >
                           hello@LumenHealth.com.au
                         </a>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
-                        <MapPin className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Location</p>
@@ -172,8 +172,8 @@ export function ContactClient() {
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
-                        <Clock className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Business Hours</p>
@@ -229,8 +229,8 @@ export function ContactClient() {
                           onClick={() => setSelectedReason(reason.id)}
                           className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                             selectedReason === reason.id
-                              ? "bg-[#2563EB] text-[#0A0F1C] shadow-lg"
-                              : "bg-[#0A0F1C]/5 text-muted-foreground hover:bg-[#0A0F1C]/10"
+                              ? "bg-primary text-primary-foreground shadow-lg"
+                              : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
                           }`}
                         >
                           <span aria-hidden="true">{reason.emoji}</span>
@@ -249,7 +249,7 @@ export function ContactClient() {
                         placeholder="John Smith"
                         required
                         autoComplete="name"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -261,7 +261,7 @@ export function ContactClient() {
                         placeholder="john@example.com"
                         required
                         autoComplete="email"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
+                        className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
                       />
                     </div>
                   </div>
@@ -273,7 +273,7 @@ export function ContactClient() {
                       name="subject"
                       placeholder="How can we help?"
                       required
-                      className="input-glow rounded-xl h-12 bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20"
+                      className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
                     />
                   </div>
 
@@ -285,19 +285,19 @@ export function ContactClient() {
                       placeholder="Tell us more about your inquiry..."
                       minRows={5}
                       required
-                      className="input-glow rounded-xl bg-white/50 border-[#0A0F1C]/10 focus:border-[#2563EB] focus:ring-[#2563EB]/20 resize-none"
+                      className="input-glow rounded-xl bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20 resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-full btn-premium magnetic-button glow-pulse text-[#0A0F1C] font-semibold"
+                    className="w-full h-12 rounded-full btn-premium magnetic-button glow-pulse text-primary-foreground font-semibold"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span
-                          className="h-4 w-4 border-2 border-[#0A0F1C]/20 border-t-[#0A0F1C] rounded-full animate-spin"
+                          className="h-4 w-4 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin"
                           aria-hidden="true"
                         />
                         Sending...
