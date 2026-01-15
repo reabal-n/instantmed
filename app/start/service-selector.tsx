@@ -22,8 +22,8 @@ const services = [
     popular: true,
     features: ["Valid for all employers", "Same-day delivery", "Backdating if appropriate"],
     image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
-    color: "#2563EB",
-    gradient: "from-[#2563EB]/20 to-[#10B981]/20",
+    color: "hsl(var(--primary))",
+    gradient: "from-primary/20 to-emerald-500/20",
   },
   {
     id: "prescription",
@@ -36,8 +36,8 @@ const services = [
     popular: false,
     features: ["Works with any chemist", "Repeat scripts", "Common medications"],
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
-    color: "#4f46e5",
-    gradient: "from-[#4f46e5]/20 to-[#EC4899]/20",
+    color: "hsl(var(--primary))",
+    gradient: "from-indigo-600/20 to-pink-500/20",
   },
 ]
 
@@ -49,12 +49,12 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
       {/* Hero Header */}
       <section className="relative pt-28 pb-12 px-4 overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-[#f0fdf4] via-white to-[#ecfeff] dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute inset-0 bg-linear-to-br from-emerald-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
         
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-[#2563EB]/20 to-[#4f46e5]/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-[#4f46e5]/20 to-[#EC4899]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-linear-to-r from-primary/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-linear-to-r from-indigo-600/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
         </div>
 
         <div className="relative z-10 mx-auto max-w-4xl text-center">
@@ -65,7 +65,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
               What do you{" "}
-              <span className="bg-linear-to-r from-[#2563EB] to-[#4f46e5] bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
                 need?
               </span>
             </h1>
@@ -79,19 +79,19 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#F59E0B] text-[#F59E0B]" />
+                    <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
                   ))}
                 </div>
                 <span className="text-muted-foreground">4.9/5 rating</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Shield className="h-4 w-4 text-[#2563EB]" />
+                <Shield className="h-4 w-4 text-primary" />
                 <span>AHPRA registered</span>
               </div>
               <span className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-[#4f46e5]" />
+                <Clock className="h-4 w-4 text-indigo-600" />
                 <span>45 min average</span>
               </div>
             </div>
@@ -121,7 +121,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           
                           {/* Popular badge */}
                           {service.popular && (
-                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-[#2563EB] to-[#10B981] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            <div className="absolute top-4 left-4 flex items-center gap-1 bg-linear-to-r from-primary to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                               <Sparkles className="h-3 w-3" />
                               Most Popular
                             </div>
@@ -184,7 +184,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
           {/* Help Text */}
           <BlurFade delay={0.5}>
             <div className="mt-12 relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-r from-[#2563EB]/10 via-[#10B981]/10 to-[#4f46e5]/10" />
+              <div className="absolute inset-0 bg-linear-to-r from-primary/10 via-emerald-500/10 to-indigo-600/10" />
               <div className="relative z-10 p-8 text-center">
                 <p className="text-muted-foreground mb-4">
                   Not sure which service you need?
