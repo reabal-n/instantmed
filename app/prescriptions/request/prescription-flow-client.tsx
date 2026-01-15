@@ -398,6 +398,7 @@ function SafetyKnockout() {
         as={Link}
         href="https://www.healthdirect.gov.au/australian-health-services"
         target="_blank"
+        rel="noopener noreferrer"
         variant="bordered"
         radius="lg"
       >

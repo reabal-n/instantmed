@@ -166,7 +166,7 @@ export default function TrustPage() {
                 to check.
               </p>
               <Button asChild variant="outline" className="rounded-full bg-transparent">
-                <Link href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx" target="_blank">
+                <Link href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   AHPRA Public Register
                 </Link>
