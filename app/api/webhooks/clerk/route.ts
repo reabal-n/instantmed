@@ -7,8 +7,19 @@
 
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
+
+// Local type definition for Clerk webhook events (avoids @clerk/nextjs dependency)
+type WebhookEvent = {
+  type: 'user.created' | 'user.updated' | 'user.deleted' | string
+  data: {
+    id?: string
+    email_addresses?: Array<{ email_address: string }>
+    first_name?: string | null
+    last_name?: string | null
+    image_url?: string | null
+  }
+}
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/observability/logger'
 
