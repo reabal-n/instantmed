@@ -1123,7 +1123,7 @@ export function EnhancedIntakeFlow({
                 label="Tell us more about your symptoms"
                 required
                 hint="This helps our doctors understand your situation"
-                example="e.g., Started feeling unwell yesterday evening, have been resting since"
+                example="Started feeling unwell yesterday evening, have been resting since"
                 error={errors.symptomDetails}
               >
                 <EnhancedTextarea
@@ -1180,7 +1180,7 @@ export function EnhancedIntakeFlow({
                 error={errors.consultReason}
                 hint="Describe your health concern or what you need"
                 helpText="Be as specific as possible. This helps our doctors understand how to help you."
-                example="e.g., I need a new prescription for acne treatment, or I want to discuss adjusting my blood pressure medication"
+                example="I need a new prescription for acne treatment, or I want to discuss adjusting my blood pressure medication"
               >
                 <EnhancedTextarea
                   label=""
