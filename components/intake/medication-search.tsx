@@ -173,6 +173,24 @@ export function MedicationSearch({
     inputRef.current?.focus()
   }
 
+  // Allow manual entry if user types but doesn't select from dropdown
+  const handleBlur = () => {
+    // Small delay to allow click on dropdown option to register first
+    setTimeout(() => {
+      if (inputValue.trim() && !value) {
+        // User typed something but didn't select - create manual entry
+        const manualEntry: SelectedPBSProduct = {
+          pbs_code: "MANUAL",
+          drug_name: inputValue.trim(),
+          form: null,
+          strength: null,
+        }
+        onChange(manualEntry)
+      }
+      setIsOpen(false)
+    }, 200)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
       if (e.key === "ArrowDown" && options.length > 0) {
@@ -248,6 +266,7 @@ export function MedicationSearch({
               setIsOpen(true)
             }
           }}
+          onBlur={handleBlur}
           placeholder="If you know the name, start typing to help us locate it."
           disabled={disabled}
           className={cn(

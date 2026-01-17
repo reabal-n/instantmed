@@ -9,17 +9,25 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'medical-certificates',
   
   hero: {
-    badge: 'Online Medical Certificates',
-    headline: 'Get a medical certificate without leaving home',
-    subheadline: 'Valid for work, study, or carer\'s leave. Reviewed by an Australian doctor and delivered to your email — usually within an hour.',
+    badge: 'Doctors online now',
+    headline: 'Medical certificate.',
+    headlineRotatingWords: ['Sorted.', 'Delivered.', 'Done.'],
+    subheadline: 'Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.',
     reassurances: [
-      'No appointments needed',
-      'No waiting rooms',
-      'Most requests sorted without a call',
       'Valid for all employers',
+      '7 days a week',
+      'AHPRA registered doctors',
     ],
-    ctaText: 'Get your certificate',
+    ctaText: 'Get started',
     ctaHref: '/start?service=med-cert',
+    images: {
+      primary: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face',
+      secondary: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face',
+    },
+    highlightBadge: {
+      text: 'No phone call needed',
+      glow: true,
+    },
   },
   
   whoItsFor: {

@@ -5,9 +5,10 @@ import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
-import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap } from "lucide-react"
+import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
+import { RotatingText } from "@/components/marketing/rotating-text"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
@@ -24,7 +25,7 @@ const CERT_TYPES = [
     time: "Under 1 hour",
     icon: Briefcase,
     description: "For when you're unwell and need a day or two to recover.",
-    benefits: ["Valid for all employers", "PDF emailed to you", "AHPRA-registered GP"],
+    benefits: ["No appointments needed", "Valid for all employers", "PDF emailed to you"],
     popular: true,
     href: "/start?service=med-cert",
     color: "from-blue-500 to-blue-600",
@@ -39,7 +40,7 @@ const CERT_TYPES = [
     time: "Under 1 hour",
     icon: GraduationCap,
     description: "For special consideration, extensions, or missed assessments.",
-    benefits: ["Valid for all universities", "PDF emailed to you", "AHPRA-registered GP"],
+    benefits: ["No appointments needed", "Valid for all universities", "PDF emailed to you"],
     popular: false,
     href: "/start?service=med-cert",
     color: "from-violet-500 to-purple-600",
@@ -54,7 +55,7 @@ const CERT_TYPES = [
     time: "Under 1 hour",
     icon: Heart,
     description: "For when you need to care for a sick family member.",
-    benefits: ["Valid for all employers", "PDF emailed to you", "AHPRA-registered GP"],
+    benefits: ["No appointments needed", "Valid for all employers", "PDF emailed to you"],
     popular: false,
     href: "/start?service=med-cert",
     color: "from-rose-500 to-pink-600",
@@ -182,97 +183,186 @@ export default function MedicalCertificatePage() {
                 </div>
               </motion.div>
 
-              {/* Main content */}
-              <div className="text-center max-w-4xl mx-auto">
-                <motion.h1 
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  Medical certificate.{' '}
-                  <span className="text-premium-gradient">Sorted.</span>
-                </motion.h1>
-
-                <motion.p 
-                  className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.
-                </motion.p>
-
-                {/* CTAs */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 justify-center mb-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <Button 
-                    as={Link}
-                    href="/start?service=med-cert"
-                    color="primary"
-                    size="lg"
-                    className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                    endContent={<ArrowRight className="h-4 w-4" />}
+              {/* Main content with hero image */}
+              <div className="flex flex-col lg:flex-row items-center lg:gap-12">
+                {/* Text content */}
+                <div className="text-center lg:text-left flex-1 max-w-2xl">
+                  <motion.h1 
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    Get started
-                  </Button>
-                  <Button 
-                    as={Link}
-                    href="#how-it-works"
-                    variant="bordered"
-                    size="lg"
-                    className="h-12 px-8"
+                    Medical certificate.{' '}
+                    <span className="text-premium-gradient">
+                      <RotatingText texts={['Sorted.', 'Delivered.', 'Done.']} interval={2500} />
+                    </span>
+                  </motion.h1>
+
+                  <motion.p 
+                    className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    See how it works
-                  </Button>
-                </motion.div>
+                    Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.
+                  </motion.p>
 
-                {/* Guarantee badge */}
-                <motion.p 
-                  className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.35 }}
-                >
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  Full refund if we can&apos;t help
-                </motion.p>
-
-                {/* Social proof indicators */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  <ViewingNowIndicator service="med-cert" />
-                  <LiveServiceCounter service="med-cert" />
-                </motion.div>
-
-                {/* Trust signals row */}
-                <motion.div 
-                  className="flex flex-wrap justify-center gap-6 sm:gap-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                  {[
-                    { icon: Clock, text: "Under 1 hour review" },
-                    { icon: CheckCircle2, text: "7 days a week" },
-                    { icon: Shield, text: "AHPRA registered doctors" },
-                  ].map((signal) => (
-                    <div 
-                      key={signal.text} 
-                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                  {/* CTAs + Glowing no-phone badge */}
+                  <motion.div 
+                    className="flex flex-col sm:flex-row gap-4 items-center lg:justify-start justify-center mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <Button 
+                      as={Link}
+                      href="/start?service=med-cert"
+                      color="primary"
+                      size="lg"
+                      className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                      endContent={<ArrowRight className="h-4 w-4" />}
                     >
-                      <signal.icon className="h-4 w-4 text-primary/70" />
-                      <span>{signal.text}</span>
+                      Get started
+                    </Button>
+                    
+                    {/* Glowing no-phone badge */}
+                    <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                      <span className="relative">No phone call needed</span>
                     </div>
-                  ))}
+                  </motion.div>
+
+                  {/* Guarantee badge */}
+                  <motion.p 
+                    className="text-sm text-muted-foreground mb-4 flex items-center lg:justify-start justify-center gap-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.35 }}
+                  >
+                    <Shield className="w-4 h-4 text-emerald-500" />
+                    Full refund if we can&apos;t help
+                  </motion.p>
+
+                  {/* Social proof indicators */}
+                  <motion.div 
+                    className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-3 mb-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <ViewingNowIndicator service="med-cert" />
+                    <LiveServiceCounter service="med-cert" />
+                  </motion.div>
+
+                  {/* Trust signals row */}
+                  <motion.div 
+                    className="flex flex-wrap lg:justify-start justify-center gap-6 sm:gap-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    {[
+                      { icon: CheckCircle2, text: "Valid for all employers" },
+                      { icon: CheckCircle2, text: "7 days a week" },
+                      { icon: Shield, text: "AHPRA registered" },
+                    ].map((signal) => (
+                      <div 
+                        key={signal.text} 
+                        className="flex items-center gap-2 text-sm text-muted-foreground"
+                      >
+                        <signal.icon className="h-4 w-4 text-emerald-500" />
+                        <span>{signal.text}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+
+                {/* Hero Image - Desktop */}
+                <motion.div
+                  className="hidden lg:block relative mt-12 lg:mt-0 flex-shrink-0"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.7, delay: 0.5 }}
+                >
+                  <div className="relative">
+                    {/* Main doctor image */}
+                    <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
+                      <Image
+                        src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face"
+                        alt="Australian GP ready to help"
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+                    
+                    {/* Floating AHPRA badge */}
+                    <motion.div
+                      className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.9 }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
+                          <p className="text-[10px] text-muted-foreground">Australian Doctor</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    
+                    {/* Secondary floating image */}
+                    <motion.div
+                      className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 1.1 }}
+                    >
+                      <Image
+                        src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face"
+                        alt="Healthcare team member"
+                        fill
+                        className="object-cover"
+                      />
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                {/* Mobile Hero Visual */}
+                <motion.div
+                  className="lg:hidden mt-10 flex justify-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                  <div className="relative">
+                    {/* Phone mockup */}
+                    <div className="relative w-48 h-32 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <Smartphone className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">100% online</p>
+                          <p className="text-[10px] text-muted-foreground">From your phone</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-1.5">
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500/30" />
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               </div>
 
@@ -288,16 +378,16 @@ export default function MedicalCertificatePage() {
                   <p className="text-xs text-muted-foreground">Flat fee</p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">&lt;1 hr</div>
-                  <p className="text-xs text-muted-foreground">Typical review</p>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="flex justify-center gap-0.5 mb-1">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">{liveStats.rating} rating</p>
+                </div>
+                <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-foreground mb-1">100%</div>
+                  <p className="text-xs text-muted-foreground">Digital process</p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="text-2xl font-bold text-foreground mb-1">AHPRA</div>
@@ -425,29 +515,29 @@ export default function MedicalCertificatePage() {
                           {/* Gradient header */}
                           <div className={`h-1.5 w-full bg-linear-to-r ${cert.color}`} />
 
-                          <div className="p-6 flex-1 flex flex-col">
+                          <div className="p-7 flex-1 flex flex-col">
                             {/* Icon */}
                             <div 
-                              className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${cert.bgColor}`}
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${cert.bgColor}`}
                             >
                               <cert.icon className="w-6 h-6" style={{ color: cert.id === 'personal' ? '#2563EB' : cert.id === 'study' ? '#7c3aed' : '#e11d48' }} />
                             </div>
 
                             {/* Title */}
-                            <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                            <h3 className="text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors">
                               {cert.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground mb-3">{cert.subtitle}</p>
+                            <p className="text-sm text-muted-foreground mb-4">{cert.subtitle}</p>
 
                             {/* Description */}
-                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                            <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                               {cert.description}
                             </p>
 
                             {/* Benefits */}
-                            <ul className="space-y-2 mb-6 flex-1">
+                            <ul className="space-y-2.5 mb-8 flex-1">
                               {cert.benefits.map((benefit, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                                   <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
                                   <span>{benefit}</span>
                                 </li>
@@ -455,12 +545,12 @@ export default function MedicalCertificatePage() {
                             </ul>
 
                             {/* Price and CTA */}
-                            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                            <div className="flex items-center justify-between pt-5 mt-auto border-t border-border/50">
                               <div>
                                 <span className="text-2xl font-bold text-foreground">${cert.price.toFixed(2)}</span>
-                                <span className="text-xs text-muted-foreground ml-2">{cert.time}</span>
+                                <p className="text-xs text-muted-foreground mt-0.5">{cert.time}</p>
                               </div>
-                              <div className="flex items-center gap-1 text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
+                              <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">
                                 Get started <ArrowRight className="w-4 h-4" />
                               </div>
                             </div>
@@ -510,16 +600,16 @@ export default function MedicalCertificatePage() {
                 {/* Trust indicators */}
                 <div className="flex flex-wrap justify-center gap-4">
                   {[
-                    { label: "All employers", sub: "Large & small businesses" },
-                    { label: "All universities", sub: "Go8, ATN, IRU & more" },
-                    { label: "TAFE & RTOs", sub: "Vocational education" },
-                    { label: "Government", sub: "Public sector" },
+                    { label: "All employers", sub: "Large & small businesses", icon: Briefcase, color: "text-blue-500" },
+                    { label: "All universities", sub: "Go8, ATN, IRU & more", icon: School, color: "text-violet-500" },
+                    { label: "TAFE & RTOs", sub: "Vocational education", icon: GraduationCap, color: "text-amber-500" },
+                    { label: "Government", sub: "Public sector", icon: Landmark, color: "text-emerald-500" },
                   ].map((item) => (
                     <div 
                       key={item.label}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card/50 border border-border/50"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
                       <div className="text-left">
                         <p className="text-sm font-semibold text-foreground">{item.label}</p>
                         <p className="text-xs text-muted-foreground">{item.sub}</p>
@@ -715,22 +805,22 @@ export default function MedicalCertificatePage() {
                       {/* Badge */}
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                         <Zap className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium text-primary">Ready when you are</span>
+                        <span className="text-sm font-medium text-primary">Doctors online now</span>
                       </div>
                       
                       <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
-                        Get your certificate sorted
+                        Ready when you are
                       </h2>
                       <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                        Takes 2 minutes to get started. Most requests reviewed in under an hour.
+                        Two minutes to complete the form. Real doctor review. Certificate to your inbox.
                       </p>
                       
                       {/* Features */}
                       <div className="flex flex-wrap justify-center gap-4 mb-8">
                         {[
-                          { icon: Clock, text: "Under 1 hour review" },
-                          { icon: Shield, text: "AHPRA registered" },
-                          { icon: CheckCircle2, text: "Full refund if declined" },
+                          { icon: Shield, text: "AHPRA registered doctors" },
+                          { icon: CheckCircle2, text: "Refund if declined" },
+                          { icon: Smartphone, text: "100% online" },
                         ].map((feature) => (
                           <div
                             key={feature.text}
@@ -753,8 +843,11 @@ export default function MedicalCertificatePage() {
                         Get started
                       </Button>
                       
+                      {/* Price anchoring */}
                       <p className="mt-6 text-xs text-muted-foreground">
-                        $19.95 flat fee • No account required
+                        <span className="font-semibold text-foreground">$19.95</span> flat fee
+                        <span className="mx-2">•</span>
+                        <span className="line-through opacity-60">$60+ GP visit</span>
                       </p>
                     </div>
                   </GradientBorderChase>
@@ -764,6 +857,28 @@ export default function MedicalCertificatePage() {
           </section>
         </ParallaxSection>
       </main>
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+        <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">$19.95 flat fee</p>
+              <p className="text-xs text-muted-foreground truncate">Doctor-reviewed certificate</p>
+            </div>
+            <Button
+              as={Link}
+              href="/start?service=med-cert"
+              color="primary"
+              size="sm"
+              className="px-5 font-semibold shadow-lg shadow-primary/25 shrink-0"
+              endContent={<ArrowRight className="h-3.5 w-3.5" />}
+            >
+              Get started
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <MarketingFooter />
     </div>

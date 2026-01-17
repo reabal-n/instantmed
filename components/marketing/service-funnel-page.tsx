@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
+import { RotatingText } from './rotating-text'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -52,10 +54,21 @@ export interface ServiceFunnelConfig {
   hero: {
     badge: string
     headline: string
+    headlineRotatingWords?: string[]
     subheadline: string
     reassurances: string[]
     ctaText: string
     ctaHref: string
+    // Optional hero images
+    images?: {
+      primary: string
+      secondary?: string
+    }
+    // Subtle highlight badge (e.g., "no phone needed")
+    highlightBadge?: {
+      text: string
+      glow?: boolean
+    }
   }
   
   // Who It's For Section (4 cards)
@@ -221,78 +234,175 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
 // ===========================================
 
 function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: typeof colorClasses.emerald }) {
+  const hasImages = config.hero.images?.primary
+  const hasRotatingWords = config.hero.headlineRotatingWords && config.hero.headlineRotatingWords.length > 0
+
   return (
     <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-linear-to-b from-muted/50 to-background" />
       <div className={cn('absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-30', colors.light)} />
       
-      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6"
-        >
-          <span className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium', colors.light, colors.text, colors.border, 'border')}>
-            <Sparkles className="w-4 h-4" />
-            {config.hero.badge}
-          </span>
-        </motion.div>
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12')}>
+          {/* Text content */}
+          <div className={cn('text-center flex-1', hasImages && 'lg:text-left')}>
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-6"
+            >
+              <span className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium', colors.light, colors.text, colors.border, 'border')}>
+                <Sparkles className="w-4 h-4" />
+                {config.hero.badge}
+              </span>
+            </motion.div>
 
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
-        >
-          {config.hero.headline}
-        </motion.h1>
+            {/* Headline with optional rotating text */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+            >
+              {hasRotatingWords ? (
+                <>
+                  {config.hero.headline}{' '}
+                  <span className="text-premium-gradient">
+                    <RotatingText texts={config.hero.headlineRotatingWords!} interval={2500} />
+                  </span>
+                </>
+              ) : (
+                config.hero.headline
+              )}
+            </motion.h1>
 
-        {/* Subheadline */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
-        >
-          {config.hero.subheadline}
-        </motion.p>
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className={cn('text-lg sm:text-xl text-muted-foreground max-w-2xl mb-8 leading-relaxed', hasImages ? 'lg:mx-0' : 'mx-auto')}
+            >
+              {config.hero.subheadline}
+            </motion.p>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mb-10"
-        >
-          <Button
-            as={Link}
-            href={config.hero.ctaHref}
-            size="lg"
-            className={cn('px-8 h-14 text-lg font-semibold text-white shadow-lg', colors.button)}
-          >
-            {config.hero.ctaText}
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </motion.div>
+            {/* CTA + Highlight Badge Row */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className={cn('flex flex-col sm:flex-row items-center gap-4 mb-8', hasImages ? 'lg:justify-start' : 'justify-center')}
+            >
+              <Button
+                as={Link}
+                href={config.hero.ctaHref}
+                size="lg"
+                className={cn('px-8 h-14 text-lg font-semibold text-white shadow-lg', colors.button)}
+              >
+                {config.hero.ctaText}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              
+              {/* Glowing highlight badge */}
+              {config.hero.highlightBadge && (
+                <div className={cn(
+                  'relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all',
+                  config.hero.highlightBadge.glow 
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                    : 'bg-muted text-muted-foreground'
+                )}>
+                  {config.hero.highlightBadge.glow && (
+                    <>
+                      <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                    </>
+                  )}
+                  <span className="relative">{config.hero.highlightBadge.text}</span>
+                </div>
+              )}
+            </motion.div>
 
-        {/* Reassurances */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex flex-wrap justify-center gap-x-6 gap-y-3"
-        >
-          {config.hero.reassurances.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Check className={cn('h-4 w-4', colors.text)} />
-              <span>{item}</span>
-            </div>
-          ))}
-        </motion.div>
+            {/* Reassurances */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className={cn('flex flex-wrap gap-x-6 gap-y-3', hasImages ? 'lg:justify-start' : 'justify-center')}
+            >
+              {config.hero.reassurances.map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className={cn('h-4 w-4', colors.text)} />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Hero Images */}
+          {hasImages && (
+            <motion.div
+              className="hidden lg:block relative mt-12 lg:mt-0 flex-shrink-0"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+            >
+              <div className="relative">
+                {/* Main image */}
+                <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
+                  <Image
+                    src={config.hero.images!.primary}
+                    alt="Australian healthcare professional"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+                
+                {/* Floating trust badge */}
+                <motion.div
+                  className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.9 }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={cn('w-8 h-8 rounded-full flex items-center justify-center', colors.light)}>
+                      <Shield className={cn('w-4 h-4', colors.text)} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
+                      <p className="text-[10px] text-muted-foreground">Australian Doctor</p>
+                    </div>
+                  </div>
+                </motion.div>
+                
+                {/* Secondary floating image */}
+                {config.hero.images?.secondary && (
+                  <motion.div
+                    className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 1.1 }}
+                  >
+                    <Image
+                      src={config.hero.images.secondary}
+                      alt="Healthcare team member"
+                      fill
+                      className="object-cover"
+                    />
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </section>
   )

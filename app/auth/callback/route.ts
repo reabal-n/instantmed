@@ -16,8 +16,10 @@ export async function GET(request: Request) {
   const flow = searchParams.get("flow")
   const next = searchParams.get("next") ?? redirectTo
 
+  // Create single Supabase client instance for the entire request
+  const supabase = await createClient()
+
   if (code) {
-    const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
@@ -27,8 +29,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Check if user is authenticated via Supabase
-    const supabase = await createClient()
+    // Check if user is authenticated (using same client that exchanged the code)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
     if (userError || !user) {

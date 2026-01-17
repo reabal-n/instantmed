@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { defaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 export const runtime = "edge"
@@ -252,7 +253,7 @@ If no issues found, return an empty array [].
 Return ONLY the JSON array, nothing else.`
 
       const { text } = await generateText({
-        model: "openai/gpt-4o-mini",
+        model: defaultModel,
         prompt,
       })
 

@@ -4,6 +4,7 @@ import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Shield, Clock, CheckCircle, Star } from 'lucide-react'
 
 export const dynamic = "force-dynamic"
@@ -137,7 +138,7 @@ export default function SignUpPage() {
                   "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face",
                   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
                 ].map((src, i) => (
-                  <img key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-white object-cover" />
+                  <Image key={i} src={src} alt="" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-white object-cover" unoptimized />
                 ))}
               </div>
               <div>

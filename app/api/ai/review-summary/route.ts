@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { defaultModel } from "@/lib/ai/provider"
 import { createClient } from "@/lib/supabase/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 
-export const runtime = "edge"
+// Note: Cannot use Edge runtime due to Supabase server client dependency
 
 const log = createLogger("ai-review-summary")
 
@@ -205,7 +206,7 @@ Return ONLY the summary text, no labels or formatting.`
 
     // Generate summary
     const { text } = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: defaultModel,
       prompt,
     })
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { defaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     // Generate med cert draft via Vercel AI Gateway
     const { text } = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: defaultModel,
       system: MED_CERT_DRAFT_PROMPT,
       prompt: `Generate a medical certificate statement for:\n\n${context}`,
     })

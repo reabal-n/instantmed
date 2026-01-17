@@ -27,19 +27,22 @@ function Input({
       variant="flat"
       classNames={{
         base: cn("w-full", className),
-        mainWrapper: "shadow-none bg-transparent",
+        mainWrapper: "!shadow-none !bg-transparent",
         inputWrapper: cn(
           // Clean single-layer input styling - no double borders
-          "bg-white dark:bg-slate-900",
-          "!border border-slate-200 dark:border-slate-700",
-          "!shadow-none",
+          "!bg-white dark:!bg-slate-900",
+          "!border !border-slate-200 dark:!border-slate-700",
+          "!shadow-none !outline-none",
+          "!rounded-xl",
+          // Remove any default wrapper styling
+          "before:!hidden after:!hidden",
           // Motion - gentle
           "transition-all duration-200",
           // Hover state
-          "hover:border-slate-300 dark:hover:border-slate-600",
+          "hover:!border-slate-300 dark:hover:!border-slate-600",
           // Focus state
-          "data-[focused=true]:border-primary",
-          "data-[focused=true]:ring-2 data-[focused=true]:ring-primary/20",
+          "data-[focused=true]:!border-primary",
+          "data-[focused=true]:!ring-2 data-[focused=true]:!ring-primary/20",
           // Mobile optimizations
           "min-h-[48px] md:min-h-0",
           "text-base md:text-sm",

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { defaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Generate decline reason via Vercel AI Gateway
     const { text } = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: defaultModel,
       system: DECLINE_REASON_PROMPT,
       prompt: `Generate a patient-facing decline message for a ${requestType || "telehealth"} request.${internalReason ? `\n\nInternal context (DO NOT include in message): ${internalReason}` : ""}`,
     })
