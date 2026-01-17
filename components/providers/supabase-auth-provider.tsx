@@ -28,7 +28,10 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   
   const supabase = useMemo(() => {
     try {
-      return createClient()
+      const client = createClient()
+      // eslint-disable-next-line no-console
+      console.log('[Auth] Supabase client created successfully')
+      return client
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('[Auth] Failed to create Supabase client:', error)
@@ -111,6 +114,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
+    // eslint-disable-next-line no-console
+    console.log('[Auth] signInWithGoogle called, supabase:', !!supabase)
     if (!supabase) {
       throw new Error('Supabase client not initialized')
     }
@@ -118,7 +123,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       ? `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
       : `${window.location.origin}/auth/callback`
     
-    const { error } = await supabase.auth.signInWithOAuth({
+    // eslint-disable-next-line no-console
+    console.log('[Auth] Calling signInWithOAuth, callbackUrl:', callbackUrl)
+    const { error, data } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: callbackUrl,
@@ -128,6 +135,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         },
       },
     })
+    
+    // eslint-disable-next-line no-console
+    console.log('[Auth] signInWithOAuth result:', { error, data })
     
     if (error) {
       throw error

@@ -27,15 +27,21 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleGoogleSignIn = async () => {
+    // eslint-disable-next-line no-console
+    console.log('[Login] Google sign-in clicked, isLoading:', isLoading)
     try {
       await signInWithGoogle(redirectUrl || undefined)
-    } catch (_err) {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[Login] Google sign-in error:', err)
       toast.error('Failed to sign in with Google')
     }
   }
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    // eslint-disable-next-line no-console
+    console.log('[Login] Email sign-in clicked, isLoading:', isLoading)
     if (!email || !password) {
       toast.error('Please enter your email and password')
       return
@@ -44,6 +50,8 @@ function LoginForm() {
     setIsSubmitting(true)
     try {
       const { error } = await signInWithEmail(email, password)
+      // eslint-disable-next-line no-console
+      console.log('[Login] Email sign-in result:', { error })
       if (error) {
         toast.error(error.message || 'Invalid email or password')
       } else {
@@ -51,7 +59,9 @@ function LoginForm() {
         router.push(redirectUrl || '/patient')
         router.refresh()
       }
-    } catch (_err) {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[Login] Email sign-in error:', err)
       toast.error('An error occurred during sign in')
     } finally {
       setIsSubmitting(false)

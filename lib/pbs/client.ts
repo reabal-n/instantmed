@@ -14,6 +14,31 @@ const log = createLogger("pbs-client")
 const PBS_API_BASE_URL = "https://data-api.health.gov.au/pbs/api/v3"
 const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b" // Public key from docs
 
+// In-memory cache to reduce API calls and avoid rate limits
+const searchCache = new Map<string, { results: PBSSearchResult[]; timestamp: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+function getCachedResults(query: string): PBSSearchResult[] | null {
+  const cached = searchCache.get(query.toLowerCase())
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.results
+  }
+  return null
+}
+
+function setCachedResults(query: string, results: PBSSearchResult[]): void {
+  searchCache.set(query.toLowerCase(), { results, timestamp: Date.now() })
+  // Clean old entries if cache gets too large
+  if (searchCache.size > 500) {
+    const now = Date.now()
+    for (const [key, value] of searchCache.entries()) {
+      if (now - value.timestamp > CACHE_TTL_MS) {
+        searchCache.delete(key)
+      }
+    }
+  }
+}
+
 export interface PBSItem {
   pbs_code: string
   drug_name: string
@@ -89,7 +114,7 @@ export async function searchPBSItems(
         "Subscription-Key": PBS_API_KEY,
         Accept: "application/json",
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      cache: "no-store", // Avoid caching issues in Edge runtime
     })
 
     if (!response.ok) {
@@ -97,7 +122,14 @@ export async function searchPBSItems(
       return await searchPBSItemsFallback(query, limit)
     }
 
-    const data = await response.json()
+    const text = await response.text()
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch (parseError) {
+      log.error("PBS API JSON parse error", { error: parseError instanceof Error ? parseError.message : String(parseError), textLength: text.length })
+      return await searchPBSItemsFallback(query, limit)
+    }
     
     if (!data.data || data.data.length === 0) {
       // Try brand_name search as fallback
@@ -147,14 +179,20 @@ async function searchPBSByBrandName(
         "Subscription-Key": PBS_API_KEY,
         Accept: "application/json",
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
     })
 
     if (!response.ok) {
       return []
     }
 
-    const data = await response.json()
+    const text = await response.text()
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return []
+    }
 
     if (!data.data || data.data.length === 0) {
       return []
@@ -202,14 +240,20 @@ async function searchPBSItemsFallback(
         "Subscription-Key": PBS_API_KEY,
         Accept: "application/json",
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
     })
 
     if (!response.ok) {
       return []
     }
 
-    const data = await response.json()
+    const text = await response.text()
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return []
+    }
     const queryLower = query.toLowerCase()
 
     // Client-side filter since direct filtering may not work
@@ -248,14 +292,20 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
         "Subscription-Key": PBS_API_KEY,
         Accept: "application/json",
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
     })
 
     if (!response.ok) {
       return null
     }
 
-    const data = await response.json()
+    const text = await response.text()
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return null
+    }
 
     if (!data.data || data.data.length === 0) {
       return null
@@ -293,16 +343,27 @@ export async function searchPBSItemsEnhanced(
 ): Promise<PBSSearchResult[]> {
   const normalizedQuery = query.toLowerCase().trim()
 
+  // Check cache first to avoid rate limits
+  const cached = getCachedResults(normalizedQuery)
+  if (cached) {
+    return cached.slice(0, limit)
+  }
+
   // Strategy 1: Try exact prefix match first via API
   let results = await searchPBSItems(normalizedQuery, limit)
 
   if (results.length > 0) {
+    setCachedResults(normalizedQuery, results)
     return results
   }
 
   // Strategy 2: Try fetching all and filtering client-side for small datasets
   // This is a fallback for when API filtering doesn't work well
   results = await searchPBSItemsFallback(normalizedQuery, limit)
+  
+  if (results.length > 0) {
+    setCachedResults(normalizedQuery, results)
+  }
 
   return results
 }
