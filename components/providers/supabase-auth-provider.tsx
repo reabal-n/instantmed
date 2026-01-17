@@ -26,9 +26,18 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
-  const supabase = useMemo(() => createClient(), [])
+  const supabase = useMemo(() => {
+    try {
+      return createClient()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[Auth] Failed to create Supabase client:', error)
+      return null
+    }
+  }, [])
 
   const fetchProfile = useCallback(async (userId: string) => {
+    if (!supabase) return
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -45,6 +54,12 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, fetchProfile])
 
   useEffect(() => {
+    // If Supabase client failed to initialize, stop loading
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
+
     // Get initial session
     const initializeAuth = async () => {
       try {
@@ -56,8 +71,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         if (initialSession?.user?.id) {
           await fetchProfile(initialSession.user.id)
         }
-      } catch (_error) {
-        // Error initializing auth - ignore
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[Auth] Failed to initialize:', error)
       } finally {
         setIsLoading(false)
       }
@@ -66,7 +82,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     initializeAuth()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange(
       async (event, newSession) => {
         setSession(newSession)
         setUser(newSession?.user ?? null)
@@ -87,6 +103,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [supabase, fetchProfile])
 
   const signOut = useCallback(async () => {
+    if (!supabase) return
     await supabase.auth.signOut()
     setUser(null)
     setSession(null)
@@ -94,11 +111,14 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
     const callbackUrl = redirectTo 
       ? `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
       : `${window.location.origin}/auth/callback`
     
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: callbackUrl,
@@ -108,9 +128,16 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         },
       },
     })
+    
+    if (error) {
+      throw error
+    }
   }, [supabase])
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not initialized') }
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -123,6 +150,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     password: string, 
     metadata?: { full_name?: string }
   ) => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not initialized') }
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
