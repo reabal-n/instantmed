@@ -72,10 +72,30 @@ export async function GET(request: Request) {
       .single()
 
     if (fetchError || !finalProfile) {
-      log.error("Profile fetch failed after creation", { userId: user.id }, fetchError)
-      return NextResponse.redirect(
-        `${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent("Profile created but could not be retrieved")}`
-      )
+      // If the query fails, it might be due to missing onboarding_completed column
+      // Try a simpler query
+      const { data: basicProfile, error: basicError } = await supabase
+        .from("profiles")
+        .select("id, role")
+        .eq("auth_user_id", user.id)
+        .single()
+      
+      if (basicError || !basicProfile) {
+        log.error("Profile fetch failed after creation", { userId: user.id }, fetchError || basicError)
+        return NextResponse.redirect(
+          `${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent("Profile created but could not be retrieved")}`
+        )
+      }
+      
+      // Use basic profile with default onboarding status
+      log.warn("Using basic profile fetch (onboarding_completed column may be missing)", { userId: user.id })
+      const profileWithDefaults = { ...basicProfile, onboarding_completed: false }
+      
+      // Continue with basic profile
+      if (profileWithDefaults.role === "patient") {
+        return NextResponse.redirect(`${origin}/patient/onboarding`)
+      }
+      return NextResponse.redirect(`${origin}/doctor`)
     }
 
     // Always return to questionnaire flow if that's where we came from

@@ -112,7 +112,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
       )
     }
 
-    // Auth using Clerk
+    // Auth using Supabase
     const authResult = await getApiAuth()
 
     if (!authResult) {

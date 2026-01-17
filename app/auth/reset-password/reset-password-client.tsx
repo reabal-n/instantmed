@@ -16,7 +16,7 @@ import { toast } from "sonner"
 
 export function ResetPasswordClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const _searchParams = useSearchParams()
   
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -42,23 +42,11 @@ export function ResetPasswordClient() {
     setIsLoading(true)
 
     try {
-      // Get the reset token from URL
-      const token = searchParams?.get("__clerk_ticket")
-      
-      if (!token) {
-        setError("Invalid or expired reset link. Please request a new one.")
-        setIsLoading(false)
-        return
-      }
-
-      // Clerk's password reset requires using their built-in UI
-      // This is a simplified version - in production, use Clerk's <SignIn /> component
-      // with the resetPasswordMode prop, or redirect to Clerk's hosted pages
-      
-      // For now, redirect to sign-in and let them use "Forgot password?"
-      setError("Please use the 'Forgot password?' link on the sign-in page for password resets.")
+      // This app uses Supabase Auth.
+      // Direct users to the standard password reset flow.
+      setError("Please use the 'Forgot password?' link on the sign-in page to reset your password.")
       setTimeout(() => {
-        router.push("/sign-in")
+        router.push("/auth/forgot-password")
       }, 3000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred"
@@ -158,17 +146,17 @@ export function ResetPasswordClient() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
+              <Link href="/auth/login" className="text-primary-600 hover:text-primary-700 hover:underline">
                 Sign in
               </Link>
             </p>
             
             <p className="text-center text-sm text-muted-foreground mt-4">
-              Note: Clerk manages password resets. If this page doesn&apos;t work, use the{" "}
-              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
-                sign-in page
+              If this page doesn&apos;t work, use the{" "}
+              <Link href="/auth/forgot-password" className="text-primary-600 hover:text-primary-700 hover:underline">
+                password reset page
               </Link>
-              {" "}and click &quot;Forgot password?&quot;
+              .
             </p>
           </div>
         </div>

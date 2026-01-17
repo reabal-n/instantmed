@@ -2,6 +2,7 @@
 
 import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle, Star } from 'lucide-react'
 
@@ -9,22 +10,14 @@ export const dynamic = "force-dynamic"
 
 function SignUpRedirect() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
   
   useEffect(() => {
-    // Build redirect URL with current origin
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
-    
-    // Always redirect to /auth/callback after sign-up, which handles role-based redirects
-    // Pass the original redirect as a parameter so callback can use it
-    const callbackUrl = redirectUrl 
-      ? `${currentOrigin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`
-      : `${currentOrigin}/auth/callback`
-    
-    // Redirect to Clerk Account Portal with callback URL
-    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(callbackUrl)}`
-    window.location.href = accountPortalUrl
-  }, [redirectUrl])
+    const next = redirectUrl || undefined
+    const url = next ? `/auth/register?redirect=${encodeURIComponent(next)}` : '/auth/register'
+    router.replace(url)
+  }, [redirectUrl, router])
 
   return null
 }
@@ -136,10 +129,15 @@ export default function SignUpPage() {
             </div>
             
             {/* Social proof */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50">
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50 hover:border-primary/20 transition-colors">
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-white" />
+                {[
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&crop=face",
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face",
+                  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face",
+                  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
+                ].map((src, i) => (
+                  <img key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-white object-cover" />
                 ))}
               </div>
               <div>

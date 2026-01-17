@@ -14,7 +14,7 @@ export default async function DoctorLayout({
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   const isDoctor = authUser.profile.role === "doctor"
@@ -24,7 +24,7 @@ export default async function DoctorLayout({
     if (authUser.profile.role === "patient") {
       redirect("/patient")
     }
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   const stats = await getDoctorDashboardStats()

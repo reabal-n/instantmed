@@ -287,40 +287,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
-                  {/* Services Dropdown - Keyboard accessible via HeroUI */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button 
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/50 dark:hover:bg-background/20 transition-all flex items-center gap-1"
-                        aria-haspopup="menu"
-                      >
-                        Services
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="start" 
-                      className="w-64 p-2"
-                    >
-                      <div className="px-2 py-1.5">
-                        <p className="text-xs font-medium text-muted-foreground">Core Services</p>
-                      </div>
-                      {services.map((service) => (
-                        <DropdownMenuItem key={service.href} asChild className="p-0">
-                          <Link
-                            href={service.href}
-                            className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors group w-full"
-                          >
-                            <service.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                            <div>
-                              <p className="text-sm font-medium">{service.title}</p>
-                              <p className="text-xs text-muted-foreground">{service.description}</p>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <AnimatedNavLink href="/medical-certificate" isActive={isActivePath("/medical-certificate")}
+                  >
+                    Medical certificates
+                  </AnimatedNavLink>
+                  <AnimatedNavLink href="/repeat-prescription" isActive={isActivePath("/repeat-prescription")}
+                  >
+                    Repeat Rx
+                  </AnimatedNavLink>
+                  <AnimatedNavLink href="/general-consult" isActive={isActivePath("/general-consult")}
+                  >
+                    General consult
+                  </AnimatedNavLink>
 
                   <ScrollNavLink sectionId="how-it-works" isActive={pathname === "/how-it-works"}>
                     How it works
@@ -339,7 +317,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         variant="outline"
                         size="sm"
                         asChild
-                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all"
+                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all flex items-center justify-center"
                       >
                         <Link href="/patient">Dashboard</Link>
                       </Button>
@@ -348,7 +326,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                         variant="outline"
                         size="sm"
                         asChild
-                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all"
+                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all flex items-center justify-center"
                       >
                         <Link href="/auth/login">Sign in</Link>
                       </Button>
@@ -501,7 +479,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             </div>
             {variant === "marketing" && (
               <>
-                <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all">
+                <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
                   <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
                     Sign in
                   </Link>
@@ -529,28 +507,42 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         {variant === "marketing" && (
           <>
-            {services.map((service, index) => (
-              <AnimatedMobileMenu.Item
-                key={service.href}
-                item={{
-                  label: service.title,
-                  href: service.href,
-                  description: service.description,
-                  icon: <service.icon className="h-5 w-5" />,
-                }}
-                index={index}
-                onClose={() => setMobileMenuOpen(false)}
-              />
-            ))}
+            <AnimatedMobileMenu.Item
+              item={{
+                label: "Medical certificates",
+                href: "/medical-certificate",
+                icon: <FileText className="h-5 w-5" />,
+              }}
+              index={0}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{
+                label: "Repeat Rx",
+                href: "/repeat-prescription",
+                icon: <Pill className="h-5 w-5" />,
+              }}
+              index={1}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{
+                label: "General consult",
+                href: "/general-consult",
+                icon: <Stethoscope className="h-5 w-5" />,
+              }}
+              index={2}
+              onClose={() => setMobileMenuOpen(false)}
+            />
             <AnimatedMobileMenu.Divider />
             <AnimatedMobileMenu.Item
               item={{ label: "How it works", href: "/how-it-works", icon: <Stethoscope className="h-5 w-5" /> }}
-              index={services.length}
+              index={3}
               onClose={() => setMobileMenuOpen(false)}
             />
             <AnimatedMobileMenu.Item
               item={{ label: "Pricing", href: "/pricing", icon: <FileText className="h-5 w-5" /> }}
-              index={services.length + 1}
+              index={4}
               onClose={() => setMobileMenuOpen(false)}
             />
           </>

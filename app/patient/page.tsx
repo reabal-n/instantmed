@@ -11,11 +11,11 @@ import { PanelDashboard } from "@/components/patient/panel-dashboard"
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientDashboardPage() {
+export default async function PatientDashboard() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   if (!authUser.profile.onboarding_completed) {

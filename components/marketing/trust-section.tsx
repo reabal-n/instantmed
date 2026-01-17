@@ -85,7 +85,7 @@ export function TrustSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 px-6 lg:px-12 rounded-3xl bg-linear-to-r from-indigo-400 via-violet-400 to-purple-500"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 px-6 lg:px-12 rounded-3xl bg-gradient-to-r from-primary/90 via-primary to-violet-500"
         >
           {stats.map((stat) => (
             <div key={stat.label} className="text-center text-white">

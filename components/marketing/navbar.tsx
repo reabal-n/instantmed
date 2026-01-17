@@ -115,7 +115,7 @@ export function MarketingNavbar() {
             {/* Desktop CTAs */}
             <div className="hidden lg:flex items-center gap-3">
               <Button asChild variant="ghost" size="sm" className="rounded-xl">
-                <Link href="/sign-in">Sign in</Link>
+                <Link href="/auth/login">Sign in</Link>
               </Button>
               <Button 
                 asChild 
@@ -186,7 +186,7 @@ export function MarketingNavbar() {
 
             <div className="pt-4 border-t border-border space-y-3">
               <Button asChild variant="outline" className="w-full justify-center rounded-xl">
-                <Link href="/sign-in">Sign in</Link>
+                <Link href="/auth/login">Sign in</Link>
               </Button>
               <Button 
                 asChild 

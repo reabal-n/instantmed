@@ -46,7 +46,7 @@ export function prefetchLikelyNextPages(currentPath: string) {
     "/medical-certificate": ["/start/med-cert", "/sign-up"],
     "/prescriptions": ["/start/prescription", "/sign-up"],
     "/sign-up": ["/patient"],
-    "/sign-in": ["/patient"],
+    "/auth/login": ["/patient"],
   }
   
   const pagesToPrefetch = prefetchMap[currentPath] || []

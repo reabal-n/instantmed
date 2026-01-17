@@ -44,14 +44,14 @@ async function getRequestData(id: string) {
   
   const supabase = await createClient()
   
-  // Check clinician role using Clerk ID
+  // Check clinician role
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("auth_user_id", userId)
     .single()
   
-  if (!profile || profile.role !== "clinician") {
+  if (!profile || !["clinician", "doctor", "admin"].includes(profile.role)) {
     return { error: "forbidden", data: null }
   }
   

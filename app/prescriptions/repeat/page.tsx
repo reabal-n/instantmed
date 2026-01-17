@@ -68,7 +68,7 @@ async function getPatientData() {
   
   const supabase = await createClient()
   
-  // Get patient profile using Clerk ID
+  // Get patient profile
   const { data: profile } = await supabase
     .from("profiles")
     .select(`

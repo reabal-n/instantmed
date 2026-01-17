@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button, Card, CardBody } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { SparklesPremium, ClockPremium, ShieldPremiumAlt } from '@/components/icons/certification-logos'
@@ -91,9 +91,16 @@ export function CTASection() {
                 </Button>
               </div>
               
-              <p className="mt-6 text-xs text-muted-foreground">
-                No account required • Pay only if approved
-              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground">
+                <span>No account required</span>
+                <span className="hidden sm:inline">•</span>
+                <span>Pay only if approved</span>
+                <span className="hidden sm:inline">•</span>
+                <span className="inline-flex items-center gap-1.5 text-success font-medium">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Full refund if we can&apos;t help
+                </span>
+              </div>
             </CardBody>
           </Card>
             </GradientBorderChase>

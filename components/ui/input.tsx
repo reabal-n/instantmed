@@ -24,14 +24,15 @@ function Input({
     <HeroInput
       size={sizeMap[size]}
       radius="lg" // Soft Pop Glass: rounded-xl for inputs
-      variant="bordered"
+      variant="flat"
       classNames={{
         base: cn("w-full", className),
-        mainWrapper: "border-none shadow-none bg-transparent",
+        mainWrapper: "shadow-none bg-transparent",
         inputWrapper: cn(
-          // Clean single-layer input styling
+          // Clean single-layer input styling - no double borders
           "bg-white dark:bg-slate-900",
-          "border border-slate-200 dark:border-slate-700",
+          "!border border-slate-200 dark:border-slate-700",
+          "!shadow-none",
           // Motion - gentle
           "transition-all duration-200",
           // Hover state

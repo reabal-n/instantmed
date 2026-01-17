@@ -231,8 +231,8 @@ export const pricingTiers = [
 
 export const faqItems = [
   {
-    question: "Is this actually legit?",
-    answer: "Yes. Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. This isn't AI or a chatbot. It's telehealth, which has been legal and regulated in Australia for years.",
+    question: "How is this different from seeing a GP?",
+    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. This isn't AI or a chatbot. It's telehealth, which has been legal and regulated in Australia for years. The main difference is convenience: no waiting rooms, no appointments, just healthcare when you need it.",
   },
   {
     question: "Will my employer accept an online medical certificate?",

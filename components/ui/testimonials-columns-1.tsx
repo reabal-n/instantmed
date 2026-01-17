@@ -2,6 +2,16 @@
 import React from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
+import { Avatar } from "@/components/ui/avatar";
+
+function getInitials(name: string) {
+  const cleaned = name.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+  const parts = cleaned.split(" ");
+  const first = (parts[0]?.[0] || "").toUpperCase();
+  const last = (parts[parts.length - 1]?.[0] || "").toUpperCase();
+  return (first + last).slice(0, 2);
+}
 
 type Testimonial = {
   text: string;
@@ -36,32 +46,25 @@ export const TestimonialsColumn = (props: {
                 <div className="p-5 rounded-2xl border shadow-md shadow-primary/5 max-w-xs w-full bg-card/50 backdrop-blur-sm" key={i}>
                   <div className="text-muted-foreground leading-relaxed text-sm">{text}</div>
                   <div className="flex items-center gap-2 mt-4">
-                    <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
-                      {image.startsWith('/') ? (
+                    {image?.startsWith("/") ? (
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden shrink-0">
                         <Image
                           fill
                           src={image}
                           alt={name}
                           className="object-cover"
-                          unoptimized
                         />
-                      ) : (
-                        <Image
-                          width={32}
-                          height={32}
-                          src={image}
-                          alt={name}
-                          className="h-8 w-8 rounded-full object-cover"
-                          onError={(e) => {
-                            // Fallback to dicebear if image fails to load
-                            const target = e.target as HTMLImageElement;
-                            if (!target.src.includes('dicebear')) {
-                              target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name.replace(/[^a-zA-Z0-9]/g, '')}`;
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <Avatar
+                        className="h-8 w-8"
+                        fallback={
+                          <div className="h-8 w-8 flex items-center justify-center text-[11px] font-semibold text-primary">
+                            {getInitials(name)}
+                          </div>
+                        }
+                      />
+                    )}
                     <div className="flex flex-col min-w-0">
                       <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
                       <div className="leading-4 opacity-60 tracking-tight text-xs truncate">{role}</div>

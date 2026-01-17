@@ -54,7 +54,7 @@ export async function POST(
       )
     }
     
-    // Get authenticated clinician via Clerk
+    // Get authenticated clinician
     const { userId } = await auth()
     const supabase = await createClient()
     
@@ -65,14 +65,14 @@ export async function POST(
       )
     }
     
-    // Verify clinician role using Clerk user ID
+    // Verify clinician role
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, role")
       .eq("auth_user_id", userId)
       .single()
     
-    if (!profile || profile.role !== "clinician") {
+    if (!profile || !["clinician", "doctor", "admin"].includes(profile.role)) {
       return NextResponse.json(
         { error: "Forbidden: Must be a clinician" },
         { status: 403 }

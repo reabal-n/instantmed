@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export default async function DoctorQueuePage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   // Fetch all intakes in queue (paid, in_review, pending_info)

@@ -718,17 +718,17 @@ export function RepeatRxIntakeFlow({
     }
   }, [currentStep, medication, emergencyAccepted, lastPrescribed, stability, prescriber, indication, currentDose, doseChanged, sideEffects, pregnantOrBreastfeeding, gpAttestationAccepted, termsAccepted])
   
-  // Handle auth callback - now using Clerk's user state
+  // Handle auth callback
   useEffect(() => {
     if (searchParams?.get("auth_success") === "true") {
       // Clear the URL param
       window.history.replaceState({}, "", window.location.pathname)
     }
     
-    // Use Clerk user for authentication check after OAuth redirect
+    // Use auth state for authentication check after OAuth redirect
     const setupProfile = async () => {
       if (user && !isSignedIn) {
-        return // Wait for Clerk to fully load
+        return
       }
       
       if (user && isSignedIn) {

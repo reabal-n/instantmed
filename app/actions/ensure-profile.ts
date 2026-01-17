@@ -29,41 +29,61 @@ export async function ensureProfile(
   }
 ): Promise<{ profileId: string | null; error: string | null }> {
   try {
-    const supabase = createServiceRoleClient()
+    let supabase
+    try {
+      supabase = createServiceRoleClient()
+    } catch (clientError) {
+      log.error("Failed to create service role client", {}, clientError)
+      return { profileId: null, error: "Server configuration error. Please contact support." }
+    }
 
-    // Step 1: Check if profile exists by auth_user_id
-    const { data: existingProfile, error: selectError } = await supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .eq("auth_user_id", userId)
-      .maybeSingle()
+    // Helper function to check for existing profile
+    const checkExistingProfile = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .eq("auth_user_id", userId)
+        .maybeSingle()
+      return { data, error }
+    }
+
+    // Step 1: Wait for database trigger to potentially create the profile
+    // The trigger runs AFTER INSERT on auth.users
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    // Step 2: Check if profile exists (trigger may have created it)
+    const { data: existingProfile, error: selectError } = await checkExistingProfile()
 
     if (selectError) {
+      log.error("Error checking for existing profile", { userId, code: selectError.code }, selectError)
       return { profileId: null, error: `Database error: ${selectError.message}` }
     }
 
-    // Step 2: If profile exists, return it
+    // If profile exists (created by trigger), return it
     if (existingProfile) {
+      log.info("Found existing profile (likely from trigger)", { userId, profileId: existingProfile.id })
       return { profileId: existingProfile.id, error: null }
     }
 
-    // Step 3: Profile doesn't exist - create it
-    // Use provided email (should always be available from Supabase auth)
+    // Step 3: Profile doesn't exist - create it manually
     if (!userEmail) {
       log.error("No email provided for profile creation", { userId })
-      return {
-        profileId: null,
-        error: "Email is required to create a profile.",
-      }
+      return { profileId: null, error: "Email is required to create a profile." }
     }
 
-    const profileData = {
-      auth_user_id: userId, // Use auth_user_id for Supabase authentication
+    log.info("Creating new profile manually", { userId, email: userEmail })
+
+    // Only include required fields - onboarding_completed has a default value in DB
+    const profileData: Record<string, unknown> = {
+      auth_user_id: userId,
       email: userEmail,
       full_name: options?.fullName || userEmail.split("@")[0] || "User",
-      date_of_birth: options?.dateOfBirth || null,
-      role: "patient" as const,
-      onboarding_completed: false,
+      role: "patient",
+    }
+    
+    // Only add optional fields if provided
+    if (options?.dateOfBirth) {
+      profileData.date_of_birth = options.dateOfBirth
     }
 
     const { data: newProfile, error: insertError } = await supabase
@@ -73,29 +93,41 @@ export async function ensureProfile(
       .single()
 
     if (insertError) {
-      // Check if it's a duplicate (trigger might have created it)
+      // Handle duplicate key (trigger created it between our check and insert)
       if (insertError.code === "23505") {
-        const { data: existingAfterError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("auth_user_id", userId)
-          .single()
-
+        log.info("Duplicate key - profile was created by trigger", { userId })
+        // Retry fetch
+        const { data: existingAfterError } = await checkExistingProfile()
         if (existingAfterError) {
           return { profileId: existingAfterError.id, error: null }
         }
       }
 
-      log.error("Failed to create profile", { userId, code: insertError.code }, insertError)
-      throw new Error(`Failed to create profile: ${insertError.message} (code: ${insertError.code})`)
+      log.error("Failed to create profile", { 
+        userId, 
+        code: insertError.code, 
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      }, insertError)
+      
+      return { 
+        profileId: null, 
+        error: `Failed to create profile: ${insertError.message} (code: ${insertError.code})` 
+      }
     }
 
     if (!newProfile) {
-      throw new Error("Profile created but could not be retrieved")
+      return { profileId: null, error: "Profile created but could not be retrieved" }
     }
 
+    log.info("Profile created successfully", { userId, profileId: newProfile.id })
     return { profileId: newProfile.id, error: null }
   } catch (err) {
-    throw err instanceof Error ? err : new Error("An unexpected error occurred during profile creation")
+    log.error("Unexpected error in ensureProfile", { userId }, err)
+    return { 
+      profileId: null, 
+      error: err instanceof Error ? err.message : "An unexpected error occurred during profile creation" 
+    }
   }
 }

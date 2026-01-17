@@ -4,5 +4,5 @@ import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic"
 export default function LoginRedirect() {
-  redirect("/sign-in")
+  redirect("/auth/login")
 }

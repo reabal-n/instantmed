@@ -200,7 +200,7 @@ export default function FAQPage() {
         <section className="py-16 bg-gradient-subtle">
           <div className="container mx-auto px-4">
             <div className="max-w-xl mx-auto text-center">
-              <TiltCard className="p-8">
+              <TiltCard className="p-8 hover-lift">
                 <div className="text-4xl mb-4">🤔</div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">Still scratching your head?</h2>
                 <p className="text-muted-foreground mb-6">

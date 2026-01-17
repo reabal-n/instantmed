@@ -64,7 +64,7 @@ export async function PATCH(
     const headersList = await headers()
     const ip = headersList.get("x-forwarded-for") || "unknown"
 
-    // Auth check using Clerk
+    // Auth check using Supabase
     const authResult = await getApiAuth()
 
     if (!authResult) {

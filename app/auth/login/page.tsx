@@ -17,6 +17,7 @@ function LoginForm() {
   const router = useRouter()
   const redirectUrl = searchParams?.get('redirect_url') || searchParams?.get('redirect') || ''
   const error = searchParams?.get('error')
+  const errorDetails = searchParams?.get('details')
   
   const { signInWithGoogle, signInWithEmail, isLoading } = useAuth()
   
@@ -65,7 +66,14 @@ function LoginForm() {
           {error === 'authentication_required' && 'Please sign in to continue.'}
           {error === 'oauth_failed' && 'Authentication failed. Please try again.'}
           {error === 'email_required' && 'Email address is required.'}
-          {error === 'profile_creation_failed' && 'Failed to create profile. Please try again.'}
+          {error === 'profile_creation_failed' && (
+            <div>
+              <p>Failed to create profile. Please try again.</p>
+              {errorDetails && (
+                <p className="mt-2 text-xs opacity-75">Details: {decodeURIComponent(errorDetails)}</p>
+              )}
+            </div>
+          )}
           {!['authentication_required', 'oauth_failed', 'email_required', 'profile_creation_failed'].includes(error) && error}
         </div>
       )}

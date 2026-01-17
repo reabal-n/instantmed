@@ -1,12 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { Clock, ArrowRight, CheckCircle2, Users, Star, Zap } from 'lucide-react'
+import Image from 'next/image'
+import { Clock, ArrowRight, CheckCircle2, Users, Star, Zap, Shield } from 'lucide-react'
 import { Button } from "@heroui/react"
 import { RotatingText } from './rotating-text'
 import { heroRotatingTexts } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
+
+// Friendly, approachable doctor images from Unsplash
+const doctorImages = {
+  primary: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face", // Friendly female doctor
+  secondary: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face", // Male doctor
+}
 
 export function Hero() {
   return (
@@ -22,8 +29,65 @@ export function Hero() {
           <DoctorAvailabilityPill />
         </motion.div>
 
-        {/* Main content */}
-        <div className="text-center max-w-4xl mx-auto">
+        {/* Main content with optional doctor image on large screens */}
+        <div className="relative">
+          {/* Floating doctor image - desktop only */}
+          <motion.div
+            className="hidden xl:block absolute -right-8 top-1/2 -translate-y-1/2 z-10"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+          >
+            <div className="relative">
+              {/* Main doctor image */}
+              <div className="relative w-64 h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
+                <Image
+                  src={doctorImages.primary}
+                  alt="Australian GP ready to help"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
+              
+              {/* Floating badge */}
+              <motion.div
+                className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">AHPRA Verified</p>
+                    <p className="text-[10px] text-muted-foreground">Australian GP</p>
+                  </div>
+                </div>
+              </motion.div>
+              
+              {/* Small secondary image */}
+              <motion.div
+                className="absolute -top-4 -left-8 w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 1.1 }}
+              >
+                <Image
+                  src={doctorImages.secondary}
+                  alt="Doctor"
+                  fill
+                  className="object-cover"
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Text content */}
+          <div className="text-center max-w-4xl mx-auto xl:max-w-2xl xl:mr-auto xl:ml-0 xl:text-left">
           {/* Badge */}
           <motion.div 
             className="mb-5"
@@ -115,6 +179,7 @@ export function Hero() {
               </div>
             ))}
           </motion.div>
+        </div>
         </div>
 
         {/* Social proof stats - below hero */}

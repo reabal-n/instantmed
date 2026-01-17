@@ -15,7 +15,7 @@ export default async function IntakeDocumentBuilderPage({
 
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
 
   const intake = await getIntakeWithDetails(id)

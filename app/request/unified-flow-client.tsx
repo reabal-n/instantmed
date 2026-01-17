@@ -1232,7 +1232,7 @@ export function UnifiedFlowClient({
           </div>
         )}
 
-        {/* Account - Now uses Clerk */}
+        {/* Account */}
         {step === "account" && (
           <div className="space-y-6">
             <div className="text-center">

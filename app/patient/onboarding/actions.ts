@@ -26,7 +26,7 @@ export async function completeOnboardingAction(
 ): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> {
   const supabase = await createClient()
 
-  // Verify the user owns this profile via Clerk
+  // Verify the user owns this profile
   const { userId } = await auth()
 
   if (!userId) {

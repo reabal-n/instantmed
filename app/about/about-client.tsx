@@ -110,7 +110,7 @@ export function AboutClient() {
                 ].map((value) => {
                   const Icon = value.icon
                   return (
-                    <div key={value.title} className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                    <div key={value.title} className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 hover-lift card-warm-hover">
                       <div
                         className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mb-3"
                         style={{
@@ -152,7 +152,7 @@ export function AboutClient() {
 
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {/* Doctor credentials */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
                   <GraduationCap className="w-7 h-7 text-emerald-600" />
                 </div>
@@ -162,7 +162,7 @@ export function AboutClient() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-7 h-7 text-primary" />
                 </div>
@@ -172,7 +172,7 @@ export function AboutClient() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-7 h-7 text-primary" />
                 </div>
@@ -185,16 +185,21 @@ export function AboutClient() {
 
             {/* Doctor quote */}
             <div className="mt-10 max-w-2xl mx-auto">
-              <blockquote className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+              <blockquote className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover-lift">
                 <p className="text-muted-foreground italic mb-4">
                   &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                    <span className="font-semibold text-emerald-600">GP</span>
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-emerald-500/20">
+                    <Image 
+                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" 
+                      alt="Dr. Sarah - AHPRA Registered GP"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground text-sm">InstantMed Doctor</p>
+                    <p className="font-medium text-foreground text-sm">Dr. Sarah</p>
                     <p className="text-xs text-muted-foreground">AHPRA Registered GP</p>
                   </div>
                 </div>

@@ -460,8 +460,7 @@ function SignInDialog({
   onGoogleAuth: () => void
   isGoogleLoading: boolean
 }) {
-  // With Clerk migration, we use Clerk's modal for all authentication
-  // The onSuccess callback is handled by the parent component's useEffect on isSignedIn
+  // Authentication is handled via the main sign-in flow
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

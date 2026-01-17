@@ -91,16 +91,16 @@ const FAQS = [
   },
 ]
 
-// Testimonials for med cert
+// Testimonials for med cert - authentic Unsplash photos
 const testimonials = [
-  { text: '"Got my cert in 25 minutes while lying in bed with the flu. Lifesaver."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahM', name: 'Sarah M.', role: 'Sydney' },
-  { text: '"My employer accepted it no questions asked. Super professional."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JamesT', name: 'James T.', role: 'Melbourne' },
-  { text: '"Used it for a uni extension. Got approved for special consideration the same day."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AmyW', name: 'Amy W.', role: 'UNSW Student' },
-  { text: '"Much better than waiting 3 days for a GP appointment."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichelleK', name: 'Michelle K.', role: 'Brisbane' },
-  { text: '"The doctor asked thorough follow-up questions. Felt legitimate."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidL', name: 'David L.', role: 'Perth' },
-  { text: '"Used it for carer\'s leave. Process was simple and fast."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=EmmaR', name: 'Emma R.', role: 'Adelaide' },
-  { text: '"Certificate looked exactly like what you\'d get from a clinic."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChrisB', name: 'Chris B.', role: 'Gold Coast' },
-  { text: '"Needed a cert for a deferred exam. Sorted in under an hour."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=TomH', name: 'Tom H.', role: 'UniMelb Student' },
+  { text: '"Got my cert in 25 minutes while lying in bed with the flu. Lifesaver."', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face', name: 'Sarah M.', role: 'Sydney' },
+  { text: '"My employer accepted it no questions asked. Super professional."', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', name: 'James T.', role: 'Melbourne' },
+  { text: '"Used it for a uni extension. Got approved for special consideration the same day."', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face', name: 'Amy W.', role: 'UNSW Student' },
+  { text: '"Much better than waiting 3 days for a GP appointment."', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face', name: 'Michelle K.', role: 'Brisbane' },
+  { text: '"The doctor asked thorough follow-up questions. Felt legitimate."', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face', name: 'David L.', role: 'Perth' },
+  { text: '"Used it for carer\'s leave. Process was simple and fast."', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face', name: 'Emma R.', role: 'Adelaide' },
+  { text: '"Certificate looked exactly like what you\'d get from a clinic."', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', name: 'Chris B.', role: 'Gold Coast' },
+  { text: '"Needed a cert for a deferred exam. Sorted in under an hour."', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face', name: 'Tom H.', role: 'UniMelb Student' },
 ]
 
 // Trust badges

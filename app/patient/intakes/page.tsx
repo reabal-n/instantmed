@@ -14,7 +14,7 @@ export default async function PatientIntakesPage() {
   const authUser = await getAuthenticatedUserWithProfile()
   
   if (!authUser) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
   
   const intakes = await getPatientIntakes(authUser.profile.id)

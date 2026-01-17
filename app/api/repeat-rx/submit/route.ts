@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"
     const userAgent = request.headers.get("user-agent") || "unknown"
     
-    // Get user session via Clerk
+    // Get user session
     const { userId } = await auth()
     
     // Apply rate limiting (use userId if authenticated, IP otherwise)
@@ -80,11 +80,11 @@ export async function POST(request: Request) {
     let isGuest = true
     
     if (userId) {
-      // Get patient profile using Clerk user ID
+      // Get patient profile using auth user ID
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", userId)
+        .eq("auth_user_id", userId)
         .single()
       
       patientId = profile?.id || null

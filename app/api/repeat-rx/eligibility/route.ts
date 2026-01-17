@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const supabase = await createClient()
     
     if (userId) {
-      // Get patient profile using Clerk user ID
+      // Get patient profile using auth user ID
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")

@@ -162,7 +162,7 @@ export function useAuth() {
   return context
 }
 
-// Convenience hooks that mirror common Clerk patterns
+// Convenience hooks that mirror common auth provider patterns
 export function useUser() {
   const { user, profile, isLoading } = useAuth()
   return {

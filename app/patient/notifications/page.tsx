@@ -15,12 +15,12 @@ export default async function NotificationsPage() {
   const { userId } = await auth()
 
   if (!userId) {
-    redirect("/sign-in?redirect=/patient/notifications")
+    redirect("/auth/login?redirect=/patient/notifications")
   }
 
   const supabase = await createClient()
 
-  // Get profile with notification preferences using Clerk ID
+  // Get profile with notification preferences
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, full_name, first_name, notification_preferences")

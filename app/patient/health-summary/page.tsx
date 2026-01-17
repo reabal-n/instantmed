@@ -15,7 +15,7 @@ export default async function HealthSummaryPage() {
   const authUser = await getAuthenticatedUserWithProfile()
   
   if (!authUser) {
-    redirect("/sign-in")
+    redirect("/auth/login")
   }
   
   const healthSummary = await getPatientHealthSummary(authUser.profile.id)

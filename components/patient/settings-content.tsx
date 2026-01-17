@@ -140,7 +140,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
                       className="mt-2 bg-slate-50"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Managed by Clerk. Update in account settings.
+                      Managed by your InstantMed account.
                     </p>
                   </div>
 
@@ -205,9 +205,9 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
                   Password
                 </h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Your password is managed securely by Clerk.
+                  Use the sign-in page to reset your password.
                 </p>
-                <Link href="/user/account" target="_blank">
+                <Link href="/auth/login" target="_blank">
                   <Button variant="outline">
                     Change Password
                     <ChevronRight className="w-4 h-4 ml-2" />

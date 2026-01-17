@@ -223,7 +223,7 @@ export function AuthStep({
   }
 
   // ============================================
-  // EMAIL INPUT STATE - Now uses Clerk modal
+  // EMAIL INPUT STATE
   // ============================================
   return (
     <FlowContent

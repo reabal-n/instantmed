@@ -139,7 +139,7 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
       (f) => formData[f as keyof IdentityData]?.toString().trim()
     )
     const hasAllConsents = REQUIRED_CONSENTS.every((c) => acceptedConsents.has(c.type))
-    // With Clerk, we don't need password check - auth is handled separately
+    // Authentication is handled separately
     const isAuthenticated = isLoggedIn
 
     return hasAllFields && hasAllConsents && isAuthenticated

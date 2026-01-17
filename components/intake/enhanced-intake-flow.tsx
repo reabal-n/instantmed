@@ -2002,7 +2002,7 @@ export function EnhancedIntakeFlow({
       </header>
 
       {/* Content */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 overflow-y-auto">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 overflow-y-auto scrollbar-hide">
         {/* Step title */}
         <motion.div
           key={step + "-title"}
