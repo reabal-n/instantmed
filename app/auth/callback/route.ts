@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { ensureProfile } from "@/app/actions/ensure-profile"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -66,7 +67,9 @@ export async function GET(request: Request) {
     }
 
     // Fetch profile to get role and onboarding status
-    const { data: finalProfile, error: fetchError } = await supabase
+    // Use service role client to bypass RLS (profile was just created)
+    const serviceClient = createServiceRoleClient()
+    const { data: finalProfile, error: fetchError } = await serviceClient
       .from("profiles")
       .select("id, role, onboarding_completed")
       .eq("auth_user_id", user.id)
@@ -75,7 +78,7 @@ export async function GET(request: Request) {
     if (fetchError || !finalProfile) {
       // If the query fails, it might be due to missing onboarding_completed column
       // Try a simpler query
-      const { data: basicProfile, error: basicError } = await supabase
+      const { data: basicProfile, error: basicError } = await serviceClient
         .from("profiles")
         .select("id, role")
         .eq("auth_user_id", user.id)
