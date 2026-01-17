@@ -162,7 +162,7 @@ export default function MedicalCertificatePage() {
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
 
-      <main className="relative">
+      <main className="relative pb-20 lg:pb-0">
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">

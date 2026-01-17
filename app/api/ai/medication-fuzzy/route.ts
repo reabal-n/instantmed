@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { defaultModel } from "@/lib/ai/provider"
+import { getDefaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
 
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 3000)
         
         const { text } = await generateText({
-          model: defaultModel,
+          model: getDefaultModel(),
           prompt: `You are a medication name interpreter. The user typed: "${query}"
 
 This might be:

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { defaultModel } from "@/lib/ai/provider"
+import { getDefaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Generate clinical note via Vercel AI Gateway
     const { text } = await generateText({
-      model: defaultModel,
+      model: getDefaultModel(),
       system: CLINICAL_NOTE_PROMPT,
       prompt: `Generate a clinical note based on this patient intake:\n\n${intakeContext}`,
     })

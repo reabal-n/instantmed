@@ -7,7 +7,7 @@ import { createOpenAI } from "@ai-sdk/openai"
  * Uses lazy initialization to avoid build-time errors.
  */
 
-// Lazy provider instance (created on first use)
+// Lazy provider instance
 let _openai: ReturnType<typeof createOpenAI> | null = null
 
 function getOpenAI() {
@@ -19,14 +19,7 @@ function getOpenAI() {
   return _openai
 }
 
-// Default model for general use (lazy)
-export const defaultModel = {
-  get provider() {
-    return getOpenAI()("gpt-4o-mini")
-  }
-}
-
-// Export a function to get the model for use with generateText
+// Get models on demand
 export function getDefaultModel() {
   return getOpenAI()("gpt-4o-mini")
 }

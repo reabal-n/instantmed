@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { defaultModel } from "@/lib/ai/provider"
+import { getDefaultModel } from "@/lib/ai/provider"
 import { createClient } from "@/lib/supabase/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
@@ -206,7 +206,7 @@ Return ONLY the summary text, no labels or formatting.`
 
     // Generate summary
     const { text } = await generateText({
-      model: defaultModel,
+      model: getDefaultModel(),
       prompt,
     })
 
