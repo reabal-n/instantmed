@@ -74,35 +74,7 @@ export function MedicationSearch({
     setIsLoading(true)
 
     try {
-      // Try AI-powered fuzzy search with a 4 second timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 4000)
-      
-      let fuzzyData = null
-      try {
-        const fuzzyResponse = await fetch("/api/ai/medication-fuzzy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
-          signal: controller.signal,
-        })
-        clearTimeout(timeoutId)
-        fuzzyData = await fuzzyResponse.json()
-      } catch {
-        clearTimeout(timeoutId)
-        // Fuzzy search failed or timed out, continue to fallback
-      }
-
-      if (fuzzyData?.results && fuzzyData.results.length > 0) {
-        setOptions(fuzzyData.results)
-        setIsOpen(true)
-        setCorrectedQuery(fuzzyData.correctedQuery)
-        setIsAiAssisted(fuzzyData.aiAssisted || false)
-        setAnnouncement(`${fuzzyData.results.length} medication${fuzzyData.results.length === 1 ? '' : 's'} found`)
-        return
-      }
-
-      // Fallback to standard PBS search
+      // Direct PBS search
       const response = await fetch(
         `/api/medications/search?q=${encodeURIComponent(query)}&limit=15`
       )
