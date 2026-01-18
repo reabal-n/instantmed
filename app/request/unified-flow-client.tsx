@@ -875,6 +875,7 @@ export function UnifiedFlowClient({
                       setCustomDates({ ...customDates, from: e.target.value })
                       setForm({ ...form, startDate: e.target.value })
                     }}
+                    min={new Date().toISOString().split("T")[0]}
                   />
                   <Input
                     type="date"
@@ -883,6 +884,7 @@ export function UnifiedFlowClient({
                       setCustomDates({ ...customDates, to: e.target.value })
                       setForm({ ...form, endDate: e.target.value })
                     }}
+                    min={customDates.from || new Date().toISOString().split("T")[0]}
                   />
                 </div>
               )}

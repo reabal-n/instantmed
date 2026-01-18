@@ -80,15 +80,14 @@ function validateSubmission(body: Partial<SubmitRequestBody>): { valid: boolean;
     return { valid: false, error: "Please describe your 'other' symptoms" }
   }
 
-  // Date validation - not more than 3 days in the past
+  // Date validation - no backdating allowed (must be today or later)
   const startDate = new Date(body.startDate)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const threeDaysAgo = new Date(today)
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+  startDate.setHours(0, 0, 0, 0)
 
-  if (startDate < threeDaysAgo) {
-    return { valid: false, error: "Start date cannot be more than 3 days in the past" }
+  if (startDate < today) {
+    return { valid: false, error: "Medical certificates cannot be backdated. Start date must be today or later." }
   }
 
   return { valid: true }

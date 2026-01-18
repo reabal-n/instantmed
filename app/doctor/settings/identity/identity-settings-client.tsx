@@ -25,7 +25,7 @@ import {
   validateProviderNumber,
   validateAhpraNumber,
   type DoctorIdentity,
-} from "@/lib/data/doctor-identity"
+} from "@/lib/data/doctor-identity.shared"
 
 interface IdentitySettingsClientProps {
   initialData: DoctorIdentity

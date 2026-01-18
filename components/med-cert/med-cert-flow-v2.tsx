@@ -796,6 +796,7 @@ export function MedCertFlowV2({
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    min={new Date().toISOString().split("T")[0]}
                     className="h-12 rounded-xl"
                   />
                   <p className="text-xs text-muted-foreground">

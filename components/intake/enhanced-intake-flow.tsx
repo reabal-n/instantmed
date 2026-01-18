@@ -1129,13 +1129,13 @@ export function EnhancedIntakeFlow({
                 </div>
               </FormField>
 
-              {/* Start date with warning for backdating */}
+              {/* Start date - no backdating allowed */}
               <FormField
                 label="Start date"
                 required
                 error={errors.startDate}
                 hint="When does your absence start?"
-                helpText="You can select today or a past date. Future dates may require additional verification."
+                helpText="Medical certificates can only be issued from today onwards."
                 showSuccess={!!state.startDate && !errors.startDate}
               >
                 <div className="space-y-2">
@@ -1146,27 +1146,9 @@ export function EnhancedIntakeFlow({
                       updateField("startDate", e.target.value)
                     }}
                     className="h-11"
-                    max={new Date().toISOString().split("T")[0]}
+                    min={new Date().toISOString().split("T")[0]}
                     aria-label="Select start date for absence"
                   />
-                  {(() => {
-                    const selectedDate = new Date(state.startDate)
-                    const today = new Date()
-                    today.setHours(0, 0, 0, 0)
-                    const daysDiff = Math.floor((today.getTime() - selectedDate.getTime()) / (1000 * 60 * 60 * 24))
-                    
-                    if (daysDiff > 3 && state.startDate) {
-                      return (
-                        <Alert variant="warning" className="py-2">
-                          <AlertTriangle className="w-3 h-3" />
-                          <AlertDescription className="text-xs">
-                            Backdating more than 3 days may incur additional fees (+$10)
-                          </AlertDescription>
-                        </Alert>
-                      )
-                    }
-                    return null
-                  })()}
                 </div>
               </FormField>
 

@@ -178,15 +178,14 @@ export function UnifiedQuestionsStep({
       }
     }
     
-    // Enforce earliest start date = yesterday for medical certificates
+    // Enforce start date = today or later for medical certificates (no backdating)
     if (fieldId === 'start_date') {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      yesterday.setHours(0, 0, 0, 0)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
       
       const selectedDate = new Date(value as string)
-      if (selectedDate < yesterday) {
-        value = yesterday.toISOString().split('T')[0]
+      if (selectedDate < today) {
+        value = today.toISOString().split('T')[0]
       }
     }
     
