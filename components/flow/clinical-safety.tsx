@@ -52,7 +52,7 @@ export function EmergencyModal({ isOpen, onClose, symptoms }: EmergencyModalProp
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
         <button
           onClick={onClose}
@@ -154,30 +154,32 @@ interface SafetyDisclaimerProps {
 
 export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclaimerProps) {
   return (
-    <div className={cn("p-4 rounded-xl bg-dawn-50 border border-dawn-200 space-y-3", className)}>
+    <div className={cn("p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-3", className)}>
       <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-dawn-600 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+          <Phone className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+        </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-dawn-800">Important safety notice</p>
-          <p className="text-sm text-dawn-700">
-            If you&apos;re experiencing a medical emergency, please call 000 immediately.
+          <p className="text-sm font-medium text-foreground">Safety check</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            This is for non-urgent care. If you have chest pain, difficulty breathing, or any life-threatening symptoms, call <strong>000</strong> or go to your nearest emergency department.
           </p>
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-lg bg-white border border-dawn-200 cursor-pointer hover:bg-dawn-50/50 transition-colors">
+      <label className="flex items-start gap-3 p-3 rounded-lg bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-5 w-5 rounded border-dawn-300 text-primary focus:ring-primary"
+          className="mt-0.5 h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
         />
         <div className="space-y-0.5">
           <span className="text-sm font-medium text-foreground">
             I confirm this is not a medical emergency
           </span>
           <span className="text-xs text-muted-foreground block">
-            I understand this is a non-urgent telehealth consultation
+            I understand this is a non-urgent telehealth service
           </span>
         </div>
       </label>

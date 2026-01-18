@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
+import { refundIfEligible } from "@/lib/stripe/refunds"
 
 const log = createLogger("update-intake")
 
@@ -56,6 +57,21 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Process refund for declined intakes
+    if (action === "decline") {
+      try {
+        const refundResult = await refundIfEligible(intake_id, userId)
+        log.info("Refund processing completed", { 
+          intakeId: intake_id, 
+          refunded: refundResult.refunded,
+          refundStatus: refundResult.refundStatus,
+        })
+      } catch (refundError) {
+        // Log but don't fail the decline - refund can be processed manually
+        log.error("Refund processing failed", { intakeId: intake_id }, refundError)
+      }
     }
 
     return NextResponse.json({ success: true, intake: data })

@@ -20,7 +20,7 @@ const statsData = [
     value: 12,
     label: "Average Response Time",
     suffix: " min",
-    description: "Most requests approved in under 15 minutes",
+    description: "Median time from submission to clinical decision",
     color: "bg-emerald-500",
   },
   {
@@ -28,7 +28,7 @@ const statsData = [
     value: 7,
     label: "Days a Week",
     suffix: "",
-    description: "Available when you need us",
+    description: "Continuous availability including weekends",
     color: "bg-violet-500",
   },
   {
@@ -54,10 +54,10 @@ export function PlatformStats() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-            Trusted by thousands
+            Platform performance
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Real results, real people. Here&apos;s why Australians choose InstantMed.
+            Key metrics from the InstantMed telehealth platform.
           </p>
         </motion.div>
 

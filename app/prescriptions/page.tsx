@@ -25,7 +25,7 @@ export default function PrescriptionsPage() {
       />
       <MedicalServiceSchema 
         name="Online Repeat Prescription"
-        description="Renew your regular medications online. Reviewed by Australian registered doctors and sent to any pharmacy."
+        description="Renew your regular medications online. Reviewed by Australian registered doctors. eScript sent to your phone via SMS."
         price="29.95"
       />
       <ServiceFunnelPage config={repeatScriptFunnelConfig} />

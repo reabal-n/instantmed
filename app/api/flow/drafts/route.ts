@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("flow-drafts-api")
@@ -10,6 +11,13 @@ const logger = createLogger("flow-drafts-api")
  */
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate the request
+    const authClient = await createClient()
+    const { data: { user } } = await authClient.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
     const { sessionId, serviceSlug, initialData } = body
 
@@ -39,17 +47,24 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Create new draft
+    // Create new draft with upsert to handle race conditions
     const { data: draft, error } = await supabase
       .from("intake_drafts")
-      .insert({
-        session_id: sessionId,
-        service_slug: serviceSlug,
-        data: initialData || {},
-        current_step: "safety",
-        current_group_index: 0,
-        status: "in_progress",
-      })
+      .upsert(
+        {
+          session_id: sessionId,
+          service_slug: serviceSlug,
+          profile_id: user.id,
+          data: initialData || {},
+          current_step: "safety",
+          current_group_index: 0,
+          status: "in_progress",
+        },
+        {
+          onConflict: "session_id,service_slug",
+          ignoreDuplicates: true,
+        }
+      )
       .select("id")
       .single()
 
@@ -82,6 +97,13 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate the request
+    const authClient = await createClient()
+    const { data: { user } } = await authClient.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get("sessionId")
 

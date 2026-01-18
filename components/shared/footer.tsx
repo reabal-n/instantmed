@@ -57,11 +57,17 @@ export function Footer() {
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-it-works">
                   How it Works
                 </Link>
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/how-we-decide">
+                  How Decisions Are Made
+                </Link>
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/our-doctors">
+                  Our Doctors
+                </Link>
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/clinical-governance">
+                  Clinical Governance
+                </Link>
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/pricing">
                   Pricing
-                </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/faq">
-                  FAQs
                 </Link>
                 <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/trust">
                   Why Trust Us
@@ -92,7 +98,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-muted-foreground/70 max-w-sm">
-          All doctors AHPRA-registered. Telehealth services comply with Australian regulations.
+          All doctors AHPRA-registered. RACGP-aligned protocols. Medical Director oversight.
         </p>
       </div>
     </footer>

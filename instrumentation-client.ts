@@ -4,9 +4,15 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+// Only initialize Sentry if DSN is configured
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+if (!sentryDsn) {
+  // eslint-disable-next-line no-console
+  console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN not configured - error tracking disabled");
+}
+
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN || 
-    "https://5c1c1811d5a14c786199c1dbe958d256@o4510623218860032.ingest.us.sentry.io/4510623223644160",
+  dsn: sentryDsn,
 
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],

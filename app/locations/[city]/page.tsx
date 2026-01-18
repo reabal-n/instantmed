@@ -287,7 +287,7 @@ export default async function CityPage({ params }: PageProps) {
                   "No need to leave home or work",
                   "Skip the waiting room",
                   "Same-day service, most requests",
-                  "Prescriptions sent to any pharmacy",
+                  "eScripts sent to your phone",
                   "Valid for all Australian employers",
                   "Reviewed by real Australian doctors",
                 ].map((benefit, i) => (

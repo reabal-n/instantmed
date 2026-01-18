@@ -1,6 +1,6 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
-import { unstable_cache } from "next/cache"
+import { unstable_cache, revalidateTag } from "next/cache"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("feature-flags")
@@ -221,6 +221,9 @@ export async function updateFeatureFlag(
     })
 
     logger.info("[FeatureFlags] Flag updated", { key, value, updatedBy })
+
+    // Immediately invalidate cache so kill switches take effect
+    revalidateTag("feature-flags")
 
     return { success: true }
   } catch (error) {

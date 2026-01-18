@@ -39,7 +39,7 @@ export async function createOrGetProfile(
         (dateOfBirth && dateOfBirth !== existingProfile.date_of_birth)
 
       if (needsUpdate) {
-        await supabase
+        const { error: updateError } = await supabase
           .from("profiles")
           .update({
             ...(fullName && { full_name: fullName }),
@@ -47,7 +47,12 @@ export async function createOrGetProfile(
           })
           .eq("id", existingProfile.id)
 
-        // Silently ignore update errors - profile exists and that's what matters
+        if (updateError) {
+          log.warn("Profile update failed (non-fatal)", { 
+            profileId: existingProfile.id, 
+            code: updateError.code 
+          }, updateError)
+        }
       }
 
       return { profileId: existingProfile.id, error: null }

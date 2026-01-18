@@ -10,6 +10,12 @@ const nextConfig = {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
   },
+  // Body size limits to prevent abuse
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '1mb',
+    },
+  },
   webpack: (config, {
     isServer
   }) => {

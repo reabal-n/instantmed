@@ -38,6 +38,14 @@ const faqCategories = [
         a: "Our service is best for straightforward requests like sick certificates for minor illness and repeat prescriptions for stable conditions. If you have a new or complex condition, worsening symptoms, or need a physical examination, we'll recommend an in-person visit. Our doctors will let you know if that&apos;s the case.",
       },
       {
+        q: "How does the doctor decide on my request?",
+        a: "A real GP reviews your symptoms, medical history, and request — just like they would in a clinic. If it's clinically appropriate and safe, they approve it. If not, they'll ask for more info, suggest alternatives, or recommend in-person care. You can learn more on our How We Decide page.",
+      },
+      {
+        q: "Why was my request declined?",
+        a: "Doctors decline requests when approving them wouldn't be safe or appropriate — like when a physical exam is needed, or when symptoms suggest something more serious. It's not personal. It's a doctor doing their job properly. You get a full refund if we can't help you.",
+      },
+      {
         q: "Will a doctor call me?",
         a: "The doctor reviews your request based on the information you provide. If they need clarification or have clinical concerns, they may contact you by phone or message. This is to ensure safe, appropriate care — it&apos;s a feature, not a bug.",
       },

@@ -48,7 +48,7 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
       patient:profiles!patient_id(email, first_name)
     `)
     .eq("status", "pending_payment")
-    .eq("payment_status", "pending")
+    .or("payment_status.eq.pending,payment_status.is.null")
     .gte("created_at", twentyFourHoursAgo)
     .lte("created_at", oneHourAgo)
     .is("abandoned_email_sent_at", null)
@@ -115,28 +115,81 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
 }
 
 /**
+ * Acquire a distributed lock to prevent concurrent cron runs
+ * Returns a release function if lock acquired, null otherwise
+ */
+async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
+  // Only use lock if Redis is available
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return async () => {} // No-op release for environments without Redis
+  }
+  
+  try {
+    const { Redis } = await import("@upstash/redis")
+    const redis = Redis.fromEnv()
+    const lockKey = "cron:abandoned-checkout:lock"
+    const lockValue = `${Date.now()}-${Math.random()}`
+    const lockTtlSeconds = 3600 // 1 hour max lock duration
+    
+    // Try to acquire lock with NX (only set if not exists)
+    const acquired = await redis.set(lockKey, lockValue, { nx: true, ex: lockTtlSeconds })
+    
+    if (!acquired) {
+      logger.warn("Cron lock already held, skipping run")
+      return null
+    }
+    
+    // Return release function
+    return async () => {
+      try {
+        // Only delete if we still own the lock
+        const currentValue = await redis.get(lockKey)
+        if (currentValue === lockValue) {
+          await redis.del(lockKey)
+        }
+      } catch {
+        // Ignore release errors
+      }
+    }
+  } catch (error) {
+    logger.error("Failed to acquire cron lock", { error })
+    return async () => {} // Allow run if lock system fails
+  }
+}
+
+/**
  * Process all abandoned checkouts and send recovery emails
  * Call this from a cron job
  */
-export async function processAbandonedCheckouts(): Promise<{ sent: number; failed: number }> {
-  const abandonedIntakes = await findAbandonedCheckouts()
-  
-  let sent = 0
-  let failed = 0
-  
-  for (const intake of abandonedIntakes) {
-    const success = await sendAbandonedCheckoutEmail(intake)
-    if (success) {
-      sent++
-    } else {
-      failed++
-    }
-    
-    // Small delay between emails to avoid rate limits
-    await new Promise(resolve => setTimeout(resolve, 100))
+export async function processAbandonedCheckouts(): Promise<{ sent: number; failed: number; skipped?: boolean }> {
+  // Acquire distributed lock to prevent concurrent runs
+  const releaseLock = await acquireCronLock()
+  if (releaseLock === null) {
+    return { sent: 0, failed: 0, skipped: true }
   }
   
-  logger.info("Processed abandoned checkouts", { sent, failed, total: abandonedIntakes.length })
+  try {
+    const abandonedIntakes = await findAbandonedCheckouts()
   
-  return { sent, failed }
+    let sent = 0
+    let failed = 0
+  
+    for (const intake of abandonedIntakes) {
+      const success = await sendAbandonedCheckoutEmail(intake)
+      if (success) {
+        sent++
+      } else {
+        failed++
+      }
+    
+      // Small delay between emails to avoid rate limits
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+  
+    logger.info("Processed abandoned checkouts", { sent, failed, total: abandonedIntakes.length })
+  
+    return { sent, failed }
+  } finally {
+    await releaseLock()
+  }
 }

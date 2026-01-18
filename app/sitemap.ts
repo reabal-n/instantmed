@@ -44,6 +44,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/hair-loss",
     "/performance-anxiety",
     "/medical-certificates",
+    "/medical-certificates/work",
+    "/medical-certificates/study",
+    "/medical-certificates/carers",
+    "/medical-certificates/employer-acceptance",
   ]
 
   // ============================================

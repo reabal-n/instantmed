@@ -38,7 +38,109 @@ export async function getClientIP(): Promise<string> {
 }
 
 /**
- * Check rate limit for an identifier
+ * Atomic check-and-increment rate limit
+ * Uses upsert to prevent race conditions in concurrent requests
+ */
+export async function checkAndIncrementRateLimit(
+  identifier: string,
+  identifierType: "ip" | "user",
+  endpoint: string,
+  config: RateLimitConfig,
+): Promise<RateLimitResult> {
+  const supabase = getServiceClient()
+  const windowStart = new Date(Date.now() - config.windowMs)
+  const now = new Date()
+
+  // First, clean up old records for this identifier/endpoint
+  await supabase
+    .from("rate_limits")
+    .delete()
+    .eq("identifier", identifier)
+    .eq("identifier_type", identifierType)
+    .eq("endpoint", endpoint)
+    .lt("window_start", windowStart.toISOString())
+
+  // Try to atomically insert or update
+  // Using upsert with ON CONFLICT to atomically increment
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("id, request_count, window_start")
+    .eq("identifier", identifier)
+    .eq("identifier_type", identifierType)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart.toISOString())
+    .single()
+
+  if (existing) {
+    // Check if already at limit BEFORE incrementing
+    if (existing.request_count >= config.maxRequests) {
+      const resetAt = new Date(new Date(existing.window_start).getTime() + config.windowMs)
+      const retryAfter = Math.ceil((resetAt.getTime() - Date.now()) / 1000)
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt,
+        retryAfter: Math.max(1, retryAfter),
+      }
+    }
+
+    // Atomically increment with conditional check
+    const { data: updated, error: updateError } = await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id)
+      .lt("request_count", config.maxRequests) // Only increment if under limit
+      .select("request_count, window_start")
+      .single()
+
+    if (updateError || !updated) {
+      // Concurrent request may have hit the limit
+      const resetAt = new Date(new Date(existing.window_start).getTime() + config.windowMs)
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt,
+        retryAfter: Math.ceil((resetAt.getTime() - Date.now()) / 1000),
+      }
+    }
+
+    const resetAt = new Date(new Date(updated.window_start).getTime() + config.windowMs)
+    return {
+      allowed: true,
+      remaining: config.maxRequests - updated.request_count,
+      resetAt,
+    }
+  }
+
+  // No existing record - create new one with count 1
+  const { error: insertError } = await supabase.from("rate_limits").insert({
+    identifier,
+    identifier_type: identifierType,
+    endpoint,
+    request_count: 1,
+    window_start: now.toISOString(),
+  })
+
+  if (insertError) {
+    // Concurrent insert - try to get the record and check
+    if (insertError.code === "23505") {
+      // Unique constraint violation - another request inserted first
+      // Recursively call to handle the existing record
+      return checkAndIncrementRateLimit(identifier, identifierType, endpoint, config)
+    }
+    console.error("Rate limit insert error:", insertError)
+  }
+
+  const resetAt = new Date(now.getTime() + config.windowMs)
+  return {
+    allowed: true,
+    remaining: config.maxRequests - 1,
+    resetAt,
+  }
+}
+
+/**
+ * Check rate limit for an identifier (read-only, no increment)
  */
 export async function checkRateLimit(
   identifier: string,

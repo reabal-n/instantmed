@@ -3,6 +3,7 @@
 import React, { ReactNode } from "react"
 import { AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import * as Sentry from "@sentry/nextjs"
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -27,11 +28,12 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error }
   }
 
-  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {
-    // Log error to monitoring service
-    if (typeof window !== "undefined") {
-      // Could send to Sentry, LogRocket, etc.
-    }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Report error to Sentry for production visibility
+    Sentry.captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
+      tags: { boundary: "react-error-boundary" },
+    })
   }
 
   resetError = () => {

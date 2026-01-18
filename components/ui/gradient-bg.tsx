@@ -11,12 +11,12 @@ const gradientBgVariants = cva('absolute inset-0 pointer-events-none overflow-hi
       // Radial glow from top center
       hero: [
         '[&>div]:absolute [&>div]:inset-0',
-        '[&>div]:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--gradient-color,oklch(0.65_0.15_185_/_0.12)),transparent_50%)]',
+        '[&>div]:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--gradient-color,oklch(0.65_0.15_185_/_0.08)),transparent_50%)]',
       ],
       // Mesh gradient with multiple points
       mesh: [
         '[&>div]:absolute [&>div]:inset-0',
-        '[&>div]:bg-[radial-gradient(at_40%_20%,oklch(0.65_0.15_185_/_0.08)_0px,transparent_50%),radial-gradient(at_80%_0%,oklch(0.6_0.12_280_/_0.06)_0px,transparent_50%),radial-gradient(at_0%_50%,oklch(0.55_0.1_200_/_0.05)_0px,transparent_50%),radial-gradient(at_80%_50%,oklch(0.5_0.08_260_/_0.04)_0px,transparent_50%),radial-gradient(at_0%_100%,oklch(0.6_0.1_185_/_0.06)_0px,transparent_50%)]',
+        '[&>div]:bg-[radial-gradient(at_40%_20%,oklch(0.65_0.15_185_/_0.06)_0px,transparent_50%),radial-gradient(at_80%_0%,oklch(0.6_0.12_280_/_0.045)_0px,transparent_50%),radial-gradient(at_0%_50%,oklch(0.55_0.1_200_/_0.04)_0px,transparent_50%),radial-gradient(at_80%_50%,oklch(0.5_0.08_260_/_0.03)_0px,transparent_50%),radial-gradient(at_0%_100%,oklch(0.6_0.1_185_/_0.045)_0px,transparent_50%)]',
       ],
       // Single centered glow
       center: [
@@ -136,9 +136,9 @@ const GradientBgMotion = React.forwardRef<HTMLDivElement, GradientBgMotionProps>
           animate={
             animate
               ? {
-                  scale: [1, 1.05, 1],
-                  x: [0, 10, 0],
-                  y: [0, -10, 0],
+                  scale: [1, 1.02, 1],
+                  x: [0, 5, 0],
+                  y: [0, -5, 0],
                 }
               : undefined
           }

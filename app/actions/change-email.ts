@@ -1,7 +1,6 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("change-email")
@@ -42,12 +41,10 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
       return { success: false, error: updateError.message || "Unable to update email. Please try again." }
     }
 
-    // Also update in profiles table
-    const serviceClient = createServiceRoleClient()
-    await serviceClient
-      .from("profiles")
-      .update({ email: newEmail })
-      .eq("auth_user_id", authUser.user.id)
+    // Note: We do NOT update the profiles table here.
+    // The profile email should only be updated after the user verifies the new email.
+    // This happens via Supabase auth webhook or when the user next signs in after verification.
+    // Updating the profile email before verification would cause data inconsistency.
 
     return {
       success: true,

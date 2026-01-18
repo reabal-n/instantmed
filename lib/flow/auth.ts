@@ -133,12 +133,21 @@ export async function loadDraft(
 
     if (error) throw error
 
-    // Check ownership
-    const isOwner =
-      data.user_id === session.userId ||
-      data.session_id === localStorage.getItem('instantmed-session-id')
+    // Check ownership - require authenticated user match only
+    // SECURITY: Do not use localStorage session_id as it's spoofable
+    // For guest drafts (no user_id), require the user to authenticate first
+    const isOwner = session.userId && data.user_id === session.userId
 
     if (!isOwner) {
+      // If draft has no user but current user is authenticated, allow claiming
+      if (session.userId && !data.user_id) {
+        // This is a guest draft - user must claim it explicitly via claimDraft()
+        return {
+          data: null,
+          isOwner: false,
+          error: 'This draft needs to be claimed to your account',
+        }
+      }
       return {
         data: null,
         isOwner: false,

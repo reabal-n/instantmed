@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin } from "lucide-react"
+import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin, BookOpen, ClipboardCheck } from "lucide-react"
 import { Button } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
@@ -193,17 +193,86 @@ export function AboutClient() {
                   <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-emerald-500/20">
                     <Image 
                       src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face" 
-                      alt="Dr. Sarah - AHPRA Registered GP"
+                      alt="Dr. Sarah M. - Medical Director"
                       fill
                       className="object-cover"
                     />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground text-sm">Dr. Sarah</p>
-                    <p className="text-xs text-muted-foreground">AHPRA Registered GP</p>
+                    <p className="font-medium text-foreground text-sm">Dr. Sarah M.</p>
+                    <p className="text-xs text-muted-foreground">Medical Director, MBBS FRACGP</p>
                   </div>
                 </div>
               </blockquote>
+            </div>
+          </div>
+        </section>
+
+        {/* Clinical Standards */}
+        <section className="px-4 py-12 sm:px-6 lg:py-16">
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-3 interactive-pill cursor-default">
+                  <BookOpen className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-medium text-foreground/80">Clinical Standards</span>
+                </div>
+                <h2
+                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  How we maintain clinical standards
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                  Our clinical processes are designed by practising GPs and reviewed regularly.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
+                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-emerald-600" />
+                    Guided by RACGP Standards
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Our clinical processes align with the Royal Australian College of General Practitioners guidelines for telehealth and general practice.
+                  </p>
+                </div>
+                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-primary" />
+                    Regular Clinical Audits
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Peer review of clinical decisions ensures consistency and quality. We learn from every case.
+                  </p>
+                </div>
+                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Clear Scope of Practice
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    We focus on what telehealth does well — low-complexity, high-frequency presentations. Complex cases are referred to in-person care.
+                  </p>
+                </div>
+                <div className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    Medical Director Oversight
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Our Medical Director reviews clinical protocols quarterly and after any significant incident.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link href="/clinical-governance" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+                  Learn more about our clinical governance
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -267,6 +336,13 @@ export function AboutClient() {
                     Our telehealth and e-prescribing services comply with Therapeutic Goods Administration regulations.
                   </p>
                 </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link href="/our-doctors" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+                  Meet our doctors
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
             </div>
           </div>

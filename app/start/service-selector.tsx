@@ -28,7 +28,7 @@ const services = [
   {
     id: "prescription",
     title: "Prescription",
-    description: "Need your regular medications? We'll send a script to your pharmacy.",
+    description: "Need your regular medications? eScript sent to your phone via SMS.",
     icon: Pill,
     href: "/prescriptions",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,

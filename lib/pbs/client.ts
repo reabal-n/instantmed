@@ -12,8 +12,44 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("pbs-client")
 
 const PBS_API_BASE_URL = "https://data-api.health.gov.au/pbs/api/v3"
-const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b" // Public key from docs
+// Public API key - rate limited to 1 req/20s shared globally
+// TODO: Register for dedicated API key at https://data-api.health.gov.au/ for production
+const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b"
 const API_TIMEOUT_MS = 5000 // 5 second timeout to prevent hanging
+
+// Circuit breaker state - prevents cascading failures when PBS API is down
+let circuitOpen = false
+let circuitOpenedAt = 0
+let consecutiveFailures = 0
+const CIRCUIT_RESET_MS = 30000 // 30 seconds before retry
+const CIRCUIT_FAILURE_THRESHOLD = 3 // Open circuit after 3 consecutive failures
+
+function isCircuitOpen(): boolean {
+  if (!circuitOpen) return false
+  // Check if enough time has passed to try again (half-open state)
+  if (Date.now() - circuitOpenedAt >= CIRCUIT_RESET_MS) {
+    log.info("Circuit breaker half-open, allowing test request")
+    return false
+  }
+  return true
+}
+
+function recordSuccess(): void {
+  if (circuitOpen) {
+    log.info("Circuit breaker closed after successful request")
+  }
+  circuitOpen = false
+  consecutiveFailures = 0
+}
+
+function recordFailure(): void {
+  consecutiveFailures++
+  if (consecutiveFailures >= CIRCUIT_FAILURE_THRESHOLD && !circuitOpen) {
+    circuitOpen = true
+    circuitOpenedAt = Date.now()
+    log.warn("Circuit breaker opened due to consecutive failures", { consecutiveFailures })
+  }
+}
 
 // In-memory cache to reduce API calls and avoid rate limits
 const searchCache = new Map<string, { results: PBSSearchResult[]; timestamp: number }>()
@@ -153,6 +189,13 @@ async function searchPBSByField(
   query: string,
   limit: number
 ): Promise<PBSSearchResult[]> {
+  // Circuit breaker - fast fail if API is known to be down
+  if (isCircuitOpen()) {
+    log.debug("PBS API circuit open, skipping request", { field, query })
+    return []
+  }
+
+  const startTime = Date.now()
   try {
     const url = new URL(`${PBS_API_BASE_URL}/items`)
     url.searchParams.set("limit", String(Math.min(limit * 2, 50)))
@@ -166,12 +209,20 @@ async function searchPBSByField(
       cache: "no-store",
     })
 
+    const duration = Date.now() - startTime
+
     if (!response.ok) {
+      log.warn("PBS API error response", { field, query, status: response.status, duration })
+      recordFailure()
       return []
     }
 
     const text = await response.text()
     const data = JSON.parse(text)
+
+    // Log latency for monitoring
+    log.info("PBS API response", { field, query, duration, resultCount: data.data?.length || 0 })
+    recordSuccess()
 
     if (!data.data || data.data.length === 0) {
       return []
@@ -179,11 +230,13 @@ async function searchPBSByField(
 
     return parseItemsToResults(data.data, limit)
   } catch (error) {
+    const duration = Date.now() - startTime
     if (error instanceof Error && error.name === "AbortError") {
-      log.warn(`PBS API ${field} search timeout`, { query })
+      log.warn(`PBS API ${field} search timeout`, { query, duration })
     } else {
-      log.error(`PBS API ${field} search error`, { error: error instanceof Error ? error.message : String(error) })
+      log.error(`PBS API ${field} search error`, { query, duration, error: error instanceof Error ? error.message : String(error) })
     }
+    recordFailure()
     return []
   }
 }
@@ -207,12 +260,19 @@ export async function searchPBSItems(
  * Get detailed information about a specific PBS item
  */
 export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
+  // Circuit breaker check
+  if (isCircuitOpen()) {
+    log.debug("PBS API circuit open, skipping getPBSItem")
+    return null
+  }
+
+  const startTime = Date.now()
   try {
     const url = new URL(`${PBS_API_BASE_URL}/items`)
     url.searchParams.set("filter", `pbs_code eq '${pbsCode}'`)
     url.searchParams.set("limit", "1")
 
-    const response = await fetch(url.toString(), {
+    const response = await fetchWithTimeout(url.toString(), {
       headers: {
         "Subscription-Key": PBS_API_KEY,
         Accept: "application/json",
@@ -220,7 +280,11 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
       cache: "no-store",
     })
 
+    const duration = Date.now() - startTime
+
     if (!response.ok) {
+      log.warn("PBS API getPBSItem error", { pbsCode, status: response.status, duration })
+      recordFailure()
       return null
     }
 
@@ -231,6 +295,9 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
     } catch {
       return null
     }
+
+    log.info("PBS API getPBSItem response", { pbsCode, duration, found: !!data.data?.length })
+    recordSuccess()
 
     if (!data.data || data.data.length === 0) {
       return null
@@ -254,7 +321,9 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
       restriction_flag: item.restriction_flag,
     }
   } catch (error) {
-    log.error("PBS API get item error", { error: error instanceof Error ? error.message : String(error) })
+    const duration = Date.now() - startTime
+    log.error("PBS API get item error", { pbsCode, duration, error: error instanceof Error ? error.message : String(error) })
+    recordFailure()
     return null
   }
 }

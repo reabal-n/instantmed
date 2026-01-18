@@ -1,17 +1,19 @@
 import "server-only"
 import Stripe from "stripe"
 
-// Validate required environment variables
+// Validate required environment variables - fail fast in production
 if (!process.env.STRIPE_SECRET_KEY) {
-  // Allow build to proceed without Stripe key (it will be provided at runtime)
-  // Note: This warning is acceptable at module load time
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error("STRIPE_SECRET_KEY is required in production")
   }
+  // eslint-disable-next-line no-console
+  console.warn("Warning: STRIPE_SECRET_KEY environment variable not set")
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder')
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  timeout: 15000, // 15 second timeout to prevent serverless function timeouts
+  maxNetworkRetries: 2, // Automatic retries for network errors
+})
 
 
 // Price ID mapping based on category/subtype

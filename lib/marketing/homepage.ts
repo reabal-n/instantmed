@@ -3,7 +3,7 @@
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Med certs and repeats — sorted in under an hour",
+  tagline: "Telehealth for medical certificates and repeat prescriptions",
   operatingHours: {
     weekdays: "7am – 10pm AEST",
     weekends: "8am – 8pm AEST",
@@ -14,9 +14,10 @@ export const siteConfig = {
     phone: "1800 000 000", // Placeholder
   },
   legal: {
-    abn: "00 000 000 000", // Placeholder
+    abn: "52 426 403 844",
     clinicName: "InstantMed Telehealth Pty Ltd",
-    clinicAddress: "Level 10, 123 Collins Street, Melbourne VIC 3000", // Placeholder
+    clinicAddress: "Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010",
+    ahpraStatement: "All consulting doctors hold current AHPRA registration",
   },
 }
 
@@ -63,7 +64,7 @@ export const serviceCategories = [
     priceFrom: 19.95,
     href: "/start?service=med-cert",
     popular: true,
-    cta: "Get your certificate",
+    cta: "Request certificate",
     benefits: [
       "Valid for all employers",
       "Same-day delivery",
@@ -86,7 +87,7 @@ export const serviceCategories = [
     priceFrom: 29.95,
     href: "/start?service=repeat-script",
     popular: false,
-    cta: "Request a script",
+    cta: "Renew prescription",
     benefits: [
       "Works with any chemist",
       "Repeat scripts included",
@@ -171,10 +172,10 @@ export const featuredServices = [
   },
   {
     title: "Prescriptions",
-    description: "For treatments you already take. Reviewed by a doctor and sent to your pharmacy.",
+    description: "For treatments you already take. Reviewed by a doctor, eScript sent to your phone.",
     priceFrom: 19.95,
     href: "/start?service=repeat-script",
-    features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your pharmacy"],
+    features: ["Contraception", "Blood pressure", "Skin treatments", "eScript to your phone"],
   },
 ]
 
@@ -184,12 +185,12 @@ export const pricingTiers = [
     price: 19.95,
     description: "Need your regular treatments?",
     features: [
-      "Sent direct to your pharmacy",
+      "eScript sent to your phone",
       "Repeats included when suitable",
       "Works with any chemist",
       "eScript or paper",
     ],
-    cta: "Start request",
+    cta: "Renew prescription",
     href: "/start?service=repeat-script",
     popular: false,
     icon: "Pill",
@@ -205,7 +206,7 @@ export const pricingTiers = [
       "Emailed as a PDF",
       "Backdating if appropriate",
     ],
-    cta: "Get a certificate",
+    cta: "Request certificate",
     href: "/start?service=med-cert",
     popular: true,
     icon: "FileText",
@@ -232,11 +233,11 @@ export const pricingTiers = [
 export const faqItems = [
   {
     question: "How is this different from seeing a GP?",
-    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. This isn't AI or a chatbot. It's telehealth, which has been legal and regulated in Australia for years. The main difference is convenience: no waiting rooms, no appointments, just healthcare when you need it.",
+    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. This isn't AI or a chatbot. It's telehealth, which has been legal and regulated in Australia for years. The main difference is convenience: no waiting rooms, no appointments, healthcare delivered via regulated telehealth.",
   },
   {
     question: "Will my employer accept an online medical certificate?",
-    answer: "Yes. Our certificates are legally valid and accepted by all Australian employers, unis, and government bodies. They're identical to what you'd get from an in-person GP visit.",
+    answer: "Yes. Our certificates are legally valid and accepted by all Australian employers, unis, and government bodies. Telehealth certificates are legally equivalent to those issued in-person.",
   },
   {
     question: "What if the doctor says no?",
@@ -271,6 +272,8 @@ export const footerLinks = {
   ],
   company: [
     { label: "About Us", href: "/about" },
+    { label: "Our Doctors", href: "/our-doctors" },
+    { label: "Clinical Governance", href: "/clinical-governance" },
     { label: "How It Works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },
     { label: "FAQs", href: "/faq" },
@@ -280,7 +283,6 @@ export const footerLinks = {
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
     { label: "Refund Policy", href: "/refunds" },
-    { label: "Clinician Information", href: "/clinicians" },
   ],
 }
 

@@ -14,6 +14,7 @@ import {
   Building2,
   Scale,
   Heart,
+  BookOpen,
 } from "lucide-react"
 
 // Prevent static generation for dynamic auth
@@ -85,6 +86,18 @@ export default function TrustPage() {
         "Independent review by senior doctors",
         "Escalation to Health Complaints Commissioner",
         "Full refund if we can&apos;t help you",
+      ],
+    },
+    {
+      icon: BookOpen,
+      title: "Clinical Governance Framework",
+      description:
+        "Our processes are designed by practising GPs and align with RACGP Standards for General Practices.",
+      details: [
+        "Medical Director oversight on all clinical protocols",
+        "Regular peer review of clinical decisions",
+        "Incident reporting and learning framework",
+        "Quarterly protocol reviews and updates",
       ],
     },
   ]

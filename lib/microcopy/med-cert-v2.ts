@@ -21,12 +21,12 @@ export const MED_CERT_COPY = {
   // EMERGENCY DISCLAIMER (shown ONCE at start)
   // ============================================================================
   emergency: {
-    heading: "Before we begin",
-    body: "This service is not for medical emergencies. If you're experiencing chest pain, difficulty breathing, thoughts of self-harm, or any other emergency, please call 000 immediately.",
+    heading: "Safety check",
+    body: "This is a non-urgent telehealth service. If you have chest pain, difficulty breathing, thoughts of self-harm, or any life-threatening symptoms — please call 000 or go to your nearest emergency department.",
     checkbox: "I confirm this is not a medical emergency",
     callout: {
-      title: "Need urgent help?",
-      body: "Call 000 for emergencies",
+      title: "Need immediate help?",
+      body: "Call 000 for emergencies, or Lifeline 13 11 14 for crisis support",
       phone: "000",
     },
   },

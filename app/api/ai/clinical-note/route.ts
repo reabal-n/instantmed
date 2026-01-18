@@ -4,7 +4,6 @@ import { getDefaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("ai-clinical-note")
 
@@ -58,15 +57,11 @@ OUTPUT FORMAT:
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user?.id) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
-      if (rateLimitResponse) {
-        return rateLimitResponse
-      }
+    // Rate limiting BEFORE auth - protect against unauthenticated abuse
+    // Use IP-based limiting first to prevent hammering the auth check
+    const ipRateLimitResponse = await applyRateLimit(request, 'sensitive')
+    if (ipRateLimitResponse) {
+      return ipRateLimitResponse
     }
     
     // Require doctor authentication

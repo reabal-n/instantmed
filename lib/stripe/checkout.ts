@@ -18,6 +18,7 @@ interface CreateCheckoutInput {
   type: string
   answers: Record<string, unknown>
   serviceSlug?: string // Service slug to look up service_id
+  idempotencyKey?: string // Client-generated key to prevent duplicate submissions
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -240,21 +241,56 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     // 5. Create the intake with pending_payment status
     // Store category and subtype at creation for reliable retry pricing
+    // Use idempotency key to prevent duplicate submissions on double-click
+    const intakeData: Record<string, unknown> = {
+      patient_id: patientId,
+      service_id: service.id,
+      status: "pending_payment",
+      payment_status: "pending",
+      amount_cents: service.price_cents,
+      category: input.category,
+      subtype: input.subtype,
+    }
+    
+    // Add idempotency key if provided
+    if (input.idempotencyKey) {
+      intakeData.idempotency_key = input.idempotencyKey
+    }
+
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .insert({
-        patient_id: patientId,
-        service_id: service.id,
-        status: "pending_payment",
-        payment_status: "pending",
-        amount_cents: service.price_cents,
-        category: input.category,
-        subtype: input.subtype,
-      })
+      .insert(intakeData)
       .select()
       .single()
 
     if (intakeError || !intake) {
+      // Check for duplicate idempotency key (unique constraint violation)
+      if (intakeError?.code === "23505" && input.idempotencyKey) {
+        // Return existing intake instead of creating duplicate
+        const { data: existingIntake } = await supabase
+          .from("intakes")
+          .select("id, status")
+          .eq("idempotency_key", input.idempotencyKey)
+          .single()
+        
+        if (existingIntake) {
+          logger.info("Returning existing intake for idempotency key", { 
+            intakeId: existingIntake.id,
+            idempotencyKey: input.idempotencyKey 
+          })
+          // If already paid, redirect to success
+          if (existingIntake.status !== "pending_payment") {
+            return { 
+              success: true, 
+              intakeId: existingIntake.id,
+              checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}` 
+            }
+          }
+          // Otherwise, recreate checkout session for this intake
+          // (handled below by continuing with existingIntake.id)
+        }
+      }
+      
       logger.error("Failed to create intake", { error: intakeError })
       if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please sign out and sign in again." }
@@ -284,6 +320,8 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     })
 
     if (!priceId) {
+      // Clean up both intake and answers to prevent orphans
+      await supabase.from("intake_answers").delete().eq("intake_id", intake.id)
       await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
@@ -329,8 +367,15 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         hasUrl: !!session.url 
       })
     } catch (stripeError: unknown) {
-      await supabase.from("intakes").delete().eq("id", intake.id)
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      
+      // Soft-delete: Mark as checkout_failed instead of hard delete (preserves audit trail)
+      await supabase.from("intakes").update({ 
+        status: "checkout_failed",
+        checkout_error: errorMessage,
+        updated_at: new Date().toISOString(),
+      }).eq("id", intake.id)
+      
       logger.error("Stripe checkout session creation failed", { 
         error: errorMessage, 
         intakeId: intake.id,
@@ -351,7 +396,12 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     if (!session.url) {
       logger.error("Stripe session created but no URL returned", { sessionId: session.id })
-      await supabase.from("intakes").delete().eq("id", intake.id)
+      // Soft-delete: Mark as checkout_failed instead of hard delete
+      await supabase.from("intakes").update({ 
+        status: "checkout_failed",
+        checkout_error: "No checkout URL returned from Stripe",
+        updated_at: new Date().toISOString(),
+      }).eq("id", intake.id)
       return { 
         success: false, 
         error: "Failed to create checkout session. Please try again." 

@@ -243,13 +243,13 @@ export function AnimatedGradientBg({ className }: { className?: string }) {
       <motion.div
         className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, oklch(0.65 0.15 185 / 0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, oklch(0.65 0.15 185 / 0.10) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }}
         animate={{
-          x: [0, 30, 0],
-          y: [0, -20, 0],
-          scale: [1, 1.1, 1],
+          x: [0, 15, 0],
+          y: [0, -10, 0],
+          scale: [1, 1.05, 1],
         }}
         transition={{
           duration: 15,
@@ -262,13 +262,13 @@ export function AnimatedGradientBg({ className }: { className?: string }) {
       <motion.div
         className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, oklch(0.6 0.12 280 / 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, oklch(0.6 0.12 280 / 0.08) 0%, transparent 70%)',
           filter: 'blur(50px)',
         }}
         animate={{
-          x: [0, -20, 0],
-          y: [0, 20, 0],
-          scale: [1.1, 1, 1.1],
+          x: [0, -10, 0],
+          y: [0, 10, 0],
+          scale: [1.05, 1, 1.05],
         }}
         transition={{
           duration: 18,
@@ -281,11 +281,11 @@ export function AnimatedGradientBg({ className }: { className?: string }) {
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
         style={{
-          background: 'radial-gradient(circle, oklch(0.7 0.1 200 / 0.08) 0%, transparent 60%)',
+          background: 'radial-gradient(circle, oklch(0.7 0.1 200 / 0.05) 0%, transparent 60%)',
           filter: 'blur(80px)',
         }}
         animate={{
-          scale: [1, 1.15, 1],
+          scale: [1, 1.08, 1],
         }}
         transition={{
           duration: 20,

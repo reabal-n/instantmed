@@ -90,7 +90,7 @@ const getStatusMessage = (status: string, paymentStatus?: string): string => {
   if (paymentStatus === "pending_payment") return "Complete payment to submit"
   if (status === "needs_follow_up") return "Doctor needs more information"
   if (status === "pending") return "Usually within 1 hour (8am–10pm)"
-  if (status === "awaiting_prescribe") return "eScript being sent to pharmacy"
+  if (status === "awaiting_prescribe") return "eScript being sent to your phone"
   if (status === "approved") return "Download available"
   if (status === "declined") return "Unable to approve — see details"
   return ""

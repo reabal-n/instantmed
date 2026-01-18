@@ -109,7 +109,7 @@ export function MarketingFooter() {
         </div>
 
         <p className="text-xs text-muted-foreground/70">
-          AHPRA-registered Australian doctors
+          AHPRA-registered doctors. RACGP-aligned protocols. Medical Director oversight.
         </p>
       </div>
     </footer>

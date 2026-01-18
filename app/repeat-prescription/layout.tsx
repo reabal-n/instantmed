@@ -56,7 +56,7 @@ export default function RepeatPrescriptionLayout({
       />
       <MedicalServiceSchema 
         name="Online Repeat Prescription"
-        description="Renew your regular medication online. Same medication, same dose. E-script sent to any pharmacy in Australia."
+        description="Renew your regular medication online. Same medication, same dose. eScript sent to your phone via SMS."
         price="29.95"
       />
       {children}

@@ -145,15 +145,29 @@ export function MedicationSearch({
     inputRef.current?.focus()
   }
 
+  // Sanitize user input to prevent XSS and ensure safe storage
+  const sanitizeMedicationInput = (input: string): string => {
+    return input
+      .trim()
+      .replace(/<[^>]*>/g, "") // Strip HTML tags
+      .replace(/[<>'"&]/g, "") // Remove potentially dangerous characters
+      .slice(0, 100) // Limit length to 100 chars
+  }
+
   // Allow manual entry if user types but doesn't select from dropdown
   const handleBlur = () => {
     // Small delay to allow click on dropdown option to register first
     setTimeout(() => {
       if (inputValue.trim() && !value) {
         // User typed something but didn't select - create manual entry
+        const sanitizedName = sanitizeMedicationInput(inputValue)
+        if (sanitizedName.length < 2) {
+          setIsOpen(false)
+          return // Too short after sanitization
+        }
         const manualEntry: SelectedPBSProduct = {
           pbs_code: "MANUAL",
-          drug_name: inputValue.trim(),
+          drug_name: sanitizedName,
           form: null,
           strength: null,
         }

@@ -17,7 +17,8 @@ export async function register() {
   Sentry.init({
     dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
     enabled: process.env.NODE_ENV === "production",
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    // Increased sampling for better visibility during growth phase
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.5 : 1.0,
     enableLogs: true,
     sendDefaultPii: false,
     ignoreErrors: [
@@ -26,6 +27,17 @@ export async function register() {
       "Load failed",
       "AbortError",
     ],
+    // Always sample critical clinical and payment transactions
+    tracesSampler: ({ name, parentSampled }) => {
+      // Always inherit parent decision
+      if (parentSampled !== undefined) return parentSampled
+      // Critical paths: always sample
+      if (name.includes("stripe") || name.includes("webhook")) return 1.0
+      if (name.includes("approve") || name.includes("decline")) return 1.0
+      if (name.includes("prescription") || name.includes("med-cert")) return 1.0
+      // Default sampling rate
+      return 0.5
+    },
   });
 }
 

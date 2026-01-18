@@ -43,65 +43,84 @@ export function isRefundEligible(category: RequestCategory | null): boolean {
 }
 
 /**
- * Process a refund for a declined request if eligible.
+ * Process a refund for a declined intake if eligible.
  * This function is idempotent - safe to call multiple times.
  * 
- * @param requestId - The request ID that was declined
+ * Supports both new intakes table and legacy requests table for backwards compatibility.
+ * 
+ * @param intakeId - The intake ID that was declined
  * @param actorId - The doctor/admin who performed the decline action
  * @returns RefundResult with status and details
  */
 export async function refundIfEligible(
-  requestId: string,
+  intakeId: string,
   actorId: string
 ): Promise<RefundResult> {
   const supabase = getServiceClient()
   const timestamp = new Date().toISOString()
 
   try {
-    // STEP 1: Fetch request with category and payment info
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
-      .select("id, category, status, payment_status, patient_id")
-      .eq("id", requestId)
+    // STEP 1: Fetch intake with category and payment info (primary table)
+    let intake: { id: string; category: string | null; status: string; payment_status: string; patient_id: string; payment_id: string | null } | null = null
+    let isLegacyRequest = false
+
+    const { data: intakeData, error: intakeError } = await supabase
+      .from("intakes")
+      .select("id, category, status, payment_status, patient_id, payment_id")
+      .eq("id", intakeId)
       .single()
 
-    if (requestError || !request) {
-      return {
-        success: false,
-        refunded: false,
-        refundStatus: "failed",
-        reason: "Request not found",
-        error: requestError?.message,
+    if (intakeData) {
+      intake = intakeData
+    } else {
+      // Fallback to legacy requests table for backwards compatibility
+      const { data: requestData, error: requestError } = await supabase
+        .from("requests")
+        .select("id, category, status, payment_status, patient_id")
+        .eq("id", intakeId)
+        .single()
+
+      if (requestData) {
+        intake = { ...requestData, payment_id: null }
+        isLegacyRequest = true
+      } else {
+        return {
+          success: false,
+          refunded: false,
+          refundStatus: "failed",
+          reason: "Intake not found",
+          error: intakeError?.message || requestError?.message,
+        }
       }
     }
 
-    // STEP 2: Verify request is declined
-    if (request.status !== "declined") {
+    // STEP 2: Verify intake is declined
+    if (intake.status !== "declined") {
       return {
         success: true,
         refunded: false,
         refundStatus: "not_applicable",
-        reason: "Request is not declined",
+        reason: "Intake is not declined",
       }
     }
 
     // STEP 3: Check category eligibility
-    const category = request.category as RequestCategory | null
+    const category = intake.category as RequestCategory | null
     if (!isRefundEligible(category)) {
       const reason = category 
         ? `Category '${category}' is not eligible for auto-refund`
         : "No category specified"
       
-      // Update payment record to reflect ineligibility
+      // Update intake to reflect ineligibility
+      const updateTable = isLegacyRequest ? "requests" : "intakes"
       await supabase
-        .from("payments")
+        .from(updateTable)
         .update({
           refund_status: "not_eligible",
           refund_reason: reason,
           updated_at: timestamp,
         })
-        .eq("request_id", requestId)
-        .eq("status", "paid")
+        .eq("id", intakeId)
 
       return {
         success: true,
@@ -111,48 +130,52 @@ export async function refundIfEligible(
       }
     }
 
-    // STEP 4: Fetch payment record with Stripe payment intent
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("request_id", requestId)
-      .eq("status", "paid")
-      .single()
+    // STEP 4: Get Stripe payment intent ID
+    // For intakes, we need to fetch from checkout session via payment_id
+    // For legacy requests, check payments table
+    let stripePaymentIntentId: string | null = null
+    let paymentAmount: number | null = null
 
-    if (paymentError || !payment) {
-      return {
-        success: false,
-        refunded: false,
-        refundStatus: "failed",
-        reason: "No paid payment record found",
-        error: paymentError?.message,
+    if (!isLegacyRequest && intake.payment_id) {
+      // Fetch payment intent from Stripe checkout session
+      try {
+        const session = await stripe.checkout.sessions.retrieve(intake.payment_id)
+        stripePaymentIntentId = typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id || null
+        paymentAmount = session.amount_total
+      } catch (_stripeError) {
+        // Session may have expired, try to find payment in DB
       }
     }
 
-    // STEP 5: IDEMPOTENCY CHECK - Already refunded?
-    if (payment.stripe_refund_id || payment.refund_status === "refunded") {
-      return {
-        success: true,
-        refunded: true,
-        refundStatus: "refunded",
-        reason: "Refund already processed",
-        stripeRefundId: payment.stripe_refund_id,
-        amountRefunded: payment.refund_amount,
-      }
-    }
-
-    // STEP 6: Check for Stripe payment intent
-    if (!payment.stripe_payment_intent_id) {
-      
-      await supabase
+    // Fallback: check payments table (legacy path)
+    if (!stripePaymentIntentId) {
+      const { data: payment } = await supabase
         .from("payments")
-        .update({
-          refund_status: "failed",
-          refund_reason: "No Stripe payment intent ID available",
-          updated_at: timestamp,
-        })
-        .eq("id", payment.id)
+        .select("stripe_payment_intent_id, amount, stripe_refund_id, refund_status, refund_amount")
+        .eq("request_id", intakeId)
+        .eq("status", "paid")
+        .single()
 
+      if (payment) {
+        // IDEMPOTENCY CHECK - Already refunded via payments table?
+        if (payment.stripe_refund_id || payment.refund_status === "refunded") {
+          return {
+            success: true,
+            refunded: true,
+            refundStatus: "refunded",
+            reason: "Refund already processed",
+            stripeRefundId: payment.stripe_refund_id,
+            amountRefunded: payment.refund_amount,
+          }
+        }
+        stripePaymentIntentId = payment.stripe_payment_intent_id
+        paymentAmount = payment.amount
+      }
+    }
+
+    if (!stripePaymentIntentId) {
       return {
         success: false,
         refunded: false,
@@ -161,15 +184,31 @@ export async function refundIfEligible(
       }
     }
 
-    // STEP 7: Mark as processing (prevents concurrent refunds)
+    // STEP 5: Check if already refunded on intake
+    const { data: currentIntake } = await supabase
+      .from(isLegacyRequest ? "requests" : "intakes")
+      .select("payment_status, refunded_at")
+      .eq("id", intakeId)
+      .single()
+
+    if (currentIntake?.payment_status === "refunded") {
+      return {
+        success: true,
+        refunded: true,
+        refundStatus: "refunded",
+        reason: "Refund already processed",
+      }
+    }
+
+    // STEP 6: Mark as processing (prevents concurrent refunds)
     const { error: lockError } = await supabase
-      .from("payments")
+      .from(isLegacyRequest ? "requests" : "intakes")
       .update({
-        refund_status: "processing",
+        payment_status: "refund_processing",
         updated_at: timestamp,
       })
-      .eq("id", payment.id)
-      .eq("refund_status", payment.refund_status) // Optimistic lock
+      .eq("id", intakeId)
+      .in("payment_status", ["paid", "pending"]) // Only if not already processing
 
     if (lockError) {
       return {
@@ -181,21 +220,21 @@ export async function refundIfEligible(
       }
     }
 
-    // STEP 8: Process Stripe refund
+    // STEP 7: Process Stripe refund
     // Log refund attempt
-    await logRefundAction("refund_attempted", actorId, requestId, {
+    await logRefundAction("refund_attempted", actorId, intakeId, {
       category: category || undefined,
-      amount: payment.amount,
+      amount: paymentAmount ?? undefined,
       reason: "Auto-refund on decline",
     })
 
     let stripeRefund
     try {
       stripeRefund = await stripe.refunds.create({
-        payment_intent: payment.stripe_payment_intent_id,
+        payment_intent: stripePaymentIntentId,
         reason: "requested_by_customer",
         metadata: {
-          request_id: requestId,
+          intake_id: intakeId,
           category: category || "unknown",
           declined_by: actorId,
           refund_type: "auto_decline",
@@ -205,22 +244,22 @@ export async function refundIfEligible(
       const errorMessage = stripeError instanceof Error ? stripeError.message : "Unknown Stripe error"
 
       // Log refund failure
-      await logRefundAction("refund_failed", actorId, requestId, {
+      await logRefundAction("refund_failed", actorId, intakeId, {
         category: category || undefined,
-        amount: payment.amount,
+        amount: paymentAmount ?? undefined,
         error: errorMessage,
         reason: "Stripe API error",
       })
 
-      // Mark as failed but don't throw
+      // Mark as failed
       await supabase
-        .from("payments")
+        .from(isLegacyRequest ? "requests" : "intakes")
         .update({
-          refund_status: "failed",
+          payment_status: "refund_failed",
           refund_reason: `Stripe error: ${errorMessage}`,
           updated_at: timestamp,
         })
-        .eq("id", payment.id)
+        .eq("id", intakeId)
 
       return {
         success: false,
@@ -231,10 +270,22 @@ export async function refundIfEligible(
       }
     }
 
-    // STEP 9: Update payment record with refund details
-    const refundReason = `Auto-refunded: ${category} request declined`
+    // STEP 8: Update intake with refund details
+    const refundReason = `Auto-refunded: ${category} intake declined`
     
-    const { error: updateError } = await supabase
+    await supabase
+      .from(isLegacyRequest ? "requests" : "intakes")
+      .update({
+        payment_status: "refunded",
+        refunded_at: timestamp,
+        refunded_by: actorId,
+        refund_reason: refundReason,
+        updated_at: timestamp,
+      })
+      .eq("id", intakeId)
+
+    // Also update legacy payments table if it exists
+    await supabase
       .from("payments")
       .update({
         status: "refunded",
@@ -245,23 +296,10 @@ export async function refundIfEligible(
         refunded_at: timestamp,
         updated_at: timestamp,
       })
-      .eq("id", payment.id)
-
-    if (updateError) {
-      // Refund succeeded in Stripe, but DB update failed - don't fail
-    }
-
-    // STEP 10: Update request payment_status
-    await supabase
-      .from("requests")
-      .update({
-        payment_status: "refunded",
-        updated_at: timestamp,
-      })
-      .eq("id", requestId)
+      .eq("request_id", intakeId)
 
     // Log refund success
-    await logRefundAction("refund_succeeded", actorId, requestId, {
+    await logRefundAction("refund_succeeded", actorId, intakeId, {
       category: category || undefined,
       amount: stripeRefund.amount,
       stripeRefundId: stripeRefund.id,

@@ -46,6 +46,7 @@ export async function GET(request: Request) {
     }
 
     // Ensure profile exists using the single source of truth (server-side)
+    let newProfileId: string | null = null
     try {
       const result = await ensureProfile(
         user.id, // Supabase user ID
@@ -58,12 +59,46 @@ export async function GET(request: Request) {
       if (!result.profileId) {
         throw new Error(result.error || "Profile creation returned no profileId")
       }
+      newProfileId = result.profileId
     } catch (profileError) {
       const errorMessage = profileError instanceof Error ? profileError.message : String(profileError)
       log.error("Profile creation failed", { userId: user.id }, profileError)
       return NextResponse.redirect(
         `${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent(errorMessage)}`
       )
+    }
+
+    // Merge guest profile data if exists (guest checkout creates profiles with null auth_user_id)
+    try {
+      const serviceClient = createServiceRoleClient()
+      const { data: guestProfile } = await serviceClient
+        .from("profiles")
+        .select("id")
+        .eq("email", userEmail)
+        .is("auth_user_id", null)
+        .single()
+
+      if (guestProfile && newProfileId && guestProfile.id !== newProfileId) {
+        log.info("Merging guest profile into authenticated profile", { 
+          guestProfileId: guestProfile.id, 
+          newProfileId 
+        })
+        
+        // Use atomic merge function to prevent race conditions
+        const { error: mergeError } = await serviceClient.rpc("merge_guest_profile", {
+          p_guest_profile_id: guestProfile.id,
+          p_authenticated_profile_id: newProfileId,
+        })
+        
+        if (mergeError) {
+          log.error("Failed to merge guest profile", { error: mergeError })
+        } else {
+          log.info("Guest profile merged successfully", { guestProfileId: guestProfile.id })
+        }
+      }
+    } catch (mergeError) {
+      // Non-blocking: log but don't fail the auth flow
+      log.error("Guest profile merge failed", {}, mergeError)
     }
 
     // Fetch profile to get role and onboarding status

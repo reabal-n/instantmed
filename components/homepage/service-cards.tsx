@@ -145,7 +145,7 @@ export function ServiceCards() {
                         className="flex items-center text-xs font-medium group-hover:gap-1.5 transition-all"
                         style={{ color: service.color }}
                       >
-                        Start
+                        {service.icon === 'medCert' ? 'Get certificate' : 'Renew prescription'}
                         <ArrowRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-0.5 transition-transform" />
                       </span>
                     </div>

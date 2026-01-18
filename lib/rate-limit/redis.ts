@@ -1,8 +1,17 @@
 /**
- * Redis-based Rate Limiting for Production
+ * Rate Limiting - CANONICAL IMPLEMENTATION
+ * 
+ * This is the ONLY rate limiting module that should be used.
+ * Do NOT import from ./index.ts, ./upstash.ts, or ./limiter.ts
  * 
  * Uses Upstash Redis for distributed rate limiting across serverless instances.
- * Falls back to in-memory store if Redis is not configured (development).
+ * Falls back to in-memory store if Redis is not configured (development only).
+ * 
+ * @example
+ * import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+ * 
+ * const rateLimitResponse = await applyRateLimit(request, 'standard')
+ * if (rateLimitResponse) return rateLimitResponse
  */
 
 import { Ratelimit } from "@upstash/ratelimit"

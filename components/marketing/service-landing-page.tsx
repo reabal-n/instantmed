@@ -112,7 +112,7 @@ interface ServiceLandingPageProps {
 export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
   const prefersReducedMotion = useReducedMotion()
   const colors = colorClasses[config.accentColor]
-  const ServiceIcon = iconMap[config.icon] || FileText
+  const _ServiceIcon = iconMap[config.icon] || FileText
 
   const fadeIn = prefersReducedMotion
     ? {}
@@ -158,10 +158,10 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left content */}
             <motion.div {...fadeIn} className="text-center lg:text-left">
-              {/* Badge */}
+              {/* Badge - with authority marker */}
               <div className={cn('inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium mb-6', colors.light, colors.border, colors.text)}>
-                <ServiceIcon className="h-4 w-4" />
-                {config.shortName}
+                <Shield className="h-4 w-4" />
+                <span>{config.shortName} reviewed by AHPRA-registered GPs</span>
               </div>
 
               {/* Headline */}
@@ -174,7 +174,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                 {config.heroSubtitle}
               </p>
 
-              {/* CTAs */}
+              {/* CTAs - Intent-specific */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
                 <Button
                   asChild
@@ -182,7 +182,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                   className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl shadow-lg transition-all magnetic-button glow-pulse', colors.button)}
                 >
                   <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
-                    Get started
+                    {config.flowSlug === 'medical-certificate' ? 'Request your certificate' : 'Request your script'}
                     <ArrowRight className="ml-2 h-5 w-5 icon-spin-hover" />
                   </Link>
                 </Button>
@@ -193,20 +193,20 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                   className="h-12 text-base rounded-xl border-slate-200 hover:bg-slate-50 magnetic-button scale-spring"
                 >
                   <Link href="#how-it-works">
-                    How it works
+                    See how it works
                   </Link>
                 </Button>
               </div>
 
-              {/* Trust row */}
+              {/* Trust row - outcome-focused */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <Shield className={cn('h-4 w-4', colors.text)} />
-                  <span>AHPRA-registered doctors</span>
+                  <Clock className={cn('h-4 w-4', colors.text)} />
+                  <span>Most done in under 1 hour</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Lock className={cn('h-4 w-4', colors.text)} />
-                  <span>Secure & confidential</span>
+                  <span>Full refund if we can&apos;t help</span>
                 </div>
               </div>
             </motion.div>
@@ -325,7 +325,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               className={cn('text-white px-8 h-12 text-base font-semibold rounded-xl', colors.button)}
             >
               <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
-                Start now
+                {config.flowSlug === 'medical-certificate' ? 'Request your certificate' : 'Request your script'}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -422,7 +422,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                 className={cn('text-white px-10 h-12 text-base font-semibold rounded-xl', colors.button)}
               >
                 <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
-                  Get started
+                  {config.flowSlug === 'medical-certificate' ? 'Request your certificate' : 'Request your script'}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -467,7 +467,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
               className="bg-white text-slate-900 hover:bg-slate-100 px-10 h-14 text-lg font-semibold rounded-xl shadow-lg"
             >
               <Link href={config.flowSlug === 'medical-certificate' ? '/start?service=med-cert' : '/start?service=repeat-script'}>
-                Start your request
+                {config.flowSlug === 'medical-certificate' ? 'Request your certificate now' : 'Request your script now'}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

@@ -290,8 +290,8 @@ main > div {
   --shadow-glow-lg: 0 0 40px rgba(249, 201, 146, 0.30);
   
   /* Dark mode gradient orbs */
-  --gradient-orb-1: rgba(249, 201, 146, 0.08);
-  --gradient-orb-2: rgba(168, 204, 232, 0.06);
+  --gradient-orb-1: rgba(249, 201, 146, 0.05);
+  --gradient-orb-2: rgba(168, 204, 232, 0.04);
 }
 
 @theme inline {

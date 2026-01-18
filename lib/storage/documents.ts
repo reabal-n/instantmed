@@ -43,16 +43,14 @@ function generateStoragePath(
 
 /**
  * Get the public URL for a document in storage.
- * @deprecated Use getSignedUrl for secure access
+ * @deprecated Use getSignedUrl for secure access - this function is kept only for URL validation
  */
-function getPublicUrl(storagePath: string): string {
+function _getPublicUrlBase(): string {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!supabaseUrl) {
     throw new Error("Missing Supabase URL")
   }
-  
-  // Public bucket URL format
-  return `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${storagePath}`
+  return `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/`
 }
 
 /**
@@ -148,19 +146,23 @@ export async function uploadPdfBuffer(
           return { success: false, error: `Upload failed: ${retryError.message}` }
         }
 
-        // P1 FIX: Use signed URL instead of public URL
+        // Use signed URL for secure access
         const signedResult = await getSignedUrl(retryPath)
-        const permanentUrl = signedResult.success ? signedResult.url! : getPublicUrl(retryPath)
-        return { success: true, permanentUrl, storagePath: retryPath }
+        if (!signedResult.success) {
+          return { success: false, error: `Upload succeeded but signed URL failed: ${signedResult.error}` }
+        }
+        return { success: true, permanentUrl: signedResult.url!, storagePath: retryPath }
       }
 
       return { success: false, error: `Upload failed: ${uploadError.message}` }
     }
 
-    // P1 FIX: Use signed URL instead of public URL
+    // Use signed URL for secure access - never fall back to public URL
     const signedResult = await getSignedUrl(storagePath)
-    const permanentUrl = signedResult.success ? signedResult.url! : getPublicUrl(storagePath)
-    return { success: true, permanentUrl, storagePath }
+    if (!signedResult.success) {
+      return { success: false, error: `Upload succeeded but signed URL failed: ${signedResult.error}` }
+    }
+    return { success: true, permanentUrl: signedResult.url!, storagePath }
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
@@ -204,7 +206,7 @@ export async function documentExistsInStorage(
 }
 
 /**
- * List all documents for a request.
+ * List all documents for a request with secure signed URLs.
  */
 export async function listDocumentsForRequest(
   requestId: string
@@ -222,11 +224,21 @@ export async function listDocumentsForRequest(
       return []
     }
 
-    return data.map(file => ({
-      name: file.name,
-      url: getPublicUrl(`${requestId}/${file.name}`),
-      createdAt: file.created_at || new Date().toISOString(),
-    }))
+    // Generate signed URLs for each document
+    const documentsWithSignedUrls = await Promise.all(
+      data.map(async (file) => {
+        const storagePath = `${requestId}/${file.name}`
+        const signedResult = await getSignedUrl(storagePath)
+        return {
+          name: file.name,
+          url: signedResult.success ? signedResult.url! : "", // Empty URL if signing fails
+          createdAt: file.created_at || new Date().toISOString(),
+        }
+      })
+    )
+
+    // Filter out documents where signing failed
+    return documentsWithSignedUrls.filter(doc => doc.url !== "")
 
   } catch {
     return []
@@ -237,24 +249,26 @@ export async function listDocumentsForRequest(
  * Verify a URL is a permanent Supabase Storage URL (not temporary external)
  */
 export function isPermanentStorageUrl(url: string): boolean {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) return false
-  
-  // Check if URL starts with our Supabase storage URL
-  return url.startsWith(`${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/`)
+  try {
+    const baseUrl = _getPublicUrlBase()
+    return url.startsWith(baseUrl)
+  } catch {
+    return false
+  }
 }
 
 /**
  * Extract request ID from a storage URL
  */
 export function extractRequestIdFromUrl(url: string): string | null {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) return null
-  
-  const prefix = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/`
-  if (!url.startsWith(prefix)) return null
-  
-  const path = url.substring(prefix.length)
-  const parts = path.split("/")
-  return parts[0] || null
+  try {
+    const prefix = _getPublicUrlBase()
+    if (!url.startsWith(prefix)) return null
+    
+    const path = url.substring(prefix.length)
+    const parts = path.split("/")
+    return parts[0] || null
+  } catch {
+    return null
+  }
 }

@@ -14,23 +14,23 @@ interface HeroVariant {
 
 const heroVariants: HeroVariant[] = [
   {
-    id: "pants",
-    headline: "Skip the waiting room. Keep your pants on.",
+    id: "certs",
+    headline: "Medical certificates reviewed by Australian GPs.",
     subheadline:
-      "Prescriptions & med certs — no phone calls, no video. Just fill a form, real doctor reviews it.",
-    cta: "Get started",
+      "Complete a 2-minute form. A registered doctor reviews your request. Certificate emailed within the hour.",
+    cta: "Request a certificate",
   },
   {
-    id: "fast",
-    headline: "Real doctors. Real fast. Real easy.",
-    subheadline: "2-minute form. AHPRA-registered GP review. Your document within the hour.",
-    cta: "Start now",
+    id: "scripts",
+    headline: "Repeat scripts sent straight to your phone.",
+    subheadline: "Request your regular medication online. Reviewed by an AHPRA-registered GP. eScript sent via SMS.",
+    cta: "Request a script",
   },
   {
-    id: "couch",
-    headline: "Medical stuff, minus the hassle.",
-    subheadline: "Prescriptions & med certs from your couch. Most done in under an hour.",
-    cta: "Get sorted",
+    id: "speed",
+    headline: "Doctor-reviewed documents. Delivered in under an hour.",
+    subheadline: "Medical certificates and repeat prescriptions from real Australian GPs. No phone call needed for most requests.",
+    cta: "Choose your service",
   },
 ]
 
@@ -56,11 +56,8 @@ export function HeroTypewriter() {
   return (
     <div className="relative mx-auto max-w-3xl text-center">
       <div className="inline-flex items-center gap-2 rounded-full backdrop-blur-xl bg-white/60 dark:bg-black/40 border border-white/40 dark:border-white/10 px-4 py-1.5 text-xs font-medium mb-6 animate-fade-in">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-        </span>
-        <span className="text-foreground">Doctors online now</span>
+        <Sparkles className="h-3.5 w-3.5 text-primary" />
+        <span className="text-foreground">AHPRA-registered GPs • Available 7 days</span>
       </div>
 
       <h1
@@ -153,10 +150,10 @@ export function HeroTypewriter() {
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground animate-fade-in-up stagger-3">
         <span className="flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
-          AHPRA-registered doctors
+          Most done in under 1 hour
         </span>
         <span className="hidden sm:inline text-border">•</span>
-        <span>Usually under 1 hour</span>
+        <span>Full refund if we can&apos;t help</span>
         <span className="hidden sm:inline text-border">•</span>
         <span>4.9/5 from 200+ reviews</span>
       </div>

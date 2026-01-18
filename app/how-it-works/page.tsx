@@ -94,7 +94,7 @@ const useCases = [
   {
     title: "Running low on my regular meds",
     description:
-      "Already on a stable medication? A doctor reviews your history and can send a repeat script to your pharmacy if appropriate.",
+      "Already on a stable medication? A doctor reviews your history and can send an eScript to your phone if appropriate.",
     time: "Same day",
     emoji: "💊",
   },

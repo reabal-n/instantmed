@@ -54,15 +54,15 @@ export function CTASection() {
               >
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 interactive-pill cursor-default">
                   <SparklesPremium className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">Ready when you are</span>
+                  <span className="text-sm font-medium text-primary">Available 7 days a week</span>
                 </div>
               </motion.div>
               
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                Get started in minutes
+                Start your request
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Need a med cert or script? Takes 2 minutes to find out if we can help.
+                Medical certificates and prescriptions assessed by Australian GPs. 2-minute intake.
               </p>
               
               {/* Features */}

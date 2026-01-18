@@ -198,8 +198,8 @@ export default function GeneralConsultPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  Speak with a doctor.{' '}
-                  <span className="text-premium-gradient">Today.</span>
+                  General GP consultation.{' '}
+                  <span className="text-premium-gradient">Online.</span>
                 </motion.h1>
 
                 <motion.p 
@@ -208,7 +208,7 @@ export default function GeneralConsultPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  A proper GP consultation without the clinic visit. Get assessed, treated, and back to feeling better.
+                  Full clinical assessment for non-emergency concerns. Treatment, referrals, or prescriptions issued where appropriate.
                 </motion.p>
 
                 {/* CTAs */}
@@ -239,16 +239,19 @@ export default function GeneralConsultPage() {
                   </Button>
                 </motion.div>
 
-                {/* Guarantee badge */}
-                <motion.p 
-                  className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-2"
+                {/* Safety notice + Guarantee badge */}
+                <motion.div
+                  className="flex flex-col items-center gap-2 mb-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.35 }}
                 >
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  Full refund if we can&apos;t help
-                </motion.p>
+                  <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-emerald-500" />
+                    Full refund if we can&apos;t help
+                  </p>
+                </motion.div>
 
                 {/* Social proof indicators */}
                 <motion.div 
@@ -509,10 +512,10 @@ export default function GeneralConsultPage() {
                 transition={{ duration: 0.5 }}
               >
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
-                  Common things we help with
+                  Common presenting concerns
                 </h2>
                 <p className="text-muted-foreground text-sm max-w-xl mx-auto">
-                  Our doctors can help with most non-urgent health concerns. Here are some examples.
+                  The following conditions are typically suitable for telehealth assessment.
                 </p>
               </motion.div>
               
@@ -579,10 +582,10 @@ export default function GeneralConsultPage() {
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps to feeling better
+                  Three steps. Clinical assessment. Treatment plan.
                 </h2>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  Start with a questionnaire, a doctor reviews and calls you, then you get your treatment plan.
+                  Describe your concern. A GP assesses and contacts you. Receive your treatment plan.
                 </p>
               </motion.div>
 
@@ -647,12 +650,21 @@ export default function GeneralConsultPage() {
           </section>
         </ParallaxSection>
 
-        {/* Emergency Disclaimer */}
-        <section className="px-4 pb-8">
-          <div className="mx-auto max-w-2xl">
-            <EmergencyDisclaimer />
-          </div>
-        </section>
+        {/* Safety Notice - Positioned before testimonials for visibility */}
+        <ParallaxSection speed={0.1}>
+          <section className="py-8">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <EmergencyDisclaimer variant="inline" />
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
 
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>

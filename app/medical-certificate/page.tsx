@@ -8,7 +8,6 @@ import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
-import { RotatingText } from "@/components/marketing/rotating-text"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
@@ -126,7 +125,7 @@ const steps = [
   {
     number: "02",
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP reviews and makes a clinical decision.",
+    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
     time: "Under 1 hour",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -193,9 +192,9 @@ export default function MedicalCertificatePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                   >
-                    Medical certificate.{' '}
+                    Medical certificates.{' '}
                     <span className="text-premium-gradient">
-                      <RotatingText texts={['Sorted.', 'Delivered.', 'Done.']} interval={2500} />
+                      Reviewed by Australian GPs.
                     </span>
                   </motion.h1>
 
@@ -205,7 +204,7 @@ export default function MedicalCertificatePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.
+                    Valid certificates for work, university, or carer&apos;s leave. Assessed by AHPRA-registered doctors. Typical turnaround under one hour.
                   </motion.p>
 
                   {/* CTAs + Glowing no-phone badge */}
@@ -223,7 +222,7 @@ export default function MedicalCertificatePage() {
                       className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                       endContent={<ArrowRight className="h-4 w-4" />}
                     >
-                      Get started
+                      Request your certificate
                     </Button>
                     
                     {/* Glowing no-phone badge */}
@@ -237,16 +236,19 @@ export default function MedicalCertificatePage() {
                     </div>
                   </motion.div>
 
-                  {/* Guarantee badge */}
-                  <motion.p 
-                    className="text-sm text-muted-foreground mb-4 flex items-center lg:justify-start justify-center gap-2"
+                  {/* Safety notice + Guarantee badge */}
+                  <motion.div
+                    className="flex flex-col items-center lg:items-start gap-2 mb-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.35 }}
                   >
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                    Full refund if we can&apos;t help
-                  </motion.p>
+                    <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-emerald-500" />
+                      Full refund if we can&apos;t help
+                    </p>
+                  </motion.div>
 
                   {/* Social proof indicators */}
                   <motion.div 
@@ -551,7 +553,7 @@ export default function MedicalCertificatePage() {
                                 <p className="text-xs text-muted-foreground mt-0.5">{cert.time}</p>
                               </div>
                               <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">
-                                Get started <ArrowRight className="w-4 h-4" />
+                                Request certificate <ArrowRight className="w-4 h-4" />
                               </div>
                             </div>
                           </div>
@@ -591,10 +593,10 @@ export default function MedicalCertificatePage() {
                 transition={{ duration: 0.5 }}
               >
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight">
-                  Accepted everywhere
+                  Recognised by all Australian employers and institutions
                 </h2>
                 <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                  Our certificates meet Fair Work Act requirements and are accepted by all Australian employers, universities, and TAFEs.
+                  Certificates meet Fair Work Act requirements and are legally equivalent to those issued by in-person GPs.
                 </p>
                 
                 {/* Trust indicators */}
@@ -636,14 +638,14 @@ export default function MedicalCertificatePage() {
               >
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground/80">Simple process</span>
+                  <span className="text-sm font-medium text-foreground/80">How it works</span>
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps. Done in under an hour.
+                  Three steps. Clinician assessment. Certificate issued.
                 </h2>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  No appointments. No waiting rooms. Answer a few questions and a real doctor reviews your request.
+                  No appointments required. A registered GP assesses every request.
                 </p>
               </motion.div>
 
@@ -708,12 +710,21 @@ export default function MedicalCertificatePage() {
           </section>
         </ParallaxSection>
 
-        {/* Emergency Disclaimer */}
-        <section className="px-4 pb-8">
-          <div className="mx-auto max-w-2xl">
-            <EmergencyDisclaimer />
-          </div>
-        </section>
+        {/* Safety Notice - Positioned before testimonials for visibility */}
+        <ParallaxSection speed={0.1}>
+          <section className="py-8">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <EmergencyDisclaimer variant="inline" />
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
 
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>

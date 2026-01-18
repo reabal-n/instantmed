@@ -81,6 +81,24 @@ export async function approveAndSendCert(
       return { success: false, error: `Intake is already ${intake.status}` }
     }
 
+    // Optimistic locking: claim the intake for processing to prevent duplicate reviews
+    const { data: claimed, error: claimError } = await supabase
+      .from("intakes")
+      .update({ 
+        status: "processing", 
+        reviewed_by: doctorProfile.id,
+        claimed_at: new Date().toISOString()
+      })
+      .eq("id", intakeId)
+      .in("status", ["paid", "in_review"])
+      .select("id")
+      .single()
+
+    if (claimError || !claimed) {
+      logger.warn("Failed to claim intake - may already be processing", { intakeId, claimError })
+      return { success: false, error: "This intake is already being processed by another doctor" }
+    }
+
     const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null } | null
     if (!patient || !patient.email) {
       return { success: false, error: "Patient email not found" }
@@ -117,11 +135,14 @@ export async function approveAndSendCert(
     // Use empty string if not available so it's obvious on PDF that it's missing
     const patientDob = patient.date_of_birth || ""
 
-    // Get AHPRA number from doctor's profile (P1 fix - no more hardcoded)
-    const clinicianRegistration = doctorProfile.ahpra_number || "MED0002576546"
+    // Get AHPRA number from doctor's profile - required for legal certificates
     if (!doctorProfile.ahpra_number) {
-      logger.warn("Doctor missing AHPRA number, using fallback", { doctorId: doctorProfile.id })
+      logger.error("Doctor missing AHPRA number", { doctorId: doctorProfile.id })
+      // Revert the claim since we can't proceed
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      return { success: false, error: "Your AHPRA number is not configured. Please update your profile in Settings before approving certificates." }
     }
+    const clinicianRegistration = doctorProfile.ahpra_number
 
     // Extract carer details if certificate type is "carer"
     let carerPersonName: string | undefined
@@ -175,15 +196,29 @@ export async function approveAndSendCert(
     const storageClient = createServiceRoleClient()
     const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
     
-    const { error: uploadError } = await storageClient.storage
-      .from("documents")
-      .upload(storagePath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      })
+    // Retry upload once on failure before continuing
+    let uploadError: Error | null = null
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { error } = await storageClient.storage
+        .from("documents")
+        .upload(storagePath, pdfBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        })
+      
+      if (!error) {
+        uploadError = null
+        break
+      }
+      
+      uploadError = error
+      if (attempt < 1) {
+        await new Promise(r => setTimeout(r, 1000)) // Wait 1s before retry
+      }
+    }
 
     if (uploadError) {
-      logger.error("Failed to upload PDF to storage (continuing with email)", { 
+      logger.error("Failed to upload PDF to storage after retries (continuing with email)", { 
         intakeId, 
         certificateNumber, 
         error: uploadError 

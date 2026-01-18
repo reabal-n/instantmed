@@ -47,12 +47,25 @@ export async function ensureProfile(
       return { data, error }
     }
 
-    // Step 1: Wait for database trigger to potentially create the profile
+    // Step 1: Wait for database trigger with exponential backoff retry
     // The trigger runs AFTER INSERT on auth.users
-    await new Promise(resolve => setTimeout(resolve, 300))
+    let existingProfile = null
+    let selectError = null
+    const maxAttempts = 3
     
-    // Step 2: Check if profile exists (trigger may have created it)
-    const { data: existingProfile, error: selectError } = await checkExistingProfile()
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const result = await checkExistingProfile()
+      existingProfile = result.data
+      selectError = result.error
+      
+      if (existingProfile || selectError) break
+      
+      // Exponential backoff: 100ms, 200ms, 400ms
+      const delay = 100 * Math.pow(2, attempt)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+    
+    // Step 2: Check result after retries
 
     if (selectError) {
       log.error("Error checking for existing profile", { userId, code: selectError.code }, selectError)

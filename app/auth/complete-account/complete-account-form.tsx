@@ -99,6 +99,16 @@ export function CompleteAccountForm({
         >
           Create Account & Access Certificate
         </button>
+
+        <button
+          onClick={() => router.push(`/patient/intakes/confirmed?request_id=${requestId}&email=${encodeURIComponent(email || '')}`)}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted/50"
+        >
+          Skip for now
+        </button>
+        <p className="text-xs text-center text-muted-foreground">
+          Your certificate will be emailed to you. Create an account later to track requests.
+        </p>
       </div>
 
       <p className="text-xs text-center text-muted-foreground mt-4">

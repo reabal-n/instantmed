@@ -220,7 +220,7 @@ const guides: Record<string, {
       },
       {
         title: "How to use a telehealth service",
-        content: "Most telehealth services work similarly: you create an account or provide your details, describe your health concern or symptoms, and either connect with a doctor immediately (video/phone) or have your case reviewed and responded to (asynchronous). You'll receive advice, prescriptions (sent electronically to your pharmacy), or medical certificates as needed.",
+        content: "Most telehealth services work similarly: you create an account or provide your details, describe your health concern or symptoms, and either connect with a doctor immediately (video/phone) or have your case reviewed and responded to (asynchronous). You&apos;ll receive advice, prescriptions (eScript sent to your phone via SMS), or medical certificates as needed.",
         tips: [
           "Have your Medicare card ready if you want to claim rebates",
           "Prepare a list of your current medications",

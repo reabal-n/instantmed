@@ -103,12 +103,12 @@ export function ServicePicker() {
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-foreground/80">Get started in minutes</span>
+            <span className="text-xs font-medium text-foreground/80">Select your service</span>
           </motion.div>
           
           <div className="mb-4">
             <AnimatedText
-              text="What do you need today?"
+              text="What are you here for?"
               textClassName="text-3xl sm:text-4xl lg:text-4xl font-bold text-foreground tracking-tight"
               underlineClassName="text-primary"
               underlinePath="M 0,10 Q 100,0 200,10 Q 300,20 400,10"
@@ -117,7 +117,7 @@ export function ServicePicker() {
             />
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-            Select a service to get started. All requests are reviewed by an Australian-registered doctor in under 30 mins.
+            All requests assessed by AHPRA-registered doctors. Typical turnaround under 30 minutes.
           </p>
           
           {/* Live Stats Social Proof */}
@@ -317,7 +317,7 @@ export function ServicePicker() {
                           >
                             {/* #4: Custom CTA per service */}
                             <span className="relative z-10 flex items-center gap-1">
-                              {'cta' in service ? service.cta : 'Start now'}
+                              {'cta' in service ? service.cta : 'Start request'}
                               <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
                             </span>
                             {/* Shimmer effect */}

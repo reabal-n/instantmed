@@ -174,10 +174,10 @@ export const commonScriptsConfig: ServiceConfig = {
   name: 'Prescription Renewals',
   shortName: 'Repeats',
   tagline: 'Continue your regular medication with a doctor review',
-  description: 'Get repeat prescriptions for ongoing medications. Our doctors review your request and send scripts directly to your pharmacy.',
+  description: 'Get repeat prescriptions for ongoing medications. Our doctors review your request and send eScripts to your phone via SMS.',
   
   heroTitle: 'Renew your prescription from home',
-  heroSubtitle: 'Tell us about your medication, answer a few safety questions, and a doctor reviews your request. If appropriate, your script is sent straight to your pharmacy.',
+  heroSubtitle: 'Tell us about your medication, answer a few safety questions, and a doctor reviews your request. If appropriate, your eScript is sent to your phone via SMS.',
   heroImage: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=500&fit=crop&q=80',
   heroImageAlt: 'Pharmacist preparing prescription medication',
   
@@ -203,8 +203,8 @@ export const commonScriptsConfig: ServiceConfig = {
     },
     {
       step: 3,
-      title: 'Script sent to pharmacy',
-      description: 'Your prescription is sent as an e-script to your phone, or directly to your chosen pharmacy. Ready to collect same-day.',
+      title: 'eScript sent to your phone',
+      description: 'Your prescription is sent as an eScript via SMS. Take your phone to any pharmacy to collect.',
       icon: 'FileCheck',
     },
   ],
@@ -263,7 +263,7 @@ export const commonScriptsConfig: ServiceConfig = {
   ],
   
   metaTitle: 'Online Prescription Renewals | E-Scripts Australia | InstantMed',
-  metaDescription: 'Renew your regular prescriptions online. Australian doctors review your request and send e-scripts directly to your pharmacy. Fast and convenient.',
+  metaDescription: 'Renew your regular prescriptions online. Australian doctors review your request and send eScripts to your phone via SMS. Fast and convenient.',
   
   accentColor: 'amber',
   icon: 'Pill',

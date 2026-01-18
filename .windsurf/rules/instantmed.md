@@ -28,3 +28,5 @@ PROJECT RULES (InstantMed)
   - The exact files you’ll edit
   - The exact commands you’ll run
   - The expected output if it worked
+
+6) Use brand voice rules for all copy 

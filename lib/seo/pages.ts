@@ -350,7 +350,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your symptoms",
       "Our doctor assesses and prescribes treatment",
-      "Antifungal cream or tablet sent to pharmacy",
+      "eScript sent to your phone via SMS",
     ],
     disclaimers: [
       "If this is your first episode or symptoms are unusual, see a GP in person to confirm diagnosis.",
@@ -613,7 +613,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your symptoms",
       "Our doctor assesses if antibiotics are appropriate",
-      "Prescription sent to pharmacy",
+      "eScript sent to your phone via SMS",
     ],
     disclaimers: [
       "If you have fever with back pain, see a GP immediately — might be kidney infection.",
@@ -666,7 +666,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Share your acne history and what you've tried",
       "Our doctor recommends or prescribes treatment",
-      "Prescription sent to pharmacy if appropriate",
+      "eScript sent to your phone via SMS if appropriate",
     ],
     disclaimers: [
       "Isotretinoin (Roaccutane) requires specialist supervision — we can refer if appropriate.",
@@ -720,7 +720,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your eczema and affected areas",
       "Our doctor prescribes appropriate cream strength",
-      "Prescription sent to pharmacy",
+      "eScript sent to your phone via SMS",
     ],
     disclaimers: [
       "Steroid creams are effective but should be used correctly — follow instructions to avoid overuse.",

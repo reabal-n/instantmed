@@ -46,6 +46,7 @@ import {
 import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
 import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { SocialProofStrip } from "@/components/intake/social-proof-strip"
+import { ReassuranceStrip } from "@/components/shared/reassurance-strip"
 import { DoctorAvailability } from "@/components/shared/doctor-availability"
 import { ExitIntentPopup } from "@/components/shared/exit-intent-popup"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
@@ -2078,7 +2079,17 @@ export function EnhancedIntakeFlow({
         </div>
 
         {step === "service" && (
-          <div className="mt-2">
+          <div className="mt-2 space-y-2">
+            <ReassuranceStrip 
+              variant="compact" 
+              showItems={
+                state.service 
+                  ? SERVICES.find(s => s.id === state.service)?.noCall 
+                    ? ['no-account', 'no-call', 'refund'] 
+                    : ['no-account', 'refund']
+                  : ['no-account', 'refund']
+              } 
+            />
             <SocialProofStrip variant="minimal" />
           </div>
         )}

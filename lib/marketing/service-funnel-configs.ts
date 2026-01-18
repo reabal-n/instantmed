@@ -14,8 +14,9 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     headlineRotatingWords: ['Sorted.', 'Delivered.', 'Done.'],
     subheadline: 'Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.',
     reassurances: [
-      'Valid for all employers',
-      '7 days a week',
+      'No signup to get started',
+      'No phone call unless needed',
+      'Refund if we can\'t help',
       'AHPRA registered doctors',
     ],
     ctaText: 'Get started',
@@ -187,7 +188,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
   finalCta: {
     headline: 'Ready to get your certificate?',
     subheadline: 'Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.',
-    ctaText: 'Get started now',
+    ctaText: 'Request your certificate',
   },
   
   accentColor: 'emerald',
@@ -204,15 +205,19 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Prescription Renewals',
     headline: 'Renew your regular medication from home',
-    subheadline: 'For medications you already take. A doctor reviews your request and sends your script directly to any pharmacy.',
+    subheadline: 'For medications you already take. A doctor reviews your request and sends an eScript to your phone via SMS.',
     reassurances: [
-      'No appointments needed',
-      'No waiting rooms',
-      'Most requests sorted without a call',
+      'No signup to get started',
+      'No phone call unless needed',
+      'Refund if we can\'t help',
       'Any pharmacy Australia-wide',
     ],
     ctaText: 'Request your script',
     ctaHref: '/start?service=repeat-script',
+    highlightBadge: {
+      text: 'No phone call needed',
+      glow: true,
+    },
   },
   
   whoItsFor: {
@@ -248,7 +253,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   
   howItWorks: {
     title: 'Three steps. Done in minutes.',
-    subtitle: 'Tell us what you need, a doctor reviews, and your script is sent to your pharmacy.',
+    subtitle: 'Tell us what you need, a doctor reviews, and your eScript is sent to your phone.',
     steps: [
       {
         number: '1',
@@ -267,8 +272,8 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       {
         number: '3',
         icon: 'FileCheck',
-        title: 'Script sent to pharmacy',
-        description: 'Your prescription is sent as an eScript to your phone or directly to your chosen pharmacy.',
+        title: 'eScript sent to your phone',
+        description: 'Your prescription is sent as an eScript via SMS. Take your phone to any pharmacy to collect.',
         time: 'Same day',
       },
     ],
@@ -349,7 +354,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     subtitle: 'Real reviews from Australians who\'ve used our service',
     reviews: [
       {
-        text: 'Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes. Script was at my pharmacy same day.',
+        text: 'Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes. Got the eScript on my phone and picked it up same day.',
         author: 'David R.',
         location: 'Gold Coast',
         rating: 5,
@@ -372,7 +377,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   finalCta: {
     headline: 'Ready to renew your prescription?',
     subheadline: 'Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.',
-    ctaText: 'Get started now',
+    ctaText: 'Renew your prescription',
   },
   
   accentColor: 'blue',
@@ -391,10 +396,10 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     headline: 'A proper GP consult, without the clinic visit',
     subheadline: 'For new health concerns or treatment advice. Speak with an Australian doctor who\'ll assess your situation and recommend next steps.',
     reassurances: [
-      'Real clinical assessment',
+      'No signup to get started',
+      'Refund if we can\'t help',
       'AHPRA-registered doctors',
       'Prescriptions if appropriate',
-      'Referrals if needed',
     ],
     ctaText: 'Book a consult',
     ctaHref: '/start?service=consult',
@@ -557,7 +562,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   finalCta: {
     headline: 'Ready to speak with a doctor?',
     subheadline: 'Start with a quick questionnaire. A doctor will review and typically call within 2 hours.',
-    ctaText: 'Book your consult',
+    ctaText: 'Book your consultation',
   },
   
   accentColor: 'violet',

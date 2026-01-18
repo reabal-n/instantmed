@@ -1,30 +1,18 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { processAbandonedCheckouts } from "@/lib/email/abandoned-checkout"
 import { createLogger } from "@/lib/observability/logger"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 const logger = createLogger("cron-abandoned-checkouts")
 
 /**
  * Cron endpoint to process abandoned checkouts and send recovery emails
- * Configure in Vercel: run every hour
- * 
- * Vercel Cron config (add to vercel.json):
- * {
- *   "crons": [{
- *     "path": "/api/cron/abandoned-checkouts",
- *     "schedule": "0 * * * *"
- *   }]
- * }
+ * Runs every hour via Vercel Cron (configured in vercel.json)
  */
-export async function GET(request: Request) {
-  // Verify cron secret in production
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    logger.warn("Unauthorized cron request")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export async function GET(request: NextRequest) {
+  // Verify cron authentication
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
   
   try {
     const result = await processAbandonedCheckouts()

@@ -126,7 +126,7 @@ const steps = [
   {
     number: "02",
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP reviews your request and checks it is safe to continue.",
+    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
     time: "Under 1 hour",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -191,8 +191,8 @@ export default function RepeatPrescriptionPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  Renew your medication.{' '}
-                  <span className="text-premium-gradient">Online.</span>
+                  Repeat prescriptions.{' '}
+                  <span className="text-premium-gradient">Assessed online.</span>
                 </motion.h1>
 
                 <motion.p 
@@ -201,7 +201,7 @@ export default function RepeatPrescriptionPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  Same medication, same dose, less hassle. A doctor reviews your request and sends an e-script to any pharmacy in Australia.
+                  Request repeats of your existing medication. A GP assesses your request and issues an e-script valid at any Australian pharmacy.
                 </motion.p>
 
                 {/* CTAs */}
@@ -219,7 +219,7 @@ export default function RepeatPrescriptionPage() {
                     className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                     endContent={<ArrowRight className="h-4 w-4" />}
                   >
-                    Get started
+                    Request your prescription
                   </Button>
                   <Button 
                     as={Link}
@@ -232,16 +232,19 @@ export default function RepeatPrescriptionPage() {
                   </Button>
                 </motion.div>
 
-                {/* Guarantee badge */}
-                <motion.p 
-                  className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-2"
+                {/* Safety notice + Guarantee badge */}
+                <motion.div
+                  className="flex flex-col items-center gap-2 mb-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.35 }}
                 >
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  Full refund if we can&apos;t help
-                </motion.p>
+                  <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-emerald-500" />
+                    Full refund if we can&apos;t help
+                  </p>
+                </motion.div>
 
                 {/* Social proof indicators */}
                 <motion.div 
@@ -357,10 +360,10 @@ export default function RepeatPrescriptionPage() {
                 transition={{ duration: 0.6 }}
               >
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                  Common medications we renew
+                  Eligible medication categories
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                  Most regular medications can be renewed online. Here are some common categories.
+                  Repeat prescriptions for established treatments. Subject to clinical assessment.
                 </p>
               </motion.div>
 
@@ -488,14 +491,14 @@ export default function RepeatPrescriptionPage() {
               >
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground/80">Simple process</span>
+                  <span className="text-sm font-medium text-foreground/80">How it works</span>
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps. Script to your phone.
+                  Three steps. Doctor assessment. E-script issued.
                 </h2>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  Tell us what you need, a doctor reviews, and your e-script is sent to any pharmacy.
+                  Tell us what you need, a doctor reviews, and your eScript is sent to your phone via SMS.
                 </p>
               </motion.div>
 
@@ -550,7 +553,7 @@ export default function RepeatPrescriptionPage() {
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                   endContent={<ArrowRight className="h-4 w-4" />}
                 >
-                  Get started now
+                  Renew your medication
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
                   Most scripts reviewed in under an hour
@@ -560,12 +563,21 @@ export default function RepeatPrescriptionPage() {
           </section>
         </ParallaxSection>
 
-        {/* Emergency Disclaimer */}
-        <section className="px-4 pb-8">
-          <div className="mx-auto max-w-2xl">
-            <EmergencyDisclaimer />
-          </div>
-        </section>
+        {/* Safety Notice - Positioned before testimonials for visibility */}
+        <ParallaxSection speed={0.1}>
+          <section className="py-8">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <EmergencyDisclaimer variant="inline" />
+              </motion.div>
+            </div>
+          </section>
+        </ParallaxSection>
 
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>
@@ -692,7 +704,7 @@ export default function RepeatPrescriptionPage() {
                         className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
                         endContent={<ArrowRight className="h-4 w-4" />}
                       >
-                        Get started
+                        Renew your prescription
                       </Button>
                       
                       <p className="mt-6 text-xs text-muted-foreground">

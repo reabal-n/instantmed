@@ -107,6 +107,7 @@ async function recordEventError(
 
 /**
  * Add failed event to dead letter queue for manual resolution
+ * Also sends Sentry alert so operators are notified immediately
  */
 async function addToDeadLetterQueue(
   supabase: ReturnType<typeof getServiceClient>,
@@ -129,8 +130,30 @@ async function addToDeadLetterQueue(
       payload: payload || null,
     })
     log.warn("Added to dead letter queue", { eventId, intakeId, errorMessage })
+    
+    // Alert operators via Sentry - this is a critical payment issue
+    Sentry.captureMessage(`Stripe webhook failed: ${errorCode || "UNKNOWN"}`, {
+      level: "error",
+      tags: {
+        source: "stripe-webhook-dlq",
+        error_code: errorCode || "unknown",
+        event_type: eventType,
+      },
+      extra: {
+        eventId,
+        sessionId,
+        intakeId,
+        errorMessage,
+        payload,
+      },
+    })
   } catch (dlqError) {
     log.error("Failed to add to dead letter queue", { eventId }, dlqError)
+    // Still try to alert even if DLQ insert failed
+    Sentry.captureException(dlqError, {
+      tags: { source: "stripe-webhook-dlq-insert-failed" },
+      extra: { eventId, intakeId, errorMessage },
+    })
   }
 }
 
@@ -219,6 +242,16 @@ export async function POST(request: Request) {
         const errorMsg = `Intake not found: ${intakeId}`
         log.error("CRITICAL: Intake not found - adding to dead letter queue", { intakeId }, fetchError)
         await recordEventError(supabase, event.id, errorMsg)
+        
+        // Check if we've already retried this event multiple times
+        const { count } = await supabase
+          .from("stripe_webhook_dead_letter")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", event.id)
+        
+        const retryCount = count || 0
+        const MAX_RETRIES = 3
+        
         // Add to dead letter queue for manual resolution
         await addToDeadLetterQueue(
           supabase,
@@ -228,8 +261,23 @@ export async function POST(request: Request) {
           intakeId,
           errorMsg,
           "INTAKE_NOT_FOUND",
-          { amount: session.amount_total, payment_intent: session.payment_intent }
+          { amount: session.amount_total, payment_intent: session.payment_intent, retry_count: retryCount }
         )
+        
+        // After MAX_RETRIES, stop asking Stripe to retry to prevent 72-hour retry storm
+        if (retryCount >= MAX_RETRIES) {
+          log.error("Max retries reached for missing intake - stopping retries", { 
+            intakeId, 
+            eventId: event.id, 
+            retryCount 
+          })
+          return NextResponse.json({ 
+            error: "Intake not found after max retries", 
+            processed: true,
+            dlq: true 
+          }, { status: 200 })
+        }
+        
         // Return 500 to force Stripe retry - intake might be created by a slow concurrent request
         return NextResponse.json({ error: "Intake not found" }, { status: 500 })
       }
@@ -359,25 +407,48 @@ export async function POST(request: Request) {
 
       // STEP 6: Generate AI drafts (fire-and-forget, non-blocking)
       // This generates clinical note + med cert drafts for doctor review
-      generateDraftsForIntake(intakeId)
+      // Wrap with timeout to prevent hanging promises from OpenAI
+      const AI_DRAFT_TIMEOUT_MS = 30000 // 30 seconds
+      const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
+        setTimeout(() => resolve({ success: false, error: "AI draft generation timed out after 30s" }), AI_DRAFT_TIMEOUT_MS)
+      })
+      
+      Promise.race([generateDraftsForIntake(intakeId), timeoutPromise])
         .then((result) => {
           if (result.success) {
             log.info("AI drafts generated", {
               intakeId,
-              skipped: result.skipped,
-              clinicalNote: result.clinicalNote?.status,
-              medCert: result.medCert?.status,
+              skipped: 'skipped' in result ? result.skipped : undefined,
+              clinicalNote: 'clinicalNote' in result ? result.clinicalNote?.status : undefined,
+              medCert: 'medCert' in result ? result.medCert?.status : undefined,
             })
           } else {
-            log.warn("AI draft generation failed (non-fatal)", {
+            log.warn("AI draft generation failed, queueing for retry", {
               intakeId,
               error: result.error,
             })
+            // Queue for retry
+            supabase.from("ai_draft_retry_queue").upsert({
+              intake_id: intakeId,
+              attempts: 1,
+              last_error: result.error || "Unknown error",
+              next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(), // 2 min backoff
+            }, { onConflict: "intake_id" }).then(() => {
+              log.info("Queued draft for retry", { intakeId })
+            })
           }
         })
-        .catch((err) => {
+        .catch(async (err) => {
           // Never fail the webhook due to draft generation errors
-          log.error("AI draft generation error (non-fatal)", { intakeId }, err)
+          log.error("AI draft generation error, queueing for retry", { intakeId }, err)
+          // Queue for retry
+          const { error } = await supabase.from("ai_draft_retry_queue").upsert({
+            intake_id: intakeId,
+            attempts: 1,
+            last_error: err instanceof Error ? err.message : String(err),
+            next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+          }, { onConflict: "intake_id" })
+          if (error) log.error("Failed to queue draft retry", { intakeId, error: error.message })
         })
 
       const duration = Date.now() - startTime
@@ -451,8 +522,85 @@ export async function POST(request: Request) {
     }
   }
 
+  // Handle charge.refunded - update payment status when refund completes
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as Stripe.Charge
+    const paymentIntentId = typeof charge.payment_intent === 'string' 
+      ? charge.payment_intent 
+      : charge.payment_intent?.id
+
+    log.info("charge.refunded received", {
+      eventId: event.id,
+      chargeId: charge.id,
+      paymentIntentId,
+      amountRefunded: charge.amount_refunded,
+    })
+
+    const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, undefined, charge.id)
+    if (!shouldProcess) {
+      return NextResponse.json({ received: true, skipped: true })
+    }
+
+    if (paymentIntentId) {
+      // Update intake payment_status based on refund
+      const isFullRefund = charge.amount_refunded === charge.amount
+      const { error: updateError } = await supabase
+        .from("intakes")
+        .update({
+          payment_status: isFullRefund ? "refunded" : "partially_refunded",
+          refund_amount_cents: charge.amount_refunded,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("payment_id", paymentIntentId)
+
+      if (updateError) {
+        log.error("Error updating intake after refund", { paymentIntentId }, updateError)
+      } else {
+        log.info("Intake payment status updated after refund", { 
+          paymentIntentId, 
+          isFullRefund,
+          amountRefunded: charge.amount_refunded,
+        })
+      }
+    }
+  }
+
+  // Handle payment_intent.payment_failed - track failed payments
+  if (event.type === "payment_intent.payment_failed") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+    const intakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
+
+    log.warn("payment_intent.payment_failed received", {
+      eventId: event.id,
+      paymentIntentId: paymentIntent.id,
+      intakeId,
+      failureMessage: paymentIntent.last_payment_error?.message,
+    })
+
+    const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, intakeId, paymentIntent.id)
+    if (!shouldProcess) {
+      return NextResponse.json({ received: true, skipped: true })
+    }
+
+    if (intakeId) {
+      await supabase
+        .from("intakes")
+        .update({
+          payment_status: "failed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+    }
+  }
+
   // Log unhandled event types for visibility
-  if (!["checkout.session.completed", "checkout.session.expired"].includes(event.type)) {
+  const handledEvents = [
+    "checkout.session.completed", 
+    "checkout.session.expired",
+    "charge.refunded",
+    "payment_intent.payment_failed",
+  ]
+  if (!handledEvents.includes(event.type)) {
     log.info("Unhandled event type", { eventType: event.type })
     // Still try to claim to prevent duplicates
     await tryClaimEvent(supabase, event.id, event.type)

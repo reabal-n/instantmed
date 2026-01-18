@@ -1,6 +1,7 @@
 "use server"
 
 import { logger } from "@/lib/observability/logger"
+import * as Sentry from "@sentry/nextjs"
 
 import { env } from "../env"
 
@@ -178,6 +179,42 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
 
   // Should not reach here, but safety return
   return { success: false, error: lastError || "Max retries exceeded" }
+}
+
+/**
+ * Send email with Sentry alerting for critical email types
+ * Use this for emails that must reach the patient (cert ready, script sent, etc.)
+ */
+export async function sendCriticalEmail(
+  params: ResendEmailParams,
+  context: { emailType: string; intakeId?: string; patientId?: string }
+): Promise<EmailResult> {
+  const result = await sendViaResend(params)
+  
+  if (!result.success) {
+    // Alert operators - critical email failed to send
+    Sentry.captureMessage(`Critical email failed: ${context.emailType}`, {
+      level: "error",
+      tags: {
+        source: "email-delivery",
+        email_type: context.emailType,
+      },
+      extra: {
+        to: params.to,
+        subject: params.subject,
+        intakeId: context.intakeId,
+        patientId: context.patientId,
+        error: result.error,
+      },
+    })
+    logger.error(`[Resend] Critical email failed - alerting operators`, {
+      emailType: context.emailType,
+      to: params.to,
+      error: result.error,
+    })
+  }
+  
+  return result
 }
 
 // ============================================
@@ -429,7 +466,7 @@ export async function sendScriptSentEmail(
         <p style="font-size: 16px;">Hi ${patientName},</p>
         
         <p style="font-size: 16px;">
-          Great news! Your prescription has been approved and sent electronically to your nominated pharmacy.
+          Great news! Your prescription has been approved and your eScript has been sent to your phone via SMS.
         </p>
         
         ${referenceSection}

@@ -41,7 +41,15 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] >= LOG_LEVELS[MIN_LOG_LEVEL]
 }
 
+// Allow disabling sanitization in development for debugging (set LOG_SANITIZE_DEV=false)
+const SANITIZE_IN_DEV = process.env.LOG_SANITIZE_DEV !== 'false'
+
 function sanitizeContext(context: LogContext): LogContext {
+  // Skip sanitization in development when explicitly disabled
+  if (process.env.NODE_ENV === 'development' && !SANITIZE_IN_DEV) {
+    return context
+  }
+  
   const sensitiveKeys = [
     'password', 'token', 'secret', 'key', 'auth', 
     'medicare', 'credit', 'card', 'ssn', 'dob',
@@ -127,8 +135,22 @@ function log(level: LogLevel, message: string, context?: LogContext, error?: Err
       break
     case 'error':
       console.error(formatted)
-      // In production, this would send to error tracking service
-      // Example: Sentry.captureException(error)
+      // Send to Sentry in production
+      if (process.env.NODE_ENV === 'production' && error) {
+        try {
+          // Dynamic import to avoid bundling issues
+          import('@sentry/nextjs').then((Sentry) => {
+            Sentry.captureException(error, {
+              extra: entry.context,
+              tags: { source: 'logger' },
+            })
+          }).catch(() => {
+            // Sentry not available - silently ignore
+          })
+        } catch {
+          // Ignore Sentry errors
+        }
+      }
       break
   }
 }

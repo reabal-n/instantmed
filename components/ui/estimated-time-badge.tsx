@@ -131,7 +131,7 @@ export function EstimatedTimeBadge({
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">3</span>
             <div>
               <p className="text-xs font-medium text-foreground">Receive your document</p>
-              <p className="text-xs text-muted-foreground">Download instantly or sent to your pharmacy</p>
+              <p className="text-xs text-muted-foreground">Download instantly or eScript sent to your phone</p>
             </div>
           </div>
         </div>

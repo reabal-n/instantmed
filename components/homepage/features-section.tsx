@@ -27,7 +27,7 @@ const services = [
   {
     icon: Pill,
     title: "Prescription",
-    description: "Need your regular medications? We&apos;ll send a script to your pharmacy.",
+    description: "Need your regular medications? eScript sent to your phone via SMS.",
     color: "#4f46e5",
     gradient: "from-[#4f46e5]/20 to-[#4f46e5]/20",
     image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",

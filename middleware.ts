@@ -1,5 +1,64 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
+import * as Sentry from "@sentry/nextjs"
+
+// Throttle rate limiter failure alerts (max 1 per 5 minutes)
+let lastRateLimitAlertTime = 0
+const RATE_LIMIT_ALERT_THROTTLE_MS = 5 * 60 * 1000
+
+// Initialize rate limiter (only if Upstash is configured)
+let rateLimiter: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  rateLimiter = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(100, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:global",
+  })
+}
+
+// Stricter rate limiter for auth endpoints
+let authRateLimiter: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  authRateLimiter = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(5, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:auth",
+  })
+}
+
+// Stricter rate limiter for AI endpoints (cost control)
+let aiRateLimiter: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  aiRateLimiter = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(10, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:ai",
+  })
+}
+
+// Stricter rate limiter for checkout/payment endpoints (abuse prevention)
+let checkoutRateLimiter: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  checkoutRateLimiter = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(5, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:checkout",
+  })
+}
+
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get("x-forwarded-for")
+  const realIp = request.headers.get("x-real-ip")
+  if (forwardedFor) return forwardedFor.split(",")[0].trim()
+  if (realIp) return realIp
+  return "anonymous"
+}
 
 // Define public routes that don't require authentication
 const publicRoutes = [
@@ -83,6 +142,74 @@ export async function middleware(request: NextRequest) {
   // Skip middleware for ignored routes
   if (isIgnoredRoute(pathname)) {
     return NextResponse.next()
+  }
+
+  // Apply rate limiting if Upstash is configured
+  // Select appropriate rate limiter based on route sensitivity
+  const isAuthRoute = pathname.startsWith('/auth/') || pathname.startsWith('/api/auth/')
+  const isAiRoute = pathname.startsWith('/api/ai/') || pathname.startsWith('/api/flow/drafts')
+  const isCheckoutRoute = pathname.startsWith('/api/stripe/') && !pathname.includes('/webhook')
+  
+  let limiter: Ratelimit | null = rateLimiter
+  if (isAuthRoute) {
+    limiter = authRateLimiter
+  } else if (isAiRoute) {
+    limiter = aiRateLimiter
+  } else if (isCheckoutRoute) {
+    limiter = checkoutRateLimiter
+  }
+  
+  if (limiter) {
+    try {
+      const ip = getClientIp(request)
+      const { success, limit, remaining, reset } = await limiter.limit(ip)
+      
+      if (!success) {
+        return NextResponse.json(
+          {
+            error: "Too many requests",
+            message: "Please slow down and try again later",
+            retryAfter: Math.ceil((reset - Date.now()) / 1000),
+          },
+          {
+            status: 429,
+            headers: {
+              "X-RateLimit-Limit": limit.toString(),
+              "X-RateLimit-Remaining": remaining.toString(),
+              "X-RateLimit-Reset": reset.toString(),
+              "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
+            },
+          }
+        )
+      }
+    } catch (rateLimitError) {
+      // If rate limiting fails, log error but allow request through
+      // This prevents total outage if Upstash is down, but alerts operators
+      const errorMessage = rateLimitError instanceof Error ? rateLimitError.message : "Unknown error"
+      
+      // eslint-disable-next-line no-console -- Intentional: middleware runs in edge, needs console for observability
+      console.error("[Middleware] Rate limiter failed - allowing request through", {
+        error: errorMessage,
+        path: pathname,
+      })
+      
+      // Alert via Sentry (throttled to prevent alert storm)
+      const now = Date.now()
+      if (now - lastRateLimitAlertTime > RATE_LIMIT_ALERT_THROTTLE_MS) {
+        lastRateLimitAlertTime = now
+        Sentry.captureMessage("Rate limiter degraded - Upstash may be down", {
+          level: "warning",
+          tags: {
+            source: "middleware-rate-limiter",
+            alert_type: "degraded_service",
+          },
+          extra: {
+            error: errorMessage,
+            path: pathname,
+          },
+        })
+      }
+    }
   }
 
   let response = NextResponse.next({

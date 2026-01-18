@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
+import { checkAndIncrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
 import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
 
@@ -27,7 +27,9 @@ interface MedicationSearchResult {
 
 export async function GET(request: NextRequest) {
   const ip = await getClientIP()
-  const rateLimitResult = await checkRateLimit(
+  
+  // Atomic check-and-increment to prevent race conditions
+  const rateLimitResult = await checkAndIncrementRateLimit(
     ip,
     "ip",
     "/api/medications/search",
@@ -49,11 +51,6 @@ export async function GET(request: NextRequest) {
       }
     )
   }
-
-  await incrementRateLimit(ip, "ip", "/api/medications/search", {
-    maxRequests: 30,
-    windowMs: 60 * 1000,
-  })
 
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")?.trim()

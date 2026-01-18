@@ -27,7 +27,7 @@ const pricingPlans = [
     price: "$39",
     description: "Need your regular meds?",
     features: [
-      "Sent to your pharmacy",
+      "eScript to your phone",
       "Repeats when suitable",
       "Works with any chemist",
       "eScript or paper",

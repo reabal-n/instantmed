@@ -14,26 +14,52 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     "@type": "MedicalOrganization",
     "@id": `${baseUrl}/#organization`,
     name: "InstantMed",
+    legalName: "InstantMed Telehealth Pty Ltd",
     alternateName: "InstantMed Australia",
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     image: `${baseUrl}/og-image.png`,
-    description: "Australia's fastest online telehealth service. Get medical certificates and prescriptions from registered Australian doctors in hours, not days.",
+    description: "Australian telehealth service providing medical certificates and prescriptions reviewed by AHPRA-registered doctors with Medical Director oversight and RACGP-aligned clinical protocols.",
     slogan: "Healthcare that fits your schedule",
     foundingDate: "2024",
-    founders: [{
-      "@type": "Person",
-      name: "InstantMed Team"
-    }],
+    taxID: "52426403844",
+    medicalSpecialty: "GeneralPractice",
+    isAccreditedBy: {
+      "@type": "Organization",
+      name: "Australian Health Practitioner Regulation Agency",
+      alternateName: "AHPRA",
+      url: "https://www.ahpra.gov.au"
+    },
+    hasCredential: [
+      {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "AHPRA Registration",
+        recognizedBy: {
+          "@type": "Organization",
+          name: "Australian Health Practitioner Regulation Agency"
+        }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "RACGP Standards Alignment",
+        recognizedBy: {
+          "@type": "Organization",
+          name: "Royal Australian College of General Practitioners"
+        }
+      }
+    ],
     address: {
       "@type": "PostalAddress",
-      addressCountry: "AU",
-      addressRegion: "Australia"
+      streetAddress: "Level 1/457-459 Elizabeth Street",
+      addressLocality: "Surry Hills",
+      addressRegion: "NSW",
+      postalCode: "2010",
+      addressCountry: "AU"
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: -33.8688,
-      longitude: 151.2093
+      latitude: -33.8830,
+      longitude: 151.2108
     },
     areaServed: {
       "@type": "Country",

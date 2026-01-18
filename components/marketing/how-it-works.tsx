@@ -20,7 +20,7 @@ const steps = [
     number: "02",
     icon: Stethoscope,
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP reviews and makes a clinical decision.",
+    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
     time: "Under 30 min",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -30,7 +30,7 @@ const steps = [
     number: "03",
     icon: FileCheck,
     title: "Get your certificate or script",
-    description: "Delivered to your email. Scripts sent to any pharmacy via eToken.",
+    description: "Delivered to your email. eScripts sent to your phone via SMS.",
     time: "Instant",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",
@@ -52,14 +52,14 @@ export function HowItWorks() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4">
             <CheckCircle2 className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground/80">Simple process</span>
+            <span className="text-sm font-medium text-foreground/80">How it works</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-            Three steps. Done in minutes.
+            Three steps. Clinician review. Done.
           </h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            No appointments. No waiting rooms. Just answer a few questions and a real doctor reviews your request.
+            No appointments required. A registered GP assesses every request.
           </p>
         </motion.div>
 

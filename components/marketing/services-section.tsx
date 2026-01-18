@@ -69,7 +69,7 @@ export function ServicesSection() {
                     className="magnetic-button scale-spring"
                     endContent={<ArrowRight className="h-4 w-4 icon-spin-hover" />}
                   >
-                    Get started
+                    {service.title.includes('Certificate') ? 'Request certificate' : 'Renew prescription'}
                   </Button>
                 </div>
               </div>

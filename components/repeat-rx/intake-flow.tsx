@@ -1238,7 +1238,7 @@ export function RepeatRxIntakeFlow({
                     <div className="space-y-0.5">
                       <span className="text-sm font-medium block">Send to a specific pharmacy</span>
                       <span className="text-xs text-muted-foreground block">
-                        We&apos;ll send the prescription directly to your pharmacy.
+                        The pharmacy receives the eScript directly.
                       </span>
                     </div>
                   </label>

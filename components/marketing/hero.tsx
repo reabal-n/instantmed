@@ -4,9 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Clock, ArrowRight, CheckCircle2, Users, Star, Zap, Shield } from 'lucide-react'
 import { Button } from "@heroui/react"
-import { RotatingText } from './rotating-text'
-import { heroRotatingTexts } from '@/lib/marketing/homepage'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { ReassuranceStrip } from '@/components/shared/reassurance-strip'
 import { motion } from 'framer-motion'
 
 // Friendly, approachable doctor images from Unsplash
@@ -36,7 +35,7 @@ export function Hero() {
             className="hidden xl:block absolute -right-8 top-1/2 -translate-y-1/2 z-10"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
             <div className="relative">
               {/* Main doctor image */}
@@ -88,7 +87,7 @@ export function Hero() {
 
           {/* Text content */}
           <div className="text-center max-w-4xl mx-auto xl:max-w-2xl xl:mr-auto xl:ml-0 xl:text-left">
-          {/* Badge */}
+          {/* Badge - Clear scope statement */}
           <motion.div 
             className="mb-5"
             initial={{ opacity: 0, y: 20 }}
@@ -96,43 +95,47 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              <span className="text-sm font-medium text-foreground/80">Online GP consultations</span>
+              <Shield className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-foreground/90">Medical certificates & repeat scripts — reviewed by Australian GPs</span>
             </div>
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline - Static, clear value prop */}
           <motion.h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4 leading-[1.1]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <span>Your{' '}</span>
-            <span className="text-premium-gradient">
-              <RotatingText texts={heroRotatingTexts} />
-            </span>
+            <span className="text-foreground">Doctor-reviewed documents.</span>
             <br />
-            <span className="text-foreground/90">sorted in </span>
-            <span className="text-premium-gradient">under 30 mins</span>
+            <span className="text-premium-gradient">Delivered in under an hour.</span>
           </motion.h1>
+          
+          {/* Authority marker - immediately below headline */}
+          <motion.p
+            className="text-sm text-muted-foreground mb-4 flex items-center gap-2 justify-center xl:justify-start"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span>Every request reviewed by an AHPRA-registered GP</span>
+          </motion.p>
 
-          {/* Subtext */}
+          {/* Subtext - Outcome-focused */}
           <motion.p 
-            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto xl:mx-0 mb-8 leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Medical certificates and repeat prescriptions reviewed by Australian-registered doctors. Most requests sorted without a phone call.
+            Need a medical certificate for work? Or a repeat script sent to your phone? Complete a 2-minute form and a doctor reviews it — no phone call needed for most requests.
           </motion.p>
 
-          {/* CTAs */}
+          {/* CTAs - Intent-specific */}
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
+            className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -145,36 +148,50 @@ export function Hero() {
               className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
               endContent={<ArrowRight className="h-4 w-4" />}
             >
-              Get started
+              Start your request
             </Button>
             <Button 
               as={Link}
-              href="#how-it-works"
+              href="/start?service=repeat-script"
               variant="bordered"
               size="lg"
-              className="h-12 px-8"
+              className="h-12 px-6"
+              endContent={<ArrowRight className="h-4 w-4" />}
             >
-              See how it works
+              Request a repeat script
             </Button>
           </motion.div>
 
-          {/* Trust signals - cleaner row */}
+          {/* Friction-reduction reassurance - addresses silent objections */}
           <motion.div 
-            className="flex flex-wrap justify-center gap-6 sm:gap-8"
+            className="mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
+            <ReassuranceStrip 
+              showItems={['no-account', 'no-call', 'refund']} 
+              className="justify-center xl:justify-start"
+            />
+          </motion.div>
+
+          {/* Trust signals - outcome-focused row */}
+          <motion.div 
+            className="flex flex-wrap justify-center xl:justify-start gap-6 sm:gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
             {[
-              { icon: Clock, text: "Under 30 min review" },
-              { icon: CheckCircle2, text: "7 days a week" },
-              { icon: Users, text: "AHPRA registered doctors" },
+              { icon: Clock, text: "Most done in under 1 hour" },
+              { icon: CheckCircle2, text: "AHPRA-registered doctors" },
+              { icon: Shield, text: "RACGP-aligned protocols" },
             ].map((signal) => (
               <div 
                 key={signal.text} 
                 className="flex items-center gap-2 text-sm text-muted-foreground"
               >
-                <signal.icon className="h-4 w-4 text-primary/70" />
+                <signal.icon className="h-3.5 w-3.5 text-primary" />
                 <span>{signal.text}</span>
               </div>
             ))}

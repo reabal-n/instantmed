@@ -16,6 +16,7 @@ import { upsertDraft, draftsExist, deleteDrafts } from "@/lib/ai/drafts"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { safeParseClinicalNoteOutput, safeParseMedCertDraftOutput } from "@/lib/ai/schemas"
 import { validateClinicalNoteAgainstIntake, validateMedCertAgainstIntake } from "@/lib/ai/validation"
+import { checkAndSanitize, validateAIOutput } from "@/lib/ai/prompt-safety"
 
 const log = createLogger("generate-drafts")
 
@@ -284,6 +285,12 @@ async function generateClinicalNoteDraft(
       return { status: "failed", error: "Ground-truth validation failed" }
     }
 
+    // Validate AI output doesn't contain leaked prompts
+    const outputValidation = validateAIOutput(result.text)
+    if (!outputValidation.valid) {
+      log.warn("AI output validation issues", { intakeId, issues: outputValidation.issues })
+    }
+
     // Save successful draft
     await upsertDraft({
       intakeId,
@@ -472,6 +479,20 @@ async function generateMedCertDraft(
 }
 
 /**
+ * Sanitize a single user-provided value for AI prompt inclusion
+ */
+function sanitizeAnswerValue(value: unknown, intakeId: string): string {
+  if (value === null || value === undefined) return ""
+  const strValue = String(value)
+  const result = checkAndSanitize(strValue, { endpoint: "generate-drafts", userId: intakeId })
+  if (result.blocked) {
+    log.warn("Prompt injection blocked in intake answer", { intakeId })
+    return "[content filtered]"
+  }
+  return result.output
+}
+
+/**
  * Format intake data for AI context
  */
 function formatIntakeContext(
@@ -479,10 +500,11 @@ function formatIntakeContext(
   patient: { full_name: string; date_of_birth: string | null } | null,
   answers: Record<string, unknown>
 ): string {
+  const intakeId = String(intake.id || "unknown")
   const parts: string[] = []
 
   if (patient) {
-    parts.push(`Patient: ${patient.full_name}`)
+    parts.push(`Patient: ${sanitizeAnswerValue(patient.full_name, intakeId)}`)
     if (patient.date_of_birth) {
       parts.push(`DOB: ${patient.date_of_birth}`)
     }
@@ -490,9 +512,9 @@ function formatIntakeContext(
 
   parts.push(`Request Date: ${new Date().toISOString().split("T")[0]}`)
 
-  // Extract relevant answer fields
+  // Extract relevant answer fields - sanitize all user-provided text
   if (answers.certificateType) {
-    parts.push(`Certificate Type: ${answers.certificateType}`)
+    parts.push(`Certificate Type: ${sanitizeAnswerValue(answers.certificateType, intakeId)}`)
   }
   
   if (answers.startDate) {
@@ -506,19 +528,20 @@ function formatIntakeContext(
   if (answers.durationDays) {
     parts.push(`Duration: ${answers.durationDays} day(s)`)
   } else if (answers.duration) {
-    parts.push(`Duration: ${answers.duration}`)
+    parts.push(`Duration: ${sanitizeAnswerValue(answers.duration, intakeId)}`)
   }
 
   if (answers.symptoms && Array.isArray(answers.symptoms)) {
-    parts.push(`Symptoms: ${answers.symptoms.join(", ")}`)
+    const sanitizedSymptoms = answers.symptoms.map(s => sanitizeAnswerValue(s, intakeId))
+    parts.push(`Symptoms: ${sanitizedSymptoms.join(", ")}`)
   }
 
   if (answers.otherSymptomDetails) {
-    parts.push(`Additional Symptoms: ${answers.otherSymptomDetails}`)
+    parts.push(`Additional Symptoms: ${sanitizeAnswerValue(answers.otherSymptomDetails, intakeId)}`)
   }
 
   if (answers.reason) {
-    parts.push(`Reason: ${answers.reason}`)
+    parts.push(`Reason: ${sanitizeAnswerValue(answers.reason, intakeId)}`)
   }
 
   // Legacy fields
