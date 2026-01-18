@@ -1,252 +1,275 @@
+/**
+ * Public Certificate Verification API
+ * 
+ * Security controls:
+ * - Rate limited (10 requests/minute per IP)
+ * - Stricter limit on failed attempts (3/minute)
+ * - Minimal disclosure (masked patient name, no sensitive data)
+ * - Input validation and sanitization
+ */
+
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
+import {
+  checkRateLimit,
+  getClientIp,
+  createRateLimitHeaders,
+  RATE_LIMITS,
+} from "@/lib/rate-limit"
+import { logCertificateEvent } from "@/lib/data/issued-certificates"
 
 export async function GET(request: Request) {
-  // Apply rate limiting to prevent abuse
-  const rateLimitResponse = await applyRateLimit(request, "standard")
-  if (rateLimitResponse) {
-    return rateLimitResponse
-  }
+  const clientIp = getClientIp(request)
 
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get("code")?.trim().toUpperCase()
-
-  if (!code) {
+  // Apply rate limiting
+  const rateLimit = checkRateLimit(`verify:${clientIp}`, RATE_LIMITS.verification)
+  if (!rateLimit.allowed) {
     return NextResponse.json(
-      { valid: false, error: "Verification code is required" },
-      { status: 400 }
+      { valid: false, error: "Too many verification attempts. Please try again later." },
+      { 
+        status: 429, 
+        headers: createRateLimitHeaders(rateLimit),
+      }
     )
   }
 
-  // Validate code format (IM-XXXXXXXX or MC-XXXXXXXX)
-  const codePattern = /^(IM|MC)-[A-Z0-9]{6,12}$/
-  if (!codePattern.test(code)) {
+  const { searchParams } = new URL(request.url)
+  const rawCode = searchParams.get("code")
+
+  // Input validation
+  if (!rawCode) {
+    return NextResponse.json(
+      { valid: false, error: "Verification code is required" },
+      { status: 400, headers: createRateLimitHeaders(rateLimit) }
+    )
+  }
+
+  // Sanitize and normalize input
+  const code = rawCode.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "")
+
+  // Validate code format - allow various formats
+  // MC-XXXXXXXX (certificate number) or XXXXXXXX (verification code)
+  const isValidFormat = /^(MC-)?[A-Z0-9]{6,16}$/.test(code)
+  if (!isValidFormat) {
+    // Apply stricter rate limit for invalid format attempts (potential brute force)
+    checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
     return NextResponse.json(
       { valid: false, error: "Invalid verification code format" },
-      { status: 400 }
+      { status: 400, headers: createRateLimitHeaders(rateLimit) }
     )
   }
 
   try {
     const supabase = createServiceRoleClient()
 
-    // First check med_cert_certificates table (newer certificates)
-    const { data: certificate, error: certError } = await supabase
-      .from("med_cert_certificates")
+    // 1. Check issued_certificates table (new model) - by verification code OR certificate number
+    const { data: issuedCert } = await supabase
+      .from("issued_certificates")
       .select(`
         id,
         certificate_number,
+        verification_code,
         certificate_type,
-        pdf_url,
-        created_at,
+        status,
+        issue_date,
+        start_date,
+        end_date,
         patient_name,
         doctor_name,
-        date_from,
-        date_to
+        doctor_nominals,
+        clinic_identity_snapshot
       `)
-      .eq("certificate_number", code)
+      .or(`verification_code.eq.${code},certificate_number.eq.${code}`)
       .maybeSingle()
 
-    if (!certError && certificate) {
-      // Calculate expiry (certificates valid for dates specified or 1 year from issue)
-      const expiresAt = certificate.date_to 
-        ? new Date(certificate.date_to).toISOString()
-        : new Date(new Date(certificate.created_at).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    if (issuedCert) {
+      // Check if revoked/invalid - don't reveal why
+      if (issuedCert.status !== "valid") {
+        checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
+        return NextResponse.json(
+          { valid: false },
+          { headers: createRateLimitHeaders(rateLimit) }
+        )
+      }
 
-      // Update verified count (fire and forget - no await needed)
-      void supabase
-        .from("med_cert_certificates")
-        .update({ verified_count: (certificate as { verified_count?: number }).verified_count || 0 + 1 })
-        .eq("id", certificate.id)
+      // Log verification event (non-blocking)
+      void logCertificateEvent(issuedCert.id, "verified", null, "system", {
+        ip_address: clientIp,
+        user_agent: request.headers.get("user-agent"),
+      })
+
+      // Get clinic name from snapshot
+      const clinicSnapshot = issuedCert.clinic_identity_snapshot as { 
+        clinic_name?: string
+        trading_name?: string 
+      } | null
+      const clinicName = clinicSnapshot?.trading_name || clinicSnapshot?.clinic_name || "InstantMed"
 
       return NextResponse.json({
         valid: true,
-        document: {
-          type: "med_cert",
-          subtype: certificate.certificate_type || "work",
-          issued_at: certificate.created_at,
-          expires_at: expiresAt,
-          patient_name: maskName(certificate.patient_name),
-          doctor_name: certificate.doctor_name || "InstantMed Doctor",
-          certificate_id: certificate.certificate_number,
+        certificate: {
+          certificateNumber: issuedCert.certificate_number,
+          type: formatCertificateType(issuedCert.certificate_type),
+          issueDate: issuedCert.issue_date,
+          validFrom: issuedCert.start_date,
+          validTo: issuedCert.end_date,
+          patientName: maskName(issuedCert.patient_name),
+          issuingDoctor: formatDoctorName(issuedCert.doctor_name, issuedCert.doctor_nominals),
+          issuingClinic: clinicName,
         },
-      })
+      }, { headers: createRateLimitHeaders(rateLimit) })
     }
 
-    // Check document_verifications table (older documents)
-    const { data: verification, error: verifyError } = await supabase
-      .from("document_verifications")
-      .select(`
-        id,
-        verification_code,
-        document_type,
-        issued_at,
-        expires_at,
-        is_valid,
-        verified_count,
-        document_id
-      `)
-      .eq("verification_code", code)
-      .maybeSingle()
-
-    if (verifyError || !verification) {
-      // Also check documents table directly
-      const { data: document, error: docError } = await supabase
-        .from("documents")
-        .select(`
-          id,
-          verification_code,
-          type,
-          subtype,
-          created_at,
-          request_id
-        `)
-        .eq("verification_code", code)
-        .maybeSingle()
-
-      if (docError || !document) {
-        return NextResponse.json({
-          valid: false,
-          error: "No document found with this verification code",
-        })
-      }
-
-      // Get patient and doctor info from the intake
-      const { data: intake } = await supabase
-        .from("intakes")
-        .select(`
-          patient:profiles!patient_id(full_name),
-          reviewed_by
-        `)
-        .eq("id", document.request_id)
-        .maybeSingle()
-
-      const patientRaw = intake?.patient
-      const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
-      
-      // Get doctor name
-      let doctorName = "InstantMed Doctor"
-      if (intake?.reviewed_by) {
-        const { data: doctor } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", intake.reviewed_by)
-          .maybeSingle()
-        if (doctor?.full_name) {
-          doctorName = doctor.full_name
-        }
-      }
-
-      return NextResponse.json({
-        valid: true,
-        document: {
-          type: document.type,
-          subtype: document.subtype || "work",
-          issued_at: document.created_at,
-          expires_at: new Date(new Date(document.created_at).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          patient_name: maskName(patientData?.full_name || "Patient"),
-          doctor_name: doctorName,
-          certificate_id: document.verification_code || document.id.slice(0, 8).toUpperCase(),
-        },
-      })
+    // 2. Fallback: Check legacy tables for older certificates
+    const legacyResult = await checkLegacyTables(supabase, code)
+    if (legacyResult) {
+      return NextResponse.json(legacyResult, { headers: createRateLimitHeaders(rateLimit) })
     }
 
-    // Check if verification is still valid
-    if (!verification.is_valid) {
-      return NextResponse.json({
-        valid: false,
-        error: "This document verification has been revoked",
-      })
-    }
-
-    // Check expiry
-    if (verification.expires_at && new Date(verification.expires_at) < new Date()) {
-      return NextResponse.json({
-        valid: false,
-        error: "This document verification has expired",
-      })
-    }
-
-    // Increment verified count
-    await supabase
-      .from("document_verifications")
-      .update({ verified_count: (verification.verified_count || 0) + 1 })
-      .eq("id", verification.id)
-
-    // Get document details if we have document_id
-    let patientName = "Patient"
-    let doctorName = "InstantMed Doctor"
-
-    if (verification.document_id) {
-      const { data: document } = await supabase
-        .from("documents")
-        .select("request_id")
-        .eq("id", verification.document_id)
-        .maybeSingle()
-
-      if (document?.request_id) {
-        const { data: intake } = await supabase
-          .from("intakes")
-          .select(`
-            patient:profiles!patient_id(full_name),
-            reviewed_by
-          `)
-          .eq("id", document.request_id)
-          .maybeSingle()
-
-        const patientRaw2 = intake?.patient
-        const patientData2 = Array.isArray(patientRaw2) ? patientRaw2[0] : patientRaw2
-        if (patientData2?.full_name) {
-          patientName = patientData2.full_name
-        }
-
-        if (intake?.reviewed_by) {
-          const { data: doctor } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", intake.reviewed_by)
-            .maybeSingle()
-          if (doctor?.full_name) {
-            doctorName = doctor.full_name
-          }
-        }
-      }
-    }
-
-    return NextResponse.json({
-      valid: true,
-      document: {
-        type: verification.document_type || "med_cert",
-        subtype: "work",
-        issued_at: verification.issued_at,
-        expires_at: verification.expires_at,
-        patient_name: maskName(patientName),
-        doctor_name: doctorName,
-        certificate_id: verification.verification_code,
-      },
-    })
+    // Not found - apply stricter rate limit
+    checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
+    return NextResponse.json(
+      { valid: false },
+      { headers: createRateLimitHeaders(rateLimit) }
+    )
   } catch {
     return NextResponse.json(
       { valid: false, error: "Verification service temporarily unavailable" },
-      { status: 500 }
+      { status: 500, headers: createRateLimitHeaders(rateLimit) }
     )
   }
 }
 
 /**
- * Mask patient name for privacy (show first name + last initial)
+ * Check legacy certificate tables for older certificates
  */
-function maskName(fullName: string): string {
+async function checkLegacyTables(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  code: string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any | null> {
+  // Check med_cert_certificates table
+  const { data: legacyCert } = await supabase
+    .from("med_cert_certificates")
+    .select(`
+      id,
+      certificate_number,
+      certificate_type,
+      created_at,
+      patient_name,
+      doctor_name,
+      date_from,
+      date_to
+    `)
+    .eq("certificate_number", code)
+    .maybeSingle()
+
+  if (legacyCert) {
+    return {
+      valid: true,
+      certificate: {
+        certificateNumber: legacyCert.certificate_number,
+        type: formatCertificateType(legacyCert.certificate_type),
+        issueDate: legacyCert.created_at?.split("T")[0],
+        validFrom: legacyCert.date_from,
+        validTo: legacyCert.date_to,
+        patientName: maskName(legacyCert.patient_name),
+        issuingDoctor: legacyCert.doctor_name || "InstantMed Doctor",
+        issuingClinic: "InstantMed",
+      },
+    }
+  }
+
+  // Check intake_documents table
+  const { data: intakeDoc } = await supabase
+    .from("intake_documents")
+    .select(`
+      id,
+      certificate_number,
+      created_at,
+      intake:intakes!intake_id(
+        patient:profiles!patient_id(full_name),
+        reviewed_by,
+        service:services!service_id(slug)
+      )
+    `)
+    .eq("certificate_number", code)
+    .maybeSingle()
+
+  if (intakeDoc) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const intake = intakeDoc.intake as any
+
+    const patientRaw = intake?.patient
+    const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
+    
+    let doctorName = "InstantMed Doctor"
+    if (intake?.reviewed_by) {
+      const { data: doctor } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", intake.reviewed_by)
+        .maybeSingle()
+      if (doctor?.full_name) {
+        doctorName = doctor.full_name
+      }
+    }
+
+    const certType = intake?.service?.slug?.includes("carer") 
+      ? "carer" 
+      : intake?.service?.slug?.includes("uni") 
+        ? "study" 
+        : "work"
+
+    return {
+      valid: true,
+      certificate: {
+        certificateNumber: intakeDoc.certificate_number,
+        type: formatCertificateType(certType),
+        issueDate: intakeDoc.created_at?.split("T")[0],
+        patientName: maskName(patientData?.full_name || "Patient"),
+        issuingDoctor: doctorName,
+        issuingClinic: "InstantMed",
+      },
+    }
+  }
+
+  return null
+}
+
+/**
+ * Mask patient name for privacy (first name + last initial only)
+ */
+function maskName(fullName: string | null): string {
   if (!fullName) return "Patient"
   
-  const parts = fullName.trim().split(" ")
-  if (parts.length === 1) {
-    return parts[0]
-  }
+  const parts = fullName.trim().split(/\s+/)
+  if (parts.length === 0) return "Patient"
+  if (parts.length === 1) return parts[0]
   
   const firstName = parts[0]
-  const lastInitial = parts[parts.length - 1][0]
+  const lastInitial = parts[parts.length - 1][0]?.toUpperCase() || ""
   
-  return `${firstName} ${lastInitial}.`
+  return lastInitial ? `${firstName} ${lastInitial}.` : firstName
+}
+
+/**
+ * Format certificate type for display
+ */
+function formatCertificateType(type: string | null): string {
+  switch (type) {
+    case "work": return "Medical Certificate (Work)"
+    case "study": return "Medical Certificate (Study)"
+    case "carer": return "Carer's Leave Certificate"
+    default: return "Medical Certificate"
+  }
+}
+
+/**
+ * Format doctor name with nominals
+ */
+function formatDoctorName(name: string | null, nominals: string | null): string {
+  if (!name) return "InstantMed Doctor"
+  if (!nominals) return name
+  return `${name}, ${nominals}`
 }

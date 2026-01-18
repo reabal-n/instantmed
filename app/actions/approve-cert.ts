@@ -1,9 +1,7 @@
 "use server"
 
-import React from "react"
+import _crypto from "crypto"
 import { revalidatePath } from "next/cache"
-import { renderToBuffer } from "@react-pdf/renderer"
-import { MedCertPdfDocument, type MedCertPdfData } from "@/lib/pdf/med-cert-pdf"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { createClient } from "@/lib/supabase/server"
@@ -14,11 +12,21 @@ import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { generateCertificateNumber } from "@/lib/pdf/generate-med-cert"
+import { renderMedCertPdf, generateVerificationCode } from "@/lib/pdf/med-cert-render"
+import {
+  findExistingCertificate,
+  createIssuedCertificate,
+  updateEmailStatus,
+  logCertificateEvent,
+} from "@/lib/data/issued-certificates"
+import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 
 interface ApproveCertResult {
   success: boolean
   error?: string
+  certificateId?: string
+  isExisting?: boolean
 }
 
 /**
@@ -76,9 +84,26 @@ export async function approveAndSendCert(
       return { success: false, error: "This action is only for medical certificate intakes" }
     }
 
-    // Verify intake is in reviewable status
-    if (!["paid", "in_review"].includes(intake.status)) {
+    // Verify intake is in reviewable status (allow approved for idempotency)
+    if (!["paid", "in_review", "approved"].includes(intake.status)) {
       return { success: false, error: `Intake is already ${intake.status}` }
+    }
+
+    // IDEMPOTENCY CHECK: If already approved, return existing certificate
+    if (intake.status === "approved") {
+      const existingCert = await findExistingCertificate(intakeId)
+      if (existingCert) {
+        logger.info("Returning existing certificate (idempotent approval)", {
+          intakeId,
+          certificateId: existingCert.id,
+          certificateNumber: existingCert.certificate_number,
+        })
+        return { 
+          success: true, 
+          certificateId: existingCert.id,
+          isExisting: true,
+        }
+      }
     }
 
     // Optimistic locking: claim the intake for processing to prevent duplicate reviews
@@ -107,7 +132,6 @@ export async function approveAndSendCert(
     // 3. Prepare PDF data
     const certificateNumber = generateCertificateNumber()
     const generatedAt = new Date().toISOString()
-    const watermark = `InstantMed • ${generatedAt.replace("T", " ").slice(0, 19)} UTC • ${certificateNumber}`
 
     // Calculate duration days
     const startDate = new Date(reviewData.startDate)
@@ -118,31 +142,26 @@ export async function approveAndSendCert(
     const certSubtype = service.slug.includes("carer") ? "carer" : service.slug.includes("uni") ? "uni" : "work"
     const certificateType = (certSubtype === "uni" ? "study" : certSubtype === "carer" ? "carer" : "work") as "work" | "study" | "carer"
 
-    // Get symptoms summary from intake answers or use medical reason
+    // Get intake answers for carer details extraction
     const answers = intake.answers as unknown as { answers: Record<string, unknown> }[] | null
     const answersData = answers?.[0]?.answers || null
-    let symptomsSummary = reviewData.medicalReason
-    if (answersData) {
-      const symptoms = answersData.symptoms as string[] | undefined
-      if (symptoms && Array.isArray(symptoms) && symptoms.length > 0) {
-        symptomsSummary = symptoms.join(", ")
-      } else if (answersData.symptomDetails) {
-        symptomsSummary = String(answersData.symptomDetails)
-      }
-    }
 
     // Get patient DOB (required for PDF)
-    // Use empty string if not available so it's obvious on PDF that it's missing
-    const patientDob = patient.date_of_birth || ""
+    const patientDob = patient.date_of_birth || null
 
-    // Get AHPRA number from doctor's profile - required for legal certificates
+    // Check certificate identity is complete - required for legal certificates
+    if (!doctorProfile.provider_number) {
+      logger.error("Doctor missing provider number", { doctorId: doctorProfile.id })
+      // Revert the claim since we can't proceed
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      return { success: false, error: "Your Provider Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
+    }
     if (!doctorProfile.ahpra_number) {
       logger.error("Doctor missing AHPRA number", { doctorId: doctorProfile.id })
       // Revert the claim since we can't proceed
       await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
-      return { success: false, error: "Your AHPRA number is not configured. Please update your profile in Settings before approving certificates." }
+      return { success: false, error: "Your AHPRA Registration Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
     }
-    const clinicianRegistration = doctorProfile.ahpra_number
 
     // Extract carer details if certificate type is "carer"
     let carerPersonName: string | undefined
@@ -155,42 +174,42 @@ export async function approveAndSendCert(
                          (answersData.carerRelationship as string | undefined)
     }
 
-    // Build PDF data
-    const pdfData: MedCertPdfData = {
+    // Generate verification code for the certificate
+    const verificationCode = generateVerificationCode(certificateNumber)
+
+    // 4. Generate PDF Buffer using new config-driven renderer
+    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber })
+    
+    const pdfResult = await renderMedCertPdf({
       certificateNumber,
+      verificationCode,
       certificateType,
       patientName: patient.full_name,
       patientDob,
+      issueDate: generatedAt.split("T")[0],
       startDate: reviewData.startDate,
       endDate: reviewData.endDate,
       durationDays,
-      symptomsSummary,
-      clinicianName: reviewData.doctorName,
-      clinicianRegistration,
+      carerPersonName,
+      carerRelationship,
+      doctorProfileId: doctorProfile.id,
       generatedAt,
-      watermark,
-      // Add carer details if present
-      ...(certificateType === "carer" && carerPersonName && {
-        carerPersonName,
-        carerRelationship,
-      }),
+    })
+
+    if (!pdfResult.success || !pdfResult.buffer) {
+      logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
+      // Revert the claim since we can't proceed
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
 
-    // 4. Generate PDF Buffer
-    logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber })
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfElement = React.createElement(MedCertPdfDocument, { data: pdfData }) as any
-    const pdfBuffer = await renderToBuffer(pdfElement)
+    const pdfBuffer = pdfResult.buffer
     
     logger.info("PDF generated successfully", { 
       intakeId, 
       certificateNumber,
       size: pdfBuffer.length 
     })
-
-    // 5. Convert PDF buffer to base64 for email attachment
-    const pdfBase64 = pdfBuffer.toString("base64")
 
     // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
     const storageClient = createServiceRoleClient()
@@ -218,54 +237,105 @@ export async function approveAndSendCert(
     }
 
     if (uploadError) {
-      logger.error("Failed to upload PDF to storage after retries (continuing with email)", { 
+      logger.error("Failed to upload PDF to storage after retries", { 
         intakeId, 
         certificateNumber, 
         error: uploadError 
       })
-    } else {
-      // Record the document in database
-      await storageClient.from("intake_documents").insert({
-        intake_id: intakeId,
-        document_type: "med_cert",
-        filename: `Medical_Certificate_${certificateNumber}.pdf`,
-        storage_path: storagePath,
-        mime_type: "application/pdf",
-        file_size_bytes: pdfBuffer.length,
-        certificate_number: certificateNumber,
-        created_by: doctorProfile.id,
-        metadata: {
-          patient_name: patient.full_name,
-          certificate_type: certificateType,
-          start_date: reviewData.startDate,
-          end_date: reviewData.endDate,
-        },
-      })
-      logger.info("PDF stored successfully", { intakeId, certificateNumber, storagePath })
+      // Revert the claim since we can't proceed without storage
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      return { success: false, error: "Failed to store certificate. Please try again." }
     }
 
-    // 6. Generate email HTML
+    // Record the document in legacy table
+    await storageClient.from("intake_documents").insert({
+      intake_id: intakeId,
+      document_type: "med_cert",
+      filename: `Medical_Certificate_${certificateNumber}.pdf`,
+      storage_path: storagePath,
+      mime_type: "application/pdf",
+      file_size_bytes: pdfBuffer.length,
+      certificate_number: certificateNumber,
+      created_by: doctorProfile.id,
+      metadata: {
+        patient_name: patient.full_name,
+        certificate_type: certificateType,
+        start_date: reviewData.startDate,
+        end_date: reviewData.endDate,
+      },
+    })
+    logger.info("PDF stored successfully", { intakeId, certificateNumber, storagePath })
+
+    // 5.6 Get doctor identity for snapshot
+    const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
+
+    // 5.7 Create issued certificate record with idempotency
+    const certResult = await createIssuedCertificate({
+      intake_id: intakeId,
+      certificate_number: certificateNumber,
+      verification_code: verificationCode,
+      certificate_type: certificateType,
+      issue_date: generatedAt.split("T")[0],
+      start_date: reviewData.startDate,
+      end_date: reviewData.endDate,
+      patient_id: patient.id,
+      patient_name: patient.full_name,
+      patient_dob: patientDob,
+      doctor_id: doctorProfile.id,
+      doctor_name: doctorProfile.full_name,
+      doctor_nominals: doctorIdentity?.nominals || null,
+      doctor_provider_number: doctorProfile.provider_number!,
+      doctor_ahpra_number: doctorProfile.ahpra_number!,
+      template_config_snapshot: pdfResult.templateConfig!,
+      clinic_identity_snapshot: pdfResult.clinicIdentity!,
+      storage_path: storagePath,
+      file_size_bytes: pdfBuffer.length,
+    })
+
+    if (!certResult.success) {
+      logger.error("Failed to create certificate record", { intakeId, error: certResult.error })
+      // PDF is stored but record failed - this is a partial failure state
+      // Continue anyway as the PDF exists
+    }
+
+    const certificateId = certResult.certificate?.id
+
+    // If this was an idempotent re-approval, don't send another email
+    if (certResult.isExisting && certResult.certificate?.email_sent_at) {
+      logger.info("Certificate already issued and email sent (idempotent)", {
+        intakeId,
+        certificateId,
+      })
+      return { 
+        success: true, 
+        certificateId,
+        isExisting: true,
+      }
+    }
+
+    // Log issuance event
+    if (certificateId) {
+      await logCertificateEvent(certificateId, "issued", doctorProfile.id, "doctor", {
+        intake_id: intakeId,
+        certificate_type: certificateType,
+        template_version: pdfResult.templateConfig?.layout?.marginPreset,
+      })
+    }
+
+    // 6. Generate email HTML - link to dashboard, NOT raw file
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
     const emailHtml = renderMedCertEmailToHtml({
       patientName: patient.full_name,
       dashboardUrl,
     })
 
-    // 7. Send email with PDF attachment via Resend
-    logger.info("Sending email with PDF attachment", { intakeId, to: patient.email })
+    // 7. Send email notification (NO attachment - patient downloads from dashboard)
+    logger.info("Sending certificate ready notification", { intakeId, to: patient.email })
     
     const emailResult = await sendViaResend({
       to: patient.email,
-      subject: "Your Medical Certificate from InstantMed",
+      subject: "Your Medical Certificate is Ready - InstantMed",
       html: emailHtml,
-      attachments: [
-        {
-          filename: `Medical_Certificate_${certificateNumber}.pdf`,
-          content: pdfBase64,
-          type: "application/pdf",
-          disposition: "attachment",
-        },
-      ],
       tags: [
         { name: "category", value: "med_cert_approved" },
         { name: "intake_id", value: intakeId },
@@ -273,12 +343,36 @@ export async function approveAndSendCert(
       ],
     })
 
-    if (!emailResult.success) {
-      logger.error("Failed to send email", { intakeId, error: emailResult.error })
-      return { success: false, error: `Failed to send email: ${emailResult.error}` }
+    // Track email status
+    if (certificateId) {
+      if (emailResult.success) {
+        await updateEmailStatus(certificateId, "sent", {
+          deliveryId: emailResult.id,
+        })
+        await logCertificateEvent(certificateId, "email_sent", null, "system", {
+          resend_id: emailResult.id,
+        })
+      } else {
+        await updateEmailStatus(certificateId, "failed", {
+          failureReason: emailResult.error,
+        })
+        await logCertificateEvent(certificateId, "email_failed", null, "system", {
+          error: emailResult.error,
+        })
+        // Don't fail the whole operation - certificate is issued, email can be retried
+        logger.error("Failed to send email (certificate still issued)", { 
+          intakeId, 
+          certificateId,
+          error: emailResult.error 
+        })
+      }
     }
 
-    logger.info("Email sent successfully", { intakeId, resendId: emailResult.id })
+    logger.info("Certificate issuance complete", { 
+      intakeId, 
+      certificateId,
+      emailSent: emailResult.success,
+    })
 
     // 8. Update intake status in Supabase
     const { error: updateError } = await supabase
@@ -320,7 +414,7 @@ export async function approveAndSendCert(
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/patient/intakes/${intakeId}`)
 
-    return { success: true }
+    return { success: true, certificateId }
   } catch (error) {
     logger.error("Error approving certificate", { 
       intakeId,

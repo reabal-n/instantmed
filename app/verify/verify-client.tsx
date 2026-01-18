@@ -20,6 +20,17 @@ import {
 
 interface VerificationResult {
   valid: boolean
+  certificate?: {
+    certificateNumber: string
+    type: string
+    issueDate: string
+    validFrom?: string
+    validTo?: string
+    patientName: string
+    issuingDoctor: string
+    issuingClinic: string
+  }
+  // Legacy format support
   document?: {
     type: string
     subtype: string
@@ -144,7 +155,7 @@ export function VerifyClient() {
       {hasSearched && result && (
         <Card className={`border-2 ${result.valid ? "border-emerald-200 bg-emerald-50/50" : "border-red-200 bg-red-50/50"}`}>
           <CardContent className="pt-6">
-            {result.valid && result.document ? (
+            {result.valid && (result.certificate || result.document) ? (
               <div className="space-y-6">
                 {/* Success Header */}
                 <div className="flex items-center gap-4">
@@ -152,51 +163,99 @@ export function VerifyClient() {
                     <CheckCircle className="h-8 w-8 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-emerald-900">Document Verified</h3>
-                    <p className="text-emerald-700">This is a valid document issued by InstantMed.</p>
+                    <h3 className="text-xl font-semibold text-emerald-900">Certificate Verified</h3>
+                    <p className="text-emerald-700">This is a valid certificate issued by {result.certificate?.issuingClinic || "InstantMed"}.</p>
                   </div>
                 </div>
 
-                {/* Document Details */}
-                <div className="bg-white rounded-lg border border-emerald-200 p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
-                      {formatDocumentType(result.document.type, result.document.subtype)}
-                    </Badge>
-                    <span className="font-mono text-sm text-muted-foreground">
-                      {result.document.certificate_id}
-                    </span>
-                  </div>
+                {/* Certificate Details - New format */}
+                {result.certificate && (
+                  <div className="bg-white rounded-lg border border-emerald-200 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                        {result.certificate.type}
+                      </Badge>
+                      <span className="font-mono text-sm text-muted-foreground">
+                        {result.certificate.certificateNumber}
+                      </span>
+                    </div>
 
-                  <div className="grid gap-3 text-sm">
-                    <div className="flex items-center gap-3">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Patient:</span>
-                      <span className="font-medium">{result.document.patient_name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Building className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Issued by:</span>
-                      <span className="font-medium">{result.document.doctor_name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Issued:</span>
-                      <span className="font-medium">{formatDate(result.document.issued_at)}</span>
-                    </div>
-                    {result.document.expires_at && (
+                    <div className="grid gap-3 text-sm">
                       <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Valid until:</span>
-                        <span className="font-medium">{formatDate(result.document.expires_at)}</span>
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Patient:</span>
+                        <span className="font-medium">{result.certificate.patientName}</span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Issued by:</span>
+                        <span className="font-medium">{result.certificate.issuingDoctor}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Clinic:</span>
+                        <span className="font-medium">{result.certificate.issuingClinic}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Issued:</span>
+                        <span className="font-medium">{formatDate(result.certificate.issueDate)}</span>
+                      </div>
+                      {result.certificate.validFrom && result.certificate.validTo && (
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Valid period:</span>
+                          <span className="font-medium">
+                            {formatDate(result.certificate.validFrom)} — {formatDate(result.certificate.validTo)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Legacy format support */}
+                {!result.certificate && result.document && (
+                  <div className="bg-white rounded-lg border border-emerald-200 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                        {formatDocumentType(result.document.type, result.document.subtype)}
+                      </Badge>
+                      <span className="font-mono text-sm text-muted-foreground">
+                        {result.document.certificate_id}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Patient:</span>
+                        <span className="font-medium">{result.document.patient_name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Issued by:</span>
+                        <span className="font-medium">{result.document.doctor_name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Issued:</span>
+                        <span className="font-medium">{formatDate(result.document.issued_at)}</span>
+                      </div>
+                      {result.document.expires_at && (
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Valid until:</span>
+                          <span className="font-medium">{formatDate(result.document.expires_at)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Trust Note */}
                 <p className="text-xs text-emerald-600 text-center">
-                  This verification confirms the document was issued through InstantMed&apos;s secure platform.
+                  This verification confirms the certificate was issued through InstantMed&apos;s secure platform.
                 </p>
               </div>
             ) : (

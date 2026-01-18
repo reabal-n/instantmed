@@ -4,4 +4,5 @@ export interface QueueClientProps {
   intakes: IntakeWithPatient[]
   doctorId: string
   doctorName?: string
+  identityComplete?: boolean
 }

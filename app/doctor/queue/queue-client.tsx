@@ -63,6 +63,7 @@ import type { IntakeStatus } from "@/types/db"
 export function QueueClient({
   intakes: initialIntakes,
   doctorId,
+  identityComplete = true,
 }: QueueClientProps) {
   const router = useRouter()
   const [intakes, setIntakes] = useState(initialIntakes)
@@ -642,8 +643,9 @@ export function QueueClient({
                       <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
                         <Button
                           onClick={() => handleApprove(intake.id, service?.type)}
-                          disabled={isPending}
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          disabled={isPending || !identityComplete}
+                          className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                          title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                         >
                           <CheckCircle className="h-4 w-4 mr-1.5" />
                           {service?.type === "common_scripts" ? "Approve Script" : "Approve & Generate"}

@@ -83,7 +83,7 @@ export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
           <p style={{ fontSize: "16px", marginBottom: "16px" }}>Hi {patientName},</p>
 
           <p style={{ fontSize: "16px", marginBottom: "24px" }}>
-            Your Medical Certificate from InstantMed is attached to this email.
+            Your Medical Certificate from InstantMed is ready to download from your dashboard.
           </p>
 
           {/* CTA Button */}
@@ -133,7 +133,7 @@ export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
               }}
             >
               <li style={{ marginBottom: "8px" }}>
-                Download your certificate from the attachment
+                Download your certificate from your dashboard
               </li>
               <li style={{ marginBottom: "8px" }}>
                 Forward it to your employer, university, or relevant institution
@@ -234,7 +234,7 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     <p style="font-size: 16px; margin-bottom: 16px;">Hi ${patientName},</p>
     
     <p style="font-size: 16px; margin-bottom: 24px;">
-      Your Medical Certificate from InstantMed is attached to this email.
+      Your Medical Certificate from InstantMed is ready to download from your dashboard.
     </p>
     
     <!-- CTA Button -->
@@ -248,7 +248,7 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0;">
       <h3 style="margin: 0 0 12px 0; color: #0A0F1C; font-size: 16px; font-weight: 600;">What happens next?</h3>
       <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px;">
-        <li style="margin-bottom: 8px;">Download your certificate from the attachment</li>
+        <li style="margin-bottom: 8px;">Download your certificate from your dashboard</li>
         <li style="margin-bottom: 8px;">Forward it to your employer, university, or relevant institution</li>
         <li>Keep a copy for your records</li>
       </ul>
