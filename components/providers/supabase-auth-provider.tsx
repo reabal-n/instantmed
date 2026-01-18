@@ -28,13 +28,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   
   const supabase = useMemo(() => {
     try {
-      const client = createClient()
-      // eslint-disable-next-line no-console
-      console.log('[Auth] Supabase client created successfully')
-      return client
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[Auth] Failed to create Supabase client:', error)
+      return createClient()
+    } catch {
       return null
     }
   }, [])
@@ -74,9 +69,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         if (initialSession?.user?.id) {
           await fetchProfile(initialSession.user.id)
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[Auth] Failed to initialize:', error)
+      } catch {
+        // Silent fail - user will see login screen
       } finally {
         setIsLoading(false)
       }
@@ -114,8 +108,6 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const signInWithGoogle = useCallback(async (redirectTo?: string) => {
-    // eslint-disable-next-line no-console
-    console.log('[Auth] signInWithGoogle called, supabase:', !!supabase)
     if (!supabase) {
       throw new Error('Supabase client not initialized')
     }
@@ -123,21 +115,16 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       ? `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
       : `${window.location.origin}/auth/callback`
     
-    // eslint-disable-next-line no-console
-    console.log('[Auth] Calling signInWithOAuth, callbackUrl:', callbackUrl)
-    const { error, data } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: callbackUrl,
         queryParams: {
           access_type: 'offline',
-          prompt: 'consent',
+          prompt: 'select_account',
         },
       },
     })
-    
-    // eslint-disable-next-line no-console
-    console.log('[Auth] signInWithOAuth result:', { error, data })
     
     if (error) {
       throw error

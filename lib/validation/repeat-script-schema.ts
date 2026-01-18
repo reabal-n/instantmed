@@ -87,27 +87,27 @@ export interface ValidationResult {
 /**
  * Validate repeat script medication payload
  * Returns validation result with error message if invalid
+ * 
+ * Accepts both PBS and AMT field naming conventions:
+ * - pbs_code OR amt_code (also allows "MANUAL" for typed entries)
+ * - medication_name OR medication_display
  */
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
-  // Check required AMT fields
-  const amtCode = answers.amt_code
-  const medicationDisplay = answers.medication_display
-  const medicationName = answers.medication_name
+  // Accept either pbs_code or amt_code - PBS is from medication search, AMT is legacy
+  const medicationCode = answers.pbs_code || answers.amt_code
+  // Accept either medication_name or medication_display
+  const medicationName = answers.medication_name || answers.medication_display
+  const medicationDisplay = answers.medication_display || answers.medication_name
 
-  if (!amtCode || typeof amtCode !== "string" || amtCode.trim() === "") {
+  // Allow "MANUAL" code for manual text entries when search doesn't find the medication
+  const isManualEntry = medicationCode === "MANUAL"
+
+  if (!isManualEntry && (!medicationCode || typeof medicationCode !== "string" || medicationCode.trim() === "")) {
     return {
       valid: false,
-      error: "Select a medication from the list. Free-text entries are not accepted for repeat scripts.",
-      requiresConsult: false,
-    }
-  }
-
-  if (!medicationDisplay || typeof medicationDisplay !== "string" || medicationDisplay.trim() === "") {
-    return {
-      valid: false,
-      error: "Select a medication from the list. Free-text entries are not accepted for repeat scripts.",
+      error: "Please enter or select a medication name.",
       requiresConsult: false,
     }
   }
@@ -115,7 +115,15 @@ export function validateRepeatScriptPayload(
   if (!medicationName || typeof medicationName !== "string" || medicationName.trim() === "") {
     return {
       valid: false,
-      error: "Invalid medication selection. Please select again from the list.",
+      error: "Please enter a medication name.",
+      requiresConsult: false,
+    }
+  }
+
+  if (!medicationDisplay || typeof medicationDisplay !== "string" || medicationDisplay.trim() === "") {
+    return {
+      valid: false,
+      error: "Please enter a medication name.",
       requiresConsult: false,
     }
   }
@@ -172,6 +180,7 @@ export function validateRepeatScriptPayload(
 const LEGACY_KEY_MAPPINGS: Record<string, string> = {
   // Map old key names to canonical keys
   amtCode: "amt_code",
+  pbs_code: "amt_code", // PBS search uses pbs_code, map to amt_code for compatibility
   medicationDisplay: "medication_display",
   medicationName: "medication_name",
   medication: "medication_name",
@@ -204,28 +213,35 @@ export function mapLegacyAnswers(
 
 /**
  * Extract structured medication data from answers with backward compatibility
+ * Handles both PBS (pbs_code, medication_name) and AMT (amt_code, medication_display) formats
  */
 export function extractMedicationFromAnswers(
   answers: Record<string, unknown>
 ): RepeatScriptMedicationPayload | null {
   const mapped = mapLegacyAnswers(answers)
 
-  const amtCode = mapped.amt_code
-  const medicationDisplay = mapped.medication_display
-  const medicationName = mapped.medication_name
+  // Accept either pbs_code or amt_code
+  const medicationCode = mapped.amt_code || answers.pbs_code
+  // Accept either medication_name or medication_display
+  const medicationName = mapped.medication_name || answers.medication_name
+  const medicationDisplay = mapped.medication_display || answers.medication_name
 
-  // Must have at least amt_code and display
-  if (!amtCode || !medicationDisplay) {
+  // Must have at least a code (or MANUAL) and a name
+  const isManualEntry = medicationCode === "MANUAL"
+  if (!isManualEntry && !medicationCode) {
+    return null
+  }
+  if (!medicationName && !medicationDisplay) {
     return null
   }
 
   return {
-    amt_code: String(amtCode),
-    medication_display: String(medicationDisplay),
-    medication_name: String(medicationName || ""),
-    medication_strength: mapped.medication_strength != null ? String(mapped.medication_strength) : null,
-    medication_form: mapped.medication_form != null ? String(mapped.medication_form) : null,
-    prescribed_before: mapped.prescribed_before === true,
-    dose_changed: mapped.dose_changed === true,
+    amt_code: String(medicationCode || "MANUAL"),
+    medication_display: String(medicationDisplay || medicationName || ""),
+    medication_name: String(medicationName || medicationDisplay || ""),
+    medication_strength: mapped.medication_strength != null ? String(mapped.medication_strength) : (answers.strength != null ? String(answers.strength) : null),
+    medication_form: mapped.medication_form != null ? String(mapped.medication_form) : (answers.form != null ? String(answers.form) : null),
+    prescribed_before: mapped.prescribed_before === true || answers.prescribed_before === true,
+    dose_changed: mapped.dose_changed === true || answers.dose_changed === true,
   }
 }

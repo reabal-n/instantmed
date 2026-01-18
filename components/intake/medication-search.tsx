@@ -119,7 +119,7 @@ export function MedicationSearch({
 
     debounceRef.current = setTimeout(() => {
       searchProducts(newValue)
-    }, 250)
+    }, 350)
   }
 
   const handleSelect = (option: PBSProduct) => {

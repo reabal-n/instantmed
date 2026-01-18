@@ -13,10 +13,11 @@ const log = createLogger("pbs-client")
 
 const PBS_API_BASE_URL = "https://data-api.health.gov.au/pbs/api/v3"
 const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b" // Public key from docs
+const API_TIMEOUT_MS = 5000 // 5 second timeout to prevent hanging
 
 // In-memory cache to reduce API calls and avoid rate limits
 const searchCache = new Map<string, { results: PBSSearchResult[]; timestamp: number }>()
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes - longer cache for better UX
 
 function getCachedResults(query: string): PBSSearchResult[] | null {
   const cached = searchCache.get(query.toLowerCase())
@@ -92,6 +93,102 @@ interface _ItemOverviewResult {
 }
 
 /**
+ * Fetch with timeout wrapper to prevent hanging requests
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number = API_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+    return response
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+/**
+ * Parse PBS API response data into PBSSearchResult array
+ */
+function parseItemsToResults(
+  items: Record<string, unknown>[],
+  limit: number
+): PBSSearchResult[] {
+  const seen = new Set<string>()
+  const results: PBSSearchResult[] = []
+
+  for (const item of items) {
+    const drugName = String(item.drug_name || item.li_drug_name || "")
+    const form = item.li_form ? String(item.li_form) : null
+    const key = `${drugName.toLowerCase()}-${form || ""}`
+    
+    if (drugName && !seen.has(key)) {
+      seen.add(key)
+      results.push({
+        pbs_code: String(item.pbs_code || ""),
+        drug_name: drugName,
+        form: form,
+        strength: form, // li_form contains strength info
+        manufacturer: item.manufacturer_code ? String(item.manufacturer_code) : null,
+      })
+    }
+    if (results.length >= limit) break
+  }
+
+  return results
+}
+
+/**
+ * Search PBS items by a specific field (drug_name or brand_name)
+ */
+async function searchPBSByField(
+  field: "drug_name" | "brand_name",
+  query: string,
+  limit: number
+): Promise<PBSSearchResult[]> {
+  try {
+    const url = new URL(`${PBS_API_BASE_URL}/items`)
+    url.searchParams.set("limit", String(Math.min(limit * 2, 50)))
+    url.searchParams.set(field, query)
+
+    const response = await fetchWithTimeout(url.toString(), {
+      headers: {
+        "Subscription-Key": PBS_API_KEY,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const text = await response.text()
+    const data = JSON.parse(text)
+
+    if (!data.data || data.data.length === 0) {
+      return []
+    }
+
+    return parseItemsToResults(data.data, limit)
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      log.warn(`PBS API ${field} search timeout`, { query })
+    } else {
+      log.error(`PBS API ${field} search error`, { error: error instanceof Error ? error.message : String(error) })
+    }
+    return []
+  }
+}
+
+/**
  * Search PBS items by drug name using the /items endpoint
  * Fetches items and filters by drug_name parameter
  */
@@ -102,181 +199,9 @@ export async function searchPBSItems(
   if (!query || query.length < 2) {
     return []
   }
-
-  try {
-    // The PBS API supports drug_name as a direct query parameter (case-insensitive partial match)
-    const url = new URL(`${PBS_API_BASE_URL}/items`)
-    url.searchParams.set("limit", String(Math.min(limit * 3, 100))) // Fetch more to allow deduplication
-    url.searchParams.set("drug_name", query)
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        "Subscription-Key": PBS_API_KEY,
-        Accept: "application/json",
-      },
-      cache: "no-store", // Avoid caching issues in Edge runtime
-    })
-
-    if (!response.ok) {
-      log.warn("PBS API items endpoint failed", { status: response.status })
-      return await searchPBSItemsFallback(query, limit)
-    }
-
-    const text = await response.text()
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch (parseError) {
-      log.error("PBS API JSON parse error", { error: parseError instanceof Error ? parseError.message : String(parseError), textLength: text.length })
-      return await searchPBSItemsFallback(query, limit)
-    }
-    
-    if (!data.data || data.data.length === 0) {
-      // Try brand_name search as fallback
-      return await searchPBSByBrandName(query, limit)
-    }
-
-    // Deduplicate by drug_name + li_form combination
-    const seen = new Set<string>()
-    const results: PBSSearchResult[] = []
-    
-    for (const item of data.data) {
-      const key = `${item.drug_name || item.li_drug_name}-${item.li_form || ""}`
-      if (!seen.has(key)) {
-        seen.add(key)
-        results.push({
-          pbs_code: item.pbs_code,
-          drug_name: item.drug_name || item.li_drug_name || "",
-          form: item.li_form || null,
-          strength: item.li_form || null, // li_form contains strength info
-          manufacturer: item.manufacturer_code || null,
-        })
-      }
-      if (results.length >= limit) break
-    }
-
-    return results
-  } catch (error) {
-    log.error("PBS API search error", { error: error instanceof Error ? error.message : String(error) })
-    return await searchPBSItemsFallback(query, limit)
-  }
+  return searchPBSByField("drug_name", query, limit)
 }
 
-/**
- * Search PBS items by brand name
- */
-async function searchPBSByBrandName(
-  query: string,
-  limit: number
-): Promise<PBSSearchResult[]> {
-  try {
-    const url = new URL(`${PBS_API_BASE_URL}/items`)
-    url.searchParams.set("limit", String(Math.min(limit * 2, 50)))
-    url.searchParams.set("brand_name", query)
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        "Subscription-Key": PBS_API_KEY,
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      return []
-    }
-
-    const text = await response.text()
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch {
-      return []
-    }
-
-    if (!data.data || data.data.length === 0) {
-      return []
-    }
-
-    // Deduplicate by drug_name + li_form combination
-    const seen = new Set<string>()
-    const results: PBSSearchResult[] = []
-
-    for (const item of data.data) {
-      const key = `${item.drug_name || item.li_drug_name}-${item.li_form || ""}`
-      if (!seen.has(key)) {
-        seen.add(key)
-        results.push({
-          pbs_code: item.pbs_code,
-          drug_name: item.drug_name || item.li_drug_name || "",
-          form: item.li_form || null,
-          strength: item.li_form || null,
-          manufacturer: item.manufacturer_code || null,
-        })
-      }
-      if (results.length >= limit) break
-    }
-
-    return results
-  } catch (error) {
-    log.error("PBS API brand search error", { error: error instanceof Error ? error.message : String(error) })
-    return []
-  }
-}
-
-/**
- * Fallback search using /items endpoint with simpler query
- */
-async function searchPBSItemsFallback(
-  query: string,
-  limit: number
-): Promise<PBSSearchResult[]> {
-  try {
-    const url = new URL(`${PBS_API_BASE_URL}/items`)
-    url.searchParams.set("limit", String(limit))
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        "Subscription-Key": PBS_API_KEY,
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      return []
-    }
-
-    const text = await response.text()
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch {
-      return []
-    }
-    const queryLower = query.toLowerCase()
-
-    // Client-side filter since direct filtering may not work
-    const filtered = (data.data || [])
-      .filter((item: Record<string, unknown>) => {
-        const drugName = String(item.drug_name || "").toLowerCase()
-        const liDrugName = String(item.li_drug_name || "").toLowerCase()
-        return drugName.includes(queryLower) || liDrugName.includes(queryLower)
-      })
-      .slice(0, limit)
-
-    return filtered.map((item: Record<string, unknown>) => ({
-      pbs_code: String(item.pbs_code || ""),
-      drug_name: String(item.drug_name || item.li_drug_name || ""),
-      form: item.li_form ? String(item.li_form) : null,
-      strength: item.pack_size ? String(item.pack_size) : null,
-      manufacturer: item.manufacturer_name ? String(item.manufacturer_name) : null,
-    }))
-  } catch (error) {
-    log.error("PBS API fallback search error", { error: error instanceof Error ? error.message : String(error) })
-    return []
-  }
-}
 
 /**
  * Get detailed information about a specific PBS item
@@ -335,7 +260,8 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
 }
 
 /**
- * Search PBS items with improved matching using multiple search strategies
+ * Search PBS items with improved matching using PARALLEL search strategies
+ * Searches both drug_name and brand_name simultaneously for faster results
  */
 export async function searchPBSItemsEnhanced(
   query: string,
@@ -343,27 +269,37 @@ export async function searchPBSItemsEnhanced(
 ): Promise<PBSSearchResult[]> {
   const normalizedQuery = query.toLowerCase().trim()
 
+  if (!normalizedQuery || normalizedQuery.length < 2) {
+    return []
+  }
+
   // Check cache first to avoid rate limits
   const cached = getCachedResults(normalizedQuery)
   if (cached) {
     return cached.slice(0, limit)
   }
 
-  // Strategy 1: Try exact prefix match first via API
-  let results = await searchPBSItems(normalizedQuery, limit)
+  // PARALLEL search: drug_name and brand_name at the same time
+  const [drugResults, brandResults] = await Promise.all([
+    searchPBSByField("drug_name", normalizedQuery, limit),
+    searchPBSByField("brand_name", normalizedQuery, limit),
+  ])
 
-  if (results.length > 0) {
-    setCachedResults(normalizedQuery, results)
-    return results
+  // Merge and deduplicate results, prioritizing drug_name matches
+  const seen = new Set<string>()
+  const merged: PBSSearchResult[] = []
+
+  for (const result of [...drugResults, ...brandResults]) {
+    const key = `${result.drug_name.toLowerCase()}-${result.form || ""}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      merged.push(result)
+    }
+    if (merged.length >= limit) break
   }
 
-  // Strategy 2: Try fetching all and filtering client-side for small datasets
-  // This is a fallback for when API filtering doesn't work well
-  results = await searchPBSItemsFallback(normalizedQuery, limit)
-  
-  if (results.length > 0) {
-    setCachedResults(normalizedQuery, results)
-  }
+  // Cache results even if empty to avoid repeated failed searches
+  setCachedResults(normalizedQuery, merged)
 
-  return results
+  return merged
 }
