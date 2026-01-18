@@ -32,7 +32,7 @@ function Avatar({
       )}
       fallback={fallback || <AvatarIcon />}
       classNames={{
-        base: "bg-gradient-to-br from-primary/20 to-violet-500/20",
+        base: "bg-linear-to-br from-primary/20 to-violet-500/20",
         fallback: "text-primary",
       }}
       {...props}

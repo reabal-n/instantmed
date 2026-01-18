@@ -82,7 +82,7 @@ export function GlassCard({
       {...props}
     >
       {/* Inner glow gradient overlay */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-white/10 to-transparent pointer-events-none" />
       {/* Content */}
       <div className="relative">
         {children}
@@ -110,7 +110,7 @@ export function GlassPanel({
         className,
       )}
     >
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-white/10 to-transparent pointer-events-none" />
       <div className="relative">
         {children}
       </div>

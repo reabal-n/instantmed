@@ -249,7 +249,7 @@ export function MedCertIntakeFlow({
     <div
       className={cn(
         "min-h-screen flex items-start justify-center px-4 py-8 sm:py-12",
-        "bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
+        "bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950",
         className
       )}
     >
@@ -278,7 +278,7 @@ export function MedCertIntakeFlow({
             className={cn(
               "absolute top-4 right-4 z-10",
               "w-10 h-10 rounded-full",
-              "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700",
+              "bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700",
               "border border-slate-200/60 dark:border-slate-600/60",
               "flex items-center justify-center",
               "text-slate-500 dark:text-slate-400",

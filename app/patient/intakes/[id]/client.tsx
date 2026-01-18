@@ -25,16 +25,28 @@ import { formatIntakeStatus } from "@/lib/format-intake"
 import { createClient } from "@/lib/supabase/client"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
+import { resendVerificationEmail } from "@/app/actions/resend-verification"
+import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
+import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
 import type { IntakeWithPatient, GeneratedDocument, IntakeDocument } from "@/types/db"
+import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithPatient
   document?: GeneratedDocument | null
   intakeDocument?: IntakeDocument | null
   retryPayment?: boolean
+  isEmailVerified?: boolean
+  userEmail?: string
 }
 
-export function IntakeDetailClient({ intake: initialIntake, document, intakeDocument }: IntakeDetailClientProps) {
+export function IntakeDetailClient({ 
+  intake: initialIntake, 
+  document, 
+  intakeDocument,
+  isEmailVerified = true,
+  userEmail,
+}: IntakeDetailClientProps) {
   const router = useRouter()
   const [intake, setIntake] = useState(initialIntake)
   const [isPending, startTransition] = useTransition()
@@ -241,60 +253,75 @@ export function IntakeDetailClient({ intake: initialIntake, document, intakeDocu
             </div>
           )}
 
+          {/* Live Status Tracker - Show for in-progress requests */}
+          {["paid", "in_review", "pending_info"].includes(intake.status) && (
+            <IntakeStatusTracker
+              intakeId={intake.id}
+              initialStatus={intake.status as IntakeStatus}
+              isPriority={intake.is_priority}
+            />
+          )}
+
           {/* Document Card - Prominent display for approved/completed intakes with documents */}
           {(intake.status === "approved" || intake.status === "completed") && document?.pdf_url && (
-            <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className="rounded-full bg-emerald-100 p-3">
-                    <FileText className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <h3 className="font-semibold text-emerald-900">Your Document is Ready</h3>
-                      <p className="text-sm text-emerald-700">
-                        Download your {service?.short_name || service?.name || "document"} below.
-                      </p>
+            <EmailVerificationGate
+              email={userEmail || ""}
+              isVerified={isEmailVerified}
+              onResendVerification={resendVerificationEmail}
+            >
+              <Card className="border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-emerald-100 p-3">
+                      <FileText className="h-6 w-6 text-emerald-600" />
                     </div>
-                    <Button asChild size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
-                      <a 
-                        href={document.pdf_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        download
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
-                      </a>
-                    </Button>
-                    {document.verification_code && (
-                      <div className="flex items-center gap-2 text-sm text-emerald-700 pt-2">
-                        <Shield className="h-4 w-4" />
-                        <span>
-                          Verification Code: <code className="font-mono font-semibold bg-emerald-100 px-2 py-0.5 rounded">{document.verification_code}</code>
-                        </span>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <h3 className="font-semibold text-emerald-900">Your Document is Ready</h3>
+                        <p className="text-sm text-emerald-700">
+                          Download your {service?.short_name || service?.name || "document"} below.
+                        </p>
                       </div>
-                    )}
-                    <p className="text-xs text-emerald-600">
-                      A copy has also been sent to your email.
-                    </p>
-                    {/* Resend Email Button */}
-                    {canResend && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleResendEmail}
-                        disabled={isPending}
-                        className="mt-2"
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        {isPending ? "Sending..." : "Resend to email"}
+                      <Button asChild size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
+                        <a 
+                          href={document.pdf_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </a>
                       </Button>
-                    )}
+                      {document.verification_code && (
+                        <div className="flex items-center gap-2 text-sm text-emerald-700 pt-2">
+                          <Shield className="h-4 w-4" />
+                          <span>
+                            Verification Code: <code className="font-mono font-semibold bg-emerald-100 px-2 py-0.5 rounded">{document.verification_code}</code>
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-xs text-emerald-600">
+                        A copy has also been sent to your email.
+                      </p>
+                      {/* Resend Email Button */}
+                      {canResend && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleResendEmail}
+                          disabled={isPending}
+                          className="mt-2"
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          {isPending ? "Sending..." : "Resend to email"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </EmailVerificationGate>
           )}
 
           {/* Action Buttons */}

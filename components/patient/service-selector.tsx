@@ -65,7 +65,7 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
                 onClick={() => onSelectService(service.id)}
                 className={cn(
                   'w-full p-6 rounded-2xl border-2 border-transparent',
-                  'bg-gradient-to-br transition-all duration-200',
+                  'bg-linear-to-br transition-all duration-200',
                   'hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]',
                   'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
                   'text-left card-shine',

@@ -462,10 +462,15 @@ export async function getAllRequestsForAdmin(): Promise<RequestWithPatient[]> {
 
 /**
  * Create a document for a request (e.g., prescription, certificate).
+ * 
+ * Note: Document generation is handled via the APITemplate.io integration
+ * in lib/documents/apitemplate.ts. This function is a legacy stub kept
+ * for backwards compatibility. Use generateMedCertPdfFromDraft() instead.
+ * 
+ * @deprecated Use lib/documents/apitemplate.ts for document generation
  */
 export async function createDocument(requestId: string, documentType: string, _content: string): Promise<boolean> {
-  // TODO: Implement when documents table is created
-  logger.info("createDocument called", { requestId, documentType })
+  logger.warn("createDocument called - use apitemplate.ts instead", { requestId, documentType })
   return false
 }
 

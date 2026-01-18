@@ -21,6 +21,7 @@ const CERT_TYPES = [
     title: "Personal Sick Leave",
     subtitle: "1-2 days off work",
     price: 19.95,
+    comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Briefcase,
     description: "For when you're unwell and need a day or two to recover.",
@@ -36,6 +37,7 @@ const CERT_TYPES = [
     title: "Study Leave",
     subtitle: "Uni, TAFE or exams",
     price: 19.95,
+    comparePrice: 39.95,
     time: "Under 1 hour",
     icon: GraduationCap,
     description: "For special consideration, extensions, or missed assessments.",
@@ -51,6 +53,7 @@ const CERT_TYPES = [
     title: "Carer's Leave",
     subtitle: "Looking after someone",
     price: 19.95,
+    comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Heart,
     description: "For when you need to care for a sick family member.",
@@ -549,7 +552,10 @@ export default function MedicalCertificatePage() {
                             {/* Price and CTA */}
                             <div className="flex items-center justify-between pt-5 mt-auto border-t border-border/50">
                               <div>
-                                <span className="text-2xl font-bold text-foreground">${cert.price.toFixed(2)}</span>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-bold text-foreground">${cert.price.toFixed(2)}</span>
+                                  <span className="text-sm text-muted-foreground line-through">${cert.comparePrice.toFixed(2)}</span>
+                                </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">{cert.time}</p>
                               </div>
                               <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">

@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { MapPin, Loader2 } from "lucide-react"
+import { MapPin, Loader2, AlertTriangle, CheckCircle } from "lucide-react"
 import { searchAddresses, getAddressMetadata, type AddressFinderSuggestion } from "@/lib/addressfinder/client"
 import { useDebounce } from "@/hooks/use-debounce"
 
@@ -17,6 +17,10 @@ export interface AddressComponents {
   fullAddress: string
   addressLine1?: string
   addressLine2?: string | null
+  /** True if address was selected from AddressFinder (GNAF-verified) */
+  isVerified?: boolean
+  /** AddressFinder pxid for audit trail */
+  pxid?: string
 }
 
 interface AddressAutocompleteProps {
@@ -27,6 +31,10 @@ interface AddressAutocompleteProps {
   className?: string
   error?: string
   disabled?: boolean
+  /** If true, user MUST select from AddressFinder suggestions */
+  requireVerified?: boolean
+  /** Callback when verification status changes */
+  onVerificationChange?: (isVerified: boolean) => void
 }
 
 export function AddressAutocomplete({
@@ -37,11 +45,15 @@ export function AddressAutocomplete({
   className,
   error,
   disabled,
+  requireVerified = false,
+  onVerificationChange,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<AddressFinderSuggestion[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const [isVerified, setIsVerified] = useState(false)
+  const [lastSelectedPxid, setLastSelectedPxid] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSearchRef = useRef<string>("")
@@ -82,11 +94,16 @@ export function AddressAutocomplete({
     })()
   }, [debouncedValue, shouldSearch, doSearch])
 
-  // Handle selection
+  // Handle selection from AddressFinder (GNAF-verified)
   const handleSelect = useCallback(async (suggestion: AddressFinderSuggestion) => {
     setIsOpen(false)
     setSuggestions([])
     onChange(suggestion.full_address)
+    
+    // Mark as verified since user selected from AddressFinder
+    setIsVerified(true)
+    setLastSelectedPxid(suggestion.pxid)
+    onVerificationChange?.(true)
 
     // Fetch full metadata
     const metadata = await getAddressMetadata(suggestion.pxid)
@@ -101,9 +118,11 @@ export function AddressAutocomplete({
         fullAddress: metadata.fullAddress,
         addressLine1: metadata.addressLine1,
         addressLine2: metadata.addressLine2,
+        isVerified: true,
+        pxid: suggestion.pxid,
       })
     }
-  }, [onChange, onAddressSelect])
+  }, [onChange, onAddressSelect, onVerificationChange])
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -143,6 +162,22 @@ export function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Handle manual typing - invalidates verification
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    onChange(newValue)
+    
+    // If user is manually editing after selecting, invalidate verification
+    if (isVerified && lastSelectedPxid) {
+      setIsVerified(false)
+      setLastSelectedPxid(null)
+      onVerificationChange?.(false)
+    }
+  }, [onChange, isVerified, lastSelectedPxid, onVerificationChange])
+
+  // Determine if we should show verification warning
+  const showVerificationWarning = requireVerified && value.length > 0 && !isVerified && !isSearching
+
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
@@ -150,21 +185,39 @@ export function AddressAutocomplete({
         <Input
           ref={inputRef}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className={cn("pl-10 pr-10", className, error && "border-red-500")}
+          className={cn(
+            "pl-10 pr-10", 
+            className, 
+            error && "border-red-500",
+            isVerified && "border-green-500/50",
+            showVerificationWarning && "border-amber-500/50"
+          )}
           disabled={disabled}
           autoComplete="off"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           role="combobox"
         />
-        {isSearching && (
+        {isSearching ? (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-        )}
+        ) : isVerified ? (
+          <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+        ) : showVerificationWarning ? (
+          <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
+        ) : null}
       </div>
+      
+      {/* Verification hint */}
+      {showVerificationWarning && (
+        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          Please select an address from the suggestions
+        </p>
+      )}
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (

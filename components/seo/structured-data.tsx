@@ -6,6 +6,7 @@
  */
 
 import Script from "next/script"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 const BUSINESS_NAME = "InstantMed"
@@ -41,7 +42,7 @@ export function OrganizationSchema() {
     <Script
       id="organization-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -123,7 +124,7 @@ export function MedicalBusinessSchema() {
     <Script
       id="medical-business-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -159,7 +160,7 @@ export function LocalBusinessSchema() {
     <Script
       id="local-business-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -205,7 +206,7 @@ export function ServiceSchema({ name, description, url, price, priceCurrency = "
     <Script
       id={`service-schema-${name.toLowerCase().replace(/\s/g, "-")}`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -242,7 +243,7 @@ export function FAQPageSchema({ faqs, pageUrl }: FAQPageSchemaProps) {
     <Script
       id="faq-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -275,7 +276,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
     <Script
       id="breadcrumb-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -308,7 +309,7 @@ export function WebSiteSchema() {
     <Script
       id="website-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }

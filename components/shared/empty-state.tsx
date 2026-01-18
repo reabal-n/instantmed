@@ -47,7 +47,7 @@ export function EmptyState({
         className={cn(
           "flex h-20 w-20 items-center justify-center rounded-3xl mb-6",
           // Glass icon container with gradient
-          "bg-gradient-to-br from-primary/20 to-violet-500/20",
+          "bg-linear-to-br from-primary/20 to-violet-500/20",
           "backdrop-blur-sm border border-white/50 dark:border-white/20",
           // Glow effect
           "shadow-[0_8px_30px_rgb(59,130,246,0.25)]"

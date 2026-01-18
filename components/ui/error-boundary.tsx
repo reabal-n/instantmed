@@ -3,6 +3,7 @@
 import { Component, type ReactNode } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from './button'
+import { logger } from '@/lib/observability/logger'
 
 interface Props {
   children: ReactNode
@@ -25,8 +26,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console
-    if (process.env.NODE_ENV === 'development') console.error('ErrorBoundary caught:', error, errorInfo)
+    logger.captureError(error, { 
+      component: 'ErrorBoundary',
+      componentStack: errorInfo.componentStack 
+    })
   }
 
   render() {

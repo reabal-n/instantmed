@@ -105,6 +105,10 @@ export async function declineIntakeAction(
   reasonCode: string,
   reasonNote?: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -126,16 +130,62 @@ export async function declineIntakeAction(
       const service = intake.service as { name?: string; type?: string } | undefined
       const requestType = service?.name || "medical request"
       
-      await sendRequestDeclinedEmail(
+      const emailResult = await sendRequestDeclinedEmail(
         intake.patient.email,
         intake.patient.full_name || "Patient",
         requestType,
         intakeId,
         reasonNote || undefined
       )
-    } catch {
-      // Email is important but non-blocking - continue silently
-      // Error is already logged in the email function
+      
+      // Track email delivery status on intake
+      if (!emailResult.success) {
+        const { createClient } = await import("@/lib/supabase/server")
+        const supabase = await createClient()
+        await supabase
+          .from("intakes")
+          .update({ 
+            notification_email_status: "failed",
+            notification_email_error: emailResult.error,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", intakeId)
+        
+        // Log to Sentry for visibility
+        const { captureMessage } = await import("@sentry/nextjs")
+        captureMessage("Decline notification email failed", {
+          level: "warning",
+          tags: { intakeId, action: "decline" },
+          extra: { error: emailResult.error, patientEmail: intake.patient.email },
+        })
+      } else {
+        const { createClient } = await import("@/lib/supabase/server")
+        const supabase = await createClient()
+        await supabase
+          .from("intakes")
+          .update({ 
+            notification_email_status: "sent",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", intakeId)
+      }
+    } catch (emailError) {
+      // Log email failure but don't fail the action
+      const { createLogger } = await import("@/lib/observability/logger")
+      const logger = createLogger("decline-intake")
+      logger.error("Failed to send decline email", { intakeId }, emailError instanceof Error ? emailError : new Error(String(emailError)))
+      
+      // Track failure on intake
+      const { createClient } = await import("@/lib/supabase/server")
+      const supabase = await createClient()
+      await supabase
+        .from("intakes")
+        .update({ 
+          notification_email_status: "failed",
+          notification_email_error: emailError instanceof Error ? emailError.message : "Unknown error",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
     }
   }
 

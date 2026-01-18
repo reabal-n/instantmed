@@ -54,7 +54,8 @@ export function EnhancedTextarea({
 
   return (
     <div className="space-y-1.5">
-      <div className="relative">
+      {/* overflow-visible prevents bottom border clipping */}
+      <div className="relative overflow-visible">
         <HeroTextarea
           {...props}
           label={label || undefined}
@@ -70,19 +71,26 @@ export function EnhancedTextarea({
             className
           )}
           classNames={{
-            base: "gap-0 bg-transparent",
-            mainWrapper: "bg-transparent",
+            // Ensure base doesn't clip content
+            base: "gap-0 bg-transparent overflow-visible",
+            mainWrapper: "bg-transparent overflow-visible",
             inputWrapper: cn(
-              "bg-white border border-slate-200 rounded-lg shadow-none",
+              // Single border layer - no duplicate with variant="bordered"
+              "bg-white dark:bg-slate-900 rounded-lg shadow-none",
+              // Stable min-height to prevent clipping
+              "min-h-[120px]",
               "transition-all duration-200",
-              "hover:border-slate-300",
-              "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",
+              "hover:border-slate-300 dark:hover:border-slate-600",
+              // Focus: border color only, no ring (single visual boundary)
+              "data-[focused=true]:border-primary",
               error && touched && "!border-red-500",
               isValid && touched && !error && showSuccessIndicator && "!border-green-500"
             ),
             innerWrapper: "bg-transparent",
             input: cn(
               "text-foreground placeholder:text-slate-400 bg-transparent",
+              // Ensure textarea itself has stable min-height
+              "min-h-[100px]",
               error && touched && "text-red-700 dark:text-red-400",
               isValid && touched && !error && showSuccessIndicator && "text-green-700 dark:text-green-400"
             ),

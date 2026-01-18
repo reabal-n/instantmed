@@ -25,29 +25,29 @@ function Textarea({
       radius="lg" // Soft Pop Glass: rounded-xl for inputs
       variant="bordered"
       classNames={{
-        base: "bg-transparent",
-        mainWrapper: "bg-transparent",
+        base: "bg-transparent overflow-visible",
+        mainWrapper: "bg-transparent overflow-visible",
         inputWrapper: cn(
-          // Soft Pop Glass surface
+          // Single border from variant="bordered" - no duplicate border class
           "bg-white/60 dark:bg-slate-900/40",
           "backdrop-blur-lg",
-          "border border-white/30 dark:border-white/10",
+          // Stable min-height - never reset to 0
+          "min-h-[100px]",
           // Motion
           "transition-all duration-200",
           // Hover state
           "hover:border-primary/30",
           "hover:bg-white/70 dark:hover:bg-slate-900/50",
-          // Focus state with glow
-          "data-[focused=true]:border-primary/50",
-          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60",
-          "data-[focused=true]:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
-          // Mobile optimizations
-          "min-h-[100px] md:min-h-0"
+          // Focus state - border color only, no glow (single visual boundary)
+          "data-[focused=true]:border-primary",
+          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60"
         ),
         innerWrapper: "bg-transparent",
         input: cn(
           "text-foreground placeholder:text-muted-foreground/50 bg-transparent",
-          "text-base md:text-sm"
+          "text-base md:text-sm",
+          // Ensure textarea content area has stable height
+          "min-h-[80px]"
         ),
         helperWrapper: "bg-transparent",
         label: "text-foreground/80",

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
 import { Button } from "@/components/ui/button"
 import { Loader2, Shield, CheckCircle } from "lucide-react"
+import { logger } from "@/lib/observability/logger"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -53,8 +54,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
           onAuthComplete(user.id, profile.id)
           router.refresh()
         } catch (err) {
-          // eslint-disable-next-line no-console
-          if (process.env.NODE_ENV === 'development') console.error("Error completing auth:", err)
+          logger.error("Auth completion error", { component: 'InlineAuthStep' }, err instanceof Error ? err : undefined)
           setError("Failed to complete authentication")
         } finally {
           setIsLoading(false)
@@ -77,8 +77,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
             router.refresh()
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
-          if (process.env.NODE_ENV === 'development') console.error("Error completing auth:", err)
+          logger.error("Auth completion error", { component: 'InlineAuthStep' }, err instanceof Error ? err : undefined)
           setError("Failed to complete authentication")
         } finally {
           setIsLoading(false)

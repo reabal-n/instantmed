@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition, useMemo } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -44,6 +44,9 @@ import {
   Zap,
   History,
   Pill,
+  Filter,
+  ShieldAlert,
+  ArrowUpDown,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import {
@@ -73,6 +76,8 @@ export function QueueClient({
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
+  const [sortOption, setSortOption] = useState<"flagged" | "wait" | "service">("flagged")
+  const [filterService, setFilterService] = useState<string>("all")
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
   const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
 
@@ -178,6 +183,50 @@ export function QueueClient({
   const selectedTemplate = declineTemplates.find(t => t.code === declineReasonCode)
   const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
 
+  // Pre-populate decline note when template is selected
+  const handleDeclineTemplateChange = (code: string) => {
+    setDeclineReasonCode(code)
+    const template = declineTemplates.find(t => t.code === code)
+    if (template?.description && !declineReasonNote) {
+      setDeclineReasonNote(template.description)
+    }
+  }
+
+  // Check if intake has clinical red flags using built-in risk assessment
+  const hasRedFlags = useCallback((intake: typeof intakes[0]): boolean => {
+    // Check for flagged_for_followup
+    if (intake.flagged_for_followup) return true
+    
+    // Check risk tier (high or critical)
+    if (intake.risk_tier === "high" || intake.risk_tier === "critical") return true
+    
+    // Check if there are any risk flags
+    if (intake.risk_flags && Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) return true
+    
+    // Check risk score threshold (>= 7 indicates clinical concern)
+    if (intake.risk_score >= 7) return true
+    
+    // Check if live consult is required
+    if (intake.requires_live_consult) return true
+    
+    return false
+  }, [])
+
+  // Count flagged cases
+  const flaggedCount = useMemo(() => {
+    return intakes.filter(hasRedFlags).length
+  }, [intakes, hasRedFlags])
+
+  // Get unique service types for filter
+  const serviceTypes = useMemo(() => {
+    const types = new Set<string>()
+    intakes.forEach(intake => {
+      const service = intake.service as { type?: string; short_name?: string } | undefined
+      if (service?.type) types.add(service.type)
+    })
+    return Array.from(types)
+  }, [intakes])
+
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
     if (requiresNote && !declineReasonNote.trim()) return
@@ -249,22 +298,49 @@ export function QueueClient({
     }
   }
 
-  // Sort intakes: priority first, then by SLA deadline, then by created_at
+  // Sort intakes based on selected sort option
   const sortedIntakes = useMemo(() => {
     return [...intakes].sort((a, b) => {
-      // Priority intakes come first
+      // Priority intakes always come first
       if (a.is_priority && !b.is_priority) return -1
       if (!a.is_priority && b.is_priority) return 1
-      // Then sort by SLA deadline if available
-      if (a.sla_deadline && b.sla_deadline) {
-        return new Date(a.sla_deadline).getTime() - new Date(b.sla_deadline).getTime()
+      
+      // Then apply selected sort
+      switch (sortOption) {
+        case "flagged":
+          // Flagged cases first
+          const aFlagged = hasRedFlags(a)
+          const bFlagged = hasRedFlags(b)
+          if (aFlagged && !bFlagged) return -1
+          if (!aFlagged && bFlagged) return 1
+          // Then by wait time
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        
+        case "wait":
+          // Longest wait first
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        
+        case "service":
+          // Group by service type
+          const aService = (a.service as { type?: string })?.type || ""
+          const bService = (b.service as { type?: string })?.type || ""
+          if (aService !== bService) return aService.localeCompare(bService)
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        
+        default:
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       }
-      // Then sort by created_at (oldest first)
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     })
-  }, [intakes])
+  }, [intakes, sortOption, hasRedFlags])
 
   const filteredIntakes = sortedIntakes.filter((r) => {
+    // Filter by service type first
+    if (filterService !== "all") {
+      const service = r.service as { type?: string } | undefined
+      if (service?.type !== filterService) return false
+    }
+    
+    // Then filter by search query
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     const service = r.service as { name?: string; type?: string } | undefined
@@ -298,6 +374,63 @@ export function QueueClient({
           <Button variant="outline" size="icon" onClick={() => router.refresh()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
+        </div>
+      </div>
+
+      {/* Flagged Cases Summary */}
+      {flaggedCount > 0 && (
+        <Card className="border-red-200 bg-red-50/50">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-red-700">
+                <ShieldAlert className="h-5 w-5" />
+                <span className="font-medium">
+                  {flaggedCount} case{flaggedCount !== 1 ? "s" : ""} with clinical flags
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-700 border-red-300 hover:bg-red-100"
+                onClick={() => setSortOption("flagged")}
+              >
+                Review flagged first
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Sort & Filter Controls */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+          <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="flagged">Flagged first</SelectItem>
+              <SelectItem value="wait">Longest wait</SelectItem>
+              <SelectItem value="service">By service type</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={filterService} onValueChange={setFilterService}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Filter service..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All services</SelectItem>
+              {serviceTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {formatServiceType(type)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -350,6 +483,12 @@ export function QueueClient({
                                 <Badge className="bg-amber-100 text-amber-700 border-amber-200 ml-2">
                                   <Zap className="w-3 h-3 mr-1" />
                                   Priority
+                                </Badge>
+                              )}
+                              {hasRedFlags(intake) && (
+                                <Badge className="bg-red-100 text-red-700 border-red-200">
+                                  <ShieldAlert className="w-3 h-3 mr-1" />
+                                  Clinical flag
                                 </Badge>
                               )}
                             </div>
@@ -553,7 +692,7 @@ export function QueueClient({
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Reason</label>
-              <Select value={declineReasonCode} onValueChange={setDeclineReasonCode}>
+              <Select value={declineReasonCode} onValueChange={handleDeclineTemplateChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a reason..." />
                 </SelectTrigger>
@@ -569,19 +708,20 @@ export function QueueClient({
                 <p className="text-xs text-muted-foreground mt-1">{selectedTemplate.description}</p>
               )}
             </div>
-            {requiresNote && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Additional note {requiresNote ? "(required)" : "(optional)"}
-                </label>
-                <Textarea
-                  placeholder="Provide additional details for the patient..."
-                  value={declineReasonNote}
-                  onChange={(e) => setDeclineReasonNote(e.target.value)}
-                  className="min-h-[100px]"
-                />
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Note for patient {requiresNote ? "(required)" : "(optional)"}
+              </label>
+              <Textarea
+                placeholder="Provide additional details for the patient..."
+                value={declineReasonNote}
+                onChange={(e) => setDeclineReasonNote(e.target.value)}
+                className="min-h-[100px]"
+              />
+              {selectedTemplate?.description && declineReasonNote === selectedTemplate.description && (
+                <p className="text-xs text-muted-foreground mt-1">Template pre-filled. Edit as needed.</p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => {

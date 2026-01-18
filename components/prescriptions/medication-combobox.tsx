@@ -224,7 +224,7 @@ export function MedicationCombobox({
           disabled={disabled}
           className={cn(
             "w-full h-12 pl-10 pr-10 rounded-xl border bg-background text-base",
-            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+            "focus:outline-none focus:border-primary",
             "transition-all duration-200",
             hasValidSelection && "border-green-500 bg-green-50/50",
             showError && !hasValidSelection && "border-amber-500",

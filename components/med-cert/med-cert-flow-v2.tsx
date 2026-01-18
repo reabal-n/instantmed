@@ -503,8 +503,18 @@ export function MedCertFlowV2({
     setFormData(prev => ({ ...prev, certificateType: type }))
   }
 
-  const handleDurationSelect = (days: 1 | 2 | 3 | "extended") => {
+  const handleDurationSelect = (days: 1 | 2) => {
     setFormData(prev => ({ ...prev, durationDays: days }))
+  }
+
+  const handleLongerDurationRedirect = () => {
+    // Route to general consultation with context
+    const params = new URLSearchParams({
+      source: 'med_cert',
+      reason: 'extended_duration',
+      intended_duration: 'more_than_2_days',
+    })
+    router.push(`/consult?${params.toString()}`)
   }
 
   const handleSymptomToggle = (symptomId: SymptomId) => {
@@ -638,7 +648,7 @@ export function MedCertFlowV2({
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
         {/* Header */}
         {currentStep !== "confirmation" && (
           <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
@@ -763,32 +773,15 @@ export function MedCertFlowV2({
                     >
                       {MED_CERT_COPY.typeAndDates.durationOptions[2]}
                     </DurationChip>
-                    <DurationChip
-                      selected={formData.durationDays === 3}
-                      onClick={() => handleDurationSelect(3)}
-                    >
-                      {MED_CERT_COPY.typeAndDates.durationOptions[3]}
-                    </DurationChip>
                   </div>
+                  {/* Discreet link for longer durations - routes to general consultation */}
                   <button
                     type="button"
-                    onClick={() => handleDurationSelect("extended")}
-                    className={cn(
-                      "text-sm text-muted-foreground hover:text-primary transition-colors",
-                      formData.durationDays === "extended" && "text-primary font-medium"
-                    )}
+                    onClick={handleLongerDurationRedirect}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
                   >
-                    {MED_CERT_COPY.typeAndDates.extendedOption} →
+                    {MED_CERT_COPY.typeAndDates.longerDurationLink}
                   </button>
-
-                  {formData.durationDays === "extended" && (
-                    <div className="p-4 rounded-xl bg-dawn-50 border border-dawn-200 text-sm text-dawn-800 animate-fade-in">
-                      <div className="flex items-start gap-2">
-                        <Phone className="w-4 h-4 mt-0.5 shrink-0" />
-                        <p>{MED_CERT_COPY.typeAndDates.extendedNote}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 

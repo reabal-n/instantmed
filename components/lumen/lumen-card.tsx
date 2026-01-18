@@ -75,7 +75,7 @@ export function LumenCard({
       {...props}
     >
       {/* Subtle inner glow */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-white/5 to-transparent pointer-events-none" />
       {/* Content */}
       <div className="relative">
         {children}

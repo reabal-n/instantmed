@@ -13,7 +13,8 @@ const log = createLogger("pbs-client")
 
 const PBS_API_BASE_URL = "https://data-api.health.gov.au/pbs/api/v3"
 // Public API key - rate limited to 1 req/20s shared globally
-// TODO: Register for dedicated API key at https://data-api.health.gov.au/ for production
+// Note: Dedicated API key registration at data-api.health.gov.au is unavailable.
+// Using public key with circuit breaker pattern to handle rate limits gracefully.
 const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b"
 const API_TIMEOUT_MS = 5000 // 5 second timeout to prevent hanging
 

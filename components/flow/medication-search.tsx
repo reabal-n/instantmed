@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/observability/logger'
 
 // ============================================
 // TYPES
@@ -86,15 +87,13 @@ export function MedicationSearch({
         })
 
         if (error) {
-          // eslint-disable-next-line no-console
-          if (process.env.NODE_ENV === 'development') console.error('Search error:', error)
+          logger.error('Medication search error', { component: 'MedicationSearch' }, error instanceof Error ? error : undefined)
           setResults([])
         } else {
           setResults((data as MedicationResult[]) || [])
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
-        if (process.env.NODE_ENV === 'development') console.error('Search error:', err)
+        logger.error('Medication search exception', { component: 'MedicationSearch' }, err instanceof Error ? err : undefined)
         setResults([])
       } finally {
         setIsSearching(false)

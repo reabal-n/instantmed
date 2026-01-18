@@ -53,8 +53,13 @@ import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import type { ServiceCategory } from "@/lib/stripe/client"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
+import { ExtendedDurationInterstitial } from "@/components/intake/extended-duration-interstitial"
+import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
+import { SocialProofCheckout } from "@/components/shared/social-proof-checkout"
+import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
 import { PRICING_DISPLAY, GP_COMPARISON } from "@/lib/constants"
+import { logger } from "@/lib/observability/logger"
 
 // ============================================
 // UTILITIES
@@ -88,7 +93,7 @@ interface IntakeState {
   
   // Med cert specific
   certType: "work" | "study" | "carer" | null
-  duration: "1" | "2" | "3" | null
+  duration: "1" | "2" | null
   startDate: string
   symptoms: string[]
   symptomDetails: string
@@ -356,6 +361,66 @@ function FormField({
   )
 }
 
+/**
+ * Persistent price summary chip - shows selected service price throughout the flow
+ * Provides price certainty and reduces checkout abandonment
+ */
+function PriceSummaryChip({ 
+  service, 
+  className 
+}: { 
+  service: ServiceType | null
+  className?: string 
+}) {
+  if (!service) return null
+  
+  const selectedService = SERVICES.find(s => s.id === service)
+  if (!selectedService) return null
+  
+  return (
+    <div className={cn(
+      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full",
+      "bg-green-50 dark:bg-green-950/30 border border-green-200/60 dark:border-green-800/40",
+      className
+    )}>
+      <span className="text-xs text-green-700 dark:text-green-300">
+        {selectedService.title}:
+      </span>
+      <span className="text-sm font-semibold text-green-800 dark:text-green-200">
+        {selectedService.price}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Compact trust signals strip for showing on all steps
+ */
+function CompactTrustStrip({ className }: { className?: string }) {
+  return (
+    <div className={cn(
+      "flex items-center justify-center gap-3 py-2 px-3 rounded-lg",
+      "bg-slate-50/60 dark:bg-slate-800/40 border border-slate-200/40 dark:border-slate-700/30",
+      className
+    )}>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Shield className="w-3 h-3 text-green-600" />
+        <span>AHPRA Doctors</span>
+      </div>
+      <div className="w-px h-3 bg-slate-300 dark:bg-slate-600" />
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <CheckCircle className="w-3 h-3 text-primary" />
+        <span>Encrypted</span>
+      </div>
+      <div className="w-px h-3 bg-slate-300 dark:bg-slate-600" />
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Clock className="w-3 h-3 text-purple-600" />
+        <span>Quick Review</span>
+      </div>
+    </div>
+  )
+}
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -379,7 +444,7 @@ export function EnhancedIntakeFlow({
   const [savedPreferences] = useState<{
     lastService?: ServiceType
     lastCertType?: "work" | "study" | "carer"
-    lastDuration?: "1" | "2" | "3"
+    lastDuration?: "1" | "2"
     lastPharmacy?: string
   }>(() => {
     if (typeof window === "undefined") return {}
@@ -435,6 +500,7 @@ export function EnhancedIntakeFlow({
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [editingSection, setEditingSection] = useState<string | null>(null)
+  const [showExtendedDurationInterstitial, setShowExtendedDurationInterstitial] = useState(false)
 
   // Determine steps based on service
   const steps = useMemo(() => {
@@ -512,8 +578,7 @@ export function EnhancedIntakeFlow({
         setLastSavedAt(new Date())
         setIsSaving(false)
       } catch (error) {
-        // eslint-disable-next-line no-console
-        if (process.env.NODE_ENV === 'development') console.error("Auto-save error:", error)
+        logger.error("Auto-save error", { component: 'EnhancedIntakeFlow' }, error instanceof Error ? error : undefined)
         setIsSaving(false)
       }
     }, 2000) // Debounce 2 seconds
@@ -741,6 +806,12 @@ export function EnhancedIntakeFlow({
     answers.patient_phone = state.phone
     answers.patient_dob = state.dob
 
+    // UTM attribution for ROI tracking
+    const utmParams = getUTMParamsForIntake()
+    if (utmParams) {
+      answers.attribution = utmParams
+    }
+
     return answers
   }, [state])
 
@@ -841,8 +912,7 @@ export function EnhancedIntakeFlow({
         setErrors({ agreedToTerms: errorMessage })
         
         // Log error for debugging
-        // eslint-disable-next-line no-console
-        if (process.env.NODE_ENV === 'development') console.error("Checkout error:", errorMessage)
+        logger.error("Checkout error", { errorMessage, component: 'EnhancedIntakeFlow' })
         
         // If authentication error, suggest signing in
         if (errorMessage.includes("logged in") || errorMessage.includes("Authentication")) {
@@ -854,8 +924,7 @@ export function EnhancedIntakeFlow({
       posthog.captureException(error)
       const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again."
       
-      // eslint-disable-next-line no-console
-      if (process.env.NODE_ENV === 'development') console.error("Submit error:", error)
+      logger.error("Submit error", { component: 'EnhancedIntakeFlow' }, error instanceof Error ? error : undefined)
       
       setErrors({ 
         agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at hello@LumenHealth.com.au` 
@@ -1035,19 +1104,28 @@ export function EnhancedIntakeFlow({
                 required
                 error={errors.duration}
                 hint="Select the number of days you need off"
-                helpText="Most employers accept 1-3 days. If you need more, contact us."
               >
-                <div className="flex gap-2">
-                  {["1", "2", "3"].map((d) => (
-                    <SelectableChip
-                      key={d}
-                      selected={state.duration === d}
-                      onClick={() => updateField("duration", d as "1" | "2" | "3")}
-                      className="flex-1 touch-target"
-                    >
-                      {d} day{d !== "1" ? "s" : ""}
-                    </SelectableChip>
-                  ))}
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    {["1", "2"].map((d) => (
+                      <SelectableChip
+                        key={d}
+                        selected={state.duration === d}
+                        onClick={() => updateField("duration", d as "1" | "2")}
+                        className="flex-1 touch-target"
+                      >
+                        {d} day{d !== "1" ? "s" : ""}
+                      </SelectableChip>
+                    ))}
+                  </div>
+                  {/* Discreet link for longer durations - shows interstitial before redirect */}
+                  <button
+                    type="button"
+                    onClick={() => setShowExtendedDurationInterstitial(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
+                  >
+                    More than 2 days?
+                  </button>
                 </div>
               </FormField>
 
@@ -1393,101 +1471,159 @@ export function EnhancedIntakeFlow({
         )
 
       // ======= ACCOUNT DETAILS =======
+      // Progressive disclosure: show fields sequentially on mobile to reduce cognitive load
       case "account":
+        const hasValidName = state.firstName && state.lastName
+        const hasValidEmail = state.email && state.email.includes("@")
+        const hasValidPhone = state.phone && state.phone.replace(/\D/g, "").length >= 10
+        
         return (
           <motion.div className="space-y-4">
+            {/* Step 1: Name - always visible */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 label="First name"
                 required
                 error={errors.firstName}
               >
-                <Input
-                  value={state.firstName}
-                  onChange={(e) => updateField("firstName", e.target.value)}
-                  placeholder="John"
-                  className="h-11"
-                  autoComplete="given-name"
-                />
+                <div className="relative">
+                  <Input
+                    value={state.firstName}
+                    onChange={(e) => updateField("firstName", e.target.value)}
+                    placeholder="John"
+                    className={cn(
+                      "h-11 pr-8 transition-colors",
+                      state.firstName && !errors.firstName && "border-green-500/50"
+                    )}
+                    autoComplete="given-name"
+                  />
+                  {state.firstName && !errors.firstName && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                  )}
+                </div>
               </FormField>
               <FormField label="Last name" required error={errors.lastName}>
-                <Input
-                  value={state.lastName}
-                  onChange={(e) => updateField("lastName", e.target.value)}
-                  placeholder="Smith"
-                  className="h-11"
-                  autoComplete="family-name"
-                />
+                <div className="relative">
+                  <Input
+                    value={state.lastName}
+                    onChange={(e) => updateField("lastName", e.target.value)}
+                    placeholder="Smith"
+                    className={cn(
+                      "h-11 pr-8 transition-colors",
+                      state.lastName && !errors.lastName && "border-green-500/50"
+                    )}
+                    autoComplete="family-name"
+                  />
+                  {state.lastName && !errors.lastName && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                  )}
+                </div>
               </FormField>
             </div>
 
-            <FormField
-              label="Email"
-              required
-              error={errors.email}
+            {/* Step 2: Email - shows after name is valid (progressive disclosure) */}
+            <motion.div
+              initial={hasValidName ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+              animate={hasValidName ? { opacity: 1, height: "auto" } : { opacity: 0.4, height: "auto" }}
+              transition={{ duration: 0.2 }}
             >
-              <ValidatedInput
-                type="email"
-                label=""
-                value={state.email}
-                onChange={(value) => updateField("email", value)}
-                placeholder="you@example.com"
-                className="h-11 touch-target"
-                autoComplete="email"
-                helperText="We'll send your certificate here"
-                validationRules={[validationRules.email]}
-                showSuccessIndicator={true}
-              />
-            </FormField>
+              <FormField
+                label="Email"
+                required
+                error={errors.email}
+              >
+                <ValidatedInput
+                  type="email"
+                  label=""
+                  value={state.email}
+                  onChange={(value) => updateField("email", value)}
+                  placeholder="you@example.com"
+                  className="h-11 touch-target"
+                  autoComplete="email"
+                  helperText="We'll send your certificate here"
+                  validationRules={[validationRules.email]}
+                  showSuccessIndicator={true}
+                  disabled={!hasValidName}
+                />
+              </FormField>
+            </motion.div>
 
-            <FormField
-              label="Mobile number"
-              required
-              error={errors.phone}
+            {/* Step 3: Phone - shows after email is valid */}
+            <motion.div
+              initial={hasValidEmail ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+              animate={hasValidEmail ? { opacity: 1, height: "auto" } : { opacity: 0.4, height: "auto" }}
+              transition={{ duration: 0.2 }}
             >
-              <ValidatedInput
-                type="tel"
-                label=""
-                value={state.phone}
-                onChange={(value) => {
-                  // Format phone number as user types
-                  const digits = value.replace(/\D/g, "")
-                  if (digits.length <= 10) {
-                    const formatted = digits.length > 6
-                      ? `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
-                      : digits.length > 4
-                      ? `${digits.slice(0, 4)} ${digits.slice(4)}`
-                      : digits
-                    updateField("phone", formatted.trim())
-                  }
-                }}
-                placeholder="04XX XXX XXX"
-                className="h-11 touch-target"
-                autoComplete="tel"
-                maxLength={12}
-                formatHint="04XX XXX XXX"
-                helperText="We may need to contact you if the doctor has questions"
-                validationRules={[validationRules.phoneAU]}
-                showFormatHintOnFocus={true}
-                showSuccessIndicator={true}
-              />
-            </FormField>
+              <FormField
+                label="Mobile number"
+                required
+                error={errors.phone}
+              >
+                <ValidatedInput
+                  type="tel"
+                  label=""
+                  value={state.phone}
+                  onChange={(value) => {
+                    // Format phone number as user types
+                    const digits = value.replace(/\D/g, "")
+                    if (digits.length <= 10) {
+                      const formatted = digits.length > 6
+                        ? `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
+                        : digits.length > 4
+                        ? `${digits.slice(0, 4)} ${digits.slice(4)}`
+                        : digits
+                      updateField("phone", formatted.trim())
+                    }
+                  }}
+                  placeholder="04XX XXX XXX"
+                  className="h-11 touch-target"
+                  autoComplete="tel"
+                  maxLength={12}
+                  formatHint="04XX XXX XXX"
+                  helperText="We may need to contact you if the doctor has questions"
+                  validationRules={[validationRules.phoneAU]}
+                  showFormatHintOnFocus={true}
+                  showSuccessIndicator={true}
+                  disabled={!hasValidEmail}
+                />
+              </FormField>
+            </motion.div>
 
-            <FormField
-              label="Date of birth"
-              required
-              error={errors.dob}
-              hint="You must be 18 or older"
+            {/* Step 4: DOB - shows after phone is valid */}
+            <motion.div
+              initial={hasValidPhone ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+              animate={hasValidPhone ? { opacity: 1, height: "auto" } : { opacity: 0.4, height: "auto" }}
+              transition={{ duration: 0.2 }}
             >
-              <Input
-                type="date"
-                value={state.dob}
-                onChange={(e) => updateField("dob", e.target.value)}
-                className="h-11 touch-target"
-                max={new Date().toISOString().split("T")[0]}
-                autoComplete="bday"
-              />
-            </FormField>
+              <FormField
+                label="Date of birth"
+                required
+                error={errors.dob}
+                hint="You must be 18 or older"
+              >
+                <div className="space-y-1">
+                  <Input
+                    type="date"
+                    value={state.dob}
+                    onChange={(e) => updateField("dob", e.target.value)}
+                    className={cn(
+                      "h-11 touch-target transition-colors",
+                      state.dob && !errors.dob && "border-green-500/50"
+                    )}
+                    max={new Date().toISOString().split("T")[0]}
+                    autoComplete="bday"
+                    disabled={!hasValidPhone}
+                  />
+                  {/* Real-time DOB validation feedback */}
+                  {state.dob && !errors.dob && (
+                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Age verified
+                    </p>
+                  )}
+                </div>
+              </FormField>
+            </motion.div>
           </motion.div>
         )
 
@@ -1755,11 +1891,11 @@ export function EnhancedIntakeFlow({
                     </FormField>
                     <FormField label="Duration" required>
                       <div className="flex gap-2">
-                        {["1", "2", "3"].map((d) => (
+                        {["1", "2"].map((d) => (
                           <SelectableChip
                             key={d}
                             selected={state.duration === d}
-                            onClick={() => updateField("duration", d as "1" | "2" | "3")}
+                            onClick={() => updateField("duration", d as "1" | "2")}
                             className="flex-1 touch-target"
                           >
                             {d} day{d !== "1" ? "s" : ""}
@@ -1868,6 +2004,12 @@ export function EnhancedIntakeFlow({
                 <AlertDescription className="text-xs">{errors.agreedToTerms}</AlertDescription>
               </Alert>
             )}
+
+            {/* Refund guarantee badge - visible at checkout moment */}
+            <RefundGuaranteeBadge variant="inline" className="mt-2" />
+
+            {/* Social proof at decision point */}
+            <SocialProofCheckout variant="badge" className="mx-auto" />
 
             {/* Trust note - calm, not salesy */}
             <div className="text-center text-xs text-slate-500 dark:text-slate-400">
@@ -2004,31 +2146,61 @@ export function EnhancedIntakeFlow({
 
       {/* Content */}
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 overflow-y-auto scrollbar-hide">
+        {/* Extended Duration Interstitial - shown when user clicks "More than 2 days" */}
+        {showExtendedDurationInterstitial && (
+          <ExtendedDurationInterstitial
+            preservedData={{
+              certType: state.certType || undefined,
+              symptoms: state.symptoms,
+              symptomDetails: state.symptomDetails,
+              startDate: state.startDate || undefined,
+              email: state.email,
+            }}
+            onGoBack={() => setShowExtendedDurationInterstitial(false)}
+          />
+        )}
+
+        {/* Trust signals - shown on all steps for high-intent user reassurance */}
+        {!showExtendedDurationInterstitial && step !== "service" && (
+          <CompactTrustStrip className="mb-3" />
+        )}
+
+        {/* Price summary chip - visible after service selection */}
+        {!showExtendedDurationInterstitial && state.service && step !== "service" && step !== "review" && (
+          <div className="flex justify-center mb-3">
+            <PriceSummaryChip service={state.service} />
+          </div>
+        )}
+
         {/* Step title */}
-        <motion.div
-          key={step + "-title"}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-4"
-        >
-          <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-        </motion.div>
+        {!showExtendedDurationInterstitial && (
+          <motion.div
+            key={step + "-title"}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-4"
+          >
+            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+          </motion.div>
+        )}
 
         {/* Step content */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
+        {!showExtendedDurationInterstitial && (
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       {/* Footer CTA - fixed position at bottom of flex container */}

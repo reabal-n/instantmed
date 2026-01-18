@@ -73,7 +73,7 @@ export function EnhancedEmptyState({
         {illustration ? (
           <div className="w-32 h-32 mx-auto">{illustration}</div>
         ) : (
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center shadow-lg">
             <Icon className="w-10 h-10 text-primary" />
           </div>
         )}

@@ -4,6 +4,8 @@ import { getDefaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { FORBIDDEN_DIAGNOSIS_TERMS, FORBIDDEN_MEDICATION_TERMS } from "@/lib/ai/validation/ground-truth"
+import { checkPromptInjection } from "@/lib/ai/prompt-safety"
 
 const log = createLogger("ai-clinical-note")
 
@@ -93,6 +95,20 @@ export async function POST(request: NextRequest) {
     // Format intake data for the prompt
     const intakeContext = formatIntakeForPrompt(answers)
 
+    // Check for prompt injection attempts in intake answers
+    const injectionCheck = checkPromptInjection(intakeContext)
+    if (!injectionCheck.isSafe) {
+      log.warn("Potential prompt injection detected in clinical note request", {
+        intakeId,
+        detectedPatterns: injectionCheck.detectedPatterns,
+        riskLevel: injectionCheck.riskLevel,
+      })
+      return NextResponse.json(
+        { success: false, error: "Invalid input detected", note: null },
+        { status: 400 }
+      )
+    }
+
     // Generate clinical note via Vercel AI Gateway
     const { text } = await generateText({
       model: getDefaultModel(),
@@ -100,10 +116,36 @@ export async function POST(request: NextRequest) {
       prompt: `Generate a clinical note based on this patient intake:\n\n${intakeContext}`,
     })
 
+    // Validate AI output for forbidden terms (hallucination prevention)
+    const textLower = text.toLowerCase()
+    const validationErrors: string[] = []
+    
+    for (const term of FORBIDDEN_DIAGNOSIS_TERMS) {
+      if (textLower.includes(term.toLowerCase())) {
+        validationErrors.push(`Contains forbidden diagnosis term: "${term}"`)
+      }
+    }
+    
+    for (const term of FORBIDDEN_MEDICATION_TERMS) {
+      if (textLower.includes(term.toLowerCase())) {
+        validationErrors.push(`Contains forbidden medication term: "${term}"`)
+      }
+    }
+    
+    const validationPassed = validationErrors.length === 0
+    
+    if (!validationPassed) {
+      log.warn("Clinical note failed ground-truth validation", {
+        intakeId,
+        errors: validationErrors,
+      })
+    }
+
     log.info("Clinical note generated", { 
       intakeId, 
       doctorId: profile.id,
-      noteLength: text.length 
+      noteLength: text.length,
+      validationPassed,
     })
 
     return NextResponse.json({
@@ -113,6 +155,10 @@ export async function POST(request: NextRequest) {
       generatedAt: new Date().toISOString(),
       generatedBy: "ai",
       requiresApproval: true,
+      validation: {
+        passed: validationPassed,
+        errors: validationErrors.length > 0 ? validationErrors : undefined,
+      },
     })
 
   } catch (error) {

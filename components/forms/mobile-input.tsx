@@ -30,10 +30,10 @@ export const MobileInput = forwardRef<HTMLInputElement, MobileInputProps>(
               // Base styles - 16px font minimum to prevent iOS zoom
               "w-full rounded-xl border bg-background px-4 py-3.5 text-base font-normal",
               "transition-all duration-150 outline-none",
-              // Focus states
-              "focus:ring-2 focus:ring-primary/20 focus:border-primary",
+              // Focus state - border only, no ring (single visual boundary)
+              "focus:border-primary",
               // Error state
-              error && "border-destructive focus:ring-destructive/20 focus:border-destructive",
+              error && "border-destructive focus:border-destructive",
               // Icon padding
               leftIcon && "pl-10",
               rightIcon && "pr-10",

@@ -166,7 +166,7 @@ export function PremiumActionCard({
           {/* Icon with gradient background */}
           <div
             className={cn(
-              "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-4 text-white",
+              "w-14 h-14 rounded-2xl bg-linear-to-br flex items-center justify-center mb-4 text-white",
               "group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300",
               gradient
             )}
@@ -290,7 +290,7 @@ export function PremiumEmptyState({
       className="text-center py-12 px-6"
     >
       <motion.div
-        className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center"
+        className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center"
         animate={{ 
           y: [0, -8, 0],
           rotate: [0, 2, -2, 0],

@@ -117,7 +117,7 @@ export function PasswordConfirmation({
           className={cn(
             "h-12 w-full rounded-xl border-2 bg-background px-4 py-3 text-sm tracking-wider outline-none transition-colors",
             "placeholder:tracking-normal placeholder:text-muted-foreground",
-            "focus:border-primary focus:ring-2 focus:ring-primary/20",
+            "focus:border-primary",
             passwordsMatch && "border-green-500 focus:border-green-500",
             error && "border-red-500 focus:border-red-500"
           )}

@@ -7,6 +7,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
+import * as Sentry from "@sentry/nextjs"
+
 const logger = createLogger("med-cert-invariants")
 
 export class ApprovalInvariantError extends Error {
@@ -162,11 +164,27 @@ export async function assertApprovalInvariants(
       documentId: doc.id,
     }
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    
     logger.error(
       `[approval-invariants] Invariant check failed`,
-      {},
-      error instanceof Error ? error : new Error(String(error))
+      { requestId },
+      err
     )
+    
+    // Alert via Sentry for critical approval failures
+    Sentry.captureException(err, {
+      level: "error",
+      tags: {
+        source: "approval-invariants",
+        alert_type: "safety_critical",
+      },
+      extra: {
+        requestId,
+        invariantType: err instanceof ApprovalInvariantError ? "known" : "unexpected",
+      },
+    })
+    
     throw error
   }
 }

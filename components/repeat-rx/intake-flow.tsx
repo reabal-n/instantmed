@@ -20,7 +20,6 @@ import {
   Shield,
   Lock,
   BadgeCheck,
-  Phone,
   ChevronRight,
   Pill,
   RefreshCw,
@@ -41,6 +40,7 @@ import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
 import { ContextualHelp as _ContextualHelp } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 import { CompactStepper } from "@/components/ui/form-stepper"
+import { SafetyStep } from "./steps/safety-step"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 import { SmartValidation } from "@/components/intake/smart-validation"
 
@@ -49,10 +49,10 @@ import { SmartValidation } from "@/components/intake/smart-validation"
 // ============================================================================
 
 const STEPS: RepeatRxStep[] = [
+  "safety",      // CRITICAL: Emergency gate FIRST - before any clinical data
   "auth",
   "medication",
   "history",
-  "safety",
   "medical_history",
   "attestation",
   "review",
@@ -118,52 +118,9 @@ function ProgressIndicator({
 }
 
 // ============================================================================
-// EMERGENCY DISCLAIMER BANNER
+// NOTE: Emergency disclaimer is now handled by SafetyStep using EmergencyGate
+// component at the start of the flow (see steps/safety-step.tsx)
 // ============================================================================
-
-function EmergencyBanner({
-  accepted,
-  onAccept,
-  timestamp,
-}: {
-  accepted: boolean
-  onAccept: (accepted: boolean) => void
-  timestamp: string | null
-}) {
-  return (
-    <div className="rounded-2xl border border-red-200/50 dark:border-red-800/30 bg-red-50/80 dark:bg-red-900/30 backdrop-blur-xl shadow-[0_4px_16px_rgb(239,68,68,0.15)] p-4 space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-          <Phone className="w-5 h-5 text-red-600" />
-        </div>
-        <div className="space-y-1 flex-1">
-          <h3 className="font-semibold text-red-900 text-sm">
-            {REPEAT_RX_COPY.emergency.title}
-          </h3>
-          <p className="text-sm text-red-800 leading-relaxed">
-            {REPEAT_RX_COPY.emergency.body}
-          </p>
-        </div>
-      </div>
-      
-      <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-red-200/50 dark:border-red-800/30 cursor-pointer hover:bg-white/85 dark:hover:bg-slate-900/80 hover:shadow-[0_4px_12px_rgb(239,68,68,0.1)] transition-all duration-300">
-        <span className="text-sm text-red-900 font-medium flex-1">
-          {REPEAT_RX_COPY.emergency.checkbox}
-        </span>
-        <Switch
-          checked={accepted}
-          onCheckedChange={(checked) => onAccept(checked)}
-        />
-      </label>
-      
-      {accepted && timestamp && (
-        <p className="text-xs text-red-600/70 text-right">
-          Confirmed at {new Date(timestamp).toLocaleTimeString()}
-        </p>
-      )}
-    </div>
-  )
-}
 
 // ============================================================================
 // TRUST STRIP
@@ -490,12 +447,12 @@ export function RepeatRxIntakeFlow({
   const [currentDose, setCurrentDose] = useState("")
   const [doseChanged, setDoseChanged] = useState<boolean | null>(null)
   
-  // Safety answers
-  const [sideEffects, setSideEffects] = useState<string | null>(null)
-  const [sideEffectsDetails, setSideEffectsDetails] = useState("")
-  const [pregnantOrBreastfeeding, setPregnantOrBreastfeeding] = useState<boolean | null>(null)
+  // Safety answers (clinical safety questions - shown in medical_history step)
+  const [sideEffects, _setSideEffects] = useState<string | null>(null)
+  const [sideEffectsDetails, _setSideEffectsDetails] = useState("")
+  const [pregnantOrBreastfeeding, _setPregnantOrBreastfeeding] = useState<boolean | null>(null)
   const [allergies, _setAllergies] = useState<string[]>([])
-  const [allergyDetails, setAllergyDetails] = useState("")
+  const [allergyDetails, _setAllergyDetails] = useState("")
   
   // Medical history
   const [pmhxFlags, setPmhxFlags] = useState({
@@ -511,8 +468,9 @@ export function RepeatRxIntakeFlow({
   const [otherMedsInput, setOtherMedsInput] = useState("")
   
   // Attestations
+  // Note: Emergency acceptance now handled by SafetyStep via EmergencyGate
   const [emergencyAccepted, setEmergencyAccepted] = useState(false)
-  const [emergencyTimestamp, setEmergencyTimestamp] = useState<string | null>(null)
+  const [_emergencyTimestamp, _setEmergencyTimestamp] = useState<string | null>(null)
   const [gpAttestationAccepted, setGpAttestationAccepted] = useState(false)
   const [_gpAttestationTimestamp, setGpAttestationTimestamp] = useState<string | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -545,13 +503,9 @@ export function RepeatRxIntakeFlow({
     goToStep("medication")
   }
   
+  // Emergency acceptance handler - called from SafetyStep
   const handleEmergencyAccept = (accepted: boolean) => {
     setEmergencyAccepted(accepted)
-    if (accepted) {
-      setEmergencyTimestamp(new Date().toISOString())
-    } else {
-      setEmergencyTimestamp(null)
-    }
   }
   
   const handleGpAttestationAccept = (accepted: boolean) => {
@@ -704,7 +658,7 @@ export function RepeatRxIntakeFlow({
       case "history":
         return lastPrescribed && stability && prescriber.trim() && isSymptomInputValid(indication, 10) && currentDose.trim() && doseChanged !== null
       case "safety":
-        return sideEffects !== null && pregnantOrBreastfeeding !== null
+        return emergencyAccepted // Emergency gate must be acknowledged
       case "medical_history":
         return true // Optional flags
       case "attestation":
@@ -716,7 +670,7 @@ export function RepeatRxIntakeFlow({
       default:
         return false
     }
-  }, [currentStep, medication, emergencyAccepted, lastPrescribed, stability, prescriber, indication, currentDose, doseChanged, sideEffects, pregnantOrBreastfeeding, gpAttestationAccepted, termsAccepted])
+  }, [currentStep, medication, emergencyAccepted, lastPrescribed, stability, prescriber, indication, currentDose, doseChanged, gpAttestationAccepted, termsAccepted])
   
   // Handle auth callback
   useEffect(() => {
@@ -817,24 +771,17 @@ export function RepeatRxIntakeFlow({
                 subtitle={REPEAT_RX_COPY.steps.medication.subtitle}
               />
               
-              {/* Emergency Banner - Required */}
-              <EmergencyBanner
-                accepted={emergencyAccepted}
-                onAccept={handleEmergencyAccept}
-                timestamp={emergencyTimestamp}
-              />
-              
-              {emergencyAccepted && (
-                <div className="space-y-4 animate-fade-in">
-                  <div className="space-y-2">
-                    <MedicationSearch
-                      value={medication}
-                      onChange={(product) => {
-                        setMedicationSearchUsed(true)
-                        setMedication(product)
-                      }}
-                    />
-                  </div>
+              {/* Emergency acknowledgment now handled in safety step via EmergencyGate */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <MedicationSearch
+                    value={medication}
+                    onChange={(product) => {
+                      setMedicationSearchUsed(true)
+                      setMedication(product)
+                    }}
+                  />
+                </div>
                   
                   {medication && (
                     <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
@@ -860,8 +807,7 @@ export function RepeatRxIntakeFlow({
                       </p>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
             </div>
           )}
           
@@ -977,88 +923,13 @@ export function RepeatRxIntakeFlow({
             </div>
           )}
           
-          {/* Safety Step */}
+          {/* Safety Step - Emergency Gate (MUST be first) */}
           {currentStep === "safety" && (
-            <div className="space-y-6 animate-step-enter">
-              <StepHeader
-                emoji="🛡️"
-                title={REPEAT_RX_COPY.steps.safety.title}
-                subtitle={REPEAT_RX_COPY.steps.safety.subtitle}
-              />
-              
-              <div className="space-y-5">
-                {/* Side effects */}
-                <FormInput
-                  label={REPEAT_RX_COPY.steps.safety.sideEffects}
-                  required
-                >
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(REPEAT_RX_COPY.steps.safety.sideEffectsOptions).map(([key, label]) => (
-                      <PillButton
-                        key={key}
-                        selected={sideEffects === key}
-                        onClick={() => setSideEffects(key)}
-                      >
-                        {label}
-                      </PillButton>
-                    ))}
-                  </div>
-                </FormInput>
-                
-                {sideEffects === "significant" && (
-                  <FormInput
-                    label={REPEAT_RX_COPY.steps.safety.sideEffectsDetails}
-                  >
-                    <Textarea
-                      value={sideEffectsDetails}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSideEffectsDetails(e.target.value)}
-                      placeholder={REPEAT_RX_COPY.steps.safety.sideEffectsPlaceholder}
-                      className="min-h-[100px] rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
-                    />
-                  </FormInput>
-                )}
-                
-                {/* Pregnancy */}
-                <FormInput
-                  label={REPEAT_RX_COPY.steps.safety.pregnancy}
-                  required
-                >
-                  <div className="flex gap-3">
-                    <PillButton
-                      selected={pregnantOrBreastfeeding === false}
-                      onClick={() => setPregnantOrBreastfeeding(false)}
-                    >
-                      No
-                    </PillButton>
-                    <PillButton
-                      selected={pregnantOrBreastfeeding === true}
-                      onClick={() => setPregnantOrBreastfeeding(true)}
-                    >
-                      Yes
-                    </PillButton>
-                  </div>
-                </FormInput>
-                
-                {/* Allergies */}
-                <ProgressiveSection
-                  title="Allergies"
-                  description="Any known allergies to medications (optional)"
-                  defaultOpen={!!allergyDetails}
-                >
-                  <FormInput
-                    label={REPEAT_RX_COPY.steps.safety.allergies}
-                    helpText="List any medication allergies you have (e.g., penicillin, aspirin)"
-                  >
-                  <Input
-                    value={allergyDetails}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAllergyDetails(e.target.value)}
-                    placeholder={REPEAT_RX_COPY.steps.safety.allergyPlaceholder}
-                    className="h-12 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
-                  />
-                  </FormInput>
-                </ProgressiveSection>
-              </div>
-            </div>
+            <SafetyStep
+              emergencyAccepted={emergencyAccepted}
+              onEmergencyAcceptedChange={handleEmergencyAccept}
+              emergencyTimestamp={null}
+            />
           )}
           
           {/* Medical History Step */}

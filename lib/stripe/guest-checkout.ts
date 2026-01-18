@@ -251,6 +251,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         category: input.category,
         guestEmail: normalizedEmail,
       })
+      // Use intake ID as idempotency key to prevent duplicate sessions on double-click
       session = await stripe.checkout.sessions.create({
         line_items: [
           {
@@ -272,6 +273,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           guest_checkout: "true",
           guest_email: input.guestEmail,
         },
+      }, {
+        idempotencyKey: `guest-checkout-${intake.id}`,
       })
       logger.info("Guest Stripe checkout session created", { 
         sessionId: session.id, 
@@ -289,12 +292,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (errorMessage.includes("No such price")) {
         return { 
           success: false, 
-          error: "This service is temporarily unavailable. Please try again later. [ERR_PRICE_CONFIG]" 
+          error: "This service is temporarily unavailable. Please try again later." 
         }
       }
       return { 
         success: false, 
-        error: `Payment system error. Please try again. [ERR_STRIPE]` 
+        error: "Payment system error. Please try again or contact support if the issue persists." 
       }
     }
 

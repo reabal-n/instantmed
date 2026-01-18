@@ -164,16 +164,16 @@ export function UnifiedQuestionsStep({
   
   // Handle field change with validation
   const handleFieldChange = (fieldId: string, value: unknown) => {
-    // Enforce 3-day maximum for medical certificate end dates
+    // Enforce 2-day maximum for medical certificate end dates
     if (fieldId === 'end_date' && answers.start_date) {
       const startDate = new Date(answers.start_date as string)
       const endDate = new Date(value as string)
       const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
       
-      // Maximum 3 days total (0, 1, or 2 days after start = 1, 2, or 3 total days)
-      if (daysDiff > 2) {
+      // Maximum 2 days total (0 or 1 day after start = 1 or 2 total days)
+      if (daysDiff > 1) {
         const maxEndDate = new Date(startDate)
-        maxEndDate.setDate(maxEndDate.getDate() + 2)
+        maxEndDate.setDate(maxEndDate.getDate() + 1)
         value = maxEndDate.toISOString().split('T')[0]
       }
     }
@@ -244,8 +244,6 @@ export function UnifiedQuestionsStep({
       onComplete?.()
       nextStep()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      if (process.env.NODE_ENV === 'development') console.error('Error completing questions:', error)
       posthog.captureException(error)
     } finally {
       setIsSubmitting(false)

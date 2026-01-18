@@ -66,9 +66,13 @@ function verifyWebhookSignature(
   signature: string | null,
   webhookSecret: string | undefined
 ): boolean {
-  // If no secret configured, skip verification (development)
+  // Require webhook secret in production
   if (!webhookSecret) {
-    logger.warn("[Resend Webhook] No webhook secret configured, skipping verification")
+    if (process.env.NODE_ENV === "production") {
+      logger.error("[Resend Webhook] CRITICAL: No webhook secret configured in production")
+      return false
+    }
+    logger.warn("[Resend Webhook] No webhook secret configured, skipping verification (dev only)")
     return true
   }
 

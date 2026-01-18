@@ -1,14 +1,14 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { TiltCard } from "@/components/shared/tilt-card"
+import { FAQAccordion } from "./faq-accordion"
 import { MessageCircle, HelpCircle } from "lucide-react"
 
-// Note: force-dynamic required due to Accordion component static rendering issues
-export const dynamic = "force-dynamic"
+// ISR: Revalidate FAQ content every hour
+export const revalidate = 3600
 
 export const metadata = {
   title: "FAQs | InstantMed",
@@ -169,37 +169,8 @@ export default function FAQPage() {
         {/* FAQ Sections */}
         <section className="py-12 pb-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto space-y-10">
-              {faqCategories.map((category, catIndex) => (
-                <div
-                  key={category.title}
-                  className="animate-fade-in-up opacity-0"
-                  style={{ animationDelay: `${0.1 + catIndex * 0.1}s`, animationFillMode: "forwards" }}
-                >
-                  <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-3">
-                    <span className="text-2xl">{category.emoji}</span>
-                    {category.title}
-                  </h2>
-                  <TiltCard>
-                    <Accordion type="single" collapsible className="overflow-hidden">
-                      {category.faqs.map((faq, faqIndex) => (
-                        <AccordionItem
-                          key={faqIndex}
-                          value={`${catIndex}-${faqIndex}`}
-                          className="border-b border-white/10 last:border-0"
-                        >
-                          <AccordionTrigger className="px-6 py-4 text-left hover:no-underline hover:bg-white/5 transition-colors">
-                            <span className="font-medium text-foreground pr-4">{faq.q}</span>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-6 pb-4 text-muted-foreground leading-relaxed">
-                            {faq.a}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </TiltCard>
-                </div>
-              ))}
+            <div className="max-w-3xl mx-auto">
+              <FAQAccordion categories={faqCategories} />
             </div>
           </div>
         </section>

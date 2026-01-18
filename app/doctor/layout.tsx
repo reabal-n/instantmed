@@ -5,6 +5,9 @@ import { Navbar } from "@/components/shared/navbar"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { DoctorDock } from "@/components/shared/doctor-dock"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("doctor-layout")
 
 export default async function DoctorLayout({
   children,
@@ -14,6 +17,7 @@ export default async function DoctorLayout({
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
+    log.warn("No authenticated user in doctor layout - redirecting to login")
     redirect("/auth/login")
   }
 

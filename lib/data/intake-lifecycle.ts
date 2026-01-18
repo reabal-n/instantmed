@@ -77,7 +77,7 @@ const TERMINAL_STATUSES: IntakeStatus[] = ["completed", "declined", "cancelled",
 export interface TransitionValidation {
   valid: boolean
   error?: string
-  code?: "INVALID_TRANSITION" | "PAYMENT_REQUIRED" | "TERMINAL_STATE" | "INVALID_STATUS"
+  code?: "INVALID_TRANSITION" | "PAYMENT_REQUIRED" | "TERMINAL_STATE" | "INVALID_STATUS" | "CONCURRENT_MODIFICATION"
 }
 
 /**

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useRef } from 'react'
+import { logger } from '@/lib/observability/logger'
 
 const DEBOUNCE_MS = 500
 
@@ -31,8 +32,7 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         }
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
-      if (process.env.NODE_ENV === 'development') console.warn('Failed to load form data:', e)
+      logger.warn('Failed to load form data', { key }, e instanceof Error ? e : undefined)
     }
 
     initialized.current = true
@@ -47,8 +47,7 @@ export function useFormPersistence<T extends Record<string, unknown>>(
         const toSave = { ...data, _timestamp: Date.now() }
         localStorage.setItem(`form_${key}`, JSON.stringify(toSave))
       } catch (e) {
-        // eslint-disable-next-line no-console
-        if (process.env.NODE_ENV === 'development') console.warn('Failed to save form data:', e)
+        logger.warn('Failed to save form data', { key }, e instanceof Error ? e : undefined)
       }
     }, DEBOUNCE_MS)
 

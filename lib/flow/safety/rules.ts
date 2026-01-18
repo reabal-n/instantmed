@@ -610,13 +610,30 @@ export const consultSafetyConfig: SafetyRulesConfig = {
 // ============================================
 
 export const safetyConfigs: Record<string, SafetyRulesConfig> = {
+  // Medical certificates - all variations
   'medical-certificate': medCertSafetyConfig,
   'med-cert': medCertSafetyConfig,
+  'med-cert-sick': medCertSafetyConfig,
+  'med-cert-carer': medCertSafetyConfig,
+  'med-cert-fitness': medCertSafetyConfig,
+  'sick-certificate': medCertSafetyConfig,
+  
+  // Prescriptions - all variations
   prescription: prescriptionSafetyConfig,
+  'repeat-prescription': prescriptionSafetyConfig,
+  'repeat-scripts': prescriptionSafetyConfig,
+  'common-scripts': prescriptionSafetyConfig,
+  'script-renewal': prescriptionSafetyConfig,
+  
+  // Weight management
   'weight-management': weightSafetyConfig,
   weight: weightSafetyConfig,
+  'weight-loss': weightSafetyConfig,
+  
+  // Consultations
   'gp-consult': consultSafetyConfig,
   consult: consultSafetyConfig,
+  consultation: consultSafetyConfig,
 }
 
 export function getSafetyConfig(serviceSlug: string): SafetyRulesConfig | null {

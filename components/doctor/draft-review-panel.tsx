@@ -7,7 +7,7 @@
  * Allows doctors to edit content before approving.
  */
 
-import { useState, useTransition, useMemo } from "react"
+import { useState, useTransition, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -39,8 +39,9 @@ import {
   Clock,
   Shield,
 } from "lucide-react"
-import { approveDraft, rejectDraft, regenerateDrafts } from "@/app/actions/draft-approval"
+import { approveDraft, rejectDraft, regenerateDrafts, checkDraftStaleness } from "@/app/actions/draft-approval"
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface DraftReviewPanelProps {
   drafts: AIDraft[]
@@ -187,6 +188,8 @@ function SingleDraftCard({
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [stalenessInfo, setStalenessInfo] = useState<{ isStale: boolean; reason?: string } | null>(null)
+  const [acknowledgedChanges, setAcknowledgedChanges] = useState(false)
 
   const isAlreadyDecided = !!draft.approved_at || !!draft.rejected_at
   const canApprove = draft.status === "ready" && !isAlreadyDecided
@@ -198,6 +201,15 @@ function SingleDraftCard({
     const hours = Math.floor(draftAge / (1000 * 60 * 60))
     return { hoursOld: hours, isStale: hours > 24 }
   }, [draft.created_at])
+
+  // Check for staleness (answers changed since draft generation)
+  useEffect(() => {
+    if (isAlreadyDecided) return
+    
+    checkDraftStaleness(draft.id).then((result) => {
+      setStalenessInfo(result)
+    })
+  }, [draft.id, isAlreadyDecided])
 
   const handleApprove = (withEdits: boolean) => {
     startTransition(async () => {
@@ -270,6 +282,29 @@ function SingleDraftCard({
           </div>
         )}
 
+        {/* Staleness Warning Banner */}
+        {stalenessInfo?.isStale && !isAlreadyDecided && (
+          <div className="p-3 rounded-lg border-2 border-amber-400 bg-amber-50">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-amber-800">Answers changed since draft was generated</p>
+                <p className="text-sm text-amber-700 mt-1">{stalenessInfo.reason}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Checkbox
+                    id={`ack-${draft.id}`}
+                    checked={acknowledgedChanges}
+                    onCheckedChange={(checked) => setAcknowledgedChanges(checked === true)}
+                  />
+                  <label htmlFor={`ack-${draft.id}`} className="text-sm text-amber-800 cursor-pointer">
+                    I&apos;ve reviewed the updated answers and confirm this draft is still accurate
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ValidationWarnings draft={draft} />
 
         {isEditing ? (
@@ -301,7 +336,7 @@ function SingleDraftCard({
               size="sm"
               className="bg-emerald-600 hover:bg-emerald-700"
               onClick={() => handleApprove(false)}
-              disabled={isPending}
+              disabled={isPending || (stalenessInfo?.isStale && !acknowledgedChanges)}
             >
               {isPending && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
               <CheckCircle className="h-4 w-4 mr-1" />

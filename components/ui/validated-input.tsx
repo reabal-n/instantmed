@@ -117,10 +117,12 @@ export function ValidatedInput({
             isValid && touched && "text-green-700 dark:text-green-400"
           ),
           inputWrapper: cn(
-            "bg-transparent border-0 shadow-none",
+            // Single border layer from variant="bordered"
+            "bg-transparent shadow-none",
             "transition-all duration-200",
-            "hover:border-slate-300",
-            "data-[focused=true]:border-primary data-[focused=true]:ring-1 data-[focused=true]:ring-primary/20",
+            "hover:border-slate-300 dark:hover:border-slate-600",
+            // Focus: border color only, no ring (single visual boundary)
+            "data-[focused=true]:border-primary",
             error && touched && "!border-red-500",
             isValid && touched && !error && "!border-green-500"
           ),

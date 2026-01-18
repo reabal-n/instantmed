@@ -281,6 +281,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   placeholder="Start typing your address..."
                   className="h-12 rounded-xl"
                   error={step1Errors.addressLine1}
+                  requireVerified={true}
                 />
               </FormGroup>
 

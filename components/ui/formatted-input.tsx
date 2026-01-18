@@ -118,8 +118,6 @@ export function FormattedInput({
       onChange={handleChange}
       className={cn(
         "transition-all duration-200",
-        "focus:scale-[1.01]",
-        "focus:ring-4 focus:ring-primary/10",
         className
       )}
     />

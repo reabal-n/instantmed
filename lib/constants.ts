@@ -87,3 +87,39 @@ export const PATTERNS = {
   PHONE: /^(?:\+61|0)[2-478](?:[ -]?\d){8}$/,
   POSTCODE: /^\d{4}$/,
 } as const
+
+// Form field design tokens - single source of truth for consistent styling
+export const FORM_TOKENS = {
+  // Border colors
+  border: {
+    default: "border-slate-200 dark:border-slate-700",
+    hover: "hover:border-slate-300 dark:hover:border-slate-600",
+    focus: "data-[focused=true]:border-primary focus:border-primary",
+    error: "border-red-500",
+    success: "border-green-500",
+  },
+  // Background colors
+  bg: {
+    default: "bg-white dark:bg-slate-900",
+    glass: "bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg",
+  },
+  // Border radius
+  radius: "rounded-xl",
+  // Heights
+  height: {
+    input: "min-h-[48px] md:min-h-0",
+    textarea: "min-h-[100px]",
+  },
+  // Transitions
+  transition: "transition-all duration-200",
+} as const
+
+// Medical certificate duration options
+export const MED_CERT_DURATIONS = {
+  options: [1, 2] as const,
+  labels: {
+    1: "1 day",
+    2: "2 days",
+  },
+  maxDays: 2,
+} as const

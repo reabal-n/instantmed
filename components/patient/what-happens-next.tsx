@@ -1,0 +1,269 @@
+"use client"
+
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { 
+  Clock, 
+  Mail, 
+  FileText, 
+  ChevronDown,
+  HelpCircle,
+  CheckCircle2,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Confetti } from "@/components/ui/confetti"
+import { IntakeStatusTracker } from "./intake-status-tracker"
+import Link from "next/link"
+import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+
+interface WhatHappensNextProps {
+  intakeId: string
+  initialStatus: IntakeStatus
+  serviceName?: string
+  patientEmail?: string
+  isPriority?: boolean
+  showConfetti?: boolean
+}
+
+const FAQ_ITEMS = [
+  {
+    question: "How long does review take?",
+    answer: "Most requests are reviewed within an hour during business hours (8am–10pm AEST). Priority requests are reviewed within 15 minutes.",
+  },
+  {
+    question: "What if the doctor needs more info?",
+    answer: "They'll send you a message. You'll get an email notification, and you can respond right from your dashboard.",
+  },
+  {
+    question: "What if my request isn't approved?",
+    answer: "You get a full refund, no questions asked. The doctor will explain why and suggest next steps if appropriate.",
+  },
+  {
+    question: "How do I get my document?",
+    answer: "Once approved, we'll email it to you and it'll be available in your dashboard to download anytime.",
+  },
+]
+
+export function WhatHappensNext({
+  intakeId,
+  initialStatus,
+  serviceName,
+  patientEmail,
+  isPriority = false,
+  showConfetti = true,
+}: WhatHappensNextProps) {
+  const [confettiTrigger, setConfettiTrigger] = useState(false)
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
+  const [_currentStatus, setCurrentStatus] = useState<IntakeStatus>(initialStatus)
+
+  // Trigger confetti on mount
+  useState(() => {
+    if (showConfetti) {
+      setTimeout(() => setConfettiTrigger(true), 300)
+    }
+  })
+
+  return (
+    <>
+      {showConfetti && <Confetti trigger={confettiTrigger} options={{ particleCount: 40 }} />}
+
+      <div className="max-w-lg mx-auto space-y-6">
+        {/* Success header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.2 }}
+            className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500 flex items-center justify-center"
+          >
+            <CheckCircle2 className="w-8 h-8 text-white" />
+          </motion.div>
+          
+          <h1 className="text-2xl font-bold mb-2">Request submitted</h1>
+          <p className="text-muted-foreground">
+            {serviceName ? `Your ${serviceName.toLowerCase()} request is ` : "Your request is "}
+            now with our medical team.
+          </p>
+        </motion.div>
+
+        {/* Live status tracker */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <IntakeStatusTracker
+            intakeId={intakeId}
+            initialStatus={initialStatus}
+            isPriority={isPriority}
+            onStatusChange={setCurrentStatus}
+          />
+        </motion.div>
+
+        {/* Key info cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid gap-3"
+        >
+          <InfoCard
+            icon={<Clock className="h-4 w-4" />}
+            title="Expected turnaround"
+            description={isPriority 
+              ? "Priority review — within 15 minutes" 
+              : "Usually under an hour (8am–10pm AEST)"
+            }
+            highlight={isPriority}
+          />
+          
+          <InfoCard
+            icon={<Mail className="h-4 w-4" />}
+            title="We'll email you"
+            description={patientEmail 
+              ? `Updates sent to ${patientEmail}` 
+              : "You'll get an email when your document is ready"
+            }
+          />
+          
+          <InfoCard
+            icon={<FileText className="h-4 w-4" />}
+            title="Download anytime"
+            description="Your documents are always available in your dashboard"
+          />
+        </motion.div>
+
+        {/* FAQ accordion */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="overflow-hidden">
+            <button
+              onClick={() => setExpandedFaq(expandedFaq === -1 ? null : -1)}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-sm">Common questions</span>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform",
+                  expandedFaq !== null && "rotate-180"
+                )}
+              />
+            </button>
+
+            {expandedFaq !== null && (
+              <div className="border-t">
+                {FAQ_ITEMS.map((item, index) => (
+                  <div key={index} className="border-b last:border-b-0">
+                    <button
+                      onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                    >
+                      <span className="text-sm font-medium">{item.question}</span>
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground transition-transform shrink-0 ml-2",
+                          expandedFaq === index && "rotate-180"
+                        )}
+                      />
+                    </button>
+                    {expandedFaq === index && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="px-4 pb-4"
+                      >
+                        <p className="text-sm text-muted-foreground">{item.answer}</p>
+                      </motion.div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-3"
+        >
+          <Button asChild size="lg" className="w-full">
+            <Link href={`/patient/intakes/${intakeId}`}>
+              View request details
+            </Link>
+          </Button>
+          
+          <Button asChild variant="outline" size="lg" className="w-full">
+            <Link href="/patient">
+              Go to dashboard
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Support footer */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="text-center text-xs text-muted-foreground"
+        >
+          Questions?{" "}
+          <Link href="/contact" className="text-primary hover:underline">
+            Contact support
+          </Link>
+          {" "}• Reference: {intakeId.slice(0, 8).toUpperCase()}
+        </motion.p>
+      </div>
+    </>
+  )
+}
+
+interface InfoCardProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+  highlight?: boolean
+}
+
+function InfoCard({ icon, title, description, highlight }: InfoCardProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 p-4 rounded-xl border",
+        highlight
+          ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+          : "bg-muted/30 border-border/50"
+      )}
+    >
+      <div
+        className={cn(
+          "shrink-0 h-8 w-8 rounded-lg flex items-center justify-center",
+          highlight
+            ? "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400"
+            : "bg-primary/10 text-primary"
+        )}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="font-medium text-sm">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+      </div>
+    </div>
+  )
+}

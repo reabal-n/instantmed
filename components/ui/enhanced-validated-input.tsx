@@ -23,6 +23,7 @@ interface EnhancedValidatedInputProps extends Omit<InputProps, "onChange"> {
   showFormatHintOnFocus?: boolean // Show format hint when focused
   label: string
   type?: "text" | "email" | "tel" | "password" | "number"
+  id?: string // For accessibility - links input to error/helper messages
 }
 
 export function EnhancedValidatedInput({
@@ -38,9 +39,14 @@ export function EnhancedValidatedInput({
   showFormatHintOnFocus = true,
   label,
   type = "text",
+  id,
   className,
   ...props
 }: EnhancedValidatedInputProps) {
+  // Generate stable IDs for accessibility
+  const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, '-')}`
+  const errorId = `${inputId}-error`
+  const helperId = `${inputId}-helper`
   const [touched, setTouched] = useState(false)
   const [focused, setFocused] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -104,6 +110,7 @@ export function EnhancedValidatedInput({
       <div className="relative">
         <Input
           {...props}
+          id={inputId}
           type={inputType}
           label={label}
           value={displayValue}
@@ -111,6 +118,8 @@ export function EnhancedValidatedInput({
           onBlur={handleBlur}
           onFocus={handleFocus}
           maxLength={maxLength}
+          aria-invalid={!!(error && touched)}
+          aria-describedby={error && touched ? errorId : helperText ? helperId : undefined}
           className={cn(
             "transition-all duration-200",
             error && touched && "border-red-500 focus:border-red-500",
@@ -124,8 +133,9 @@ export function EnhancedValidatedInput({
               isValid && touched && !error && "text-green-700 dark:text-green-400"
             ),
             inputWrapper: cn(
-              error && touched && "border-red-500 focus-within:border-red-500",
-              isValid && touched && !error && "border-green-500 focus-within:border-green-500"
+              // Single border layer - error/success states only change border color
+              error && touched && "!border-red-500",
+              isValid && touched && !error && "!border-green-500"
             ),
           }}
           endContent={
@@ -183,7 +193,7 @@ export function EnhancedValidatedInput({
         <div className="flex-1 space-y-1">
           {/* Helper Text - shows when not focused or when no error */}
           {helperText && !error && (!showFormatHintOnFocus || !focused) && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in duration-200">
+            <p id={helperId} className="text-xs text-muted-foreground flex items-center gap-1 animate-in fade-in duration-200">
               <Info className="w-3 h-3 shrink-0" />
               {helperText}
             </p>
@@ -199,7 +209,7 @@ export function EnhancedValidatedInput({
           
           {/* Error Message - Progressive disclosure: only after blur/touch */}
           {error && touched && (
-            <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+            <p id={errorId} role="alert" className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
               <AlertCircle className="w-3 h-3 shrink-0" />
               {error}
             </p>

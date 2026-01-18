@@ -77,12 +77,12 @@ export function HowItWorks() {
             >
               <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
                 {/* Step number */}
-                <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
+                <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
                   {step.number}
                 </div>
                 
                 {/* Icon */}
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-4 shadow-md`}>
+                <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${step.color} flex items-center justify-center mb-4 shadow-md`}>
                   <step.icon className="w-6 h-6 text-white" />
                 </div>
                 

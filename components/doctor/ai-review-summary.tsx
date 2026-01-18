@@ -76,7 +76,7 @@ export function AiReviewSummary({
 
   return (
     <div className={cn(
-      "rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 p-4 space-y-3",
+      "rounded-xl border bg-linear-to-br from-primary/5 to-primary/10 p-4 space-y-3",
       className
     )}>
       <div className="flex items-center justify-between">

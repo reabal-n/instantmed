@@ -2,8 +2,13 @@ import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
+import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("health-check")
+
+// Throttle alerts to prevent spam (max 1 per 5 minutes per service)
+const lastAlertTimes: Record<string, number> = {}
+const ALERT_THROTTLE_MS = 5 * 60 * 1000
 
 /**
  * GET /api/health
@@ -88,6 +93,30 @@ export async function GET() {
 
   if (!allHealthy) {
     logger.warn("Health check failed", { checks })
+    
+    // Alert via Sentry for degraded services (throttled)
+    const now = Date.now()
+    const failedServices = Object.entries(checks)
+      .filter(([, check]) => check.status === "error")
+      .map(([service]) => service)
+    
+    for (const service of failedServices) {
+      if (!lastAlertTimes[service] || now - lastAlertTimes[service] > ALERT_THROTTLE_MS) {
+        lastAlertTimes[service] = now
+        Sentry.captureMessage(`Health check degraded: ${service}`, {
+          level: "warning",
+          tags: {
+            source: "health-check",
+            alert_type: "service_degraded",
+            service,
+          },
+          extra: {
+            checks,
+            totalLatencyMs,
+          },
+        })
+      }
+    }
   }
 
   return NextResponse.json(

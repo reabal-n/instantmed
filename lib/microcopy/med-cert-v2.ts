@@ -63,11 +63,10 @@ export const MED_CERT_COPY = {
     durationOptions: {
       1: "1 day",
       2: "2 days",
-      3: "3 days",
     },
-    durationHint: "Most requests are for 1–3 days",
-    extendedOption: "I need more than 3 days",
-    extendedNote: "Requests for more than 3 days require a brief phone consultation with the doctor to discuss your situation.",
+    durationHint: "Most requests are for 1–2 days",
+    longerDurationLink: "More than 2 days?",
+    longerDurationNote: "Longer absences are handled through a general consultation, where a doctor can assess your situation and provide appropriate documentation.",
     
     // Start date
     startDateLabel: "Start date",

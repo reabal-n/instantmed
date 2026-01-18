@@ -9,6 +9,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
+import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 
 const logger = createLogger("stripe-checkout")
 
@@ -239,7 +240,32 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: "Service not available. Please contact support." }
     }
 
-    // 5. Create the intake with pending_payment status
+    // 5. Run fraud detection checks
+    const medicareNumber = input.answers.medicare_number as string | undefined
+    const formStartTime = input.answers._form_start_time 
+      ? new Date(input.answers._form_start_time as string) 
+      : undefined
+    const formEndTime = new Date()
+    
+    const fraudResult = await runFraudChecks({
+      patientId,
+      medicareNumber,
+      category: input.category,
+      subtype: input.subtype,
+      formStartTime,
+      formEndTime,
+    })
+    
+    if (fraudResult.flagged && fraudResult.riskScore >= 60) {
+      logger.warn("High-risk fraud flags detected", {
+        patientId,
+        riskScore: fraudResult.riskScore,
+        flags: fraudResult.flags.map(f => f.type),
+      })
+      // Don't block, but log for review - actual blocking handled by clinical team
+    }
+
+    // 6. Create the intake with pending_payment status
     // Store category and subtype at creation for reliable retry pricing
     // Use idempotency key to prevent duplicate submissions on double-click
     const intakeData: Record<string, unknown> = {
@@ -298,7 +324,23 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: "Failed to create your request. Please try again." }
     }
 
-    // 6. Insert the answers (ATOMIC - fail if answers cannot be saved)
+    // 6a. Save fraud flags if any were detected (non-blocking)
+    if (fraudResult.flagged) {
+      try {
+        await saveFraudFlags(intake.id, patientId, fraudResult.flags)
+        logger.info("Fraud flags saved for review", { 
+          intakeId: intake.id, 
+          flagCount: fraudResult.flags.length,
+          riskScore: fraudResult.riskScore,
+        })
+      } catch (fraudSaveError) {
+        // Don't block checkout if fraud flag save fails - just log
+        logger.error("Failed to save fraud flags", { intakeId: intake.id }, 
+          fraudSaveError instanceof Error ? fraudSaveError : undefined)
+      }
+    }
+
+    // 6b. Insert the answers (ATOMIC - fail if answers cannot be saved)
     const { error: answersError } = await supabase.from("intake_answers").insert({
       intake_id: intake.id,
       answers: input.answers,
@@ -385,12 +427,12 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       if (errorMessage.includes("No such price")) {
         return { 
           success: false, 
-          error: "This service is temporarily unavailable. Please try again later. [ERR_PRICE_CONFIG]" 
+          error: "This service is temporarily unavailable. Please try again later." 
         }
       }
       return { 
         success: false, 
-        error: `Payment system error. Please try again. [ERR_STRIPE]` 
+        error: "Payment system error. Please try again or contact support if the issue persists." 
       }
     }
 
@@ -427,7 +469,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     })
     return {
       success: false,
-      error: `Something went wrong. Please try again or contact support. [ERR_CHECKOUT]`,
+      error: "Something went wrong. Please try again or contact support if the issue persists.",
     }
   }
 }

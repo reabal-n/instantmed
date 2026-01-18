@@ -25,7 +25,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
           transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
           className="w-16 h-16 mx-auto mb-4"
         >
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+          <div className="w-full h-full rounded-2xl bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
             <Loader2 className="w-8 h-8 text-white animate-spin" />
           </div>
         </motion.div>
@@ -38,7 +38,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
       </div>
 
       {/* Skeleton order summary */}
-      <div className="bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+      <div className="bg-linear-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
         <div className="p-5 space-y-4">
           {/* Skeleton lines */}
           <div className="flex items-center justify-between">
@@ -110,7 +110,7 @@ export function PaymentRedirectOverlay() {
           transition={{ duration: 2, repeat: Infinity }}
           className="w-20 h-20 mx-auto mb-6"
         >
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-emerald-500/30">
+          <div className="w-full h-full rounded-2xl bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-emerald-500/30">
             <Lock className="w-10 h-10 text-white" />
           </div>
         </motion.div>

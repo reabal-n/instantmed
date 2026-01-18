@@ -53,7 +53,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
 
         {/* CTA Section */}
         <motion.div
-          className="relative rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-violet-500/5 border border-primary/10 p-8 lg:p-10 text-center overflow-hidden"
+          className="relative rounded-2xl bg-linear-to-br from-primary/5 via-transparent to-violet-500/5 border border-primary/10 p-8 lg:p-10 text-center overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

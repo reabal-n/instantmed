@@ -45,7 +45,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
       <main className="flex-1 bg-background">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" />
+          <div className="absolute inset-0 bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" />
           <div className="absolute top-20 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
 

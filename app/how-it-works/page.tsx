@@ -17,6 +17,9 @@ import {
   Heart,
 } from "lucide-react"
 
+// ISR: Revalidate how-it-works page every 24 hours (static content)
+export const revalidate = 86400
+
 export const metadata = {
   title: "How It Works | InstantMed",
   description:

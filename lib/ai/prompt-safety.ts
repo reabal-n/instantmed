@@ -9,6 +9,53 @@ import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("prompt-safety")
 
+// Unicode homoglyph map for common attack characters
+// Maps confusable unicode characters to their ASCII equivalents
+const UNICODE_HOMOGLYPHS: Record<string, string> = {
+  // Cyrillic lookalikes
+  'а': 'a', 'е': 'e', 'і': 'i', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x',
+  'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O', 'Р': 'P', 
+  'С': 'C', 'Т': 'T', 'Х': 'X',
+  // Greek lookalikes
+  'α': 'a', 'ο': 'o', 'ν': 'v', 'ρ': 'p', 'τ': 't', 'υ': 'u',
+  // Special characters
+  'ı': 'i', 'ȷ': 'j', 'ɡ': 'g', 'ɑ': 'a',
+  // Full-width characters
+  'ａ': 'a', 'ｂ': 'b', 'ｃ': 'c', 'ｄ': 'd', 'ｅ': 'e', 'ｆ': 'f', 'ｇ': 'g',
+  'ｈ': 'h', 'ｉ': 'i', 'ｊ': 'j', 'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n',
+  'ｏ': 'o', 'ｐ': 'p', 'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't', 'ｕ': 'u',
+  'ｖ': 'v', 'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z',
+}
+
+/**
+ * Normalize unicode homoglyphs to ASCII for pattern matching
+ * This prevents attackers from using lookalike characters to bypass detection
+ */
+function normalizeHomoglyphs(input: string): string {
+  let normalized = input
+  for (const [unicode, ascii] of Object.entries(UNICODE_HOMOGLYPHS)) {
+    normalized = normalized.replace(new RegExp(unicode, 'g'), ascii)
+  }
+  return normalized
+}
+
+/**
+ * Check if input contains suspicious unicode characters that could be used for obfuscation
+ */
+function containsSuspiciousUnicode(input: string): boolean {
+  // Check for any homoglyph characters
+  for (const unicode of Object.keys(UNICODE_HOMOGLYPHS)) {
+    if (input.includes(unicode)) {
+      return true
+    }
+  }
+  // Check for zero-width characters (invisible injection)
+  if (/[\u200B-\u200F\u2028-\u202F\uFEFF]/.test(input)) {
+    return true
+  }
+  return false
+}
+
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [
   // Direct instruction override attempts
@@ -76,9 +123,18 @@ export function checkPromptInjection(input: string): PromptSafetyResult {
   const detectedPatterns: string[] = []
   let riskLevel: "none" | "low" | "medium" | "high" = "none"
 
-  // Check for injection patterns
+  // Normalize unicode homoglyphs before pattern matching to catch obfuscation attempts
+  const normalizedInput = normalizeHomoglyphs(input)
+
+  // Check for suspicious unicode characters (potential obfuscation)
+  if (containsSuspiciousUnicode(input)) {
+    detectedPatterns.push("suspicious_unicode_characters")
+    riskLevel = "medium"
+  }
+
+  // Check for injection patterns (on both original and normalized input)
   for (const pattern of INJECTION_PATTERNS) {
-    if (pattern.test(input)) {
+    if (pattern.test(input) || pattern.test(normalizedInput)) {
       detectedPatterns.push(pattern.source)
       riskLevel = "high"
     }
@@ -87,7 +143,7 @@ export function checkPromptInjection(input: string): PromptSafetyResult {
   // Check for suspicious patterns (lower risk)
   if (riskLevel !== "high") {
     for (const pattern of SUSPICIOUS_PATTERNS) {
-      if (pattern.test(input)) {
+      if (pattern.test(input) || pattern.test(normalizedInput)) {
         detectedPatterns.push(`suspicious:${pattern.source}`)
         if (riskLevel === "none") {
           riskLevel = "low"

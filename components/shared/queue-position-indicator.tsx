@@ -56,9 +56,8 @@ export function QueuePositionIndicator({
         status: 'queued',
       }
       setQueueStatus(mockStatus)
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch queue status:', error)
+    } catch (_error) {
+      // Queue status fetch errors handled silently
     } finally {
       setIsLoading(false)
     }

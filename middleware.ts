@@ -4,6 +4,36 @@ import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import * as Sentry from "@sentry/nextjs"
 
+// Simple in-memory token bucket for fallback rate limiting
+// Note: Only works per-instance, not distributed
+const memoryBuckets = new Map<string, { tokens: number; lastRefill: number }>()
+const MEMORY_LIMITS = { auth: 5, ai: 10, checkout: 5, global: 100 }
+
+function memoryFallbackCheck(identifier: string, type: 'auth' | 'ai' | 'checkout' | 'global'): { success: boolean } {
+  const key = `${type}:${identifier}`
+  const maxTokens = MEMORY_LIMITS[type]
+  const now = Date.now()
+  
+  let bucket = memoryBuckets.get(key)
+  if (!bucket) {
+    bucket = { tokens: maxTokens, lastRefill: now }
+    memoryBuckets.set(key, bucket)
+  }
+  
+  // Refill tokens (1 token per second for auth/checkout, more for others)
+  const refillRate = type === 'global' ? 1.67 : type === 'ai' ? 0.167 : 0.083
+  const elapsed = (now - bucket.lastRefill) / 1000
+  bucket.tokens = Math.min(maxTokens, bucket.tokens + elapsed * refillRate)
+  bucket.lastRefill = now
+  
+  if (bucket.tokens >= 1) {
+    bucket.tokens -= 1
+    return { success: true }
+  }
+  
+  return { success: false }
+}
+
 // Throttle rate limiter failure alerts (max 1 per 5 minutes)
 let lastRateLimitAlertTime = 0
 const RATE_LIMIT_ALERT_THROTTLE_MS = 5 * 60 * 1000
@@ -159,9 +189,10 @@ export async function middleware(request: NextRequest) {
     limiter = checkoutRateLimiter
   }
   
+  const ip = getClientIp(request)
+  
   if (limiter) {
     try {
-      const ip = getClientIp(request)
       const { success, limit, remaining, reset } = await limiter.limit(ip)
       
       if (!success) {
@@ -183,21 +214,35 @@ export async function middleware(request: NextRequest) {
         )
       }
     } catch (rateLimitError) {
-      // If rate limiting fails, log error but allow request through
-      // This prevents total outage if Upstash is down, but alerts operators
+      // Upstash failed - use in-memory fallback for critical paths
       const errorMessage = rateLimitError instanceof Error ? rateLimitError.message : "Unknown error"
       
       // eslint-disable-next-line no-console -- Intentional: middleware runs in edge, needs console for observability
-      console.error("[Middleware] Rate limiter failed - allowing request through", {
+      console.error("[Middleware] Upstash rate limiter failed - using memory fallback", {
         error: errorMessage,
         path: pathname,
       })
+      
+      // Apply memory-based rate limiting as fallback for sensitive routes
+      if (isAuthRoute || isAiRoute || isCheckoutRoute) {
+        const fallbackResult = memoryFallbackCheck(ip, isAuthRoute ? 'auth' : isAiRoute ? 'ai' : 'checkout')
+        if (!fallbackResult.success) {
+          return NextResponse.json(
+            {
+              error: "Too many requests",
+              message: "Please slow down and try again later",
+              retryAfter: 60,
+            },
+            { status: 429 }
+          )
+        }
+      }
       
       // Alert via Sentry (throttled to prevent alert storm)
       const now = Date.now()
       if (now - lastRateLimitAlertTime > RATE_LIMIT_ALERT_THROTTLE_MS) {
         lastRateLimitAlertTime = now
-        Sentry.captureMessage("Rate limiter degraded - Upstash may be down", {
+        Sentry.captureMessage("Rate limiter degraded - Upstash may be down, using memory fallback", {
           level: "warning",
           tags: {
             source: "middleware-rate-limiter",

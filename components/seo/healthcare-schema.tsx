@@ -1,4 +1,5 @@
 import Script from "next/script"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -119,7 +120,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     <Script
       id="organization-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -166,7 +167,7 @@ export function MedicalServiceSchema({
     <Script
       id={`service-schema-${name.toLowerCase().replace(/\s+/g, '-')}`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -196,7 +197,7 @@ export function FAQSchema({ faqs }: FAQSchemaProps) {
     <Script
       id="faq-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -224,7 +225,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
     <Script
       id="breadcrumb-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -270,7 +271,7 @@ export function LocalBusinessSchema({ city, state, baseUrl = "https://instantmed
     <Script
       id={`local-business-schema-${city.toLowerCase()}`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }
@@ -308,7 +309,7 @@ export function ReviewAggregateSchema({
     <Script
       id="review-aggregate-schema"
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   )
 }

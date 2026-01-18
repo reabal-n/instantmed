@@ -543,24 +543,70 @@ export async function POST(request: Request) {
 
     if (paymentIntentId) {
       // Update intake payment_status based on refund
+      // Note: payment_id stores checkout session ID, so we need to look up by stripe_payment_intent_id
+      // or find the intake via the checkout session that has this payment intent
       const isFullRefund = charge.amount_refunded === charge.amount
-      const { error: updateError } = await supabase
+
+      // First try to find intake by stripe_payment_intent_id if we stored it
+      let updateResult = await supabase
         .from("intakes")
         .update({
           payment_status: isFullRefund ? "refunded" : "partially_refunded",
           refund_amount_cents: charge.amount_refunded,
           updated_at: new Date().toISOString(),
         })
-        .eq("payment_id", paymentIntentId)
+        .eq("stripe_payment_intent_id", paymentIntentId)
+        .select("id")
 
-      if (updateError) {
-        log.error("Error updating intake after refund", { paymentIntentId }, updateError)
-      } else {
+      // If no rows updated, try looking up via Stripe API to get session ID
+      if (!updateResult.data?.length) {
+        try {
+          // Find payment intents that match and get the checkout session
+          const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+          const sessionId = paymentIntent.metadata?.checkout_session_id
+          
+          if (sessionId) {
+            updateResult = await supabase
+              .from("intakes")
+              .update({
+                payment_status: isFullRefund ? "refunded" : "partially_refunded",
+                refund_amount_cents: charge.amount_refunded,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("payment_id", sessionId)
+              .select("id")
+          }
+        } catch (stripeError) {
+          log.warn("Could not retrieve payment intent for refund lookup", { 
+            paymentIntentId,
+            error: stripeError instanceof Error ? stripeError.message : "Unknown error"
+          })
+        }
+      }
+
+      // Also update legacy payments table if it exists
+      await supabase
+        .from("payments")
+        .update({
+          status: "refunded",
+          refund_status: isFullRefund ? "refunded" : "partially_refunded",
+          refund_amount: charge.amount_refunded,
+          refunded_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("stripe_payment_intent_id", paymentIntentId)
+
+      if (updateResult.error) {
+        log.error("Error updating intake after refund", { paymentIntentId }, updateResult.error)
+      } else if (updateResult.data?.length) {
         log.info("Intake payment status updated after refund", { 
-          paymentIntentId, 
+          paymentIntentId,
+          intakeId: updateResult.data[0].id,
           isFullRefund,
           amountRefunded: charge.amount_refunded,
         })
+      } else {
+        log.warn("No intake found to update for refund", { paymentIntentId })
       }
     }
   }

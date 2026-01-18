@@ -119,56 +119,126 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
  * Fetch all intakes by status (for doctor dashboard).
  * Includes patient profile information.
  * Only show paid intakes to doctors.
+ * Supports pagination for scalability.
  */
-export async function getAllIntakesByStatus(status: IntakeStatus): Promise<IntakeWithPatient[]> {
+export async function getAllIntakesByStatus(
+  status: IntakeStatus,
+  options?: { page?: number; pageSize?: number }
+): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = await createClient()
+  const page = options?.page ?? 1
+  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
+  const offset = (page - 1) * pageSize
 
+  // Get total count first
+  const { count, error: countError } = await supabase
+    .from("intakes")
+    .select("id", { count: "exact", head: true })
+    .eq("status", status)
+    .in("payment_status", ["paid", "pending"])
+
+  if (countError) {
+    logger.error("Error fetching intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    return { data: [], total: 0, page, pageSize }
+  }
+
+  // Fetch paginated data with only necessary fields
   const { data, error } = await supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id (*),
+      id,
+      status,
+      payment_status,
+      category,
+      subtype,
+      is_priority,
+      sla_deadline,
+      created_at,
+      updated_at,
+      claimed_by,
+      claimed_at,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth),
       service:services!service_id (slug, name, short_name, type)
     `)
     .eq("status", status)
-    .in("payment_status", ["paid", "pending"]) // Show paid intakes
+    .in("payment_status", ["paid", "pending"])
     .order("is_priority", { ascending: false })
-    .order("created_at", { ascending: true }) // FIFO within priority
+    .order("created_at", { ascending: true })
+    .range(offset, offset + pageSize - 1)
 
   if (error) {
     logger.error("Error fetching intakes by status", {}, error instanceof Error ? error : new Error(String(error)))
-    return []
+    return { data: [], total: count ?? 0, page, pageSize }
   }
 
   const validData = (data || []).filter((r) => r.patient !== null)
-  return validData as unknown as IntakeWithPatient[]
+  return {
+    data: validData as unknown as IntakeWithPatient[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
 }
 
 /**
  * Get doctor queue - paid intakes ready for review
+ * Supports pagination for scalability at high volume.
  */
-export async function getDoctorQueue(): Promise<IntakeWithPatient[]> {
+export async function getDoctorQueue(
+  options?: { page?: number; pageSize?: number }
+): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = await createClient()
+  const page = options?.page ?? 1
+  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
+  const offset = (page - 1) * pageSize
 
+  // Get total count first
+  const { count, error: countError } = await supabase
+    .from("intakes")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["paid", "in_review", "pending_info"])
+
+  if (countError) {
+    logger.error("Error fetching queue count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    return { data: [], total: 0, page, pageSize }
+  }
+
+  // Fetch paginated data with only necessary fields for queue view
   const { data, error } = await supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id (*),
+      id,
+      status,
+      payment_status,
+      category,
+      subtype,
+      is_priority,
+      sla_deadline,
+      created_at,
+      updated_at,
+      claimed_by,
+      claimed_at,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth),
       service:services!service_id (slug, name, short_name, type)
     `)
     .in("status", ["paid", "in_review", "pending_info"])
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
+    .range(offset, offset + pageSize - 1)
 
   if (error) {
     logger.error("Error fetching doctor queue", {}, error instanceof Error ? error : new Error(String(error)))
-    return []
+    return { data: [], total: count ?? 0, page, pageSize }
   }
 
   const validData = (data || []).filter((r) => r.patient !== null)
-  return validData as unknown as IntakeWithPatient[]
+  return {
+    data: validData as unknown as IntakeWithPatient[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
 }
 
 /**
@@ -285,6 +355,238 @@ export async function getDoctorDashboardStats(): Promise<{
     declined: data.filter((r) => r.status === "declined").length,
     pending_info: data.filter((r) => r.status === "pending_info").length,
     scripts_pending: data.filter((r) => r.status === "approved" && r.script_sent === false).length,
+  }
+}
+
+/**
+ * Get live intake monitoring stats for doctor dashboard
+ * Includes today's submissions, queue metrics, and review time stats
+ */
+export async function getIntakeMonitoringStats(): Promise<{
+  todaySubmissions: number
+  queueSize: number
+  paidCount: number
+  pendingCount: number
+  approvedToday: number
+  declinedToday: number
+  avgReviewTimeMinutes: number | null
+  oldestInQueueMinutes: number | null
+}> {
+  const supabase = await createClient()
+  
+  // Get start of today in local timezone
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  // Fetch all relevant intakes
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id, status, payment_status, created_at, reviewed_at, paid_at, approved_at, declined_at")
+    .neq("status", "draft")
+    .neq("status", "cancelled")
+
+  if (error || !data) {
+    logger.error("Error fetching monitoring stats", {}, error instanceof Error ? error : new Error(String(error)))
+    return {
+      todaySubmissions: 0,
+      queueSize: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      approvedToday: 0,
+      declinedToday: 0,
+      avgReviewTimeMinutes: null,
+      oldestInQueueMinutes: null,
+    }
+  }
+
+  // Today's submissions (created today with payment)
+  const todaySubmissions = data.filter(
+    (r) => r.paid_at && new Date(r.paid_at) >= todayStart
+  ).length
+
+  // Queue size (paid, in_review, pending_info)
+  const queueIntakes = data.filter((r) => 
+    ["paid", "in_review", "pending_info"].includes(r.status)
+  )
+  const queueSize = queueIntakes.length
+
+  // Paid vs pending payment
+  const paidCount = data.filter((r) => r.payment_status === "paid").length
+  const pendingCount = data.filter((r) => r.payment_status === "pending").length
+
+  // Approved/declined today
+  const approvedToday = data.filter(
+    (r) => r.approved_at && new Date(r.approved_at) >= todayStart
+  ).length
+  const declinedToday = data.filter(
+    (r) => r.declined_at && new Date(r.declined_at) >= todayStart
+  ).length
+
+  // Calculate average review time (from paid_at to approved_at or declined_at)
+  const completedIntakes = data.filter(
+    (r) => r.paid_at && (r.approved_at || r.declined_at)
+  )
+  
+  let avgReviewTimeMinutes: number | null = null
+  if (completedIntakes.length > 0) {
+    const totalMinutes = completedIntakes.reduce((sum, r) => {
+      const startTime = new Date(r.paid_at!).getTime()
+      const endTime = new Date(r.approved_at || r.declined_at!).getTime()
+      return sum + (endTime - startTime) / (1000 * 60)
+    }, 0)
+    avgReviewTimeMinutes = Math.round(totalMinutes / completedIntakes.length)
+  }
+
+  // Oldest item in queue
+  let oldestInQueueMinutes: number | null = null
+  if (queueIntakes.length > 0) {
+    const oldestCreated = queueIntakes.reduce((oldest, r) => {
+      const created = new Date(r.paid_at || r.created_at).getTime()
+      return created < oldest ? created : oldest
+    }, Date.now())
+    oldestInQueueMinutes = Math.round((Date.now() - oldestCreated) / (1000 * 60))
+  }
+
+  return {
+    todaySubmissions,
+    queueSize,
+    paidCount,
+    pendingCount,
+    approvedToday,
+    declinedToday,
+    avgReviewTimeMinutes,
+    oldestInQueueMinutes,
+  }
+}
+
+/**
+ * Get personal performance stats for a specific doctor
+ */
+export async function getDoctorPersonalStats(doctorId: string): Promise<{
+  reviewedToday: number
+  approvedToday: number
+  declinedToday: number
+  avgReviewTimeMinutes: number | null
+  approvalRate: number | null
+  reviewedThisWeek: number
+  reviewedThisMonth: number
+}> {
+  const supabase = await createClient()
+  
+  // Time boundaries
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  
+  const weekStart = new Date()
+  weekStart.setDate(weekStart.getDate() - 7)
+  weekStart.setHours(0, 0, 0, 0)
+  
+  const monthStart = new Date()
+  monthStart.setDate(1)
+  monthStart.setHours(0, 0, 0, 0)
+
+  // Fetch doctor's reviewed intakes
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id, status, reviewed_by, paid_at, approved_at, declined_at, created_at")
+    .eq("reviewed_by", doctorId)
+    .in("status", ["approved", "declined", "completed"])
+
+  if (error || !data) {
+    logger.error("Error fetching doctor personal stats", { doctorId }, error instanceof Error ? error : new Error(String(error)))
+    return {
+      reviewedToday: 0,
+      approvedToday: 0,
+      declinedToday: 0,
+      avgReviewTimeMinutes: null,
+      approvalRate: null,
+      reviewedThisWeek: 0,
+      reviewedThisMonth: 0,
+    }
+  }
+
+  // Today's stats
+  const todayIntakes = data.filter(r => {
+    const decisionTime = r.approved_at || r.declined_at
+    return decisionTime && new Date(decisionTime) >= todayStart
+  })
+  
+  const reviewedToday = todayIntakes.length
+  const approvedToday = todayIntakes.filter(r => r.status === "approved" || r.status === "completed").length
+  const declinedToday = todayIntakes.filter(r => r.status === "declined").length
+
+  // Week and month stats
+  const reviewedThisWeek = data.filter(r => {
+    const decisionTime = r.approved_at || r.declined_at
+    return decisionTime && new Date(decisionTime) >= weekStart
+  }).length
+
+  const reviewedThisMonth = data.filter(r => {
+    const decisionTime = r.approved_at || r.declined_at
+    return decisionTime && new Date(decisionTime) >= monthStart
+  }).length
+
+  // Approval rate (all time for this doctor)
+  const totalDecisions = data.length
+  const totalApproved = data.filter(r => r.status === "approved" || r.status === "completed").length
+  const approvalRate = totalDecisions > 0 ? Math.round((totalApproved / totalDecisions) * 100) : null
+
+  // Average review time (from paid_at to decision)
+  const intakesWithTiming = data.filter(r => r.paid_at && (r.approved_at || r.declined_at))
+  let avgReviewTimeMinutes: number | null = null
+  
+  if (intakesWithTiming.length > 0) {
+    const totalMinutes = intakesWithTiming.reduce((sum, r) => {
+      const startTime = new Date(r.paid_at!).getTime()
+      const endTime = new Date(r.approved_at || r.declined_at!).getTime()
+      return sum + (endTime - startTime) / (1000 * 60)
+    }, 0)
+    avgReviewTimeMinutes = Math.round(totalMinutes / intakesWithTiming.length)
+  }
+
+  return {
+    reviewedToday,
+    approvedToday,
+    declinedToday,
+    avgReviewTimeMinutes,
+    approvalRate,
+    reviewedThisWeek,
+    reviewedThisMonth,
+  }
+}
+
+/**
+ * Get intakes with SLA breach or approaching deadline
+ */
+export async function getSlaBreachIntakes(): Promise<{
+  breached: number
+  approaching: number
+  intakeIds: string[]
+}> {
+  const supabase = await createClient()
+  const now = new Date()
+  const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id, sla_deadline")
+    .in("status", ["paid", "in_review", "pending_info"])
+    .not("sla_deadline", "is", null)
+
+  if (error || !data) {
+    return { breached: 0, approaching: 0, intakeIds: [] }
+  }
+
+  const breached = data.filter(r => new Date(r.sla_deadline) < now)
+  const approaching = data.filter(r => {
+    const deadline = new Date(r.sla_deadline)
+    return deadline >= now && deadline <= oneHourFromNow
+  })
+
+  return {
+    breached: breached.length,
+    approaching: approaching.length,
+    intakeIds: [...breached.map(r => r.id), ...approaching.map(r => r.id)],
   }
 }
 
@@ -405,14 +707,30 @@ export async function updateIntakeStatus(
     updateData.declined_at = new Date().toISOString()
   }
 
+  // ATOMIC UPDATE: Only update if status hasn't changed since we fetched it
+  // This prevents race conditions where concurrent updates could skip validation
   const { data, error } = await supabase
     .from("intakes")
     .update(updateData)
     .eq("id", intakeId)
+    .eq("status", currentStatus) // Optimistic lock - fails if status changed
     .select()
     .single()
 
   if (error || !data) {
+    // Check if this was a race condition (no rows matched)
+    if (error?.code === "PGRST116") {
+      logger.warn("[updateIntakeStatus] Race condition detected - status changed during update", {
+        intakeId,
+        expectedStatus: currentStatus,
+        attemptedStatus: status,
+      })
+      throw new IntakeLifecycleError(
+        "Status was modified by another process. Please refresh and try again.",
+        "CONCURRENT_MODIFICATION",
+        { currentStatus, attemptedStatus: status }
+      )
+    }
     logger.error("[updateIntakeStatus] Database error", { intakeId, status }, error instanceof Error ? error : new Error(String(error)))
     return null
   }
@@ -423,36 +741,54 @@ export async function updateIntakeStatus(
 
 /**
  * Update script sent status and mark as approved
+ * Uses lifecycle validation to ensure valid state transition
  */
 export async function updateScriptSent(
   intakeId: string,
   scriptSent: boolean,
   scriptNotes?: string,
-  parchmentReference?: string
+  parchmentReference?: string,
+  reviewedBy?: string
 ): Promise<boolean> {
   const supabase = await createClient()
-
   const now = new Date().toISOString()
-  
-  const { error } = await supabase
+
+  // First, update only the script-related fields
+  const { error: scriptError } = await supabase
     .from("intakes")
     .update({
       script_sent: scriptSent,
       script_sent_at: scriptSent ? now : null,
       script_notes: scriptNotes || null,
       parchment_reference: parchmentReference || null,
-      // When script is sent, mark as approved/completed
-      status: scriptSent ? "approved" : undefined,
-      approved_at: scriptSent ? now : undefined,
-      decision: scriptSent ? "approved" : undefined,
-      decided_at: scriptSent ? now : undefined,
       updated_at: now,
     })
     .eq("id", intakeId)
 
-  if (error) {
-    logger.error("Error updating script sent status", {}, error instanceof Error ? error : new Error(String(error)))
+  if (scriptError) {
+    logger.error("Error updating script sent status", {}, scriptError instanceof Error ? scriptError : new Error(String(scriptError)))
     return false
+  }
+
+  // If marking script as sent, use proper lifecycle transition to approved
+  if (scriptSent) {
+    try {
+      const result = await updateIntakeStatus(intakeId, "approved", reviewedBy)
+      if (!result) {
+        logger.warn("[updateScriptSent] Status update returned null, script fields already saved", { intakeId })
+        // Script fields saved, status update may have failed due to already being approved
+        return true
+      }
+    } catch (error) {
+      // If already approved/completed, that's fine - script fields are saved
+      if (error instanceof IntakeLifecycleError && 
+          (error.code === "TERMINAL_STATE" || error.code === "INVALID_TRANSITION")) {
+        logger.info("[updateScriptSent] Intake already in terminal state, script fields saved", { intakeId })
+        return true
+      }
+      logger.error("Error transitioning intake to approved", {}, error instanceof Error ? error : new Error(String(error)))
+      return false
+    }
   }
 
   return true

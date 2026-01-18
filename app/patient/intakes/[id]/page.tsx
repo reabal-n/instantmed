@@ -3,6 +3,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeForPatient } from "@/lib/data/intakes"
 import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { getIntakeDocument } from "@/lib/data/intake-documents"
+import { checkEmailVerified } from "@/app/actions/resend-verification"
 import { IntakeDetailClient } from "./client"
 import type { Metadata } from "next"
 
@@ -36,6 +37,9 @@ export default async function PatientIntakeDetailPage({
     notFound()
   }
   
+  // Check email verification status
+  const { verified: isEmailVerified, email: userEmail } = await checkEmailVerified()
+  
   // Fetch document for approved intakes
   let document = null
   let intakeDocument = null
@@ -52,6 +56,8 @@ export default async function PatientIntakeDetailPage({
       document={document}
       intakeDocument={intakeDocument}
       retryPayment={retry === "true"}
+      isEmailVerified={isEmailVerified}
+      userEmail={userEmail}
     />
   )
 }

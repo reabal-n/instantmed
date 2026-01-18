@@ -8,6 +8,8 @@ import type { FlowState, FlowActions, FlowStepId } from './types'
 import type { IdentityData as _IdentityData, ConsentRecord as _ConsentRecord } from './types'
 import type { SyncStatus } from './draft/types'
 import { getSessionId, saveLocalDraft, loadLocalDraft } from './draft/storage'
+import { validateIHI } from '@/lib/validation/ihi'
+import { validateMedicareNumber } from '@/lib/validation/medicare'
 
 // Placeholder values for SSR - will be replaced on client hydration
 const SSR_SESSION_ID = 'ssr_placeholder'
@@ -506,13 +508,26 @@ export const useFlowStore = create<FlowStore>()(
               }
             }
             
-            // For prescription flows: require Medicare OR IHI (for eScript issuance)
-            const hasMedicare = state.identityData.medicareNumber && String(state.identityData.medicareNumber).length >= 10
-            const hasIHI = state.identityData.ihi && String(state.identityData.ihi).length >= 16
+            // For prescription flows: require valid Medicare OR valid IHI (for eScript issuance)
+            const medicareValue = state.identityData.medicareNumber ? String(state.identityData.medicareNumber) : ''
+            const ihiValue = state.identityData.ihi ? String(state.identityData.ihi) : ''
+            
+            const medicareValidation = medicareValue ? validateMedicareNumber(medicareValue) : { valid: false }
+            const ihiValidation = ihiValue ? validateIHI(ihiValue) : { valid: false }
+            
+            const hasMedicare = medicareValidation.valid
+            const hasIHI = ihiValidation.valid
             
             if (!hasMedicare && !hasIHI) {
               missingFields.push('medicareOrIhi')
-              errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
+              // Provide specific error if they entered something invalid
+              if (medicareValue && !medicareValidation.valid) {
+                errors['medicareOrIhi'] = medicareValidation.error || 'Invalid Medicare number'
+              } else if (ihiValue && !ihiValidation.valid) {
+                errors['medicareOrIhi'] = ihiValidation.error || 'Invalid IHI number'
+              } else {
+                errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
+              }
             }
           }
         } else {
@@ -533,13 +548,25 @@ export const useFlowStore = create<FlowStore>()(
               }
             }
             
-            // Require Medicare OR IHI
-            const hasMedicare = state.answers.patient_medicare && String(state.answers.patient_medicare).length >= 10
-            const hasIHI = state.answers.patient_ihi && String(state.answers.patient_ihi).length >= 16
+            // Require valid Medicare OR valid IHI
+            const medicareValue = state.answers.patient_medicare ? String(state.answers.patient_medicare) : ''
+            const ihiValue = state.answers.patient_ihi ? String(state.answers.patient_ihi) : ''
+            
+            const medicareValidation = medicareValue ? validateMedicareNumber(medicareValue) : { valid: false }
+            const ihiValidation = ihiValue ? validateIHI(ihiValue) : { valid: false }
+            
+            const hasMedicare = medicareValidation.valid
+            const hasIHI = ihiValidation.valid
             
             if (!hasMedicare && !hasIHI) {
               missingFields.push('medicareOrIhi')
-              errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
+              if (medicareValue && !medicareValidation.valid) {
+                errors['medicareOrIhi'] = medicareValidation.error || 'Invalid Medicare number'
+              } else if (ihiValue && !ihiValidation.valid) {
+                errors['medicareOrIhi'] = ihiValidation.error || 'Invalid IHI number'
+              } else {
+                errors['medicareOrIhi'] = 'Medicare number or IHI is required for prescriptions (needed for eScript)'
+              }
             }
           }
         }

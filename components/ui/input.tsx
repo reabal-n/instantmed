@@ -40,9 +40,8 @@ function Input({
           "transition-all duration-200",
           // Hover state
           "hover:!border-slate-300 dark:hover:!border-slate-600",
-          // Focus state
+          // Focus state - border only, no ring (single visual boundary)
           "data-[focused=true]:!border-primary",
-          "data-[focused=true]:!ring-2 data-[focused=true]:!ring-primary/20",
           // Mobile optimizations
           "min-h-[48px] md:min-h-0",
           "text-base md:text-sm",

@@ -66,10 +66,8 @@ export function FlowShell({
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        saveDraft().catch((err) => {
+        saveDraft().catch(() => {
           // Silently handle save errors - draft will be in localStorage
-          // eslint-disable-next-line no-console
-          if (process.env.NODE_ENV === 'development') console.warn('Auto-save failed:', err)
         })
       } catch {
         // Ignore errors
@@ -98,7 +96,7 @@ export function FlowShell({
   }, [stepIndex, prevStep, handleExit])
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
+    <div className="min-h-dvh bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
       {/* Subtle noise texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"

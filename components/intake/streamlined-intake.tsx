@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button, Input } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
@@ -282,6 +283,7 @@ export function StreamlinedIntake({
   onSubmit,
   onAuthRequired,
 }: StreamlinedIntakeProps) {
+  const router = useRouter()
   const [step, setStep] = useState<IntakeStep>("purpose")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -580,8 +582,8 @@ export function StreamlinedIntake({
                 <Clock className="w-4 h-4 text-muted-foreground" />
                 How long do you need?
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {["1 day", "2 days", "3 days", "4-5 days", "1 week", "Custom"].map((d) => (
+              <div className="grid grid-cols-2 gap-2">
+                {["1 day", "2 days"].map((d) => (
                   <DurationChip
                     key={d}
                     selected={formData.duration === d}
@@ -590,6 +592,21 @@ export function StreamlinedIntake({
                   />
                 ))}
               </div>
+              {/* Discreet link for longer durations - routes to general consultation */}
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    source: 'med_cert',
+                    reason: 'extended_duration',
+                    intended_duration: 'more_than_2_days',
+                  })
+                  router.push(`/consult?${params.toString()}`)
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
+              >
+                More than 2 days?
+              </button>
               {errors.duration && (
                 <p className="text-xs text-destructive">{errors.duration}</p>
               )}

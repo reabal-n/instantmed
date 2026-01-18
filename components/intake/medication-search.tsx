@@ -258,7 +258,7 @@ export function MedicationSearch({
           className={cn(
             "w-full h-12 pl-10 pr-10 rounded-xl border bg-background text-base",
             "placeholder:text-muted-foreground/60 placeholder:text-sm",
-            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+            "focus:outline-none focus:border-primary",
             "transition-all duration-200",
             hasSelection && "border-green-500/50 bg-green-50/30",
             disabled && "opacity-50 cursor-not-allowed"
@@ -342,9 +342,32 @@ export function MedicationSearch({
         options.length === 0 &&
         inputValue.length >= 2 &&
         !isLoading && (
-          <div className="absolute z-60 w-full mt-1 p-4 rounded-xl border bg-background shadow-lg">
+          <div className="absolute z-60 w-full mt-1 p-4 rounded-xl border bg-background shadow-lg space-y-3">
             <p className="text-sm text-muted-foreground text-center">
-              No results found
+              No results found for &quot;{inputValue}&quot;
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const sanitizedName = sanitizeMedicationInput(inputValue)
+                if (sanitizedName.length >= 2) {
+                  const manualEntry: SelectedPBSProduct = {
+                    pbs_code: "MANUAL",
+                    drug_name: sanitizedName,
+                    form: null,
+                    strength: null,
+                  }
+                  onChange(manualEntry)
+                  setInputValue(sanitizedName)
+                  setIsOpen(false)
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors"
+            >
+              Continue with &quot;{inputValue}&quot;
+            </button>
+            <p className="text-xs text-muted-foreground text-center">
+              A doctor will confirm the exact medication
             </p>
           </div>
         )}
@@ -352,6 +375,28 @@ export function MedicationSearch({
       <p className="mt-2 text-xs text-muted-foreground">
         This helps with record accuracy. A doctor will review everything.
       </p>
+
+      {/* "I don't know" fallback button - graceful degradation for users who can't recall medication name */}
+      {!value && (
+        <button
+          type="button"
+          onClick={() => {
+            const unknownEntry: SelectedPBSProduct = {
+              pbs_code: "UNKNOWN",
+              drug_name: "Unknown - doctor will confirm",
+              form: null,
+              strength: null,
+            }
+            onChange(unknownEntry)
+            setInputValue("Unknown - doctor will confirm")
+            setIsOpen(false)
+            setAnnouncement("Selected: I don't know the exact name. A doctor will help identify it.")
+          }}
+          className="mt-2 text-xs text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+        >
+          I don&apos;t know the exact name
+        </button>
+      )}
 
       {/* Screen reader announcements */}
       <div

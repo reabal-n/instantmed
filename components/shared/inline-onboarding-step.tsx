@@ -233,6 +233,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               placeholder="Start typing your address..."
               className="h-11 rounded-xl bg-white/50 border-white/40"
               error={errors.addressLine1}
+              requireVerified={true}
             />
             <Input
               placeholder="Apartment, unit, etc. (optional)"
