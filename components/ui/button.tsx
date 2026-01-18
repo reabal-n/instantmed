@@ -100,6 +100,8 @@ function Button({
   ripple = true,
   className,
   children,
+  onClick,
+  onPress,
   ...props
 }: ButtonProps) {
   if (asChild) {
@@ -108,6 +110,10 @@ function Button({
 
   const isIconOnly = size?.startsWith("icon")
   const heroSize = sizeMap[size || "default"]
+  
+  // Map onClick to onPress for HeroUI compatibility
+  // HeroUI uses onPress instead of onClick
+  const handlePress = onPress ?? (onClick ? () => onClick({} as React.MouseEvent<HTMLButtonElement>) : undefined)
 
   const buttonContent = (
     <HeroButton
@@ -116,6 +122,7 @@ function Button({
       size={heroSize}
       radius="full" // Soft Pop Glass: pill-shaped buttons
       isIconOnly={isIconOnly}
+      onPress={handlePress}
       className={cn(
         // Base styles - Lumen typography
         "font-sans font-semibold",
