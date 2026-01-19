@@ -7,9 +7,19 @@
 
 import { Redis } from '@upstash/redis'
 import { createLogger } from '@/lib/observability/logger'
-import crypto from 'crypto'
 
 const log = createLogger('ai-cache')
+
+/**
+ * Generate SHA-256 hash using Web Crypto API (works in Edge runtime)
+ */
+async function sha256(input: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(input)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
 
 // Cache TTLs in seconds
 const CACHE_TTL = {
@@ -35,14 +45,9 @@ function getRedis(): Redis | null {
 /**
  * Generate cache key from input
  */
-function generateCacheKey(type: CacheType, input: string, context?: string): string {
-  const hash = crypto
-    .createHash('sha256')
-    .update(`${type}:${input}:${context || ''}`)
-    .digest('hex')
-    .slice(0, 16)
-  
-  return `ai:${type}:${hash}`
+async function generateCacheKey(type: CacheType, input: string, context?: string): Promise<string> {
+  const hash = await sha256(`${type}:${input}:${context || ''}`)
+  return `ai:${type}:${hash.slice(0, 16)}`
 }
 
 /**
@@ -57,7 +62,7 @@ export async function getCachedResponse<T>(
     const client = getRedis()
     if (!client) return null
     
-    const key = generateCacheKey(type, input, context)
+    const key = await generateCacheKey(type, input, context)
     const cached = await client.get<T>(key)
     
     if (cached) {
@@ -85,7 +90,7 @@ export async function setCachedResponse<T>(
     const client = getRedis()
     if (!client) return
     
-    const key = generateCacheKey(type, input, context)
+    const key = await generateCacheKey(type, input, context)
     const ttl = CACHE_TTL[type]
     
     await client.set(key, response, { ex: ttl })
@@ -107,7 +112,7 @@ export async function invalidateCache(
     const client = getRedis()
     if (!client) return
     
-    const key = generateCacheKey(type, input, context)
+    const key = await generateCacheKey(type, input, context)
     await client.del(key)
     log.debug('AI cache invalidated', { type, key })
   } catch (error) {

@@ -175,7 +175,7 @@ export async function notifyPatientViaSms(
 /**
  * Validate if a phone number looks like a valid Australian mobile
  */
-export function isValidAustralianMobile(phone: string): boolean {
+export async function isValidAustralianMobile(phone: string): Promise<boolean> {
   const formatted = formatAustralianMobile(phone)
   return formatted !== null && formatted.startsWith("+614")
 }
