@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/nextjs"
 // Simple in-memory token bucket for fallback rate limiting
 // Note: Only works per-instance, not distributed
 const memoryBuckets = new Map<string, { tokens: number; lastRefill: number }>()
-const MEMORY_LIMITS = { auth: 5, ai: 10, checkout: 5, global: 100 }
+const MEMORY_LIMITS = { auth: 15, ai: 10, checkout: 5, global: 100 }
 
 function memoryFallbackCheck(identifier: string, type: 'auth' | 'ai' | 'checkout' | 'global'): { success: boolean } {
   const key = `${type}:${identifier}`
@@ -49,12 +49,12 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-// Stricter rate limiter for auth endpoints
+// Rate limiter for auth endpoints (15 req/min allows normal login flows)
 let authRateLimiter: Ratelimit | null = null
 if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
   authRateLimiter = new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(5, "60 s"),
+    limiter: Ratelimit.slidingWindow(15, "60 s"),
     analytics: true,
     prefix: "ratelimit:auth",
   })

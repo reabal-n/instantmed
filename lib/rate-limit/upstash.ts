@@ -14,10 +14,10 @@ const rateLimiters = {
     prefix: "ratelimit:api",
   }),
 
-  // Auth endpoints: 5 requests per 60 seconds (stricter)
+  // Auth endpoints: 15 requests per 60 seconds (allows normal login flows)
   auth: new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(5, "60 s"),
+    limiter: Ratelimit.slidingWindow(15, "60 s"),
     analytics: true,
     prefix: "ratelimit:auth",
   }),
