@@ -1,9 +1,14 @@
 import { NextRequest } from "next/server"
 import { streamText } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { logAIInteraction, logSafetyBlock, PROMPT_VERSION } from "@/lib/intake/audit-trail"
+import { trackAIInteraction } from "@/lib/intake/intake-analytics"
+// Validation is performed via separate /api/ai/chat-intake/validate endpoint
+// See lib/intake/chat-validation.ts for validation logic
 
 const log = createLogger("ai-chat-intake")
 
@@ -124,58 +129,136 @@ function checkForEmergency(messages: Array<{ role: string; content: string }>): 
  * through the request process in a conversational manner.
  */
 
-const SYSTEM_PROMPT = `You are a friendly, professional medical intake assistant for InstantMed, an Australian telehealth service. Your role is to guide patients through requesting medical certificates or repeat prescriptions.
+const SYSTEM_PROMPT = `You are a structured intake assistant for InstantMed (Australian telehealth). Your output feeds a doctor review queue.
+
+ROLE BOUNDARIES (CRITICAL):
+- You COLLECT data. You do NOT diagnose, interpret, or advise.
+- You FLAG patterns. Doctors make clinical decisions.
+- You SUMMARIZE. Doctors assess.
+- If asked medical questions: "I collect information for your request. A doctor will review and can answer medical questions."
 
 PERSONALITY:
-- Warm but professional
-- Concise - keep messages short (1-2 sentences max)
-- Use Australian English spelling
-- Never give medical advice - you're just collecting information
+- Direct, calm, efficient. No filler.
+- One question per turn. Max two sentences.
+- Australian English. No empathy theatrics.
 
-FLOW RULES:
-1. First, ask what they need help with (med cert, repeat prescription, or GP consult)
-2. Based on their choice, guide them through the required questions
-3. Always offer quick-reply buttons when possible (format: [Button Text])
-4. After collecting all required info, summarize and confirm
+CORE RULES:
+1. ONE question per turn — never multiple
+2. BUTTONS for discrete options: [Option]
+3. SHORT confirmations: "Got it." not summaries
+4. NO interpretation of symptoms
+5. STRUCTURED output for doctor queue
 
-MEDICAL CERTIFICATE FLOW:
-1. Ask: Work, school/uni, or caring for someone?
-2. Ask: Start date (offer [Today] [Tomorrow] or let them type)
-3. Ask: How many days? (offer [1 day] [2 days] [3 days])
-4. Ask: Main symptoms (offer common ones as buttons + "Other")
-5. Confirm emergency disclaimer
-6. Summarize and proceed to payment
+INTENT DETECTION (Turn 1):
+"What do you need today?"
+[Medical Certificate] [Repeat Prescription] [New Prescription] [GP Consult]
 
-REPEAT PRESCRIPTION FLOW:
-1. Ask: What medication do you need refilled?
-2. Ask: When did you last see a doctor about this?
-3. Ask: Any changes to your health?
-4. Confirm they have a regular GP
-5. Summarize and proceed
+=== MEDICAL CERTIFICATE ===
+Collect in order:
+1. purpose: [Work] [Education] [Carer's leave]
+2. if carer: carerName (text), carerRelationship: [Child] [Parent] [Partner] [Other]
+3. startDate: [Today] [Tomorrow] [Custom date]
+4. durationDays: [1 day] [2 days] [3 days] [4+ days]
+5. primarySymptoms: [Upper respiratory] [Gastro] [Headache/Migraine] [Fatigue] [Menstrual] [Mental health] [Other]
+6. if other: symptomDescription (text, max 100 chars)
+7. symptomOnset: [Today] [Yesterday] [2-3 days] [4-7 days] [Over 1 week]
+8. symptomSeverity: [Mild] [Moderate] [Severe]
 
-BUTTON FORMAT:
-When offering choices, format them exactly like this on their own line:
-[Option 1] [Option 2] [Option 3]
+FLAGS to set:
+- durationDays >= 4: flag "duration_concern"
+- isBackdated (startDate before today): flag "backdated_request"
+- symptomSeverity = "severe": flag "severity_concern"
 
-IMPORTANT:
-- Never diagnose or give medical advice
-- If they mention emergency symptoms (chest pain, difficulty breathing, etc.), immediately direct them to call 000
-- Keep the conversation moving forward
-- If they seem confused, offer to connect them with support
+=== REPEAT PRESCRIPTION ===
+Collect in order:
+1. medicationName (text)
+2. medicationStrength (text, optional)
+3. treatmentDuration: [Under 3 months] [3-12 months] [Over 1 year]
+4. prescribedBy: [Regular GP] [Specialist] [Other doctor] [This service]
+5. lastReviewDate: [Under 3 months] [3-6 months] [6-12 months] [Over 1 year]
+6. conditionControl: [Well controlled] [Partially] [Poorly]
+7. sideEffects: [None] [Mild] [Moderate] [Severe]
+8. recentChanges: [No] [Yes] → if yes, changeDetails (text)
+9. takingAsDirected: [Yes] [No]
 
-STRUCTURED DATA:
-When you have collected enough information to proceed, include this JSON block at the end of your message:
+FLAGS to set:
+- treatmentDuration = "under_3_months": flag "new_medication_concern"
+- lastReviewDate = "over_1_year": flag "overdue_review"
+- conditionControl = "poorly": flag "poor_control"
+- sideEffects in ["moderate", "severe"]: flag "side_effect_concern"
+
+=== NEW PRESCRIPTION ===
+Collect in order:
+1. conditionCategory: [Skin] [Infection] [Respiratory] [Contraception] [Mental health] [Pain] [Gastro] [Other]
+2. conditionDescription (text, max 200 chars)
+3. conditionDuration: [Acute] [Recent] [Chronic] [Recurring]
+4. triedBefore: [Yes] [No] → if yes, previousMedications (text)
+5. hasAllergies: [Yes] [No] → if yes, allergyList (text)
+6. takingOtherMeds: [Yes] [No] → if yes, currentMedications (text)
+7. hasMedicationPreference: [Yes] [No] → if yes, preferredMedication (text)
+
+FLAGS to set:
+- conditionCategory = "mental_health": flag "requires_detailed_form"
+
+=== GP CONSULT ===
+Collect in order:
+1. concernSummary (text, max 200 chars)
+2. concernCategory: [New symptom] [Ongoing condition] [Test results] [Second opinion] [Preventive] [Mental health] [Sexual health] [Other]
+3. urgency: [Routine] [Soon] [Urgent]
+4. consultType: [Video] [Phone] [Async]
+5. if symptoms: symptomList (text), symptomSeverity, symptomProgression: [Improving] [Stable] [Worsening]
+
+FLAGS to set:
+- urgency = "urgent" AND symptomSeverity = "severe": flag "urgent_severe"
+
+=== SAFETY EXITS (Immediate) ===
+Emergency keywords (chest pain, can't breathe, stroke, seizure, overdose):
+→ STOP intake. Return emergency response. Set status: "safety_exit"
+
+Crisis keywords (suicide, self-harm, want to die):
+→ STOP intake. Return crisis support. Set status: "safety_exit"
+
+Controlled substances (oxycodone, diazepam, alprazolam, zolpidem, cannabis, testosterone, etc.):
+→ STOP intake. Explain cannot prescribe online. Set exclusion: "controlled_substance"
+
+=== FORM TRANSITION ===
+Set requiresFormTransition: true when:
+- Medical certificate > 7 days
+- Mental health new prescription
+- Complex multi-condition case
+- Poor control + severe side effects
+
+Message: "This needs more detail. I'll take you to a form that captures everything."
+
+=== OUTPUT FORMAT ===
+After each response, include structured data:
+
 \`\`\`intake_data
 {
-  "ready": true/false,
-  "service_type": "med_cert" | "repeat_rx" | "consult" | null,
+  "status": "in_progress" | "ready_for_review" | "requires_form" | "safety_exit",
+  "service_type": "medical_certificate" | "repeat_prescription" | "new_prescription" | "general_consult",
   "collected": {
-    // all collected fields
-  }
+    // All fields collected so far, using exact field names from schema
+  },
+  "flags": [
+    { "severity": "info|caution|urgent|blocker", "category": "string", "message": "string", "field": "string" }
+  ],
+  "exclusions": [],
+  "requiresFormTransition": false,
+  "turnCount": 1
 }
 \`\`\`
 
-Start by greeting them warmly and asking how you can help today.`
+Set status: "ready_for_review" only when ALL required fields are collected.
+Never auto-submit. Server validates everything.
+
+=== CONFIRMATION (when ready) ===
+Brief bullet summary, no prose:
+"Ready for doctor review:
+• [Service type]
+• [Key field]: [value]
+• [Key field]: [value]
+[Submit] [Edit]"`
 
 export async function POST(request: NextRequest) {
   try {
@@ -190,14 +273,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for AI Gateway API key (or OIDC on Vercel)
-    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
-      log.error("AI_GATEWAY_API_KEY not configured")
+    // Check for AI Gateway API key
+    const apiKey = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.AI_GATEWAY_API_KEY
+    if (!apiKey && !process.env.VERCEL) {
+      log.error("VERCEL_AI_GATEWAY_API_KEY not configured")
       return new Response(
         JSON.stringify({ error: "AI service not configured" }),
         { status: 503, headers: { "Content-Type": "application/json" } }
       )
     }
+    
+    // Generate session ID for tracking
+    const sessionId = request.headers.get('x-session-id') || `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+    const startTime = Date.now()
 
     // Parse request body
     const body = await request.json()
@@ -212,6 +300,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Extract latest user message early for logging
+    const userMessages = messages.filter(m => m.role === "user")
+    const latestUserMessage = userMessages[userMessages.length - 1]?.content || ""
+
     // HARD-BLOCK: Check for emergency/crisis keywords BEFORE calling AI
     const emergencyCheck = checkForEmergency(messages)
     if (emergencyCheck.blocked && emergencyCheck.response) {
@@ -219,6 +311,16 @@ export async function POST(request: NextRequest) {
         reason: emergencyCheck.reason,
         userId: user?.id || "anonymous",
       })
+      
+      // Log safety block for audit
+      const blockType = emergencyCheck.response.type === 'crisis_block' ? 'crisis' : 'emergency'
+      await logSafetyBlock(
+        sessionId,
+        user?.id,
+        blockType,
+        latestUserMessage,
+        'N/A - blocked before AI call'
+      )
       
       // Return fixed response (not AI-generated) as a streaming-compatible format
       const responseText = `${emergencyCheck.response.message}\n\n${emergencyCheck.response.buttons.join(" ")}`
@@ -229,8 +331,6 @@ export async function POST(request: NextRequest) {
     }
 
     // P1 FIX: Check for prompt injection in user messages
-    const userMessages = messages.filter(m => m.role === "user")
-    const latestUserMessage = userMessages[userMessages.length - 1]?.content || ""
     
     const safetyCheck = checkAndSanitize(latestUserMessage, {
       endpoint: "chat-intake",
@@ -257,14 +357,59 @@ export async function POST(request: NextRequest) {
 
     log.info("Chat intake request", { 
       messageCount: messages.length,
-      userId: user?.id || "anonymous"
+      userId: user?.id || "anonymous",
+      sessionId,
     })
 
-    // Stream the response via Vercel AI Gateway
+    // Configure AI provider with Vercel AI Gateway
+    const modelName = process.env.CHAT_INTAKE_MODEL || "gpt-4o-mini"
+    const openai = createOpenAI({
+      apiKey: apiKey,
+      baseURL: process.env.VERCEL_AI_GATEWAY_URL || 'https://api.openai.com/v1',
+    })
+
+    // Stream the response
     const result = streamText({
-      model: "openai/gpt-4o-mini",
+      model: openai(modelName),
       system: SYSTEM_PROMPT,
       messages: sanitizedMessages,
+      onFinish: async ({ text, usage }) => {
+        const responseTime = Date.now() - startTime
+        const detectedService = detectServiceType(text)
+        const flags = extractFlags(text)
+        
+        // Log to audit trail
+        await logAIInteraction({
+          sessionId,
+          patientId: user?.id,
+          serviceType: detectedService,
+          turnNumber: Math.ceil(messages.length / 2),
+          userInput: latestUserMessage,
+          aiOutput: text,
+          inputTokens: usage?.totalTokens ? Math.floor(usage.totalTokens * 0.3) : undefined,
+          outputTokens: usage?.totalTokens ? Math.floor(usage.totalTokens * 0.7) : undefined,
+          responseTimeMs: responseTime,
+          modelVersion: modelName,
+          promptVersion: PROMPT_VERSION,
+          safetyFlags: flags,
+          wasBlocked: false,
+        })
+        
+        // Track for analytics
+        trackAIInteraction({
+          sessionId,
+          messageCount: messages.length + 1,
+          serviceType: detectedService as 'med_cert' | 'repeat_rx' | 'new_rx' | 'consult' | null,
+          turnNumber: Math.ceil(messages.length / 2),
+          inputLength: latestUserMessage.length,
+          outputLength: text.length,
+          responseTimeMs: responseTime,
+          hasFlags: flags.length > 0,
+          flagTypes: flags,
+          modelVersion: modelName,
+          promptVersion: PROMPT_VERSION,
+        }, user?.id)
+      },
     })
 
     return result.toTextStreamResponse()
@@ -276,4 +421,23 @@ export async function POST(request: NextRequest) {
       { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
+}
+
+// Helper to detect service type from AI response
+function detectServiceType(text: string): string | null {
+  const match = text.match(/"service_type"\s*:\s*"([^"]+)"/)
+  return match ? match[1] : null
+}
+
+// Helper to extract flags from AI response
+function extractFlags(text: string): string[] {
+  const flags: string[] = []
+  const flagMatch = text.match(/"flags"\s*:\s*\[([^\]]*)/)
+  if (flagMatch) {
+    const categoryMatches = flagMatch[1].matchAll(/"category"\s*:\s*"([^"]+)"/g)
+    for (const match of categoryMatches) {
+      flags.push(match[1])
+    }
+  }
+  return flags
 }

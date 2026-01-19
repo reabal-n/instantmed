@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// P1 DOCTOR_WORKLOAD_AUDIT: Tabs removed - flattened into single scrollable view
 import {
   Select,
   SelectItem,
@@ -345,82 +345,75 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
               </div>
             </SectionCard>
             
-            {/* Clinical history */}
-            <SectionCard title="Clinical History" icon={FileText}>
-              <Tabs defaultValue="history">
-                <TabsList>
-                  <TabsTrigger value="history">History</TabsTrigger>
-                  <TabsTrigger value="safety">Safety</TabsTrigger>
-                  <TabsTrigger value="pmhx">PMHx</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="history" className="pt-4">
-                  <div className="space-y-0">
-                    <DataRow 
-                      label="Stability duration" 
-                      value={summary.patientReported.stabilityDuration}
-                      highlight={summary.patientReported.stabilityDuration === "6_months_plus"}
+            {/* P1 DOCTOR_WORKLOAD_AUDIT: Flattened clinical history - no more tabs */}
+            {/* History Section */}
+            <SectionCard title="Medication History" icon={FileText}>
+              <div className="space-y-0">
+                <DataRow 
+                  label="Stability duration" 
+                  value={summary.patientReported.stabilityDuration}
+                  highlight={summary.patientReported.stabilityDuration === "6_months_plus"}
+                />
+                <DataRow label="Last prescribed" value={summary.patientReported.lastPrescribed} />
+                <DataRow label="Original prescriber" value={summary.patientReported.originalPrescriber} />
+                <DataRow 
+                  label="Dose changed recently" 
+                  value={summary.patientReported.doseChangedRecently ? "Yes" : "No"}
+                  highlight={summary.patientReported.doseChangedRecently}
+                />
+              </div>
+            </SectionCard>
+            
+            {/* Safety Section */}
+            <SectionCard title="Safety Considerations" icon={Shield}>
+              <div className="space-y-0">
+                <DataRow 
+                  label="Side effects" 
+                  value={summary.patientReported.sideEffects}
+                  highlight={summary.patientReported.sideEffects === "significant"}
+                />
+                {summary.patientReported.sideEffectsDetails && (
+                  <DataRow 
+                    label="Side effects details" 
+                    value={summary.patientReported.sideEffectsDetails}
+                  />
+                )}
+                <DataRow 
+                  label="Pregnant/breastfeeding" 
+                  value={summary.patientReported.pregnantOrBreastfeeding ? "Yes" : "No"}
+                  highlight={summary.patientReported.pregnantOrBreastfeeding}
+                />
+                <DataRow 
+                  label="Allergies" 
+                  value={summary.patientReported.allergies.length > 0 
+                    ? summary.patientReported.allergies.join(", ")
+                    : "None reported"
+                  }
+                />
+              </div>
+            </SectionCard>
+            
+            {/* PMHx Section */}
+            <SectionCard title="Past Medical History" icon={ClipboardList}>
+              <div className="space-y-0">
+                {Object.entries(summary.patientReported.pmhxFlags).map(([key, value]) => {
+                  if (key === "otherDetails") return null
+                  return (
+                    <DataRow
+                      key={key}
+                      label={key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase())}
+                      value={value ? "Yes" : "No"}
+                      highlight={Boolean(value)}
                     />
-                    <DataRow label="Last prescribed" value={summary.patientReported.lastPrescribed} />
-                    <DataRow label="Original prescriber" value={summary.patientReported.originalPrescriber} />
-                    <DataRow 
-                      label="Dose changed recently" 
-                      value={summary.patientReported.doseChangedRecently ? "Yes" : "No"}
-                      highlight={summary.patientReported.doseChangedRecently}
-                    />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="safety" className="pt-4">
-                  <div className="space-y-0">
-                    <DataRow 
-                      label="Side effects" 
-                      value={summary.patientReported.sideEffects}
-                      highlight={summary.patientReported.sideEffects === "significant"}
-                    />
-                    {summary.patientReported.sideEffectsDetails && (
-                      <DataRow 
-                        label="Side effects details" 
-                        value={summary.patientReported.sideEffectsDetails}
-                      />
-                    )}
-                    <DataRow 
-                      label="Pregnant/breastfeeding" 
-                      value={summary.patientReported.pregnantOrBreastfeeding ? "Yes" : "No"}
-                      highlight={summary.patientReported.pregnantOrBreastfeeding}
-                    />
-                    <DataRow 
-                      label="Allergies" 
-                      value={summary.patientReported.allergies.length > 0 
-                        ? summary.patientReported.allergies.join(", ")
-                        : "None reported"
-                      }
-                    />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="pmhx" className="pt-4">
-                  <div className="space-y-0">
-                    {Object.entries(summary.patientReported.pmhxFlags).map(([key, value]) => {
-                      if (key === "otherDetails") return null
-                      return (
-                        <DataRow
-                          key={key}
-                          label={key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase())}
-                          value={value ? "Yes" : "No"}
-                          highlight={Boolean(value)}
-                        />
-                      )
-                    })}
-                    {summary.patientReported.otherMedications.length > 0 && (
-                      <DataRow
-                        label="Other medications"
-                        value={summary.patientReported.otherMedications.join(", ")}
-                      />
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                  )
+                })}
+                {summary.patientReported.otherMedications.length > 0 && (
+                  <DataRow
+                    label="Other medications"
+                    value={summary.patientReported.otherMedications.join(", ")}
+                  />
+                )}
+              </div>
             </SectionCard>
             
             {/* Attestations */}

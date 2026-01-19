@@ -18,6 +18,7 @@ import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { ChatIntakeButton } from "@/components/chat/chat-intake"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
+import { CookieBanner } from "@/components/shared/cookie-banner"
 import Script from "next/script"
 import "./globals.css"
 
@@ -220,6 +221,7 @@ export default function RootLayout({
               <WebVitalsReporter />
               <PostHogIdentify />
               <ServiceWorkerRegistration />
+              <CookieBanner />
             </HeroUIProviderWrapper>
           </ThemeProvider>
         </SupabaseAuthProvider>

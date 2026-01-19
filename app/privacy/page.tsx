@@ -73,8 +73,62 @@ export default function PrivacyPage() {
               </ul>
             </section>
 
+            <section className="mb-8" id="ai">
+              <h2 className="text-xl font-semibold mb-4">4. AI-Assisted Documentation</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We use artificial intelligence to assist with certain tasks:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                <li>Summarizing your intake information for efficient doctor review</li>
+                <li>Drafting documents such as medical certificates (always reviewed by a doctor)</li>
+                <li>Improving the intake experience through smart suggestions</li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                <strong>Important:</strong> AI does not make any clinical decisions. All medical decisions are made 
+                by registered Australian doctors. AI-generated content is always reviewed and approved by a clinician 
+                before being finalized.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Your health information may be processed by AI systems operated by third-party providers (such as OpenAI). 
+                This processing may occur in the United States under appropriate data protection agreements. We only send 
+                the minimum information necessary, and data is not used to train AI models.
+              </p>
+            </section>
+
+            <section className="mb-8" id="third-parties">
+              <h2 className="text-xl font-semibold mb-4">5. Third-Party Service Providers</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We share limited information with trusted service providers to deliver our services:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                <li>
+                  <strong>Stripe:</strong> Payment processing (card details, transaction amount). Your payment 
+                  information is processed securely by Stripe and we never store your full card number.
+                </li>
+                <li>
+                  <strong>Resend:</strong> Email delivery (email address, notification content such as appointment 
+                  confirmations and certificate delivery).
+                </li>
+                <li>
+                  <strong>Twilio:</strong> SMS delivery (phone number, message content such as eScript delivery).
+                </li>
+                <li>
+                  <strong>OpenAI:</strong> AI-assisted documentation (de-identified health information summaries 
+                  for intake processing).
+                </li>
+                <li>
+                  <strong>Supabase:</strong> Database hosting (all data, stored in Australia).
+                </li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed">
+                These providers are contractually bound to protect your information and only use it to provide 
+                services to us. We conduct due diligence on all providers to ensure they meet our security and 
+                privacy standards.
+              </p>
+            </section>
+
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">4. Health Information</h2>
+              <h2 className="text-xl font-semibold mb-4">6. Health Information</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Your health information is treated with the highest level of confidentiality. We only collect health
                 information that is necessary to provide you with medical services. This information is stored securely
@@ -84,7 +138,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">5. Data Security</h2>
+              <h2 className="text-xl font-semibold mb-4">7. Data Security</h2>
               <p className="text-muted-foreground leading-relaxed">
                 We implement industry-standard security measures to protect your information, including encryption in
                 transit and at rest, secure cloud infrastructure hosted in Australia, regular security audits, and
@@ -93,7 +147,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">6. Your Rights</h2>
+              <h2 className="text-xl font-semibold mb-4">8. Your Rights</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">You have the right to:</p>
               <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                 <li>Access your personal information</li>
@@ -104,8 +158,8 @@ export default function PrivacyPage() {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">7. Cookies and Analytics</h2>
+            <section className="mb-8" id="cookies">
+              <h2 className="text-xl font-semibold mb-4">9. Cookies and Analytics</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
                 We use cookies and similar tracking technologies to improve your experience and analyse how our 
                 platform is used. This helps us understand usage patterns and improve our services.
@@ -146,7 +200,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">8. Data Retention</h2>
+              <h2 className="text-xl font-semibold mb-4">10. Data Retention</h2>
               <p className="text-muted-foreground leading-relaxed">
                 We retain your personal information for as long as necessary to provide our services and comply 
                 with legal obligations. Health records are retained in accordance with Australian health records 
@@ -157,7 +211,28 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">9. Contact Us</h2>
+              <h2 className="text-xl font-semibold mb-4">11. Children&apos;s Privacy</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Our services are intended for users aged 18 and over. We do not knowingly collect personal information 
+                from children under 18 without parental or guardian consent. If a parent or guardian provides consent 
+                for a minor to use our services, the parent or guardian is responsible for supervising the minor&apos;s 
+                use and ensuring the accuracy of information provided. If you believe we have collected information 
+                from a child without appropriate consent, please contact us immediately.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">12. Data Breach Notification</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                In the event of a data breach that is likely to result in serious harm to you, we will notify you 
+                and the Office of the Australian Information Commissioner (OAIC) as required under the Notifiable 
+                Data Breaches scheme. We will provide you with information about the breach, the types of information 
+                involved, and recommendations for steps you can take to protect yourself.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">13. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have questions about this privacy policy or wish to make a complaint, please contact us at{" "}
                 <a href="mailto:privacy@instantmed.com.au" className="text-primary hover:underline">

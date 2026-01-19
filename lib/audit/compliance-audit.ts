@@ -21,6 +21,11 @@ export type ComplianceEventType =
   | "clinician_opened_request"
   | "clinician_reviewed_request"
   | "clinician_selected_outcome"
+  // Clinician View Tracking (Section 2b) - Per MEDICOLEGAL_AUDIT_REPORT AI-3, RK-3
+  | "clinician_viewed_intake_answers"
+  | "clinician_viewed_medical_history"
+  | "clinician_viewed_safety_flags"
+  | "clinician_viewed_ai_summary"
   // Triage Outcome (Section 3)
   | "triage_approved"
   | "triage_needs_call"
@@ -34,6 +39,11 @@ export type ComplianceEventType =
   // Prescribing Boundary Evidence (Section 5)
   | "no_prescribing_in_platform"
   | "external_prescribing_indicated"
+  // Patient Consent (Section 6) - Per MEDICOLEGAL_AUDIT_REPORT CN-1, CN-2
+  | "telehealth_consent_given"
+  | "terms_consent_given"
+  | "accuracy_attestation_given"
+  | "telehealth_limitations_acknowledged"
 
 export type RequestType = "med_cert" | "repeat_rx" | "intake"
 
@@ -435,6 +445,150 @@ export async function logExternalPrescribingIndicated(
     isHumanAction: true,
     prescribingOccurredInPlatform: false,
     externalPrescribingReference: externalSystem,
+  })
+}
+
+// ============================================================================
+// SECTION 6: Patient Consent Evidence - Per MEDICOLEGAL_AUDIT_REPORT CN-1, CN-2
+// ============================================================================
+
+export async function logTelehealthConsentGiven(
+  requestId: string,
+  requestType: RequestType,
+  patientId: string,
+  consentVersion: string,
+  ipAddress?: string
+) {
+  return logComplianceEvent({
+    eventType: "telehealth_consent_given",
+    requestId,
+    requestType,
+    actorId: patientId,
+    actorRole: "patient",
+    isHumanAction: true,
+    eventData: { consentVersion, consentTimestamp: new Date().toISOString() },
+    ipAddress,
+  })
+}
+
+export async function logTermsConsentGiven(
+  requestId: string,
+  requestType: RequestType,
+  patientId: string,
+  termsVersion: string,
+  ipAddress?: string
+) {
+  return logComplianceEvent({
+    eventType: "terms_consent_given",
+    requestId,
+    requestType,
+    actorId: patientId,
+    actorRole: "patient",
+    isHumanAction: true,
+    eventData: { termsVersion, consentTimestamp: new Date().toISOString() },
+    ipAddress,
+  })
+}
+
+export async function logAccuracyAttestationGiven(
+  requestId: string,
+  requestType: RequestType,
+  patientId: string,
+  ipAddress?: string
+) {
+  return logComplianceEvent({
+    eventType: "accuracy_attestation_given",
+    requestId,
+    requestType,
+    actorId: patientId,
+    actorRole: "patient",
+    isHumanAction: true,
+    eventData: { attestationTimestamp: new Date().toISOString() },
+    ipAddress,
+  })
+}
+
+export async function logTelehealthLimitationsAcknowledged(
+  requestId: string,
+  requestType: RequestType,
+  patientId: string,
+  ipAddress?: string
+) {
+  return logComplianceEvent({
+    eventType: "telehealth_limitations_acknowledged",
+    requestId,
+    requestType,
+    actorId: patientId,
+    actorRole: "patient",
+    isHumanAction: true,
+    eventData: { acknowledgedTimestamp: new Date().toISOString() },
+    ipAddress,
+  })
+}
+
+// ============================================================================
+// SECTION 7: Clinician View Tracking - Per MEDICOLEGAL_AUDIT_REPORT AI-3, RK-3
+// ============================================================================
+
+export async function logClinicianViewedIntakeAnswers(
+  requestId: string,
+  requestType: RequestType,
+  clinicianId: string,
+  viewDurationMs?: number
+) {
+  return logComplianceEvent({
+    eventType: "clinician_viewed_intake_answers",
+    requestId,
+    requestType,
+    actorId: clinicianId,
+    actorRole: "clinician",
+    isHumanAction: true,
+    eventData: viewDurationMs ? { viewDurationMs } : undefined,
+  })
+}
+
+export async function logClinicianViewedMedicalHistory(
+  requestId: string,
+  requestType: RequestType,
+  clinicianId: string
+) {
+  return logComplianceEvent({
+    eventType: "clinician_viewed_medical_history",
+    requestId,
+    requestType,
+    actorId: clinicianId,
+    actorRole: "clinician",
+    isHumanAction: true,
+  })
+}
+
+export async function logClinicianViewedSafetyFlags(
+  requestId: string,
+  requestType: RequestType,
+  clinicianId: string
+) {
+  return logComplianceEvent({
+    eventType: "clinician_viewed_safety_flags",
+    requestId,
+    requestType,
+    actorId: clinicianId,
+    actorRole: "clinician",
+    isHumanAction: true,
+  })
+}
+
+export async function logClinicianViewedAISummary(
+  requestId: string,
+  requestType: RequestType,
+  clinicianId: string
+) {
+  return logComplianceEvent({
+    eventType: "clinician_viewed_ai_summary",
+    requestId,
+    requestType,
+    actorId: clinicianId,
+    actorRole: "clinician",
+    isHumanAction: true,
   })
 }
 

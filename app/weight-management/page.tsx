@@ -1,33 +1,17 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, CheckCircle2, Zap, MessageSquare, Target, TrendingDown, Calendar, UserCheck, HeartPulse } from "lucide-react"
-import Link from "next/link"
-import type { Metadata } from "next"
+'use client'
 
-export const metadata: Metadata = {
-  title: "Telehealth Weight Management Australia | Doctor-Guided | InstantMed",
-  description: "Work with Australian doctors on a medically supervised weight management program. Assessment in 15 minutes. Personalised plans, ongoing support, medication if appropriate.",
-  keywords: [
-    "telehealth weight management",
-    "weight loss program australia",
-    "online weight loss doctor",
-    "medical weight management australia",
-    "weight loss telehealth",
-    "doctor supervised weight loss",
-    "weight management program online",
-  ],
-  openGraph: {
-    title: "Telehealth Weight Management | Doctor-Guided | InstantMed",
-    description: "Medically supervised weight management with Australian doctors. Personalised plans and ongoing support.",
-    url: "https://instantmed.com.au/weight-management",
-  },
-  alternates: {
-    canonical: "https://instantmed.com.au/weight-management",
-  },
-}
+import { Navbar } from "@/components/shared/navbar"
+import { MarketingFooter } from "@/components/marketing"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Shield, CheckCircle2, Zap, MessageSquare, Target, Calendar, UserCheck, TrendingDown } from "lucide-react"
+import Link from "next/link"
+import { useReducedMotion } from "framer-motion"
+import { AnimatedOrbs, GlowLine, ShimmerButton } from "@/components/ui/premium-effects"
+import { ParallaxSection } from "@/components/ui/parallax-section"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 
 export default function WeightManagementPage() {
+  const prefersReducedMotion = useReducedMotion()
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -68,12 +52,13 @@ export default function WeightManagementPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-20 bg-linear-to-b from-violet-500/5 to-transparent">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 text-violet-600 text-sm mb-6">
-                <HeartPulse className="h-4 w-4" />
-                Medically Supervised
-              </div>
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 sm:py-20 relative overflow-hidden">
+              {!prefersReducedMotion && (
+                <AnimatedOrbs orbCount={3} className="opacity-40" />
+              )}
+              <div className="mx-auto max-w-3xl text-center relative">
+                <AvailabilityIndicator variant="badge" className="mb-6" />
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
                 Telehealth Weight Management
@@ -86,10 +71,10 @@ export default function WeightManagementPage() {
               </p>
 
               <Link href="/start?service=weight-management">
-                <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-base px-8">
+                <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                </ShimmerButton>
               </Link>
 
               {/* Trust badges */}
@@ -108,7 +93,13 @@ export default function WeightManagementPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
+
+          {/* GlowLine Divider */}
+          <div className="max-w-2xl mx-auto px-4">
+            <GlowLine />
+          </div>
 
           {/* Stats Bar */}
           <section className="px-4 py-8 bg-violet-600 text-background">
@@ -348,7 +339,7 @@ export default function WeightManagementPage() {
           </section>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

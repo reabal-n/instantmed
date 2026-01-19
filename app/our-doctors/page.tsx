@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,15 +9,18 @@ import {
   ExternalLink,
   Stethoscope,
   GraduationCap,
-  Clock,
   MapPin,
   Users,
+  CheckCircle,
+  Building2,
+  HeartPulse,
+  Briefcase,
 } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Our Doctors | AHPRA-Registered Australian GPs | InstantMed",
   description:
-    "Meet the AHPRA-registered Australian doctors who review every InstantMed request. Experienced GPs with Medical Director oversight.",
+    "Every InstantMed request is reviewed by AHPRA-registered Australian doctors with experience in general practice, emergency medicine, and telehealth.",
   openGraph: {
     title: "Our Doctors | InstantMed",
     description:
@@ -27,56 +29,63 @@ export const metadata: Metadata = {
 }
 
 export default function OurDoctorsPage() {
-  const doctorCredentials = [
+  const credentials = [
     {
-      icon: GraduationCap,
-      title: "AHPRA Verified",
+      icon: Shield,
+      title: "AHPRA Registered",
       description:
-        "Every doctor is registered with the Australian Health Practitioner Regulation Agency and holds a current medical licence.",
+        "Every doctor holds current registration with the Australian Health Practitioner Regulation Agency. No exceptions.",
     },
     {
-      icon: Clock,
-      title: "Experienced GPs",
+      icon: GraduationCap,
+      title: "Qualified GPs",
       description:
-        "Our doctors have years of clinical experience in Australian general practice. They know what they're doing.",
+        "Our doctors hold medical degrees from accredited Australian or equivalent international institutions.",
     },
     {
       icon: MapPin,
-      title: "Based in Australia",
+      title: "Australian Based",
       description:
-        "Our doctors work from Australia and understand the healthcare system, prescribing guidelines, and patient needs.",
+        "All our doctors work from Australia and understand local healthcare guidelines and patient needs.",
     },
     {
       icon: Users,
       title: "Medical Director Oversight",
       description:
-        "All clinical protocols are overseen by a Medical Director who holds Fellowship with the RACGP.",
+        "Clinical protocols are developed and reviewed by a Medical Director with RACGP Fellowship.",
     },
   ]
 
-  const clinicalTeam = [
+  const experienceAreas = [
     {
-      name: "Dr. Sarah M.",
-      role: "Medical Director",
-      credentials: "MBBS, FRACGP",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face",
-      bio: "Dr. Sarah has practised general medicine in Sydney for over 15 years. She oversees clinical standards at InstantMed and ensures every doctor on our platform meets the same standards she'd expect in her own practice.",
-      quote: "I review every protocol as if my own family were using the service. That's the standard we hold ourselves to.",
+      icon: Stethoscope,
+      title: "General Practice",
+      description: "Years of experience managing a wide range of common health concerns in community settings.",
     },
     {
-      name: "Dr. James T.",
-      role: "Senior GP",
-      credentials: "MBBS, FRACGP",
-      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face",
-      bio: "Dr. James brings over a decade of experience in metropolitan and regional general practice. He focuses on ensuring our telehealth consultations maintain the same clinical rigour as in-person care.",
+      icon: HeartPulse,
+      title: "Emergency Medicine",
+      description: "Background in acute care equips our doctors to identify red flags and escalate appropriately.",
     },
     {
-      name: "Dr. Emily W.",
-      role: "GP",
-      credentials: "MBBS, DCH",
-      image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop&crop=face",
-      bio: "Dr. Emily specialises in women's health and preventive care. She joined InstantMed to help make quality healthcare more accessible for busy Australians.",
+      icon: Building2,
+      title: "Hospital Medicine",
+      description: "Experience across public and private hospital systems throughout Australia.",
     },
+    {
+      icon: Briefcase,
+      title: "Telehealth",
+      description: "Trained specifically in remote consultation best practices and digital healthcare delivery.",
+    },
+  ]
+
+  const standards = [
+    "Current AHPRA registration verified before onboarding",
+    "Minimum years of post-graduate clinical experience",
+    "Professional indemnity insurance maintained",
+    "Regular participation in continuing medical education",
+    "Adherence to RACGP standards for general practice",
+    "Background checks and credentialing completed",
   ]
 
   return (
@@ -97,19 +106,18 @@ export default function OurDoctorsPage() {
                 <span className="text-primary">a real GP</span>
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                There&apos;s no algorithm making decisions about your health.
-                Every single request is reviewed by an AHPRA-registered
-                Australian doctor who takes the time to understand your
-                situation.
+                No algorithms. No shortcuts. Every single request is reviewed by 
+                an AHPRA-registered Australian doctor who takes the time to 
+                understand your situation before making a clinical decision.
               </p>
-              <div className="flex flex-wrap justify-center gap-4">
+              <div className="flex flex-wrap justify-center gap-3">
                 <Badge variant="outline" className="py-2 px-4">
                   <Shield className="w-4 h-4 mr-2 text-emerald-600" />
                   AHPRA Registered
                 </Badge>
                 <Badge variant="outline" className="py-2 px-4">
                   <GraduationCap className="w-4 h-4 mr-2 text-primary" />
-                  FRACGP Qualified
+                  Qualified GPs
                 </Badge>
                 <Badge variant="outline" className="py-2 px-4">
                   <MapPin className="w-4 h-4 mr-2 text-primary" />
@@ -123,8 +131,17 @@ export default function OurDoctorsPage() {
         {/* Credentials Grid */}
         <section className="py-16">
           <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                Our credentialing standards
+              </h2>
+              <p className="text-muted-foreground">
+                We hold our doctors to the same standards you&apos;d expect from 
+                any quality medical practice.
+              </p>
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-              {doctorCredentials.map((credential) => (
+              {credentials.map((credential) => (
                 <div
                   key={credential.title}
                   className="bg-card rounded-2xl border p-6 text-center hover:shadow-md transition-shadow"
@@ -144,84 +161,88 @@ export default function OurDoctorsPage() {
           </div>
         </section>
 
-        {/* Clinical Team */}
+        {/* Experience Areas */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                  Meet the clinical team
+                  Clinical experience that matters
                 </h2>
                 <p className="text-muted-foreground">
-                  Experienced doctors who hold themselves to the highest
-                  standards.
+                  Our doctors bring diverse backgrounds in medicine, ensuring 
+                  they can handle a range of clinical scenarios appropriately.
                 </p>
               </div>
 
-              <div className="space-y-8">
-                {clinicalTeam.map((doctor) => (
+              <div className="grid md:grid-cols-2 gap-6">
+                {experienceAreas.map((area) => (
                   <div
-                    key={doctor.name}
-                    className="bg-card rounded-2xl border p-6 md:p-8"
+                    key={area.title}
+                    className="bg-card rounded-2xl border p-6 flex gap-4"
                   >
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="shrink-0">
-                        <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-4 ring-emerald-500/20 mx-auto md:mx-0">
-                          <Image
-                            src={doctor.image}
-                            alt={doctor.name}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex-1 text-center md:text-left">
-                        <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold text-foreground">
-                            {doctor.name}
-                          </h3>
-                          <Badge
-                            variant="outline"
-                            className="w-fit mx-auto md:mx-0"
-                          >
-                            {doctor.credentials}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-3">
-                          {doctor.role}
-                        </p>
-                        <p className="text-muted-foreground mb-4">
-                          {doctor.bio}
-                        </p>
-                        {doctor.quote && (
-                          <blockquote className="border-l-2 border-emerald-500 pl-4 italic text-muted-foreground">
-                            &ldquo;{doctor.quote}&rdquo;
-                          </blockquote>
-                        )}
-                      </div>
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <area.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        {area.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {area.description}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
 
-              <p className="text-center text-sm text-muted-foreground mt-8">
-                Our consulting doctors roster varies. All doctors meet the same
-                credentialing requirements and clinical standards.
+        {/* Standards Checklist */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-10">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                  What we require from every doctor
+                </h2>
+                <p className="text-muted-foreground">
+                  Before any doctor reviews requests on InstantMed, they must meet 
+                  these requirements.
+                </p>
+              </div>
+
+              <div className="bg-card rounded-2xl border p-6 md:p-8">
+                <ul className="space-y-4">
+                  {standards.map((standard) => (
+                    <li key={standard} className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="text-foreground">{standard}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <p className="text-center text-sm text-muted-foreground mt-6">
+                Our consulting doctor roster varies based on availability. All doctors 
+                meet the same credentialing requirements and clinical standards.
               </p>
             </div>
           </div>
         </section>
 
         {/* AHPRA Verification */}
-        <section className="py-16">
+        <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Verify our doctors yourself
+                Verify doctor registration yourself
               </h2>
               <p className="text-muted-foreground mb-6">
-                Every doctor&apos;s registration can be independently verified
-                on the AHPRA public register. We encourage you to check.
+                Every doctor&apos;s registration can be independently verified 
+                on the AHPRA public register. The doctor&apos;s name appears on 
+                every certificate we issue — you&apos;re welcome to check.
               </p>
               <Button asChild variant="outline" className="rounded-full bg-transparent">
                 <Link
@@ -238,15 +259,14 @@ export default function OurDoctorsPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-xl mx-auto text-center">
               <h2 className="text-2xl font-bold text-foreground mb-4">
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-6">
-                Complete a 2-minute form and one of our doctors will review
-                your request.
+                Complete a short form and one of our doctors will review your request.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild className="rounded-full">
@@ -263,7 +283,7 @@ export default function OurDoctorsPage() {
         </section>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

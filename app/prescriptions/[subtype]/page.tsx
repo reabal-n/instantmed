@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { getOptionalAuth, checkOnboardingRequired } from "@/lib/auth"
 import { PrescriptionFlowClient } from "./prescription-flow-client"
 
@@ -59,7 +59,7 @@ export default async function PrescriptionSubtypePage({
           />
         </div>
       </main>
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import {
   Eye,
@@ -384,7 +384,7 @@ export default function HowWeDecidePage() {
         </ParallaxSection>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

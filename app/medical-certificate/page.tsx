@@ -6,6 +6,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
+import { TrustLogos } from "@/components/marketing/trust-badges"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
@@ -305,14 +306,14 @@ export default function MedicalCertificatePage() {
                       Request your certificate
                     </Button>
                     
-                    {/* Glowing no-phone badge */}
+                    {/* 100% online badge */}
                     <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       <span className="absolute inset-0 rounded-full bg-emerald-400/20 dark:bg-emerald-400/10 blur-md animate-pulse" />
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                       </span>
-                      <span className="relative">No phone call needed</span>
+                      <span className="relative">100% online process</span>
                     </div>
                   </motion.div>
 
@@ -524,6 +525,11 @@ export default function MedicalCertificatePage() {
                   </div>
                 ))}
               </GridStagger>
+              
+              {/* Partner Logos */}
+              <div className="mt-8">
+                <TrustLogos />
+              </div>
             </div>
           </section>
         </ParallaxSection>

@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden" role="main">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/30" />
+      <div className="absolute inset-0 bg-linear-to-br from-background via-background to-muted/30" />
       
       {/* Animated gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
@@ -19,7 +19,7 @@ export default function NotFound() {
         {/* Animated 404 */}
         <div className="relative mb-8">
           <h1
-            className="text-[120px] sm:text-[180px] font-bold leading-none select-none bg-clip-text text-transparent bg-gradient-to-b from-muted-foreground/20 to-muted-foreground/5"
+            className="text-[120px] sm:text-[180px] font-bold leading-none select-none bg-clip-text text-transparent bg-linear-to-b from-muted-foreground/20 to-muted-foreground/5"
             aria-label="Error 404"
           >
             404
@@ -28,7 +28,7 @@ export default function NotFound() {
             <div 
               className="bg-card/80 backdrop-blur-md rounded-3xl px-8 py-6 border border-border/50 shadow-2xl shadow-primary/5 animate-bounce"
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-violet-600 flex items-center justify-center">
                 <Zap className="h-7 w-7 text-background" aria-hidden="true" />
               </div>
             </div>

@@ -6,7 +6,8 @@ import { Clock, ArrowRight, CheckCircle2, Users, Star, Zap, Shield } from 'lucid
 import { Button } from "@heroui/react"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { ReassuranceStrip } from '@/components/shared/reassurance-strip'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
+import { AnimatedOrbs } from '@/components/ui/premium-effects'
 
 // Friendly, approachable doctor images from Unsplash
 const doctorImages = {
@@ -15,8 +16,14 @@ const doctorImages = {
 }
 
 export function Hero() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <section className="relative overflow-hidden pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24">
+      {/* Premium animated background */}
+      {!prefersReducedMotion && (
+        <AnimatedOrbs orbCount={4} className="opacity-30" />
+      )}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Top indicator */}
         <motion.div 
@@ -80,6 +87,7 @@ export function Hero() {
                   alt="Doctor"
                   fill
                   className="object-cover"
+                  loading="eager"
                 />
               </motion.div>
             </div>
@@ -90,9 +98,9 @@ export function Hero() {
           {/* Badge - Clear scope statement */}
           <motion.div 
             className="mb-5"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0 }}
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
               <Shield className="h-4 w-4 text-primary" />
@@ -103,9 +111,9 @@ export function Hero() {
           {/* Headline - Static, clear value prop */}
           <motion.h1 
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4 leading-[1.1]"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
           >
             <span className="text-foreground">Doctor-reviewed documents.</span>
             <br />
@@ -126,9 +134,9 @@ export function Hero() {
           {/* Subtext - Outcome-focused */}
           <motion.p 
             className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto xl:mx-0 mb-8 leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             Need a medical certificate for work? Or a repeat script sent to your phone? Fill out a quick form, a GP reviews it, and you&apos;re done. No phone call needed for most requests.
           </motion.p>
@@ -136,9 +144,9 @@ export function Hero() {
           {/* CTAs - Intent-specific */}
           <motion.div 
             className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start mb-10"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
           >
             <Button 
               as={Link}

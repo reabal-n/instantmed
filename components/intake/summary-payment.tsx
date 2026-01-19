@@ -137,7 +137,9 @@ export function SummaryPayment({
             <div className="text-sm font-medium">Total</div>
             <div className="text-xl font-bold">{price}</div>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Only charged if approved by a doctor</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Payment taken now. Full refund if your request is declined.
+          </p>
         </div>
       </div>
 
@@ -152,10 +154,17 @@ export function SummaryPayment({
         />
       </div>
 
+      {/* AI disclosure */}
+      <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 border border-blue-100 dark:border-blue-900/50">
+        <span className="font-medium text-blue-700 dark:text-blue-400">How we process your request:</span>{" "}
+        Your information will be summarized by AI to help the doctor review your request efficiently. 
+        The doctor makes all clinical decisions.
+      </div>
+
       {/* Disclaimer */}
       <div className="text-xs text-muted-foreground bg-muted/50 rounded-xl p-3">
         A doctor will review your request. They may message you if they need more info. Most requests are completed
-        within 1 hour (8am–10pm AEST).
+        within 1-2 hours (8am–10pm AEST). Review times may vary.
       </div>
 
       {/* Trust badges */}

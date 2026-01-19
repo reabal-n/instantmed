@@ -399,6 +399,13 @@ function SingleDraftCard({
   )
 }
 
+/**
+ * P1 AI-1: AI summaries collapsed by default per MEDICOLEGAL_AUDIT_REPORT
+ * 
+ * To reduce cognitive anchoring, doctors should view patient intake answers
+ * first before seeing AI-generated summaries. This panel is collapsed by 
+ * default and requires explicit expansion.
+ */
 export function DraftReviewPanel({
   drafts,
   intakeId,
@@ -407,6 +414,8 @@ export function DraftReviewPanel({
 }: DraftReviewPanelProps) {
   const [isPending, startTransition] = useTransition()
   const [regenerateMessage, setRegenerateMessage] = useState<string | null>(null)
+  // P1 AI-1: Collapsed by default to reduce cognitive anchoring
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const handleRegenerate = () => {
     startTransition(async () => {
@@ -444,39 +453,62 @@ export function DraftReviewPanel({
   }
 
   const allDecided = drafts.every(d => d.approved_at || d.rejected_at)
+  const pendingCount = drafts.filter(d => !d.approved_at && !d.rejected_at).length
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Bot className="h-5 w-5 text-blue-500" />
-          AI-Generated Drafts
-        </h3>
-        {allDecided && (
-          <Button size="sm" variant="outline" onClick={handleRegenerate} disabled={isPending}>
-            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Regenerate
-          </Button>
-        )}
-      </div>
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <Card className={!isExpanded ? "border-blue-200 bg-blue-50/30" : ""}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="p-0 h-auto hover:bg-transparent">
+                <CardTitle className="flex items-center gap-2 text-base cursor-pointer">
+                  <Bot className="h-5 w-5 text-blue-500" />
+                  AI-Generated Drafts
+                  {pendingCount > 0 && (
+                    <Badge className="bg-blue-100 text-blue-800 ml-2">{pendingCount} pending</Badge>
+                  )}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </CardTitle>
+              </Button>
+            </CollapsibleTrigger>
+            {allDecided && (
+              <Button size="sm" variant="outline" onClick={handleRegenerate} disabled={isPending}>
+                {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Regenerate
+              </Button>
+            )}
+          </div>
+          {!isExpanded && (
+            <CardDescription className="text-xs mt-1">
+              <AlertTriangle className="h-3 w-3 inline mr-1 text-amber-500" />
+              Review patient intake answers first to avoid cognitive anchoring
+            </CardDescription>
+          )}
+        </CardHeader>
 
-      {regenerateMessage && (
-        <div className={`p-2 rounded text-sm ${
-          regenerateMessage.includes("success") ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
-        }`}>
-          {regenerateMessage}
-        </div>
-      )}
+        <CollapsibleContent>
+          <CardContent className="pt-2 space-y-4">
+            {regenerateMessage && (
+              <div className={`p-2 rounded text-sm ${
+                regenerateMessage.includes("success") ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
+              }`}>
+                {regenerateMessage}
+              </div>
+            )}
 
-      {drafts.map((draft) => (
-        <SingleDraftCard
-          key={draft.id}
-          draft={draft}
-          onApproved={() => onDraftApproved?.(draft.id)}
-          onRejected={() => onDraftRejected?.(draft.id)}
-        />
-      ))}
-    </div>
+            {drafts.map((draft) => (
+              <SingleDraftCard
+                key={draft.id}
+                draft={draft}
+                onApproved={() => onDraftApproved?.(draft.id)}
+                onRejected={() => onDraftRejected?.(draft.id)}
+              />
+            ))}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   )
 }

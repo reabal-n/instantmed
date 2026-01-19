@@ -86,19 +86,51 @@ export function checkSymptoms(
   })
 
   // Check for additional keywords in details
+  // P1 RF-3: Expanded crisis keyword detection per MEDICOLEGAL_AUDIT_REPORT
   const criticalKeywords = [
-    "can&apos;t breathe",
+    // Respiratory emergencies
+    "can't breathe",
     "cannot breathe",
+    "can not breathe",
+    "struggling to breathe",
+    // Cardiac emergencies
     "crushing chest",
     "heart attack",
+    "chest pressure",
+    // Neurological emergencies
     "stroke",
-    "kill myself",
-    "suicide",
-    "end my life",
+    "face drooping",
+    "slurred speech",
+    // Loss of consciousness
     "unconscious",
     "passed out",
     "seizure",
+    "collapsed",
+    // Allergic emergencies
     "anaphylaxis",
+    "throat swelling",
+    "tongue swelling",
+    // Mental health crisis - expanded per RF-3
+    "kill myself",
+    "suicide",
+    "suicidal",
+    "end my life",
+    "want to die",
+    "don't want to be here",
+    "dont want to be here",
+    "don't want to live",
+    "dont want to live",
+    "feeling hopeless",
+    "no reason to live",
+    "better off dead",
+    "self harm",
+    "self-harm",
+    "hurt myself",
+    "harming myself",
+    "ending it all",
+    "can't go on",
+    "cant go on",
+    "give up on life",
   ]
 
   criticalKeywords.forEach((keyword) => {

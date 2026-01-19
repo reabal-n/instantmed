@@ -79,6 +79,28 @@ const emergencyRules: SafetyRule[] = [
 const medCertRules: SafetyRule[] = [
   ...emergencyRules,
   {
+    id: 'medcert_backdated_excessive',
+    name: 'Excessive Backdating Request',
+    description: 'Certificate backdated more than 7 days - P1 MC-3 hard limit per MEDICOLEGAL_AUDIT_REPORT',
+    conditions: [
+      {
+        fieldId: 'backdating_days',
+        operator: 'gt',
+        value: 7,
+        derivedFrom: {
+          type: 'duration_days',
+          fields: ['absence_start_date', 'today'],
+        },
+      },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'We\'re unable to issue certificates backdated more than 7 days. For absences this far in the past, please see your regular GP who can review your medical records.',
+    doctorNote: 'Backdating >7 days requested - declined per RACGP guidance. Patient advised to see regular GP.',
+    priority: 600,
+    services: ['medical-certificate'],
+  },
+  {
     id: 'medcert_backdated_long',
     name: 'Long Backdating Request',
     description: 'Certificate backdated more than 3 days',

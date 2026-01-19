@@ -29,7 +29,6 @@ const MEDICATION_TYPES = [
     title: "Blood Pressure",
     subtitle: "Hypertension medications",
     examples: "ACE inhibitors, calcium channel blockers",
-    icon: "💊",
     popular: true,
   },
   {
@@ -37,7 +36,6 @@ const MEDICATION_TYPES = [
     title: "Cholesterol",
     subtitle: "Statins & lipid management",
     examples: "Statins and lipid-lowering medications",
-    icon: "💊",
     popular: true,
   },
   {
@@ -45,7 +43,6 @@ const MEDICATION_TYPES = [
     title: "Contraceptives",
     subtitle: "Oral contraceptive pills",
     examples: "Combined and progestogen-only pills",
-    icon: "💊",
     popular: true,
   },
   {
@@ -53,7 +50,6 @@ const MEDICATION_TYPES = [
     title: "Asthma & COPD",
     subtitle: "Inhalers & preventers",
     examples: "Relievers, preventers, combination inhalers",
-    icon: "💊",
     popular: false,
   },
   {
@@ -61,7 +57,6 @@ const MEDICATION_TYPES = [
     title: "Reflux & Stomach",
     subtitle: "PPIs & antacids",
     examples: "Proton pump inhibitors, antacids",
-    icon: "💊",
     popular: false,
   },
   {
@@ -69,7 +64,6 @@ const MEDICATION_TYPES = [
     title: "Thyroid",
     subtitle: "Thyroid hormone replacement",
     examples: "Thyroid hormone replacement therapy",
-    icon: "💊",
     popular: false,
   },
 ]
@@ -425,8 +419,8 @@ export default function RepeatPrescriptionPage() {
                       "bg-card/50 border-border/50 hover:border-border"
                     )}>
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg shrink-0">
-                          {med.icon}
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <RefreshCw className="w-5 h-5 text-primary" />
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-semibold text-foreground text-sm">{med.title}</h3>

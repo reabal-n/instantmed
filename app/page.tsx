@@ -11,8 +11,10 @@ import {
 } from '@/components/marketing'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
+import { MediaMentions } from '@/components/marketing/media-mentions'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
+import { GlowLine } from '@/components/ui/premium-effects'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
@@ -22,7 +24,7 @@ import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 // SEO metadata for homepage - critical for Google ranking
 export const metadata: Metadata = {
   title: 'Online Doctor Australia | Medical Certificates & Prescriptions | InstantMed',
-  description: 'Get medical certificates ($19.95) and repeat prescriptions ($29.95) from AHPRA-registered Australian doctors in under 30 minutes. No phone calls, no video. Reviewed by real GPs.',
+  description: 'Get medical certificates ($19.95) and repeat prescriptions ($29.95) from AHPRA-registered Australian doctors in under 30 minutes. 100% online. Reviewed by real GPs.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -90,15 +92,16 @@ export default function HomePage() {
       <Navbar variant="marketing" />
       
       <main className="relative">
-        {/* Hero with main value prop - above the fold, prioritized */}
-        <ParallaxSection speed={0.2}>
-          <Hero />
-        </ParallaxSection>
+        {/* Hero with main value prop - above the fold, no parallax for LCP */}
+        <Hero />
         
-        {/* Trust badges - compact strip */}
-        <ParallaxSection speed={0.15}>
-          <TrustBadgeSlider />
-        </ParallaxSection>
+        {/* Trust badges - compact strip, no parallax for faster paint */}
+        <TrustBadgeSlider />
+        
+        {/* Section divider */}
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <GlowLine />
+        </div>
         
         {/* Core services - what we offer */}
         <ParallaxSection speed={0.25}>
@@ -111,6 +114,11 @@ export default function HomePage() {
             <HowItWorks />
           </ParallaxSection>
         </Suspense>
+        
+        {/* Section divider */}
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <GlowLine />
+        </div>
         
         {/* Trustpilot reviews - authentic social proof */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>
@@ -126,12 +134,20 @@ export default function HomePage() {
           </ParallaxSection>
         </Suspense>
         
+        {/* Media mentions */}
+        <MediaMentions variant="strip" className="bg-muted/30" />
+        
         {/* FAQs */}
         <Suspense fallback={<SectionSkeleton />}>
           <ParallaxSection speed={0.15}>
             <FAQSection />
           </ParallaxSection>
         </Suspense>
+        
+        {/* Section divider */}
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <GlowLine />
+        </div>
         
         {/* Final CTA */}
         <Suspense fallback={<SectionSkeleton height="h-64" />}>

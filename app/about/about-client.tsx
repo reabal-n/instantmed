@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin, BookOpen, ClipboardCheck } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MediaMentions } from "@/components/marketing/media-mentions"
 import { ComplianceBar } from "@/components/shared/compliance-marquee"
 import { useReducedMotion } from "framer-motion"
 import {
@@ -384,6 +385,9 @@ export function AboutClient() {
 
         {/* Compliance Bar */}
         <ComplianceBar />
+
+        {/* Media mentions */}
+        <MediaMentions variant="strip" className="bg-muted/30" />
 
         {/* CTA */}
         <section className="px-4 py-12 sm:px-6 lg:py-16">

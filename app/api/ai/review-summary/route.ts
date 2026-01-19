@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { getDefaultModel } from "@/lib/ai/provider"
+import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
 import { createClient } from "@/lib/supabase/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
-
-// Note: Cannot use Edge runtime due to Supabase server client dependency
+import { REVIEW_SUMMARY_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
+import { logAIAudit } from "@/lib/ai/audit"
+import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
 
 const log = createLogger("ai-review-summary")
 
@@ -204,22 +205,82 @@ Return ONLY the summary text, no labels or formatting.`
       return NextResponse.json({ error: "Invalid request type" }, { status: 400 })
     }
 
+    // Check cache first
+    const cached = await getCachedResponse<string>('reviewSummary', requestId)
+    if (cached) {
+      return NextResponse.json({
+        summary: cached,
+        requestId,
+        requestType,
+        cached: true,
+      })
+    }
+
+    // Check AI configuration
+    if (!isAIConfigured()) {
+      return NextResponse.json({
+        summary: FALLBACK_RESPONSES.reviewSummary,
+        requestId,
+        requestType,
+        fallback: true,
+      })
+    }
+
+    const startTime = Date.now()
+
+    // Get model with clinical configuration
+    const { model, temperature } = getModelWithConfig('clinical')
+
     // Generate summary
     const { text } = await generateText({
-      model: getDefaultModel(),
+      model,
+      system: REVIEW_SUMMARY_PROMPT,
       prompt,
+      temperature,
+    })
+
+    const responseTime = Date.now() - startTime
+    const summary = text.trim()
+
+    // Cache the result
+    await setCachedResponse('reviewSummary', requestId, summary)
+
+    // Log to audit trail
+    await logAIAudit({
+      endpoint: 'review-summary',
+      userId: profile.id,
+      patientId: request.patient_id,
+      requestType: 'review_summary',
+      inputPreview: context,
+      outputPreview: summary,
+      responseTimeMs: responseTime,
+      modelVersion: AI_MODEL_CONFIG.clinical.model,
+      metadata: {
+        requestId,
+        requestType,
+        promptVersion: PROMPT_VERSION,
+      },
+    })
+
+    log.info("Review summary generated", {
+      requestId,
+      doctorId: profile.id,
+      responseTimeMs: responseTime,
     })
 
     return NextResponse.json({
-      summary: text.trim(),
+      summary,
       requestId,
       requestType,
+      promptVersion: PROMPT_VERSION,
     })
-  } catch (_error) {
-    return NextResponse.json(
-      { error: "Failed to generate summary" },
-      { status: 500 }
-    )
+  } catch (error) {
+    log.error("Failed to generate review summary", { error })
+    return NextResponse.json({
+      summary: FALLBACK_RESPONSES.reviewSummary,
+      error: "AI generation failed",
+      fallback: true,
+    })
   }
 }
 

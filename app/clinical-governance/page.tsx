@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -244,7 +244,7 @@ export default function ClinicalGovernancePage() {
         </section>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

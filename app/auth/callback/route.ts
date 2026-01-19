@@ -50,8 +50,23 @@ export async function GET(request: NextRequest) {
   const redirectWithCookies = (url: string) => {
     const redirectResponse = NextResponse.redirect(url)
     // Copy all cookies from our response to the redirect
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    const allCookies = response.cookies.getAll()
+    log.info("Redirecting with cookies", { 
+      url, 
+      cookieCount: allCookies.length,
+      cookieNames: allCookies.map(c => c.name)
+    })
+    allCookies.forEach((cookie) => {
+      // Extract only the cookie options, excluding name and value
+      const { name, value, ...options } = cookie
+      // Ensure secure cookies on production
+      const isProduction = process.env.NODE_ENV === "production"
+      redirectResponse.cookies.set(name, value, {
+        ...options,
+        secure: isProduction ? true : options.secure,
+        sameSite: options.sameSite || "lax",
+        path: options.path || "/",
+      })
     })
     return redirectResponse
   }

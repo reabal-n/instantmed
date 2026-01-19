@@ -20,6 +20,10 @@ interface AutosaveOptions {
   onSave?: (data: unknown) => void
   onLoad?: (data: unknown) => void
   onError?: (error: Error) => void
+  /** Save immediately on critical fields (no debounce) */
+  criticalFields?: string[]
+  /** Show visual "Saved" indicator */
+  showSavedIndicator?: boolean
 }
 
 export function useFormAutosave<T extends Record<string, unknown>>(
@@ -31,7 +35,9 @@ export function useFormAutosave<T extends Record<string, unknown>>(
     storage = 'session',
     onSave,
     onLoad,
-    onError
+    onError,
+    criticalFields: _criticalFields = [],
+    showSavedIndicator: _showSavedIndicator = false
   } = options
 
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)

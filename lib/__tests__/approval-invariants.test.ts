@@ -1,24 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock Supabase client
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve({
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn(),
-            order: vi.fn(() => ({
-              limit: vi.fn(() => ({
-                single: vi.fn(),
-              })),
-            })),
-          })),
-          single: vi.fn(),
-        })),
-      })),
-    })),
-  })),
+// Mock server-only before any imports
+vi.mock('server-only', () => ({}))
+
+// Mock Sentry
+vi.mock('@sentry/nextjs', () => ({
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
 }))
 
 // Mock logger
@@ -31,25 +19,56 @@ vi.mock('@/lib/observability/logger', () => ({
   })),
 }))
 
+// Create chainable mock for Supabase queries
+function createMockQueryBuilder(resolvedValue: { data: unknown; error: unknown }) {
+  const mock = {
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue(resolvedValue),
+    maybeSingle: vi.fn().mockResolvedValue(resolvedValue),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+  }
+  return mock
+}
+
+// Store the mock client for tests to modify
+let mockQueryBuilder = createMockQueryBuilder({ data: null, error: null })
+
+// Mock Supabase server client
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(async () => ({
+    from: vi.fn(() => mockQueryBuilder),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'test-user' } }, error: null }),
+    },
+  })),
+}))
+
+// Mock Supabase JS (for fraud detector)
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(() => mockQueryBuilder),
+  })),
+}))
+
 describe('Approval Invariants', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset to default empty response
+    mockQueryBuilder = createMockQueryBuilder({ data: null, error: { message: 'Not found' } })
   })
 
   describe('assertDraftExists', () => {
     it('should throw if no draft exists for request', async () => {
-      const { createClient } = await import('@/lib/supabase/server')
-      const mockClient = await createClient()
-      vi.mocked(mockClient.from).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-            }),
-          }),
-        }),
-      } as never)
-
+      mockQueryBuilder = createMockQueryBuilder({ data: null, error: { message: 'Not found' } })
+      
       const { assertDraftExists } = await import('@/lib/approval/med-cert-invariants')
       
       await expect(assertDraftExists('test-request-id')).rejects.toThrow(
@@ -58,20 +77,11 @@ describe('Approval Invariants', () => {
     })
 
     it('should return draft data if it exists', async () => {
-      const { createClient } = await import('@/lib/supabase/server')
-      const mockClient = await createClient()
       const mockDraft = { id: 'draft-123', request_id: 'test-request-id' }
+      mockQueryBuilder = createMockQueryBuilder({ data: mockDraft, error: null })
       
-      vi.mocked(mockClient.from).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: mockDraft, error: null }),
-            }),
-          }),
-        }),
-      } as never)
-
+      // Need to reset module cache to pick up new mock
+      vi.resetModules()
       const { assertDraftExists } = await import('@/lib/approval/med-cert-invariants')
       const result = await assertDraftExists('test-request-id')
       
@@ -81,20 +91,12 @@ describe('Approval Invariants', () => {
 
   describe('assertNotAlreadyApproved', () => {
     it('should throw if request is already approved', async () => {
-      const { createClient } = await import('@/lib/supabase/server')
-      const mockClient = await createClient()
+      mockQueryBuilder = createMockQueryBuilder({ 
+        data: { status: 'approved' }, 
+        error: null 
+      })
       
-      vi.mocked(mockClient.from).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ 
-              data: { status: 'approved' }, 
-              error: null 
-            }),
-          }),
-        }),
-      } as never)
-
+      vi.resetModules()
       const { assertNotAlreadyApproved } = await import('@/lib/approval/med-cert-invariants')
       
       await expect(assertNotAlreadyApproved('test-request-id')).rejects.toThrow(
@@ -103,20 +105,12 @@ describe('Approval Invariants', () => {
     })
 
     it('should not throw for pending requests', async () => {
-      const { createClient } = await import('@/lib/supabase/server')
-      const mockClient = await createClient()
+      mockQueryBuilder = createMockQueryBuilder({ 
+        data: { status: 'pending_review' }, 
+        error: null 
+      })
       
-      vi.mocked(mockClient.from).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ 
-              data: { status: 'pending_review' }, 
-              error: null 
-            }),
-          }),
-        }),
-      } as never)
-
+      vi.resetModules()
       const { assertNotAlreadyApproved } = await import('@/lib/approval/med-cert-invariants')
       
       await expect(assertNotAlreadyApproved('test-request-id')).resolves.not.toThrow()
@@ -125,6 +119,7 @@ describe('Approval Invariants', () => {
 
   describe('assertDocumentUrlIsPermanent', () => {
     it('should throw for non-Supabase URLs', async () => {
+      vi.resetModules()
       const { assertDocumentUrlIsPermanent } = await import('@/lib/approval/med-cert-invariants')
       
       await expect(
@@ -135,6 +130,7 @@ describe('Approval Invariants', () => {
     it('should validate Supabase storage URLs', async () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: true })
       
+      vi.resetModules()
       const { assertDocumentUrlIsPermanent } = await import('@/lib/approval/med-cert-invariants')
       
       const result = await assertDocumentUrlIsPermanent(
@@ -151,6 +147,7 @@ describe('Approval Invariants', () => {
     it('should throw if PDF URL returns non-200', async () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 })
       
+      vi.resetModules()
       const { assertDocumentUrlIsPermanent } = await import('@/lib/approval/med-cert-invariants')
       
       await expect(
@@ -165,68 +162,97 @@ describe('Approval Invariants', () => {
 describe('Fraud Detection', () => {
   describe('checkSuspiciousMedicare', () => {
     it('should flag all-same-digit Medicare numbers', async () => {
-      const { runFraudChecks } = await import('@/lib/fraud/detector')
+      vi.resetModules()
+      const { checkSuspiciousMedicare } = await import('@/lib/fraud/detector')
       
-      const result = await runFraudChecks({
-        patientId: 'test-patient',
-        medicareNumber: '1111111111',
-        category: 'medical_certificate',
-        subtype: 'work',
-      })
+      const result = checkSuspiciousMedicare('1111111111')
       
-      expect(result.flagged).toBe(true)
-      expect(result.flags.some(f => f.type === 'suspicious_medicare')).toBe(true)
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('suspicious_medicare')
+      expect(result?.severity).toBe('high')
     })
 
     it('should flag sequential Medicare numbers', async () => {
-      const { runFraudChecks } = await import('@/lib/fraud/detector')
+      vi.resetModules()
+      const { checkSuspiciousMedicare } = await import('@/lib/fraud/detector')
       
-      const result = await runFraudChecks({
-        patientId: 'test-patient',
-        medicareNumber: '1234567890',
-        category: 'medical_certificate',
-        subtype: 'work',
-      })
+      const result = checkSuspiciousMedicare('1234567890')
       
-      expect(result.flagged).toBe(true)
-      expect(result.flags.some(f => f.type === 'suspicious_medicare')).toBe(true)
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('suspicious_medicare')
+    })
+
+    it('should flag reverse sequential Medicare numbers', async () => {
+      vi.resetModules()
+      const { checkSuspiciousMedicare } = await import('@/lib/fraud/detector')
+      
+      const result = checkSuspiciousMedicare('0987654321')
+      
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('suspicious_medicare')
+    })
+
+    it('should not flag valid Medicare numbers', async () => {
+      vi.resetModules()
+      const { checkSuspiciousMedicare } = await import('@/lib/fraud/detector')
+      
+      const result = checkSuspiciousMedicare('2345678901')
+      
+      expect(result).toBeNull()
     })
   })
 
   describe('checkRapidCompletion', () => {
-    it('should flag forms completed in under 30 seconds', async () => {
-      const { runFraudChecks } = await import('@/lib/fraud/detector')
+    it('should flag forms completed in under 10 seconds as high severity', async () => {
+      vi.resetModules()
+      const { checkRapidCompletion } = await import('@/lib/fraud/detector')
       
       const startTime = new Date()
-      const endTime = new Date(startTime.getTime() + 10000) // 10 seconds later
+      const endTime = new Date(startTime.getTime() + 5000) // 5 seconds later
       
-      const result = await runFraudChecks({
-        patientId: 'test-patient',
-        category: 'medical_certificate',
-        subtype: 'work',
-        formStartTime: startTime,
-        formEndTime: endTime,
-      })
+      const result = checkRapidCompletion(startTime, endTime)
       
-      expect(result.flagged).toBe(true)
-      expect(result.flags.some(f => f.type === 'rapid_completion')).toBe(true)
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('rapid_completion')
+      expect(result?.severity).toBe('high') // <10 seconds = high severity
+    })
+
+    it('should flag medium severity for 10-30 seconds', async () => {
+      vi.resetModules()
+      const { checkRapidCompletion } = await import('@/lib/fraud/detector')
+      
+      const startTime = new Date()
+      const endTime = new Date(startTime.getTime() + 20000) // 20 seconds later
+      
+      const result = checkRapidCompletion(startTime, endTime)
+      
+      expect(result).not.toBeNull()
+      expect(result?.type).toBe('rapid_completion')
+      expect(result?.severity).toBe('medium')
     })
 
     it('should not flag forms taking normal time', async () => {
-      const { runFraudChecks } = await import('@/lib/fraud/detector')
+      vi.resetModules()
+      const { checkRapidCompletion } = await import('@/lib/fraud/detector')
       
       const startTime = new Date()
       const endTime = new Date(startTime.getTime() + 120000) // 2 minutes later
       
-      const result = await runFraudChecks({
-        patientId: 'test-patient',
-        category: 'medical_certificate',
-        subtype: 'work',
-        formStartTime: startTime,
-        formEndTime: endTime,
-      })
+      const result = checkRapidCompletion(startTime, endTime)
       
-      expect(result.flags.some(f => f.type === 'rapid_completion')).toBe(false)
+      expect(result).toBeNull()
+    })
+
+    it('should not flag forms taking exactly 30 seconds', async () => {
+      vi.resetModules()
+      const { checkRapidCompletion } = await import('@/lib/fraud/detector')
+      
+      const startTime = new Date()
+      const endTime = new Date(startTime.getTime() + 30000) // exactly 30 seconds
+      
+      const result = checkRapidCompletion(startTime, endTime)
+      
+      expect(result).toBeNull()
     })
   })
 })

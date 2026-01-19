@@ -1,6 +1,8 @@
+'use client'
+
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -14,29 +16,6 @@ import {
   ChevronDown,
   PhoneOff,
 } from "lucide-react"
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Men&apos;s Health Consultation Online Australia | InstantMed",
-  description:
-    "Discreet men&apos;s health consultations with Australian doctors. Doctor-led assessment and treatment planning. Consultation completed in 15 minutes, no awkward conversations.",
-  keywords: [
-    "mens health online australia",
-    "men's health consultation",
-    "men's health telehealth",
-    "discreet mens health",
-    "online men's health",
-    "men's health doctor",
-  ],
-  openGraph: {
-    title: "Men&apos;s Health Consultation Online | InstantMed",
-    description: "Get discreet men&apos;s health consultations from Australian doctors in 15 minutes. No phone calls required for most requests.",
-    url: "https://instantmed.com.au/mens-health",
-  },
-  alternates: {
-    canonical: "https://instantmed.com.au/mens-health",
-  },
-}
 
 const treatments = [
   {
@@ -62,8 +41,8 @@ const treatments = [
 const platformFeatures = [
   {
     icon: PhoneOff,
-    title: "No Phone Call Required",
-    description: "Complete your entire consultation online. No awkward conversations, no video calls.",
+    title: "Complete Online",
+    description: "Answer a few questions from your phone. Most consultations don't require a call.",
   },
   {
     icon: Clock,
@@ -144,7 +123,7 @@ export default function MensHealthPage() {
                 <div className="max-w-4xl mx-auto text-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 mb-4 interactive-pill cursor-default">
                     <EyeOff className="w-3.5 h-3.5 text-blue-600" />
-                    <span className="text-xs font-medium text-blue-700">100% Discreet • No Phone Call</span>
+                    <span className="text-xs font-medium text-blue-700">100% Discreet • From Your Phone</span>
                   </div>
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
@@ -181,7 +160,7 @@ export default function MensHealthPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <PhoneOff className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="font-medium text-muted-foreground">No phone call</span>
+                      <span className="font-medium text-muted-foreground">From your phone</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <Shield className="h-3.5 w-3.5 text-blue-600" />
@@ -405,7 +384,7 @@ export default function MensHealthPage() {
           </section>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

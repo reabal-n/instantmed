@@ -127,7 +127,7 @@ export function HowItWorks() {
             Get started now
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
-            Most people are sorted in under 30 minutes ✅
+            Most people are sorted in under 30 minutes
           </p>
         </motion.div>
       </div>

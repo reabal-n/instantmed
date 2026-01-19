@@ -135,10 +135,10 @@ export function PanelDashboard({
     <div className="space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+        <h1 className="text-3xl font-semibold text-foreground mb-2">
           Welcome back, {firstName}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           {pendingIntakes.length > 0 
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
             : "All caught up"}
@@ -176,7 +176,7 @@ export function PanelDashboard({
       {/* Recent Requests */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Recent Requests</h2>
+          <h2 className="text-xl font-semibold text-foreground">Recent Requests</h2>
           {intakes.length > 5 && (
             <Link href="/patient/intakes" className="text-sm text-primary hover:underline">
               View all
@@ -214,7 +214,7 @@ export function PanelDashboard({
             {prescriptionsNeedingRenewal.map((rx) => (
               <div key={rx.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
                 <div>
-                  <p className="font-medium text-gray-900">{rx.medication_name}</p>
+                  <p className="font-medium text-foreground">{rx.medication_name}</p>
                   <p className="text-sm text-amber-600">
                     Renews in {getDaysUntilRenewal(rx.renewal_date)} days
                   </p>
@@ -235,7 +235,7 @@ export function PanelDashboard({
       {prescriptions.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Active Prescriptions</h2>
+            <h2 className="text-xl font-semibold text-foreground">Active Prescriptions</h2>
           </div>
 
           <div className="space-y-3">
@@ -245,13 +245,13 @@ export function PanelDashboard({
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="card-premium-bg rounded-xl border border-gray-200 p-4 hover:border-primary hover:shadow-premium transition-all hover-lift card-shine"
+                  className="card-premium-bg rounded-xl border border-border p-4 hover:border-primary hover:shadow-premium transition-all hover-lift card-shine"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{rx.medication_name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{rx.dosage}</p>
-                      <div className="flex gap-4 mt-3 text-sm text-gray-500">
+                      <h3 className="font-semibold text-foreground">{rx.medication_name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{rx.dosage}</p>
+                      <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-4 h-4" />
                           Issued {new Date(rx.issued_date).toLocaleDateString()}
@@ -283,8 +283,8 @@ export function PanelDashboard({
               <Lightbulb className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-1">{dailyTip.title}</h3>
-              <p className="text-sm text-gray-600">{dailyTip.content}</p>
+              <h3 className="font-semibold text-foreground mb-1">{dailyTip.title}</h3>
+              <p className="text-sm text-muted-foreground">{dailyTip.content}</p>
             </div>
           </div>
         </div>
@@ -334,11 +334,11 @@ function StatCard({
   }
 
   return (
-    <div className="card-premium-bg rounded-xl border border-gray-200 p-6 hover-lift card-shine shadow-premium">
+    <div className="card-premium-bg rounded-xl border border-border p-6 hover-lift card-shine shadow-premium">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 mb-1">{label}</p>
-          <p className="text-3xl font-semibold text-gray-900">{value}</p>
+          <p className="text-sm text-muted-foreground mb-1">{label}</p>
+          <p className="text-3xl font-semibold text-foreground">{value}</p>
         </div>
         <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center icon-spin-hover", colors[color])}>
           <Icon className="w-6 h-6" />
@@ -377,22 +377,22 @@ function IntakeCard({
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-xl border border-gray-200 p-5 hover:border-primary hover:shadow-md transition-all text-left group hover-lift card-shine"
+      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-md transition-all text-left group hover-lift card-shine"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
             {intake.service?.type === "common_scripts" ? (
-              <Pill className="w-6 h-6 text-gray-600" />
+              <Pill className="w-6 h-6 text-muted-foreground" />
             ) : (
-              <FileText className="w-6 h-6 text-gray-600" />
+              <FileText className="w-6 h-6 text-muted-foreground" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 mb-1">
+            <h3 className="font-semibold text-foreground mb-1">
               {getServiceName()}
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {new Date(intake.created_at).toLocaleDateString("en-AU", {
                 month: "short",
                 day: "numeric",
@@ -406,7 +406,7 @@ function IntakeCard({
             <Icon className="w-4 h-4" />
             {config.label}
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
     </button>
@@ -429,7 +429,7 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
     <div className="p-6 space-y-6">
       {/* Status */}
       <div>
-        <p className="text-sm text-gray-600 mb-2">Status</p>
+        <p className="text-sm text-muted-foreground mb-2">Status</p>
         <div className={cn("inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium", config.color)}>
           <Icon className="w-4 h-4" />
           {config.label}
@@ -439,8 +439,8 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-sm text-gray-600 mb-1">Submitted</p>
-          <p className="font-medium text-gray-900">
+          <p className="text-sm text-muted-foreground mb-1">Submitted</p>
+          <p className="font-medium text-foreground">
             {new Date(intake.created_at).toLocaleDateString("en-AU", {
               month: "short",
               day: "numeric",
@@ -449,8 +449,8 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-600 mb-1">Last updated</p>
-          <p className="font-medium text-gray-900">
+          <p className="text-sm text-muted-foreground mb-1">Last updated</p>
+          <p className="font-medium text-foreground">
             {new Date(intake.updated_at).toLocaleDateString("en-AU", {
               month: "short",
               day: "numeric",
@@ -463,8 +463,8 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {/* Doctor Notes */}
       {intake.doctor_notes && (
         <div>
-          <p className="text-sm text-gray-600 mb-2">Doctor notes</p>
-          <div className="bg-blue-50 border border-primary rounded-lg p-4 text-sm text-gray-900">
+          <p className="text-sm text-muted-foreground mb-2">Doctor notes</p>
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm text-foreground">
             {intake.doctor_notes}
           </div>
         </div>
@@ -472,7 +472,7 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
 
       {/* Actions */}
       {intake.status === "approved" && (
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-border">
           <Button className="w-full magnetic-button">
             Download {intake.service?.type === "med_certs" ? "certificate" : "document"}
           </Button>
@@ -480,7 +480,7 @@ function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       )}
 
       {intake.status === "pending_info" && (
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-border">
           <Button className="w-full magnetic-button">
             Provide information
           </Button>

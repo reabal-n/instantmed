@@ -3,15 +3,18 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, Clock, CheckCircle, Loader2, Mail, Lock, Eye, EyeOff, User, Star, Check, X } from 'lucide-react'
+import Image from 'next/image'
+import { Shield, Clock, CheckCircle, Loader2, Eye, EyeOff, Star, Check, X, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useAuth } from '@/components/providers/supabase-auth-provider'
 import { toast } from 'sonner'
 import { GoogleIcon } from '@/components/icons/google-icon'
+import { BrandLogo } from '@/components/shared/brand-logo'
+import { getFeaturedTestimonials, PLATFORM_STATS } from '@/lib/data/testimonials'
 
 export const dynamic = "force-dynamic"
+
+const featuredReviews = getFeaturedTestimonials().slice(0, 4)
 
 function RegisterForm() {
   const searchParams = useSearchParams()
@@ -27,7 +30,6 @@ function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
-  // Password strength calculation
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { score: 0, label: '', color: '' }
     let score = 0
@@ -49,7 +51,6 @@ function RegisterForm() {
     setIsGoogleLoading(true)
     try {
       await signInWithGoogle(redirectUrl || undefined)
-      // Note: If OAuth redirect succeeds, this line won't execute
     } catch (err) {
       setIsGoogleLoading(false)
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign up with Google'
@@ -87,28 +88,18 @@ function RegisterForm() {
   }
 
   return (
-    <div className="w-full max-w-md">
-      {/* Mobile logo */}
-      <div className="lg:hidden text-center mb-8">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
-            <span className="text-xl font-bold text-amber-950">L</span>
-          </div>
-          <span className="text-2xl font-bold text-foreground">InstantMed</span>
-        </Link>
-      </div>
-
-      <div className="shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Create an account</h2>
-          <p className="text-muted-foreground mt-1">Get started with InstantMed</p>
+    <div className="w-full max-w-[420px]">
+      <div className="bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Create an account</h1>
+          <p className="text-muted-foreground mt-1.5 text-sm">Get started in under 2 minutes</p>
         </div>
 
-        {/* Google Sign Up */}
+        {/* Google Sign Up - Primary CTA */}
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 text-base font-medium gap-3 mb-6 border-gray-200 bg-white hover:bg-gray-50 text-gray-700 shadow-sm hover:shadow-md transition-all"
+          className="w-full h-12 text-base font-medium gap-3 mb-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground rounded-xl shadow-sm hover:shadow transition-all"
           onClick={handleGoogleSignUp}
           disabled={isLoading || isSubmitting || isGoogleLoading}
         >
@@ -122,98 +113,105 @@ function RegisterForm() {
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+            <span className="w-full border-t border-slate-200 dark:border-slate-700" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+            <span className="bg-white dark:bg-slate-900 px-3 text-muted-foreground font-medium">or</span>
           </div>
         </div>
 
         {/* Email Sign Up Form */}
         <form onSubmit={handleEmailSignUp} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full name (optional)</Label>
-            <Input
+          <div className="space-y-1.5">
+            <label htmlFor="fullName" className="text-sm font-medium text-foreground">
+              Full name <span className="text-muted-foreground font-normal">(optional)</span>
+            </label>
+            <input
               id="fullName"
               type="text"
-              placeholder="John Smith"
+              placeholder="Your name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="h-12"
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               disabled={isSubmitting}
               autoFocus
               autoComplete="name"
-              startContent={<User className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-foreground">
+              Email
+            </label>
+            <input
               id="email"
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12"
+              className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               disabled={isSubmitting}
               required
               autoComplete="email"
-              startContent={<Mail className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-12"
-              disabled={isSubmitting}
-              required
-              minLength={6}
-              startContent={<Lock className="h-4 w-4 text-muted-foreground" />}
-              endContent={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              }
-            />
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="text-sm font-medium text-foreground">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                disabled={isSubmitting}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {/* Password strength indicator */}
             {password && (
-              <div className="space-y-2">
+              <div className="space-y-2 pt-1">
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
                       className={`h-1 flex-1 rounded-full transition-colors ${
-                        i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+                        i <= passwordStrength.score ? passwordStrength.color : 'bg-slate-200 dark:bg-slate-700'
                       }`}
                     />
                   ))}
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{passwordStrength.label}</span>
-                  <div className="flex gap-2 text-muted-foreground">
-                    <span className={password.length >= 6 ? 'text-emerald-600' : ''}>
-                      {password.length >= 6 ? <Check className="w-3 h-3 inline" /> : <X className="w-3 h-3 inline" />} 6+ chars
-                    </span>
-                  </div>
+                  <span className={password.length >= 6 ? 'text-emerald-600' : 'text-muted-foreground'}>
+                    {password.length >= 6 ? <Check className="w-3 h-3 inline mr-1" /> : <X className="w-3 h-3 inline mr-1" />}
+                    6+ characters
+                  </span>
                 </div>
               </div>
             )}
             {!password && <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>}
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-medium bg-primary hover:bg-primary-600 shadow-soft hover:shadow-soft-md" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-medium rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -229,7 +227,7 @@ function RegisterForm() {
           Already have an account?{' '}
           <Link 
             href={redirectUrl ? `/auth/login?redirect=${encodeURIComponent(redirectUrl)}` : '/auth/login'} 
-            className="text-primary-600 hover:text-primary-700 hover:underline font-medium"
+            className="text-primary hover:text-primary/80 font-medium transition-colors"
           >
             Sign in
           </Link>
@@ -237,9 +235,9 @@ function RegisterForm() {
 
         <p className="text-center text-xs text-muted-foreground mt-4">
           By creating an account, you agree to our{' '}
-          <Link href="/terms" className="text-primary-600 hover:underline">Terms of Service</Link>
+          <Link href="/terms" className="text-primary hover:underline">Terms</Link>
           {' '}and{' '}
-          <Link href="/privacy" className="text-primary-600 hover:underline">Privacy Policy</Link>
+          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
         </p>
       </div>
     </div>
@@ -248,106 +246,131 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,var(--tw-gradient-stops))] from-secondary/10 via-transparent to-transparent" />
-      
-      {/* Subtle grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}
-      />
-      
-      <div className="relative min-h-screen flex">
-        {/* Left side - Sign Up */}
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="min-h-screen flex">
+        {/* Left side - Branding */}
+        <div className="hidden lg:flex lg:w-[45%] bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 items-center justify-center p-12 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+          
+          <div className="relative z-10 max-w-lg">
+            <BrandLogo size="lg" className="mb-10" href="/" />
+            
+            <h1 className="text-4xl font-semibold text-white mb-4 leading-tight tracking-tight">
+              Join thousands of Australians.
+            </h1>
+            <p className="text-lg text-slate-300 mb-10 leading-relaxed">
+              Create your free account and get your first medical certificate 
+              or repeat prescription reviewed within the hour.
+            </p>
+            
+            {/* Benefits */}
+            <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <span className="text-white font-medium">Free to sign up</span>
+                  <p className="text-slate-400 text-sm">Pay only when you need care</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <span className="text-white font-medium">Fast turnaround</span>
+                  <p className="text-slate-400 text-sm">Most requests reviewed under {PLATFORM_STATS.averageResponseMinutes} minutes</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <span className="text-white font-medium">Your data is protected</span>
+                  <p className="text-slate-400 text-sm">Bank-grade encryption on all health information</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Social proof with real avatars */}
+            <div className="mt-12 p-5 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {featuredReviews.map((review, i) => (
+                    <div key={review.id} className="relative">
+                      {review.image ? (
+                        <Image
+                          src={review.image}
+                          alt={review.name}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full border-2 border-slate-800 object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full border-2 border-slate-800 bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-xs font-medium text-white">
+                          {review.name.charAt(0)}
+                        </div>
+                      )}
+                      {i === 0 && (
+                        <BadgeCheck className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-emerald-400 fill-slate-800" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-amber-400">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-300">
+                    Trusted by {Math.floor(PLATFORM_STATS.totalPatientsHelped / 1000)}k+ Australians
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Right side - Sign Up Form */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+          {/* Mobile logo */}
+          <div className="lg:hidden absolute top-6 left-6">
+            <BrandLogo size="sm" href="/" />
+          </div>
+          
           <Suspense fallback={
-            <div className="w-full max-w-md shadow-xl border border-border/50 bg-card/95 backdrop-blur-sm rounded-2xl p-8">
+            <div className="w-full max-w-[420px] bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-8">
               <div className="animate-pulse space-y-4">
                 <div className="h-8 bg-muted rounded-lg w-3/4 mx-auto"></div>
                 <div className="h-4 bg-muted rounded-lg w-1/2 mx-auto"></div>
-                <p className="text-muted-foreground mt-4 text-center">Loading...</p>
               </div>
             </div>
           }>
             <RegisterForm />
           </Suspense>
-          
-          {/* Mobile trust strip */}
-          <div className="lg:hidden absolute bottom-8 left-0 right-0 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Secure
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" /> AHPRA Doctors
-            </span>
-          </div>
         </div>
-        
-        {/* Right side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-linear-to-br from-primary/5 to-transparent">
-          <div className="max-w-md">
-            <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-dawn-400 to-dawn-500 flex items-center justify-center shadow-[0_4px_14px_rgb(251,191,36,0.3)]">
-                <span className="text-xl font-bold text-amber-950">L</span>
-              </div>
-              <span className="text-2xl font-bold text-foreground group-hover:text-dawn-600 transition-colors">
-                InstantMed
-              </span>
-            </Link>
-            
-            <h1 className="text-4xl font-bold text-foreground mb-4 leading-tight">
-              Join thousands of Australians
-              <span className="text-dawn-500">.</span>
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Create your free account and get your first medical certificate 
-              or prescription in under an hour.
-            </p>
-            
-            {/* Benefits */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                </div>
-                <span>Free account, pay only when you need care</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-dawn-500/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-dawn-500" />
-                </div>
-                <span>Get reviewed in under 15 minutes</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-teal-500" />
-                </div>
-                <span>Your data is always secure and private</span>
-              </div>
-            </div>
-            
-            {/* Social proof */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-linear-to-br from-dawn-400 to-teal-500 border-2 border-white" />
-                ))}
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-dawn-500">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3 h-3 fill-current" />
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">Trusted by 10,000+ Australians</p>
-              </div>
-            </div>
-          </div>
+      </div>
+      
+      {/* Mobile trust strip */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 py-3 px-4">
+        <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-emerald-500" /> 
+            <span>Secure</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> 
+            <span>Free to join</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-amber-500" /> 
+            <span>Fast</span>
+          </span>
         </div>
       </div>
     </div>

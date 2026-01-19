@@ -139,7 +139,7 @@ export function StatsSection() {
                 of Australians
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Join the healthcare revolution. Fast, affordable, and from the comfort of your home.
+                Real doctors, real results. See why Australians are choosing InstantMed.
               </p>
             </BlurFade>
 

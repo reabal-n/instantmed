@@ -44,6 +44,7 @@ import {
   checkSymptoms,
 } from "@/components/intake/symptom-checker"
 import { RadioGroup, RadioCard } from "@/components/ui/radio-group-card"
+import { IOSToggle } from "@/components/ui/ios-toggle"
 import { TrustBadgeStrip } from "@/components/shared/doctor-credentials"
 import { SocialProofStrip } from "@/components/intake/social-proof-strip"
 import { ReassuranceStrip } from "@/components/shared/reassurance-strip"
@@ -97,6 +98,7 @@ interface IntakeState {
   startDate: string
   symptoms: string[]
   symptomDetails: string
+  symptomDuration: string // P1 IC-1: How long have you had these symptoms?
   employerName: string
   
   // Prescription specific
@@ -124,9 +126,11 @@ interface IntakeState {
   phone: string
   dob: string
   
-  // Meta
+  // Consent & Compliance - Per MEDICOLEGAL_AUDIT_REPORT CN-1, CN-2, CN-3
   agreedToTerms: boolean
   confirmedAccuracy: boolean
+  telehealthConsentGiven: boolean // P0: Explicit telehealth consent per episode
+  telehealthLimitationsAcknowledged: boolean // P1: Acknowledged async limitations
 }
 
 interface EnhancedIntakeFlowProps {
@@ -211,8 +215,10 @@ const SYMPTOMS_LIST = [
   "Nausea",
   "Gastro",
   "Fatigue",
-  "Pain",
+  "Back pain",
+  "Injury",
   "Migraine",
+  "Period pain",
   "Anxiety",
   "Other",
 ] as const
@@ -464,6 +470,7 @@ export function EnhancedIntakeFlow({
     startDate: new Date().toISOString().split("T")[0],
     symptoms: [],
     symptomDetails: "",
+    symptomDuration: "", // P1 IC-1: How long have you had these symptoms?
     employerName: "",
     medicationType: null,
     medicationName: "",
@@ -482,6 +489,8 @@ export function EnhancedIntakeFlow({
     dob: userDob || "",
     agreedToTerms: false,
     confirmedAccuracy: false,
+    telehealthConsentGiven: false, // P0: Explicit telehealth consent
+    telehealthLimitationsAcknowledged: false, // P1: Async limitations acknowledged
   })
 
   // Save preferences when they change
@@ -727,6 +736,9 @@ export function EnhancedIntakeFlow({
             newErrors.symptoms = "Please select at least one symptom"
           if (!state.symptomDetails || state.symptomDetails.length < 20)
             newErrors.symptomDetails = "Please describe your symptoms (minimum 20 characters)"
+          // P1 IC-1: Symptom duration is mandatory for clinical defensibility
+          if (!state.symptomDuration)
+            newErrors.symptomDuration = "Please indicate how long you've had these symptoms"
         } else if (state.service === "repeat-script" || state.service === "new-script") {
           if (!state.medicationName)
             newErrors.medicationName = "Please enter medication name"
@@ -751,6 +763,16 @@ export function EnhancedIntakeFlow({
         break
 
       case "review":
+        // P0 CN-1, CN-2: Require explicit telehealth consent per episode
+        if (!state.telehealthConsentGiven) {
+          newErrors.telehealthConsentGiven = "Please consent to the telehealth consultation"
+        }
+        if (!state.telehealthLimitationsAcknowledged) {
+          newErrors.telehealthLimitationsAcknowledged = "Please acknowledge the limitations of telehealth"
+        }
+        if (!state.confirmedAccuracy) {
+          newErrors.confirmedAccuracy = "Please confirm your information is accurate"
+        }
         if (!state.agreedToTerms) {
           newErrors.agreedToTerms = "Please agree to terms"
         }
@@ -784,6 +806,7 @@ export function EnhancedIntakeFlow({
       answers.start_date = state.startDate
       answers.symptoms = state.symptoms
       answers.symptom_details = state.symptomDetails
+      answers.symptom_duration = state.symptomDuration // P1 IC-1: Clinical defensibility
       answers.employer_name = state.employerName
     } else if (state.service === "consult") {
       answers.consult_reason = state.consultReason
@@ -805,6 +828,13 @@ export function EnhancedIntakeFlow({
     answers.patient_email = state.email
     answers.patient_phone = state.phone
     answers.patient_dob = state.dob
+
+    // P0 CN-1, CN-2: Record consent for audit trail
+    answers.telehealth_consent_given = state.telehealthConsentGiven
+    answers.telehealth_limitations_acknowledged = state.telehealthLimitationsAcknowledged
+    answers.accuracy_confirmed = state.confirmedAccuracy
+    answers.terms_agreed = state.agreedToTerms
+    answers.consent_timestamp = new Date().toISOString()
 
     // UTM attribution for ROI tracking
     const utmParams = getUTMParamsForIntake()
@@ -1154,11 +1184,11 @@ export function EnhancedIntakeFlow({
 
               {/* Symptoms - Multi-select chips */}
               <FormField
-                label="What symptoms do you have?"
+                label={state.certType === "carer" ? "What symptoms does the person you're caring for have?" : "What symptoms do you have?"}
                 required
                 error={errors.symptoms}
                 hint="Select all that apply"
-                helpText="This helps our doctors understand your condition and provide appropriate care"
+                helpText={state.certType === "carer" ? "Describe the symptoms of the person you're caring for" : "This helps our doctors understand your condition and provide appropriate care"}
               >
                 <div className="flex flex-wrap gap-2">
                   {SYMPTOMS_LIST.map((symptom, index) => (
@@ -1179,19 +1209,45 @@ export function EnhancedIntakeFlow({
                 </div>
               </FormField>
 
+              {/* P1 IC-1: Symptom duration - Per MEDICOLEGAL_AUDIT_REPORT */}
+              <FormField
+                label={state.certType === "carer" ? "How long have they had these symptoms?" : "How long have you had these symptoms?"}
+                required
+                error={errors.symptomDuration}
+                hint="This helps assess whether the condition is acute or ongoing"
+              >
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "less_than_24h", label: "Less than 24 hours" },
+                    { value: "1_2_days", label: "1-2 days" },
+                    { value: "3_5_days", label: "3-5 days" },
+                    { value: "1_week_plus", label: "1 week or more" },
+                  ].map((option) => (
+                    <SelectableChip
+                      key={option.value}
+                      selected={state.symptomDuration === option.value}
+                      onClick={() => updateField("symptomDuration", option.value)}
+                      gradient="primary-subtle"
+                    >
+                      {option.label}
+                    </SelectableChip>
+                  ))}
+                </div>
+              </FormField>
+
               {/* Additional details - Required */}
               <FormField
-                label="Tell us more about your symptoms"
+                label={state.certType === "carer" ? "Tell us more about their condition" : "Tell us more about your symptoms"}
                 required
-                hint="This helps our doctors understand your situation"
-                example="Started feeling unwell yesterday evening, have been resting since"
+                hint={state.certType === "carer" ? "Describe what the person you're caring for is experiencing" : "This helps our doctors understand your situation"}
+                example={state.certType === "carer" ? "My child has had a fever since yesterday and needs care at home" : "Started feeling unwell yesterday evening, have been resting since"}
                 error={errors.symptomDetails}
               >
                 <EnhancedTextarea
                   label=""
                   value={state.symptomDetails}
                   onChange={(value) => updateField("symptomDetails", value)}
-                  placeholder="Describe your symptoms and how you're feeling..."
+                  placeholder={state.certType === "carer" ? "Describe what the person you're caring for is experiencing..." : "Describe your symptoms and how you're feeling..."}
                   minRows={3}
                   className="resize-none touch-target"
                   maxLength={500}
@@ -1360,6 +1416,15 @@ export function EnhancedIntakeFlow({
                 ))}
               </div>
             </div>
+
+            {/* P2 RX-1: Medication adherence attestation per MEDICOLEGAL_AUDIT_REPORT */}
+            {state.service === "repeat-script" && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl">
+                <p className="text-xs text-blue-800 dark:text-blue-200">
+                  <strong>Attestation:</strong> By requesting this repeat prescription, I confirm I am currently taking this medication as prescribed by my regular doctor and have not experienced any significant side effects.
+                </p>
+              </div>
+            )}
 
             {/* Email collection for cart abandonment recovery - only for guests */}
             {!isAuthenticated && (
@@ -1911,7 +1976,7 @@ export function EnhancedIntakeFlow({
               </GlassCard>
             )}
 
-            {/* What happens next timeline */}
+            {/* What happens next timeline - P2 AC-3: Response time confirmation */}
             <div className="p-4 bg-linear-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
@@ -1928,15 +1993,21 @@ export function EnhancedIntakeFlow({
                   <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                     2
                   </div>
-                  <p className="text-muted-foreground">A doctor reviews your request (usually within 1 hour)</p>
+                  <p className="text-muted-foreground">
+                    <strong>Estimated review time: within 1 hour</strong> (Mon-Fri 8am-8pm AEST)
+                  </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                     3
                   </div>
-                  <p className="text-muted-foreground">You&apos;ll receive the result via email</p>
+                  <p className="text-muted-foreground">You&apos;ll receive the result via email and SMS</p>
                 </div>
               </div>
+              {/* P2 AC-2: Call process explanation */}
+              <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-primary/10">
+                If a call is required, we&apos;ll contact you at the phone number provided within 2 hours. If we can&apos;t reach you, we&apos;ll send instructions via SMS.
+              </p>
             </div>
 
             {/* Payment disclaimer - P0 compliance */}
@@ -1946,40 +2017,64 @@ export function EnhancedIntakeFlow({
               </p>
             </div>
 
-            {/* Accuracy confirmation - P1 compliance */}
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 touch-target">
-              <input
-                type="checkbox"
-                checked={state.confirmedAccuracy}
-                onChange={(e) => updateField("confirmedAccuracy", e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                aria-label="Confirm information accuracy"
+            {/* P0 CN-1: Telehealth consent - Per MEDICOLEGAL_AUDIT_REPORT */}
+            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
+              <IOSToggle
+                checked={state.telehealthConsentGiven}
+                onChange={(checked) => updateField("telehealthConsentGiven", checked)}
+                label="I consent to this telehealth consultation"
+                description="I understand this is an asynchronous telehealth service. A doctor will review my request without a live consultation unless they determine a call is clinically necessary."
+                size="md"
               />
-              <span className="text-sm text-muted-foreground">
-                I confirm the information I&apos;ve provided is accurate and complete
-              </span>
-            </label>
+            </div>
 
-            {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] transition-all duration-300 touch-target">
-              <input
-                type="checkbox"
-                checked={state.agreedToTerms}
-                onChange={(e) => updateField("agreedToTerms", e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                aria-label="Agree to terms and conditions"
+            {/* P1 CN-3: Telehealth limitations acknowledgment */}
+            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
+              <IOSToggle
+                checked={state.telehealthLimitationsAcknowledged}
+                onChange={(checked) => updateField("telehealthLimitationsAcknowledged", checked)}
+                label="I understand the limitations of telehealth"
+                description="Some conditions require in-person examination. If the doctor determines this, I'll receive a full refund and be advised to see a GP in person."
+                size="md"
               />
-              <span className="text-sm text-muted-foreground">
-                I agree to the{" "}
-                <a href="/terms" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="/privacy" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
-                  Privacy Policy
-                </a>
-              </span>
-            </label>
+            </div>
+
+            {/* Accuracy confirmation - iOS toggle style */}
+            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
+              <IOSToggle
+                checked={state.confirmedAccuracy}
+                onChange={(checked) => updateField("confirmedAccuracy", checked)}
+                label="I confirm the information is accurate"
+                description="The information I've provided is accurate and complete to the best of my knowledge."
+                size="md"
+              />
+            </div>
+
+            {/* Terms - iOS toggle style */}
+            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
+              <div className="flex items-start gap-3">
+                <IOSToggle
+                  checked={state.agreedToTerms}
+                  onChange={(checked) => updateField("agreedToTerms", checked)}
+                  size="md"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    I agree to the terms
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    I agree to the{" "}
+                    <a href="/terms" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="/privacy" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
+                      Privacy Policy
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
             {errors.agreedToTerms && (
               <Alert variant="destructive">
                 <AlertTriangle className="w-4 h-4" />

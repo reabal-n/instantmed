@@ -1,4 +1,5 @@
 import "server-only"
+import { z } from "zod"
 
 /**
  * Environment variable validation and access
@@ -15,6 +16,77 @@ import "server-only"
  * - NEXT_PUBLIC_SUPABASE_ANON_KEY
  * - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
  */
+
+// ============================================
+// ZOD SCHEMA VALIDATION
+// ============================================
+
+const serverEnvSchema = z.object({
+  // Required in all environments
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url("Invalid Supabase URL"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "Supabase anon key required"),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "Supabase service role key required"),
+  
+  // Required in production only
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  INTERNAL_API_SECRET: z.string().optional(),
+  
+  // Optional with defaults
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().optional(),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
+  VERCEL_AI_GATEWAY_API_KEY: z.string().optional(),
+  ADMIN_EMAILS: z.string().optional(),
+  
+  // Rate limiting (optional but recommended)
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  
+  // Monitoring
+  SENTRY_DSN: z.string().optional(),
+  
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+})
+
+const productionRequirements = z.object({
+  NEXT_PUBLIC_APP_URL: z.string().url("Production requires NEXT_PUBLIC_APP_URL"),
+  STRIPE_SECRET_KEY: z.string().min(1, "Production requires STRIPE_SECRET_KEY"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "Production requires STRIPE_WEBHOOK_SECRET"),
+  INTERNAL_API_SECRET: z.string().min(1, "Production requires INTERNAL_API_SECRET"),
+})
+
+/**
+ * Validated environment - throws at import time if invalid
+ * This ensures builds fail fast on missing required vars
+ */
+function validateServerEnv() {
+  const parsed = serverEnvSchema.safeParse(process.env)
+  
+  if (!parsed.success) {
+    const formatted = parsed.error.format()
+    // eslint-disable-next-line no-console
+    console.error("❌ Invalid environment variables:", JSON.stringify(formatted, null, 2))
+    throw new Error(`Environment validation failed: ${parsed.error.message}`)
+  }
+  
+  // Additional checks for production
+  if (parsed.data.NODE_ENV === "production") {
+    const prodParsed = productionRequirements.safeParse(process.env)
+    if (!prodParsed.success) {
+      const missing = prodParsed.error.issues.map(i => i.path.join(".")).join(", ")
+      // eslint-disable-next-line no-console
+      console.error(`❌ Missing production environment variables: ${missing}`)
+      throw new Error(`Production environment validation failed: ${missing}`)
+    }
+  }
+  
+  return parsed.data
+}
+
+// Validate on module load (fails build if invalid)
+const validatedEnv = validateServerEnv()
 
 // ============================================
 // SERVER-ONLY ENVIRONMENT VARIABLES
@@ -178,7 +250,7 @@ export function getSupabaseAnonKey(): string {
 }
 
 // ============================================
-// VALIDATION
+// VALIDATION (Legacy API - kept for compatibility)
 // ============================================
 
 interface EnvValidationResult {
@@ -189,7 +261,7 @@ interface EnvValidationResult {
 
 /**
  * Validate all required environment variables
- * Call this at app startup to catch configuration errors early
+ * @deprecated Use Zod validation at module load instead. This is kept for compatibility.
  */
 export function validateEnv(): EnvValidationResult {
   const missing: string[] = []
@@ -222,20 +294,12 @@ export function validateEnv(): EnvValidationResult {
     { key: "RESEND_API_KEY", message: "Email sending disabled" },
     { key: "RESEND_FROM_EMAIL", message: "Using default from address" },
     { key: "STRIPE_SECRET_KEY", message: "Payment processing disabled" },
+    { key: "UPSTASH_REDIS_REST_URL", message: "Rate limiting will use in-memory fallback" },
   ]
 
   for (const { key, message } of optional) {
     if (!process.env[key]) {
       warnings.push(`${key}: ${message}`)
-    }
-  }
-
-  // Validate NEXT_PUBLIC_APP_URL
-  if (!process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_SITE_URL) {
-    if (process.env.NODE_ENV === "production") {
-      missing.push("NEXT_PUBLIC_APP_URL")
-    } else {
-      warnings.push("NEXT_PUBLIC_APP_URL: Using localhost fallback")
     }
   }
 
@@ -294,9 +358,20 @@ export const env = {
 
   // Helpers
   get isDev() {
-    return process.env.NODE_ENV === "development"
+    return validatedEnv.NODE_ENV === "development"
   },
   get isProd() {
-    return process.env.NODE_ENV === "production"
+    return validatedEnv.NODE_ENV === "production"
+  },
+  
+  // Rate limiting
+  get upstashRedisUrl() {
+    return validatedEnv.UPSTASH_REDIS_REST_URL
+  },
+  get upstashRedisToken() {
+    return validatedEnv.UPSTASH_REDIS_REST_TOKEN
+  },
+  get hasUpstash() {
+    return !!(validatedEnv.UPSTASH_REDIS_REST_URL && validatedEnv.UPSTASH_REDIS_REST_TOKEN)
   },
 }

@@ -20,22 +20,34 @@ interface DetailsStepProps {
   onComplete?: () => void
 }
 
-// Required consents
-const REQUIRED_CONSENTS: { type: ConsentType; label: string; version: string }[] = [
+// Required consents with links to full text
+const REQUIRED_CONSENTS: { 
+  type: ConsentType
+  label: string
+  version: string
+  link?: string
+  linkText?: string
+}[] = [
   {
     type: 'telehealth_terms',
     label: 'I agree to the telehealth consultation terms',
     version: '1.0',
+    link: '/terms#telehealth',
+    linkText: 'Read terms',
   },
   {
     type: 'privacy_policy',
     label: 'I have read and accept the privacy policy',
     version: '1.0',
+    link: '/privacy',
+    linkText: 'Read policy',
   },
   {
     type: 'fee_agreement',
     label: 'I understand the fee structure and agree to pay for this service',
     version: '1.0',
+    link: '/terms#fees',
+    linkText: 'View refund policy',
   },
 ]
 
@@ -312,12 +324,25 @@ export function DetailsStep({ config: _config, onComplete }: DetailsStepProps) {
                       : 'border-slate-200 bg-white'
                   )}
                 >
-                  <IOSToggle
-                    checked={isAccepted}
-                    onChange={() => toggleConsent(consent.type)}
-                    label={consent.label}
-                    size="md"
-                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <IOSToggle
+                      checked={isAccepted}
+                      onChange={() => toggleConsent(consent.type)}
+                      label={consent.label}
+                      size="md"
+                    />
+                    {consent.link && (
+                      <a
+                        href={consent.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline whitespace-nowrap shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {consent.linkText}
+                      </a>
+                    )}
+                  </div>
                 </div>
               )
             })}

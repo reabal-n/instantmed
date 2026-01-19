@@ -30,7 +30,7 @@ export function RefundGuaranteeBadge({
         )}
       >
         <RefreshCw className="w-3 h-3 text-green-600" />
-        <span>Refund if we can&apos;t help</span>
+        <span>Full refund if declined</span>
       </div>
     )
   }
@@ -52,8 +52,7 @@ export function RefundGuaranteeBadge({
               Refund Guarantee
             </p>
             <p className="text-xs text-green-700 dark:text-green-400">
-              Full refund if we can&apos;t help with your request (minus $4.95
-              admin fee for payment processing)
+              Full refund if your request is declined — no questions asked
             </p>
           </div>
         </div>
@@ -75,7 +74,7 @@ export function RefundGuaranteeBadge({
         <span className="font-medium">Refund guarantee</span>
         <span className="text-green-600 dark:text-green-400">
           {" "}
-          — full refund if we can&apos;t help
+          — full refund if your request is declined
         </span>
       </span>
     </div>

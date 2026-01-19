@@ -6,6 +6,7 @@ import Script from "next/script"
 import { useState, useEffect, useRef } from "react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
+import { MediaMentions } from "@/components/marketing/media-mentions"
 import { Mail } from "lucide-react"
 import { motion, useInView, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
 import { RotatingText } from "@/components/marketing/rotating-text"
@@ -954,6 +955,9 @@ export default function TrustPage() {
             </motion.div>
           </div>
         </section>
+
+        {/* Media mentions */}
+        <MediaMentions variant="section" />
 
         {/* GlowLine Divider */}
         <div className="max-w-2xl mx-auto px-4">

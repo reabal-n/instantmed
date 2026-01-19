@@ -1,8 +1,16 @@
+'use client'
+
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useReducedMotion } from "framer-motion"
+import { AnimatedOrbs, GlowLine, ShimmerButton } from "@/components/ui/premium-effects"
+import { ParallaxSection } from "@/components/ui/parallax-section"
+import { TrustLogos } from "@/components/marketing/trust-badges"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
+import { GridStagger } from "@/components/effects/stagger-container"
 import {
   ArrowRight,
   Clock,
@@ -12,33 +20,9 @@ import {
   Lock,
   ChevronDown,
   Scale,
-  TrendingDown,
   Activity,
   CheckCircle2,
 } from "lucide-react"
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Weight Management Consultation Online Australia | InstantMed",
-  description:
-    "Get medically supervised weight management support from Australian doctors. Doctor-led assessment and ongoing monitoring. Consultation completed in 15 minutes.",
-  keywords: [
-    "weight management australia",
-    "weight loss consultation online",
-    "medical weight management",
-    "weight management telehealth",
-    "doctor weight management",
-    "online weight consultation",
-  ],
-  openGraph: {
-    title: "Weight Management Consultation Online | InstantMed",
-    description: "Get medically supervised weight management support from Australian doctors. Ongoing monitoring included.",
-    url: "https://instantmed.com.au/weight-loss",
-  },
-  alternates: {
-    canonical: "https://instantmed.com.au/weight-loss",
-  },
-}
 
 const treatments = [
   {
@@ -134,6 +118,7 @@ const faqs = [
 ]
 
 export default function WeightLossPage() {
+  const prefersReducedMotion = useReducedMotion()
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -156,14 +141,15 @@ export default function WeightLossPage() {
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <div className="max-w-4xl mx-auto text-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 mb-4 interactive-pill cursor-default">
-                    <TrendingDown className="w-3.5 h-3.5 text-violet-600" />
-                    <span className="text-xs font-medium text-violet-700">Medically Supervised Weight Loss</span>
-                  </div>
+          <ParallaxSection speed={0.2}>
+            <section className="px-4 py-12 sm:px-6 lg:py-16 overflow-hidden relative">
+              {!prefersReducedMotion && (
+                <AnimatedOrbs orbCount={3} className="opacity-40" />
+              )}
+              <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                  <div className="max-w-4xl mx-auto text-center">
+                    <AvailabilityIndicator variant="badge" className="mb-4" />
 
                   <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Weight Loss Treatment That Actually Works
@@ -178,10 +164,10 @@ export default function WeightLossPage() {
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                     <Link href="/start?service=weight-loss">
-                      <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-sm px-6 w-full sm:w-auto">
+                      <ShimmerButton className="px-6 h-11 font-semibold bg-violet-600">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
+                      </ShimmerButton>
                     </Link>
                     <Link href="#treatments">
                       <Button variant="outline" size="lg" className="text-sm px-6 w-full sm:w-auto">
@@ -194,7 +180,7 @@ export default function WeightLossPage() {
                   <div className="flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <Zap className="h-3.5 w-3.5 text-violet-600" />
-                      <span className="font-medium text-muted-foreground">Script in 15 min</span>
+                      <span className="font-medium text-muted-foreground">Reviewed within hours</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <Activity className="h-3.5 w-3.5 text-violet-600" />
@@ -212,7 +198,13 @@ export default function WeightLossPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </ParallaxSection>
+
+          {/* GlowLine Divider */}
+          <div className="max-w-2xl mx-auto px-4">
+            <GlowLine />
+          </div>
 
           {/* Treatment Options */}
           <section id="treatments" className="py-12 lg:py-16 px-4 sm:px-6">
@@ -288,11 +280,11 @@ export default function WeightLossPage() {
                   </p>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                <GridStagger columns={2} staggerDelay={0.1} className="grid sm:grid-cols-2 gap-4">
                   {platformFeatures.map((feature, i) => (
                     <div key={i} className="flex gap-3 p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
-                      <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                        <feature.icon className="h-5 w-5 text-violet-600" />
+                      <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                        <feature.icon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold mb-1">{feature.title}</h3>
@@ -300,6 +292,11 @@ export default function WeightLossPage() {
                       </div>
                     </div>
                   ))}
+                </GridStagger>
+                
+                {/* Partner Logos */}
+                <div className="mt-8">
+                  <TrustLogos />
                 </div>
               </div>
             </div>
@@ -421,13 +418,13 @@ export default function WeightLossPage() {
                     Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option.
                   </p>
                   <Link href="/start?service=weight-loss">
-                    <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background text-sm px-8 h-12">
+                    <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
+                    </ShimmerButton>
                   </Link>
                   <p className="text-xs text-muted-foreground mt-4">
-                    Takes ~5 minutes • Ongoing support included • Script in 15 min
+                    Takes ~5 minutes • Ongoing support included
                   </p>
                 </div>
               </div>
@@ -435,7 +432,7 @@ export default function WeightLossPage() {
           </section>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

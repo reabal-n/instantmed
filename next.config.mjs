@@ -46,7 +46,7 @@ const nextConfig = {
       hostname: "api.dicebear.com"
     }]
   },
-  serverExternalPackages: ["@supabase/ssr"],
+  serverExternalPackages: ["@supabase/ssr", "posthog-node"],
   // Redirects for removed medication pages (Google Ads compliance) and duplicate routes consolidation
   async redirects() {
     return [

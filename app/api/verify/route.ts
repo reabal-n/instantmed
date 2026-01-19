@@ -2,7 +2,7 @@
  * Public Certificate Verification API
  * 
  * Security controls:
- * - Rate limited (10 requests/minute per IP)
+ * - Rate limited (10 requests/minute per IP) via Redis (Upstash) with in-memory fallback
  * - Stricter limit on failed attempts (3/minute)
  * - Minimal disclosure (masked patient name, no sensitive data)
  * - Input validation and sanitization
@@ -10,19 +10,71 @@
 
 import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 import {
-  checkRateLimit,
+  checkRateLimit as checkMemoryRateLimit,
   getClientIp,
   createRateLimitHeaders,
   RATE_LIMITS,
+  type RateLimitResult,
 } from "@/lib/rate-limit"
 import { logCertificateEvent } from "@/lib/data/issued-certificates"
+
+// Initialize Redis rate limiter if Upstash is configured
+let redisRateLimiter: Ratelimit | null = null
+let redisStrictRateLimiter: Ratelimit | null = null
+
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  const redis = Redis.fromEnv()
+  redisRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:verify",
+  })
+  redisStrictRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, "60 s"),
+    analytics: true,
+    prefix: "ratelimit:verify-fail",
+  })
+}
+
+/**
+ * Check rate limit using Redis if available, otherwise fall back to in-memory
+ */
+async function checkRateLimit(
+  key: string,
+  config: { maxRequests: number; windowMs: number },
+  useStrict = false
+): Promise<RateLimitResult> {
+  const limiter = useStrict ? redisStrictRateLimiter : redisRateLimiter
+  
+  if (limiter) {
+    try {
+      const result = await limiter.limit(key)
+      return {
+        allowed: result.success,
+        success: result.success,
+        remaining: result.remaining,
+        resetAt: result.reset,
+        retryAfterMs: result.success ? undefined : (result.reset - Date.now()),
+      }
+    } catch {
+      // Redis failed, fall through to in-memory
+    }
+  }
+  
+  // Fallback to in-memory rate limiting
+  return checkMemoryRateLimit(key, config)
+}
 
 export async function GET(request: Request) {
   const clientIp = getClientIp(request)
 
-  // Apply rate limiting
-  const rateLimit = checkRateLimit(`verify:${clientIp}`, RATE_LIMITS.verification)
+  // Apply rate limiting (Redis with in-memory fallback)
+  const rateLimit = await checkRateLimit(`verify:${clientIp}`, RATE_LIMITS.verification)
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { valid: false, error: "Too many verification attempts. Please try again later." },
@@ -52,7 +104,7 @@ export async function GET(request: Request) {
   const isValidFormat = /^(MC-)?[A-Z0-9]{6,16}$/.test(code)
   if (!isValidFormat) {
     // Apply stricter rate limit for invalid format attempts (potential brute force)
-    checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
+    await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
     return NextResponse.json(
       { valid: false, error: "Invalid verification code format" },
       { status: 400, headers: createRateLimitHeaders(rateLimit) }
@@ -85,7 +137,7 @@ export async function GET(request: Request) {
     if (issuedCert) {
       // Check if revoked/invalid - don't reveal why
       if (issuedCert.status !== "valid") {
-        checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
+        await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
         return NextResponse.json(
           { valid: false },
           { headers: createRateLimitHeaders(rateLimit) }
@@ -127,7 +179,7 @@ export async function GET(request: Request) {
     }
 
     // Not found - apply stricter rate limit
-    checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict)
+    await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
     return NextResponse.json(
       { valid: false },
       { headers: createRateLimitHeaders(rateLimit) }

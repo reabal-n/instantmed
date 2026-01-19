@@ -31,29 +31,46 @@ import {
 // EMERGENCY SYMPTOM KEYWORDS
 // ============================================================================
 
+// ADVERSARIAL_SECURITY_AUDIT: Expanded emergency keywords with synonyms to prevent bypass
 const EMERGENCY_KEYWORDS = [
-  "chest pain",
-  "can't breathe",
-  "cannot breathe",
-  "difficulty breathing",
-  "severe bleeding",
-  "unconscious",
-  "stroke",
-  "heart attack",
-  "seizure",
-  "suicidal",
-  "suicide",
-  "self harm",
-  "self-harm",
-  "overdose",
-  "anaphylaxis",
-  "allergic reaction severe",
-  "choking",
-  "drowning",
-  "severe burn",
-  "head injury",
-  "spinal injury",
-  "poisoning",
+  // Chest/Cardiac - expanded per EXPLOIT SF-1
+  "chest pain", "chest pains", "heart attack",
+  "chest discomfort", "chest tightness", "pressure in chest",
+  "chest pressure", "heavy feeling in chest", "chest ache",
+  "pain in chest area", "tightness in chest", "crushing chest",
+  "squeezing chest", "chest hurts", "heart pain",
+  // Breathing - expanded with synonyms
+  "can't breathe", "cant breathe", "cannot breathe",
+  "hard to breathe", "difficulty breathing", "struggling to breathe",
+  "gasping for air", "can't catch breath", "breathless",
+  "short of breath", "shortness of breath", "labored breathing",
+  "trouble breathing", "breathing difficulty", "severe asthma",
+  // Stroke
+  "stroke", "facial droop", "face drooping", "slurred speech",
+  "sudden weakness", "sudden numbness", "sudden confusion",
+  "vision loss sudden", "sudden severe headache",
+  // Cardiac arrest / collapse
+  "unconscious", "collapsed", "unresponsive", "not breathing",
+  "no pulse", "cardiac arrest", "heart stopped",
+  // Mental health emergencies
+  "suicidal", "suicide", "want to die", "end my life", "kill myself",
+  "self harm", "self-harm", "cutting myself", "hurting myself",
+  "overdose", "took too many pills", "overdosed",
+  // Severe allergic reaction
+  "anaphylaxis", "allergic reaction severe", "throat closing",
+  "tongue swelling", "can't swallow", "severe allergic",
+  // Trauma
+  "severe bleeding", "won't stop bleeding", "heavy bleeding",
+  "choking", "drowning", "severe burn", "burns over",
+  "head injury", "hit my head", "head trauma",
+  "spinal injury", "neck injury", "back injury fall",
+  // Poisoning/toxicity
+  "poisoning", "poisoned", "ingested poison", "toxic",
+  // Seizure
+  "seizure", "seizures", "fitting", "convulsions", "convulsing",
+  // Pediatric emergencies
+  "baby not breathing", "child not breathing", "infant limp",
+  "baby blue", "baby turning blue",
 ]
 
 // ============================================================================

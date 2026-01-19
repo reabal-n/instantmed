@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
+import { MapPin, Mail } from 'lucide-react'
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -26,11 +27,21 @@ export function MarketingFooter() {
 
         <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-10 px-2 md:px-8 flex-1 w-full">
           {/* Brand section */}
-          <div className="flex flex-col items-start gap-2">
+          <div className="flex flex-col items-start gap-3">
             <BrandLogo size="md" />
             <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
               Medical certificates & consultations — handled online by real Australian doctors.
             </p>
+            <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                <span>Level 1/457-459 Elizabeth St, Surry Hills NSW 2010</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 shrink-0" />
+                <a href="mailto:support@instantmed.com.au" className="hover:text-foreground transition-colors">support@instantmed.com.au</a>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col md:mx-4 md:flex-row gap-6 md:gap-16 items-start md:items-start">
@@ -108,9 +119,10 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground/70">
-          AHPRA-registered doctors. RACGP-aligned protocols. Medical Director oversight.
-        </p>
+        <div className="flex flex-col items-start md:items-end gap-1 text-xs text-muted-foreground/70">
+          <p>AHPRA-registered doctors. RACGP-aligned protocols. Medical Director oversight.</p>
+          <p>ABN: 12 345 678 901</p>
+        </div>
       </div>
     </footer>
   )

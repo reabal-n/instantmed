@@ -84,6 +84,7 @@ function DropdownMenuContent({
   // The align prop is accepted for API compatibility but placement should be set on DropdownMenu
   return (
     <HeroDropdownMenu 
+      aria-label="Menu"
       className={cn(className)}
       {...(props as any)}
     >
@@ -119,15 +120,45 @@ function DropdownMenuItem({
   ...props
 }: DropdownMenuItemProps) {
   // HeroUI requires a key prop, so we generate one from children if not provided
-  const itemKey = (props as any).key || String(children) || `dropdown-item-${++dropdownItemCounter}`
+  const itemKey = (props as any).key || `dropdown-item-${++dropdownItemCounter}`
   
   // Map shadcn/ui API to HeroUI API
   const heroIsDisabled = isDisabled ?? disabled
   
-  // If asChild, wrap children with Slot
-  const content = asChild && React.isValidElement(children) ? (
-    <Slot>{children}</Slot>
-  ) : children
+  // If asChild with a Link, extract href and render content inside DropdownItem
+  if (asChild && React.isValidElement(children)) {
+    const childProps = children.props as any
+    const href = childProps?.href
+    
+    // For Next.js Link, use HeroUI's native href support
+    if (href) {
+      return (
+        <DropdownItem
+          key={itemKey}
+          href={href}
+          color={variant === "destructive" ? "danger" : "default"}
+          isDisabled={heroIsDisabled}
+          className={className}
+          {...props}
+        >
+          {childProps.children}
+        </DropdownItem>
+      )
+    }
+    
+    // For other elements, render children directly
+    return (
+      <DropdownItem
+        key={itemKey}
+        color={variant === "destructive" ? "danger" : "default"}
+        isDisabled={heroIsDisabled}
+        className={className}
+        {...props}
+      >
+        {childProps.children}
+      </DropdownItem>
+    )
+  }
   
   return (
     <DropdownItem
@@ -137,7 +168,7 @@ function DropdownMenuItem({
       className={className}
       {...props}
     >
-      {content}
+      {children}
     </DropdownItem>
   )
 }

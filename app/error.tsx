@@ -29,7 +29,7 @@ export default function Error({
   return (
     <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-dawn-50/20 dark:to-dawn-950/10" />
+      <div className="absolute inset-0 bg-linear-to-br from-background via-background to-dawn-50/20 dark:to-dawn-950/10" />
       
       {/* Animated gradient orbs */}
       <motion.div 

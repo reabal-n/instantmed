@@ -6,6 +6,8 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, Stethoscope, Phone, MessageCircle, FileText, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
+import { TrustLogos } from "@/components/marketing/trust-badges"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
@@ -200,13 +202,7 @@ export default function GeneralConsultPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span className="text-sm font-medium text-foreground/80">Doctors online now</span>
-                </div>
+                <AvailabilityIndicator variant="badge" />
               </motion.div>
 
               {/* Main content */}
@@ -374,6 +370,11 @@ export default function GeneralConsultPage() {
                   </motion.div>
                 ))}
               </motion.div>
+              
+              {/* Partner Logos */}
+              <div className="mt-8">
+                <TrustLogos />
+              </div>
             </div>
           </section>
         </ParallaxSection>

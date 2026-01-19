@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
@@ -22,7 +22,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Performance Anxiety Consultation Online Australia | InstantMed",
   description:
-    "Get doctor-led consultation for performance anxiety, stage fright, and situational anxiety from Australian doctors. Consultation completed in 15 minutes, no phone call required. Discreet online service.",
+    "Get doctor-led consultation for performance anxiety, stage fright, and situational anxiety from Australian doctors. Consultation completed in 15 minutes. 100% online. Discreet service.",
   keywords: [
     "performance anxiety consultation",
     "stage fright consultation",
@@ -68,8 +68,8 @@ const useCases = [
 const platformFeatures = [
   {
     icon: PhoneOff,
-    title: "No Phone Call Required",
-    description: "Complete your entire consultation online. No awkward conversations about anxiety.",
+    title: "Complete Online",
+    description: "Answer questions from your phone. Most consultations don't require a call.",
   },
   {
     icon: Clock,
@@ -186,7 +186,7 @@ export default function PerformanceAnxietyPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <PhoneOff className="h-3.5 w-3.5 text-indigo-600" />
-                      <span className="font-medium text-muted-foreground">No phone call</span>
+                      <span className="font-medium text-muted-foreground">From your phone</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-divider/50">
                       <Shield className="h-3.5 w-3.5 text-indigo-600" />
@@ -450,7 +450,7 @@ export default function PerformanceAnxietyPage() {
           </section>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

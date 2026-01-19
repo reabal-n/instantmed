@@ -235,7 +235,7 @@ export function DoctorDashboardClient({
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
+      <header className="bg-card border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -276,7 +276,7 @@ export function DoctorDashboardClient({
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl border p-4 mb-6">
+        <div className="bg-card rounded-xl border p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
@@ -365,7 +365,7 @@ export function DoctorDashboardClient({
         </AnimatePresence>
 
         {/* Requests Table */}
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-card rounded-xl border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b">
@@ -496,7 +496,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border p-6">
+    <div className="bg-card rounded-xl border p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground mb-1">{title}</p>
@@ -603,7 +603,7 @@ function RequestDetailDialog({
           {/* Patient Info */}
           <div>
             <h3 className="font-semibold mb-2">Patient Information</h3>
-            <div className="bg-slate-50 rounded-lg p-4 space-y-1">
+            <div className="bg-muted rounded-lg p-4 space-y-1">
               <p><strong>Name:</strong> {request.patient.full_name}</p>
               <p><strong>Email:</strong> {request.patient.email}</p>
               {request.patient.phone && <p><strong>Phone:</strong> {request.patient.phone}</p>}
@@ -613,7 +613,7 @@ function RequestDetailDialog({
           {/* Request Details */}
           <div>
             <h3 className="font-semibold mb-2">Request Details</h3>
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4">
               <pre className="text-sm whitespace-pre-wrap">
                 {JSON.stringify(request.answers, null, 2)}
               </pre>

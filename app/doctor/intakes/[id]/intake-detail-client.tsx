@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,8 @@ import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
+import { ClinicalSummary } from "@/components/doctor/clinical-summary"
+import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithDetails
@@ -56,16 +58,53 @@ interface IntakeDetailClientProps {
   aiDrafts?: AIDraft[]
 }
 
-const DECLINE_REASONS: { code: DeclineReasonCode; label: string }[] = [
-  { code: "requires_examination", label: "Requires in-person examination" },
-  { code: "not_telehealth_suitable", label: "Not suitable for telehealth" },
-  { code: "prescribing_guidelines", label: "Against prescribing guidelines" },
-  { code: "controlled_substance", label: "Controlled substance request" },
-  { code: "urgent_care_needed", label: "Requires urgent care" },
-  { code: "insufficient_info", label: "Insufficient information" },
-  { code: "patient_not_eligible", label: "Patient not eligible" },
-  { code: "outside_scope", label: "Outside scope of practice" },
-  { code: "other", label: "Other reason" },
+// P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
+const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
+  { 
+    code: "requires_examination", 
+    label: "Requires in-person examination",
+    template: "This condition requires a physical examination that cannot be conducted via telehealth. Please see your regular GP or visit a clinic for an in-person assessment."
+  },
+  { 
+    code: "not_telehealth_suitable", 
+    label: "Not suitable for telehealth",
+    template: "Based on the information provided, this request is not suitable for an asynchronous telehealth consultation. Please book a video/phone consultation or see your regular GP."
+  },
+  { 
+    code: "prescribing_guidelines", 
+    label: "Against prescribing guidelines",
+    template: "This request cannot be fulfilled as it does not align with current prescribing guidelines. Please discuss with your regular GP who has access to your full medical history."
+  },
+  { 
+    code: "controlled_substance", 
+    label: "Controlled substance request",
+    template: "This medication is a controlled substance and cannot be prescribed via this telehealth service. Please see your regular GP who can assess you in person."
+  },
+  { 
+    code: "urgent_care_needed", 
+    label: "Requires urgent care",
+    template: "Based on your symptoms, you may need more urgent assessment. Please visit your nearest emergency department or call 000 if experiencing a medical emergency."
+  },
+  { 
+    code: "insufficient_info", 
+    label: "Insufficient information",
+    template: "We need more information to safely assess your request. Please provide additional details about your condition and medical history, or see your regular GP."
+  },
+  { 
+    code: "patient_not_eligible", 
+    label: "Patient not eligible",
+    template: "Based on the eligibility criteria, we are unable to process this request. Please see your regular GP for assistance."
+  },
+  { 
+    code: "outside_scope", 
+    label: "Outside scope of practice",
+    template: "This request falls outside the scope of what can be safely managed via telehealth. Please consult with your regular GP or an appropriate specialist."
+  },
+  { 
+    code: "other", 
+    label: "Other reason",
+    template: ""
+  },
 ]
 
 export function IntakeDetailClient({
@@ -84,15 +123,68 @@ export function IntakeDetailClient({
   const [showScriptDialog, setShowScriptDialog] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [declineReason, setDeclineReason] = useState("")
+  const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
   const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
+  
+  // P0 DOCTOR_WORKLOAD_AUDIT: Auto-populate template when reason changes
+  const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
+    setDeclineReasonCode(code)
+    const template = DECLINE_REASONS.find(r => r.code === code)?.template || ""
+    setDeclineReason(template)
+  }
   const [parchmentReference, setParchmentReference] = useState("")
   const [refundReason, setRefundReason] = useState("")
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
+  const notesRef = useRef<HTMLTextAreaElement>(null)
+
+  // P1 RK-1: Minimum clinical notes length for defensibility
+  const MIN_CLINICAL_NOTES_LENGTH = 20
+
+  // P2 DOCTOR_WORKLOAD_AUDIT: Keyboard shortcuts for faster workflow
+  useDoctorShortcuts({
+    onApprove: () => {
+      if (intake.status === "paid" && !isPending) {
+        if (service?.type === "med_certs") {
+          router.push(`/doctor/intakes/${intake.id}/document`)
+        } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
+          handleStatusChange("awaiting_script")
+        } else {
+          handleStatusChange("approved")
+        }
+      }
+    },
+    onDecline: () => {
+      if (!["approved", "declined", "completed"].includes(intake.status)) {
+        setShowDeclineDialog(true)
+      }
+    },
+    onNext: () => router.push("/doctor/queue"),
+    onNote: () => notesRef.current?.focus(),
+    onEscape: () => {
+      setShowDeclineDialog(false)
+      setShowScriptDialog(false)
+      setShowRefundDialog(false)
+    },
+    disabled: isPending,
+  })
 
   const handleStatusChange = async (status: IntakeStatus) => {
+    // P1 RK-1: Require clinical notes before approval per MEDICOLEGAL_AUDIT_REPORT
+    if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
+      setActionMessage({
+        type: "error",
+        text: `Clinical notes required before approval. Please add at least ${MIN_CLINICAL_NOTES_LENGTH} characters documenting your clinical reasoning.`,
+      })
+      return
+    }
+
     startTransition(async () => {
+      // Save notes first if approving
+      if (status === "approved" || status === "awaiting_script") {
+        await saveDoctorNotesAction(intake.id, doctorNotes)
+      }
+
       const result = await updateStatusAction(intake.id, status, intake.patient_id)
       if (result.success) {
         setActionMessage({
@@ -172,15 +264,15 @@ export function IntakeDetailClient({
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-emerald-100 text-emerald-800"
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
       case "declined":
-        return "bg-red-100 text-red-800"
+        return "bg-destructive/10 text-destructive"
       case "pending_info":
-        return "bg-amber-100 text-amber-800"
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
       case "awaiting_script":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
       default:
-        return "bg-blue-100 text-blue-800"
+        return "bg-primary/10 text-primary"
     }
   }
 
@@ -206,7 +298,7 @@ export function IntakeDetailClient({
       {actionMessage && (
         <div
           className={`p-4 rounded-lg ${
-            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
+            actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-destructive/10 text-destructive"
           }`}
         >
           {actionMessage.text}
@@ -283,19 +375,13 @@ export function IntakeDetailClient({
             )}
           </div>
 
-          {/* Questionnaire Answers */}
+          {/* P1 DOCTOR_WORKLOAD_AUDIT: Structured clinical summary instead of raw JSON */}
           {Object.keys(answers).length > 0 && (
-            <div>
-              <h4 className="font-medium mb-2">Questionnaire Responses</h4>
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                {Object.entries(answers).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="text-muted-foreground capitalize">{key.replace(/_/g, " ")}</span>
-                    <span className="font-medium">{String(value)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ClinicalSummary 
+              answers={answers} 
+              serviceType={service?.type}
+              className="border-0 shadow-none p-0"
+            />
           )}
         </CardContent>
       </Card>
@@ -317,7 +403,8 @@ export function IntakeDetailClient({
         </CardHeader>
         <CardContent className="space-y-3">
           <Textarea
-            placeholder="Add your clinical notes here..."
+            ref={notesRef}
+            placeholder="Add your clinical notes here... (⌘+N to focus)"
             value={doctorNotes}
             onChange={(e) => setDoctorNotes(e.target.value)}
             className="min-h-[120px]"
@@ -367,7 +454,7 @@ export function IntakeDetailClient({
           <div className="flex flex-wrap gap-3">
             {/* For med certs - go to document builder */}
             {service?.type === "med_certs" && intake.status !== "approved" && (
-              <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+              <Button asChild className="bg-primary hover:bg-primary/90">
                 <Link href={`/doctor/intakes/${intake.id}/document`}>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve & Generate Certificate
@@ -377,7 +464,7 @@ export function IntakeDetailClient({
 
             {/* For repeat scripts - approve then mark sent externally */}
             {(service?.type === "repeat_rx" || service?.type === "common_scripts") && intake.status === "paid" && (
-              <Button onClick={() => handleStatusChange("awaiting_script")} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+              <Button onClick={() => handleStatusChange("awaiting_script")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approve Script
               </Button>
@@ -393,7 +480,7 @@ export function IntakeDetailClient({
 
             {/* For consults - approve after call with notes */}
             {service?.type === "consults" && intake.status === "paid" && (
-              <Button onClick={() => handleStatusChange("approved")} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+              <Button onClick={() => handleStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Complete Consultation
               </Button>
@@ -401,7 +488,7 @@ export function IntakeDetailClient({
 
             {/* Generic approve for other services */}
             {!["med_certs", "repeat_rx", "common_scripts", "consults"].includes(service?.type || "") && intake.status === "paid" && (
-              <Button onClick={() => handleStatusChange("approved")} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+              <Button onClick={() => handleStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approve
               </Button>
@@ -438,7 +525,7 @@ export function IntakeDetailClient({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Reason</Label>
-              <Select value={declineReasonCode} onValueChange={(v) => setDeclineReasonCode(v as DeclineReasonCode)}>
+              <Select value={declineReasonCode} onValueChange={(v) => handleDeclineReasonCodeChange(v as DeclineReasonCode)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -460,7 +547,7 @@ export function IntakeDetailClient({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDecline} disabled={!declineReason.trim() || isPending} className="bg-red-600">
+            <AlertDialogAction onClick={handleDecline} disabled={!declineReason.trim() || isPending} className="bg-destructive hover:bg-destructive/90">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Decline Request
             </AlertDialogAction>

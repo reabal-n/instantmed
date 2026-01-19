@@ -329,9 +329,89 @@ export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
   }
 }
 
+// Common medication typos and their corrections for fuzzy matching
+const MEDICATION_TYPOS: Record<string, string> = {
+  // Common typos found in PATIENT_JOURNEY_SIMULATION
+  'perindiprol': 'perindopril',
+  'perinopril': 'perindopril',
+  'amlopidine': 'amlodipine',
+  'amlodapine': 'amlodipine',
+  'metforman': 'metformin',
+  'metformine': 'metformin',
+  'atorvastain': 'atorvastatin',
+  'rosuvastain': 'rosuvastatin',
+  'thyroxin': 'thyroxine',
+  'levothyroxin': 'levothyroxine',
+  'omeprazol': 'omeprazole',
+  'pantoprazol': 'pantoprazole',
+  'sertralin': 'sertraline',
+  'escitalopram': 'escitalopram',
+  'citalopram': 'citalopram',
+  'ventalin': 'ventolin',
+  'salbutamoll': 'salbutamol',
+  'symbicourt': 'symbicort',
+  'seritide': 'seretide',
+}
+
+/**
+ * Apply fuzzy correction for common medication typos
+ */
+function correctMedicationTypo(query: string): string {
+  const lower = query.toLowerCase()
+  return MEDICATION_TYPOS[lower] || query
+}
+
+/**
+ * Calculate simple Levenshtein distance for fuzzy matching
+ */
+function levenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = []
+  
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i]
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j
+  }
+  
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        )
+      }
+    }
+  }
+  
+  return matrix[b.length][a.length]
+}
+
+/**
+ * Check if query is close enough to a known medication name
+ * Reserved for future dynamic fuzzy matching against PBS results
+ */
+function _findFuzzyMatch(query: string, knownNames: string[]): string | null {
+  const lowerQuery = query.toLowerCase()
+  const maxDistance = Math.floor(query.length * 0.3) // Allow 30% error rate
+  
+  for (const name of knownNames) {
+    const distance = levenshteinDistance(lowerQuery, name.toLowerCase())
+    if (distance <= maxDistance && distance > 0) {
+      return name
+    }
+  }
+  return null
+}
+
 /**
  * Search PBS items with improved matching using PARALLEL search strategies
  * Searches both drug_name and brand_name simultaneously for faster results
+ * Includes fuzzy matching for common typos
  */
 export async function searchPBSItemsEnhanced(
   query: string,
@@ -349,10 +429,14 @@ export async function searchPBSItemsEnhanced(
     return cached.slice(0, limit)
   }
 
+  // Try typo correction first
+  const correctedQuery = correctMedicationTypo(normalizedQuery)
+  const searchQuery = correctedQuery !== normalizedQuery ? correctedQuery : normalizedQuery
+
   // PARALLEL search: drug_name and brand_name at the same time
   const [drugResults, brandResults] = await Promise.all([
-    searchPBSByField("drug_name", normalizedQuery, limit),
-    searchPBSByField("brand_name", normalizedQuery, limit),
+    searchPBSByField("drug_name", searchQuery, limit),
+    searchPBSByField("brand_name", searchQuery, limit),
   ])
 
   // Merge and deduplicate results, prioritizing drug_name matches

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { getDefaultModel } from "@/lib/ai/provider"
+import { getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { SYMPTOM_SUGGESTIONS_PROMPT, CONTEXT_PROMPTS, FALLBACK_RESPONSES } from "@/lib/ai/prompts"
+import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
 
 export const runtime = "edge"
 
@@ -13,7 +15,7 @@ interface SuggestionRequest {
 
 export async function POST(req: NextRequest) {
   try {
-    // P1 FIX: Add rate limiting for Edge endpoint (IP-based for unauthenticated)
+    // Rate limiting (IP-based for unauthenticated)
     const clientId = getClientIdentifier(req)
     const rateLimitResponse = await applyRateLimit(req, "standard", clientId)
     if (rateLimitResponse) {
@@ -27,53 +29,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ suggestions: [] })
     }
 
-    // Build context-aware prompt
-    const contextPrompts = {
-      med_cert: isCarer
-        ? "The user is describing symptoms for someone they care for (carer's leave medical certificate)."
-        : "The user is describing their symptoms for a medical certificate request.",
-      repeat_rx:
-        "The user is explaining why they need a repeat prescription renewed.",
-      consult:
-        "The user is describing what they want to discuss in a GP consultation.",
+    // Normalize input for caching (lowercase, trim)
+    const normalizedInput = input.toLowerCase().trim()
+    const cacheContext = `${context}:${isCarer ? 'carer' : 'self'}`
+
+    // Check cache first
+    const cached = await getCachedResponse<string[]>(
+      'symptomSuggestions',
+      normalizedInput,
+      cacheContext
+    )
+    if (cached) {
+      return NextResponse.json({ suggestions: cached, cached: true })
     }
 
-    const prompt = `You are a medical intake assistant helping patients describe their symptoms clearly.
+    // Check AI configuration - return fallback if not configured
+    if (!isAIConfigured()) {
+      return NextResponse.json({ 
+        suggestions: FALLBACK_RESPONSES.symptomSuggestions,
+        fallback: true 
+      })
+    }
 
-Context: ${contextPrompts[context]}
+    // Build context-aware prompt
+    const contextPrompt = context === 'med_cert' 
+      ? (isCarer ? CONTEXT_PROMPTS.medCert.carer : CONTEXT_PROMPTS.medCert.personal)
+      : context === 'repeat_rx' 
+        ? CONTEXT_PROMPTS.repeatRx 
+        : CONTEXT_PROMPTS.consult
 
-The patient has started typing: "${input}"
+    const prompt = `${SYMPTOM_SUGGESTIONS_PROMPT}
 
-Based on this partial input, suggest 2-3 SHORT phrases (5-10 words each) that could help them complete their description. Focus on:
-- Common symptom progressions
-- Timing details (e.g., "since yesterday", "for 3 days")
-- Severity indicators (e.g., "mild", "moderate")
-- Impact on daily activities
+Context: ${contextPrompt}
 
-Rules:
-- Keep suggestions brief and natural
-- Don't suggest anything that sounds alarming or requires emergency care
-- Match the tone of what they've already written
-- Suggestions should ADD to what they wrote, not replace it
+The patient has started typing: "${input}"`
 
-Return ONLY a JSON array of strings, nothing else. Example: ["mild fever since yesterday", "affecting my sleep", "gradually improving"]`
+    // Get model with creative configuration (higher temperature for variety)
+    const { model, temperature } = getModelWithConfig('creative')
 
     const { text } = await generateText({
-      model: getDefaultModel(),
+      model,
       prompt,
+      temperature,
     })
 
     // Parse the response
     let suggestions: string[] = []
     try {
-      // Clean the response - remove markdown code blocks if present
       const cleaned = text
         .replace(/```json\n?/g, "")
         .replace(/```\n?/g, "")
         .trim()
       suggestions = JSON.parse(cleaned)
       
-      // Validate it's an array of strings
       if (!Array.isArray(suggestions)) {
         suggestions = []
       }
@@ -81,13 +89,20 @@ Return ONLY a JSON array of strings, nothing else. Example: ["mild fever since y
         .filter((s): s is string => typeof s === "string")
         .slice(0, 3)
     } catch {
-      // If parsing fails, return empty
-      suggestions = []
+      suggestions = FALLBACK_RESPONSES.symptomSuggestions
+    }
+
+    // Cache successful response
+    if (suggestions.length > 0) {
+      await setCachedResponse('symptomSuggestions', normalizedInput, suggestions, cacheContext)
     }
 
     return NextResponse.json({ suggestions })
-  } catch (_error) {
-    // Return empty suggestions on error - this is a non-critical feature
-    return NextResponse.json({ suggestions: [] })
+  } catch {
+    // Return fallback suggestions on error
+    return NextResponse.json({ 
+      suggestions: FALLBACK_RESPONSES.symptomSuggestions,
+      fallback: true 
+    })
   }
 }

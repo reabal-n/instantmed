@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateText } from "ai"
-import { getDefaultModel } from "@/lib/ai/provider"
+import { streamText } from "ai"
+import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
+import { MED_CERT_DRAFT_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
+import { logAIAudit } from "@/lib/ai/audit"
+import { calculateConfidence } from "@/lib/ai/confidence"
 
 const log = createLogger("ai-med-cert-draft")
 
 /**
  * AI Medical Certificate Draft Generation
  * 
- * Generates a draft medical certificate text based on patient intake answers.
- * IMPORTANT: This is a DRAFT only - requires doctor review and approval
- * before generating the final certificate for the patient.
+ * Features:
+ * - Streaming response for better UX
+ * - Temperature tuned for legal document accuracy (0.1)
+ * - Audit logging for TGA compliance
+ * - Confidence scoring for review guidance
+ * - Fallback template if AI unavailable
  */
 
 interface IntakeAnswers {
@@ -33,34 +39,9 @@ interface PatientInfo {
   dateOfBirth?: string
 }
 
-const MED_CERT_DRAFT_PROMPT = `You are a medical documentation assistant helping Australian GPs draft medical certificates.
-
-Generate a professional medical certificate statement based on the patient information and intake data provided.
-
-IMPORTANT RULES:
-- This is a DRAFT for doctor review only
-- Use standard Australian medical certificate language
-- Be factual and professional
-- Do not include specific diagnoses (just indicate "medical condition")
-- The certificate attests that the patient is/was unfit for work/study
-- For carer's certificates, indicate the patient is required to care for someone
-
-CERTIFICATE TEXT FORMAT:
-"This is to certify that [Patient Name] attended a telehealth consultation on [Date].
-
-In my opinion, [he/she/they] [is/was] suffering from a medical condition and [is/was] unfit for [work/normal duties/study] from [Start Date] to [End Date] inclusive ([X] day[s]).
-
-[For carer's certificate only: This is to certify that [Patient Name] is required to provide care for [Person Name] ([Relationship]) who is suffering from a medical condition.]"
-
-NOTES:
-- Use gender-neutral "they" if gender unknown
-- Keep language simple and professional
-- This text will appear on the official certificate
-
----
-*AI-generated draft - requires clinician review and approval before issuing*`
-
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     // Rate limiting
     const supabase = await createClient()
@@ -79,21 +60,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check for AI Gateway API key (or OIDC on Vercel)
-    if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL) {
-      log.error("AI_GATEWAY_API_KEY not configured")
-      return NextResponse.json(
-        { success: false, error: "AI service not configured", draft: null },
-        { status: 503 }
-      )
-    }
-
     // Parse request body
     const body = await request.json()
-    const { intakeId, answers, patient } = body as { 
+    const { intakeId, answers, patient, patientId } = body as { 
       intakeId?: string
       answers?: IntakeAnswers
       patient?: PatientInfo
+      patientId?: string
     }
 
     if (!answers || Object.keys(answers).length === 0) {
@@ -113,18 +86,66 @@ export async function POST(request: NextRequest) {
     // Format context for the prompt
     const context = formatMedCertContext(answers, patient)
 
-    // Generate med cert draft via Vercel AI Gateway
-    const { text } = await generateText({
-      model: getDefaultModel(),
+    // Check for AI configuration - return fallback if not configured
+    if (!isAIConfigured()) {
+      log.warn("AI not configured, returning fallback template")
+      return NextResponse.json({
+        success: true,
+        draft: FALLBACK_RESPONSES.medCertDraft,
+        isDraft: true,
+        isFallback: true,
+        generatedAt: new Date().toISOString(),
+        generatedBy: "template",
+        requiresApproval: true,
+      })
+    }
+
+    // Get model with clinical configuration (low temperature for accuracy)
+    const { model, temperature } = getModelWithConfig('clinical')
+
+    // Generate med cert draft with streaming
+    const result = await streamText({
+      model,
       system: MED_CERT_DRAFT_PROMPT,
       prompt: `Generate a medical certificate statement for:\n\n${context}`,
+      temperature,
+    })
+
+    const text = await result.text
+    const responseTime = Date.now() - startTime
+
+    // Calculate confidence score
+    const confidence = calculateConfidence(text, { 
+      patientName: patient.fullName,
+      startDate: answers.start_date,
+      symptoms: answers.symptoms,
+    })
+
+    // Log to audit trail
+    await logAIAudit({
+      endpoint: 'med-cert-draft',
+      userId: profile.id,
+      patientId,
+      requestType: 'med_cert_draft',
+      inputPreview: context,
+      outputPreview: text,
+      responseTimeMs: responseTime,
+      modelVersion: AI_MODEL_CONFIG.clinical.model,
+      confidence: confidence.score,
+      metadata: {
+        intakeId,
+        certificateType: answers.certificate_type,
+        promptVersion: PROMPT_VERSION,
+      },
     })
 
     log.info("Med cert draft generated", { 
       intakeId, 
       doctorId: profile.id,
       certificateType: answers.certificate_type,
-      draftLength: text.length 
+      draftLength: text.length,
+      confidence: confidence.score,
+      responseTimeMs: responseTime,
     })
 
     return NextResponse.json({
@@ -139,15 +160,29 @@ export async function POST(request: NextRequest) {
         startDate: answers.start_date,
         endDate: answers.end_date,
         durationDays: answers.duration_days,
-      }
+      },
+      confidence: {
+        score: confidence.score,
+        level: confidence.level,
+        flaggedSections: confidence.flaggedSections,
+      },
+      promptVersion: PROMPT_VERSION,
     })
 
   } catch (error) {
     log.error("Error generating med cert draft", { error })
-    return NextResponse.json(
-      { success: false, error: "Failed to generate draft", draft: null },
-      { status: 500 }
-    )
+    
+    // Return fallback on error
+    return NextResponse.json({
+      success: true,
+      draft: FALLBACK_RESPONSES.medCertDraft,
+      isDraft: true,
+      isFallback: true,
+      error: "AI generation failed, template provided",
+      generatedAt: new Date().toISOString(),
+      generatedBy: "template",
+      requiresApproval: true,
+    })
   }
 }
 

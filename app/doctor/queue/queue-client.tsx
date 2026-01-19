@@ -378,10 +378,10 @@ export function QueueClient({
 
       {/* Flagged Cases Summary */}
       {flaggedCount > 0 && (
-        <Card className="border-red-200 bg-red-50/50">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="py-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-red-700">
+              <div className="flex items-center gap-2 text-destructive">
                 <ShieldAlert className="h-5 w-5" />
                 <span className="font-medium">
                   {flaggedCount} case{flaggedCount !== 1 ? "s" : ""} with clinical flags
@@ -390,7 +390,7 @@ export function QueueClient({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-700 border-red-300 hover:bg-red-100"
+                className="text-destructive border-destructive/30 hover:bg-destructive/10"
                 onClick={() => setSortOption("flagged")}
               >
                 Review flagged first
@@ -485,14 +485,48 @@ export function QueueClient({
                                 </Badge>
                               )}
                               {hasRedFlags(intake) && (
-                                <Badge className="bg-red-100 text-red-700 border-red-200">
+                                <Badge className="bg-destructive/10 text-destructive border-destructive/20">
                                   <ShieldAlert className="w-3 h-3 mr-1" />
                                   Clinical flag
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            {/* P2 DOCTOR_WORKLOAD_AUDIT: Queue preview - show key info without expanding */}
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <span className="text-xs text-muted-foreground">#{index + 1} in queue</span>
+                              {(() => {
+                                const answers = (intake as unknown as { answers?: { symptoms?: string; duration?: string; medication_name?: string } }).answers
+                                if (!answers) return null
+                                return (
+                                  <>
+                                    {answers.symptoms && (
+                                      <>
+                                        <span className="text-xs text-muted-foreground">•</span>
+                                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                          {String(answers.symptoms).substring(0, 50)}
+                                          {String(answers.symptoms).length > 50 ? "..." : ""}
+                                        </span>
+                                      </>
+                                    )}
+                                    {answers.duration && (
+                                      <>
+                                        <span className="text-xs text-muted-foreground">•</span>
+                                        <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                          {answers.duration}d
+                                        </Badge>
+                                      </>
+                                    )}
+                                    {answers.medication_name && (
+                                      <>
+                                        <span className="text-xs text-muted-foreground">•</span>
+                                        <span className="text-xs font-medium truncate max-w-[150px]">
+                                          {String(answers.medication_name)}
+                                        </span>
+                                      </>
+                                    )}
+                                  </>
+                                )
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -500,7 +534,7 @@ export function QueueClient({
                           <div
                             className={`flex items-center gap-1.5 text-sm ${
                               waitSeverity === "critical"
-                                ? "text-red-600"
+                                ? "text-destructive"
                                 : waitSeverity === "warning"
                                   ? "text-dawn-600"
                                   : "text-muted-foreground"
@@ -509,7 +543,7 @@ export function QueueClient({
                             <Clock className="h-4 w-4" />
                             <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
                           </div>
-                          {waitSeverity === "critical" && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                          {waitSeverity === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
                         </div>
                       </div>
                     </CardHeader>
@@ -567,7 +601,7 @@ export function QueueClient({
                       </div>
 
                       {/* Patient History */}
-                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      <div className="p-4 bg-muted rounded-lg">
                         <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
                           <History className="h-4 w-4 text-muted-foreground" />
                           Patient History
@@ -580,7 +614,7 @@ export function QueueClient({
                               .filter(h => h.id !== intake.id)
                               .slice(0, 5)
                               .map(historyItem => (
-                                <div key={historyItem.id} className="flex items-center justify-between text-sm py-1.5 px-2 bg-white dark:bg-slate-700 rounded">
+                                <div key={historyItem.id} className="flex items-center justify-between text-sm py-1.5 px-2 bg-card rounded">
                                   <div className="flex items-center gap-2">
                                     {historyItem.service_type.includes('script') ? (
                                       <Pill className="h-3.5 w-3.5 text-muted-foreground" />

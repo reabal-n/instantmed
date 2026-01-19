@@ -23,10 +23,10 @@ const refinedSteps: FlowStep[] = [
 // ============================================
 
 export const SAFETY_SCREENING_SYMPTOMS = [
-  'Chest pain or pressure',
-  'Severe difficulty breathing',
-  'Sudden weakness on one side (stroke signs)',
-  'Severe allergic reaction (swelling, can\'t breathe)',
+  'Sudden, severe chest pain or pressure (new for you)',
+  'Severe difficulty breathing at rest',
+  'Sudden weakness or numbness on one side (stroke signs)',
+  'Severe allergic reaction (throat swelling, can\'t breathe)',
   'Thoughts of self-harm or suicide',
 ]
 
@@ -104,9 +104,11 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           options: [
             { value: 'cold_flu', label: 'Cold/flu/respiratory' },
             { value: 'gastro', label: 'Stomach/digestive' },
-            { value: 'injury', label: 'Injury/pain' },
-            { value: 'mental_health', label: 'Mental health' },
+            { value: 'back_pain', label: 'Back pain' },
+            { value: 'injury', label: 'Injury/accident' },
             { value: 'migraine', label: 'Migraine/headache' },
+            { value: 'mental_health', label: 'Mental health' },
+            { value: 'period_pain', label: 'Period pain' },
             { value: 'other', label: 'Other' },
           ],
           validation: { required: true },
@@ -117,7 +119,7 @@ const medCertQuestionnaire: QuestionnaireConfig = {
           label: 'Describe your symptoms and how they\'re affecting you',
           placeholder: 'e.g., I\'ve had a fever since yesterday, severe body aches, and I can\'t concentrate at work...',
           helpText: 'This helps the doctor write your certificate',
-          validation: { required: true, minLength: 50, maxLength: 500 },
+          validation: { required: true, minLength: 20, maxLength: 500 },
         },
         {
           id: 'severity',
