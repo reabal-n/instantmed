@@ -42,8 +42,8 @@ import {
   Webhook,
 } from "lucide-react"
 import { getAuditLogsAction } from "@/app/actions/admin-config"
-import type { AuditLog, AuditLogFilters } from "@/lib/data/audit-logs"
-import { getAuditEventTypes, formatEventType, formatActorType } from "@/lib/data/audit-logs"
+import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
+import { getAuditEventTypes, formatEventType, formatActorType } from "@/lib/data/types/audit-logs"
 
 interface AuditLogClientProps {
   initialLogs: AuditLog[]
@@ -222,12 +222,11 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search events..."
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9"
+                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
             <Select

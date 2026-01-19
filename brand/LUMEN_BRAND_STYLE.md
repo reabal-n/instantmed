@@ -1,18 +1,12 @@
-# Lumen Health — Brand Style & Visual Personality
+Brand Style & Visual Personality
 
-> **Version 1.0** — Source of Truth
 
----
+Brand Essence
 
-## Brand Essence
-
-**Lumen Health represents clarity emerging, not speed or disruption.**
+InstantMed represents clarity emerging, not speed or disruption.**
 
 The brand is defined by calm authority, morning light, and good judgment.
 
-- Lumen does not shout.
-- Lumen does not rush.
-- Lumen illuminates.
 
 *If a design choice feels impressive but loud, it is wrong.*
 
@@ -69,7 +63,6 @@ The tone is reassuring, not sentimental.
 - Purple or violet tones
 - Neon or high-saturation hues
 - Dark blues associated with night or "AI SaaS"
-- Harsh blacks or stark whites
 
 ### Contrast Rule
 Contrast is achieved through lightness and material, not colour jumps.
@@ -101,7 +94,6 @@ Contrast is achieved through lightness and material, not colour jumps.
 - Cloud-heavy compositions
 - Blue or purple clouds
 - Clouds as decorative objects
-- "Weather app" literalism
 
 *If clouds attract attention before light, the design is invalid.*
 
@@ -189,6 +181,8 @@ Contrast is achieved through lightness and material, not colour jumps.
 - Premium
 - Human
 - Trustworthy
+- relatable/informal
+- witty/funny
 
 ### The brand should never feel:
 - Playful
@@ -208,24 +202,3 @@ Contrast is achieved through lightness and material, not colour jumps.
 - It resembles crypto, AI tooling, or productivity SaaS
 - It feels like wellness marketing
 - It looks better at full size than as an icon
-
----
-
-## The Final Rule
-
-If someone looks at Lumen Health and thinks:
-
-> "This feels calm. Whoever built this knows what they're doing."
-
-**The brand is correct.**
-
-If they think:
-
-> "This looks cool."
-
-**The brand has failed.**
-
----
-
-*Last updated: January 2026*
-*Brand Style Version: 1.0*

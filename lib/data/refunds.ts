@@ -8,46 +8,13 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
+// Re-export types and helpers from shared module (for backward compatibility)
+export type { RefundStatus, PaymentWithRefund, RefundFilters, RefundStats } from "@/lib/data/types/refunds"
+export { getRefundStatuses, formatRefundStatus, formatAmount } from "@/lib/data/types/refunds"
+
+import type { PaymentWithRefund, RefundFilters } from "@/lib/data/types/refunds"
+
 const log = createLogger("refunds")
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface PaymentWithRefund {
-  id: string
-  intake_id: string
-  stripe_payment_intent_id: string
-  amount: number
-  status: string
-  refund_status: "not_applicable" | "eligible" | "processing" | "refunded" | "failed" | "not_eligible"
-  refund_reason: string | null
-  stripe_refund_id: string | null
-  refunded_at: string | null
-  refund_amount: number | null
-  created_at: string
-  updated_at: string
-  // Joined
-  intake?: {
-    id: string
-    status: string
-    service: {
-      name: string
-      short_name: string
-    }
-    patient: {
-      full_name: string
-      email: string
-    }
-  }
-}
-
-export interface RefundFilters {
-  status?: string
-  startDate?: string
-  endDate?: string
-  search?: string
-}
 
 // ============================================================================
 // READ OPERATIONS
@@ -275,34 +242,4 @@ export async function markRefundNotEligible(
   return { success: true }
 }
 
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Get refund statuses for filtering
- */
-export function getRefundStatuses(): { value: string; label: string }[] {
-  return [
-    { value: "eligible", label: "Eligible" },
-    { value: "processing", label: "Processing" },
-    { value: "refunded", label: "Refunded" },
-    { value: "failed", label: "Failed" },
-    { value: "not_eligible", label: "Not Eligible" },
-  ]
-}
-
-/**
- * Format refund status for display
- */
-export function formatRefundStatus(status: string): string {
-  const statuses = getRefundStatuses()
-  return statuses.find(s => s.value === status)?.label || status
-}
-
-/**
- * Format amount in cents to AUD
- */
-export function formatAmount(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
-}
+// Helpers are now exported from @/lib/data/types/refunds

@@ -1,0 +1,347 @@
+/**
+ * Email Template Sender
+ * Sends emails using database-stored templates with merge tag support
+ */
+
+import "server-only"
+import { createClient } from "@supabase/supabase-js"
+import { sendViaResend, sendCriticalEmail } from "./resend"
+import { createLogger } from "../observability/logger"
+import { env } from "../env"
+
+const log = createLogger("template-sender")
+
+function getServiceClient() {
+  return createClient(env.supabaseUrl, env.supabaseServiceRoleKey)
+}
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface TemplateEmail {
+  id: string
+  slug: string
+  name: string
+  subject: string
+  body_html: string
+  body_text: string | null
+  available_tags: string[]
+  is_active: boolean
+}
+
+interface SendTemplateEmailParams {
+  to: string
+  templateSlug: string
+  data: Record<string, string>
+  intakeId?: string
+  patientId?: string
+  isCritical?: boolean
+  attachments?: {
+    filename: string
+    content: string
+    type?: string
+  }[]
+}
+
+interface SendResult {
+  success: boolean
+  emailId?: string
+  error?: string
+}
+
+// ============================================================================
+// TEMPLATE FETCHING
+// ============================================================================
+
+/**
+ * Get an active email template by slug
+ */
+async function getTemplate(slug: string): Promise<TemplateEmail | null> {
+  const supabase = getServiceClient()
+
+  const { data, error } = await supabase
+    .from("email_templates")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single()
+
+  if (error) {
+    log.error("Failed to fetch email template", { slug }, error)
+    return null
+  }
+
+  return data as TemplateEmail
+}
+
+// ============================================================================
+// MERGE TAG REPLACEMENT
+// ============================================================================
+
+/**
+ * Replace merge tags in a string with provided data
+ */
+function replaceMergeTags(content: string, data: Record<string, string>): string {
+  let result = content
+  for (const [key, value] of Object.entries(data)) {
+    const tag = new RegExp(`\\{\\{${key}\\}\\}`, "g")
+    result = result.replace(tag, value || "")
+  }
+  return result
+}
+
+/**
+ * Validate that all required merge tags have values
+ */
+function validateMergeTags(template: TemplateEmail, data: Record<string, string>): string[] {
+  const missing: string[] = []
+  for (const tag of template.available_tags) {
+    if (!(tag in data) || data[tag] === undefined) {
+      missing.push(tag)
+    }
+  }
+  return missing
+}
+
+// ============================================================================
+// EMAIL LOGGING
+// ============================================================================
+
+/**
+ * Log email send attempt to database
+ */
+async function logEmailSend(params: {
+  templateSlug: string
+  recipient: string
+  intakeId?: string
+  patientId?: string
+  subject: string
+  success: boolean
+  resendId?: string
+  error?: string
+}): Promise<void> {
+  const supabase = getServiceClient()
+
+  try {
+    await supabase.from("email_logs").insert({
+      template_type: params.templateSlug,
+      recipient_email: params.recipient,
+      request_id: params.intakeId,
+      subject: params.subject,
+      metadata: {
+        patient_id: params.patientId,
+        resend_id: params.resendId,
+        sent: params.success,
+        error: params.error,
+      },
+    })
+  } catch (error) {
+    log.warn("Failed to log email send", { templateSlug: params.templateSlug }, error)
+  }
+}
+
+// ============================================================================
+// MAIN SEND FUNCTION
+// ============================================================================
+
+/**
+ * Send an email using a database template
+ */
+export async function sendTemplateEmail(params: SendTemplateEmailParams): Promise<SendResult> {
+  const { to, templateSlug, data, intakeId, patientId, isCritical = false, attachments } = params
+
+  // Fetch template
+  const template = await getTemplate(templateSlug)
+  if (!template) {
+    log.error("Email template not found or inactive", { templateSlug })
+    return { success: false, error: `Template not found: ${templateSlug}` }
+  }
+
+  // Validate merge tags (warn but don't fail)
+  const missingTags = validateMergeTags(template, data)
+  if (missingTags.length > 0) {
+    log.warn("Missing merge tags for email", { templateSlug, missingTags })
+  }
+
+  // Replace merge tags
+  const subject = replaceMergeTags(template.subject, data)
+  const html = replaceMergeTags(template.body_html, data)
+
+  // Send email
+  const emailParams = {
+    to,
+    subject,
+    html,
+    tags: [
+      { name: "template", value: templateSlug },
+      ...(intakeId ? [{ name: "intake_id", value: intakeId }] : []),
+    ],
+    attachments,
+  }
+
+  let result
+  if (isCritical) {
+    result = await sendCriticalEmail(emailParams, {
+      emailType: templateSlug,
+      intakeId,
+      patientId,
+    })
+  } else {
+    result = await sendViaResend(emailParams)
+  }
+
+  // Log the send attempt
+  await logEmailSend({
+    templateSlug,
+    recipient: to,
+    intakeId,
+    patientId,
+    subject,
+    success: result.success,
+    resendId: result.id,
+    error: result.error,
+  })
+
+  if (result.success) {
+    log.info("Template email sent", { templateSlug, to, resendId: result.id })
+  } else {
+    log.error("Template email failed", { templateSlug, to, error: result.error })
+  }
+
+  return {
+    success: result.success,
+    emailId: result.id,
+    error: result.error,
+  }
+}
+
+// ============================================================================
+// CONVENIENCE FUNCTIONS FOR COMMON EMAILS
+// ============================================================================
+
+/**
+ * Send certificate ready notification
+ */
+export async function sendCertificateReadyEmail(params: {
+  to: string
+  patientName: string
+  certificateLink: string
+  certificateId: string
+  serviceName: string
+  intakeId: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "cert_ready",
+    data: {
+      patient_name: params.patientName,
+      certificate_link: params.certificateLink,
+      certificate_id: params.certificateId,
+      service_name: params.serviceName,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+    isCritical: true,
+  })
+}
+
+/**
+ * Send prescription sent notification
+ */
+export async function sendPrescriptionSentEmail(params: {
+  to: string
+  patientName: string
+  medicationName: string
+  intakeId: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "script_sent",
+    data: {
+      patient_name: params.patientName,
+      medication_name: params.medicationName,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+    isCritical: true,
+  })
+}
+
+/**
+ * Send request declined notification
+ */
+export async function sendDeclinedEmail(params: {
+  to: string
+  patientName: string
+  serviceName: string
+  declineReason: string
+  recommendations?: string
+  intakeId: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "request_declined",
+    data: {
+      patient_name: params.patientName,
+      service_name: params.serviceName,
+      decline_reason: params.declineReason,
+      recommendations: params.recommendations || "Please consult with your regular GP for further assessment.",
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+    isCritical: true,
+  })
+}
+
+/**
+ * Send refund processed notification
+ */
+export async function sendRefundEmail(params: {
+  to: string
+  patientName: string
+  amount: string
+  refundReason: string
+  intakeId?: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "refund_processed",
+    data: {
+      patient_name: params.patientName,
+      amount: params.amount,
+      refund_reason: params.refundReason,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+    isCritical: true,
+  })
+}
+
+/**
+ * Send payment received confirmation
+ */
+export async function sendPaymentReceivedEmail(params: {
+  to: string
+  patientName: string
+  amount: string
+  serviceName: string
+  intakeId: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "payment_received",
+    data: {
+      patient_name: params.patientName,
+      amount: params.amount,
+      service_name: params.serviceName,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+  })
+}

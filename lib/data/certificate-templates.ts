@@ -3,6 +3,7 @@
  * Versioned, immutable template configurations
  */
 
+import "server-only"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
@@ -12,6 +13,9 @@ import type {
   TemplateType,
 } from "@/types/certificate-template"
 import { createLogger } from "@/lib/observability/logger"
+
+// Re-export types and helpers from shared module (for backward compatibility)
+export { getTemplateTypeName } from "@/lib/data/types/certificate-templates"
 
 const log = createLogger("certificate-templates")
 
@@ -247,14 +251,4 @@ export async function activateTemplateVersion(
   }
 }
 
-/**
- * Get template type display name
- */
-export function getTemplateTypeName(type: TemplateType): string {
-  const names: Record<TemplateType, string> = {
-    med_cert_work: "Work Medical Certificate",
-    med_cert_uni: "University Medical Certificate",
-    med_cert_carer: "Carer's Certificate",
-  }
-  return names[type] || type
-}
+// Helper getTemplateTypeName is now exported from @/lib/data/types/certificate-templates

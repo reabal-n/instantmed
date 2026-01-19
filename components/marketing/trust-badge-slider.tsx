@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Shield, Lock, BadgeCheck, Building2, FileCheck, Sparkles } from "lucide-react"
+import { Shield, Lock, BadgeCheck, Building2, FileCheck, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@heroui/react"
@@ -9,7 +9,7 @@ import { Button } from "@heroui/react"
 const trustBadges = [
   { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
   { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Bank-level encryption", icon: Lock, color: "text-violet-600" },
+  { name: "256-bit SSL", description: "Your data is encrypted", icon: Lock, color: "text-violet-600" },
   { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-amber-600" },
 ]
 
@@ -65,15 +65,15 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
           
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Get started in minutes</span>
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Simple and straightforward</span>
             </div>
             
             <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
-              Ready to skip the waiting room?
+              Healthcare on your schedule
             </h3>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Join thousands of Australians getting healthcare on their terms. No appointments needed.
+              Trusted by thousands of Australians. Most requests reviewed within an hour.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check } from "lucide-react"
+import { Check, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 
 interface StepProgressProps {
@@ -134,7 +134,7 @@ export function StepProgress({
                 <path d="M12 6v6l4 2" />
               </svg>
               <span className="text-xs font-medium text-primary">
-                {remainingTime <= 2 ? 'Almost done!' : `~${remainingTime} min left`}
+                {remainingTime <= 2 ? 'Almost there' : `About ${remainingTime} min to go`}
               </span>
             </div>
           </div>
@@ -222,7 +222,7 @@ export function StepProgress({
               <path d="M12 6v6l4 2" />
             </svg>
             <span className="text-sm font-medium text-primary">
-              {remainingTime <= 2 ? 'Almost done!' : `~${remainingTime} min left`}
+              {remainingTime <= 2 ? 'Almost there' : `About ${remainingTime} min to go`}
             </span>
           </div>
         </div>
@@ -234,6 +234,22 @@ export function StepProgress({
           Step {visualCurrentStep || currentStep} of {visualTotalSteps || totalSteps}
         </span>
       </div>
+
+      {/* Final step encouragement */}
+      {currentStep === totalSteps && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center mt-3"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              Last step — you&apos;re almost done
+            </span>
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }

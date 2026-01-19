@@ -10,7 +10,7 @@ const steps = [
     number: "01",
     icon: ClipboardList,
     title: "Answer a few questions",
-    description: "Short, secure form about your symptoms or medication needs.",
+    description: "Tell us what's going on. Takes about 2 minutes.",
     time: "2 min",
     color: "from-blue-500 to-blue-600",
     bgColor: "bg-blue-500/10",
@@ -20,7 +20,7 @@ const steps = [
     number: "02",
     icon: Stethoscope,
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
+    description: "A real GP looks over everything and makes the call.",
     time: "Under 30 min",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -30,7 +30,7 @@ const steps = [
     number: "03",
     icon: FileCheck,
     title: "Get your certificate or script",
-    description: "Delivered to your email. eScripts sent to your phone via SMS.",
+    description: "Certificate to your inbox. eScript to your phone. Done.",
     time: "Instant",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",
@@ -56,10 +56,10 @@ export function HowItWorks() {
           </div>
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-            Three steps. Clinician review. Done.
+            Three steps. That&apos;s it.
           </h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            No appointments required. A registered GP assesses every request.
+            No appointments, no phone tag. A registered GP reviews every request.
           </p>
         </motion.div>
 
@@ -127,7 +127,7 @@ export function HowItWorks() {
             Get started now
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
-            Most requests completed in under 30 minutes
+            Most people are sorted in under 30 minutes ✅
           </p>
         </motion.div>
       </div>

@@ -629,27 +629,27 @@ export function PrescriptionIntake({
 
             <div className="space-y-3">
               <FormField label="Medication name" required error={errors.medication}>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Start typing medication name..."
-                    value={formData.medication}
-                    onChange={(e) => updateField("medication", e.target.value)}
-                    className={cn(
-                      "h-12 pl-10 rounded-xl text-base",
-                      isControlled && "border-dawn-500 focus-visible:ring-dawn-500"
-                    )}
-                  />
-                  {formData.medication && (
-                    <button
-                      type="button"
-                      onClick={() => updateField("medication", "")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
-                    >
-                      <X className="w-4 h-4 text-muted-foreground" />
-                    </button>
+                <Input
+                  placeholder="Start typing medication name..."
+                  value={formData.medication}
+                  onChange={(e) => updateField("medication", e.target.value)}
+                  className={cn(
+                    "h-12",
+                    isControlled && "border-dawn-500 focus-visible:ring-dawn-500"
                   )}
-                </div>
+                  startContent={<Search className="w-5 h-5 text-muted-foreground" />}
+                  endContent={
+                    formData.medication ? (
+                      <button
+                        type="button"
+                        onClick={() => updateField("medication", "")}
+                        className="p-1 hover:bg-muted rounded"
+                      >
+                        <X className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    ) : null
+                  }
+                />
               </FormField>
 
               {/* Autocomplete suggestions */}

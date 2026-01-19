@@ -216,50 +216,41 @@ export function CertReviewModal({
             {/* Consult Date */}
             <div className="space-y-2">
               <Label htmlFor="consultDate">Consult Date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="consultDate"
-                  type="date"
-                  value={formData.consultDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, consultDate: e.target.value }))}
-                  className="pl-10"
-                  required
-                />
-              </div>
+              <Input
+                id="consultDate"
+                type="date"
+                value={formData.consultDate}
+                onChange={(e) => setFormData((prev) => ({ ...prev, consultDate: e.target.value }))}
+                required
+                startContent={<Calendar className="h-4 w-4 text-muted-foreground" />}
+              />
             </div>
 
             {/* Start Date & End Date */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Start Date</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                    className="pl-10"
-                    max={formData.endDate || undefined}
-                    required
-                  />
-                </div>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
+                  max={formData.endDate || undefined}
+                  required
+                  startContent={<Calendar className="h-4 w-4 text-muted-foreground" />}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="endDate">End Date</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
-                    className="pl-10"
-                    min={formData.startDate || undefined}
-                    required
-                  />
-                </div>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
+                  min={formData.startDate || undefined}
+                  required
+                  startContent={<Calendar className="h-4 w-4 text-muted-foreground" />}
+                />
               </div>
             </div>
 

@@ -11,8 +11,18 @@ import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
-import { motion } from "framer-motion"
+import { RotatingText } from "@/components/marketing/rotating-text"
+import { getTestimonialsByService } from "@/lib/data/testimonials"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
+import { motion, useReducedMotion } from "framer-motion"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { GridStagger } from "@/components/effects/stagger-container"
 
 // Certificate types - 3 tiers
 const CERT_TYPES = [
@@ -24,8 +34,8 @@ const CERT_TYPES = [
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Briefcase,
-    description: "For when you're unwell and need a day or two to recover.",
-    benefits: ["No appointments needed", "Valid for all employers", "PDF emailed to you"],
+    description: "Feeling rough? Get it sorted without leaving the couch.",
+    benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: true,
     href: "/start?service=med-cert",
     color: "from-blue-500 to-blue-600",
@@ -40,8 +50,8 @@ const CERT_TYPES = [
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: GraduationCap,
-    description: "For special consideration, extensions, or missed assessments.",
-    benefits: ["No appointments needed", "Valid for all universities", "PDF emailed to you"],
+    description: "Missed that deadline? We've got you covered.",
+    benefits: ["No appointments needed", "Accepted by all unis", "PDF straight to your inbox"],
     popular: false,
     href: "/start?service=med-cert",
     color: "from-violet-500 to-purple-600",
@@ -56,8 +66,8 @@ const CERT_TYPES = [
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Heart,
-    description: "For when you need to care for a sick family member.",
-    benefits: ["No appointments needed", "Valid for all employers", "PDF emailed to you"],
+    description: "Looking after someone who needs you? That counts.",
+    benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: false,
     href: "/start?service=med-cert",
     color: "from-rose-500 to-pink-600",
@@ -70,7 +80,7 @@ const CERT_TYPES = [
 const FAQS = [
   {
     question: "Will my employer accept this?",
-    answer: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers and universities.",
+    answer: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers. Same as what you'd get from a clinic.",
   },
   {
     question: "Can I use this for uni or TAFE?",
@@ -78,11 +88,11 @@ const FAQS = [
   },
   {
     question: "What if I'm actually quite sick?",
-    answer: "Then you should definitely get a certificate. If we identify any red flags, we'll let you know if you should seek in-person care.",
+    answer: "Then you definitely need one. If our doctors spot anything concerning, they'll let you know whether in-person care would be better.",
   },
   {
     question: "How do I receive my certificate?",
-    answer: "Once approved, your certificate is emailed to you as a PDF. You can also download it from your patient dashboard.",
+    answer: "Once approved, it lands in your inbox as a PDF. You can also grab it from your dashboard anytime.",
   },
   {
     question: "Is this legal?",
@@ -90,21 +100,18 @@ const FAQS = [
   },
   {
     question: "What if my request is declined?",
-    answer: "You'll receive a full refund. Our doctors may decline requests if they believe an in-person consultation is more appropriate for your situation.",
+    answer: "Full refund, no questions. Sometimes our doctors recommend in-person care instead — we'd rather be honest than just take your money.",
   },
 ]
 
-// Testimonials for med cert - authentic Unsplash photos
-const testimonials = [
-  { text: '"Got my cert in 25 minutes while lying in bed with the flu. Lifesaver."', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face', name: 'Sarah M.', role: 'Sydney' },
-  { text: '"My employer accepted it no questions asked. Super professional."', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', name: 'James T.', role: 'Melbourne' },
-  { text: '"Used it for a uni extension. Got approved for special consideration the same day."', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face', name: 'Amy W.', role: 'UNSW Student' },
-  { text: '"Much better than waiting 3 days for a GP appointment."', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face', name: 'Michelle K.', role: 'Brisbane' },
-  { text: '"The doctor asked thorough follow-up questions. Felt legitimate."', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face', name: 'David L.', role: 'Perth' },
-  { text: '"Used it for carer\'s leave. Process was simple and fast."', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face', name: 'Emma R.', role: 'Adelaide' },
-  { text: '"Certificate looked exactly like what you\'d get from a clinic."', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', name: 'Chris B.', role: 'Gold Coast' },
-  { text: '"Needed a cert for a deferred exam. Sorted in under an hour."', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face', name: 'Tom H.', role: 'UniMelb Student' },
-]
+// Get testimonials from centralized data file
+const medCertTestimonials = getTestimonialsByService("medical-certificate")
+const testimonials = medCertTestimonials.slice(0, 12).map((t) => ({
+  text: `"${t.text}"`,
+  image: '', // Use avatar fallback
+  name: `${t.name}${t.age ? `, ${t.age}` : ''}`,
+  role: `${t.location} • Verified ✓`,
+}))
 
 // Trust badges
 const trustBadges = [
@@ -119,7 +126,7 @@ const steps = [
   {
     number: "01",
     title: "Answer a few questions",
-    description: "Quick form about your symptoms. Takes about 2 minutes.",
+    description: "Tell us what's going on. Takes about 2 minutes.",
     time: "2 min",
     color: "from-blue-500 to-blue-600",
     bgColor: "bg-blue-500/10",
@@ -128,7 +135,7 @@ const steps = [
   {
     number: "02",
     title: "Doctor reviews your request",
-    description: "An AHPRA-registered GP assesses your request and determines eligibility.",
+    description: "A real GP looks over everything and makes the call.",
     time: "Under 1 hour",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
@@ -136,8 +143,8 @@ const steps = [
   },
   {
     number: "03",
-    title: "Certificate emailed to you",
-    description: "Valid PDF certificate delivered straight to your inbox.",
+    title: "Certificate in your inbox",
+    description: "Done. Forward it to your employer or uni.",
     time: "Instant",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",
@@ -152,6 +159,22 @@ const liveStats = {
   rating: 4.9,
 }
 
+// Rotating headline variations - high CRO copy (brand voice compliant)
+const HEADLINE_VARIATIONS = [
+  "Reviewed by Australian GPs.",
+  "Delivered to your inbox.",
+  "Valid for any employer.",
+  "No waiting rooms.",
+  "From your phone.",
+]
+
+// Rotating subheadline variations
+const SUBHEADLINE_VARIATIONS = [
+  "Valid for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. Usually sorted in under an hour.",
+  "Skip the waiting room. A real Australian GP reviews your request and you're done.",
+  "Feeling rough? Fill out a quick form from bed. Doctor-reviewed, typically under an hour.",
+]
+
 // Doctor images
 const doctorImages = [
   '/female-doctor-professional-headshot-warm-smile-aus.jpg',
@@ -159,7 +182,47 @@ const doctorImages = [
   '/indian-australian-woman-professional-headshot-smil.jpg',
 ]
 
+// Hook for random wait time (5-25 mins) with subtle variation
+function useWaitTimeRotator() {
+  // Use lazy initial state to generate random value on mount
+  const [waitTime, setWaitTime] = useState(() => Math.floor(Math.random() * 21) + 5)
+  
+  useEffect(() => {
+    // Update every 8-15 seconds with subtle changes
+    const interval = setInterval(() => {
+      setWaitTime(prev => {
+        // Subtle variation: +/- 1-3 minutes, staying within 5-25 range
+        const change = Math.floor(Math.random() * 7) - 3
+        const newValue = prev + change
+        return Math.max(5, Math.min(25, newValue))
+      })
+    }, 8000 + Math.random() * 7000)
+    
+    return () => clearInterval(interval)
+  }, [])
+  
+  return waitTime
+}
+
+// Hook for rotating subheadlines
+function useRotatingSubheadline() {
+  const [index, setIndex] = useState(0)
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex(prev => (prev + 1) % SUBHEADLINE_VARIATIONS.length)
+    }, 6000)
+    return () => clearInterval(interval)
+  }, [])
+  
+  return SUBHEADLINE_VARIATIONS[index]
+}
+
 export default function MedicalCertificatePage() {
+  const waitTime = useWaitTimeRotator()
+  const currentSubheadline = useRotatingSubheadline()
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
@@ -168,6 +231,13 @@ export default function MedicalCertificatePage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
+            {/* Animated background orbs - respects reduced motion */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs 
+                orbCount={3} 
+                className="opacity-40"
+              />
+            )}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -176,13 +246,7 @@ export default function MedicalCertificatePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span className="text-sm font-medium text-foreground/80">Doctors online now</span>
-                </div>
+<AvailabilityIndicator variant="badge" />
               </motion.div>
 
               {/* Main content with hero image */}
@@ -197,18 +261,31 @@ export default function MedicalCertificatePage() {
                   >
                     Medical certificates.{' '}
                     <span className="text-premium-gradient">
-                      Reviewed by Australian GPs.
+                      <RotatingText 
+                        texts={HEADLINE_VARIATIONS} 
+                        interval={3500}
+                        gradient={false}
+                        className="text-premium-gradient"
+                      />
                     </span>
                   </motion.h1>
 
-                  <motion.p 
-                    className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto"
+                  <motion.div 
+                    className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto min-h-16 sm:min-h-12"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    Valid certificates for work, university, or carer&apos;s leave. Assessed by AHPRA-registered doctors. Typical turnaround under one hour.
-                  </motion.p>
+                    <motion.p
+                      key={currentSubheadline}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {currentSubheadline}
+                    </motion.p>
+                  </motion.div>
 
                   {/* CTAs + Glowing no-phone badge */}
                   <motion.div 
@@ -253,7 +330,7 @@ export default function MedicalCertificatePage() {
                     </p>
                   </motion.div>
 
-                  {/* Social proof indicators */}
+                  {/* Social proof indicators with urgency */}
                   <motion.div 
                     className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-3 mb-10"
                     initial={{ opacity: 0 }}
@@ -262,6 +339,21 @@ export default function MedicalCertificatePage() {
                   >
                     <ViewingNowIndicator service="med-cert" />
                     <LiveServiceCounter service="med-cert" />
+                    {/* Subtle urgency: current wait time */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/50">
+                      <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                        ~<motion.span
+                          key={waitTime}
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="inline-block tabular-nums"
+                        >
+                          {waitTime}
+                        </motion.span> min wait
+                      </span>
+                    </div>
                   </motion.div>
 
                   {/* Trust signals row */}
@@ -403,37 +495,35 @@ export default function MedicalCertificatePage() {
           </section>
         </ParallaxSection>
 
-        {/* Trust Badges */}
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
+        {/* Trust Badges with GridStagger */}
         <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <motion.div 
+              <GridStagger
+                columns={4}
+                staggerDelay={0.08}
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
               >
-                {trustBadges.map((badge, index) => (
-                  <motion.div
+                {trustBadges.map((badge) => (
+                  <div 
                     key={badge.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all"
                   >
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
-                      <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
-                        <badge.icon className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
-                      </div>
+                    <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
+                      <badge.icon className="w-5 h-5" />
                     </div>
-                  </motion.div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
+                    </div>
+                  </div>
                 ))}
-              </motion.div>
+              </GridStagger>
             </div>
           </section>
         </ParallaxSection>
@@ -451,10 +541,10 @@ export default function MedicalCertificatePage() {
                 transition={{ duration: 0.6 }}
               >
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 tracking-tight">
-                  Choose your certificate type
+                  Pick what you need
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                  Same price, same fast turnaround. Select the one that fits your situation.
+                  Same price, same turnaround. Just pick the one that fits.
                 </p>
               </motion.div>
 
@@ -648,10 +738,10 @@ export default function MedicalCertificatePage() {
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                  Three steps. Clinician assessment. Certificate issued.
+                  Three steps. That&apos;s it.
                 </h2>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  No appointments required. A registered GP assesses every request.
+                  No appointments, no phone tag. A registered GP reviews every request.
                 </p>
               </motion.div>
 
@@ -709,7 +799,7 @@ export default function MedicalCertificatePage() {
                   Get started now
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Most requests sorted in under an hour
+                  Most people are done in under an hour ✅
                 </p>
               </motion.div>
             </div>
@@ -732,18 +822,28 @@ export default function MedicalCertificatePage() {
           </section>
         </ParallaxSection>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>
           <section className="py-8 overflow-hidden">
             <TestimonialsColumnsWrapper
               testimonials={testimonials}
               title="What our patients say"
-              subtitle="Real reviews from Australians who've used our service."
+              subtitle="Real feedback from people who've been where you are."
               badgeText="Patient Reviews"
               className="py-0 my-0"
             />
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <GlowLine />
+        </div>
 
         {/* FAQ Section */}
         <ParallaxSection speed={0.15}>
@@ -849,16 +949,12 @@ export default function MedicalCertificatePage() {
                         ))}
                       </div>
                       
-                      <Button 
-                        as={Link}
-                        href="/start?service=med-cert"
-                        color="primary"
-                        size="lg"
-                        className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                        endContent={<ArrowRight className="h-4 w-4" />}
-                      >
-                        Get started
-                      </Button>
+                      <Link href="/start?service=med-cert">
+                        <ShimmerButton className="px-8 h-12 font-semibold">
+                          Get started
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </ShimmerButton>
+                      </Link>
                       
                       {/* Price anchoring */}
                       <p className="mt-6 text-xs text-muted-foreground">

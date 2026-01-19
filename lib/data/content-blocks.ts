@@ -8,37 +8,13 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
+// Re-export types and helpers from shared module (for backward compatibility)
+export type { ContentBlock, ContentBlockInput } from "@/lib/data/types/content-blocks"
+export { getContentCategories, formatCategory } from "@/lib/data/types/content-blocks"
+
+import type { ContentBlock, ContentBlockInput } from "@/lib/data/types/content-blocks"
+
 const log = createLogger("content-blocks")
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface ContentBlock {
-  id: string
-  key: string
-  name: string
-  description: string | null
-  category: string
-  content: string
-  content_type: "text" | "html" | "markdown"
-  context: string | null
-  max_length: number | null
-  created_at: string
-  updated_at: string
-  updated_by: string | null
-}
-
-export interface ContentBlockInput {
-  key: string
-  name: string
-  description?: string | null
-  category: string
-  content: string
-  content_type?: "text" | "html" | "markdown"
-  context?: string | null
-  max_length?: number | null
-}
 
 // ============================================================================
 // READ OPERATIONS
@@ -196,23 +172,4 @@ export async function deleteContentBlock(
   return { success: true }
 }
 
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Get content categories for filtering
- */
-export function getContentCategories(): { value: string; label: string }[] {
-  return [
-    { value: "general", label: "General" },
-    { value: "med_cert", label: "Medical Certificates" },
-    { value: "repeat_rx", label: "Repeat Prescriptions" },
-    { value: "safety", label: "Safety" },
-    { value: "payment", label: "Payment" },
-    { value: "certificate", label: "Certificates" },
-    { value: "help", label: "Help Text" },
-    { value: "legal", label: "Legal" },
-    { value: "error", label: "Error Messages" },
-  ]
-}
+// Helpers are now exported from @/lib/data/types/content-blocks

@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { 
-  Clock, 
   Mail, 
   FileText, 
   ChevronDown,
   HelpCircle,
   CheckCircle2,
+  User,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
@@ -88,8 +88,24 @@ export function WhatHappensNext({
           <h1 className="text-2xl font-bold mb-2">Request submitted</h1>
           <p className="text-muted-foreground">
             {serviceName ? `Your ${serviceName.toLowerCase()} request is ` : "Your request is "}
-            now with our medical team.
+            being reviewed by our doctors.
           </p>
+          
+          {/* Reassurance badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              Doctors are reviewing requests now
+            </span>
+          </motion.div>
         </motion.div>
 
         {/* Live status tracker */}
@@ -114,11 +130,11 @@ export function WhatHappensNext({
           className="grid gap-3"
         >
           <InfoCard
-            icon={<Clock className="h-4 w-4" />}
-            title="Expected turnaround"
+            icon={<User className="h-4 w-4" />}
+            title="Doctor review in progress"
             description={isPriority 
               ? "Priority review — within 15 minutes" 
-              : "Usually under an hour (8am–10pm AEST)"
+              : "Most requests reviewed within 45 minutes"
             }
             highlight={isPriority}
           />

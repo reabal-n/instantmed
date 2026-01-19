@@ -1,21 +1,22 @@
+'use client'
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
 import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { Check, Zap, Shield, Clock, Star, ArrowRight, BadgeCheck } from "lucide-react"
 import { PRICING } from "@/lib/constants"
-
-// Prevent static generation for dynamic auth
-
-export const dynamic = "force-dynamic"
-export const metadata = {
-  title: "Pricing | InstantMed",
-  description: "Simple, transparent pricing for online medical consultations. No hidden fees, no subscriptions.",
-}
+import { useReducedMotion } from "framer-motion"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { GridStagger } from "@/components/effects/stagger-container"
 
 const services = [
   {
@@ -60,6 +61,8 @@ const faqs = [
 ]
 
 export default function PricingPage() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
@@ -68,6 +71,13 @@ export default function PricingPage() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative px-4 py-12 sm:px-6 sm:py-16 overflow-hidden">
+            {/* Animated background orbs - respects reduced motion */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs 
+                orbCount={3} 
+                className="opacity-40"
+              />
+            )}
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
@@ -87,6 +97,11 @@ export default function PricingPage() {
           </div>
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Pricing Cards */}
         <ParallaxSection speed={0.25}>
@@ -178,7 +193,12 @@ export default function PricingPage() {
           </section>
         </ParallaxSection>
 
-        {/* FAQ */}
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
+        {/* FAQ with GridStagger */}
         <ParallaxSection speed={0.2}>
           <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -186,22 +206,30 @@ export default function PricingPage() {
               <h2 className="text-2xl font-semibold text-center mb-6" style={{ fontFamily: "var(--font-display)" }}>
                 Common questions
               </h2>
-              <div className="space-y-3 max-w-2xl mx-auto">
+              <GridStagger
+                columns={1}
+                staggerDelay={0.08}
+                className="space-y-3 max-w-2xl mx-auto"
+              >
                 {faqs.map((faq, index) => (
                   <div
                     key={index}
-                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 animate-fade-in-up opacity-0"
-                    style={{ animationDelay: `${0.4 + index * 0.1}s`, animationFillMode: "forwards" }}
+                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4"
                   >
                     <h3 className="text-sm font-medium mb-1">{faq.q}</h3>
                     <p className="text-xs text-muted-foreground">{faq.a}</p>
                   </div>
                 ))}
-              </div>
+              </GridStagger>
             </div>
           </div>
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* CTA */}
         <ParallaxSection speed={0.15}>
@@ -214,16 +242,12 @@ export default function PricingPage() {
                   Ready to get started?
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">Get started in under 2 minutes. Only pay if we can help.</p>
-                <Button
-                  asChild
-                  size="lg"
-                  className="rounded-full btn-premium text-primary-foreground font-semibold h-12 px-8 shadow-lg group"
-                >
-                  <Link href="/medical-certificate">
+                <Link href="/medical-certificate">
+                  <ShimmerButton className="px-8 h-12 font-semibold">
                     Start a consult
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </ShimmerButton>
+                </Link>
               </div>
             </div>
           </div>
@@ -231,7 +255,7 @@ export default function PricingPage() {
         </ParallaxSection>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

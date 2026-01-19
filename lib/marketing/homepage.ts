@@ -58,7 +58,7 @@ export const serviceCategories = [
     title: "Medical Certificates",
     shortTitle: "Med Certs",
     benefitQuestion: "Need proof you're unwell?",
-    description: "Work, study, or carer's certificates",
+    description: "For work, uni, or when you're caring for someone",
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
@@ -81,7 +81,7 @@ export const serviceCategories = [
     title: "Repeat Scripts",
     shortTitle: "Scripts",
     benefitQuestion: "Need your regular medication?",
-    description: "Repeat requests for treatments you already take",
+    description: "Get your regular meds sorted without the hassle",
     icon: "Pill",
     color: "cyan",
     priceFrom: 29.95,
@@ -100,7 +100,7 @@ export const serviceCategories = [
     title: "General Consult",
     shortTitle: "Consult",
     benefitQuestion: "Have a health concern?",
-    description: "Clinical assessment for health concerns or new treatment requests",
+    description: "Talk to a GP about something new or ongoing",
     icon: "Stethoscope",
     color: "violet",
     priceFrom: 49.95,
@@ -142,21 +142,21 @@ export const howItWorks = [
   {
     step: 1,
     title: "Answer a few questions",
-    description: "Short, secure form. Takes about 2 minutes.",
+    description: "Tell us what's going on. Takes about 2 minutes.",
     icon: "ClipboardList",
     emoji: "📝",
   },
   {
     step: 2,
     title: "A doctor reviews it",
-    description: "A fully registered Australian GP personally reviews your request.",
+    description: "A real Australian GP looks over everything and makes the call.",
     icon: "Stethoscope",
     emoji: "🩺",
   },
   {
     step: 3,
     title: "Done",
-    description: "Your certificate is emailed, or your script is sent straight to your phone.",
+    description: "Certificate to your inbox, eScript to your phone. Done.",
     icon: "FileCheck",
     emoji: "✅",
   },
@@ -233,7 +233,7 @@ export const pricingTiers = [
 export const faqItems = [
   {
     question: "How is this different from seeing a GP?",
-    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. This isn't AI or a chatbot. It's telehealth, which has been legal and regulated in Australia for years. The main difference is convenience: no waiting rooms, no appointments, healthcare delivered via regulated telehealth.",
+    answer: "Every request is reviewed by a real Australian doctor — registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
   },
   {
     question: "Will my employer accept an online medical certificate?",
@@ -241,15 +241,15 @@ export const faqItems = [
   },
   {
     question: "What if the doctor says no?",
-    answer: "If a doctor can't approve your request for clinical reasons, you get a full refund. We won't charge you for something we can't help with.",
+    answer: "Full refund, no questions. We'd rather be upfront than take your money for something we can't help with.",
   },
   {
     question: "How fast is it really?",
-    answer: "Most requests are done within an hour. Sometimes it's 20 minutes, sometimes 90 — depends on how busy we are. You'll get email updates so you're not left wondering.",
+    answer: "Most requests are sorted within an hour. Sometimes 20 minutes, sometimes 90 — depends on how busy we are. You'll get email updates so you're not left wondering.",
   },
   {
     question: "Is my information private?",
-    answer: "Completely. Your health info is encrypted and only seen by the treating doctor. We don't share anything with employers, insurers, or anyone else. Ever.",
+    answer: "Completely. Your health info is encrypted and only seen by the treating doctor. We don't share anything with employers, insurers, or anyone else. Ever. 🔒",
   },
   {
     question: "What treatments can you provide?",
@@ -257,11 +257,11 @@ export const faqItems = [
   },
   {
     question: "Do I need to create an account?",
-    answer: "No. You can go through the whole process as a guest. We'll just need an email to send your documents to.",
+    answer: "Nope. You can go through the whole process as a guest. We just need an email to send your documents to.",
   },
   {
     question: "What if I have questions during the process?",
-    answer: "The doctor might message you if they need more info. You can reply right there. If something's unclear on your end, our support team is around to help.",
+    answer: "The doctor might message you if they need more info. You can reply right there. If something's unclear on your end, our support team is around to help. We're real people, not a call centre.",
   },
 ]
 
@@ -273,6 +273,7 @@ export const footerLinks = {
   company: [
     { label: "About Us", href: "/about" },
     { label: "Our Doctors", href: "/our-doctors" },
+    { label: "Reviews", href: "/reviews" },
     { label: "Clinical Governance", href: "/clinical-governance" },
     { label: "How It Works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },

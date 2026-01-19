@@ -59,10 +59,10 @@ export function CTASection() {
               </motion.div>
               
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
-                Start your request
+                Ready when you are
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Medical certificates and prescriptions assessed by Australian GPs. 2-minute intake.
+                Two minutes to fill out the form. A real GP reviews it. Certificate or script delivered.
               </p>
               
               {/* Features */}
@@ -87,7 +87,7 @@ export function CTASection() {
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"
                   endContent={<ArrowRight className="h-4 w-4" />}
                 >
-                  Start your request
+                  Get started
                 </Button>
               </div>
               

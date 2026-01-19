@@ -3,44 +3,22 @@ import { createClient } from "@supabase/supabase-js"
 import { unstable_cache, revalidateTag } from "next/cache"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createLogger } from "@/lib/observability/logger"
+
+// Re-export types and constants from shared module (for backward compatibility)
+export type { FlagKey, FeatureFlags } from "@/lib/data/types/feature-flags"
+export {
+  FLAG_KEYS,
+  DEFAULT_FLAGS,
+  DEFAULT_SAFETY_SYMPTOMS,
+  getFlagInfo,
+  isServiceKillSwitch,
+  isArrayFlag,
+} from "@/lib/data/types/feature-flags"
+
+import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
+import { FLAG_KEYS, DEFAULT_FLAGS, DEFAULT_SAFETY_SYMPTOMS } from "@/lib/data/types/feature-flags"
+
 const logger = createLogger("feature-flags")
-
-// Feature flag keys
-export const FLAG_KEYS = {
-  DISABLE_MED_CERT: "disable_med_cert",
-  DISABLE_REPEAT_SCRIPTS: "disable_repeat_scripts",
-  DISABLE_CONSULTS: "disable_consults",
-  BLOCKED_MEDICATION_TERMS: "blocked_medication_terms",
-  SAFETY_SCREENING_SYMPTOMS: "safety_screening_symptoms",
-} as const
-
-export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
-
-export interface FeatureFlags {
-  disable_med_cert: boolean
-  disable_repeat_scripts: boolean
-  disable_consults: boolean
-  blocked_medication_terms: string[]
-  safety_screening_symptoms: string[]
-}
-
-// Default safety screening symptoms (hardcoded fallback)
-export const DEFAULT_SAFETY_SYMPTOMS = [
-  'Chest pain or pressure',
-  'Severe difficulty breathing',
-  'Sudden weakness on one side (stroke signs)',
-  'Severe allergic reaction (swelling, can\'t breathe)',
-  'Thoughts of self-harm or suicide',
-]
-
-// Default values (fallback if DB unavailable)
-const DEFAULT_FLAGS: FeatureFlags = {
-  disable_med_cert: false,
-  disable_repeat_scripts: false,
-  disable_consults: false,
-  blocked_medication_terms: [],
-  safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
-}
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL

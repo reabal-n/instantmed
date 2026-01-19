@@ -168,13 +168,12 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
       <div className="bg-white rounded-lg border p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="flex-1">
             <Input
               placeholder="Search by invoice number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              startContent={<Search className="w-4 h-4 text-muted-foreground" />}
             />
           </div>
 

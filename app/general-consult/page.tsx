@@ -11,8 +11,13 @@ import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import {
+  AnimatedOrbs,
+  GlowLine,
+} from "@/components/ui/premium-effects"
+import { getTestimonialsByService } from "@/lib/data/testimonials"
 
 // Consultation types
 const CONSULT_TYPES = [
@@ -101,15 +106,23 @@ const FAQS = [
   },
 ]
 
-// Testimonials
-const testimonials = [
-  { text: '"Had a weird rash I was worried about. The doctor called, asked me to send photos, and diagnosed it quickly."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelT', name: 'Michael T.', role: 'Perth' },
-  { text: '"Needed advice about ongoing headaches. The doctor was thorough and referred me for tests."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SophieH', name: 'Sophie H.', role: 'Canberra' },
-  { text: '"Much better than I expected. The doctor actually called and spent time understanding my symptoms."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ChrisB', name: 'Chris B.', role: 'Newcastle' },
-  { text: '"Got a referral to a dermatologist sorted in an hour. So much faster than waiting weeks for my GP."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JennyL', name: 'Jenny L.', role: 'Brisbane' },
-  { text: '"The doctor was genuinely helpful with my anxiety. Felt properly listened to."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MarkS', name: 'Mark S.', role: 'Melbourne' },
-  { text: '"Needed a new medication for my migraines. The doctor assessed properly and sent the script same day."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=EmmaK', name: 'Emma K.', role: 'Sydney' },
-]
+// Get testimonials from centralized data
+const consultTestimonials = getTestimonialsByService("consultation")
+const testimonials = consultTestimonials.length > 0 
+  ? consultTestimonials.slice(0, 6).map((t) => ({
+      text: `"${t.text}"`,
+      image: t.image || '',
+      name: t.name,
+      role: `${t.location} • Verified ✓`,
+    }))
+  : [
+      { text: '"The doctor called and spent time understanding my symptoms. Much better than expected."', image: '', name: 'Chris B.', role: 'Newcastle • Verified ✓' },
+      { text: '"Got a referral to a dermatologist sorted in an hour. So much faster than waiting weeks."', image: '', name: 'Jenny L.', role: 'Brisbane • Verified ✓' },
+      { text: '"The doctor was genuinely helpful with my concerns. Felt properly listened to."', image: '', name: 'Mark S.', role: 'Melbourne • Verified ✓' },
+      { text: '"Needed a new medication. The doctor assessed properly and sent the script same day."', image: '', name: 'Emma K.', role: 'Sydney • Verified ✓' },
+      { text: '"Had a skin issue I was worried about. The doctor asked me to send photos and diagnosed it quickly."', image: '', name: 'Michael T.', role: 'Perth • Verified ✓' },
+      { text: '"Needed advice about ongoing headaches. The doctor was thorough and referred me for tests."', image: '', name: 'Sophie H.', role: 'Canberra • Verified ✓' },
+    ]
 
 // Trust badges
 const trustBadges = [
@@ -165,6 +178,8 @@ const doctorImages = [
 ]
 
 export default function GeneralConsultPage() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
@@ -173,6 +188,10 @@ export default function GeneralConsultPage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
+            {/* Animated background orbs */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs orbCount={3} className="opacity-40" />
+            )}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -319,6 +338,11 @@ export default function GeneralConsultPage() {
           </section>
         </ParallaxSection>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* Trust Badges */}
         <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
@@ -353,6 +377,11 @@ export default function GeneralConsultPage() {
             </div>
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Consultation Types */}
         <ParallaxSection speed={0.25}>
@@ -666,6 +695,11 @@ export default function GeneralConsultPage() {
           </section>
         </ParallaxSection>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>
           <section className="py-8 overflow-hidden">
@@ -678,6 +712,11 @@ export default function GeneralConsultPage() {
             />
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* FAQ Section */}
         <ParallaxSection speed={0.15}>

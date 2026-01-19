@@ -172,17 +172,17 @@ export default function StudentsPage() {
                     {
                       icon: FileText,
                       title: "Special Consideration",
-                      desc: "For exams, assignments, or class attendance affected by illness",
+                      desc: "When illness messes with exams, assignments, or attendance",
                     },
                     {
                       icon: Calendar,
                       title: "Deferred Exams",
-                      desc: "Medical evidence for exam deferrals and supplementary assessments",
+                      desc: "Documentation for deferred exams and supplementary assessments",
                     },
                     {
                       icon: BookOpen,
                       title: "Assignment Extensions",
-                      desc: "Documentation for late submission without penalty",
+                      desc: "So you can submit late without getting penalised",
                     },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4 text-center">
@@ -206,7 +206,7 @@ export default function StudentsPage() {
                     {
                       icon: Clock,
                       title: "No GP waitlists",
-                      desc: "Skip the 2-week wait for a bulk-billing appointment. Get your cert in 15 minutes.",
+                      desc: "Skip the 2-week wait for a bulk-billing appointment. Sorted in 15 minutes.",
                     },
                     {
                       icon: Zap,
@@ -291,7 +291,7 @@ export default function StudentsPage() {
                   {[
                     {
                       q: "Will my uni actually accept this?",
-                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and include all the details unis require: doctor's name, provider number, dates of illness, and signature. Every Australian university accepts them.",
+                      a: "Yes. Issued by AHPRA-registered doctors with all the details unis want: doctor's name, provider number, dates of illness, signature. Every Australian uni accepts them.",
                     },
                     {
                       q: "Can I get a certificate for an exam I already missed?",

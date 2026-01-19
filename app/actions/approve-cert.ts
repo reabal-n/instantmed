@@ -20,6 +20,7 @@ import {
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
+import { createNotification } from "@/lib/notifications/service"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 
 interface ApproveCertResult {
@@ -393,6 +394,16 @@ export async function approveAndSendCert(
     }
 
     logger.info("Intake updated successfully", { intakeId, status: "approved" })
+
+    // Create in-app notification for patient
+    await createNotification({
+      userId: patient.id,
+      type: "document_ready",
+      title: "Your certificate is ready",
+      message: "A doctor has approved your request. Your medical certificate is ready to download.",
+      actionUrl: `/patient/intakes/${intakeId}`,
+      metadata: { intakeId, certificateType, certificateId },
+    })
 
     // Track doctor approval in PostHog
     try {

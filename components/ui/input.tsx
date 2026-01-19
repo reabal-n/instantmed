@@ -18,39 +18,51 @@ function Input({
   size = "default",
   className,
   classNames,
+  startContent,
+  endContent,
   ...props
 }: InputProps & { classNames?: HeroInputProps["classNames"] }) {
   return (
     <HeroInput
       size={sizeMap[size]}
-      radius="lg" // Soft Pop Glass: rounded-xl for inputs
+      radius="lg"
       variant="flat"
+      startContent={startContent}
+      endContent={endContent}
       classNames={{
         base: cn("w-full", className),
         mainWrapper: "!shadow-none !bg-transparent",
         inputWrapper: cn(
-          // Clean single-layer input styling - no double borders
+          // Single-layer input styling - clean border, no duplicates
           "!bg-white dark:!bg-slate-900",
           "!border !border-slate-200 dark:!border-slate-700",
           "!shadow-none !outline-none",
           "!rounded-xl",
-          // Remove any default wrapper styling
+          // Remove HeroUI's default pseudo-element borders
           "before:!hidden after:!hidden",
-          // Motion - gentle
+          // Transition
           "transition-all duration-200",
-          // Hover state
+          // Hover
           "hover:!border-slate-300 dark:hover:!border-slate-600",
-          // Focus state - border only, no ring (single visual boundary)
+          // Focus - border color only, no ring
           "data-[focused=true]:!border-primary",
-          // Mobile optimizations
+          // Mobile touch target
           "min-h-[48px] md:min-h-0",
-          "text-base md:text-sm",
           classNames?.inputWrapper
         ),
+        innerWrapper: cn(
+          "!bg-transparent",
+          // Ensure icons align properly
+          startContent && "gap-2",
+          endContent && "gap-2"
+        ),
         input: cn(
+          "!bg-transparent",
           "text-foreground placeholder:text-muted-foreground/60",
           "text-base md:text-sm",
           "font-sans",
+          // Override global input styles from globals.css
+          "!border-none !shadow-none !p-0 !rounded-none",
           classNames?.input
         ),
         label: "text-foreground/80 font-sans",

@@ -1,14 +1,7 @@
-# Lumen Health — Brand Voice & Copy Rules
-Version 1.0 — Source of Truth
+Brand Voice & Copy Rules
 
-This document defines how Lumen Health communicates.
 All copy, UI text, marketing, and AI-generated content must follow these rules.
 
----
-
-## Brand Voice Essence
-
-Lumen Health speaks like a calm expert who doesn't need to prove it.
 
 The voice is:
 - Informal, modern, and human

@@ -47,7 +47,9 @@ function Textarea({
           "text-foreground placeholder:text-muted-foreground/50 bg-transparent",
           "text-base md:text-sm",
           // Ensure textarea content area has stable height
-          "min-h-[80px]"
+          "min-h-[80px]",
+          // Override global textarea styles from globals.css
+          "!border-none !shadow-none !p-0 !rounded-none"
         ),
         helperWrapper: "bg-transparent",
         label: "text-foreground/80",

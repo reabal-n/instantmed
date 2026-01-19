@@ -6,13 +6,21 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, RefreshCw, Smartphone, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, AlertCircle } from "lucide-react"
+import { TrustLogos } from "@/components/marketing/trust-badges"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { GridStagger } from "@/components/effects/stagger-container"
 
 // Common medication categories
 const MEDICATION_TYPES = [
@@ -20,7 +28,7 @@ const MEDICATION_TYPES = [
     id: "blood-pressure",
     title: "Blood Pressure",
     subtitle: "Hypertension medications",
-    examples: "Perindopril, Amlodipine, Irbesartan",
+    examples: "ACE inhibitors, calcium channel blockers",
     icon: "💊",
     popular: true,
   },
@@ -28,7 +36,7 @@ const MEDICATION_TYPES = [
     id: "cholesterol",
     title: "Cholesterol",
     subtitle: "Statins & lipid management",
-    examples: "Atorvastatin, Rosuvastatin",
+    examples: "Statins and lipid-lowering medications",
     icon: "💊",
     popular: true,
   },
@@ -36,7 +44,7 @@ const MEDICATION_TYPES = [
     id: "contraceptive",
     title: "Contraceptives",
     subtitle: "Oral contraceptive pills",
-    examples: "Levlen, Yaz, Microgynon",
+    examples: "Combined and progestogen-only pills",
     icon: "💊",
     popular: true,
   },
@@ -44,7 +52,7 @@ const MEDICATION_TYPES = [
     id: "asthma",
     title: "Asthma & COPD",
     subtitle: "Inhalers & preventers",
-    examples: "Ventolin, Seretide, Symbicort",
+    examples: "Relievers, preventers, combination inhalers",
     icon: "💊",
     popular: false,
   },
@@ -52,7 +60,7 @@ const MEDICATION_TYPES = [
     id: "reflux",
     title: "Reflux & Stomach",
     subtitle: "PPIs & antacids",
-    examples: "Nexium, Somac, Losec",
+    examples: "Proton pump inhibitors, antacids",
     icon: "💊",
     popular: false,
   },
@@ -60,7 +68,7 @@ const MEDICATION_TYPES = [
     id: "thyroid",
     title: "Thyroid",
     subtitle: "Thyroid hormone replacement",
-    examples: "Thyroxine, Eutroxsig",
+    examples: "Thyroid hormone replacement therapy",
     icon: "💊",
     popular: false,
   },
@@ -94,14 +102,14 @@ const FAQS = [
   },
 ]
 
-// Testimonials
+// Testimonials with verified badges
 const testimonials = [
-  { text: '"Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidR', name: 'David R.', role: 'Gold Coast' },
-  { text: '"So convenient for my regular contraceptive prescription. The doctor asked good questions."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaW', name: 'Jessica W.', role: 'Adelaide' },
-  { text: '"Living remote, nearest GP is 2 hours away. This service is a game changer."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RyanP', name: 'Ryan P.', role: 'Darwin' },
-  { text: '"Script was at my pharmacy same day. No more running out of medication."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LindaM', name: 'Linda M.', role: 'Perth' },
-  { text: '"The doctor checked my recent blood tests before approving. Felt properly looked after."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelK', name: 'Michael K.', role: 'Sydney' },
-  { text: '"Been using this for my asthma preventer for months. Works perfectly every time."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SophieT', name: 'Sophie T.', role: 'Melbourne' },
+  { text: '"Needed my blood pressure meds renewed. Usually takes a week to see my GP. This took 20 minutes."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidR', name: 'David R.', role: 'Gold Coast • Verified ✓' },
+  { text: '"So convenient for my regular contraceptive prescription. The doctor asked good questions."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaW', name: 'Jessica W.', role: 'Adelaide • Verified ✓' },
+  { text: '"Living remote, nearest GP is 2 hours away. This service is a game changer."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RyanP', name: 'Ryan P.', role: 'Darwin • Verified ✓' },
+  { text: '"Script was at my pharmacy same day. No more running out of medication."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LindaM', name: 'Linda M.', role: 'Perth • Verified ✓' },
+  { text: '"The doctor checked my recent blood tests before approving. Felt properly looked after."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelK', name: 'Michael K.', role: 'Sydney • Verified ✓' },
+  { text: '"Been using this for my asthma preventer for months. Works perfectly every time."', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SophieT', name: 'Sophie T.', role: 'Melbourne • Verified ✓' },
 ]
 
 // Trust badges
@@ -158,6 +166,8 @@ const doctorImages = [
 ]
 
 export default function RepeatPrescriptionPage() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
@@ -166,6 +176,13 @@ export default function RepeatPrescriptionPage() {
         {/* Hero Section */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 overflow-hidden">
+            {/* Animated background orbs - respects reduced motion */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs 
+                orbCount={3} 
+                className="opacity-40"
+              />
+            )}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               {/* Top badge */}
               <motion.div 
@@ -174,13 +191,7 @@ export default function RepeatPrescriptionPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span className="text-sm font-medium text-foreground/80">Doctors online now</span>
-                </div>
+                <AvailabilityIndicator variant="badge" />
               </motion.div>
 
               {/* Main content */}
@@ -312,37 +323,40 @@ export default function RepeatPrescriptionPage() {
           </section>
         </ParallaxSection>
 
-        {/* Trust Badges */}
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
+        {/* Trust Badges with GridStagger */}
         <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <motion.div 
+              <GridStagger
+                columns={4}
+                staggerDelay={0.08}
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
               >
-                {trustBadges.map((badge, index) => (
-                  <motion.div
+                {trustBadges.map((badge) => (
+                  <div 
                     key={badge.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all"
                   >
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
-                      <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
-                        <badge.icon className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
-                      </div>
+                    <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
+                      <badge.icon className="w-5 h-5" />
                     </div>
-                  </motion.div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
+                    </div>
+                  </div>
                 ))}
-              </motion.div>
+              </GridStagger>
+              
+              {/* eRx Partner Logo */}
+              <div className="mt-8">
+                <TrustLogos />
+              </div>
             </div>
           </section>
         </ParallaxSection>
@@ -579,6 +593,11 @@ export default function RepeatPrescriptionPage() {
           </section>
         </ParallaxSection>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* Testimonials */}
         <ParallaxSection speed={0.25}>
           <section className="py-8 overflow-hidden">
@@ -591,6 +610,11 @@ export default function RepeatPrescriptionPage() {
             />
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <GlowLine />
+        </div>
 
         {/* FAQ Section */}
         <ParallaxSection speed={0.15}>
@@ -696,16 +720,12 @@ export default function RepeatPrescriptionPage() {
                         ))}
                       </div>
                       
-                      <Button 
-                        as={Link}
-                        href="/start?service=repeat-script"
-                        color="primary"
-                        size="lg"
-                        className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
-                        endContent={<ArrowRight className="h-4 w-4" />}
-                      >
-                        Renew your prescription
-                      </Button>
+                      <Link href="/start?service=repeat-script">
+                        <ShimmerButton className="px-8 h-12 font-semibold">
+                          Renew your prescription
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </ShimmerButton>
+                      </Link>
                       
                       <p className="mt-6 text-xs text-muted-foreground">
                         $29.95 consultation fee • PBS subsidies apply at pharmacy

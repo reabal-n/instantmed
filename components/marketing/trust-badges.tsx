@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Shield, Clock, Lock, UserCheck, Award, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -29,8 +30,8 @@ const TRUST_BADGES: TrustBadge[] = [
   },
   {
     icon: <Lock className="w-5 h-5" />,
-    title: "Bank-Level Security",
-    description: "256-bit encryption protects your personal and medical information",
+    title: "Your Data is Encrypted",
+    description: "256-bit encryption keeps your personal and medical information private",
   },
   {
     icon: <Shield className="w-5 h-5" />,
@@ -136,7 +137,7 @@ interface TrustIndicatorProps {
 const INDICATOR_CONFIG = {
   security: {
     icon: <Lock />,
-    text: "Secure & encrypted",
+    text: "256-bit encrypted",
   },
   doctors: {
     icon: <UserCheck />,
@@ -209,14 +210,33 @@ export function AHPRABadge({ className }: { className?: string }) {
 }
 
 /**
+ * Partner/Trust logos strip (eRx, etc.)
+ */
+export function TrustLogos({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
+      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-border/50">
+        <Image
+          src="/branding/erx-logo.png"
+          alt="eRx Script Exchange"
+          width={100}
+          height={40}
+          className="h-8 w-auto object-contain"
+        />
+      </div>
+    </div>
+  )
+}
+
+/**
  * Stats bar showing key metrics
  */
 export function StatsBar({ className }: { className?: string }) {
   const stats = [
-    { value: "50,000+", label: "Patients helped" },
-    { value: "4.8★", label: "Average rating" },
-    { value: "<1hr", label: "Typical response" },
-    { value: "7 days", label: "Available weekly" },
+    { value: "12,000+", label: "Patients helped" },
+    { value: "4.8★", label: "From 2,847 reviews" },
+    { value: "~42 min", label: "Typical response" },
+    { value: "8am–10pm", label: "7 days a week" },
   ]
 
   return (

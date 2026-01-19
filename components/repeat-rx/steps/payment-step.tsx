@@ -10,6 +10,7 @@
 import { CreditCard, Shield, Lock } from "lucide-react"
 import { StepHeader } from "../shared"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 
 interface PaymentStepProps {
   price: string
@@ -30,6 +31,11 @@ export function PaymentStep({ price, isProcessing }: PaymentStepProps) {
         <p className="text-sm text-muted-foreground mb-1">Total</p>
         <p className="text-3xl font-bold text-primary">{price || PRICING_DISPLAY.REPEAT_SCRIPT}</p>
         <p className="text-xs text-muted-foreground mt-2">One-time payment • No subscription</p>
+      </div>
+
+      {/* Availability status */}
+      <div className="flex justify-center">
+        <AvailabilityIndicator variant="badge" />
       </div>
 
       {/* Security badges */}

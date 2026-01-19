@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { ReactNode } from "react"
 import { cn } from "@/lib/utils"
-import { CheckCircle, ArrowRight, Download, Clock, Mail } from "lucide-react"
+import { CheckCircle, ArrowRight, Clock, Mail, User } from "lucide-react"
 import { Button } from "@/components/uix"
 import Link from "next/link"
 import confetti from "canvas-confetti"
@@ -299,24 +299,24 @@ export function RequestSubmittedSuccess({
 }) {
   return (
     <PremiumSuccessState
-      title="Request Submitted!"
-      subtitle={`Your ${requestType} request is now with our doctors`}
+      title="Request Submitted"
+      subtitle={`Your ${requestType} request is being reviewed`}
       description={email ? `We'll email you at ${email} when it's ready.` : undefined}
       steps={[
         {
+          icon: <User className="h-4 w-4" />,
+          label: "A doctor is reviewing your request",
+          description: "Doctors are reviewing requests now (8am–10pm AEST)",
+        },
+        {
           icon: <Clock className="h-4 w-4" />,
-          label: "Doctor reviews your request",
-          description: "Usually within 15-30 minutes (8am-10pm AEST)",
+          label: "Usually takes about 45 minutes",
+          description: "Most requests are completed within an hour",
         },
         {
           icon: <Mail className="h-4 w-4" />,
-          label: "Get notified by email",
-          description: "We'll send your document as soon as it's approved",
-        },
-        {
-          icon: <Download className="h-4 w-4" />,
-          label: "Download your document",
-          description: "Also available in your dashboard anytime",
+          label: "We'll email you when it's ready",
+          description: "Your document will also be in your dashboard",
         },
       ]}
       primaryAction={{
@@ -325,7 +325,7 @@ export function RequestSubmittedSuccess({
       }}
       footer={
         <p>
-          Need help? <Link href="/contact" className="text-primary hover:underline">Contact support</Link>
+          Questions? <Link href="/contact" className="text-primary hover:underline">Contact support</Link>
         </p>
       }
     />
@@ -339,8 +339,8 @@ export function RequestSubmittedSuccess({
 export function PaymentSuccessState({ onContinue }: { onContinue?: () => void }) {
   return (
     <PremiumSuccessState
-      title="Payment Received!"
-      subtitle="A doctor is now reviewing your request"
+      title="Payment Received"
+      subtitle="Your request is now being reviewed"
       steps={[
         {
           icon: <CheckCircle className="h-4 w-4" />,
@@ -348,9 +348,9 @@ export function PaymentSuccessState({ onContinue }: { onContinue?: () => void })
           description: "Your transaction was successful",
         },
         {
-          icon: <Clock className="h-4 w-4" />,
-          label: "Review in progress",
-          description: "Our doctors typically respond within 15 minutes",
+          icon: <User className="h-4 w-4" />,
+          label: "Doctor review in progress",
+          description: "Most requests are reviewed within 45 minutes",
         },
       ]}
       primaryAction={{

@@ -279,15 +279,12 @@ export function DoctorDashboardClient({
         <div className="bg-white rounded-xl border p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by patient name, email, or request ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <Input
+                placeholder="Search by patient name, email, or request ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                startContent={<Search className="w-4 h-4 text-muted-foreground" />}
+              />
             </div>
             <Select
               selectedKeys={statusFilter ? [statusFilter] : []}

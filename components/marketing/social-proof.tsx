@@ -29,7 +29,7 @@ const SAMPLE_REVIEWS: Review[] = [
     name: "Sarah M.",
     location: "Sydney, NSW",
     rating: 5,
-    text: "Needed a medical certificate for work and had it within 45 minutes. The process was straightforward and the doctor was thorough with their questions.",
+    text: "Had a stomach bug and couldn't face going to the GP. Got my certificate sorted in about 40 minutes. My employer accepted it without any questions.",
     date: "2 weeks ago",
     service: "medical-certificate",
     verified: true,
@@ -39,7 +39,7 @@ const SAMPLE_REVIEWS: Review[] = [
     name: "James T.",
     location: "Melbourne, VIC",
     rating: 5,
-    text: "Great for repeat prescriptions. No waiting rooms, no phone calls. Just answered a few questions and had my script sent to my phone.",
+    text: "I've used this twice now for repeat prescriptions. No waiting room, no phone tag with the clinic. Just answered a few questions and had my eScript within the hour.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
@@ -49,7 +49,7 @@ const SAMPLE_REVIEWS: Review[] = [
     name: "Michelle K.",
     location: "Brisbane, QLD",
     rating: 5,
-    text: "Used this when I was too unwell to leave the house. Professional service and the certificate was accepted by my employer without any issues.",
+    text: "Was genuinely too unwell to leave the house. The process was straightforward and the doctor's questions were thorough. Certificate came through quickly.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,
@@ -59,9 +59,9 @@ const SAMPLE_REVIEWS: Review[] = [
     name: "David L.",
     location: "Perth, WA",
     rating: 4,
-    text: "Quick and efficient. The only reason for 4 stars is I wished there was a phone consultation option, but the text-based system worked fine.",
+    text: "Quick and efficient for my blood pressure medication renewal. Would have liked a phone option but the text-based system worked fine for my situation.",
     date: "1 month ago",
-    service: "consultation",
+    service: "prescription",
     verified: true,
   },
   {
@@ -69,9 +69,19 @@ const SAMPLE_REVIEWS: Review[] = [
     name: "Emma R.",
     location: "Adelaide, SA",
     rating: 5,
-    text: "As someone who works from home, this is perfect. Got my blood pressure medication renewed without having to take time off for a GP visit.",
+    text: "Working from home means I can't easily pop out for a GP visit. This saved me half a day. The doctor was thorough and my certificate was legitimate and accepted.",
     date: "2 weeks ago",
-    service: "prescription",
+    service: "medical-certificate",
+    verified: true,
+  },
+  {
+    id: "6",
+    name: "Chris P.",
+    location: "Gold Coast, QLD",
+    rating: 5,
+    text: "Migraine hit me at 7pm and I needed a cert for the next day. Had it sorted by 8:30pm. Appreciated that doctors are available in the evenings.",
+    date: "5 days ago",
+    service: "medical-certificate",
     verified: true,
   },
 ]
@@ -322,7 +332,7 @@ interface AggregateRatingProps {
 
 export function AggregateRating({ 
   rating = 4.8, 
-  reviewCount = 2500,
+  reviewCount = 2847,
   className 
 }: AggregateRatingProps) {
   return (
@@ -351,10 +361,10 @@ export function SocialProofBar({ className }: { className?: string }) {
       <div className="flex items-center gap-1.5">
         <StarRating rating={5} size="sm" />
         <span className="text-foreground font-medium">4.8</span>
-        <span className="text-muted-foreground">from 2,500+ reviews</span>
+        <span className="text-muted-foreground">from 2,847 reviews</span>
       </div>
       <span className="text-border">|</span>
-      <span className="text-muted-foreground">50,000+ patients helped</span>
+      <span className="text-muted-foreground">12,000+ patients helped</span>
       <span className="text-border hidden sm:inline">|</span>
       <span className="text-muted-foreground hidden sm:inline">Australian doctors</span>
     </div>

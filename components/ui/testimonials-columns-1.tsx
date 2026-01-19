@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { Avatar } from "@/components/ui/avatar";
+import { BadgeCheck } from "lucide-react";
 
 function getInitials(name: string) {
   const cleaned = name.replace(/\s+/g, " ").trim();
@@ -18,6 +19,7 @@ type Testimonial = {
   image: string;
   name: string;
   role: string;
+  verified?: boolean;
 };
 
 export const TestimonialsColumn = (props: {
@@ -65,9 +67,13 @@ export const TestimonialsColumn = (props: {
                         }
                       />
                     )}
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col min-w-0 flex-1">
                       <div className="font-medium tracking-tight leading-4 truncate text-sm">{name}</div>
                       <div className="leading-4 opacity-60 tracking-tight text-xs truncate">{role}</div>
+                    </div>
+                    <div className="flex items-center gap-1 text-emerald-600 shrink-0">
+                      <BadgeCheck className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-medium">Verified</span>
                     </div>
                   </div>
                 </div>

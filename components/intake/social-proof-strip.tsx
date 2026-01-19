@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CheckCircle2, Clock, Users, Shield, Zap } from 'lucide-react'
+import { CheckCircle2, Clock, Shield, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SocialProofStripProps {
@@ -217,11 +217,10 @@ export function SocialProofToast({ className }: { className?: string }) {
 }
 
 /**
- * Inline urgency indicator for forms
+ * Inline response time indicator for forms
+ * Provides factual info without artificial urgency
  */
 export function UrgencyIndicator({ 
-  queuePosition = 3,
-  estimatedMinutes = 35,
   className 
 }: { 
   queuePosition?: number
@@ -230,16 +229,16 @@ export function UrgencyIndicator({
 }) {
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg",
+      "flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg",
       className
     )}>
-      <Users className="w-5 h-5 text-amber-600 shrink-0" />
+      <Clock className="w-5 h-5 text-primary shrink-0" />
       <div className="flex-1">
-        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-          {queuePosition} requests ahead of you
+        <p className="text-sm font-medium text-foreground">
+          Doctors typically respond within an hour
         </p>
-        <p className="text-xs text-amber-700 dark:text-amber-300">
-          Estimated wait: ~{estimatedMinutes} minutes
+        <p className="text-xs text-muted-foreground">
+          During business hours (8am–10pm AEST)
         </p>
       </div>
     </div>

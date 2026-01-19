@@ -246,20 +246,18 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                 error={step1Errors.phone}
                 required
               >
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="0412 345 678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className={cn(
-                      "pl-10 h-12 rounded-xl",
-                      step1Errors.phone && "input-error"
-                    )}
-                  />
-                </div>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="0412 345 678"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={cn(
+                    "h-12",
+                    step1Errors.phone && "input-error"
+                  )}
+                  startContent={<Phone className="h-4 w-4 text-muted-foreground" />}
+                />
               </FormGroup>
 
               {/* Address Line 1 - with autocomplete */}

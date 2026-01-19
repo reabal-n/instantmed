@@ -180,36 +180,35 @@ export function AddressAutocomplete({
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <Input
-          ref={inputRef}
-          value={value}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-          placeholder={placeholder}
-          className={cn(
-            "pl-10 pr-10", 
-            className, 
-            error && "border-red-500",
-            isVerified && "border-green-500/50",
-            showVerificationWarning && "border-amber-500/50"
-          )}
-          disabled={disabled}
-          autoComplete="off"
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          role="combobox"
-        />
-        {isSearching ? (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-        ) : isVerified ? (
-          <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-        ) : showVerificationWarning ? (
-          <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
-        ) : null}
-      </div>
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+        placeholder={placeholder}
+        className={cn(
+          className, 
+          error && "border-red-500",
+          isVerified && "border-green-500/50",
+          showVerificationWarning && "border-amber-500/50"
+        )}
+        disabled={disabled}
+        autoComplete="off"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        role="combobox"
+        startContent={<MapPin className="h-4 w-4 text-muted-foreground" />}
+        endContent={
+          isSearching ? (
+            <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+          ) : isVerified ? (
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          ) : showVerificationWarning ? (
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          ) : null
+        }
+      />
       
       {/* Verification hint */}
       {showVerificationWarning && (

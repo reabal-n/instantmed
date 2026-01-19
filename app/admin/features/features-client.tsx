@@ -22,8 +22,8 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
-import type { FeatureFlags } from "@/lib/feature-flags"
-import { FLAG_KEYS, type FlagKey } from "@/lib/feature-flags"
+import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
+import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
 interface FeatureFlagsClientProps {
   initialFlags: FeatureFlags

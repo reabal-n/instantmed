@@ -48,6 +48,7 @@ export default async function PatientDashboard() {
   return (
     <PanelDashboard
       fullName={authUser.profile.full_name || "Patient"}
+      patientId={patientId}
       intakes={intakesResult.data || []}
       prescriptions={prescriptionsResult.data || []}
     />

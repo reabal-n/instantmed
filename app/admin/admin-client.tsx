@@ -42,6 +42,7 @@ import {
 import type { RequestWithPatient, DashboardAnalytics } from "@/types/db"
 import { toast } from "sonner"
 import { getIsTestMode, setTestModeOverride } from "@/lib/test-mode"
+import { RealtimeStatus, RealtimeStatusCompact } from "@/components/admin/realtime-status"
 import { cn } from "@/lib/utils"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
 import { addCsrfHeaders } from "@/lib/security/csrf-client"
@@ -334,6 +335,7 @@ export function AdminClient({
               <p className="text-xs text-muted-foreground">Dr. {doctorName.split(" ")[1] || doctorName}</p>
             </div>
           </div>
+          <RealtimeStatusCompact />
         </div>
         <nav className="p-2">
           {sidebarItems.map((item) => (
@@ -461,9 +463,12 @@ export function AdminClient({
         {/* Queue Section */}
         {activeSection === "queue" && (
           <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Doctor Queue</h1>
-              <p className="text-sm text-muted-foreground mt-1">Review and process patient requests</p>
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Doctor Queue</h1>
+                <p className="text-sm text-muted-foreground mt-1">Review and process patient requests</p>
+              </div>
+              <RealtimeStatus onRefresh={() => window.location.reload()} />
             </div>
 
             {/* Stats */}
@@ -501,13 +506,12 @@ export function AdminClient({
             {/* Filters */}
             <div className="glass-card rounded-2xl p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <div className="flex-1 max-w-md">
                   <Input
                     placeholder="Search by name, suburb, or ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 rounded-xl bg-white/50 border-white/40"
+                    startContent={<Search className="h-4 w-4 text-muted-foreground" />}
                   />
                 </div>
                 <Select
@@ -686,9 +690,11 @@ export function AdminClient({
             </div>
 
             <div className="glass-card rounded-2xl p-6">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search patients..." className="pl-10 rounded-xl bg-white/50 border-white/40" />
+              <div className="max-w-md">
+                <Input
+                  placeholder="Search patients..."
+                  startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+                />
               </div>
             </div>
 

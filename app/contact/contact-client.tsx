@@ -9,8 +9,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Chip } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
+import { useReducedMotion } from "framer-motion"
+import {
+  AnimatedOrbs,
+  GlowLine,
+} from "@/components/ui/premium-effects"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 import {
   Mail,
   MapPin,
@@ -34,6 +40,7 @@ const contactReasons = [
 ]
 
 export function ContactClient() {
+  const prefersReducedMotion = useReducedMotion()
   const [selectedReason, setSelectedReason] = useState("general")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -91,7 +98,7 @@ export function ContactClient() {
             </TiltCard>
           </div>
         </main>
-        <Footer />
+        <MarketingFooter />
       </div>
     )
   }
@@ -102,31 +109,37 @@ export function ContactClient() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
-          <div
-            className="absolute top-20 right-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl"
-            aria-hidden="true"
-          />
+        <ParallaxSection speed={0.2}>
+          <section className="relative pt-32 pb-16 overflow-hidden">
+            {/* Animated background orbs */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs orbCount={3} className="opacity-40" />
+            )}
+            <div className="absolute inset-0 bg-gradient-hero" aria-hidden="true" />
 
-          <div className="container mx-auto px-4 relative">
-            <div className="max-w-3xl mx-auto text-center">
-              <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4 badge-premium spacing-premium">
-                Contact Us
-              </Chip>
-              <h1
-                className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Got a question? <span className="text-premium-gradient">Let&apos;s chat.</span>
-              </h1>
-              <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-                We&apos;re real humans who actually read and reply to every message. Usually within a few hours, always
-                within 24.
-              </p>
+            <div className="container mx-auto px-4 relative">
+              <div className="max-w-3xl mx-auto text-center">
+                <Chip color="success" variant="flat" startContent={<Sparkles className="w-3.5 h-3.5" />} className="mb-4 badge-premium spacing-premium">
+                  Contact Us
+                </Chip>
+                <h1
+                  className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Got a question? <span className="text-premium-gradient">We&apos;re here to help.</span>
+                </h1>
+                <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Real humans who read and reply to every message. Usually within a few hours, always within 24.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Contact Section */}
         <section className="py-12 pb-24" aria-labelledby="contact-section-title">
@@ -249,7 +262,7 @@ export function ContactClient() {
                         placeholder="John Smith"
                         required
                         autoComplete="name"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
+                        className="h-12"
                       />
                     </div>
                     <div className="space-y-2">
@@ -261,7 +274,7 @@ export function ContactClient() {
                         placeholder="john@example.com"
                         required
                         autoComplete="email"
-                        className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
+                        className="h-12"
                       />
                     </div>
                   </div>
@@ -273,7 +286,7 @@ export function ContactClient() {
                       name="subject"
                       placeholder="How can we help?"
                       required
-                      className="input-glow rounded-xl h-12 bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20"
+                      className="h-12"
                     />
                   </div>
 
@@ -285,7 +298,7 @@ export function ContactClient() {
                       placeholder="Tell us more about your inquiry..."
                       minRows={5}
                       required
-                      className="input-glow rounded-xl bg-white/50 border-foreground/10 focus:border-primary focus:ring-primary/20 resize-none"
+                      className="resize-none"
                     />
                   </div>
 
@@ -316,7 +329,7 @@ export function ContactClient() {
         </section>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

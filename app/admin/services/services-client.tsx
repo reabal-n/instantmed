@@ -55,8 +55,8 @@ import {
   toggleServiceActiveAction,
   deleteServiceAction,
 } from "@/app/actions/admin-settings"
-import type { Service, ServiceInput } from "@/lib/data/services"
-import { getServiceTypes, formatPrice } from "@/lib/data/services"
+import type { Service, ServiceInput } from "@/lib/data/types/services"
+import { getServiceTypes, formatPrice } from "@/lib/data/types/services"
 
 interface ServicesConfigClientProps {
   initialServices: Service[]
@@ -334,13 +334,12 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -561,37 +560,27 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="price">Standard Price (AUD)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      $
-                    </span>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={String((formData.price_cents / 100).toFixed(2))}
-                      onChange={(e) => handleInputChange("price_cents", Math.round(parseFloat(e.target.value || "0") * 100))}
-                      className="pl-7"
-                    />
-                  </div>
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={String((formData.price_cents / 100).toFixed(2))}
+                    onChange={(e) => handleInputChange("price_cents", Math.round(parseFloat(e.target.value || "0") * 100))}
+                    startContent={<span className="text-muted-foreground">$</span>}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="priority_fee">Priority Fee (AUD)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      $
-                    </span>
-                    <Input
-                      id="priority_fee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={String(((formData.priority_fee_cents || 0) / 100).toFixed(2))}
-                      onChange={(e) => handleInputChange("priority_fee_cents", Math.round(parseFloat(e.target.value || "0") * 100) || null)}
-                      className="pl-7"
-                    />
-                  </div>
+                  <Input
+                    id="priority_fee"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={String(((formData.priority_fee_cents || 0) / 100).toFixed(2))}
+                    onChange={(e) => handleInputChange("priority_fee_cents", Math.round(parseFloat(e.target.value || "0") * 100) || null)}
+                    startContent={<span className="text-muted-foreground">$</span>}
+                  />
                 </div>
               </div>
             </div>

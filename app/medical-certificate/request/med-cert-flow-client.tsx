@@ -39,6 +39,7 @@ import { MICROCOPY } from "@/lib/microcopy/med-cert"
 import { TagsSelector } from "@/components/ui/tags-selector"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 import { SmartValidation } from "@/components/intake/smart-validation"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { SessionProgress } from "@/components/shell"
@@ -1089,17 +1090,15 @@ export function MedCertFlowClient({
               <Label htmlFor="start-date" className="text-sm font-medium">
                 Start date
               </Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="h-12 pl-10 rounded-xl"
-                />
-              </div>
+              <Input
+                id="start-date"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
+                min={new Date().toISOString().split("T")[0]}
+                className="h-12"
+                startContent={<Calendar className="w-4 h-4 text-muted-foreground" />}
+              />
               <p className="text-xs text-muted-foreground">
                 Medical certificates can only be issued from today onwards
               </p>
@@ -1738,10 +1737,13 @@ export function MedCertFlowClient({
               </div>
             </div>
 
-            {/* Turnaround info */}
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>{MICROCOPY.turnaround}</span>
+            {/* Turnaround info with availability */}
+            <div className="flex flex-col items-center gap-3">
+              <AvailabilityIndicator variant="badge" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span>{MICROCOPY.turnaround}</span>
+              </div>
             </div>
           </section>
         )

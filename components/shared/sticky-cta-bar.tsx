@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { X, Zap } from "lucide-react"
+import { X, Clock } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
@@ -11,11 +11,19 @@ const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string
   "/prescriptions": { name: "Prescription", price: "$29.95", href: "/prescriptions/new" },
 }
 
-const DEFAULT_CONFIG = { name: "cert or script", price: "$19.95", href: "/medical-certificate/new" }
+const DEFAULT_CONFIG = { name: "Medical Certificate", price: "$19.95", href: "/medical-certificate/new" }
+
+// Session limiting
+const SESSION_KEY = "sticky_cta_shown"
+const MAX_SHOWS_PER_SESSION = 1
 
 export function StickyCTABar() {
   const [isVisible, setIsVisible] = useState(false)
-  const [isDismissed, setIsDismissed] = useState(false)
+  const [isDismissed, setIsDismissed] = useState(() => {
+    if (typeof window === "undefined") return false
+    const shown = sessionStorage.getItem(SESSION_KEY)
+    return shown ? parseInt(shown, 10) >= MAX_SHOWS_PER_SESSION : false
+  })
   const [isNearFooter, setIsNearFooter] = useState(false)
   const pathname = usePathname()
 
@@ -59,10 +67,12 @@ export function StickyCTABar() {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white flex items-center gap-1.5 truncate">
-              <Zap className="w-4 h-4 text-primary shrink-0" />
               {config.name}
             </p>
-            <p className="text-xs text-white/60">From {config.price} · Under 1 hour</p>
+            <p className="text-xs text-white/60 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              From {config.price} · Usually under an hour
+            </p>
           </div>
           <Button
             asChild
@@ -72,7 +82,13 @@ export function StickyCTABar() {
             <Link href={config.href}>Get Started</Link>
           </Button>
           <button
-            onClick={() => setIsDismissed(true)}
+            onClick={() => {
+              setIsDismissed(true)
+              if (typeof window !== "undefined") {
+                const current = parseInt(sessionStorage.getItem(SESSION_KEY) || "0", 10)
+                sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
+              }
+            }}
             className="p-1.5 text-white/40 hover:text-white/70 transition-colors shrink-0"
             aria-label="Dismiss"
           >

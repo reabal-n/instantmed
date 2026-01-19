@@ -10,6 +10,10 @@ Disallow: /patient/
 Disallow: /api/
 Disallow: /auth/
 
+# Disallow medication pages (compliance - no drug names in ads)
+Disallow: /medications/
+Disallow: /prescriptions/med/
+
 # Allow important public pages
 Allow: /about
 Allow: /pricing

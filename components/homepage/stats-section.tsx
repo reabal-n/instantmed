@@ -8,20 +8,20 @@ import { motion } from "framer-motion"
 const stats = [
   {
     icon: Users,
-    value: "10,000+",
+    value: "12,000+",
     label: "Aussies helped",
     color: "#2563EB",
   },
   {
     icon: Clock,
-    value: "45 min",
+    value: "~42 min",
     label: "Average response",
     color: "#4f46e5",
   },
   {
     icon: Star,
-    value: "4.9/5",
-    label: "Patient rating",
+    value: "4.8/5",
+    label: "From 2,847 reviews",
     color: "#F59E0B",
   },
   {
@@ -84,8 +84,8 @@ export function StatsSection() {
                           <Star key={i} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                         ))}
                       </div>
-                      <p className="text-sm text-foreground">&quot;Got my prescription in 30 minutes. Absolute lifesaver!&quot;</p>
-                      <p className="text-xs text-muted-foreground mt-1">Sarah M. • Sydney</p>
+                      <p className="text-sm text-foreground">&quot;Had it sorted in about 40 minutes. My employer accepted it without any questions.&quot;</p>
+                      <p className="text-xs text-muted-foreground mt-1">Sarah M., 34 • Sydney</p>
                     </div>
                   </div>
                 </motion.div>
@@ -182,11 +182,11 @@ export function StatsSection() {
                     />
                   ))}
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-white dark:border-slate-800 text-white text-xs font-bold">
-                    +2k
+                    +2.8k
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">2,000+ reviews</span> on Google & Trustpilot
+                  <span className="font-semibold text-foreground">2,847 reviews</span> • 4.8 average rating
                 </p>
               </div>
             </BlurFade>

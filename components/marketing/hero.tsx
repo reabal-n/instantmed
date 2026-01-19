@@ -130,7 +130,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Need a medical certificate for work? Or a repeat script sent to your phone? Complete a 2-minute form and a doctor reviews it — no phone call needed for most requests.
+            Need a medical certificate for work? Or a repeat script sent to your phone? Fill out a quick form, a GP reviews it, and you&apos;re done. No phone call needed for most requests.
           </motion.p>
 
           {/* CTAs - Intent-specific */}
@@ -183,7 +183,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.6 }}
           >
             {[
-              { icon: Clock, text: "Most done in under 1 hour" },
+              { icon: Clock, text: "Usually done in under an hour" },
               { icon: CheckCircle2, text: "AHPRA-registered doctors" },
               { icon: Shield, text: "RACGP-aligned protocols" },
             ].map((signal) => (
@@ -209,7 +209,7 @@ export function Hero() {
           {[
             { value: "4.9", label: "Average rating", icon: Star, showStars: true },
             { value: "<30 min", label: "Typical response", icon: Zap },
-            { value: "7 days", label: "A week availability", icon: Users },
+            { value: "7 days", label: "Available every day", icon: Users },
             { value: "AHPRA", label: "Registered doctors", icon: CheckCircle2 },
           ].map((stat) => (
             <motion.div

@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
+import { sendRefundEmail } from "@/lib/email/template-sender"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -599,12 +600,46 @@ export async function POST(request: Request) {
       if (updateResult.error) {
         log.error("Error updating intake after refund", { paymentIntentId }, updateResult.error)
       } else if (updateResult.data?.length) {
+        const intakeId = updateResult.data[0].id
         log.info("Intake payment status updated after refund", { 
           paymentIntentId,
-          intakeId: updateResult.data[0].id,
+          intakeId,
           isFullRefund,
           amountRefunded: charge.amount_refunded,
         })
+
+        // Send refund notification email to patient
+        try {
+          const { data: intake } = await supabase
+            .from("intakes")
+            .select("id, patient_id")
+            .eq("id", intakeId)
+            .single()
+
+          if (intake?.patient_id) {
+            const { data: patient } = await supabase
+              .from("profiles")
+              .select("id, full_name, email")
+              .eq("id", intake.patient_id)
+              .single()
+
+            if (patient?.email) {
+              const amountFormatted = `$${(charge.amount_refunded / 100).toFixed(2)}`
+              await sendRefundEmail({
+                to: patient.email,
+                patientName: patient.full_name || "there",
+                amount: amountFormatted,
+                refundReason: isFullRefund ? "Your request was declined or cancelled" : "Partial refund processed",
+                intakeId,
+                patientId: patient.id,
+              })
+              log.info("Refund notification email sent", { intakeId, to: patient.email })
+            }
+          }
+        } catch (emailError) {
+          // Don't fail the webhook for email errors
+          log.error("Failed to send refund notification email", { intakeId }, emailError)
+        }
       } else {
         log.warn("No intake found to update for refund", { paymentIntentId })
       }

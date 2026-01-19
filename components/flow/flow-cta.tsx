@@ -235,15 +235,21 @@ export function FlowCTA({
         </AnimatePresence>
 
         {/* Security badge */}
-        <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
-          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>Secure & encrypted • AHPRA doctors</span>
+        <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1">
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            256-bit encrypted
+          </span>
+          <span className="text-slate-300">•</span>
+          <span>AHPRA doctors</span>
+          <span className="text-slate-300">•</span>
+          <span>Usually reviewed within an hour</span>
         </div>
       </div>
     </div>

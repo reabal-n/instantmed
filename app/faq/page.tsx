@@ -1,20 +1,20 @@
+'use client'
+
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { FAQAccordion } from "./faq-accordion"
-import { MessageCircle, HelpCircle } from "lucide-react"
+import { MessageCircle, HelpCircle, BadgeCheck } from "lucide-react"
+import { useReducedMotion } from "framer-motion"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 
-// ISR: Revalidate FAQ content every hour
-export const revalidate = 3600
-
-export const metadata = {
-  title: "FAQs | InstantMed",
-  description:
-    "Frequently asked questions about InstantMed online medical consultations, prescriptions, and certificates.",
-}
 
 const faqCategories = [
   {
@@ -134,37 +134,49 @@ const faqCategories = [
 ]
 
 export default function FAQPage() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
       <main className="flex-1 bg-background">
         {/* Hero */}
-        <section className="relative pt-32 pb-16 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero" />
-          <div className="absolute top-20 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <ParallaxSection speed={0.2}>
+          <section className="relative pt-32 pb-16 overflow-hidden">
+            {/* Animated background orbs */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs orbCount={3} className="opacity-40" />
+            )}
+            <div className="absolute inset-0 bg-gradient-hero" />
 
-          <div className="container mx-auto px-4 relative">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
-                <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-                Help Centre
-              </Badge>
-              <h1
-                className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Got questions? <span className="text-gradient-mint">We&apos;ve got answers.</span>
-              </h1>
-              <p className="mt-6 text-lg text-muted-foreground">
-                Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
-                <Link href="/contact" className="text-primary hover:underline">
-                  Get in touch
-                </Link>
-              </p>
+            <div className="container mx-auto px-4 relative">
+              <div className="max-w-3xl mx-auto text-center">
+                <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
+                  Help Centre
+                </Badge>
+                <h1
+                  className="text-4xl md:text-5xl font-bold text-foreground tracking-tight"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Got questions? <span className="text-gradient-mint">We&apos;ve got answers.</span>
+                </h1>
+                <p className="mt-6 text-lg text-muted-foreground">
+                  Everything you need to know about InstantMed. Can&apos;t find your answer?{" "}
+                  <Link href="/contact" className="text-primary hover:underline">
+                    Get in touch
+                  </Link>
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* FAQ Sections */}
         <section className="py-12 pb-24">
@@ -175,30 +187,36 @@ export default function FAQPage() {
           </div>
         </section>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* Contact CTA */}
-        <section className="py-16 bg-gradient-subtle">
-          <div className="container mx-auto px-4">
-            <div className="max-w-xl mx-auto text-center">
-              <TiltCard className="p-8 hover-lift">
-                <div className="text-4xl mb-4">🤔</div>
-                <h2 className="text-xl font-semibold text-foreground mb-2">Still scratching your head?</h2>
-                <p className="text-muted-foreground mb-6">
-                  Our support team is here to help. We typically respond within 2 hours (and yes, we&apos;re actually
-                  helpful).
-                </p>
-                <Button asChild className="rounded-full btn-premium text-primary-foreground">
+        <ParallaxSection speed={0.15}>
+          <section className="py-16">
+            <div className="container mx-auto px-4">
+              <div className="max-w-xl mx-auto text-center">
+                <TiltCard className="glass-card rounded-3xl p-8">
+                  <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Still have questions?</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Our support team typically responds within 2 hours.
+                  </p>
                   <Link href="/contact">
-                    <MessageCircle className="mr-2 w-4 h-4" />
-                    Contact Support
+                    <ShimmerButton className="px-6 h-11 font-semibold">
+                      <MessageCircle className="mr-2 w-4 h-4" />
+                      Contact Support
+                    </ShimmerButton>
                   </Link>
-                </Button>
-              </TiltCard>
+                </TiltCard>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

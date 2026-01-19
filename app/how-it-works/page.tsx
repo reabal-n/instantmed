@@ -1,7 +1,9 @@
+'use client'
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import {
   ClipboardList,
@@ -16,15 +18,13 @@ import {
   Zap,
   Heart,
 } from "lucide-react"
-
-// ISR: Revalidate how-it-works page every 24 hours (static content)
-export const revalidate = 86400
-
-export const metadata = {
-  title: "How It Works | InstantMed",
-  description:
-    "Get a medical certificate or prescription reviewed by an Australian doctor. Submit online, receive a response usually within hours.",
-}
+import { useReducedMotion } from "framer-motion"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { GridStagger } from "@/components/effects/stagger-container"
 
 const steps = [
   {
@@ -104,6 +104,8 @@ const useCases = [
 ]
 
 export default function HowItWorksPage() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
@@ -112,6 +114,13 @@ export default function HowItWorksPage() {
         {/* Hero */}
         <ParallaxSection speed={0.2}>
           <section className="relative pt-20 pb-12 lg:pt-24 lg:pb-16 overflow-hidden">
+            {/* Animated background orbs - respects reduced motion */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs 
+                orbCount={3} 
+                className="opacity-40"
+              />
+            )}
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
@@ -148,6 +157,11 @@ export default function HowItWorksPage() {
           </div>
           </section>
         </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Steps */}
         <ParallaxSection speed={0.25}>
@@ -203,7 +217,12 @@ export default function HowItWorksPage() {
           </section>
         </ParallaxSection>
 
-        {/* Features Grid */}
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
+        {/* Features Grid with GridStagger */}
         <ParallaxSection speed={0.2}>
           <section className="py-12 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -217,19 +236,22 @@ export default function HowItWorksPage() {
                 </h2>
                 <p className="text-sm text-muted-foreground">Real reasons, not marketing fluff.</p>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-                {features.map((feature, index) => (
+              <GridStagger
+                columns={4}
+                staggerDelay={0.08}
+                className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto"
+              >
+                {features.map((feature) => (
                   <div
                     key={feature.title}
-                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 text-center animate-fade-in-up opacity-0 hover-lift card-warm-hover"
-                    style={{ animationDelay: `${0.5 + index * 0.1}s`, animationFillMode: "forwards" }}
+                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 text-center hover-lift card-warm-hover"
                   >
                     <div className="text-2xl mb-2">{feature.emoji}</div>
                     <h3 className="text-sm font-semibold text-foreground mb-1">{feature.title}</h3>
                     <p className="text-xs text-muted-foreground">{feature.description}</p>
                   </div>
                 ))}
-              </div>
+              </GridStagger>
             </div>
           </div>
           </section>
@@ -274,6 +296,11 @@ export default function HowItWorksPage() {
           </section>
         </ParallaxSection>
 
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
+
         {/* CTA */}
         <ParallaxSection speed={0.15}>
           <section className="py-12 lg:py-16">
@@ -290,14 +317,14 @@ export default function HowItWorksPage() {
                   Choose what you need and we&apos;ll handle the rest. Most requests are done within an hour.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button asChild size="lg" className="rounded-full btn-premium text-foreground font-semibold px-8">
-                    <Link href="/medical-certificate">
+                  <Link href="/medical-certificate">
+                    <ShimmerButton className="px-8 h-12 font-semibold">
                       Get Med Cert
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </Button>
+                    </ShimmerButton>
+                  </Link>
                   <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent">
-                    <Link href="/prescriptions">Get Script</Link>
+                    <Link href="/repeat-prescription">Get Script</Link>
                   </Button>
                 </div>
               </div>
@@ -307,7 +334,7 @@ export default function HowItWorksPage() {
         </ParallaxSection>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

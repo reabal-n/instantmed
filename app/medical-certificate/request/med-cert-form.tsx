@@ -1042,17 +1042,15 @@ export function MedCertForm({
             <StepHeader title="When does your leave start?" subtitle="We cannot backdate medical certificates" />
             <div className="space-y-2">
               <Label htmlFor="start-date" className="text-sm font-medium">Start date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="h-12 pl-10 rounded-xl"
-                />
-              </div>
+              <Input
+                id="start-date"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
+                min={new Date().toISOString().split("T")[0]}
+                className="h-12"
+                startContent={<Calendar className="w-4 h-4 text-muted-foreground" />}
+              />
               <p className="text-xs text-muted-foreground">Certificates can only be issued from today onwards</p>
             </div>
           </div>
@@ -1299,25 +1297,19 @@ export function MedCertForm({
                     helpText="Your certificate will be sent to this email address"
                     required
                   />
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                      placeholder="you@example.com"
-                      className={cn(
-                        // Glass input
-                        "h-11 pl-10 rounded-xl transition-all duration-200",
-                        "bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg",
-                        "border border-white/30 dark:border-white/10",
-                        "focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)]",
-                        formData.email && !validators.email(formData.email).isValid && "border-destructive/50 focus:shadow-[0_0_20px_rgb(239,68,68,0.15)]",
-                        formData.email && validators.email(formData.email).isValid && "border-emerald-500/50 focus:shadow-[0_0_20px_rgb(34,197,94,0.15)]"
-                      )}
-                    />
-                  </div>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="you@example.com"
+                    className={cn(
+                      "h-11",
+                      formData.email && !validators.email(formData.email).isValid && "border-destructive/50",
+                      formData.email && validators.email(formData.email).isValid && "border-emerald-500/50"
+                    )}
+                    startContent={<Mail className="w-4 h-4 text-muted-foreground" />}
+                  />
                   {formData.email ? (
                     <ValidationHint validation={validators.email(formData.email)} />
                   ) : (

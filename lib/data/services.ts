@@ -8,67 +8,13 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
+// Re-export types and helpers from shared module (for backward compatibility)
+export type { Service, ServiceInput } from "@/lib/data/types/services"
+export { getServiceTypes, formatServiceType, formatPrice, formatSLA, getAustralianStates } from "@/lib/data/types/services"
+
+import type { Service, ServiceInput } from "@/lib/data/types/services"
+
 const log = createLogger("services-data")
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface Service {
-  id: string
-  slug: string
-  name: string
-  short_name: string | null
-  description: string | null
-  type: string
-  category: string | null
-  price_cents: number
-  priority_fee_cents: number | null
-  is_active: boolean
-  requires_id_verification: boolean
-  requires_medicare: boolean
-  requires_photo: boolean
-  min_age: number | null
-  max_age: number | null
-  allowed_states: string[] | null
-  sla_standard_minutes: number
-  sla_priority_minutes: number
-  questionnaire_id: string | null
-  eligibility_rules: Record<string, unknown>
-  icon_name: string | null
-  display_order: number
-  badge_text: string | null
-  meta_title: string | null
-  meta_description: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface ServiceInput {
-  slug: string
-  name: string
-  short_name?: string | null
-  description?: string | null
-  type: string
-  category?: string | null
-  price_cents: number
-  priority_fee_cents?: number | null
-  is_active?: boolean
-  requires_id_verification?: boolean
-  requires_medicare?: boolean
-  requires_photo?: boolean
-  min_age?: number | null
-  max_age?: number | null
-  allowed_states?: string[] | null
-  sla_standard_minutes?: number
-  sla_priority_minutes?: number
-  eligibility_rules?: Record<string, unknown>
-  icon_name?: string | null
-  display_order?: number
-  badge_text?: string | null
-  meta_title?: string | null
-  meta_description?: string | null
-}
 
 // ============================================================================
 // READ OPERATIONS
@@ -311,46 +257,4 @@ export async function deleteService(
   return { success: true }
 }
 
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Get service types for dropdown
- */
-export function getServiceTypes(): { value: string; label: string }[] {
-  return [
-    { value: "med_certs", label: "Medical Certificates" },
-    { value: "repeat_rx", label: "Repeat Prescriptions" },
-    { value: "weight_loss", label: "Weight Loss" },
-    { value: "mens_health", label: "Men's Health" },
-    { value: "womens_health", label: "Women's Health" },
-    { value: "common_scripts", label: "Common Scripts" },
-    { value: "referrals", label: "Referrals" },
-    { value: "pathology", label: "Pathology" },
-    { value: "consults", label: "Consultations" },
-  ]
-}
-
-/**
- * Get Australian states for dropdown
- */
-export function getAustralianStates(): { value: string; label: string }[] {
-  return [
-    { value: "ACT", label: "Australian Capital Territory" },
-    { value: "NSW", label: "New South Wales" },
-    { value: "NT", label: "Northern Territory" },
-    { value: "QLD", label: "Queensland" },
-    { value: "SA", label: "South Australia" },
-    { value: "TAS", label: "Tasmania" },
-    { value: "VIC", label: "Victoria" },
-    { value: "WA", label: "Western Australia" },
-  ]
-}
-
-/**
- * Format price from cents to display string
- */
-export function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
-}
+// Helpers are now exported from @/lib/data/types/services

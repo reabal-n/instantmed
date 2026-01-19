@@ -110,13 +110,12 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
         style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex-1 max-w-md">
             <Input
               placeholder="Search by name, suburb, or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-xl bg-white/50 border-white/40"
+              startContent={<Search className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
 

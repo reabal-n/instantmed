@@ -20,6 +20,7 @@ import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { ReferralCard } from "@/components/patient/referral-card"
 import { motion } from "framer-motion"
 
 /**
@@ -88,6 +89,7 @@ function getDaysUntilRenewal(renewalDate: string): number {
 
 interface PatientDashboardProps {
   fullName: string
+  patientId: string
   intakes?: Intake[]
   prescriptions?: Prescription[]
 }
@@ -102,6 +104,7 @@ const STATUS_CONFIG = {
 
 export function PanelDashboard({
   fullName,
+  patientId,
   intakes = [],
   prescriptions = [],
 }: PatientDashboardProps) {
@@ -285,6 +288,11 @@ export function PanelDashboard({
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Referral Section */}
+      <section className="mt-8">
+        <ReferralCard patientId={patientId} />
       </section>
 
       {/* Floating Action Button - New Request */}

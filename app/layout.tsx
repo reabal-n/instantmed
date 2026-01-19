@@ -17,6 +17,7 @@ import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/heal
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { ChatIntakeButton } from "@/components/chat/chat-intake"
 import { NetworkStatus } from "@/components/ui/error-recovery"
+import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import Script from "next/script"
 import "./globals.css"
 
@@ -218,6 +219,7 @@ export default function RootLayout({
               <Analytics />
               <WebVitalsReporter />
               <PostHogIdentify />
+              <ServiceWorkerRegistration />
             </HeroUIProviderWrapper>
           </ThemeProvider>
         </SupabaseAuthProvider>

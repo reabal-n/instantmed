@@ -16,6 +16,8 @@ import {
   ClipboardList,
   Settings,
   Stethoscope,
+  Shield,
+  Star,
 } from "lucide-react"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from "@/components/uix"
@@ -40,19 +42,19 @@ interface NavbarProps {
 const services = [
   {
     title: "Medical Certificates",
-    href: "/start?service=med-cert",
+    href: "/medical-certificate",
     description: "Work, uni & carer's leave",
     icon: FileText,
   },
   {
     title: "Repeat Scripts",
-    href: "/start?service=repeat-script",
+    href: "/repeat-prescription",
     description: "Medications you already take",
     icon: Pill,
   },
   {
     title: "General Consult",
-    href: "/start?service=consult",
+    href: "/general-consult",
     description: "New prescriptions & dose changes",
     icon: Stethoscope,
   },
@@ -173,58 +175,6 @@ function AnimatedNavLink({ href, children, gradient, icon, isActive, onClick }: 
   )
 }
 
-function ScrollNavLink({ 
-  sectionId, 
-  isActive, 
-  children 
-}: { 
-  sectionId: string
-  isActive: boolean
-  children: React.ReactNode 
-}) {
-  const pathname = usePathname()
-  const router = useRouter()
-  
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    
-    const scrollToSection = () => {
-      const element = document.getElementById(sectionId)
-      if (element) {
-        const headerOffset = 80 // Account for fixed header
-        const elementPosition = element.getBoundingClientRect().top
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        })
-      }
-    }
-    
-    if (pathname === '/') {
-      // Already on homepage, scroll to section
-      scrollToSection()
-    } else {
-      // Navigate to homepage with hash, then scroll
-      router.push(`/#${sectionId}`)
-      // Wait for navigation, then scroll
-      setTimeout(() => {
-        scrollToSection()
-      }, 300)
-    }
-  }
-  
-  return (
-    <AnimatedNavLink 
-      href={`/#${sectionId}`} 
-      isActive={isActive}
-      onClick={handleClick}
-    >
-      {children}
-    </AnimatedNavLink>
-  )
-}
 
 export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -287,25 +237,43 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
-                  <AnimatedNavLink href="/medical-certificate" isActive={isActivePath("/medical-certificate")}
-                  >
-                    Medical certificates
-                  </AnimatedNavLink>
-                  <AnimatedNavLink href="/repeat-prescription" isActive={isActivePath("/repeat-prescription")}
-                  >
-                    Repeat Rx
-                  </AnimatedNavLink>
-                  <AnimatedNavLink href="/general-consult" isActive={isActivePath("/general-consult")}
-                  >
-                    General consult
-                  </AnimatedNavLink>
+                  {/* Services Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors",
+                          isActivePath("/medical-certificate") || isActivePath("/repeat-prescription") || isActivePath("/general-consult")
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Services
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64">
+                      {services.map((service) => (
+                        <DropdownMenuItem key={service.href} asChild>
+                          <Link href={service.href} className="flex items-center gap-3 cursor-pointer py-2">
+                            <service.icon className="h-4 w-4 text-primary" />
+                            <div>
+                              <p className="text-sm font-medium">{service.title}</p>
+                              <p className="text-xs text-muted-foreground">{service.description}</p>
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                  <ScrollNavLink sectionId="how-it-works" isActive={pathname === "/how-it-works"}>
-                    How it works
-                  </ScrollNavLink>
-                  <ScrollNavLink sectionId="pricing" isActive={pathname === "/pricing"}>
-                    Pricing
-                  </ScrollNavLink>
+                  <AnimatedNavLink href="/trust" isActive={isActivePath("/trust")}>
+                    Why us?
+                  </AnimatedNavLink>
+                  <AnimatedNavLink href="/reviews" isActive={isActivePath("/reviews")}>
+                    <Star className="h-3 w-3 mr-1" />
+                    Reviews
+                  </AnimatedNavLink>
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
@@ -507,10 +475,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         {variant === "marketing" && (
           <>
+            <AnimatedMobileMenu.Section title="Services" />
             <AnimatedMobileMenu.Item
               item={{
                 label: "Medical certificates",
                 href: "/medical-certificate",
+                description: "Work, uni & carer's leave",
                 icon: <FileText className="h-5 w-5" />,
               }}
               index={0}
@@ -520,6 +490,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               item={{
                 label: "Repeat Rx",
                 href: "/repeat-prescription",
+                description: "Medications you already take",
                 icon: <Pill className="h-5 w-5" />,
               }}
               index={1}
@@ -529,6 +500,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               item={{
                 label: "General consult",
                 href: "/general-consult",
+                description: "New prescriptions & dose changes",
                 icon: <Stethoscope className="h-5 w-5" />,
               }}
               index={2}
@@ -536,12 +508,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             />
             <AnimatedMobileMenu.Divider />
             <AnimatedMobileMenu.Item
-              item={{ label: "How it works", href: "/how-it-works", icon: <Stethoscope className="h-5 w-5" /> }}
+              item={{ label: "Why us?", href: "/trust", icon: <Shield className="h-5 w-5" /> }}
               index={3}
               onClose={() => setMobileMenuOpen(false)}
             />
             <AnimatedMobileMenu.Item
-              item={{ label: "Pricing", href: "/pricing", icon: <FileText className="h-5 w-5" /> }}
+              item={{ label: "Reviews", href: "/reviews", icon: <Star className="h-5 w-5" /> }}
               index={4}
               onClose={() => setMobileMenuOpen(false)}
             />

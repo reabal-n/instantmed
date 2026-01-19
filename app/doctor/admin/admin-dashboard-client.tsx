@@ -192,13 +192,12 @@ export function AdminDashboardClient({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search by name, suburb, or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
             <select

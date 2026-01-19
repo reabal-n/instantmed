@@ -35,7 +35,7 @@ import type {
   SignatureStyle,
 } from "@/types/certificate-template"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
-import { getTemplateTypeName } from "@/lib/data/certificate-templates"
+import { getTemplateTypeName } from "@/lib/data/types/certificate-templates"
 import { saveTemplateAction, getTemplateHistoryAction, activateTemplateAction } from "@/app/actions/templates"
 import { CertificatePreview } from "./certificate-preview"
 

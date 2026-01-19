@@ -3,40 +3,61 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin, BookOpen, ClipboardCheck } from "lucide-react"
-import { Button } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { ComplianceBar } from "@/components/shared/compliance-marquee"
+import { useReducedMotion } from "framer-motion"
+import {
+  AnimatedOrbs,
+  GlowLine,
+  ShimmerButton,
+} from "@/components/ui/premium-effects"
+import { GridStagger } from "@/components/effects/stagger-container"
+import { ParallaxSection } from "@/components/ui/parallax-section"
 
 export function AboutClient() {
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar variant="marketing" />
 
       <main className="flex-1 pt-20">
         {/* Hero */}
-        <section className="relative px-4 py-12 sm:py-16 lg:py-20 overflow-hidden">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
-                <Heart className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-foreground/80">About InstantMed</span>
+        <ParallaxSection speed={0.2}>
+          <section className="relative px-4 py-12 sm:py-16 lg:py-20 overflow-hidden">
+            {/* Animated background orbs */}
+            {!prefersReducedMotion && (
+              <AnimatedOrbs orbCount={3} className="opacity-40" />
+            )}
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 mb-4 interactive-pill cursor-default">
+                  <Heart className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-medium text-foreground/80">About InstantMed</span>
+                </div>
+                <h1
+                  className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Healthcare shouldn&apos;t be hard
+                </h1>
+                <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+                  We connect Australians with AHPRA-registered doctors for medical certificates, prescriptions, and consultations. Fast, simple, legitimate.
+                </p>
               </div>
-              <h1
-                className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Healthcare shouldn&apos;t be hard
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-                We&apos;re on a mission to make healthcare accessible, fast, and hassle-free for all Australians.
-              </p>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Story */}
-        <section className="px-4 py-12 sm:px-6 lg:py-16">
+        <ParallaxSection speed={0.15}>
+          <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
               <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -72,63 +93,76 @@ export function AboutClient() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Values */}
-        <section className="px-4 py-12 sm:px-6 lg:py-16">
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-              <div className="text-center mb-8">
-                <h2
-                  className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  What we stand for
-                </h2>
-              </div>
+        <ParallaxSection speed={0.2}>
+          <section className="px-4 py-12 sm:px-6 lg:py-16">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+                <div className="text-center mb-8">
+                  <h2
+                    className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl mb-2"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    What we stand for
+                  </h2>
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    icon: Zap,
-                    title: "Speed",
-                    description: "We believe healthcare should be fast. Most requests are reviewed within an hour.",
-                    color: "primary",
-                  },
-                  {
-                    icon: Shield,
-                    title: "Trust",
-                    description: "All our doctors are AHPRA-registered and fully licensed to practice in Australia.",
-                    color: "#4f46e5",
-                  },
-                  {
-                    icon: Heart,
-                    title: "Accessibility",
-                    description: "Healthcare should be accessible to everyone, regardless of location or schedule.",
-                    color: "#EC4899",
-                  },
-                ].map((value) => {
-                  const Icon = value.icon
-                  return (
-                    <div key={value.title} className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 hover-lift card-warm-hover">
-                      <div
-                        className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mb-3"
-                        style={{
-                          background: `linear-gradient(135deg, ${value.color}20, ${value.color}10)`,
-                          border: `1px solid ${value.color}30`,
-                        }}
-                      >
-                        <Icon className="h-5 w-5" style={{ color: value.color }} />
+                <GridStagger columns={3} staggerDelay={0.1} className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    {
+                      icon: Zap,
+                      title: "Speed",
+                      description: "We believe healthcare should be fast. Most requests are reviewed within an hour.",
+                      color: "primary",
+                    },
+                    {
+                      icon: Shield,
+                      title: "Trust",
+                      description: "All our doctors are AHPRA-registered and fully licensed to practice in Australia.",
+                      color: "#4f46e5",
+                    },
+                    {
+                      icon: Heart,
+                      title: "Accessibility",
+                      description: "Healthcare should be accessible to everyone, regardless of location or schedule.",
+                      color: "#EC4899",
+                    },
+                  ].map((value) => {
+                    const Icon = value.icon
+                    return (
+                      <div key={value.title} className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4 hover-lift card-warm-hover">
+                        <div
+                          className="shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mb-3"
+                          style={{
+                            background: `linear-gradient(135deg, ${value.color}20, ${value.color}10)`,
+                            border: `1px solid ${value.color}30`,
+                          }}
+                        >
+                          <Icon className="h-5 w-5" style={{ color: value.color }} />
+                        </div>
+                        <h3 className="text-sm font-semibold text-foreground mb-1">{value.title}</h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{value.description}</p>
                       </div>
-                      <h3 className="text-sm font-semibold text-foreground mb-1">{value.title}</h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{value.description}</p>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </GridStagger>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ParallaxSection>
+
+        {/* GlowLine Divider */}
+        <div className="max-w-2xl mx-auto px-4">
+          <GlowLine />
+        </div>
 
         {/* Our Doctors Section */}
         <section className="px-4 py-12 sm:px-6 lg:py-16 bg-emerald-50/50 dark:bg-emerald-950/10">
@@ -365,23 +399,19 @@ export function AboutClient() {
                 <p className="text-sm text-muted-foreground mb-6">
                   Join thousands of Australians who have made the switch to InstantMed.
                 </p>
-                <Button 
-                  as={Link}
-                  href="/start"
-                  color="primary"
-                  size="lg"
-                  className="px-8"
-                  endContent={<ArrowRight className="h-4 w-4" />}
-                >
-                  Get started
-                </Button>
+                <Link href="/start">
+                  <ShimmerButton className="px-8 h-12 font-semibold">
+                    Get started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </ShimmerButton>
+                </Link>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      <Footer />
+      <MarketingFooter />
     </div>
   )
 }

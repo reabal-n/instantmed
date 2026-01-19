@@ -1180,10 +1180,9 @@ const consultQuestionnaire: QuestionnaireConfig = {
           showIf: { fieldId: 'consult_pathway', operator: 'equals', value: 'weight_loss' },
           options: [
             { value: 'open', label: 'Open to doctor\'s recommendation' },
-            { value: 'ozempic', label: 'Semaglutide (Ozempic)' },
-            { value: 'saxenda', label: 'Liraglutide (Saxenda)' },
-            { value: 'contrave', label: 'Contrave' },
-            { value: 'duromine', label: 'Phentermine (Duromine)' },
+            { value: 'injectable', label: 'Injectable option (if suitable)' },
+            { value: 'oral', label: 'Oral medication (if suitable)' },
+            { value: 'discuss', label: 'I\'d like to discuss options with the doctor' },
           ],
           validation: { required: true },
         },

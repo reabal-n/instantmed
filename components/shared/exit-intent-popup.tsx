@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { X, Save, ArrowRight, Mail, Clock } from "lucide-react"
+import { X, Save, ArrowRight, Mail, Clock, Star, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import { getAvailabilityMessage } from "@/lib/time-of-day"
 
 interface ExitIntentPopupProps {
   /** Variant: 'discount' for marketing pages, 'save' for intake forms */
@@ -106,16 +107,13 @@ export function ExitIntentPopup({
               </div>
 
               <div className="space-y-3">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    placeholder="Your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                <Input
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  startContent={<Mail className="w-4 h-4 text-muted-foreground" />}
+                />
                 
                 <Button 
                   onClick={handleSaveForLater}
@@ -141,6 +139,8 @@ export function ExitIntentPopup({
   }
 
   // Discount variant (for marketing pages)
+  const availability = getAvailabilityMessage()
+  
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
@@ -154,25 +154,55 @@ export function ExitIntentPopup({
         </button>
 
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            <Clock className="w-6 h-6 text-primary" />
+          {/* Time-aware status */}
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4 ${
+            availability.isActive 
+              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
+              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+          }`}>
+            {availability.isActive && (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+            )}
+            <span>{availability.message}</span>
           </div>
 
-          <h3 className="text-lg font-semibold mb-1">
-            Before you go...
+          <h3 className="text-lg font-semibold mb-2">
+            Still thinking about it?
           </h3>
 
-          <p className="text-sm text-muted-foreground mb-6">
-            Most requests are reviewed in under 30 minutes. No waiting rooms, no phone calls.
+          <p className="text-sm text-muted-foreground mb-4">
+            Most requests are reviewed within 45 minutes. AHPRA-registered doctors, 7 days a week.
           </p>
+          
+          {/* Mini testimonial */}
+          <div className="bg-muted/30 rounded-xl p-4 mb-5 text-left">
+            <div className="flex gap-0.5 mb-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <p className="text-sm text-foreground italic mb-2">
+              &quot;Had it sorted in about 40 minutes. My employer accepted it without any questions.&quot;
+            </p>
+            <p className="text-xs text-muted-foreground">Sarah M., Sydney</p>
+          </div>
 
           <div className="space-y-3">
             <Button asChild className="w-full">
-              <Link href="/medical-certificate">
+              <Link href="/start?service=med-cert">
                 Get started
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
+            
+            {/* Trust signal */}
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+              <Shield className="w-3 h-3" />
+              Full refund if we can&apos;t help
+            </p>
 
             <button
               onClick={() => setIsVisible(false)}
