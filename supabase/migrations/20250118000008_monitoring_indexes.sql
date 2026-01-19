@@ -35,9 +35,10 @@ CREATE INDEX IF NOT EXISTS idx_intakes_patient_history
 ON intakes (patient_id, created_at DESC);
 
 -- Index for email notification status tracking
-CREATE INDEX IF NOT EXISTS idx_intakes_notification_status 
-ON intakes (notification_email_status) 
-WHERE notification_email_status = 'failed';
+-- NOTE: Removed - column notification_email_status does not exist on intakes table
+-- CREATE INDEX IF NOT EXISTS idx_intakes_notification_status 
+-- ON intakes (notification_email_status) 
+-- WHERE notification_email_status = 'failed';
 
 -- Composite index for monitoring stats query
 CREATE INDEX IF NOT EXISTS idx_intakes_monitoring 

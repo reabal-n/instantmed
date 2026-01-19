@@ -86,7 +86,7 @@ async function networkFirstWithOfflineFallback(request) {
       cache.put(request, response.clone());
     }
     return response;
-  } catch (error) {
+  } catch (_error) {
     // Try cache first
     const cached = await caches.match(request);
     if (cached) return cached;
@@ -123,7 +123,7 @@ async function cacheFirst(request) {
       cache.put(request, response.clone());
     }
     return response;
-  } catch (error) {
+  } catch (_error) {
     return new Response('', { status: 503, statusText: 'Service Unavailable' });
   }
 }

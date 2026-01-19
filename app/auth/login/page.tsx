@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Clock, CheckCircle, Loader2, Mail, Lock, Eye, EyeOff, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,6 @@ export const dynamic = "force-dynamic"
 
 function LoginForm() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const redirectUrl = searchParams?.get('redirect_url') || searchParams?.get('redirect') || ''
   const error = searchParams?.get('error')
   const errorDetails = searchParams?.get('details')
@@ -35,9 +34,14 @@ function LoginForm() {
     setIsGoogleLoading(true)
     try {
       await signInWithGoogle(redirectUrl || undefined)
-    } catch {
+      // Note: If OAuth redirect succeeds, this line won't execute
+      // The page will redirect to Google
+    } catch (err) {
       setIsGoogleLoading(false)
-      toast.error('Failed to sign in with Google')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in with Google'
+      // eslint-disable-next-line no-console -- Intentional: auth errors need visibility for debugging
+      console.error('[Auth] Google sign-in error:', err)
+      toast.error(errorMessage)
     }
   }
 
@@ -73,8 +77,8 @@ function LoginForm() {
       } else {
         setLoginAttempts(0) // Reset on success
         toast.success('Signed in successfully!')
-        router.push(redirectUrl || '/patient')
-        router.refresh()
+        // Force full page navigation to ensure cookies are sent with the request
+        window.location.href = redirectUrl || '/patient'
       }
     } catch {
       toast.error('An error occurred during sign in')

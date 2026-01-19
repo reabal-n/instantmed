@@ -29,6 +29,15 @@ import {
   Calendar,
   XCircle,
   Loader2,
+  Palette,
+  Building2,
+  Stethoscope,
+  Cog,
+  Mail,
+  ScrollText,
+  ToggleLeft,
+  CreditCard,
+  Webhook,
 } from "lucide-react"
 import type { RequestWithPatient, DashboardAnalytics } from "@/types/db"
 import { toast } from "sonner"
@@ -345,6 +354,94 @@ export function AdminClient({
               )}
             </button>
           ))}
+          
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+            <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Configuration
+            </p>
+            <Link
+              href="/admin/clinic"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Building2 className="w-4 h-4" />
+              Clinic Identity
+            </Link>
+            <Link
+              href="/admin/doctors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Stethoscope className="w-4 h-4" />
+              Doctor Profiles
+            </Link>
+            <Link
+              href="/admin/services"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Cog className="w-4 h-4" />
+              Services
+            </Link>
+            <Link
+              href="/admin/features"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <ToggleLeft className="w-4 h-4" />
+              Feature Flags
+            </Link>
+          </div>
+          
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+            <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Content
+            </p>
+            <Link
+              href="/admin/emails"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Mail className="w-4 h-4" />
+              Email Templates
+            </Link>
+            <Link
+              href="/admin/content"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <FileText className="w-4 h-4" />
+              Content Editor
+            </Link>
+            <Link
+              href="/admin/studio"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Palette className="w-4 h-4" />
+              Template Studio
+            </Link>
+          </div>
+          
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+            <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Operations
+            </p>
+            <Link
+              href="/admin/refunds"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <CreditCard className="w-4 h-4" />
+              Refunds
+            </Link>
+            <Link
+              href="/admin/webhook-dlq"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Webhook className="w-4 h-4" />
+              Webhook DLQ
+            </Link>
+            <Link
+              href="/admin/audit"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <ScrollText className="w-4 h-4" />
+              Audit Log
+            </Link>
+          </div>
         </nav>
         <div className="p-4 mt-auto border-t border-border/40">
           <Button

@@ -26,6 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_draft_retry_pending
 ALTER TABLE ai_draft_retry_queue ENABLE ROW LEVEL SECURITY;
 
 -- Only service role can access (this is a background job table)
+DROP POLICY IF EXISTS "Service role full access on ai_draft_retry_queue" ON ai_draft_retry_queue;
 CREATE POLICY "Service role full access on ai_draft_retry_queue"
   ON ai_draft_retry_queue
   FOR ALL

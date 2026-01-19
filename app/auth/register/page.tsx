@@ -49,9 +49,13 @@ function RegisterForm() {
     setIsGoogleLoading(true)
     try {
       await signInWithGoogle(redirectUrl || undefined)
-    } catch {
+      // Note: If OAuth redirect succeeds, this line won't execute
+    } catch (err) {
       setIsGoogleLoading(false)
-      toast.error('Failed to sign up with Google')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign up with Google'
+      // eslint-disable-next-line no-console -- Intentional: auth errors need visibility for debugging
+      console.error('[Auth] Google sign-up error:', err)
+      toast.error(errorMessage)
     }
   }
 

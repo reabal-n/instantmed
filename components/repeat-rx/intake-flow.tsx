@@ -37,7 +37,7 @@ import type {
 } from "@/types/repeat-rx"
 import { cn } from "@/lib/utils"
 import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
-import { ContextualHelp as _ContextualHelp } from "@/components/ui/contextual-help"
+import { InfoCard } from "@/components/ui/contextual-help"
 import { ProgressiveSection } from "@/components/ui/progressive-section"
 import { CompactStepper } from "@/components/ui/form-stepper"
 import { SafetyStep } from "./steps/safety-step"
@@ -773,6 +773,12 @@ export function RepeatRxIntakeFlow({
               
               {/* Emergency acknowledgment now handled in safety step via EmergencyGate */}
               <div className="space-y-4">
+                <InfoCard
+                  title="Reference only"
+                  description="Search helps locate your medication. The doctor will verify and make the final prescribing decision."
+                  variant="info"
+                  className="mb-2"
+                />
                 <div className="space-y-2">
                   <MedicationSearch
                     value={medication}
@@ -873,17 +879,24 @@ export function RepeatRxIntakeFlow({
                 </FormInput>
                 
                 {/* Indication - with AI-assisted input */}
-                <SmartSymptomInput
-                  value={indication}
-                  onChange={setIndication}
-                  label="Why do you take this medication?"
-                  placeholder="e.g., I've been taking this for high blood pressure for 3 years..."
-                  context="repeat_rx"
-                  minLength={10}
-                  maxLength={500}
-                  required={true}
-                  helperText="Describe why you need this medication renewed (minimum 10 characters)"
-                />
+                <div className="space-y-2">
+                  <FieldLabelWithHelp
+                    label="Why do you take this medication?"
+                    helpText="Include: the condition being treated, how long you've been on it, and how well it's working for you"
+                    required
+                  />
+                  <SmartSymptomInput
+                    value={indication}
+                    onChange={setIndication}
+                    label=""
+                    placeholder="e.g., I've been taking this for high blood pressure for 3 years. It keeps my BP around 120/80..."
+                    context="repeat_rx"
+                    minLength={10}
+                    maxLength={500}
+                    required={true}
+                    helperText="Good examples: condition name, duration, effectiveness"
+                  />
+                </div>
                 
                 {/* Current dose */}
                 <FormInput
