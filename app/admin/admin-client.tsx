@@ -38,6 +38,9 @@ import {
   ToggleLeft,
   CreditCard,
   Webhook,
+  Activity,
+  Trophy,
+  ClipboardList,
 } from "lucide-react"
 import type { RequestWithPatient, DashboardAnalytics } from "@/types/db"
 import { toast } from "sonner"
@@ -420,6 +423,47 @@ export function AdminClient({
           
           <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
             <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Dashboards
+            </p>
+            <Link
+              href="/admin/analytics"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <TrendingUp className="w-4 h-4" />
+              Analytics
+            </Link>
+            <Link
+              href="/admin/finance"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <DollarSign className="w-4 h-4" />
+              Finance
+            </Link>
+            <Link
+              href="/admin/ops"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Activity className="w-4 h-4" />
+              Operations
+            </Link>
+            <Link
+              href="/admin/doctors/performance"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Trophy className="w-4 h-4" />
+              Doctor Performance
+            </Link>
+            <Link
+              href="/doctor/queue"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <ClipboardList className="w-4 h-4" />
+              Doctor Queue
+            </Link>
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+            <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Operations
             </p>
             <Link
@@ -435,6 +479,13 @@ export function AdminClient({
             >
               <Webhook className="w-4 h-4" />
               Webhook DLQ
+            </Link>
+            <Link
+              href="/admin/email-queue"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Mail className="w-4 h-4" />
+              Email Queue
             </Link>
             <Link
               href="/admin/audit"

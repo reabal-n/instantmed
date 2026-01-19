@@ -7,10 +7,16 @@
  * ~60 lines - well under 200 line limit.
  */
 
-import { CreditCard, Shield, Lock } from "lucide-react"
 import { StepHeader } from "../shared"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
+import { 
+  PaymentMethodIcons, 
+  StripeBadge,
+  CheckoutTrustStrip,
+  AHPRAStatement
+} from "@/components/checkout/trust-badges"
+import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
 
 interface PaymentStepProps {
   price: string
@@ -33,26 +39,25 @@ export function PaymentStep({ price, isProcessing }: PaymentStepProps) {
         <p className="text-xs text-muted-foreground mt-2">One-time payment • No subscription</p>
       </div>
 
+      {/* Refund guarantee */}
+      <RefundGuaranteeBadge variant="inline" />
+
       {/* Availability status */}
       <div className="flex justify-center">
         <AvailabilityIndicator variant="badge" />
       </div>
 
-      {/* Security badges */}
-      <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Lock className="w-4 h-4" />
-          <span>SSL Encrypted</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <CreditCard className="w-4 h-4" />
-          <span>Stripe Secure</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Shield className="w-4 h-4" />
-          <span>PCI Compliant</span>
-        </div>
+      {/* Payment methods */}
+      <div className="flex flex-col items-center gap-3">
+        <PaymentMethodIcons />
+        <StripeBadge variant="powered-by" />
       </div>
+
+      {/* Security & Trust badges */}
+      <CheckoutTrustStrip variant="compact" />
+
+      {/* AHPRA statement */}
+      <AHPRAStatement variant="inline" className="justify-center" />
 
       {isProcessing && (
         <p className="text-center text-sm text-muted-foreground animate-pulse">

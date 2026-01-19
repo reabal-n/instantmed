@@ -32,6 +32,7 @@ import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { RotatingText } from './rotating-text'
+import { HeroTrustBadges } from '@/components/checkout/trust-badges'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -341,6 +342,16 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                   <span>{item}</span>
                 </div>
               ))}
+            </motion.div>
+
+            {/* Trust badges */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="mt-8"
+            >
+              <HeroTrustBadges className={hasImages ? 'lg:justify-start' : 'justify-center'} />
             </motion.div>
           </div>
 

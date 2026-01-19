@@ -1,7 +1,43 @@
 import Link from 'next/link'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
-import { MapPin, Mail } from 'lucide-react'
+import { MapPin, Mail, Lock, Shield, Award, Eye } from 'lucide-react'
+import { PaymentMethodIcons, StripeBadge } from '@/components/checkout/trust-badges'
+
+/**
+ * Footer trust badges strip - compact trust signals
+ */
+function FooterTrustBadges() {
+  return (
+    <div className="flex flex-col items-center gap-4 py-6 border-t border-zinc-100 dark:border-zinc-800">
+      {/* Payment methods */}
+      <div className="flex flex-col items-center gap-2">
+        <PaymentMethodIcons size="sm" />
+        <StripeBadge variant="powered-by" />
+      </div>
+      
+      {/* Trust signals */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Lock className="w-3.5 h-3.5 text-green-600" />
+          <span>SSL Encrypted</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-green-600" />
+          <span>PCI Compliant</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Award className="w-3.5 h-3.5 text-emerald-600" />
+          <span>AHPRA Doctors</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Eye className="w-3.5 h-3.5" />
+          <span>Privacy Act Compliant</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">
@@ -98,6 +134,9 @@ export function MarketingFooter() {
           </div>
         </div>
       </div>
+
+      {/* Trust badges */}
+      <FooterTrustBadges />
 
       {/* Disclaimer */}
       <div className="my-4 px-4 md:px-8 text-xs text-muted-foreground/70 space-y-2">

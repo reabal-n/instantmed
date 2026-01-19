@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, MapPin, CreditCard, ArrowLeft, AlertTriangle, HelpCircle } from "lucide-react"
+import { DataSecurityStrip } from "@/components/checkout/trust-badges"
 import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
@@ -312,6 +313,9 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
         <h2 className="text-xl font-semibold text-foreground">Medicare details</h2>
         <p className="mt-1 text-sm text-muted-foreground">Required for prescriptions and referrals</p>
       </div>
+
+      {/* Data security reassurance */}
+      <DataSecurityStrip variant="medicare" />
 
       {error && <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>}
 

@@ -17,6 +17,7 @@ import {
   Shield, 
   AlertTriangle,
 } from "lucide-react"
+import { DataSecurityStrip, OnboardingTrustFooter } from "@/components/checkout/trust-badges"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { completeOnboardingAction } from "./actions"
 import type { AustralianState } from "@/types/db"
@@ -377,6 +378,9 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               description="Optional for medical certificates. Required for prescriptions and referrals."
               animate
             >
+              {/* Data security reassurance */}
+              <DataSecurityStrip variant="medicare" className="mb-4" />
+
               {/* Global error */}
               {error && (
                 <motion.div
@@ -558,6 +562,9 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                 )}
               </Button>
             </FormActions>
+
+            {/* Trust footer */}
+            <OnboardingTrustFooter className="mt-6" />
           </motion.div>
         )}
       </AnimatePresence>

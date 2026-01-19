@@ -2,10 +2,16 @@
 
 import type * as React from "react"
 import { useState } from "react"
-import { Edit2, Lock, Shield, Loader2 } from "lucide-react"
+import { Edit2, Lock, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { ConfettiButton } from "@/components/ui/confetti"
-import { SecurityFooter } from "@/components/marketing/trust-badges"
+import { 
+  CheckoutSecurityFooter,
+  AHPRAStatement,
+  PaymentMethodIcons,
+  StripeBadge
+} from "@/components/checkout/trust-badges"
+import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
 import type { FlowConfig } from "@/lib/intake/flow-engine"
 import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
@@ -68,11 +74,6 @@ export function SummaryPayment({
     return null
   })()
 
-  // Trust badges
-  const badges = [
-    { icon: Shield, label: "AHPRA registered doctors" },
-    { icon: Lock, label: "Secure payment via Stripe" },
-  ]
 
   return (
     <div className="space-y-4">
@@ -167,14 +168,16 @@ export function SummaryPayment({
         within 1-2 hours (8am–10pm AEST). Review times may vary.
       </div>
 
-      {/* Trust badges */}
-      <div className="flex justify-center gap-4">
-        {badges.map((badge) => (
-          <div key={badge.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <badge.icon className="w-3.5 h-3.5" />
-            <span>{badge.label}</span>
-          </div>
-        ))}
+      {/* Refund guarantee */}
+      <RefundGuaranteeBadge variant="inline" />
+
+      {/* AHPRA statement */}
+      <AHPRAStatement variant="inline" />
+
+      {/* Payment methods */}
+      <div className="flex flex-col items-center gap-2">
+        <PaymentMethodIcons />
+        <StripeBadge variant="powered-by" />
       </div>
 
       {/* Submit button - sticky on mobile */}
@@ -202,7 +205,7 @@ export function SummaryPayment({
             </>
           )}
         </ConfettiButton>
-        <SecurityFooter className="mt-4 border-t-0" />
+        <CheckoutSecurityFooter className="mt-4" />
       </div>
     </div>
   )
