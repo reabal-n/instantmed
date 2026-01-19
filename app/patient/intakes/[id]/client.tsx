@@ -26,6 +26,7 @@ import { createClient } from "@/lib/supabase/client"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
+import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
 import type { IntakeWithPatient, GeneratedDocument, IntakeDocument } from "@/types/db"
@@ -109,6 +110,18 @@ export function IntakeDetailClient({
     })
   }
 
+  const handleRetryPayment = () => {
+    setActionError(null)
+    startTransition(async () => {
+      const result = await retryPaymentForIntakeAction(intake.id)
+      if (!result.success) {
+        setActionError(result.error || "Failed to create checkout session")
+      } else if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl
+      }
+    })
+  }
+
   // Check if cancellation is allowed
   const canCancel = ["draft", "pending_payment", "pending_info"].includes(intake.status)
   
@@ -169,6 +182,43 @@ export function IntakeDetailClient({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Pending Payment - Retry CTA */}
+          {intake.status === "pending_payment" && (
+            <Card className="border-amber-200 bg-linear-to-br from-amber-50 to-orange-50">
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <div className="rounded-full bg-amber-100 p-3 shrink-0">
+                    <AlertCircle className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-amber-900">Payment Required</h3>
+                      <p className="text-sm text-amber-700">
+                        Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleRetryPayment} 
+                      disabled={isPending}
+                      className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
+                    >
+                      {isPending ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Complete Payment
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Status Message */}
           <div className="p-4 rounded-lg bg-muted/50">
             {intake.status === "paid" && (

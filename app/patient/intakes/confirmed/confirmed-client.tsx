@@ -8,18 +8,18 @@ import Link from "next/link"
 import posthog from "posthog-js"
 
 interface ConfirmedClientProps {
-  requestId?: string
+  intakeId?: string
   email?: string
 }
 
-export function ConfirmedClient({ requestId, email }: ConfirmedClientProps) {
+export function ConfirmedClient({ intakeId, email }: ConfirmedClientProps) {
   useEffect(() => {
     // Track guest confirmation view
     posthog.capture("guest_confirmation_viewed", {
-      request_id: requestId,
+      intake_id: intakeId,
       has_email: !!email,
     })
-  }, [requestId, email])
+  }, [intakeId, email])
 
   return (
     <Card className="p-8 text-center">
@@ -76,7 +76,7 @@ export function ConfirmedClient({ requestId, email }: ConfirmedClientProps) {
 
       <div className="space-y-3">
         <Button asChild className="w-full">
-          <Link href={`/auth/register?email=${encodeURIComponent(email || '')}&redirect=${encodeURIComponent(`/patient/intakes/success?request_id=${requestId}`)}`}>
+          <Link href={`/auth/register?email=${encodeURIComponent(email || '')}&redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`}>
             Create account to track progress
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>

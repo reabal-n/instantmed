@@ -10,10 +10,10 @@ import { Confetti } from "@/components/ui/confetti"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
 
 export function CompleteAccountForm({
-  requestId,
+  intakeId,
   email,
 }: {
-  requestId?: string
+  intakeId?: string
   email?: string
   /** @deprecated sessionId is kept for backwards compatibility but no longer used */
   sessionId?: string
@@ -25,14 +25,14 @@ export function CompleteAccountForm({
   
   useEffect(() => {
     // If already signed in, redirect to success
-    if (!isLoading && isSignedIn && requestId) {
+    if (!isLoading && isSignedIn && intakeId) {
       // Use a timeout to avoid synchronous setState in effect
       const confettiTimer = setTimeout(() => {
         setShowConfetti(true)
       }, 0)
       
       const redirectTimer = setTimeout(() => {
-        router.push(`/patient/intakes/success?request_id=${requestId}`)
+        router.push(`/patient/intakes/success?intake_id=${intakeId}`)
       }, 1000)
       
       return () => {
@@ -40,11 +40,11 @@ export function CompleteAccountForm({
         clearTimeout(redirectTimer)
       }
     }
-  }, [isLoading, isSignedIn, requestId, router])
+  }, [isLoading, isSignedIn, intakeId, router])
 
   const handleCreateAccount = () => {
     // Redirect to register page with pre-filled email and redirect URL
-    const redirectUrl = `/patient/intakes/success?request_id=${requestId}`
+    const redirectUrl = `/patient/intakes/success?intake_id=${intakeId}`
     const registerUrl = email 
       ? `/auth/register?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectUrl)}`
       : `/auth/register?redirect=${encodeURIComponent(redirectUrl)}`
@@ -101,7 +101,7 @@ export function CompleteAccountForm({
         </button>
 
         <button
-          onClick={() => router.push(`/patient/intakes/confirmed?request_id=${requestId}&email=${encodeURIComponent(email || '')}`)}
+          onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
           className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted/50"
         >
           Skip for now
@@ -113,7 +113,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/intakes/success?request_id=${requestId}`)}`} className="text-primary hover:underline">
+        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

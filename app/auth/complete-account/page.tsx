@@ -14,9 +14,11 @@ export const metadata = {
 export default async function CompleteAccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ request_id?: string; email?: string; session_id?: string }>
+  searchParams: Promise<{ request_id?: string; intake_id?: string; email?: string; session_id?: string }>
 }) {
   const params = await searchParams
+  // Support both intake_id (guest checkout) and request_id (legacy) 
+  const intakeId = params.intake_id || params.request_id
 
   return (
     <>
@@ -24,7 +26,7 @@ export default async function CompleteAccountPage({
       <main className="min-h-screen bg-linear-to-b from-background to-muted/30 pt-32 pb-20">
         <div className="container max-w-md mx-auto px-4">
           <Suspense fallback={<div>Loading...</div>}>
-            <CompleteAccountForm requestId={params.request_id} email={params.email} sessionId={params.session_id} />
+            <CompleteAccountForm intakeId={intakeId} email={params.email} sessionId={params.session_id} />
           </Suspense>
         </div>
       </main>
