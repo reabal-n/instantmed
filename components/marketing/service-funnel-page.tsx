@@ -358,7 +358,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
           {/* Hero Images */}
           {hasImages && (
             <motion.div
-              className="hidden lg:block relative mt-12 lg:mt-0 flex-shrink-0"
+              className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.5 }}
@@ -373,7 +373,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                     className="object-cover"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
                 </div>
                 
                 {/* Floating trust badge */}

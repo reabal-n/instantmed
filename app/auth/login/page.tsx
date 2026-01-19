@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Shield, Clock, CheckCircle, Loader2, Eye, EyeOff, Star, BadgeCheck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+// Native buttons used for reliable form handling
 import { useAuth } from '@/components/providers/supabase-auth-provider'
 import { toast } from 'sonner'
 import { GoogleIcon } from '@/components/icons/google-icon'
@@ -109,10 +109,9 @@ function LoginForm() {
         </div>
 
         {/* Google Sign In - Primary CTA */}
-        <Button
+        <button
           type="button"
-          variant="outline"
-          className="w-full h-12 text-base font-medium gap-3 mb-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground rounded-xl shadow-sm hover:shadow transition-all"
+          className="w-full h-12 text-base font-medium gap-3 mb-6 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-foreground rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleGoogleSignIn}
           disabled={isLoading || isSubmitting || isGoogleLoading}
         >
@@ -121,8 +120,8 @@ function LoginForm() {
           ) : (
             <GoogleIcon className="w-5 h-5" />
           )}
-          {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
-        </Button>
+          <span className="ml-3">{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
+        </button>
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
@@ -183,9 +182,9 @@ function LoginForm() {
             </div>
           </div>
 
-          <Button 
+          <button 
             type="submit" 
-            className="w-full h-12 text-base font-medium rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" 
+            className="w-full h-12 text-base font-semibold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" 
             disabled={isSubmitting || isRateLimited}
           >
             {isSubmitting ? (
@@ -196,7 +195,7 @@ function LoginForm() {
             ) : (
               'Sign in'
             )}
-          </Button>
+          </button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground mt-6">

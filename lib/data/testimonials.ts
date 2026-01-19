@@ -530,6 +530,23 @@ export function getTestimonialsByService(service: Testimonial["service"]) {
 }
 
 /**
+ * Get a random testimonial for a specific service
+ * Useful for rotating testimonials in hero sections
+ */
+export function getRandomTestimonialByService(service: Testimonial["service"]) {
+  const serviceTestimonials = TESTIMONIALS.filter((t) => t.service === service)
+  if (serviceTestimonials.length === 0) return null
+  return serviceTestimonials[Math.floor(Math.random() * serviceTestimonials.length)]
+}
+
+/**
+ * Get featured testimonials for a specific service (with images)
+ */
+export function getFeaturedTestimonialsByService(service: Testimonial["service"]) {
+  return TESTIMONIALS.filter((t) => t.service === service && t.image)
+}
+
+/**
  * Platform statistics - reasonable and authentic
  * Based on a medium-sized telehealth startup
  */

@@ -93,6 +93,27 @@ const glassVariantStyles: Record<string, string> = {
   ),
 }
 
+// Size classes for asChild mode (since we can't use HeroUI's size prop)
+const sizeClasses: Record<string, string> = {
+  default: "h-10 px-4 py-2 text-sm",
+  sm: "h-9 px-3 text-xs",
+  lg: "h-11 px-8 text-base",
+  icon: "h-10 w-10",
+  "icon-sm": "h-9 w-9",
+  "icon-lg": "h-11 w-11",
+}
+
+// Base button classes for asChild mode
+const baseButtonClasses = cn(
+  "inline-flex items-center justify-center gap-2",
+  "font-sans font-semibold",
+  "rounded-full", // Pill-shaped buttons
+  "select-none",
+  "origin-center",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2",
+  "disabled:pointer-events-none disabled:opacity-50",
+)
+
 function Button({
   variant = "default",
   size = "default",
@@ -102,10 +123,25 @@ function Button({
   children,
   onClick,
   onPress,
+  type,
   ...props
-}: ButtonProps) {
+}: ButtonProps & { type?: "button" | "submit" | "reset" }) {
+  // For asChild, render premium-styled Slot with all glass effects
   if (asChild) {
-    return <Slot className={className}>{children}</Slot>
+    const asChildClasses = cn(
+      baseButtonClasses,
+      sizeClasses[size],
+      glassVariantStyles[variant],
+      // Variant-specific colors for asChild
+      variant === "default" && "bg-primary text-primary-foreground hover:bg-primary/90",
+      variant === "destructive" && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      variant === "outline" && "border border-input text-foreground",
+      variant === "secondary" && "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      variant === "ghost" && "text-foreground hover:bg-accent hover:text-accent-foreground",
+      variant === "link" && "text-primary underline-offset-4 hover:underline p-0 h-auto",
+      className
+    )
+    return <Slot className={asChildClasses}>{children}</Slot>
   }
 
   const isIconOnly = size?.startsWith("icon")
@@ -113,7 +149,23 @@ function Button({
   
   // Map onClick to onPress for HeroUI compatibility
   // HeroUI uses onPress instead of onClick
-  const handlePress = onPress ?? (onClick ? () => onClick({} as React.MouseEvent<HTMLButtonElement>) : undefined)
+  // For type="submit", we need to manually trigger form submission since HeroUI's onPress doesn't do this
+  const handlePress = (e: import("@react-types/shared").PressEvent) => {
+    if (onPress) {
+      onPress(e)
+    } else if (onClick) {
+      onClick({} as React.MouseEvent<HTMLButtonElement>)
+    }
+    
+    // Handle form submission for type="submit" buttons
+    // HeroUI's onPress doesn't trigger native form submission
+    if (type === "submit" && e.target instanceof HTMLElement) {
+      const form = e.target.closest("form")
+      if (form) {
+        form.requestSubmit()
+      }
+    }
+  }
 
   const buttonContent = (
     <HeroButton

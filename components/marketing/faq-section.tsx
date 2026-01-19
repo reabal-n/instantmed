@@ -5,9 +5,38 @@ import { faqItems } from '@/lib/marketing/homepage'
 import { motion } from 'framer-motion'
 import { HelpCirclePremium } from '@/components/icons/certification-logos'
 
+/**
+ * Generate FAQ Schema markup for SEO
+ * This helps Google display FAQ rich snippets in search results
+ */
+function FAQSchema({ items }: { items: Array<{ question: string; answer: string }> }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": items.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
 export function FAQSection() {
   return (
     <section id="faq" className="py-16 lg:py-20 scroll-mt-20">
+      {/* FAQ Schema for SEO */}
+      <FAQSchema items={faqItems} />
+      
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div 

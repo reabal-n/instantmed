@@ -105,6 +105,8 @@ interface DropdownMenuItemProps extends Omit<React.ComponentProps<typeof Dropdow
   disabled?: boolean
   // Support HeroUI API
   isDisabled?: boolean
+  // Support onClick for backwards compatibility
+  onClick?: () => void
 }
 
 // Use a counter for stable keys
@@ -117,6 +119,8 @@ function DropdownMenuItem({
   asChild,
   disabled,
   isDisabled,
+  onClick,
+  onPress,
   ...props
 }: DropdownMenuItemProps) {
   // HeroUI requires a key prop, so we generate one from children if not provided
@@ -125,34 +129,21 @@ function DropdownMenuItem({
   // Map shadcn/ui API to HeroUI API
   const heroIsDisabled = isDisabled ?? disabled
   
-  // If asChild with a Link, extract href and render content inside DropdownItem
+  // Map onClick to onPress for HeroUI compatibility
+  const handlePress = onPress || (onClick ? () => onClick() : undefined)
+  
+  // If asChild with a Link, extract content and handle navigation via onPress
+  // Note: We don't use HeroUI's href prop as it doesn't work well with Next.js App Router
   if (asChild && React.isValidElement(children)) {
     const childProps = children.props as any
-    const href = childProps?.href
     
-    // For Next.js Link, use HeroUI's native href support
-    if (href) {
-      return (
-        <DropdownItem
-          key={itemKey}
-          href={href}
-          color={variant === "destructive" ? "danger" : "default"}
-          isDisabled={heroIsDisabled}
-          className={className}
-          {...props}
-        >
-          {childProps.children}
-        </DropdownItem>
-      )
-    }
-    
-    // For other elements, render children directly
     return (
       <DropdownItem
         key={itemKey}
         color={variant === "destructive" ? "danger" : "default"}
         isDisabled={heroIsDisabled}
-        className={className}
+        className={cn("cursor-pointer", className)}
+        onPress={handlePress}
         {...props}
       >
         {childProps.children}
@@ -165,7 +156,8 @@ function DropdownMenuItem({
       key={itemKey}
       color={variant === "destructive" ? "danger" : "default"}
       isDisabled={heroIsDisabled}
-      className={className}
+      className={cn("cursor-pointer", className)}
+      onPress={handlePress}
       {...props}
     >
       {children}

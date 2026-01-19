@@ -5,13 +5,14 @@ import { useState } from "react"
 import { Edit2, Lock, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { ConfettiButton } from "@/components/ui/confetti"
-import { 
-  CheckoutSecurityFooter,
+import {
+  RefundGuaranteeBadge,
   AHPRAStatement,
   PaymentMethodIcons,
-  StripeBadge
-} from "@/components/checkout/trust-badges"
-import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
+  StripeBadge,
+  CheckoutSecurityFooter,
+} from "@/components/checkout"
+import { CheckoutActivityBadge } from "@/components/marketing/social-proof-notifications"
 import type { FlowConfig } from "@/lib/intake/flow-engine"
 import { generateDoctorSummary } from "@/lib/intake/flow-engine"
 
@@ -179,6 +180,9 @@ export function SummaryPayment({
         <PaymentMethodIcons />
         <StripeBadge variant="powered-by" />
       </div>
+
+      {/* Mobile social proof */}
+      <CheckoutActivityBadge className="sm:hidden" />
 
       {/* Submit button - sticky on mobile */}
       <div className="sticky bottom-0 bg-background pt-2 pb-4 -mx-4 px-4 border-t mt-6">

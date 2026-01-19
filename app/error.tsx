@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,9 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 3
+
   useEffect(() => {
     // Log error with structured context for observability
     log.error("[GlobalErrorBoundary]", {
@@ -23,8 +26,16 @@ export default function Error({
       name: error.name,
       digest: error.digest,
       url: typeof window !== "undefined" ? window.location.href : undefined,
+      retryCount,
     })
-  }, [error])
+  }, [error, retryCount])
+
+  const handleRetry = () => {
+    if (retryCount < maxRetries) {
+      setRetryCount(prev => prev + 1)
+      reset()
+    }
+  }
 
   return (
     <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
@@ -98,9 +109,9 @@ export default function Error({
           variants={slideUp}
           transition={{ delay: 0.5 }}
         >
-          <Button onClick={reset} className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto min-h-[44px] touch-target">
+          <Button onClick={handleRetry} disabled={retryCount >= maxRetries} className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto min-h-[44px] touch-target">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-            Try Again
+            {retryCount >= maxRetries ? "Max retries reached" : `Try Again${retryCount > 0 ? ` (${maxRetries - retryCount} left)` : ""}`}
           </Button>
           <Button variant="outline" asChild className="rounded-xl w-full sm:w-auto min-h-[44px] touch-target">
             <Link href="/">

@@ -61,6 +61,7 @@ import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
 import { PRICING_DISPLAY, GP_COMPARISON } from "@/lib/constants"
 import { logger } from "@/lib/observability/logger"
+import { useFormAutosave } from "@/hooks/use-form-autosave"
 
 // ============================================
 // UTILITIES
@@ -508,6 +509,38 @@ export function EnhancedIntakeFlow({
   const [errors, setErrors] = useState<Partial<Record<keyof IntakeState, string>>>({})
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+
+  // Auto-save form progress for resume later
+  const { saveForm, loadForm, clearForm: _clearForm, hasAutosavedData } = useFormAutosave<Record<string, unknown>>(
+    'intake-flow',
+    {
+      debounceMs: 3000,
+      storage: 'local',
+      onSave: () => {
+        setLastSavedAt(new Date())
+        setIsSaving(false)
+      },
+    }
+  )
+
+  // Load autosaved data on mount
+  useEffect(() => {
+    if (hasAutosavedData()) {
+      const savedData = loadForm()
+      if (savedData && !initialService) {
+        // Only restore if user didn't come with a specific service intent
+        setState(prev => ({ ...prev, ...savedData } as IntakeState))
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save state changes
+  useEffect(() => {
+    if (state.service) {
+      setIsSaving(true)
+      saveForm(state as unknown as Record<string, unknown>)
+    }
+  }, [state, saveForm])
   const [editingSection, setEditingSection] = useState<string | null>(null)
   const [showExtendedDurationInterstitial, setShowExtendedDurationInterstitial] = useState(false)
 

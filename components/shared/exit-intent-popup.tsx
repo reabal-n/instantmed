@@ -10,14 +10,58 @@ import { getAvailabilityMessage } from "@/lib/time-of-day"
 interface ExitIntentPopupProps {
   /** Variant: 'discount' for marketing pages, 'save' for intake forms */
   variant?: 'discount' | 'save'
+  /** Service type for contextual messaging */
+  service?: 'med-cert' | 'repeat-prescription' | 'consult'
   /** Form data to save (for 'save' variant) */
   formData?: Record<string, unknown>
   /** Callback when user saves for later */
   onSaveForLater?: (email: string) => void
 }
 
+// Service-specific testimonials for exit intent
+const SERVICE_TESTIMONIALS = {
+  'med-cert': {
+    quote: "Had it sorted in about 40 minutes. My employer accepted it without any questions.",
+    author: "Sarah M.",
+    location: "Sydney",
+  },
+  'repeat-prescription': {
+    quote: "Got my script renewed while watching TV. eScript came through in under an hour.",
+    author: "Michael R.",
+    location: "Melbourne",
+  },
+  'consult': {
+    quote: "The doctor actually took time to explain things properly. Really thorough.",
+    author: "Emma L.",
+    location: "Brisbane",
+  },
+}
+
+// Service-specific messaging
+const SERVICE_MESSAGES = {
+  'med-cert': {
+    heading: "Need that certificate today?",
+    subheading: "Most certificates are reviewed within 45 minutes. Valid for all employers.",
+    cta: "Get your certificate",
+    href: "/start?service=med-cert",
+  },
+  'repeat-prescription': {
+    heading: "Running low on your medication?",
+    subheading: "Get your repeat sorted without the wait. eScript sent to your phone.",
+    cta: "Renew prescription",
+    href: "/start?service=repeat-script",
+  },
+  'consult': {
+    heading: "Want to talk to a doctor?",
+    subheading: "Real Australian GPs available 7 days a week. No waiting rooms.",
+    cta: "Start your consult",
+    href: "/start?service=consult",
+  },
+}
+
 export function ExitIntentPopup({ 
   variant = 'discount',
+  service = 'med-cert',
   formData,
   onSaveForLater 
 }: ExitIntentPopupProps) {
@@ -138,8 +182,10 @@ export function ExitIntentPopup({
     )
   }
 
-  // Discount variant (for marketing pages)
+  // Discount variant (for marketing pages) - uses service-specific content
   const availability = getAvailabilityMessage()
+  const messages = SERVICE_MESSAGES[service]
+  const testimonial = SERVICE_TESTIMONIALS[service]
   
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
@@ -170,14 +216,14 @@ export function ExitIntentPopup({
           </div>
 
           <h3 className="text-lg font-semibold mb-2">
-            Still thinking about it?
+            {messages.heading}
           </h3>
 
           <p className="text-sm text-muted-foreground mb-4">
-            Most requests are reviewed within 45 minutes. AHPRA-registered doctors, 7 days a week.
+            {messages.subheading}
           </p>
           
-          {/* Mini testimonial */}
+          {/* Mini testimonial - service-specific */}
           <div className="bg-muted/30 rounded-xl p-4 mb-5 text-left">
             <div className="flex gap-0.5 mb-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -185,15 +231,15 @@ export function ExitIntentPopup({
               ))}
             </div>
             <p className="text-sm text-foreground italic mb-2">
-              &quot;Had it sorted in about 40 minutes. My employer accepted it without any questions.&quot;
+              &quot;{testimonial.quote}&quot;
             </p>
-            <p className="text-xs text-muted-foreground">Sarah M., Sydney</p>
+            <p className="text-xs text-muted-foreground">{testimonial.author}, {testimonial.location}</p>
           </div>
 
           <div className="space-y-3">
             <Button asChild className="w-full">
-              <Link href="/start?service=med-cert">
-                Get started
+              <Link href={messages.href}>
+                {messages.cta}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>

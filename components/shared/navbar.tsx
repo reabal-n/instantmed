@@ -254,14 +254,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64">
                       {services.map((service) => (
-                        <DropdownMenuItem key={service.href} asChild>
-                          <Link href={service.href} className="flex items-center gap-3 cursor-pointer py-2">
+                        <DropdownMenuItem 
+                          key={service.href}
+                          className="cursor-pointer py-2"
+                          onPress={() => router.push(service.href)}
+                        >
+                          <div className="flex items-center gap-3">
                             <service.icon className="h-4 w-4 text-primary" />
                             <div>
                               <p className="text-sm font-medium">{service.title}</p>
                               <p className="text-xs text-muted-foreground">{service.description}</p>
                             </div>
-                          </Link>
+                          </div>
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
@@ -332,14 +336,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       {services.map((service) => (
-                        <DropdownMenuItem key={service.href} asChild>
-                          <Link href={service.href} className="flex items-center gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          key={service.href}
+                          className="cursor-pointer"
+                          onPress={() => router.push(service.href)}
+                        >
+                          <div className="flex items-center gap-2">
                             <service.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                             <div>
                               <p className="text-sm font-medium">{service.title}</p>
                               <p className="text-xs text-muted-foreground">{service.description}</p>
                             </div>
-                          </Link>
+                          </div>
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
@@ -357,11 +365,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href="/patient/settings" className="flex items-center gap-2 cursor-pointer">
+                      <DropdownMenuItem 
+                        className="cursor-pointer"
+                        onPress={() => router.push("/patient/settings")}
+                      >
+                        <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4" aria-hidden="true" />
                           Settings
-                        </Link>
+                        </div>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -404,11 +415,14 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href="/doctor/admin" className="flex items-center gap-2 cursor-pointer">
+                      <DropdownMenuItem 
+                        className="cursor-pointer"
+                        onPress={() => router.push("/doctor/admin")}
+                      >
+                        <div className="flex items-center gap-2">
                           <Settings className="h-4 w-4" aria-hidden="true" />
                           Admin
-                        </Link>
+                        </div>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

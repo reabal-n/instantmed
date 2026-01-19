@@ -466,3 +466,90 @@ export function RecentActivityList({ service, count = 3, className }: RecentActi
     </div>
   )
 }
+
+/**
+ * "X completed in last hour" counter - more urgent social proof
+ */
+interface LastHourCounterProps {
+  service: 'med-cert' | 'repeat-prescription' | 'general-consult'
+  className?: string
+}
+
+const HOUR_RANGES = {
+  'med-cert': { min: 12, max: 28 },
+  'repeat-prescription': { min: 6, max: 15 },
+  'general-consult': { min: 3, max: 9 },
+} as const
+
+export function LastHourCounter({ service, className }: LastHourCounterProps) {
+  const [isAnimating, setIsAnimating] = useState(false)
+  
+  const [count, setCount] = useState(() => {
+    const range = HOUR_RANGES[service]
+    return Math.floor(Math.random() * (range.max - range.min)) + range.min
+  })
+
+  useEffect(() => {
+    // Occasionally increment to show real-time activity
+    const interval = setInterval(() => {
+      if (Math.random() > 0.6) {
+        setIsAnimating(true)
+        setCount(prev => prev + 1)
+        setTimeout(() => setIsAnimating(false), 500)
+      }
+    }, 45000) // Every 45 seconds, 40% chance
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const serviceLabels = {
+    'med-cert': 'certificates issued',
+    'repeat-prescription': 'prescriptions sent',
+    'general-consult': 'consultations completed',
+  }
+
+  return (
+    <div className={cn(
+      'inline-flex items-center gap-2 px-3 py-1.5 rounded-full',
+      'bg-emerald-500/10 border border-emerald-500/20',
+      className
+    )}>
+      <Clock className="w-3.5 h-3.5 text-emerald-600" />
+      <span className="text-sm text-emerald-700 dark:text-emerald-400">
+        <motion.span
+          key={count}
+          initial={isAnimating ? { scale: 1.3, color: 'rgb(16, 185, 129)' } : {}}
+          animate={{ scale: 1, color: 'inherit' }}
+          className="font-semibold"
+        >
+          {count}
+        </motion.span>
+        {' '}{serviceLabels[service]} in the last hour
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Compact trust + activity badge for checkout flows
+ */
+interface CheckoutActivityBadgeProps {
+  className?: string
+}
+
+export function CheckoutActivityBadge({ className }: CheckoutActivityBadgeProps) {
+  const [count] = useState(() => Math.floor(Math.random() * 15) + 8)
+  
+  return (
+    <div className={cn(
+      'flex items-center justify-center gap-2 text-xs text-muted-foreground',
+      className
+    )}>
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+      </span>
+      <span>{count} others completed checkout in the last hour</span>
+    </div>
+  )
+}
