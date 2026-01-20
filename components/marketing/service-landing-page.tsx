@@ -31,7 +31,7 @@ import { Button } from '@/components/uix'
 import { cn } from '@/lib/utils'
 import { MagneticCard, SpotlightReveal } from '@/components/ui/glowing-effect'
 import type { ServiceConfig } from '@/lib/marketing/services'
-import { MarketingNavbar } from './navbar'
+import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from './footer'
 
 // Icon mapping
@@ -144,7 +144,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <MarketingNavbar />
+      <Navbar variant="marketing" />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-linear-to-b from-slate-50 via-white to-white pt-24 pb-16 lg:pt-32 lg:pb-24">

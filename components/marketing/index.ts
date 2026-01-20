@@ -1,6 +1,5 @@
 // Marketing components barrel export
 export { RotatingText } from './rotating-text'
-export { MarketingNavbar } from './navbar'
 export { Hero } from './hero'
 export { ServicePicker } from './service-picker'
 export { ProofStrip } from './proof-strip'

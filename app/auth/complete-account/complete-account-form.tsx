@@ -4,10 +4,10 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 import { Card } from "@/components/ui/card"
 import { Check, Loader2 } from "lucide-react"
 import { Confetti } from "@/components/ui/confetti"
-import { useAuth } from "@/components/providers/supabase-auth-provider"
 
 export function CompleteAccountForm({
   intakeId,
@@ -19,13 +19,13 @@ export function CompleteAccountForm({
   sessionId?: string
 }) {
   const router = useRouter()
-  const { isSignedIn, isLoading } = useAuth()
+  const { isSignedIn, isLoaded } = useUser()
 
   const [showConfetti, setShowConfetti] = useState(false)
   
   useEffect(() => {
     // If already signed in, redirect to success
-    if (!isLoading && isSignedIn && intakeId) {
+    if (isLoaded && isSignedIn && intakeId) {
       // Use a timeout to avoid synchronous setState in effect
       const confettiTimer = setTimeout(() => {
         setShowConfetti(true)
@@ -40,19 +40,17 @@ export function CompleteAccountForm({
         clearTimeout(redirectTimer)
       }
     }
-  }, [isLoading, isSignedIn, intakeId, router])
+  }, [isLoaded, isSignedIn, intakeId, router])
 
   const handleCreateAccount = () => {
-    // Redirect to register page with pre-filled email and redirect URL
-    const redirectUrl = `/patient/intakes/success?intake_id=${intakeId}`
-    const registerUrl = email 
-      ? `/auth/register?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectUrl)}`
-      : `/auth/register?redirect=${encodeURIComponent(redirectUrl)}`
-    router.push(registerUrl)
+    // Redirect to Clerk Account Portal with redirect URL
+    const redirectUrl = `https://instantmed.com.au/patient/intakes/success?intake_id=${intakeId}`
+    const signUpUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`
+    router.push(signUpUrl)
   }
 
   // If already signed in, show success message
-  if (!isLoading && isSignedIn) {
+  if (isLoaded && isSignedIn) {
     return (
       <>
         <Confetti trigger={showConfetti} />
@@ -113,7 +111,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`/auth/login?redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
+        <a href={`https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(`https://instantmed.com.au/patient/intakes/success?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

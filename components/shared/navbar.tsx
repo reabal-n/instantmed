@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
-import { useAuth } from "@/components/providers/supabase-auth-provider"
+import { SignInButton, SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs"
 import {
   LogOut,
   User,
@@ -185,7 +185,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const pathname = usePathname()
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
-  const { signOut, isSignedIn } = useAuth()
+  const { signOut } = useClerk()
+  const { user, isLoaded } = useUser()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -200,7 +201,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
     router.refresh()
   }
 
-  const firstName = userName?.split(" ")[0] || "User"
+  const firstName = user?.firstName || userName?.split(" ")[0] || "User"
   const isActivePath = (path: string) => pathname === path || pathname?.startsWith(path + "/")
 
   return (
@@ -287,25 +288,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
                       Get started
                     </ShatterButtonLink>
-                    {isSignedIn ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all flex items-center justify-center"
-                      >
-                        <Link href="/patient">Dashboard</Link>
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all flex items-center justify-center"
-                      >
-                        <Link href="/auth/login">Sign in</Link>
-                      </Button>
-                    )}
+                    <SignedOut>
+                      <SignInButton mode="modal">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg text-xs h-7 px-3 border-border/40 bg-background/50 hover:bg-background/80 dark:hover:bg-background/20 transition-all flex items-center justify-center"
+                        >
+                          Sign in
+                        </Button>
+                      </SignInButton>
+                    </SignedOut>
+                    <SignedIn>
+                      <UserButton afterSignOutUrl="/" />
+                    </SignedIn>
                   </div>
                 </>
               )}
@@ -464,11 +460,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             </div>
             {variant === "marketing" && (
               <>
-                <Button variant="outline" asChild className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
-                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                    Sign in
-                  </Link>
-                </Button>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="outline" className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
+                      Sign in
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex justify-center">
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
                 <ShatterButtonLink href="/start" className="w-full rounded-xl">
                   Get started
                 </ShatterButtonLink>

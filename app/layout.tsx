@@ -1,6 +1,14 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Source_Sans_3, Lora, JetBrains_Mono, Caveat } from "next/font/google"
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
@@ -171,61 +179,64 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${sourceSans.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
-      suppressHydrationWarning
-    >
-      <head>
-        {/* Preconnect to critical third-party origins */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
-        <link rel="dns-prefetch" href="https://js.stripe.com" />
-        <link rel="dns-prefetch" href="https://api.stripe.com" />
-        
-        {/* Google tag (gtag.js) */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-          strategy="afterInteractive"
-        />
-        <Script id="google-gtag" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-17795889471');
-          `}
-        </Script>
-        <JsonLd />
-        <OrganizationSchema />
-        <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
-      </head>
-      <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
-        <SupabaseAuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <HeroUIProviderWrapper>
-              <NetworkStatus />
-              <SkyBackground fullPage />
-              <NightSkyBackground starCount={100} showShootingStars />
-              <ScrollProgress color="gradient" />
-              <SkipToContent />
-              <div id="main-content" className="page-enter relative z-10">
-                {children}
-              </div>
-              <Toaster position="top-center" richColors />
-              <SocialProofPopup />
-              <StickyCTABar />
-              <ChatIntakeButton />
-              <Analytics />
-              <WebVitalsReporter />
-              <PostHogIdentify />
-              <ServiceWorkerRegistration />
-              <CookieBanner />
-            </HeroUIProviderWrapper>
-          </ThemeProvider>
-        </SupabaseAuthProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${sourceSans.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+        suppressHydrationWarning
+      >
+        <head>
+          {/* Preconnect to critical third-party origins */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://images.unsplash.com" />
+          <link rel="preconnect" href="https://central-ostrich-48.clerk.accounts.dev" />
+          <link rel="dns-prefetch" href="https://js.stripe.com" />
+          <link rel="dns-prefetch" href="https://api.stripe.com" />
+          
+          {/* Google tag (gtag.js) */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
+            strategy="afterInteractive"
+          />
+          <Script id="google-gtag" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17795889471');
+            `}
+          </Script>
+          <JsonLd />
+          <OrganizationSchema />
+          <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
+        </head>
+        <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
+          <SupabaseAuthProvider>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <HeroUIProviderWrapper>
+                <NetworkStatus />
+                <SkyBackground fullPage />
+                <NightSkyBackground starCount={100} showShootingStars />
+                <ScrollProgress color="gradient" />
+                <SkipToContent />
+                <div id="main-content" className="page-enter relative z-10">
+                  {children}
+                </div>
+                <Toaster position="top-center" richColors />
+                <SocialProofPopup />
+                <StickyCTABar />
+                <ChatIntakeButton />
+                <Analytics />
+                <WebVitalsReporter />
+                <PostHogIdentify />
+                <ServiceWorkerRegistration />
+                <CookieBanner />
+              </HeroUIProviderWrapper>
+            </ThemeProvider>
+          </SupabaseAuthProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }
