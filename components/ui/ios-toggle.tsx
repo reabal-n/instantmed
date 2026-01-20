@@ -7,7 +7,7 @@ interface IOSToggleProps {
   checked: boolean
   onChange: (checked: boolean) => void
   label?: string
-  description?: string
+  description?: React.ReactNode
   disabled?: boolean
   size?: 'sm' | 'md' | 'lg'
   className?: string

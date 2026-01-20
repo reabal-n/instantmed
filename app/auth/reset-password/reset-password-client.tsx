@@ -2,24 +2,41 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Lock, Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
 import { BrandLogo } from "@/components/shared/brand-logo"
+import { createClient } from "@/lib/supabase/client"
 
 export function ResetPasswordClient() {
   const router = useRouter()
-  const _searchParams = useSearchParams()
   
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [_isSuccess, _setIsSuccess] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
+
+  // Check if user has a valid recovery session from the email link
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        // No session - user needs to use forgot password flow
+        setError("Your password reset link has expired. Please request a new one.")
+      }
+      setIsCheckingSession(false)
+    }
+    
+    checkSession()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,10 +55,22 @@ export function ResetPasswordClient() {
     setIsLoading(true)
 
     try {
-      setError("Please use the 'Forgot password?' link on the sign-in page to reset your password.")
+      const supabase = createClient()
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password,
+      })
+
+      if (updateError) {
+        throw updateError
+      }
+
+      setIsSuccess(true)
+      toast.success("Password updated successfully!")
+      
+      // Redirect to login after 2 seconds
       setTimeout(() => {
-        router.push("/auth/forgot-password")
-      }, 3000)
+        router.push("/auth/login")
+      }, 2000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred"
       setError(errorMessage)
@@ -51,7 +80,21 @@ export function ResetPasswordClient() {
     }
   }
 
-  if (_isSuccess) {
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
+        <div className="absolute top-6 left-6">
+          <BrandLogo size="sm" href="/" />
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (isSuccess) {
     return (
       <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
         <div className="absolute top-6 left-6">

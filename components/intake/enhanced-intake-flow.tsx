@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { useConfetti as _useConfetti } from "@/components/effects/confetti"
 import {
   ArrowRight,
   ArrowLeft,
@@ -20,7 +19,6 @@ import {
   Phone,
   Edit2,
   Zap,
-  TrendingUp,
   X,
 } from "lucide-react"
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
@@ -56,6 +54,7 @@ import type { ServiceCategory } from "@/lib/stripe/client"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/intake/medication-search"
 import { ExtendedDurationInterstitial } from "@/components/intake/extended-duration-interstitial"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
+import { PaymentMethodIcons } from "@/components/checkout/trust-badges"
 import { SocialProofCheckout } from "@/components/shared/social-proof-checkout"
 import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
@@ -313,7 +312,6 @@ function FormField({
   hint,
   helpText,
   example,
-  showSuccess: _showSuccess,
 }: {
   label: string
   required?: boolean
@@ -323,7 +321,6 @@ function FormField({
   hint?: string
   helpText?: string
   example?: string
-  showSuccess?: boolean
 }) {
   return (
     <div className={cn("space-y-1", className)}>
@@ -1199,7 +1196,6 @@ export function EnhancedIntakeFlow({
                 error={errors.startDate}
                 hint="When does your absence start?"
                 helpText="Medical certificates can only be issued from today onwards."
-                showSuccess={!!state.startDate && !errors.startDate}
               >
                 <div className="space-y-2">
                   <Input
@@ -1387,7 +1383,7 @@ export function EnhancedIntakeFlow({
                     Doctor reviews your request
                   </span>
                   <span className="text-[10px]">
-                    • E-script sent via SMS if approved
+                    • eScript sent to your phone via SMS
                   </span>
                 </div>
               </div>
@@ -1504,7 +1500,7 @@ export function EnhancedIntakeFlow({
             {/* Safety confirmation - iOS-style toggle per brand guidelines */}
             {symptomCheckResult.severity !== "critical" && (
               <div className="space-y-4">
-                <div className="p-4 bg-ivory-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 rounded-xl">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 rounded-xl">
                   <label className="flex items-center justify-between gap-4 cursor-pointer">
                     <div className="text-sm">
                       <p className="font-medium text-slate-800 dark:text-slate-200">
@@ -1713,20 +1709,14 @@ export function EnhancedIntakeFlow({
         
         return (
           <motion.div className="space-y-4" data-intake-form>
-            {/* Trust indicators - calm, professional */}
-            <div className="flex flex-wrap items-center justify-center gap-4 p-3 bg-ivory-50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/30 rounded-xl">
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                <Shield className="w-3.5 h-3.5" />
-                <span>AHPRA-registered doctors</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Usually reviewed within an hour</span>
-              </div>
+            {/* Trust indicator - single, clean */}
+            <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <span>AHPRA-registered doctors</span>
             </div>
 
             {/* Summary card - Enhanced with edit capability */}
-            <div className="p-5 bg-linear-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+            <div className="p-5 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {selectedService && (
@@ -1757,36 +1747,8 @@ export function EnhancedIntakeFlow({
                 </div>
               </div>
 
-              {/* ETA with urgency */}
-              <motion.div 
-                className="flex items-center gap-2 text-sm p-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-xl border border-white/40 dark:border-white/10 shadow-[0_2px_8px_rgb(0,0,0,0.04)]"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">
-                  Estimated completion:{" "}
-                  <strong className="text-foreground font-semibold">
-                    {selectedService?.time}
-                  </strong>
-                </span>
-              </motion.div>
-
-              {/* No call badge - subtle secondary messaging */}
-              {selectedService?.noCall && (
-                <motion.div 
-                  className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-lg"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <Clock className="w-4 h-4" />
-                  <span>Doctor reviews your request</span>
-                </motion.div>
-              )}
-
               {/* Price Breakdown */}
-              <div className="pt-3 border-t border-slate-200/50">
+              <div className="pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground">{selectedService?.title}</span>
                   <span>{selectedService?.price}</span>
@@ -1806,7 +1768,7 @@ export function EnhancedIntakeFlow({
                   }
                   return null
                 })()}
-                <div className="flex justify-between font-semibold text-base pt-2 border-t border-dashed border-slate-200">
+                <div className="flex justify-between font-semibold text-base pt-2 border-t border-dashed border-slate-200 dark:border-slate-700">
                   <span>Total</span>
                   <span className="text-primary">
                     {(() => {
@@ -1823,39 +1785,9 @@ export function EnhancedIntakeFlow({
                 </div>
               </div>
 
-              {/* Payment Methods */}
-              <div className="flex items-center justify-center gap-3 pt-3">
-                <span className="text-xs text-muted-foreground">Pay with</span>
-                <div className="flex items-center gap-2">
-                  {/* Apple Pay */}
-                  <div className="h-7 px-2 bg-black rounded flex items-center justify-center">
-                    <svg className="h-4 w-auto" viewBox="0 0 50 21" fill="white">
-                      <path d="M9.4 6.7c-.5.6-1.3 1.1-2.1 1-.1-.8.3-1.6.7-2.2.5-.6 1.4-1.1 2.1-1.1.1.8-.2 1.7-.7 2.3zm.7 1.2c-1.2-.1-2.2.7-2.7.7-.6 0-1.4-.6-2.4-.6-1.2 0-2.3.7-3 1.8-1.3 2.2-.3 5.5.9 7.3.6.9 1.4 1.9 2.4 1.9 1 0 1.3-.6 2.5-.6 1.2 0 1.4.6 2.5.6 1 0 1.7-.9 2.3-1.8.7-1 1-2 1-2.1-.1 0-2-.8-2-3 0-1.9 1.5-2.8 1.6-2.8-.9-1.3-2.3-1.4-2.8-1.4h-.3z"/>
-                      <path d="M21.3 4.3c2.6 0 4.4 1.8 4.4 4.4 0 2.6-1.9 4.4-4.5 4.4h-2.9v4.6h-2.1V4.3h5.1zm-2.9 7h2.4c1.8 0 2.8-1 2.8-2.6 0-1.6-1-2.6-2.8-2.6h-2.4v5.2zm8.8 2.8c0-1.7 1.3-2.7 3.6-2.8l2.6-.2v-.7c0-1.1-.7-1.7-1.9-1.7-1.1 0-1.8.5-2 1.3h-1.9c.1-1.8 1.6-3.1 4-3.1 2.3 0 3.8 1.2 3.8 3.2v6.6h-1.9v-1.6h-.1c-.6 1.1-1.8 1.8-3.1 1.8-2 0-3.1-1.2-3.1-2.8zm6.3-.8v-.8l-2.4.2c-1.2.1-1.9.6-1.9 1.4 0 .8.7 1.4 1.8 1.4 1.4 0 2.5-.9 2.5-2.2zm4.2 5.6v-1.6c.1 0 .5.1.9.1 1.2 0 1.8-.5 2.2-1.8l.2-.7-3.7-10.2h2.2l2.6 8.4h.1l2.6-8.4h2.1l-3.8 10.7c-.9 2.5-1.9 3.3-4 3.3-.4.1-.8.1-1.4.2z"/>
-                    </svg>
-                  </div>
-                  {/* Google Pay */}
-                  <div className="h-7 px-2 bg-white border border-slate-200 rounded flex items-center justify-center">
-                    <svg className="h-4 w-auto" viewBox="0 0 41 17" fill="none">
-                      <path d="M19.5 8.4v5h-1.6V1.6h4.2c1 0 1.9.3 2.6 1 .7.6 1.1 1.5 1.1 2.5s-.4 1.9-1.1 2.5c-.7.7-1.6 1-2.6 1l-2.6-.2zm0-5.3v3.8h2.6c.6 0 1.1-.2 1.5-.6.4-.4.6-.9.6-1.3 0-.5-.2-1-.6-1.3-.4-.4-.9-.6-1.5-.6h-2.6z" fill="#5F6368"/>
-                      <path d="M30 5.2c1.2 0 2.1.3 2.8 1 .7.7 1 1.6 1 2.7v5.5h-1.5v-1.2h-.1c-.6 1-1.5 1.5-2.6 1.5-1 0-1.8-.3-2.4-.9-.6-.6-.9-1.3-.9-2.1 0-.9.3-1.6 1-2.2.6-.5 1.5-.8 2.5-.8.9 0 1.6.2 2.2.5v-.4c0-.6-.2-1.1-.7-1.5-.4-.4-1-.6-1.6-.6-.9 0-1.6.4-2.1 1.2l-1.4-.9c.8-1.2 1.9-1.8 3.8-1.8zm-2.1 6.4c0 .4.2.8.5 1.1.4.3.8.5 1.3.5.7 0 1.3-.3 1.8-.8.5-.5.8-1.1.8-1.7-.5-.4-1.1-.6-2-.6-.6 0-1.2.2-1.6.5-.5.3-.8.6-.8 1z" fill="#5F6368"/>
-                      <path d="M41 5.5l-5.3 12.2h-1.6l2-4.3-3.5-7.9h1.7l2.5 6.2h.1l2.5-6.2H41z" fill="#5F6368"/>
-                      <path d="M13.3 7.1c0-.5 0-.9-.1-1.4H6.8v2.6h3.7c-.2.9-.7 1.7-1.4 2.2v1.8h2.3c1.3-1.2 2.1-3 2.1-5.2h-.2z" fill="#4285F4"/>
-                      <path d="M6.8 14c1.9 0 3.5-.6 4.6-1.7l-2.3-1.8c-.6.4-1.4.7-2.4.7-1.8 0-3.4-1.2-3.9-2.9H.5v1.9C1.6 12.5 4 14 6.8 14z" fill="#34A853"/>
-                      <path d="M2.9 8.3c-.3-.9-.3-1.8 0-2.6V3.8H.5C-.5 5.8-.5 8.2.5 10.1l2.4-1.8z" fill="#FBBC04"/>
-                      <path d="M6.8 2.8c1 0 2 .3 2.7 1l2-2C10.3.7 8.7 0 6.8 0 4 0 1.6 1.5.5 3.8l2.4 1.9c.5-1.7 2.1-2.9 3.9-2.9z" fill="#EA4335"/>
-                    </svg>
-                  </div>
-                  {/* Visa/MC */}
-                  <div className="flex items-center gap-1">
-                    <div className="h-5 w-8 bg-slate-100 rounded flex items-center justify-center">
-                      <span className="text-[8px] font-bold text-blue-600">VISA</span>
-                    </div>
-                    <div className="h-5 w-8 bg-slate-100 rounded flex items-center justify-center">
-                      <span className="text-[8px] font-bold text-orange-500">MC</span>
-                    </div>
-                  </div>
-                </div>
+              {/* Payment Methods - using shared component */}
+              <div className="flex flex-col items-center gap-1 pt-3">
+                <PaymentMethodIcons size="sm" />
               </div>
             </div>
 
@@ -1865,7 +1797,7 @@ export function EnhancedIntakeFlow({
                 <p className="text-sm font-semibold">Sending to:</p>
                 <motion.button
                   onClick={() => setEditingSection(editingSection === "patient" ? null : "patient")}
-                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors touch-target"
+                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors touch-target"
                   aria-label="Edit patient details"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -1946,7 +1878,7 @@ export function EnhancedIntakeFlow({
                   <p className="text-sm font-semibold">Service details:</p>
                   <button
                     onClick={() => setEditingSection(editingSection === "details" ? null : "details")}
-                    className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors touch-target"
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors touch-target"
                     aria-label="Edit service details"
                   >
                     <Edit2 className="w-3 h-3" />
@@ -2009,38 +1941,10 @@ export function EnhancedIntakeFlow({
               </GlassCard>
             )}
 
-            {/* What happens next timeline - P2 AC-3: Response time confirmation */}
-            <div className="p-4 bg-linear-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                What happens next?
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                    1
-                  </div>
-                  <p className="text-muted-foreground">You&apos;ll receive a confirmation email</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                    2
-                  </div>
-                  <p className="text-muted-foreground">
-                    <strong>Estimated review time: within 1 hour</strong> (Mon-Fri 8am-8pm AEST)
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                    3
-                  </div>
-                  <p className="text-muted-foreground">You&apos;ll receive the result via email and SMS</p>
-                </div>
-              </div>
-              {/* P2 AC-2: Call process explanation */}
-              <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-primary/10">
-                If a call is required, we&apos;ll contact you at the phone number provided within 2 hours. If we can&apos;t reach you, we&apos;ll send instructions via SMS.
-              </p>
+            {/* What happens next - simplified */}
+            <div className="p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-xl text-xs text-muted-foreground space-y-1.5">
+              <p><strong className="text-foreground">After payment:</strong> A doctor reviews your request within 1 hour (Mon-Fri 8am-8pm AEST).</p>
+              <p>You&apos;ll receive your result via email and SMS. If a call is needed, we&apos;ll contact you first.</p>
             </div>
 
             {/* Payment disclaimer - P0 compliance */}
@@ -2050,63 +1954,31 @@ export function EnhancedIntakeFlow({
               </p>
             </div>
 
-            {/* P0 CN-1: Telehealth consent - Per MEDICOLEGAL_AUDIT_REPORT */}
+            {/* Combined consent toggle - telehealth + accuracy + terms */}
             <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
               <IOSToggle
-                checked={state.telehealthConsentGiven}
-                onChange={(checked) => updateField("telehealthConsentGiven", checked)}
-                label="I consent to this telehealth consultation"
-                description="I understand this is an asynchronous telehealth service. A doctor will review my request without a live consultation unless they determine a call is clinically necessary."
-                size="md"
-              />
-            </div>
-
-            {/* P1 CN-3: Telehealth limitations acknowledgment */}
-            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
-              <IOSToggle
-                checked={state.telehealthLimitationsAcknowledged}
-                onChange={(checked) => updateField("telehealthLimitationsAcknowledged", checked)}
-                label="I understand the limitations of telehealth"
-                description="Some conditions require in-person examination. If the doctor determines this, I'll receive a full refund and be advised to see a GP in person."
-                size="md"
-              />
-            </div>
-
-            {/* Accuracy confirmation - iOS toggle style */}
-            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
-              <IOSToggle
-                checked={state.confirmedAccuracy}
-                onChange={(checked) => updateField("confirmedAccuracy", checked)}
-                label="I confirm the information is accurate"
-                description="The information I've provided is accurate and complete to the best of my knowledge."
-                size="md"
-              />
-            </div>
-
-            {/* Terms - iOS toggle style */}
-            <div className="p-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border-2 border-white/40 dark:border-white/10">
-              <div className="flex items-start gap-3">
-                <IOSToggle
-                  checked={state.agreedToTerms}
-                  onChange={(checked) => updateField("agreedToTerms", checked)}
-                  size="md"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    I agree to the terms
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    I agree to the{" "}
+                checked={state.telehealthConsentGiven && state.telehealthLimitationsAcknowledged && state.confirmedAccuracy && state.agreedToTerms}
+                onChange={(checked) => {
+                  updateField("telehealthConsentGiven", checked)
+                  updateField("telehealthLimitationsAcknowledged", checked)
+                  updateField("confirmedAccuracy", checked)
+                  updateField("agreedToTerms", checked)
+                }}
+                label="I confirm and agree"
+                description={
+                  <span>
+                    I consent to this telehealth consultation, confirm my information is accurate, and agree to the{" "}
                     <a href="/terms" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
-                      Terms of Service
+                      Terms
                     </a>{" "}
                     and{" "}
                     <a href="/privacy" className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">
                       Privacy Policy
-                    </a>
-                  </p>
-                </div>
-              </div>
+                    </a>.
+                  </span>
+                }
+                size="md"
+              />
             </div>
             {errors.agreedToTerms && (
               <Alert variant="destructive">
@@ -2119,7 +1991,9 @@ export function EnhancedIntakeFlow({
             <RefundGuaranteeBadge variant="inline" className="mt-2" />
 
             {/* Social proof at decision point */}
-            <SocialProofCheckout variant="badge" className="mx-auto" />
+            <div className="flex justify-center">
+              <SocialProofCheckout variant="badge" />
+            </div>
 
             {/* Trust note - calm, not salesy */}
             <div className="text-center text-xs text-slate-500 dark:text-slate-400">
@@ -2321,9 +2195,9 @@ export function EnhancedIntakeFlow({
               <button
                 onClick={goBack}
                 disabled={isSubmitting}
-                className="shrink-0 w-12 h-12 rounded-full border-2 border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] hover:scale-105 active:scale-95 flex items-center justify-center"
+                className="shrink-0 w-12 h-12 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow hover:scale-105 active:scale-95 flex items-center justify-center"
               >
-                <ArrowLeft className="w-5 h-5 text-slate-600" />
+                <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
               </button>
             )}
             <button

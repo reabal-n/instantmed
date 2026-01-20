@@ -325,13 +325,21 @@ export function PrescriptionFlowClient({
         answers,
       })
 
-      if (result.success && result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
-      } else {
+      if (!result.success) {
         setError(result.error || "Failed to create checkout session. Please try again.")
         setIsSubmitting(false)
         setHasSubmitted(false) // Allow retry on error
+        return
       }
+      
+      if (!result.checkoutUrl) {
+        setError("No checkout URL received. Please try again.")
+        setIsSubmitting(false)
+        setHasSubmitted(false) // Allow retry on error
+        return
+      }
+      
+      window.location.href = result.checkoutUrl
     } catch {
       setError("An unexpected error occurred. Please try again.")
       setIsSubmitting(false)

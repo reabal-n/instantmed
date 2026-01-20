@@ -116,7 +116,9 @@ export function IntakeDetailClient({
       const result = await retryPaymentForIntakeAction(intake.id)
       if (!result.success) {
         setActionError(result.error || "Failed to create checkout session")
-      } else if (result.checkoutUrl) {
+      } else if (!result.checkoutUrl) {
+        setActionError("No checkout URL received. Please try again.")
+      } else {
         window.location.href = result.checkoutUrl
       }
     })

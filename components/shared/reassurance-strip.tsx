@@ -15,8 +15,8 @@ const REASSURANCE_ITEMS = {
   },
   'no-call': {
     icon: Phone,
-    text: 'No phone call unless needed',
-    shortText: 'No call required',
+    text: 'Most requests reviewed online',
+    shortText: 'Async review',
   },
   'refund': {
     icon: RefreshCw,

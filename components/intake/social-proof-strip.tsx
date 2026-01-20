@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 interface SocialProofStripProps {
   className?: string
   variant?: 'minimal' | 'detailed' | 'pulse'
-  service?: 'med-cert' | 'prescription' | 'consult'
 }
 
 interface RecentCompletion {
@@ -33,7 +32,6 @@ const recentCompletions: RecentCompletion[] = [
 export function SocialProofStrip({ 
   className,
   variant = 'minimal',
-  service: _service
 }: SocialProofStripProps) {
   const [activeNow, setActiveNow] = useState(14)
   const [completedToday, setCompletedToday] = useState(156)

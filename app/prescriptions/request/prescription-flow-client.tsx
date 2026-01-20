@@ -857,11 +857,17 @@ export function PrescriptionFlowClient({
         },
       })
 
-      if (result.success && result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
-      } else {
+      if (!result.success) {
         setError(result.error || RX_MICROCOPY.errors.generic)
+        return
       }
+      
+      if (!result.checkoutUrl) {
+        setError("No checkout URL received. Please try again.")
+        return
+      }
+      
+      window.location.href = result.checkoutUrl
     } catch {
       setError(RX_MICROCOPY.errors.generic)
     } finally {

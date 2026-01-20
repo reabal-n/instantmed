@@ -26,13 +26,22 @@ export async function changePassword(
 }
 
 /**
- * Request password reset - handled by Supabase Auth
+ * Request password reset - sends reset email via Supabase Auth
  */
-export async function requestPasswordReset(_email: string): Promise<{ success: boolean; error: string | null }> {
-  return { 
-    success: true, 
-    error: null 
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
+  const supabase = await createClient()
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'}/auth/reset-password`,
+  })
+  
+  if (error) {
+    // Don't reveal if email exists or not for security
+    console.error('[Auth] Password reset request error:', error.message)
   }
+  
+  // Always return success to prevent email enumeration attacks
+  return { success: true, error: null }
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; error: string | null }> {

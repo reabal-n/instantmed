@@ -41,7 +41,7 @@ export default function BlogPage() {
                 <BadgeCheck className="w-4 h-4" />
                 Doctor-Reviewed Content
               </div>
-              <h1 className="text-3xl font-bold sm:text-4xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
+              <h1 className="text-2xl font-bold sm:text-3xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
                 Health Guides
               </h1>
               <p className="text-muted-foreground max-w-xl mx-auto text-lg">

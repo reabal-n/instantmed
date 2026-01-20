@@ -697,10 +697,11 @@ export function UnifiedFlowClient({
       })
 
       if (result.error) throw new Error(result.error)
-      if (result.checkoutUrl) {
-        localStorage.removeItem(STORAGE_KEY)
-        window.location.href = result.checkoutUrl
+      if (!result.checkoutUrl) {
+        throw new Error("No checkout URL received. Please try again.")
       }
+      localStorage.removeItem(STORAGE_KEY)
+      window.location.href = result.checkoutUrl
     } catch (e) {
       setError(e instanceof Error ? e.message : COPY.errors.payment)
       setIsSubmitting(false)

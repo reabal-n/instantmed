@@ -28,7 +28,7 @@ export const blogImages = {
   coldVsFlu: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=800&h=450&fit=crop&q=80',
 
   // Telehealth
-  whatIsTelehealth: 'https://images.unsplash.com/photo-1609904603780-da3a0c2f3b12?w=800&h=450&fit=crop&q=80',
+  whatIsTelehealth: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=450&fit=crop&q=80',
   telehealthVsInPerson: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=450&fit=crop&q=80',
   prepareForTelehealth: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop&q=80',
   telehealthPrivacy: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=450&fit=crop&q=80',
@@ -46,7 +46,7 @@ export const blogImages = {
   // Workplace & Study
   sickLeaveRights: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=450&fit=crop&q=80',
   workFromHomeSick: 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=800&h=450&fit=crop&q=80',
-  universityMedCert: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=450&fit=crop&q=80',
+  universityMedCert: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=450&fit=crop&q=80',
   returnToWork: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&h=450&fit=crop&q=80',
 
   // Fallback/Generic

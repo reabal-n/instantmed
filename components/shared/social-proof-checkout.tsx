@@ -90,7 +90,7 @@ export function SocialProofCheckout({
         <div className="flex items-center gap-1.5">
           <TrendingUp className="w-3.5 h-3.5 text-green-600" />
           <span>
-            <strong className="text-foreground">{SOCIAL_PROOF.satisfactionRate}</strong> helped
+            <strong className="text-foreground">{SOCIAL_PROOF.satisfactionRate}</strong> satisfaction
           </span>
         </div>
       </div>

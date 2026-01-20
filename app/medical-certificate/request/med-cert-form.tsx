@@ -921,6 +921,11 @@ export function MedCertForm({
           throw new Error(result.error || "Payment could not be processed. Please try again.")
         }
 
+        // Validate checkoutUrl exists
+        if (!result.checkoutUrl) {
+          throw new Error("No checkout URL received. Please try again.")
+        }
+
         // Celebrate on success!
         confetti({
           particleCount: 100,
@@ -929,9 +934,8 @@ export function MedCertForm({
           colors: ["#2563EB", "#4f46e5", "#4f46e5", "#F59E0B", "#10B981"],
         })
 
-        if (result.checkoutUrl) {
-          window.location.href = result.checkoutUrl
-        }
+        // Redirect to Stripe checkout
+        window.location.href = result.checkoutUrl
       } catch (err) {
         throw err
       }

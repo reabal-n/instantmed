@@ -790,9 +790,11 @@ export function MedCertFlowClient({
         throw new Error(result.error || MICROCOPY.errors.payment)
       }
 
-      if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
+      if (!result.checkoutUrl) {
+        throw new Error("No checkout URL received. Please try again.")
       }
+
+      window.location.href = result.checkoutUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.generic)
       setIsSubmitting(false)
@@ -849,9 +851,11 @@ export function MedCertFlowClient({
         throw new Error(result.error || MICROCOPY.errors.payment)
       }
 
-      if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
+      if (!result.checkoutUrl) {
+        throw new Error("No checkout URL received. Please try again.")
       }
+
+      window.location.href = result.checkoutUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.generic)
       setIsSubmitting(false)
