@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 import { NextResponse, type NextRequest } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { ensureProfile } from "@/app/actions/ensure-profile"
@@ -39,65 +40,44 @@ export async function GET(request: NextRequest) {
     isLocalEnv,
   })
 
-  // Create a response that we'll modify with cookies and eventually redirect
-  const response = NextResponse.next({
-    request: { headers: request.headers },
-  })
+  // Use cookies() from next/headers - this is the correct approach for Next.js App Router
+  // Cookies set via cookieStore.set() are automatically included in redirect responses
+  const cookieStore = await cookies()
 
-  // Create Supabase client that writes cookies to our response object
+  // Create Supabase client that writes cookies directly to the cookie store
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing user sessions.
+          }
         },
       },
     }
   )
 
-  // Helper to create redirect with cookies preserved
-  const redirectWithCookies = (url: string) => {
-    const redirectResponse = NextResponse.redirect(url)
-    // Copy all cookies from our response to the redirect
-    const allCookies = response.cookies.getAll()
-    log.info("Redirecting with cookies", { 
-      url, 
-      cookieCount: allCookies.length,
-      cookieNames: allCookies.map(c => c.name)
-    })
-    allCookies.forEach((cookie) => {
-      // Extract only the cookie options, excluding name and value
-      const { name, value, ...options } = cookie
-      // Ensure secure cookies on production
-      const isProduction = process.env.NODE_ENV === "production"
-      redirectResponse.cookies.set(name, value, {
-        ...options,
-        secure: isProduction ? true : options.secure,
-        sameSite: options.sameSite || "lax",
-        path: options.path || "/",
-      })
-    })
-    return redirectResponse
-  }
-
   // Handle missing code parameter
   if (!code) {
     log.warn("No code parameter in callback - redirecting to login")
-    return redirectWithCookies(`${origin}/auth/login?error=authentication_required`)
+    return NextResponse.redirect(`${origin}/auth/login?error=authentication_required`)
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   
   if (error) {
     log.error("Failed to exchange code for session", {}, error)
-    return redirectWithCookies(`${origin}/auth/login?error=oauth_failed`)
+    return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
   }
 
   try {
@@ -106,14 +86,14 @@ export async function GET(request: NextRequest) {
 
     if (userError || !user) {
       log.warn("No authenticated user in callback")
-      return redirectWithCookies(`${origin}/auth/login?error=authentication_required`)
+      return NextResponse.redirect(`${origin}/auth/login?error=authentication_required`)
     }
 
     const userEmail = user.email
 
     if (!userEmail) {
       log.error("User has no email address", { userId: user.id })
-      return redirectWithCookies(`${origin}/auth/login?error=email_required`)
+      return NextResponse.redirect(`${origin}/auth/login?error=email_required`)
     }
 
     // Log successful login for audit trail (non-blocking)
@@ -141,7 +121,7 @@ export async function GET(request: NextRequest) {
     } catch (profileError) {
       const errorMessage = profileError instanceof Error ? profileError.message : String(profileError)
       log.error("Profile creation failed", { userId: user.id }, profileError)
-      return redirectWithCookies(
+      return NextResponse.redirect(
         `${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent(errorMessage)}`
       )
     }
@@ -216,7 +196,7 @@ export async function GET(request: NextRequest) {
       
       if (basicError || !basicProfile) {
         log.error("Profile fetch failed after creation", { userId: user.id }, fetchError || basicError)
-        return redirectWithCookies(
+        return NextResponse.redirect(
           `${origin}/auth/login?error=profile_creation_failed&details=${encodeURIComponent("Profile created but could not be retrieved")}`
         )
       }
@@ -227,15 +207,15 @@ export async function GET(request: NextRequest) {
       
       // Continue with basic profile - default to patient for safety
       if (profileWithDefaults.role === "doctor" || profileWithDefaults.role === "admin") {
-        return redirectWithCookies(`${origin}/doctor`)
+        return NextResponse.redirect(`${origin}/doctor`)
       }
       // Default to patient flow for any other role (including null/undefined)
-      return redirectWithCookies(`${origin}/patient/onboarding`)
+      return NextResponse.redirect(`${origin}/patient/onboarding`)
     }
 
     // Always return to questionnaire flow if that's where we came from
     if (flow === "questionnaire" && next) {
-      return redirectWithCookies(`${origin}${next}?auth_success=true`)
+      return NextResponse.redirect(`${origin}${next}?auth_success=true`)
     }
 
     // Redirect based on role - prioritize explicit redirect, then role-based dashboard
@@ -244,7 +224,7 @@ export async function GET(request: NextRequest) {
       if (next && finalProfile.onboarding_completed) {
         // Ensure redirect is a relative path
         const redirectPath = next.startsWith('/') ? next : `/${next}`
-        return redirectWithCookies(`${origin}${redirectPath}`)
+        return NextResponse.redirect(`${origin}${redirectPath}`)
       }
       // Check onboarding status
       if (!finalProfile.onboarding_completed) {
@@ -252,10 +232,10 @@ export async function GET(request: NextRequest) {
         const onboardingUrl = next 
           ? `${origin}/patient/onboarding?redirect=${encodeURIComponent(next)}`
           : `${origin}/patient/onboarding`
-        return redirectWithCookies(onboardingUrl)
+        return NextResponse.redirect(onboardingUrl)
       }
       // Default to patient dashboard
-      return redirectWithCookies(`${origin}/patient`)
+      return NextResponse.redirect(`${origin}/patient`)
     } else if (finalProfile.role === "doctor" || finalProfile.role === "admin") {
       // Doctors and admins go to doctor dashboard
       // Only use explicit redirect if it's a doctor-specific route
@@ -267,17 +247,17 @@ export async function GET(request: NextRequest) {
           ? redirectPath.replace('/admin', '/doctor')
           : redirectPath
         if (normalizedPath.startsWith('/doctor')) {
-          return redirectWithCookies(`${origin}${normalizedPath}`)
+          return NextResponse.redirect(`${origin}${normalizedPath}`)
         }
       }
-      return redirectWithCookies(`${origin}/doctor`)
+      return NextResponse.redirect(`${origin}/doctor`)
     }
 
     // Default fallback - should rarely happen
     log.warn("Unknown role, defaulting to patient dashboard", { role: finalProfile.role, userId: user.id })
-    return redirectWithCookies(next ? `${origin}${next}` : `${origin}/patient`)
+    return NextResponse.redirect(next ? `${origin}${next}` : `${origin}/patient`)
   } catch (error) {
     log.error("Auth callback failed", {}, error)
-    return redirectWithCookies(`${origin}/auth/login?error=oauth_failed`)
+    return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`)
   }
 }
