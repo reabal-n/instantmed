@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Filter, BadgeCheck, Eye, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Filter, Eye, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchAutocomplete } from '@/components/blog/search-autocomplete'
 import type { Article, ArticleCategory } from '@/lib/blog/types'
@@ -197,20 +197,14 @@ export function ArticlesPage({ articles }: ArticlesPageProps) {
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {article.excerpt}
                   </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{article.readingTime} min</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{formatViewCount(article.viewCount)} views</span>
-                      </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{article.readingTime} min</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <BadgeCheck className="w-3 h-3 text-emerald-600" />
-                      <span className="truncate max-w-[100px]">{article.author.name}</span>
+                      <Eye className="w-3 h-3" />
+                      <span>{formatViewCount(article.viewCount)} views</span>
                     </div>
                   </div>
                 </div>

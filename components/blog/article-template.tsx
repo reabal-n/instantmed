@@ -261,43 +261,6 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
         />
       </div>
 
-      {/* Author card */}
-      <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 mb-10 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-            {article.author.image ? (
-              <Image 
-                src={article.author.image} 
-                alt={article.author.name}
-                width={56}
-                height={56}
-                className="object-cover"
-              />
-            ) : (
-              <Stethoscope className="w-6 h-6 text-primary" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-foreground">{article.author.name}</p>
-              <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              AHPRA: {article.author.ahpraNumber}
-            </p>
-            <Link 
-              href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
-            >
-              Verify registration
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* Medical disclaimer */}
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-10">
         <div className="flex gap-3">
@@ -384,6 +347,19 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           <ArticleTags tags={article.tags} />
         </div>
       )}
+
+      {/* Author card - at end of article */}
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold text-foreground">{article.author.name}</p>
+            <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            AHPRA: {article.author.ahpraNumber}
+          </p>
+        </div>
+      </div>
 
       {/* Social sharing */}
       <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
