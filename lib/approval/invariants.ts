@@ -6,7 +6,7 @@ import { isPermanentStorageUrl } from "../storage/documents"
 /**
  * Approval Invariant Checks
  * 
- * These checks MUST pass before any request can be approved.
+ * These checks MUST pass before any intake can be approved.
  * If any check fails, approval is blocked with a hard error.
  */
 
@@ -17,10 +17,10 @@ export interface InvariantCheckResult {
 }
 
 /**
- * Check all approval invariants for a request
+ * Check all approval invariants for an intake
  */
 export async function checkApprovalInvariants(
-  requestId: string,
+  intakeId: string,
   pdfUrl?: string
 ): Promise<InvariantCheckResult> {
   const errors: string[] = []
@@ -28,27 +28,27 @@ export async function checkApprovalInvariants(
 
   const supabase = await createClient()
 
-  // 1. Fetch request to check payment status
-  const { data: request, error: requestError } = await supabase
-    .from("requests")
+  // 1. Fetch intake to check payment status (intakes is single source of truth)
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
     .select("id, status, payment_status")
-    .eq("id", requestId)
+    .eq("id", intakeId)
     .single()
 
-  if (requestError || !request) {
-    errors.push(`Request not found: ${requestId}`)
+  if (intakeError || !intake) {
+    errors.push(`Intake not found: ${intakeId}`)
     return { valid: false, errors, warnings }
   }
 
-  // INVARIANT 1: Request must be paid
-  if (request.payment_status !== "paid") {
-    errors.push(`Payment required: request payment_status is '${request.payment_status}', must be 'paid'`)
+  // INVARIANT 1: Intake must be paid
+  if (intake.payment_status !== "paid") {
+    errors.push(`Payment required: intake payment_status is '${intake.payment_status}', must be 'paid'`)
   }
 
-  // INVARIANT 2: Request must be in approvable state
-  const approvableStatuses = ["pending", "needs_follow_up"]
-  if (!approvableStatuses.includes(request.status)) {
-    errors.push(`Invalid status for approval: '${request.status}', must be one of: ${approvableStatuses.join(", ")}`)
+  // INVARIANT 2: Intake must be in approvable state
+  const approvableStatuses = ["paid", "in_review", "pending_info"]
+  if (!approvableStatuses.includes(intake.status)) {
+    errors.push(`Invalid status for approval: '${intake.status}', must be one of: ${approvableStatuses.join(", ")}`)
   }
 
   // INVARIANT 3: If PDF URL provided, it must be permanent (Supabase Storage)
@@ -73,13 +73,13 @@ export async function checkApprovalInvariants(
 /**
  * Verify document exists in database after creation
  */
-export async function verifyDocumentExists(requestId: string): Promise<boolean> {
+export async function verifyDocumentExists(intakeId: string): Promise<boolean> {
   const supabase = await createClient()
 
   const { count, error } = await supabase
     .from("documents")
     .select("id", { count: "exact", head: true })
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
 
   if (error) {
     // eslint-disable-next-line no-console
@@ -93,7 +93,7 @@ export async function verifyDocumentExists(requestId: string): Promise<boolean> 
 /**
  * Verify document URL is stored permanently
  */
-export async function verifyDocumentUrlIsPermanent(requestId: string): Promise<{
+export async function verifyDocumentUrlIsPermanent(intakeId: string): Promise<{
   valid: boolean
   url?: string
   error?: string
@@ -103,13 +103,13 @@ export async function verifyDocumentUrlIsPermanent(requestId: string): Promise<{
   const { data: doc, error } = await supabase
     .from("documents")
     .select("pdf_url")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
 
   if (error || !doc) {
-    return { valid: false, error: "No document found for request" }
+    return { valid: false, error: "No document found for intake" }
   }
 
   const isPermanent = isPermanentStorageUrl(doc.pdf_url)
@@ -144,10 +144,10 @@ export class ApprovalInvariantError extends Error {
  * Assert all approval invariants - throws if any fail
  */
 export async function assertApprovalInvariants(
-  requestId: string,
+  intakeId: string,
   pdfUrl?: string
 ): Promise<void> {
-  const result = await checkApprovalInvariants(requestId, pdfUrl)
+  const result = await checkApprovalInvariants(intakeId, pdfUrl)
 
   if (!result.valid) {
     const firstError = result.errors[0] || "Approval invariant check failed"

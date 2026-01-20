@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { allArticles } from "@/lib/blog/articles"
 
 // Build-time date for consistent lastModified values
 // This is set once at build time, not on every request
@@ -134,12 +135,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // ============================================
   // BLOG POSTS (Priority 0.6)
-  // Health content for organic traffic
+  // Health content for organic traffic - dynamically generated from articles
   // ============================================
   const blogSlugs = [
+    // Legacy posts
     "how-to-get-medical-certificate-online-australia",
     "can-you-get-prescription-without-seeing-doctor",
     "telehealth-vs-gp-when-to-use-each",
+    // New articles from article system
+    ...allArticles.map(article => article.slug),
   ]
 
   // ============================================

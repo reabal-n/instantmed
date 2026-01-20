@@ -287,32 +287,32 @@ export async function sendStatusEmail(params: SendStatusEmailParams): Promise<{ 
 }
 
 /**
- * Send email triggered by state transition - fetches request details and sends
+ * Send email triggered by state transition - fetches intake details and sends
  */
 export async function sendStatusTransitionEmail(
-  requestId: string,
+  intakeId: string,
   templateType: EmailTemplateType,
   additionalData?: Record<string, unknown>,
 ): Promise<void> {
   const supabase = getServiceClient()
 
-  // Fetch request and patient details
-  const { data: request } = await supabase
-    .from("requests")
+  // Fetch intake and patient details (intakes is single source of truth)
+  const { data: intake } = await supabase
+    .from("intakes")
     .select(`
       *,
       patient:profiles!patient_id (*)
     `)
-    .eq("id", requestId)
+    .eq("id", intakeId)
     .single()
 
-  if (!request || !request.patient) {
-    logger.error("Could not fetch request details for email")
+  if (!intake || !intake.patient) {
+    logger.error("Could not fetch intake details for email")
     return
   }
 
   // Get patient email from auth
-  const { data: authUser } = await supabase.auth.admin.getUserById(request.patient.auth_user_id)
+  const { data: authUser } = await supabase.auth.admin.getUserById(intake.patient.auth_user_id)
   const email = authUser?.user?.email
 
   if (!email) {
@@ -321,9 +321,9 @@ export async function sendStatusTransitionEmail(
   }
 
   const baseData = {
-    patientName: request.patient.full_name || "there",
-    requestType: formatRequestType(request.category, request.subtype),
-    requestId: request.id,
+    patientName: intake.patient.full_name || "there",
+    requestType: formatRequestType(intake.category, intake.subtype),
+    requestId: intake.id,
     ...additionalData,
   }
 
@@ -331,7 +331,7 @@ export async function sendStatusTransitionEmail(
     to: email,
     template: templateType,
     data: baseData,
-    requestId,
+    requestId: intakeId,
   })
 }
 

@@ -10,9 +10,10 @@ import { validateConsultPayload } from "@/lib/validation/schemas"
 import type { RequestCategory, RequestSubtype } from "@/types/db"
 
 export interface CreateRequestInput {
-  category: RequestCategory
+  category: RequestCategory | string
   subtype: RequestSubtype | string
   type: string
+  serviceId?: string
   answers: Record<string, unknown>
   patientId?: string
   isDraft?: boolean
@@ -108,27 +109,26 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       patientId = profileId
     }
 
-    // 6. Create the request
+    // 6. Create the intake (single source of truth)
     const supabase = createServiceRoleClient()
 
-    const { data: request, error: requestError } = await supabase
-      .from("requests")
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
       .insert({
         patient_id: patientId,
-        type: input.type,
-        status: input.isDraft ? "draft" : "pending",
+        service_id: input.serviceId || null,
+        status: input.isDraft ? "draft" : "pending_payment",
         category: input.category,
         subtype: input.subtype,
-        paid: false,
-        payment_status: "pending_payment",
+        payment_status: "pending",
       })
       .select("id")
       .single()
 
-    if (requestError || !request) {
-      log.error("[createRequestAction] Error creating request", { error: String(requestError) })
+    if (intakeError || !intake) {
+      log.error("[createRequestAction] Error creating intake", { error: String(intakeError) })
 
-      if (requestError?.code === "23503") {
+      if (intakeError?.code === "23503") {
         return {
           success: false,
           error: "Your profile could not be found. Please sign out and sign in again.",
@@ -136,7 +136,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
         }
       }
 
-      if (requestError?.code === "42501") {
+      if (intakeError?.code === "42501") {
         return {
           success: false,
           error: "You don't have permission to create requests. Please contact support at help@instantmed.com.au",
@@ -152,8 +152,8 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     }
 
     // 7. Insert the answers
-    const { error: answersError } = await supabase.from("request_answers").insert({
-      request_id: request.id,
+    const { error: answersError } = await supabase.from("intake_answers").insert({
+      intake_id: intake.id,
       answers: input.answers,
     })
 
@@ -164,7 +164,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
 
     return {
       success: true,
-      requestId: request.id,
+      requestId: intake.id,
     }
   } catch (error) {
     log.error("[createRequestAction] Unexpected error", { error: String(error) })
@@ -198,9 +198,9 @@ export async function updateDraftAction(
 
     const supabase = createServiceRoleClient()
 
-    // Verify ownership
+    // Verify ownership (use intakes table)
     const { data: existing } = await supabase
-      .from("requests")
+      .from("intakes")
       .select("patient_id, status")
       .eq("id", requestId)
       .single()
@@ -209,15 +209,15 @@ export async function updateDraftAction(
       return { success: false, error: "Request not found" }
     }
 
-    if (existing.status !== "draft" && existing.status !== "pending") {
+    if (existing.status !== "draft" && existing.status !== "pending_payment") {
       return { success: false, error: "Cannot update a request that is already being processed" }
     }
 
-    // Update answers
+    // Update answers (use intake_answers table)
     const { error } = await supabase
-      .from("request_answers")
+      .from("intake_answers")
       .upsert({
-        request_id: requestId,
+        intake_id: requestId,
         answers,
       })
 

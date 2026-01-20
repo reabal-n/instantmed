@@ -6,9 +6,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { ArticleTemplate } from "@/components/blog/article-template"
+import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles } from "@/lib/blog/articles"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { ReadingProgress } from "@/components/blog/reading-progress"
 
-// Blog post content
-const posts: Record<
+// Legacy posts for backward compatibility
+const legacyPosts: Record<
   string,
   {
     title: string
@@ -31,9 +35,9 @@ const posts: Record<
       "Getting sick is inconvenient enough without having to drag yourself to a waiting room. The good news? In Australia, you can now get a legitimate medical certificate online from an AHPRA-registered doctor.",
       "## How Online Medical Certificates Work",
       "Online telehealth services like InstantMed allow you to complete a health questionnaire from your phone or computer. A real doctor reviews your information and, if appropriate, issues a medical certificate.",
-      "The process typically takes under an hour during business hours. You'll receive a PDF certificate that&apos;s legally valid and accepted by Australian employers.",
+      "The process typically takes under an hour during business hours. You'll receive a PDF certificate that's legally valid and accepted by Australian employers.",
       "## What You'll Need",
-      "- A valid Medicare card\n- Your symptoms and how long you&apos;ve been unwell\n- The dates you need covered\n- Your employer's name (optional)",
+      "- A valid Medicare card\n- Your symptoms and how long you've been unwell\n- The dates you need covered\n- Your employer's name (optional)",
       "## When to See a GP In Person Instead",
       "Online certificates work well for common illnesses like colds, flu, gastro, and migraines. However, you should see a doctor in person if you have:\n- Chest pain or difficulty breathing\n- Severe symptoms lasting more than a few days\n- A condition that needs physical examination\n- Symptoms that concern you",
       "## Are Online Medical Certificates Legitimate?",
@@ -53,11 +57,11 @@ const posts: Record<
   "can-you-get-prescription-without-seeing-doctor": {
     title: "Can You Get a Prescription Without Seeing a Doctor?",
     excerpt:
-      "Understanding telehealth prescriptions in Australia. When online scripts are appropriate, what medications can&apos;t be prescribed online, and how e-scripts work.",
+      "Understanding telehealth prescriptions in Australia. When online scripts are appropriate, what medications can't be prescribed online, and how e-scripts work.",
     content: [
-      "The short answer is no — you always need a doctor to prescribe medication in Australia. But thanks to telehealth, you don&apos;t always need to see them face-to-face.",
+      "The short answer is no — you always need a doctor to prescribe medication in Australia. But thanks to telehealth, you don't always need to see them face-to-face.",
       "## How Telehealth Prescriptions Work",
-      "Services like InstantMed connect you with AHPRA-registered doctors who review your medical history and current needs. If a prescription is appropriate, they can issue an electronic prescription (e-script) that&apos;s sent directly to your phone.",
+      "Services like InstantMed connect you with AHPRA-registered doctors who review your medical history and current needs. If a prescription is appropriate, they can issue an electronic prescription (e-script) that's sent directly to your phone.",
       "## What Can Be Prescribed Online?",
       "Many common medications can be prescribed via telehealth, including:\n- Blood pressure medication (repeats)\n- Contraceptive pills\n- Cholesterol medication\n- Some antibiotics (for UTIs, skin infections)\n- Asthma preventers",
       "## What Can't Be Prescribed Online?",
@@ -79,11 +83,11 @@ const posts: Record<
   "telehealth-vs-gp-when-to-use-each": {
     title: "Telehealth vs GP: When to Use Each",
     excerpt:
-      "Telehealth is convenient, but it&apos;s not right for everything. Learn when online healthcare is perfect and when you should book an in-person appointment instead.",
+      "Telehealth is convenient, but it's not right for everything. Learn when online healthcare is perfect and when you should book an in-person appointment instead.",
     content: [
       "Telehealth has transformed how Australians access healthcare. But knowing when to use it — and when to see a GP in person — can be confusing.",
       "## When Telehealth Works Best",
-      "Online consultations are ideal for:\n- Medical certificates for common illnesses\n- Repeat prescriptions for stable conditions\n- Referrals to specialists you&apos;ve already discussed\n- Follow-up appointments\n- Mental health check-ins\n- Minor skin conditions (with photos)",
+      "Online consultations are ideal for:\n- Medical certificates for common illnesses\n- Repeat prescriptions for stable conditions\n- Referrals to specialists you've already discussed\n- Follow-up appointments\n- Mental health check-ins\n- Minor skin conditions (with photos)",
       "## When to See a GP In Person",
       "Book a face-to-face appointment when you need:\n- Physical examination (lumps, breathing sounds, etc.)\n- Vaccinations or injections\n- Procedures (skin checks, wound care)\n- New or complex symptoms\n- Children under 2 years old",
       "## The Hybrid Approach",
@@ -110,7 +114,30 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = posts[slug]
+  
+  // Check new article system first
+  const article = getArticleBySlug(slug)
+  if (article) {
+    return {
+      title: article.seo.title,
+      description: article.seo.description,
+      keywords: article.seo.keywords,
+      openGraph: {
+        title: article.title,
+        description: article.excerpt,
+        type: "article",
+        publishedTime: article.publishedAt,
+        modifiedTime: article.updatedAt,
+        authors: [article.author.name],
+      },
+      alternates: {
+        canonical: `https://instantmed.com.au/blog/${slug}`,
+      },
+    }
+  }
+  
+  // Fall back to legacy posts
+  const post = legacyPosts[slug]
   if (!post) return {}
 
   return {
@@ -127,18 +154,96 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  return Object.keys(posts).map((slug) => ({ slug }))
+  // Combine legacy posts and new articles
+  const legacySlugs = Object.keys(legacyPosts)
+  const newSlugs = getAllArticleSlugs()
+  const allSlugs = [...new Set([...legacySlugs, ...newSlugs])]
+  return allSlugs.map((slug) => ({ slug }))
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params
-  const post = posts[slug]
+  
+  // Check new article system first
+  const article = getArticleBySlug(slug)
+  if (article) {
+    // Build FAQ schema data if FAQs exist
+    const faqSchemaData = article.faqs?.map(faq => ({
+      question: faq.question,
+      answer: faq.answer
+    })) || []
 
+    // Article schema for SEO
+    const articleSchema = {
+      "@context": "https://schema.org",
+      "@type": "MedicalWebPage",
+      headline: article.title,
+      description: article.excerpt,
+      author: {
+        "@type": "Person",
+        name: article.author.name,
+        jobTitle: "Medical Doctor",
+        identifier: {
+          "@type": "PropertyValue",
+          propertyID: "AHPRA",
+          value: article.author.ahpraNumber
+        }
+      },
+      datePublished: article.publishedAt,
+      dateModified: article.updatedAt,
+      publisher: {
+        "@type": "MedicalOrganization",
+        name: "InstantMed",
+        url: "https://instantmed.com.au"
+      },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": `https://instantmed.com.au/blog/${slug}`
+      },
+      about: {
+        "@type": "MedicalCondition",
+        name: article.title
+      }
+    }
+
+    return (
+      <>
+        <ReadingProgress />
+        <BreadcrumbSchema 
+          items={[
+            { name: "Home", url: "https://instantmed.com.au" },
+            { name: "Health Guides", url: "https://instantmed.com.au/blog" },
+            { name: article.title, url: `https://instantmed.com.au/blog/${slug}` }
+          ]} 
+        />
+        {faqSchemaData.length > 0 && <FAQSchema faqs={faqSchemaData} />}
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} 
+        />
+
+        <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+          <Navbar variant="marketing" />
+
+          <main className="flex-1 pt-24 pb-16">
+            <div className="px-4">
+              <ArticleTemplate article={article} relatedArticles={getRelatedArticles(slug, 3)} />
+            </div>
+          </main>
+
+          <Footer />
+        </div>
+      </>
+    )
+  }
+  
+  // Fall back to legacy posts
+  const post = legacyPosts[slug]
   if (!post) {
     notFound()
   }
 
-  // Article schema
+  // Legacy article schema
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -163,7 +268,6 @@ export default async function BlogPostPage({ params }: PageProps) {
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-24">
-          {/* Hero */}
           <article className="px-4 py-12">
             <div className="mx-auto max-w-2xl">
               <Link
@@ -201,7 +305,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                 <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
               </div>
 
-              {/* Content */}
               <div className="prose prose-sm max-w-none">
                 {post.content.map((paragraph, index) => {
                   if (paragraph.startsWith("## ")) {
@@ -229,7 +332,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                 })}
               </div>
 
-              {/* Author bio */}
               <div className="mt-8 pt-8 border-t">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
@@ -242,7 +344,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Related links */}
               <div className="mt-8 pt-8 border-t">
                 <h3 className="font-semibold mb-4">Related</h3>
                 <div className="flex flex-wrap gap-3">

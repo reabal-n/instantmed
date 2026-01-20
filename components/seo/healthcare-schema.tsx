@@ -276,6 +276,73 @@ export function LocalBusinessSchema({ city, state, baseUrl = "https://instantmed
   )
 }
 
+interface ArticleSchemaProps {
+  title: string
+  description: string
+  url: string
+  imageUrl: string
+  authorName: string
+  publishedAt: string
+  updatedAt: string
+  baseUrl?: string
+}
+
+/**
+ * Schema.org Article structured data for blog posts
+ */
+export function ArticleSchema({
+  title,
+  description,
+  url,
+  imageUrl,
+  authorName,
+  publishedAt,
+  updatedAt,
+  baseUrl = "https://instantmed.com.au"
+}: ArticleSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description,
+    image: imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`,
+    url,
+    datePublished: publishedAt,
+    dateModified: updatedAt,
+    author: {
+      "@type": "Person",
+      name: authorName,
+      url: baseUrl
+    },
+    publisher: {
+      "@type": "MedicalOrganization",
+      "@id": `${baseUrl}/#organization`,
+      name: "InstantMed",
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/logo.png`
+      }
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      name: "InstantMed Health Guides",
+      url: `${baseUrl}/blog`
+    }
+  }
+
+  return (
+    <Script
+      id="article-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
+    />
+  )
+}
+
 interface ReviewAggregateSchemaProps {
   ratingValue: number
   reviewCount: number

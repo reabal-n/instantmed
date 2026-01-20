@@ -108,6 +108,21 @@ export const RATE_LIMITS = {
     maxRequests: 5,
     windowMs: 60 * 1000,
   },
+  // Checkout: 10 requests per 5 minutes per user (prevents abuse)
+  checkout: {
+    maxRequests: 10,
+    windowMs: 5 * 60 * 1000, // 5 minutes
+  },
+  // AI endpoints: 20 requests per minute
+  ai: {
+    maxRequests: 20,
+    windowMs: 60 * 1000,
+  },
+  // Auth attempts: 5 per minute (brute force protection)
+  auth: {
+    maxRequests: 5,
+    windowMs: 60 * 1000,
+  },
 } as const
 
 // Legacy export for backward compatibility

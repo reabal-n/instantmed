@@ -210,12 +210,18 @@ importers:
       '@21st-extension/toolbar':
         specifier: ^0.5.14
         version: 0.5.14(@emotion/is-prop-valid@1.2.2)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.3
       '@iconify/react':
         specifier: ^6.0.2
         version: 6.0.2(react@19.2.3)
       '@next/bundle-analyzer':
         specifier: ^16.1.1
         version: 16.1.1
+      '@react-types/shared':
+        specifier: ^3.32.1
+        version: 3.32.1(react@19.2.3)
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.18

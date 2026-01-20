@@ -92,29 +92,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Request ID required" }, { status: 400 })
     }
 
-    // Fetch the request data (supabase client already created above)
-    const { data: request, error } = await supabase
-      .from("requests")
+    // Fetch the intake data (intakes is single source of truth)
+    const { data: intake, error } = await supabase
+      .from("intakes")
       .select(`
         *,
-        profiles:patient_id (
+        patient:profiles!patient_id (
           full_name,
           date_of_birth
         ),
-        answers (
+        answers:intake_answers (
           answers
         )
       `)
       .eq("id", requestId)
       .single()
 
-    if (error || !request) {
-      return NextResponse.json({ error: "Request not found" }, { status: 404 })
+    if (error || !intake) {
+      return NextResponse.json({ error: "Intake not found" }, { status: 404 })
     }
 
-    const answers = request.answers?.answers || {}
-    const patientName = request.profiles?.full_name || "Patient"
-    const patientDob = request.profiles?.date_of_birth
+    const answers = intake.answers?.[0]?.answers || {}
+    const patientName = intake.patient?.full_name || "Patient"
+    const patientDob = intake.patient?.date_of_birth
     const patientAge = patientDob ? calculateAge(patientDob) : null
 
     // Build context based on request type
@@ -249,7 +249,7 @@ Return ONLY the summary text, no labels or formatting.`
     await logAIAudit({
       endpoint: 'review-summary',
       userId: profile.id,
-      patientId: request.patient_id,
+      patientId: intake.patient_id,
       requestType: 'review_summary',
       inputPreview: context,
       outputPreview: summary,

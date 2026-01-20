@@ -2,18 +2,18 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
-import type { RequestWithPatient } from "@/types/db"
+import type { IntakeWithPatient } from "@/types/db"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
 interface UseRealtimeRequestsOptions {
-  onNewRequest?: (request: RequestWithPatient) => void
-  onRequestUpdate?: (request: RequestWithPatient) => void
+  onNewRequest?: (intake: IntakeWithPatient) => void
+  onRequestUpdate?: (intake: IntakeWithPatient) => void
   enableSound?: boolean
 }
 
 interface UseRealtimeRequestsReturn {
   newRequestCount: number
-  lastNewRequest: RequestWithPatient | null
+  lastNewRequest: IntakeWithPatient | null
   clearNewRequestCount: () => void
   isConnected: boolean
 }
@@ -23,20 +23,20 @@ const NOTIFICATION_SOUND = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAA
   "tvT19" + "A".repeat(100)
 
 /**
- * Hook for real-time request updates on the doctor dashboard
- * Subscribes to Supabase realtime for request changes
+ * Hook for real-time intake updates on the doctor dashboard
+ * Subscribes to Supabase realtime for intake changes (intakes is single source of truth)
  */
 export function useRealtimeRequests(
-  initialRequests: RequestWithPatient[],
+  initialIntakes: IntakeWithPatient[],
   options: UseRealtimeRequestsOptions = {}
 ): UseRealtimeRequestsReturn {
   const { onNewRequest, onRequestUpdate, enableSound = true } = options
   const [newRequestCount, setNewRequestCount] = useState(0)
-  const [lastNewRequest, setLastNewRequest] = useState<RequestWithPatient | null>(null)
+  const [lastNewRequest, setLastNewRequest] = useState<IntakeWithPatient | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const knownRequestIds = useRef<Set<string>>(new Set(initialRequests.map(r => r.id)))
+  const knownIntakeIds = useRef<Set<string>>(new Set(initialIntakes.map(r => r.id)))
 
   // Initialize audio element
   useEffect(() => {
@@ -62,41 +62,42 @@ export function useRealtimeRequests(
   useEffect(() => {
     const supabase = createClient()
 
-    // Subscribe to requests table changes
+    // Subscribe to intakes table changes (intakes is single source of truth)
     const channel = supabase
-      .channel("doctor-dashboard-requests")
+      .channel("doctor-dashboard-intakes")
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
-          table: "requests",
-          filter: "status=eq.pending",
+          table: "intakes",
+          filter: "status=eq.paid",
         },
         async (payload) => {
-          const newRequest = payload.new as { id: string; patient_id: string }
+          const newIntake = payload.new as { id: string; patient_id: string }
           
-          // Skip if we already know about this request
-          if (knownRequestIds.current.has(newRequest.id)) return
+          // Skip if we already know about this intake
+          if (knownIntakeIds.current.has(newIntake.id)) return
 
-          // Fetch full request with patient data
-          const { data: fullRequest } = await supabase
-            .from("requests")
+          // Fetch full intake with patient data
+          const { data: fullIntake } = await supabase
+            .from("intakes")
             .select(`
               *,
-              patient:profiles!requests_patient_id_fkey (
+              patient:profiles!patient_id (
                 id, full_name, email, date_of_birth, medicare_number, phone
-              )
+              ),
+              service:services!service_id (slug, name, short_name, type)
             `)
-            .eq("id", newRequest.id)
+            .eq("id", newIntake.id)
             .single()
 
-          if (fullRequest) {
-            knownRequestIds.current.add(fullRequest.id)
+          if (fullIntake) {
+            knownIntakeIds.current.add(fullIntake.id)
             setNewRequestCount((prev) => prev + 1)
-            setLastNewRequest(fullRequest as RequestWithPatient)
+            setLastNewRequest(fullIntake as unknown as IntakeWithPatient)
             playNotificationSound()
-            onNewRequest?.(fullRequest as RequestWithPatient)
+            onNewRequest?.(fullIntake as unknown as IntakeWithPatient)
           }
         }
       )
@@ -105,25 +106,26 @@ export function useRealtimeRequests(
         {
           event: "UPDATE",
           schema: "public",
-          table: "requests",
+          table: "intakes",
         },
         async (payload) => {
-          const updatedRequest = payload.new as { id: string }
+          const updatedIntake = payload.new as { id: string }
 
-          // Fetch full request with patient data
-          const { data: fullRequest } = await supabase
-            .from("requests")
+          // Fetch full intake with patient data
+          const { data: fullIntake } = await supabase
+            .from("intakes")
             .select(`
               *,
-              patient:profiles!requests_patient_id_fkey (
+              patient:profiles!patient_id (
                 id, full_name, email, date_of_birth, medicare_number, phone
-              )
+              ),
+              service:services!service_id (slug, name, short_name, type)
             `)
-            .eq("id", updatedRequest.id)
+            .eq("id", updatedIntake.id)
             .single()
 
-          if (fullRequest) {
-            onRequestUpdate?.(fullRequest as RequestWithPatient)
+          if (fullIntake) {
+            onRequestUpdate?.(fullIntake as unknown as IntakeWithPatient)
           }
         }
       )

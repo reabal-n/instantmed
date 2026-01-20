@@ -31,7 +31,7 @@ export type FraudCheckResult = {
 }
 
 /**
- * Check for multiple requests in same day
+ * Check for multiple intakes in same day
  */
 async function checkMultipleDaily(patientId: string): Promise<FraudFlag | null> {
   const supabase = getServiceClient()
@@ -39,7 +39,7 @@ async function checkMultipleDaily(patientId: string): Promise<FraudFlag | null> 
   today.setHours(0, 0, 0, 0)
 
   const { count } = await supabase
-    .from("requests")
+    .from("intakes")
     .select("*", { count: "exact", head: true })
     .eq("patient_id", patientId)
     .gte("created_at", today.toISOString())
@@ -102,14 +102,14 @@ export function checkRapidCompletion(startTime: Date, endTime: Date): FraudFlag 
 }
 
 /**
- * Check for duplicate requests
+ * Check for duplicate intakes
  */
 async function checkDuplicateRequest(patientId: string, category: string, subtype: string): Promise<FraudFlag | null> {
   const supabase = getServiceClient()
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
 
   const { data } = await supabase
-    .from("requests")
+    .from("intakes")
     .select("id")
     .eq("patient_id", patientId)
     .eq("category", category)
@@ -122,7 +122,7 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
     return {
       type: "duplicate_request",
       severity: "medium",
-      details: { existingRequestId: data.id, category, subtype },
+      details: { existingIntakeId: data.id, category, subtype },
     }
   }
 
@@ -264,9 +264,9 @@ export async function checkSoftFlags(
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Check for 2 requests today (below hard threshold of 3)
+  // Check for 2 intakes today (below hard threshold of 3)
   const { count } = await supabase
-    .from("requests")
+    .from("intakes")
     .select("*", { count: "exact", head: true })
     .eq("patient_id", patientId)
     .gte("created_at", today.toISOString())
@@ -411,13 +411,13 @@ export async function runFraudChecks(params: {
 /**
  * Save fraud flags to database
  */
-export async function saveFraudFlags(requestId: string, patientId: string, flags: FraudFlag[]): Promise<void> {
+export async function saveFraudFlags(intakeId: string, patientId: string, flags: FraudFlag[]): Promise<void> {
   if (flags.length === 0) return
 
   const supabase = getServiceClient()
 
   const inserts = flags.map((flag) => ({
-    request_id: requestId,
+    intake_id: intakeId,
     patient_id: patientId,
     flag_type: flag.type,
     severity: flag.severity,

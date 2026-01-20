@@ -60,37 +60,20 @@ export async function refundIfEligible(
   const timestamp = new Date().toISOString()
 
   try {
-    // STEP 1: Fetch intake with category and payment info (primary table)
-    let intake: { id: string; category: string | null; status: string; payment_status: string; patient_id: string; payment_id: string | null } | null = null
-    let isLegacyRequest = false
-
-    const { data: intakeData, error: intakeError } = await supabase
+    // STEP 1: Fetch intake with category and payment info (intakes is single source of truth)
+    const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select("id, category, status, payment_status, patient_id, payment_id")
       .eq("id", intakeId)
       .single()
 
-    if (intakeData) {
-      intake = intakeData
-    } else {
-      // Fallback to legacy requests table for backwards compatibility
-      const { data: requestData, error: requestError } = await supabase
-        .from("requests")
-        .select("id, category, status, payment_status, patient_id")
-        .eq("id", intakeId)
-        .single()
-
-      if (requestData) {
-        intake = { ...requestData, payment_id: null }
-        isLegacyRequest = true
-      } else {
-        return {
-          success: false,
-          refunded: false,
-          refundStatus: "failed",
-          reason: "Intake not found",
-          error: intakeError?.message || requestError?.message,
-        }
+    if (!intake) {
+      return {
+        success: false,
+        refunded: false,
+        refundStatus: "failed",
+        reason: "Intake not found",
+        error: intakeError?.message,
       }
     }
 
@@ -112,9 +95,8 @@ export async function refundIfEligible(
         : "No category specified"
       
       // Update intake to reflect ineligibility
-      const updateTable = isLegacyRequest ? "requests" : "intakes"
       await supabase
-        .from(updateTable)
+        .from("intakes")
         .update({
           refund_status: "not_eligible",
           refund_reason: reason,
@@ -136,7 +118,7 @@ export async function refundIfEligible(
     let stripePaymentIntentId: string | null = null
     let paymentAmount: number | null = null
 
-    if (!isLegacyRequest && intake.payment_id) {
+    if (intake.payment_id) {
       // Fetch payment intent from Stripe checkout session
       try {
         const session = await stripe.checkout.sessions.retrieve(intake.payment_id)
@@ -186,7 +168,7 @@ export async function refundIfEligible(
 
     // STEP 5: Check if already refunded on intake
     const { data: currentIntake } = await supabase
-      .from(isLegacyRequest ? "requests" : "intakes")
+      .from("intakes")
       .select("payment_status, refunded_at")
       .eq("id", intakeId)
       .single()
@@ -202,7 +184,7 @@ export async function refundIfEligible(
 
     // STEP 6: Mark as processing (prevents concurrent refunds)
     const { error: lockError } = await supabase
-      .from(isLegacyRequest ? "requests" : "intakes")
+      .from("intakes")
       .update({
         payment_status: "refund_processing",
         updated_at: timestamp,
@@ -253,7 +235,7 @@ export async function refundIfEligible(
 
       // Mark as failed
       await supabase
-        .from(isLegacyRequest ? "requests" : "intakes")
+        .from("intakes")
         .update({
           payment_status: "refund_failed",
           refund_reason: `Stripe error: ${errorMessage}`,
@@ -274,7 +256,7 @@ export async function refundIfEligible(
     const refundReason = `Auto-refunded: ${category} intake declined`
     
     await supabase
-      .from(isLegacyRequest ? "requests" : "intakes")
+      .from("intakes")
       .update({
         payment_status: "refunded",
         refunded_at: timestamp,

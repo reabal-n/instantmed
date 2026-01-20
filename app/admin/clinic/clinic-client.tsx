@@ -184,6 +184,7 @@ export function ClinicIdentityClient({ initialData, logoUrl }: ClinicIdentityCli
           <CardContent className="space-y-4">
             <div className="aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50 overflow-hidden">
               {currentLogoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element -- dynamic storage URL */
                 <img
                   src={currentLogoUrl}
                   alt="Clinic logo"

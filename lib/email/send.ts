@@ -132,40 +132,40 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
  * Send email triggered by state transition
  */
 export async function sendStateTransitionEmail(
-  requestId: string,
+  intakeId: string,
   templateType: string,
   additionalData?: Record<string, unknown>,
 ): Promise<void> {
   const supabase = getServiceClient()
 
-  // Fetch request and patient details
-  const { data: request } = await supabase
-    .from("requests")
+  // Fetch intake and patient details (intakes is single source of truth)
+  const { data: intake } = await supabase
+    .from("intakes")
     .select(`
       *,
       patient:profiles!patient_id (*)
     `)
-    .eq("id", requestId)
+    .eq("id", intakeId)
     .single()
 
-  if (!request || !request.patient) {
-    logger.error("Could not fetch request details for email", { requestId })
+  if (!intake || !intake.patient) {
+    logger.error("Could not fetch intake details for email", { intakeId })
     return
   }
 
   // Get patient email from auth
-  const { data: authUser } = await supabase.auth.admin.getUserById(request.patient.auth_user_id)
+  const { data: authUser } = await supabase.auth.admin.getUserById(intake.patient.auth_user_id)
   const email = authUser?.user?.email
 
   if (!email) {
-    logger.error("Could not find patient email", { requestId, patientId: request.patient.id })
+    logger.error("Could not find patient email", { intakeId, patientId: intake.patient.id })
     return
   }
 
   const baseData = {
-    patientName: request.patient.full_name || "there",
-    requestType: formatRequestType(request.category, request.subtype),
-    requestId: request.id,
+    patientName: intake.patient.full_name || "there",
+    requestType: formatRequestType(intake.category, intake.subtype),
+    requestId: intake.id,
     ...additionalData,
   }
 
@@ -173,7 +173,7 @@ export async function sendStateTransitionEmail(
     to: email,
     template: templateType as EmailTemplate,
     data: baseData,
-    requestId,
+    requestId: intakeId,
   })
 }
 

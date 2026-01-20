@@ -1,35 +1,28 @@
 "use server"
 
-import { createRequest } from "@/lib/data/requests"
-import type { RequestCategory, RequestSubtype } from "@/types/db"
+import { createIntake } from "@/lib/data/intakes"
 
 export async function createPrescriptionRequestAction(
   patientId: string,
-  category: string,
-  subtype: string,
+  _category: string,
+  _subtype: string,
   answers: Record<string, unknown>,
+  serviceId?: string,
 ): Promise<{ success: boolean; error?: string; requestId?: string }> {
   try {
-    const request = await createRequest(
-      {
-        patient_id: patientId,
-        type: "script",
-        status: "pending",
-        category: category as RequestCategory,
-        subtype: subtype as RequestSubtype,
-      },
+    // Use intakes as single source of truth
+    const intake = await createIntake(
+      patientId,
+      serviceId || "", // serviceId should be provided
       answers,
-      {
-        category: category as RequestCategory,
-        subtype: subtype as RequestSubtype,
-      },
+      { status: "pending_payment" }
     )
 
-    if (!request) {
+    if (!intake) {
       return { success: false, error: "Failed to create request. Please try again." }
     }
 
-    return { success: true, requestId: request.id }
+    return { success: true, requestId: intake.id }
   } catch {
     return { success: false, error: "An unexpected error occurred." }
   }

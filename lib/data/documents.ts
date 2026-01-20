@@ -8,14 +8,14 @@ function isValidUUID(id: string): boolean {
 }
 
 /**
- * Get or create a medical certificate draft for a request.
+ * Get or create a medical certificate draft for an intake.
  * Uses INSERT...ON CONFLICT for idempotent creation.
  * If a draft already exists, returns it.
- * Otherwise, creates a new draft pre-filled with patient/request data.
+ * Otherwise, creates a new draft pre-filled with patient/intake data.
  */
-export async function getOrCreateMedCertDraftForRequest(requestId: string): Promise<DocumentDraft | null> {
+export async function getOrCreateMedCertDraftForRequest(intakeId: string): Promise<DocumentDraft | null> {
   // Validate UUID format
-  if (!isValidUUID(requestId)) {
+  if (!isValidUUID(intakeId)) {
     return null
   }
 
@@ -26,7 +26,7 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
   const { data: existingDraft, error: fetchError } = await supabase
     .from("document_drafts")
     .select("*")
-    .eq("request_id", requestId)
+    .eq("intake_id", intakeId)
     .eq("type", "med_cert")
     .maybeSingle()
 
@@ -38,23 +38,23 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     return existingDraft as DocumentDraft
   }
 
-  // Fetch request with patient profile and answers
-  const { data: request, error: requestError } = await supabase
-    .from("requests")
+  // Fetch intake with patient profile and answers (intakes is single source of truth)
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
     .select(`
       *,
       patient:profiles!patient_id (*),
-      answers:request_answers (*)
+      answers:intake_answers (*)
     `)
-    .eq("id", requestId)
+    .eq("id", intakeId)
     .single()
 
-  if (requestError || !request) {
+  if (intakeError || !intake) {
     return null
   }
 
-  const patient = request.patient
-  const answers = request.answers?.[0]?.answers || {}
+  const patient = intake.patient
+  const answers = intake.answers?.[0]?.answers || {}
 
   // Extract date info from answers
   const dateNeeded = (answers.date_needed as string) || null
@@ -75,7 +75,7 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
     dateTo = today
   }
 
-  const subtype = request.subtype || "work"
+  const subtype = intake.subtype || "work"
   let defaultCapacity = "Unable to work"
   if (subtype === "uni") {
     defaultCapacity = "Unable to attend"
@@ -100,9 +100,9 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
   const { data: newDraft, error: insertError } = await supabase
     .from("document_drafts")
     .insert({
-      request_id: requestId,
+      intake_id: intakeId,
       type: "med_cert",
-      subtype: subtype, // Use the request's subtype
+      subtype: subtype, // Use the intake's subtype
       data: draftData,
     })
     .select()
@@ -111,11 +111,11 @@ export async function getOrCreateMedCertDraftForRequest(requestId: string): Prom
   if (insertError) {
     // Handle unique constraint violation (race condition)
     if (insertError.code === "23505") {
-      // Another request created the draft, fetch it
+      // Another process created the draft, fetch it
       const { data: raceDraft } = await supabase
         .from("document_drafts")
         .select("*")
-        .eq("request_id", requestId)
+        .eq("intake_id", intakeId)
         .eq("type", "med_cert")
         .single()
       

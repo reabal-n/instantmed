@@ -9,7 +9,8 @@ import {
   Input,
   Textarea,
 } from "@heroui/react"
-// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
+import { useConfetti as _useConfetti } from "@/components/effects/confetti"
+import { ShakeAnimation } from "@/components/effects/shake-animation"
 import {
   ArrowLeft,
   CheckCircle,
@@ -751,9 +752,11 @@ export function ConsultFlowClient({
                 If a prescription or referral isn&apos;t appropriate, you&apos;ll receive a full refund.
               </p>
               {error && (
-                <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
-                  {error}
-                </div>
+                <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
+                  <div className="p-3 rounded-2xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/30 shadow-[0_4px_16px_rgb(239,68,68,0.15)] text-sm text-red-700">
+                    {error}
+                  </div>
+                </ShakeAnimation>
               )}
             </div>
           )}

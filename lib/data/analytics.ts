@@ -14,20 +14,20 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7).toISOString()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
-  // Fetch all requests for the month for aggregations
-  const { data: monthRequests, error: requestsError } = await supabase
-    .from("requests")
-    .select("id, status, category, created_at, reviewed_at, paid")
+  // Fetch all intakes for the month for aggregations (intakes is single source of truth)
+  const { data: monthIntakes, error: intakesError } = await supabase
+    .from("intakes")
+    .select("id, status, category, created_at, reviewed_at, payment_status")
     .gte("created_at", monthStart)
     .order("created_at", { ascending: true })
 
-  if (requestsError) {
-    logger.error("Error fetching requests for analytics", { 
-      error: requestsError instanceof Error ? requestsError.message : String(requestsError) 
+  if (intakesError) {
+    logger.error("Error fetching intakes for analytics", { 
+      error: intakesError instanceof Error ? intakesError.message : String(intakesError) 
     })
   }
 
-  const requests = monthRequests || []
+  const requests = monthIntakes || []
 
   // Fetch payments for revenue
   const { data: monthPayments, error: paymentsError } = await supabase

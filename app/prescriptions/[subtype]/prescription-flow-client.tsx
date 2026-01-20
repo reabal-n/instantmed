@@ -5,7 +5,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
+import { useConfetti as _useConfetti } from "@/components/effects/confetti"
+import { ShakeAnimation } from "@/components/effects/shake-animation"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
@@ -570,9 +571,11 @@ export function PrescriptionFlowClient({
 
       {/* Error message */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 animate-fade-in-up">
-          {error}
-        </div>
+        <ShakeAnimation trigger={!!error} intensity="light" duration={0.4}>
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 animate-fade-in-up">
+            {error}
+          </div>
+        </ShakeAnimation>
       )}
 
       {/* Main Form */}

@@ -6,6 +6,8 @@ import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-sche
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getAppUrl } from "@/lib/env"
+import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
+import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 
 const logger = createLogger("guest-checkout")
 
@@ -100,6 +102,54 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular GP. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
         }
+      }
+    }
+
+    // SERVER-SIDE SAFETY ENFORCEMENT (same as authenticated flow)
+    const serviceSlugForSafety = input.serviceSlug || getServiceSlug(input.category, input.subtype)
+    const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
+    
+    trackSafetyOutcome({
+      serviceSlug: serviceSlugForSafety,
+      outcome: safetyCheck.outcome,
+      riskTier: safetyCheck.riskTier,
+      triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      triggeredRuleCount: safetyCheck.triggeredRuleIds.length,
+      evaluationDurationMs: 0,
+    })
+    
+    if (!safetyCheck.isAllowed) {
+      logger.warn("Safety check blocked guest checkout", {
+        serviceSlug: serviceSlugForSafety,
+        outcome: safetyCheck.outcome,
+        riskTier: safetyCheck.riskTier,
+        triggeredRules: safetyCheck.triggeredRuleIds,
+      })
+      
+      trackSafetyBlock({
+        serviceSlug: serviceSlugForSafety,
+        outcome: safetyCheck.outcome,
+        blockReason: safetyCheck.blockReason || "Unknown reason",
+        triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      })
+      
+      if (safetyCheck.outcome === 'DECLINE') {
+        return {
+          success: false,
+          error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular GP.",
+        }
+      }
+      
+      if (safetyCheck.outcome === 'REQUIRES_CALL') {
+        return {
+          success: false,
+          error: safetyCheck.blockReason || "This request requires a phone consultation. Please contact us to proceed.",
+        }
+      }
+      
+      return {
+        success: false,
+        error: safetyCheck.blockReason || "Additional information is required. Please go back and complete all questions.",
       }
     }
 

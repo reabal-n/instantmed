@@ -36,7 +36,7 @@ const RadioCard = React.forwardRef<
       "hover:bg-white hover:border-slate-300/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
       // Focus state
       "focus-visible:outline-2 focus-visible:outline-ring/70",
-      // Selected state - subtle emphasis, not celebratory
+      // Selected state - clear visual feedback
       "data-[state=checked]:bg-sky-50/80 dark:data-[state=checked]:bg-sky-900/20",
       "data-[state=checked]:border-sky-300/60 dark:data-[state=checked]:border-sky-600/40",
       "data-[state=checked]:shadow-[0_2px_8px_rgba(138,187,224,0.15)]",

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-// Removed confetti - per brand guidelines, interface should feel calm, not celebratory
+import { useConfetti as _useConfetti } from "@/components/effects/confetti"
 import {
   ArrowRight,
   ArrowLeft,

@@ -10,6 +10,10 @@ const nextConfig = {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
   },
+  eslint: {
+    // ESLint runs in CI, skip during build to avoid node_modules package issues
+    ignoreDuringBuilds: true
+  },
   // Body size limits to prevent abuse
   experimental: {
     serverActions: {
