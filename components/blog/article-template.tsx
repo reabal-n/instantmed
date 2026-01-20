@@ -24,11 +24,17 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SocialShare } from "@/components/blog/social-share"
 import { RelatedArticles } from "@/components/blog/related-articles"
+import { TableOfContents } from "@/components/blog/table-of-contents"
+import { ArticleTags } from "@/components/blog/article-tags"
+import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
+import { HeroImage } from "@/components/blog/hero-image"
+import { PopularArticlesCompact } from "@/components/blog/popular-articles"
 import type { Article, ArticleSection, RelatedService, ArticleFAQ } from "@/lib/blog/types"
 
 interface ArticleTemplateProps {
   article: Article
   relatedArticles?: Article[]
+  allArticles?: Article[]
 }
 
 function ServiceIcon({ icon }: { icon: RelatedService['icon'] }) {
@@ -159,9 +165,19 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   )
 }
 
-export function ArticleTemplate({ article, relatedArticles }: ArticleTemplateProps) {
+export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: ArticleTemplateProps) {
+  // Check if we have enough headings for TOC
+  const hasEnoughHeadings = article.content.filter(
+    section => section.type === 'heading' && section.level && section.level <= 3
+  ).length >= 4
+
+  // Get series articles count if in a series
+  const seriesArticles = article.series 
+    ? allArticles.filter(a => a.series?.id === article.series?.id)
+    : []
+
   return (
-    <article className="max-w-3xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       {/* Back link */}
       <Link
         href="/blog"
@@ -170,6 +186,21 @@ export function ArticleTemplate({ article, relatedArticles }: ArticleTemplatePro
         <ArrowLeft className="w-4 h-4" />
         Back to Health Guides
       </Link>
+
+      <div className={hasEnoughHeadings || article.series ? "lg:grid lg:grid-cols-[1fr_280px] lg:gap-10" : ""}>
+        {/* Main content */}
+        <article>
+
+      {/* Series badge */}
+      {article.series && (
+        <div className="mb-4">
+          <SeriesBadge 
+            series={article.series} 
+            totalArticles={seriesArticles.length}
+            currentOrder={article.series.order}
+          />
+        </div>
+      )}
 
       {/* Category badge */}
       <Badge 
@@ -347,8 +378,15 @@ export function ArticleTemplate({ article, relatedArticles }: ArticleTemplatePro
         </p>
       </div>
 
+      {/* Tags */}
+      {article.tags && article.tags.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+          <ArticleTags tags={article.tags} />
+        </div>
+      )}
+
       {/* Social sharing */}
-      <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Last medically reviewed:</span>{' '}
@@ -374,6 +412,34 @@ export function ArticleTemplate({ article, relatedArticles }: ArticleTemplatePro
           currentSlug={article.slug}
         />
       )}
-    </article>
+        </article>
+
+        {/* Sidebar */}
+        {(hasEnoughHeadings || article.series || allArticles.length > 0) && (
+          <aside className="hidden lg:block space-y-6">
+            {/* Table of Contents */}
+            {hasEnoughHeadings && (
+              <TableOfContents content={article.content} />
+            )}
+            
+            {/* Series Navigation */}
+            {article.series && allArticles.length > 0 && (
+              <ArticleSeriesNav 
+                series={article.series}
+                articles={allArticles}
+                currentSlug={article.slug}
+              />
+            )}
+            
+            {/* Popular Articles */}
+            {allArticles.length > 0 && (
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5">
+                <PopularArticlesCompact articles={allArticles} limit={3} />
+              </div>
+            )}
+          </aside>
+        )}
+      </div>
+    </div>
   )
 }

@@ -26,28 +26,75 @@ export interface RelatedService {
   icon: 'certificate' | 'prescription' | 'consult' | 'referral'
 }
 
+export interface ArticleSeries {
+  id: string
+  name: string
+  description: string
+  order: number
+}
+
 export interface Article {
   slug: string
   title: string
   subtitle?: string
   excerpt: string
   category: ArticleCategory
+  tags?: string[]
   publishedAt: string
   updatedAt: string
   readingTime: number
+  viewCount: number
   author: ArticleAuthor
   heroImage: string
+  heroImageDark?: string
   heroImageAlt: string
   content: ArticleSection[]
   faqs?: ArticleFAQ[]
   relatedServices: RelatedService[]
   relatedArticles?: string[]
+  series?: ArticleSeries
   seo: {
     title: string
     description: string
     keywords: string[]
   }
 }
+
+// Pre-defined article series
+export const articleSeries = {
+  'medical-certificates-101': {
+    id: 'medical-certificates-101',
+    name: 'Medical Certificates 101',
+    description: 'A complete guide to understanding medical certificates in Australia'
+  },
+  'telehealth-guide': {
+    id: 'telehealth-guide',
+    name: 'Telehealth Guide',
+    description: 'Everything you need to know about online healthcare'
+  },
+  'medication-essentials': {
+    id: 'medication-essentials',
+    name: 'Medication Essentials',
+    description: 'Understanding prescriptions and medications in Australia'
+  }
+} as const
+
+// Common tags used across articles
+export const articleTags = [
+  'medical-certificate', 'sick-leave', 'work', 'employer', 
+  'telehealth', 'online-doctor', 'video-consult',
+  'prescription', 'medication', 'pharmacy', 'escript',
+  'mental-health', 'stress', 'anxiety', 'sleep',
+  'cold', 'flu', 'infection', 'allergy',
+  'skin', 'eczema', 'rash',
+  'digestive', 'stomach', 'nausea',
+  'university', 'student', 'exam',
+  'carer', 'family', 'children',
+  'pregnancy', 'womens-health',
+  'chronic', 'ongoing', 'management'
+] as const
+
+export type ArticleTag = typeof articleTags[number]
 
 export type ArticleCategory = 
   | 'medical-certificates'

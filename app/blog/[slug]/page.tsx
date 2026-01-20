@@ -7,7 +7,7 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { ArticleTemplate } from "@/components/blog/article-template"
-import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles } from "@/lib/blog/articles"
+import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles, allArticles } from "@/lib/blog/articles"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 
@@ -227,7 +227,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           <main className="flex-1 pt-24 pb-16">
             <div className="px-4">
-              <ArticleTemplate article={article} relatedArticles={getRelatedArticles(slug, 3)} />
+              <ArticleTemplate article={article} relatedArticles={getRelatedArticles(slug, 3)} allArticles={allArticles} />
             </div>
           </main>
 

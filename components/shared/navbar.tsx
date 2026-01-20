@@ -48,13 +48,13 @@ const services = [
   },
   {
     title: "Repeat Scripts",
-    href: "/repeat-prescription",
+    href: "/prescriptions",
     description: "Medications you already take",
     icon: Pill,
   },
   {
     title: "General Consult",
-    href: "/general-consult",
+    href: "/consult",
     description: "New prescriptions & dose changes",
     icon: Stethoscope,
   },
@@ -277,6 +277,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink href="/reviews" isActive={isActivePath("/reviews")}>
                     <Star className="h-3 w-3 mr-1" />
                     Reviews
+                  </AnimatedNavLink>
+                  <AnimatedNavLink href="/blog" isActive={isActivePath("/blog")}>
+                    Health Guides
                   </AnimatedNavLink>
 
                   <div className="ml-2 flex items-center gap-2">
@@ -503,7 +506,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{
                 label: "Repeat Rx",
-                href: "/repeat-prescription",
+                href: "/prescriptions",
                 description: "Medications you already take",
                 icon: <Pill className="h-5 w-5" />,
               }}
@@ -513,7 +516,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{
                 label: "General consult",
-                href: "/general-consult",
+                href: "/consult",
                 description: "New prescriptions & dose changes",
                 icon: <Stethoscope className="h-5 w-5" />,
               }}
@@ -529,6 +532,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{ label: "Reviews", href: "/reviews", icon: <Star className="h-5 w-5" /> }}
               index={4}
+              onClose={() => setMobileMenuOpen(false)}
+            />
+            <AnimatedMobileMenu.Item
+              item={{ label: "Health Guides", href: "/blog", icon: <FileText className="h-5 w-5" /> }}
+              index={5}
               onClose={() => setMobileMenuOpen(false)}
             />
           </>
