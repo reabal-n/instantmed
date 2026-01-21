@@ -37,6 +37,7 @@ export default async function DoctorLayout({
         variant="doctor" 
         userName={authUser.profile.full_name}
         userRole={isAdmin ? "Admin" : "Doctor"}
+        isAdmin={isAdmin}
         pendingCount={stats.in_queue}
       />
       <main className="flex-1 min-w-0 lg:ml-0 pt-6 pb-8 px-4 sm:px-6 lg:px-8">

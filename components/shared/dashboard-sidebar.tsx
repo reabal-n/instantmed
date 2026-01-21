@@ -12,7 +12,10 @@ import {
   ListOrdered,
   ClipboardList,
   Settings,
-  Zap
+  Zap,
+  Palette,
+  Building2,
+  Shield
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -27,6 +30,7 @@ interface DashboardSidebarProps {
   variant: "patient" | "doctor"
   userName?: string
   userRole?: string
+  isAdmin?: boolean
   pendingCount?: number
   requestCount?: number
 }
@@ -45,10 +49,17 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]
 
+const adminNavItems: NavItem[] = [
+  { href: "/admin/studio", label: "Certificate Studio", icon: Palette },
+  { href: "/admin/clinic", label: "Clinic Settings", icon: Building2 },
+  { href: "/admin", label: "Admin Dashboard", icon: Shield },
+]
+
 export function DashboardSidebar({ 
   variant, 
   userName = "User",
   userRole,
+  isAdmin = false,
   pendingCount = 0, 
   requestCount = 0 
 }: DashboardSidebarProps) {
@@ -119,6 +130,34 @@ export function DashboardSidebar({
             )
           })}
         </nav>
+
+        {/* Admin Navigation - Admin only */}
+        {variant === "doctor" && isAdmin && (
+          <nav className="glass-card rounded-2xl p-3 space-y-1 border border-amber-200/50 bg-amber-50/30 dark:bg-amber-500/5 dark:border-amber-500/20">
+            <h4 className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider px-4 py-1">Admin Tools</h4>
+            {adminNavItems.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
+                    isActive
+                      ? "bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
+                      : "text-amber-700 dark:text-amber-400 hover:bg-amber-100/80 dark:hover:bg-amber-500/10 hover:-translate-y-0.5 hover:shadow-sm",
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-4 h-4 transition-transform duration-300",
+                    !isActive && "group-hover:scale-110"
+                  )} />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+        )}
 
         {/* Stats Card - Doctor only */}
         {variant === "doctor" && (
