@@ -840,7 +840,7 @@ export function MedCertForm({
       saveFormData(STORAGE_KEYS.MED_CERT_FORM, formData)
       saveFormData(STORAGE_KEYS.MED_CERT_STEP, step)
       
-      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+      router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
       setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in. Please try again.")

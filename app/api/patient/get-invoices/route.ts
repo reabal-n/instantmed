@@ -1,5 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 
 export async function GET(_request: Request) {
@@ -10,7 +11,7 @@ export async function GET(_request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Get invoices for this patient
     const { data: invoices, error } = await supabase

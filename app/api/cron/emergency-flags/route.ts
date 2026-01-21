@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendSms } from "@/lib/sms/service"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Find abandoned intakes with emergency flags from the last 24 hours
     // that haven't received an emergency SMS yet

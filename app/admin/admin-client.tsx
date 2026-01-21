@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectItem } from "@/components/ui/select"
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Eye,
   Clock,
@@ -49,19 +49,21 @@ import { RealtimeStatus, RealtimeStatusCompact } from "@/components/admin/realti
 import { cn } from "@/lib/utils"
 import { formatCategory, formatSubtype } from "@/lib/format-utils"
 import { addCsrfHeaders } from "@/lib/security/csrf-client"
-import {
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts"
+import dynamic from "next/dynamic"
+
+// Lazy load Recharts components to reduce initial bundle size (~500KB)
+const AnalyticsCharts = dynamic(
+  () => import("@/components/admin/analytics-charts").then((mod) => mod.AnalyticsCharts),
+  { 
+    loading: () => (
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="h-[300px] animate-pulse bg-muted/20 rounded-xl" />
+        <div className="h-[300px] animate-pulse bg-muted/20 rounded-xl" />
+      </div>
+    ),
+    ssr: false 
+  }
+)
 
 interface AdminClientProps {
   allRequests: RequestWithPatient[]
@@ -77,21 +79,6 @@ interface AdminClientProps {
 }
 
 type Section = "queue" | "patients" | "analytics" | "settings"
-
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
-
-const formatCategoryLabel = (type: string) => {
-  switch (type) {
-    case "medical_certificate":
-      return "Med Certs"
-    case "prescription":
-      return "Scripts"
-    case "referral":
-      return "Referrals"
-    default:
-      return type
-  }
-}
 
 export function AdminClient({
   allRequests,
@@ -813,62 +800,8 @@ export function AdminClient({
               ))}
             </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium">Requests Over Time</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={analytics.requests_by_day.map((item) => ({
-                        date: new Date(item.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" }),
-                        requests: item.count,
-                      }))}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-                        <YAxis tick={{ fontSize: 11 }} tickLine={false} allowDecimals={false} />
-                        <RechartsTooltip />
-                        <Line type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium">Requests by Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={analytics.requests_by_type.map((item) => ({
-                            name: formatCategoryLabel(item.type),
-                            value: item.count,
-                          }))}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {analytics.requests_by_type.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip />
-                        <Legend verticalAlign="bottom" height={36} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Charts - Lazy loaded */}
+            <AnalyticsCharts analytics={analytics} />
           </div>
         )}
 

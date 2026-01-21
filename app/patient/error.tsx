@@ -71,7 +71,7 @@ export default function PatientError({
   }
 
   const handleAuthRedirect = () => {
-    router.push("/auth/login?redirect=" + encodeURIComponent(window.location.pathname))
+    router.push("/sign-in?redirect=" + encodeURIComponent(window.location.pathname))
   }
 
   return (

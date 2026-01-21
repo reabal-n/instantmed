@@ -25,17 +25,17 @@ const defaultItems: NavItem[] = [
   {
     label: "Requests",
     icon: FileText,
-    href: "/patient/requests",
+    href: "/patient/intakes",
   },
   {
-    label: "Appointments",
+    label: "Scripts",
     icon: Calendar,
-    href: "/patient/appointments",
+    href: "/patient/prescriptions",
   },
   {
-    label: "Profile",
+    label: "Account",
     icon: User,
-    href: "/patient/profile",
+    href: "/account",
   },
 ]
 

@@ -1,5 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderPaymentRetryEmailToHtml } from "@/lib/email/templates/payment-retry"
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Get invoice
     const { data: invoice, error: invoiceError } = await supabase

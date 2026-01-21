@@ -1,7 +1,7 @@
 "use server"
 
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -17,19 +17,19 @@ export async function GET(
 ) {
   try {
     const { requestId: documentId } = await params
-    const supabase = await createClient()
+    const { userId: clerkUserId } = await auth()
 
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const supabase = createServiceRoleClient()
 
     // Get user's profile
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id")
-      .eq("auth_user_id", user.id)
+      .eq("clerk_user_id", clerkUserId)
       .single()
 
     if (profileError || !profile) {
@@ -52,7 +52,7 @@ export async function GET(
       .single()
 
     if (docError || !document) {
-      log.warn("Document not found", { documentId, userId: user.id })
+      log.warn("Document not found", { documentId, clerkUserId })
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
@@ -61,7 +61,7 @@ export async function GET(
     if (!intake || intake.patient_id !== profile.id) {
       log.warn("Unauthorized document access attempt", { 
         documentId, 
-        userId: user.id, 
+        clerkUserId, 
         patientId: profile.id 
       })
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })

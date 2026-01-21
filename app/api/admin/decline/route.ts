@@ -2,11 +2,11 @@ import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
-import { createClient as createServerClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
+import { getUserEmailFromClerkUserId } from "@/lib/data/profiles"
 
 const log = createLogger("admin-decline")
 
@@ -27,25 +27,25 @@ export async function POST(request: Request) {
     // Require either an internal API key OR an authenticated admin session
     const apiKey = process.env.INTERNAL_API_KEY
     let authorized = false
-    let authUserId: string | null = null
+    let clerkUserId: string | null = null
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
     } else {
       try {
-        const serverSupabase = await createServerClient()
-        const { data: { user } } = await serverSupabase.auth.getUser()
+        const { userId } = await auth()
         
-        if (user) {
-          const { data: profile, error: profileError } = await serverSupabase
+        if (userId) {
+          const supabase = createServiceRoleClient()
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role, id')
-            .eq('auth_user_id', user.id)
+            .eq('clerk_user_id', userId)
             .single()
 
           if (!profileError && profile?.role === 'admin') {
             authorized = true
-            authUserId = user.id
+            clerkUserId = userId
           }
         }
       } catch (err) {
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limiting
-    const rateLimitResponse = await applyRateLimit(request, 'sensitive', authUserId || undefined)
+    const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId || undefined)
     if (rateLimitResponse) {
       return rateLimitResponse
     }
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
         patient:profiles!patient_id (
           id,
           full_name,
-          auth_user_id,
+          clerk_user_id,
           email
         )
       `)
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
     interface PatientData {
       id: string
       full_name: string
-      auth_user_id: string
+      clerk_user_id: string
       email: string | null
     }
 
@@ -148,8 +148,8 @@ export async function POST(request: Request) {
     }
 
     let patientEmail = patient.email
-    if (!patientEmail && patient.auth_user_id) {
-      patientEmail = await getUserEmailFromAuthUserId(patient.auth_user_id)
+    if (!patientEmail && patient.clerk_user_id) {
+      patientEmail = await getUserEmailFromClerkUserId(patient.clerk_user_id)
     }
 
     await notifyRequestStatusChange({

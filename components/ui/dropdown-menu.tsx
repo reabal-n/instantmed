@@ -2,7 +2,6 @@
 "use client"
 
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import {
   Dropdown,
   DropdownTrigger,
@@ -60,10 +59,13 @@ function DropdownMenuTrigger({
   asChild,
   ...props
 }: DropdownMenuTriggerProps) {
+  // HeroUI's DropdownTrigger uses cloneElement internally, so we need to pass
+  // the child element directly without wrapping in Slot (which also clones).
+  // When asChild is true, we pass the child directly to DropdownTrigger.
   if (asChild && React.isValidElement(children)) {
     return (
       <DropdownTrigger {...props}>
-        <Slot>{children}</Slot>
+        {children}
       </DropdownTrigger>
     )
   }

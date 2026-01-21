@@ -20,14 +20,14 @@ export default async function PatientLayout({
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   if (authUser.profile.role !== "patient") {
     if (authUser.profile.role === "doctor") {
       redirect("/doctor")
     }
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   // Check onboarding status

@@ -15,7 +15,7 @@ export default async function NotificationsPage() {
   const { userId } = await auth()
 
   if (!userId) {
-    redirect("/auth/login?redirect=/patient/notifications")
+    redirect("/sign-in?redirect=/patient/notifications")
   }
 
   const supabase = await createClient()

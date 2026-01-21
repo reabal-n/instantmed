@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { headers } from "next/headers"
 import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
 import { createLogger } from "@/lib/observability/logger"
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
     }
 
     const { profile } = authResult
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Parse body
     const body: Partial<SubmitRequestBody> = await request.json()

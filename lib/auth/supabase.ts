@@ -1,11 +1,13 @@
 /**
- * Supabase Authentication Helpers
+ * Authentication Helpers using Clerk + Supabase
  * 
- * Server-side utilities for working with Supabase authentication.
+ * Server-side utilities for working with Clerk authentication
+ * and Supabase for data storage.
  */
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { auth as clerkAuth, currentUser } from '@clerk/nextjs/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import type { Profile } from '@/types/db'
 
 export interface SupabaseAuthenticatedUser {
@@ -17,52 +19,50 @@ export interface SupabaseAuthenticatedUser {
 }
 
 /**
- * Get the current authenticated user from Supabase with their database profile.
+ * Get the current authenticated user from Clerk with their database profile.
  * Returns null if not authenticated.
  */
 export async function getSupabaseUserWithProfile(): Promise<SupabaseAuthenticatedUser | null> {
-  const supabase = await createClient()
+  const { userId } = await clerkAuth()
   
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error || !user) {
+  if (!userId) {
     return null
   }
 
-  // Fetch the profile from your database using Supabase user ID
+  const user = await currentUser()
+  if (!user) {
+    return null
+  }
+
+  const supabase = createServiceRoleClient()
+
+  // Fetch the profile from your database using Clerk user ID
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('auth_user_id', user.id)
+    .eq('clerk_user_id', userId)
     .single()
 
+  const primaryEmail = user.emailAddresses.find(
+    e => e.id === user.primaryEmailAddressId
+  )?.emailAddress
+
   return {
-    userId: user.id,
-    email: user.email ?? null,
-    fullName: user.user_metadata?.full_name ?? null,
-    avatarUrl: user.user_metadata?.avatar_url ?? null,
+    userId,
+    email: primaryEmail ?? null,
+    fullName: user.fullName ?? null,
+    avatarUrl: user.imageUrl ?? null,
     profile: profile as Profile | null,
   }
 }
 
 /**
- * Get just the Supabase auth state (user session).
+ * Get just the Clerk auth state.
  * Faster than getSupabaseUserWithProfile when you don't need full user data.
  */
 export async function getSupabaseAuth() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error || !user) {
-    return { userId: null, sessionId: null }
-  }
-  
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  return { 
-    userId: user.id, 
-    sessionId: session?.access_token ?? null 
-  }
+  const { userId } = await clerkAuth()
+  return { userId: userId ?? null, sessionId: null }
 }
 
 /**
@@ -72,7 +72,7 @@ export async function requireSupabaseAuth(): Promise<SupabaseAuthenticatedUser> 
   const user = await getSupabaseUserWithProfile()
   
   if (!user) {
-    redirect('/auth/login')
+    redirect('/sign-in')
   }
 
   return user
@@ -88,7 +88,7 @@ export async function requireSupabaseAuthWithRole(
   const user = await getSupabaseUserWithProfile()
   
   if (!user) {
-    redirect('/auth/login')
+    redirect('/sign-in')
   }
 
   if (!user.profile) {
@@ -127,61 +127,61 @@ export async function requireOnboardingComplete(): Promise<SupabaseAuthenticated
 }
 
 /**
- * Get user email from Supabase user ID
+ * Get user email from Clerk user ID
  */
-export async function getUserEmailFromUserId(userId: string): Promise<string | null> {
-  const supabase = await createClient()
+export async function getUserEmailFromUserId(clerkUserId: string): Promise<string | null> {
+  const supabase = createServiceRoleClient()
   
-  // Try to get from profile first (most common case)
+  // Get from profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("email")
-    .eq("auth_user_id", userId)
+    .eq("clerk_user_id", clerkUserId)
     .single()
   
   return profile?.email ?? null
 }
 
 /**
- * Get full user info from Supabase user ID
+ * Get full user info from Clerk user ID
  */
-export async function getSupabaseUserInfo(userId: string) {
-  const supabase = await createClient()
+export async function getSupabaseUserInfo(clerkUserId: string) {
+  const supabase = createServiceRoleClient()
   
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", userId)
+    .eq("clerk_user_id", clerkUserId)
     .single()
   
   if (!profile) return null
   
   return {
-    id: userId,
+    id: clerkUserId,
     email: profile.email,
-    firstName: profile.full_name?.split(' ')[0] ?? null,
-    lastName: profile.full_name?.split(' ').slice(1).join(' ') ?? null,
+    firstName: profile.first_name ?? profile.full_name?.split(' ')[0] ?? null,
+    lastName: profile.last_name ?? profile.full_name?.split(' ').slice(1).join(' ') ?? null,
     fullName: profile.full_name,
     imageUrl: profile.avatar_url,
   }
 }
 
 /**
- * Batch get user emails from user IDs
+ * Batch get user emails from Clerk user IDs
  */
-export async function batchGetUserEmails(userIds: string[]): Promise<Map<string, string>> {
-  const supabase = await createClient()
+export async function batchGetUserEmails(clerkUserIds: string[]): Promise<Map<string, string>> {
+  const supabase = createServiceRoleClient()
   const emailMap = new Map<string, string>()
   
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("auth_user_id, email")
-    .in("auth_user_id", userIds)
+    .select("clerk_user_id, email")
+    .in("clerk_user_id", clerkUserIds)
   
   if (profiles) {
     for (const profile of profiles) {
-      if (profile.auth_user_id && profile.email) {
-        emailMap.set(profile.auth_user_id, profile.email)
+      if (profile.clerk_user_id && profile.email) {
+        emailMap.set(profile.clerk_user_id, profile.email)
       }
     }
   }

@@ -242,6 +242,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
+                        type="button"
                         className={cn(
                           "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors",
                           isActivePath("/medical-certificate") || isActivePath("/repeat-prescription") || isActivePath("/general-consult")

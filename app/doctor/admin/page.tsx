@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminDashboardPage() {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const [allIntakes, stats] = await Promise.all([

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Upload to Supabase Storage (permanent bucket)
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const fileName = `med-cert-${requestId}-${draftId}.pdf`
     const filePath = `certificates/${fileName}`
 

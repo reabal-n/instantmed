@@ -34,8 +34,8 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-secondary/10 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,var(--tw-gradient-stops))] from-secondary/10 via-transparent to-transparent" />
       
       {/* Subtle grid pattern */}
       <div 
@@ -93,7 +93,7 @@ export default function SignUpPage() {
         </div>
         
         {/* Right side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-gradient-to-br from-primary/5 to-transparent">
+        <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-linear-to-br from-primary/5 to-transparent">
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
@@ -139,7 +139,7 @@ export default function SignUpPage() {
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 border border-border/50">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-white" />
+                  <div key={i} className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-secondary border-2 border-white" />
                 ))}
               </div>
               <div>

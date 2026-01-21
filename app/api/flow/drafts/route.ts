@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("flow-drafts-api")
@@ -12,9 +12,8 @@ const logger = createLogger("flow-drafts-api")
 export async function POST(request: NextRequest) {
   try {
     // Authenticate the request
-    const authClient = await createClient()
-    const { data: { user } } = await authClient.auth.getUser()
-    if (!user) {
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
         {
           session_id: sessionId,
           service_slug: serviceSlug,
-          profile_id: user.id,
+          profile_id: clerkUserId,
           data: initialData || {},
           current_step: "safety",
           current_group_index: 0,
@@ -98,9 +97,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Authenticate the request
-    const authClient = await createClient()
-    const { data: { user } } = await authClient.auth.getUser()
-    if (!user) {
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

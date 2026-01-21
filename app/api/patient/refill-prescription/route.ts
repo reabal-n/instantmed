@@ -1,5 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 
 interface RefillRequest {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Verify prescription belongs to patient
     const { data: prescription, error: prescriptionError } = await supabase
@@ -103,7 +104,7 @@ export async function GET(_request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Get patient's refill requests
     const { data: refills, error } = await supabase

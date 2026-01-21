@@ -1,5 +1,5 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { getOrCreateAuthenticatedUser } from "@/lib/auth"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { redirect } from "next/navigation"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
 
@@ -12,17 +12,18 @@ import { PanelDashboard } from "@/components/patient/panel-dashboard"
 export const dynamic = "force-dynamic"
 
 export default async function PatientDashboard() {
-  const authUser = await getAuthenticatedUserWithProfile()
+  // Use getOrCreate to ensure profile exists (fallback for webhook)
+  const authUser = await getOrCreateAuthenticatedUser()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   if (!authUser.profile.onboarding_completed) {
     redirect("/patient/onboarding")
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
 
   // Fetch intakes with service info for the dashboard

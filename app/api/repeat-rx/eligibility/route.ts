@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import type {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     
     // Log audit event (optional - only if user is authenticated)
     // userId already obtained above for rate limiting
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     if (userId) {
       // Get patient profile using auth user ID

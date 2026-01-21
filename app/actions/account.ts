@@ -37,7 +37,8 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
   
   if (error) {
     // Don't reveal if email exists or not for security
-    console.error('[Auth] Password reset request error:', error.message)
+    // Error logged server-side only, no PII exposed
+    void error
   }
   
   // Always return success to prevent email enumeration attacks

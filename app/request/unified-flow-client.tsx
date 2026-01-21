@@ -636,18 +636,18 @@ export function UnifiedFlowClient({
   // Auth handlers - use Supabase redirects
   const _handleGoogleAuth = () => {
     // Redirect to login page
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+    router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   const handleSignIn = () => {
     // Redirect to login page
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+    router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Skip the email auth handlers since we're using Supabase redirects
   const _handleEmailAuth = async () => {
     // Redirect to login page
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+    router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Submit request

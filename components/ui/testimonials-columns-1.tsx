@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { Avatar } from "@/components/ui/avatar";
 import { BadgeCheck } from "lucide-react";

@@ -323,7 +323,7 @@ export function ConsultFlowClient({
     sessionStorage.setItem("pending_profile_dob", dob)
 
     // Redirect to login page with return URL
-    router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+    router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
   }
 
   // Handle submit
@@ -674,7 +674,7 @@ export function ConsultFlowClient({
 
                   <Button
                     className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
-                    onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)}
+                    onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
                   </Button>

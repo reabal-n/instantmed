@@ -9,7 +9,7 @@ export default async function PatientMessagesPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login?redirect=/patient/messages")
+    redirect("/sign-in?redirect=/patient/messages")
   }
 
   if (!authUser.profile.onboarding_completed) {

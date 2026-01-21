@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
-import { BreadcrumbSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, MedicalServiceSchema, PrescriptionHowToSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
   title: 'Online Repeat Prescriptions | Same-Day Scripts | InstantMed',
@@ -28,6 +28,7 @@ export default function PrescriptionsPage() {
         description="Renew your regular medications online. Reviewed by Australian registered doctors. eScript sent to your phone via SMS."
         price="29.95"
       />
+      <PrescriptionHowToSchema />
       <ServiceFunnelPage config={repeatScriptFunnelConfig} />
     </>
   )

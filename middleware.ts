@@ -1,8 +1,38 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-// Minimal Clerk middleware - all routes are public by default
-// Protection is handled at the page/component level using auth()
-export default clerkMiddleware()
+// Define protected routes that require authentication
+const isProtectedRoute = createRouteMatcher([
+  '/patient(.*)',
+  '/doctor(.*)',
+  '/admin(.*)',
+  '/account(.*)',
+  '/api/patient(.*)',
+  '/api/doctor(.*)',
+  '/api/admin(.*)',
+])
+
+// Define public routes (no auth required)
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/about',
+  '/contact',
+  '/services(.*)',
+  '/blog(.*)',
+  '/reviews',
+  '/health-guides(.*)',
+  '/api/health',
+  '/api/webhooks(.*)',
+  '/api/cron(.*)',
+])
+
+export default clerkMiddleware(async (auth, req) => {
+  // Protect authenticated routes
+  if (isProtectedRoute(req) && !isPublicRoute(req)) {
+    await auth.protect()
+  }
+})
 
 export const config = {
   matcher: [

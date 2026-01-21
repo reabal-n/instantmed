@@ -20,7 +20,7 @@ import { NightSkyBackground } from "@/components/ui/night-sky-background"
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
-import { SupabaseAuthProvider } from "@/components/providers/supabase-auth-provider"
+// SupabaseAuthProvider removed - using Clerk for auth
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { ChatIntakeButton } from "@/components/chat/chat-intake"
@@ -212,8 +212,7 @@ export default function RootLayout({
           <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
-          <SupabaseAuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
               <HeroUIProviderWrapper>
                 <NetworkStatus />
                 <SkyBackground fullPage />
@@ -233,8 +232,7 @@ export default function RootLayout({
                 <ServiceWorkerRegistration />
                 <CookieBanner />
               </HeroUIProviderWrapper>
-            </ThemeProvider>
-          </SupabaseAuthProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

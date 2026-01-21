@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Webhook handlers need console for error logging */
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     const primaryEmail = email_addresses?.find(e => e.id === evt.data.primary_email_address_id)?.email_address
     
     if (!primaryEmail) {
-      console.error('No primary email for user:', id)
+      console.error('No primary email for user')
       return new Response('No primary email', { status: 400 })
     }
 
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
       return new Response('Database error', { status: 500 })
     }
 
-    console.log(`Profile synced for Clerk user: ${id}`)
+    // Profile synced successfully
   }
 
   if (eventType === 'user.deleted') {
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
       return new Response('Database error', { status: 500 })
     }
 
-    console.log(`Profile deactivated for Clerk user: ${id}`)
+    // Profile deactivated successfully
   }
 
   return new Response('Webhook processed', { status: 200 })

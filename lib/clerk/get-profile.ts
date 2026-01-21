@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Profile lookup needs console for error logging */
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -42,7 +43,7 @@ export async function getClerkProfile(): Promise<ClerkProfile | null> {
     .single()
 
   if (error || !data) {
-    console.error('Profile not found for Clerk user:', userId, error?.message)
+    console.error('Profile not found for Clerk user', error?.message)
     return null
   }
 
@@ -90,11 +91,11 @@ export async function ensureClerkProfile(): Promise<ClerkProfile | null> {
   }
 
   const primaryEmail = user.emailAddresses.find(
-    e => e.id === user.primaryEmailAddressId
+    (e: { id: string }) => e.id === user.primaryEmailAddressId
   )?.emailAddress
 
   if (!primaryEmail) {
-    console.error('No primary email for Clerk user:', userId)
+    console.error('No primary email for Clerk user')
     return null
   }
 

@@ -739,7 +739,7 @@ export function MedCertFlowClient({
       sessionStorage.setItem("pending_profile_dob", formData.dateOfBirth)
       sessionStorage.setItem("pending_profile_name", formData.fullName || "") // Store full name for profile creation
 
-      router.push(`/auth/login?redirect=${encodeURIComponent(window.location.href)}`)
+      router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)
       setIsGoogleLoading(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : MICROCOPY.errors.signIn)

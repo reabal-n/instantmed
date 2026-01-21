@@ -4,7 +4,7 @@ import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/pr
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { MED_CERT_DRAFT_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { calculateConfidence } from "@/lib/ai/confidence"
@@ -44,11 +44,10 @@ export async function POST(request: NextRequest) {
   
   try {
     // Rate limiting
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
     
-    if (user?.id) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
+    if (clerkUserId) {
+      const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }

@@ -14,7 +14,7 @@ export default async function PatientOnboardingPage({
   const { redirect: redirectTo } = await searchParams
 
   if (!authUser) {
-    redirect("/auth/login?redirect=/patient/onboarding")
+    redirect("/sign-in?redirect=/patient/onboarding")
   }
 
   if (authUser.profile.role !== "patient") {

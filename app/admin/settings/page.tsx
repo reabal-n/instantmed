@@ -13,7 +13,7 @@ export default async function AdminSettingsPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login?redirect=/admin/settings")
+    redirect("/sign-in?redirect=/admin/settings")
   }
 
   const userEmail = authUser.user.email?.toLowerCase() || ""

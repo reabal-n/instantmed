@@ -9,7 +9,7 @@ export default async function PatientDocumentsPage() {
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login?redirect=/patient/documents")
+    redirect("/sign-in?redirect=/patient/documents")
   }
 
   if (!authUser.profile.onboarding_completed) {

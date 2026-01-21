@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { revalidatePath } from "next/cache"
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = createServiceRoleClient()
+    const { userId: clerkUserId } = await auth()
 
-    if (!user) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -50,7 +51,7 @@ export async function PATCH(request: Request) {
     const { error } = await supabase
       .from("profiles")
       .update(updateData)
-      .eq("auth_user_id", user.id)
+      .eq("clerk_user_id", clerkUserId)
 
     if (error) throw error
 

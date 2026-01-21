@@ -1,11 +1,13 @@
 /**
- * Authentication helpers using Supabase
+ * Authentication helpers using Clerk + Supabase
  * 
- * This module provides authentication utilities that work with Supabase Auth.
+ * This module provides authentication utilities that work with Clerk for auth
+ * and Supabase for data storage.
  */
 
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 
 // Backward-compatible type that works with existing code
@@ -27,29 +29,38 @@ export interface AuthenticatedUser {
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
-  const supabase = await createClient()
+  const { userId } = await clerkAuth()
   
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
-  if (userError || !user) {
+  if (!userId) {
     return null
   }
 
-  // Find profile by auth_user_id
+  const user = await currentUser()
+  if (!user) {
+    return null
+  }
+
+  const supabase = createServiceRoleClient()
+
+  // Find profile by clerk_user_id
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
     .single()
 
   if (!profile) {
     return null
   }
 
+  const primaryEmail = user.emailAddresses.find(
+    e => e.id === user.primaryEmailAddressId
+  )?.emailAddress
+
   return {
     user: {
-      id: user.id,
-      email: user.email ?? null,
+      id: userId,
+      email: primaryEmail ?? null,
       // Populate user_metadata from profile for backward compatibility
       user_metadata: {
         full_name: profile.full_name ?? undefined,
@@ -65,34 +76,43 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
  * Used for onboarding and first-time user flows.
  */
 export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  const supabase = await createClient()
+  const { userId } = await clerkAuth()
   
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
-  if (userError || !user) {
+  if (!userId) {
     return null
   }
 
-  const email = user.email
+  const user = await currentUser()
+  if (!user) {
+    return null
+  }
+
+  const primaryEmail = user.emailAddresses.find(
+    e => e.id === user.primaryEmailAddressId
+  )?.emailAddress
+
+  const supabase = createServiceRoleClient()
   
   // Try to find existing profile
   let { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
     .single()
   
   // Create new profile if none exists
   if (!profile) {
-    const fullName = user.user_metadata?.full_name || user.user_metadata?.name || null
+    const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || null
     
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
-        auth_user_id: user.id,
-        email: email,
+        clerk_user_id: userId,
+        email: primaryEmail,
         full_name: fullName,
-        avatar_url: user.user_metadata?.avatar_url || null,
+        first_name: user.firstName || null,
+        last_name: user.lastName || null,
+        avatar_url: user.imageUrl || null,
         role: "patient",
         onboarding_completed: false,
       })
@@ -108,8 +128,8 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
 
   return {
     user: {
-      id: user.id,
-      email: email ?? null,
+      id: userId,
+      email: primaryEmail ?? null,
       // Populate user_metadata from profile for backward compatibility
       user_metadata: {
         full_name: (profile as Profile).full_name ?? undefined,
@@ -131,7 +151,7 @@ export async function requireAuth(
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   // Admin role has access to doctor pages
@@ -144,7 +164,7 @@ export async function requireAuth(
     } else if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
       redirect("/doctor")
     } else {
-      redirect("/auth/login")
+      redirect("/sign-in")
     }
   }
 
@@ -171,29 +191,34 @@ export async function getCurrentUser(): Promise<{
   email?: string | null
   user_metadata?: { full_name?: string; date_of_birth?: string }
 } | null> {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { userId } = await clerkAuth()
+  if (!userId) return null
   
-  if (error || !user) return null
+  const user = await currentUser()
+  if (!user) return null
+  
+  const primaryEmail = user.emailAddresses.find(
+    e => e.id === user.primaryEmailAddressId
+  )?.emailAddress
   
   return {
-    id: user.id,
-    email: user.email ?? null,
+    id: userId,
+    email: primaryEmail ?? null,
     user_metadata: {
-      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+      full_name: user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' '),
     },
   }
 }
 
 /**
- * Get a user's profile by their Supabase auth user ID
+ * Get a user's profile by their Clerk user ID
  */
-export async function getUserProfile(authUserId: string): Promise<Profile | null> {
-  const supabase = await createClient()
+export async function getUserProfile(clerkUserId: string): Promise<Profile | null> {
+  const supabase = createServiceRoleClient()
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", authUserId)
+    .eq("clerk_user_id", clerkUserId)
     .single()
   
   if (error || !profile) return null
@@ -224,14 +249,12 @@ export async function signOut() {
 }
 
 /**
- * Get the Supabase auth state (user, session)
+ * Get the Clerk auth state
  * Use this for lightweight auth checks without profile data
  */
-export async function getSupabaseAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: { session } } = await supabase.auth.getSession()
-  return { user, session, userId: user?.id ?? null }
+export async function getClerkAuth() {
+  const { userId } = await clerkAuth()
+  return { userId: userId ?? null }
 }
 
 /**
@@ -239,11 +262,10 @@ export async function getSupabaseAuth() {
  * Returns { userId } for use in server-side authentication checks.
  */
 export async function auth(): Promise<{ userId: string | null; redirectToSignIn: () => never }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await clerkAuth()
   return { 
-    userId: user?.id ?? null,
-    redirectToSignIn: () => redirect("/auth/login") as never
+    userId: userId ?? null,
+    redirectToSignIn: () => redirect("/sign-in") as never
   }
 }
 
@@ -252,24 +274,24 @@ export async function auth(): Promise<{ userId: string | null; redirectToSignIn:
  * Returns the user ID and profile, or null if not authenticated.
  */
 export async function getApiAuth(): Promise<{ userId: string; profile: Profile } | null> {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { userId } = await clerkAuth()
   
-  if (error || !user) {
+  if (!userId) {
     return null
   }
 
+  const supabase = createServiceRoleClient()
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("auth_user_id", user.id)
+    .eq("clerk_user_id", userId)
     .single()
   
   if (!profile) {
     return null
   }
 
-  return { userId: user.id, profile: profile as Profile }
+  return { userId, profile: profile as Profile }
 }
 
 /**

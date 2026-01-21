@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { REVIEW_SUMMARY_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
@@ -58,30 +59,31 @@ interface ConsultAnswers {
 export async function POST(req: NextRequest) {
   try {
     // P0 FIX: Add authentication - this endpoint exposes PHI
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
     
-    if (authError || !user) {
-      log.warn("Unauthorized review-summary attempt", { error: authError?.message })
+    if (!clerkUserId) {
+      log.warn("Unauthorized review-summary attempt")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    
+    const supabase = createServiceRoleClient()
 
     // Verify the user is a doctor
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, role")
-      .eq("auth_user_id", user.id)
+      .eq("clerk_user_id", clerkUserId)
       .single()
 
     if (!profile || !["doctor", "admin"].includes(profile.role)) {
-      log.warn("Non-doctor attempted review-summary", { userId: user.id, role: profile?.role })
+      log.warn("Non-doctor attempted review-summary", { userId: clerkUserId, role: profile?.role })
       return NextResponse.json({ error: "Forbidden - doctors only" }, { status: 403 })
     }
 
     // Apply rate limiting (sensitive tier - 20/hour)
-    const rateLimitResponse = await applyRateLimit(req, "sensitive", user.id)
+    const rateLimitResponse = await applyRateLimit(req, "sensitive", clerkUserId ?? undefined)
     if (rateLimitResponse) {
-      log.warn("Rate limited review-summary", { userId: user.id })
+      log.warn("Rate limited review-summary", { userId: clerkUserId })
       return rateLimitResponse
     }
 

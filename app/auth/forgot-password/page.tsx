@@ -1,8 +1,6 @@
-import { ForgotPasswordClient } from "./forgot-password-client"
+import { redirect } from 'next/navigation'
 
-// Prevent static generation for dynamic auth
-export const dynamic = "force-dynamic"
-
-export default function ForgotPasswordPage() {
-  return <ForgotPasswordClient />
+// Clerk handles password reset - redirect to Account Portal
+export default function ForgotPasswordRedirect() {
+  redirect('https://accounts.instantmed.com.au/sign-in')
 }

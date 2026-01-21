@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -56,7 +56,7 @@ export async function POST(
     
     // Get authenticated clinician
     const { userId } = await auth()
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     if (!userId) {
       return NextResponse.json(

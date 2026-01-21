@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth as _auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Use the search_medications function we already have in the database
     const { data, error } = await supabase.rpc("search_medications", {

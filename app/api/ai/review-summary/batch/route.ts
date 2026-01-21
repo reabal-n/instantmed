@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 import { requireAuth } from "@/lib/auth"
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const limitedIds = requestIds.slice(0, 10)
 
     // Fetch request data from database
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data: requests, error: fetchError } = await supabase
       .from('requests')
       .select('id, type, answers')

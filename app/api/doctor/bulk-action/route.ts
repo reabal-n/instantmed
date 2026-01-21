@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("bulk-action")
 
 export async function POST(request: NextRequest) {
-  let userId: string | null = null
+  let clerkUserId: string | null = null
   
   try {
-    const authResult = await auth()
-    userId = authResult.userId
+    const { userId } = await auth()
+    clerkUserId = userId
 
-    if (!userId) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("auth_user_id", userId)
+      .eq("clerk_user_id", clerkUserId)
       .single()
 
     if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       updated: successful,
     })
   } catch (error) {
-    log.error("Bulk action failed", { userId }, error)
+    log.error("Bulk action failed", { clerkUserId }, error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

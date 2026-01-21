@@ -206,7 +206,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
 }
 
 /**
- * Get user email from auth_user_id
+ * Get user email from auth_user_id (legacy - for backward compatibility)
  */
 export async function getUserEmailFromAuthUserId(authUserId: string): Promise<string | null> {
   const supabase = await createClient()
@@ -231,4 +231,20 @@ export async function getUserEmailFromAuthUserId(authUserId: string): Promise<st
   }
   
   return authUser.user.email
+}
+
+/**
+ * Get user email from clerk_user_id (primary method for Clerk auth)
+ */
+export async function getUserEmailFromClerkUserId(clerkUserId: string): Promise<string | null> {
+  const serviceClient = createServiceRoleClient()
+  
+  // Get email from profile
+  const { data: profile } = await serviceClient
+    .from("profiles")
+    .select("email")
+    .eq("clerk_user_id", clerkUserId)
+    .single()
+  
+  return profile?.email ?? null
 }

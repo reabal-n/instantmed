@@ -27,7 +27,7 @@ export default async function PatientIntakeDetailPage({
   const authUser = await getAuthenticatedUserWithProfile()
   
   if (!authUser) {
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
   
   // Fetch the intake with ownership check

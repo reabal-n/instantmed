@@ -8,7 +8,8 @@
  * Supports both intakes (new) and legacy requests.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
@@ -70,7 +71,7 @@ export async function GET(
     }
 
     // Fetch the generated document
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data: doc, error: docError } = await supabase
       .from("generated_documents")
       .select("id, pdf_url, type")

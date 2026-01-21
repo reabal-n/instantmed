@@ -184,3 +184,152 @@ export function PageSkeleton() {
     </div>
   )
 }
+
+/**
+ * Skeleton for dashboard cards (patient/doctor dashboards)
+ */
+export function DashboardCardSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('p-6 rounded-xl border border-border bg-card', className)}>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-8 w-20 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Skeleton for intake/request list items
+ */
+export function RequestListItemSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('p-4 rounded-lg border border-border bg-card flex items-center gap-4', className)}>
+      <Skeleton className="w-12 h-12 rounded-lg shrink-0" />
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-48" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-8 w-8 rounded-lg" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Skeleton for doctor queue items
+ */
+export function QueueItemSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('p-4 rounded-xl border border-border bg-card', className)}>
+      <div className="flex items-start gap-4">
+        <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          <div className="flex items-center gap-4 mt-3">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 pt-4 border-t border-border flex items-center gap-2">
+        <Skeleton className="h-9 flex-1 rounded-lg" />
+        <Skeleton className="h-9 flex-1 rounded-lg" />
+        <Skeleton className="h-9 w-9 rounded-lg" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Skeleton for patient dashboard
+ */
+export function PatientDashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-10 w-32 rounded-lg" />
+      </div>
+      
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <StatSkeleton key={i} />
+        ))}
+      </div>
+      
+      {/* Recent requests */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-40" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <RequestListItemSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Skeleton for doctor dashboard queue
+ */
+export function DoctorQueueSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-8 w-40 mb-2" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-32 rounded-lg" />
+          <Skeleton className="h-10 w-10 rounded-lg" />
+        </div>
+      </div>
+      
+      {/* Filters */}
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-9 w-24 rounded-lg" />
+        <Skeleton className="h-9 w-24 rounded-lg" />
+        <Skeleton className="h-9 w-24 rounded-lg" />
+      </div>
+      
+      {/* Queue items */}
+      <div className="space-y-4">
+        {Array.from({ length: count }).map((_, i) => (
+          <QueueItemSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
+}

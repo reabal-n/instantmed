@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createServiceClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
-import { auth } from "@/lib/auth"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       )
     }
     
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     let patientId: string | null = null
     let isGuest = true

@@ -45,10 +45,11 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
 
   const navItems = userRole === 'patient' ? [
     { icon: Home, label: 'Overview', href: '/patient' },
-    { icon: FileText, label: 'My Requests', href: '/patient/requests' },
+    { icon: FileText, label: 'My Requests', href: '/patient/intakes' },
+    { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
     { icon: Activity, label: 'Health Summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
-    { icon: Settings, label: 'Settings', href: '/patient/settings' },
+    { icon: Settings, label: 'Settings', href: '/account' },
   ] : [
     { icon: Home, label: 'Dashboard', href: '/doctor' },
     { icon: ClipboardList, label: 'Queue', href: '/doctor/queue' },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 
 interface IntakeRow {
@@ -32,9 +32,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
-    const { data: profile } = await supabase.from("profiles").select("role").eq("auth_user_id", userId).single()
+    const { data: profile } = await supabase.from("profiles").select("role").eq("clerk_user_id", userId).single()
 
     if (!profile || (profile.role !== "doctor" && profile.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

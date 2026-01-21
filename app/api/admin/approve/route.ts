@@ -2,9 +2,9 @@ import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notifyRequestStatusChange } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
-import { createClient as createServerClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
+import { getUserEmailFromClerkUserId } from "@/lib/data/profiles"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { getClientIdentifier } from "@/lib/rate-limit/redis"
 
@@ -41,21 +41,20 @@ export async function POST(request: Request) {
       })
     } else {
       try {
-        const serverSupabase = await createServerClient()
-        const { data: { user } } = await serverSupabase.auth.getUser()
+        const { userId } = await auth()
         
-        if (user) {
-          
+        if (userId) {
           // Apply rate limiting for authenticated users
-          const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
+          const rateLimitResponse = await applyRateLimit(request, 'sensitive', userId)
           if (rateLimitResponse) {
             return rateLimitResponse
           }
           
-          const { data: profile, error: profileError } = await serverSupabase
+          const supabase = createServiceRoleClient()
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
-            .eq('auth_user_id', user.id)
+            .eq('clerk_user_id', userId)
             .single()
 
           if (!profileError && profile?.role === 'admin') {
@@ -98,7 +97,7 @@ export async function POST(request: Request) {
         id,
         patient_id,
         service:services!service_id ( name, type ),
-        patient:profiles!patient_id ( id, full_name, auth_user_id, email )
+        patient:profiles!patient_id ( id, full_name, clerk_user_id, email )
       `)
       .eq('id', intakeId)
       .single()
@@ -111,12 +110,12 @@ export async function POST(request: Request) {
       .limit(1)
       .single()
 
-    const patientData = intakeWithPatient?.patient as unknown as { id: string; full_name: string; auth_user_id: string | null; email: string | null } | null
+    const patientData = intakeWithPatient?.patient as unknown as { id: string; full_name: string; clerk_user_id: string | null; email: string | null } | null
     const serviceData = intakeWithPatient?.service as unknown as { name: string; type: string } | null
     
     let patientEmail: string | null = patientData?.email ?? null
-    if (!patientEmail && patientData?.auth_user_id) {
-      patientEmail = await getUserEmailFromAuthUserId(patientData.auth_user_id)
+    if (!patientEmail && patientData?.clerk_user_id) {
+      patientEmail = await getUserEmailFromClerkUserId(patientData.clerk_user_id)
     }
     
     const documentUrl = document?.pdf_url || null

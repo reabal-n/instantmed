@@ -434,9 +434,10 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
               <div className="flex items-center gap-4">
                 <div className="h-20 w-40 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50 overflow-hidden">
                   {signatureUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element -- Dynamic signature from Supabase storage */
                     <img
                       src={signatureUrl}
-                      alt="Signature"
+                      alt="Doctor signature"
                       className="max-h-full max-w-full object-contain p-2"
                     />
                   ) : (

@@ -1,24 +1,52 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import { FlatCompat } from "@eslint/eslintrc";
-import path from "path";
-import { fileURLToPath } from "url";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+import nextPlugin from "@next/eslint-plugin-next";
+import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const nextVitals = compat.extends("next/core-web-vitals");
-const nextTs = compat.extends("next/typescript");
-
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Custom rules
+/** @type {import('eslint').Linter.Config[]} */
+const eslintConfig = [
+  // Global ignores must come first
   {
+    ignores: [
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+      "node_modules/**",
+      "dist/**",
+      "*.config.js",
+      "*.config.mjs",
+      "**/*.d.ts",
+      "public/sw.js",
+    ],
+  },
+  // Base JS recommended
+  js.configs.recommended,
+  // TypeScript recommended
+  ...tseslint.configs.recommended,
+  // React and Next.js rules
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: {
+      react: reactPlugin,
+      "react-hooks": reactHooksPlugin,
+      "@next/next": nextPlugin,
+      "jsx-a11y": jsxA11yPlugin,
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
     rules: {
+      // Next.js rules
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs["core-web-vitals"].rules,
+      // React hooks rules
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
       // Prevent console statements in production code
       "no-console": "error",
       // Prevent debugger statements
@@ -44,22 +72,9 @@ const eslintConfig = defineConfig([
           "ts-expect-error": "allow-with-description",
           minimumDescriptionLength: 10
         }
-      ]
+      ],
     }
   },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    // Additional ignores:
-    "node_modules/**",
-    "dist/**",
-    "*.config.js",
-    "*.config.mjs",
-  ]),
-]);
+];
 
 export default eslintConfig;

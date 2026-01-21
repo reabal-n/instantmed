@@ -76,7 +76,7 @@ export function ForgotPasswordClient() {
         <div className="container max-w-md mx-auto px-4">
           <div className="glass-card rounded-3xl p-8">
             <Link
-              href="/auth/login"
+              href="/sign-in"
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -123,7 +123,7 @@ export function ForgotPasswordClient() {
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               Remember your password?{" "}
-              <Link href="/auth/login" className="text-primary-600 hover:text-primary-700 hover:underline">
+              <Link href="/sign-in" className="text-primary-600 hover:text-primary-700 hover:underline">
                 Sign in
               </Link>
             </p>

@@ -4,7 +4,7 @@ import { getDefaultModel } from "@/lib/ai/provider"
 import { requireAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 
 const log = createLogger("ai-decline-reason")
 
@@ -38,11 +38,10 @@ Example tone:
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
     
-    if (user?.id) {
-      const rateLimitResponse = await applyRateLimit(request, 'sensitive', user.id)
+    if (clerkUserId) {
+      const rateLimitResponse = await applyRateLimit(request, 'sensitive', clerkUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }

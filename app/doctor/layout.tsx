@@ -18,7 +18,7 @@ export default async function DoctorLayout({
 
   if (!authUser) {
     log.warn("No authenticated user in doctor layout - redirecting to login")
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const isDoctor = authUser.profile.role === "doctor"
@@ -28,7 +28,7 @@ export default async function DoctorLayout({
     if (authUser.profile.role === "patient") {
       redirect("/patient")
     }
-    redirect("/auth/login")
+    redirect("/sign-in")
   }
 
   const stats = await getDoctorDashboardStats()

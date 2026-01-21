@@ -1,99 +1,49 @@
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("email-verification")
 
+/**
+ * @deprecated Email verification is now handled by Clerk.
+ * These functions are kept for backward compatibility but are no longer functional.
+ * Clerk automatically handles email verification during signup.
+ */
+
 interface SendVerificationEmailParams {
   email: string
   redirectTo?: string
 }
 
 /**
- * Send email verification link to user
- * Note: With Supabase, email verification is handled automatically during signup.
- * This function is kept for backwards compatibility.
+ * @deprecated Clerk handles email verification automatically.
+ * This function is kept for backward compatibility.
  */
 export async function sendVerificationEmail({
   email,
 }: SendVerificationEmailParams): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { createClient } = await import("@/lib/supabase/server")
-    const supabase = await createClient()
-    
-    // Resend verification email via Supabase
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-    })
-
-    if (error) {
-      logger.error("Error sending verification email", {}, error)
-      return { success: false, error: "Failed to send verification email" }
-    }
-
-    logger.info("Email verification requested", { email })
-    return { success: true }
-  } catch (error) {
-    logger.error("Unexpected error in email verification", {}, error instanceof Error ? error : new Error(String(error)))
-    return { success: false, error: "Failed to send verification email" }
-  }
+  logger.info("sendVerificationEmail called - Clerk handles this automatically", { email })
+  // Clerk handles email verification - this is a no-op
+  return { success: true }
 }
 
 /**
- * Check if user's email is verified
+ * @deprecated Clerk handles email verification.
+ * All Clerk users have verified emails by default.
  */
 export async function isEmailVerified(): Promise<boolean> {
-  try {
-    const { createClient } = await import("@/lib/supabase/server")
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return false
-    }
-
-    // Supabase verifies emails - check email_confirmed_at
-    return !!user.email_confirmed_at
-  } catch (error) {
-    logger.error("Error checking email verification status", {}, error instanceof Error ? error : new Error(String(error)))
-    return false
-  }
+  // Clerk requires email verification by default
+  return true
 }
 
 /**
- * Resend verification email with rate limiting
- * Note: With Supabase, this sends a verification email
+ * @deprecated Clerk handles email verification.
+ * Users can resend verification from Clerk's Account Portal.
  */
 export async function resendVerificationEmail(
-  email: string
+  _email: string
 ): Promise<{ success: boolean; error?: string; retryAfter?: number }> {
-  try {
-    const { createClient } = await import("@/lib/supabase/server")
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user || user.email !== email) {
-      return { success: false, error: "User not found" }
-    }
-
-    // Check if already verified
-    if (user.email_confirmed_at) {
-      return { success: false, error: "Email already verified" }
-    }
-
-    // Resend verification email via Supabase
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-    })
-
-    if (error) {
-      logger.error("Error resending verification email", {}, error)
-      return { success: false, error: "Failed to resend verification email" }
-    }
-
-    logger.info("Verification email resend requested", { email })
-    return { success: true }
-  } catch (error) {
-    logger.error("Error resending verification email", {}, error instanceof Error ? error : new Error(String(error)))
-    return { success: false, error: "Failed to resend verification email" }
+  logger.info("resendVerificationEmail called - redirect user to Clerk Account Portal")
+  // Clerk handles this - direct users to Account Portal
+  return { 
+    success: false, 
+    error: "Please use the Account Portal to manage email verification" 
   }
 }

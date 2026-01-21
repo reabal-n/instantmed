@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   )?.emailAddress
 
   // eslint-disable-next-line no-console
-  console.log("[auth-callback] Clerk user found:", primaryEmail)
+  console.log("[auth-callback] Clerk user found")
 
   try {
     const serviceClient = createServiceRoleClient()

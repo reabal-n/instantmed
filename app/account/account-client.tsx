@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/components/providers/supabase-auth-provider'
+import { useUser, useClerk } from '@clerk/nextjs'
 import {
   User,
   Mail,
@@ -48,7 +48,8 @@ interface RequestSummary {
 export function AccountClient() {
   const router = useRouter()
   const supabase = createClient()
-  const { user, profile: _authProfile, isLoading: isAuthLoading, signOut } = useAuth()
+  const { user, isLoaded, isSignedIn } = useUser()
+  const { signOut } = useClerk()
   
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -58,19 +59,19 @@ export function AccountClient() {
   useEffect(() => {
     const loadAccountData = async () => {
       // Wait for auth to be loaded
-      if (isAuthLoading) return
+      if (!isLoaded) return
       
       try {
-        if (!user) {
-          router.push('/auth/login?redirect=/account')
+        if (!isSignedIn || !user) {
+          router.push('/sign-in?redirect=/account')
           return
         }
 
-        // Get profile using auth user ID
+        // Get profile using Clerk user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('auth_user_id', user.id)
+          .eq('clerk_user_id', user.id)
           .single()
 
         if (profileError) throw profileError
@@ -78,7 +79,7 @@ export function AccountClient() {
         setProfile({
           id: profileData.id,
           full_name: profileData.full_name,
-          email: user.email || profileData.email,
+          email: user.emailAddresses[0]?.emailAddress || profileData.email,
           phone: profileData.phone,
           role: profileData.role,
           created_at: profileData.created_at,
@@ -123,7 +124,7 @@ export function AccountClient() {
     }
 
     loadAccountData()
-  }, [supabase, router, user, isAuthLoading])
+  }, [supabase, router, user, isLoaded, isSignedIn])
 
   const handleSignOut = async () => {
     await signOut()

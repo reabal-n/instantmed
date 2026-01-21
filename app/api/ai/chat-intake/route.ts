@@ -3,7 +3,7 @@ import { streamText } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 import { logAIInteraction, logSafetyBlock, PROMPT_VERSION } from "@/lib/intake/audit-trail"
 import { trackAIInteraction } from "@/lib/intake/intake-analytics"
@@ -263,11 +263,10 @@ Brief bullet summary, no prose:
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
     
-    if (user?.id) {
-      const rateLimitResponse = await applyRateLimit(request, 'standard', user.id)
+    if (clerkUserId) {
+      const rateLimitResponse = await applyRateLimit(request, 'standard', clerkUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }
@@ -309,14 +308,14 @@ export async function POST(request: NextRequest) {
     if (emergencyCheck.blocked && emergencyCheck.response) {
       log.warn("Emergency keyword detected - blocking AI call", {
         reason: emergencyCheck.reason,
-        userId: user?.id || "anonymous",
+        userId: clerkUserId || "anonymous",
       })
       
       // Log safety block for audit
       const blockType = emergencyCheck.response.type === 'crisis_block' ? 'crisis' : 'emergency'
       await logSafetyBlock(
         sessionId,
-        user?.id,
+        clerkUserId ?? undefined,
         blockType,
         latestUserMessage,
         'N/A - blocked before AI call'
@@ -334,12 +333,12 @@ export async function POST(request: NextRequest) {
     
     const safetyCheck = checkAndSanitize(latestUserMessage, {
       endpoint: "chat-intake",
-      userId: user?.id,
+      userId: clerkUserId ?? undefined,
     })
     
     if (safetyCheck.blocked) {
       log.warn("Prompt injection blocked", {
-        userId: user?.id || "anonymous",
+        userId: clerkUserId || "anonymous",
         messageLength: latestUserMessage.length,
       })
       // Return a generic response that doesn't reveal the block reason
@@ -357,7 +356,7 @@ export async function POST(request: NextRequest) {
 
     log.info("Chat intake request", { 
       messageCount: messages.length,
-      userId: user?.id || "anonymous",
+      userId: clerkUserId || "anonymous",
       sessionId,
     })
 
@@ -381,7 +380,7 @@ export async function POST(request: NextRequest) {
         // Log to audit trail
         await logAIInteraction({
           sessionId,
-          patientId: user?.id,
+          patientId: clerkUserId ?? undefined,
           serviceType: detectedService,
           turnNumber: Math.ceil(messages.length / 2),
           userInput: latestUserMessage,
@@ -408,7 +407,7 @@ export async function POST(request: NextRequest) {
           flagTypes: flags,
           modelVersion: modelName,
           promptVersion: PROMPT_VERSION,
-        }, user?.id)
+        }, clerkUserId ?? undefined)
       },
     })
 

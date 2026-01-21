@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth"
 import { isAdminEmail } from "@/lib/env"
 
 // Only allow in development (NOT preview - security risk)
@@ -16,10 +15,9 @@ export async function GET(_request: Request) {
     )
   }
 
-  // Require authentication using Supabase
+  // Require authentication using Clerk
   const { userId } = await auth()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await currentUser()
   
   if (!userId || !user) {
     return NextResponse.json(
@@ -30,7 +28,7 @@ export async function GET(_request: Request) {
 
   const { searchParams } = new URL(_request.url)
   const email = searchParams.get("email")?.toLowerCase()
-  const userEmail = user.email?.toLowerCase()
+  const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress?.toLowerCase()
 
   if (!email || !isAdminEmail(email)) {
     return NextResponse.json(

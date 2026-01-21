@@ -4,7 +4,9 @@ import { useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Camera, Upload, Loader2, Check, X, AlertCircle } from "lucide-react"
-import Tesseract from "tesseract.js"
+
+// Lazy load Tesseract.js to reduce initial bundle size (~2MB)
+const loadTesseract = () => import("tesseract.js")
 
 interface MedicareOCRResult {
   medicareNumber: string | null
@@ -104,6 +106,8 @@ export function MedicareOCR({ onResult, onError, className }: MedicareOCRProps) 
     setPreviewUrl(url)
 
     try {
+      // Dynamically load Tesseract.js only when needed
+      const Tesseract = await loadTesseract()
       const result = await Tesseract.recognize(file, "eng", {
         logger: (m) => {
           if (m.status === "recognizing text") {

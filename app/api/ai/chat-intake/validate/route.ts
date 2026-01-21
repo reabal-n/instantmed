@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { validateIntakePayload, type IntakePayload } from "@/lib/intake/chat-validation"
 
 const log = createLogger("ai-chat-intake-validate")
@@ -15,8 +15,7 @@ const log = createLogger("ai-chat-intake-validate")
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
     
     const body = await request.json()
     const payload = body as IntakePayload
@@ -32,7 +31,7 @@ export async function POST(request: NextRequest) {
     
     // Log validation results for monitoring
     log.info("Intake validation", {
-      userId: user?.id || "anonymous",
+      userId: clerkUserId || "anonymous",
       serviceType: payload.service_type,
       valid: validation.valid,
       errorCount: validation.errors.length,
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
     // Log safety blocks separately for alerting
     if (validation.safetyBlocks.length > 0) {
       log.warn("Intake safety blocks triggered", {
-        userId: user?.id || "anonymous",
+        userId: clerkUserId || "anonymous",
         blocks: validation.safetyBlocks,
       })
     }

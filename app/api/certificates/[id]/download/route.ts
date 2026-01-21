@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@clerk/nextjs/server"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import {
   getCertificateById,
@@ -25,10 +25,9 @@ export async function GET(
     const { id: certificateId } = await params
 
     // 1. Authenticate user
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId: clerkUserId } = await auth()
 
-    if (!user) {
+    if (!clerkUserId) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }

@@ -13,7 +13,7 @@ export default async function TemplateStudioPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/auth/login?redirect=/admin/studio")
+    redirect("/sign-in?redirect=/admin/studio")
   }
 
   // Check admin role
