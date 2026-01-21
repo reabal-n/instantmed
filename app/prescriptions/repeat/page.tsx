@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { auth } from "@/lib/auth"
 import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
 
@@ -66,7 +66,7 @@ async function getPatientData() {
     }
   }
   
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Get patient profile
   const { data: profile } = await supabase

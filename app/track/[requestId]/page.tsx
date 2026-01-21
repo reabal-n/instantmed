@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { TrackingClient } from "./tracking-client"
 
 interface PageProps {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function TrackingPage({ params }: PageProps) {
   const { requestId } = await params
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Get the intake with patient profile
   const { data: intake, error } = await supabase

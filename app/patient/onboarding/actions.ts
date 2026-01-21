@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { auth } from "@/lib/auth"
 import type { AustralianState } from "@/types/db"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
@@ -24,7 +24,7 @@ export async function completeOnboardingAction(
   profileId: string,
   data: OnboardingInput,
 ): Promise<{ success: boolean; error?: string; fieldErrors?: Record<string, string> }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Verify the user owns this profile
   const { userId } = await auth()

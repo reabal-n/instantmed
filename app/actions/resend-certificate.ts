@@ -1,6 +1,5 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
@@ -27,7 +26,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       return { success: false, error: "Please sign in to continue" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Fetch the intake with patient info
     const { data: intake, error: fetchError } = await supabase

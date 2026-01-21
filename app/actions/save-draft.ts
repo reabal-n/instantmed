@@ -2,7 +2,7 @@
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("save-draft")
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Type for draft data - using unknown for type safety
 type DraftData = Record<string, unknown>
@@ -19,7 +19,7 @@ export async function saveDraftToSupabase(
   data: DraftData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Check if draft exists
     const { data: existing } = await supabase
@@ -64,7 +64,7 @@ export async function loadDraftFromSupabase(
   flowType: string,
 ): Promise<{ success: boolean; data?: DraftData; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
       .from("request_answers")
@@ -87,7 +87,7 @@ export async function loadDraftFromSupabase(
 
 export async function deleteDraft(patientId: string, flowType: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { error } = await supabase.from("request_answers").delete().eq("request_id", `draft_${patientId}_${flowType}`)
 

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { SuccessClient } from "./success-client"
 
@@ -24,7 +24,7 @@ export default async function PaymentSuccessPage({
   let patientEmail: string | undefined
 
   if (intakeId) {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data } = await supabase
       .from("intakes")
       .select(`

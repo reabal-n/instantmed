@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { auth } from "@/lib/auth"
 import { NotificationsClient } from "./notifications-client"
 
@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
     redirect("/sign-in?redirect=/patient/notifications")
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Get profile with notification preferences
   const { data: profile } = await supabase

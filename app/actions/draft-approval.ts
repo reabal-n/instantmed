@@ -7,7 +7,7 @@
  * All actions are logged to the ai_audit_log for compliance.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
@@ -54,7 +54,7 @@ export async function getAIDraftsForIntake(intakeId: string): Promise<AIDraft[]>
     return []
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   const { data, error } = await supabase
     .from("document_drafts")
@@ -88,7 +88,7 @@ export async function approveDraft(
     return { success: false, error: "Only doctors can approve drafts" }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Fetch the draft to verify it exists and get intake_id
   const { data: draft, error: fetchError } = await supabase
@@ -187,7 +187,7 @@ export async function rejectDraft(
     return { success: false, error: "Please provide a reason for rejection" }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Fetch the draft
   const { data: draft, error: fetchError } = await supabase
@@ -260,7 +260,7 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
     return { success: false, error: "Only doctors can regenerate drafts" }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Get current draft version
   const { data: existingDrafts } = await supabase
@@ -336,7 +336,7 @@ export async function checkDraftStaleness(draftId: string): Promise<{
     return { isStale: false }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: draft } = await supabase
     .from("document_drafts")
@@ -370,7 +370,7 @@ export async function checkDraftStaleness(draftId: string): Promise<{
 // Helper functions
 
 async function computeIntakeHash(intakeId: string): Promise<string | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   const { data: answers } = await supabase
     .from("intake_answers")
@@ -409,7 +409,7 @@ interface AuditEventParams {
 }
 
 async function logAuditEvent(params: AuditEventParams): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("ai_audit_log")

@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
 
@@ -24,7 +24,7 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       return { success: false, error: "Please sign in to continue" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
