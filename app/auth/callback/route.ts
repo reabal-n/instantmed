@@ -2,6 +2,9 @@ import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse, type NextRequest } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logLogin } from "@/lib/security/audit-log"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("auth-callback")
 
 /**
  * CLERK AUTH CALLBACK
@@ -27,15 +30,13 @@ export async function GET(request: NextRequest) {
       ? `${forwardedProto}://${forwardedHost}`
       : requestOrigin
 
-  // eslint-disable-next-line no-console
-  console.log("[auth-callback] Starting Clerk callback", { origin })
+  log.info("Starting Clerk callback", { origin })
 
   // Get Clerk auth
   const { userId } = await auth()
   
   if (!userId) {
-    // eslint-disable-next-line no-console
-    console.log("[auth-callback] No Clerk user, redirecting to sign-in")
+    log.info("No Clerk user, redirecting to sign-in")
     return NextResponse.redirect(`${origin}/sign-in`)
   }
 
@@ -43,8 +44,7 @@ export async function GET(request: NextRequest) {
   const user = await currentUser()
   
   if (!user) {
-    // eslint-disable-next-line no-console
-    console.error("[auth-callback] Could not get Clerk user data")
+    log.error("Could not get Clerk user data", {})
     return NextResponse.redirect(`${origin}/sign-in?error=no_user`)
   }
 
@@ -52,8 +52,7 @@ export async function GET(request: NextRequest) {
     e => e.id === user.primaryEmailAddressId
   )?.emailAddress
 
-  // eslint-disable-next-line no-console
-  console.log("[auth-callback] Clerk user found")
+  log.info("Clerk user found", { userId })
 
   try {
     const serviceClient = createServiceRoleClient()
@@ -84,14 +83,12 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (insertError) {
-        // eslint-disable-next-line no-console
-        console.error("[auth-callback] Profile creation failed:", insertError.message)
+        log.error("Profile creation failed", { userId }, insertError)
         return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
       }
       
       profile = newProfile
-      // eslint-disable-next-line no-console
-      console.log("[auth-callback] Created profile for user:", userId)
+      log.info("Created profile for user", { userId, profileId: profile?.id })
     }
 
     // Log login (non-blocking)
@@ -122,14 +119,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // eslint-disable-next-line no-console
-    console.log("[auth-callback] Redirecting to:", destination)
+    log.info("Redirecting user", { destination, role: profile?.role })
     
     return NextResponse.redirect(destination)
     
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[auth-callback] Error:", err)
+    log.error("Auth callback error", {}, err)
     return NextResponse.redirect(`${origin}/sign-in?error=callback_error`)
   }
 }
