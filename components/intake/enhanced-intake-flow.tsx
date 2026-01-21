@@ -1190,7 +1190,7 @@ export function EnhancedIntakeFlow({
                 label="How many days?"
                 required
                 error={errors.duration}
-                hint="Price varies by duration"
+                helpText={`1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY} · 3+ days requires a consult`}
               >
                 <div className="space-y-3">
                   <div className="flex gap-2">
@@ -1215,6 +1215,18 @@ export function EnhancedIntakeFlow({
                       </span>
                     </SelectableChip>
                   </div>
+                  
+                  {/* GP comparison - subtle value anchor */}
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    <span className="line-through opacity-60">{GP_COMPARISON.STANDARD} GP visit</span>
+                    <span className="mx-1.5">→</span>
+                    <span className="text-primary font-medium">
+                      Save ${state.duration === "2" 
+                        ? (60 - PRICING.MED_CERT_2DAY).toFixed(0)
+                        : (60 - PRICING.MED_CERT).toFixed(0)}+
+                    </span>
+                  </p>
+                  
                   {/* Discreet link for longer durations - shows interstitial before redirect */}
                   <button
                     type="button"

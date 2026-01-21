@@ -140,8 +140,8 @@ export async function declineIntakeAction(
       
       // Track email delivery status on intake
       if (!emailResult.success) {
-        const { createClient } = await import("@/lib/supabase/server")
-        const supabase = await createClient()
+        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+        const supabase = createServiceRoleClient()
         await supabase
           .from("intakes")
           .update({ 
@@ -159,8 +159,8 @@ export async function declineIntakeAction(
           extra: { error: emailResult.error, patientEmail: intake.patient.email },
         })
       } else {
-        const { createClient } = await import("@/lib/supabase/server")
-        const supabase = await createClient()
+        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+        const supabase = createServiceRoleClient()
         await supabase
           .from("intakes")
           .update({ 
@@ -176,8 +176,8 @@ export async function declineIntakeAction(
       logger.error("Failed to send decline email", { intakeId }, emailError instanceof Error ? emailError : new Error(String(emailError)))
       
       // Track failure on intake
-      const { createClient } = await import("@/lib/supabase/server")
-      const supabase = await createClient()
+      const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+      const supabase = createServiceRoleClient()
       await supabase
         .from("intakes")
         .update({ 
@@ -293,8 +293,8 @@ export async function claimIntakeAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { createClient } = await import("@/lib/supabase/server")
-  const supabase = await createClient()
+  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+  const supabase = createServiceRoleClient()
 
   // Use the database function for atomic claim
   const { data, error } = await supabase.rpc("claim_intake_for_review", {
@@ -334,8 +334,8 @@ export async function releaseIntakeClaimAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { createClient } = await import("@/lib/supabase/server")
-  const supabase = await createClient()
+  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase.rpc("release_intake_claim", {
     p_intake_id: intakeId,
@@ -362,8 +362,8 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
     return { success: false, error: "Unauthorized" }
   }
 
-  const { createClient } = await import("@/lib/supabase/server")
-  const supabase = await createClient()
+  const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("decline_reason_templates")

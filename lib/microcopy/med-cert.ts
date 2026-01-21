@@ -151,7 +151,9 @@ export const MICROCOPY = {
   payment: {
     heading: "Complete payment",
     subtitle: "You'll receive your certificate after a GP reviews your request",
-    price: "$19.95",
+    price: "From $19.95",
+    priceOneDayLabel: "$19.95",
+    priceTwoDayLabel: "$29.95",
     includes: ["GP review of your information", "Digital certificate (if approved)", "Secure document storage"],
     disclaimer:
       "A GP will review your information and may request further details if needed. Certificates are issued at the GP's discretion based on clinical assessment.",

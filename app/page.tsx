@@ -24,7 +24,7 @@ import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 // SEO metadata for homepage - critical for Google ranking
 export const metadata: Metadata = {
   title: 'Online Doctor Australia | Medical Certificates & Prescriptions | InstantMed',
-  description: 'Get medical certificates ($19.95) and repeat prescriptions ($29.95) from AHPRA-registered Australian doctors in under 30 minutes. 100% online. Reviewed by real GPs.',
+  description: 'Get medical certificates (from $19.95) and repeat prescriptions ($29.95) from AHPRA-registered Australian doctors in under 30 minutes. 100% online. Reviewed by real GPs.',
   keywords: [
     'online doctor australia',
     'telehealth australia',

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { AnalyticsClient } from "./analytics-client"
 
 export const dynamic = "force-dynamic"
@@ -10,7 +10,7 @@ export const metadata = {
 }
 
 async function getAnalytics() {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   const now = new Date()
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)

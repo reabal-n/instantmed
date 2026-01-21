@@ -38,11 +38,11 @@ const patientNavItems: NavItem[] = [
 ]
 
 const doctorNavItems: NavItem[] = [
-  { href: "/doctor", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/doctor/queue", label: "Review Queue", icon: ListOrdered, badge: true },
-  { href: "/doctor/admin", label: "All Requests", icon: FileText },
+  { href: "/doctor", label: "Review Queue", icon: ListOrdered, badge: true },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/doctor/admin", label: "All Requests", icon: FileText },
+  { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]
 
 export function DashboardSidebar({ 

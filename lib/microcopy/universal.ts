@@ -13,7 +13,9 @@ export const COPY = {
     noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
     price: {
-      medcert: "$19.95",
+      medcert: "From $19.95",
+      medcertOneDay: "$19.95",
+      medcertTwoDay: "$29.95",
       prescription: "$29.95",
     },
   },

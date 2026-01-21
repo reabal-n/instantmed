@@ -1,9 +1,7 @@
 import type React from "react"
 import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { Navbar } from "@/components/shared/navbar"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
-import { DoctorDock } from "@/components/shared/doctor-dock"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -34,22 +32,18 @@ export default async function DoctorLayout({
   const stats = await getDoctorDashboardStats()
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar variant="doctor" userName={authUser.profile.full_name} />
-      <div className="flex-1 pb-24">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
-            <DashboardSidebar 
-              variant="doctor" 
-              userName={authUser.profile.full_name}
-              userRole={isAdmin ? "Admin" : "Doctor"}
-              pendingCount={stats.in_queue}
-            />
-            <main className="flex-1 min-w-0">{children}</main>
-          </div>
+    <div className="flex min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <DashboardSidebar 
+        variant="doctor" 
+        userName={authUser.profile.full_name}
+        userRole={isAdmin ? "Admin" : "Doctor"}
+        pendingCount={stats.in_queue}
+      />
+      <main className="flex-1 min-w-0 lg:ml-0 pt-6 pb-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          {children}
         </div>
-      </div>
-      <DoctorDock pendingCount={stats.in_queue} />
+      </main>
     </div>
   )
 }

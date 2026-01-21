@@ -1,5 +1,6 @@
 import "server-only"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("data-intakes")
 import type {
@@ -187,7 +188,7 @@ export async function getAllIntakesByStatus(
 export async function getDoctorQueue(
   options?: { page?: number; pageSize?: number }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
@@ -246,7 +247,7 @@ export async function getDoctorQueue(
  * Used for the doctor detail view.
  */
 export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWithDetails | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -302,7 +303,7 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
  * Get all intakes for admin dashboard
  */
 export async function getAllIntakesForAdmin(): Promise<IntakeWithPatient[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -333,7 +334,7 @@ export async function getDoctorDashboardStats(): Promise<{
   pending_info: number
   scripts_pending: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -372,7 +373,7 @@ export async function getIntakeMonitoringStats(): Promise<{
   avgReviewTimeMinutes: number | null
   oldestInQueueMinutes: number | null
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Get start of today in local timezone
   const todayStart = new Date()
@@ -471,7 +472,7 @@ export async function getDoctorPersonalStats(doctorId: string): Promise<{
   reviewedThisWeek: number
   reviewedThisMonth: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Time boundaries
   const todayStart = new Date()
@@ -563,7 +564,7 @@ export async function getSlaBreachIntakes(): Promise<{
   approaching: number
   intakeIds: string[]
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date()
   const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
 

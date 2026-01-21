@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PatientsListClient } from "./patients-list-client"
 
 async function getAllPatients() {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("profiles")

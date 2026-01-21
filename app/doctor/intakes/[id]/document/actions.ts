@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireAuth } from "@/lib/auth"
 import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
@@ -17,7 +17,7 @@ export async function saveMedCertDraftAction(
       return { success: false, error: "Unauthorized" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { error } = await supabase
       .from("document_drafts")
@@ -44,7 +44,7 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: "Unauthorized" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()
 
     // Fetch draft data

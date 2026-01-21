@@ -37,7 +37,7 @@ const log = createLogger("doctor-identity")
  * Get doctor identity for current user
  */
 export async function getDoctorIdentity(profileId: string): Promise<DoctorIdentity | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("profiles")

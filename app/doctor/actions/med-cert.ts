@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert")
@@ -34,7 +34,7 @@ export async function getOrCreateMedCertDraft(
       return { success: false, error: "Invalid request ID" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Fetch intake to verify it exists
     const intake = await getIntakeWithDetails(requestId)
@@ -123,7 +123,7 @@ export async function saveMedCertDraft(
       return { success: false, error: "Date from must be before date to" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const updateData: Partial<MedCertDraft> = {
       patient_full_name: data.patient_full_name,
@@ -173,7 +173,7 @@ export async function issueMedCertificate(
       return { success: false, error: "Invalid IDs" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // Fetch the draft
     const { data: draft, error: draftError } = await supabase

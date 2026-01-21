@@ -964,6 +964,17 @@ export function MedCertFlowClient({
               }}
               placeholder="Select duration..."
             />
+            
+            {/* GP comparison - subtle value anchor */}
+            <p className="text-[10px] text-muted-foreground text-center mt-2">
+              <span className="line-through opacity-60">$60–90 GP visit</span>
+              <span className="mx-1.5">→</span>
+              <span className="text-primary font-medium">
+                Save ${formData.duration === "2" 
+                  ? (60 - PRICING.MED_CERT_2DAY).toFixed(0)
+                  : (60 - PRICING.MED_CERT).toFixed(0)}+
+              </span>
+            </p>
 
             {formData.duration === "specific" && (
               <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">

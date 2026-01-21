@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { DocumentDraft, GeneratedDocument, MedCertDraftData, PathologyDraftData } from "@/types/db"
 
 // UUID validation helper
@@ -19,7 +19,7 @@ export async function getOrCreateMedCertDraftForRequest(intakeId: string): Promi
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Check if draft already exists - use SELECT FOR UPDATE pattern conceptually
   // The actual idempotency is enforced by unique constraint
@@ -135,7 +135,7 @@ export async function updateMedCertDraftData(
   draftId: string,
   data: Partial<MedCertDraftData>,
 ): Promise<DocumentDraft | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // First get the current draft to merge data
   const { data: currentDraft, error: fetchError } = await supabase
@@ -175,7 +175,7 @@ export async function updateMedCertDraftData(
  * Get the latest generated document for a request
  */
 export async function getLatestDocumentForRequest(requestId: string): Promise<GeneratedDocument | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("documents")
@@ -228,7 +228,7 @@ export async function createGeneratedDocument(
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const verificationCode = generateVerificationCode()
 
   // Create document with verification code
@@ -277,7 +277,7 @@ export async function getDraftById(draftId: string): Promise<DocumentDraft | nul
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase.from("document_drafts").select("*").eq("id", draftId).single()
 
@@ -296,7 +296,7 @@ export async function hasDocumentForRequest(requestId: string): Promise<boolean>
     return false
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { count, error } = await supabase
     .from("documents")
@@ -318,7 +318,7 @@ export async function getDocumentsForRequest(requestId: string): Promise<Generat
     return []
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("documents")
@@ -362,7 +362,7 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Check if draft already exists
   const { data: existingDraft, error: fetchError } = await supabase
@@ -468,7 +468,7 @@ export async function updatePathologyDraftData(
   data: Partial<PathologyDraftData>,
   subtype?: "pathology_bloods" | "pathology_imaging",
 ): Promise<DocumentDraft | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // First get the current draft to merge data
   const { data: currentDraft, error: fetchError } = await supabase
@@ -520,7 +520,7 @@ export async function getMedCertCertificateForRequest(requestId: string): Promis
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // First check if this is a med cert request with a certificate
   const { data: request } = await supabase
@@ -584,7 +584,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Check if draft already exists (using intake_id field if available, or request_id as fallback)
   const { data: existingDraft, error: fetchError } = await supabase
@@ -693,7 +693,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
  * Get the latest generated document for an intake
  */
 export async function getLatestDocumentForIntake(intakeId: string): Promise<GeneratedDocument | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("documents")
@@ -714,7 +714,7 @@ export async function getLatestDocumentForIntake(intakeId: string): Promise<Gene
  * Get med cert certificate for an intake (new med_cert_certificates table)
  */
 export async function getMedCertCertificateForIntake(intakeId: string): Promise<GeneratedDocument | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: certificate, error } = await supabase
     .from("med_cert_certificates")
