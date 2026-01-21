@@ -24,7 +24,7 @@ export default async function PatientLayout({
   }
 
   if (authUser.profile.role !== "patient") {
-    if (authUser.profile.role === "doctor") {
+    if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
       redirect("/doctor")
     }
     redirect("/sign-in")

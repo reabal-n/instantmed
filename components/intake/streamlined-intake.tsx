@@ -21,6 +21,7 @@ import {
   Sparkles,
   Info,
 } from "lucide-react"
+import { PRICING } from "@/lib/constants"
 
 // Animation variants
 const fadeSlide = {
@@ -841,7 +842,9 @@ export function StreamlinedIntake({
                 <p className="font-semibold">Total</p>
                 <p className="text-xs text-muted-foreground">Reviewed by Australian doctor</p>
               </div>
-              <p className="text-2xl font-bold text-primary">$19.95</p>
+              <p className="text-2xl font-bold text-primary">
+                ${formData.duration === "2 days" ? PRICING.MED_CERT_2DAY.toFixed(2) : PRICING.MED_CERT.toFixed(2)}
+              </p>
             </div>
 
             {errors.submit && (

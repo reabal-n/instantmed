@@ -316,7 +316,7 @@ export default function CorporatePage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">$19.95 • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
                 </div>
               </div>
             </div>

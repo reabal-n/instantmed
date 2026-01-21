@@ -310,7 +310,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates are $19.95. One flat fee, no hidden costs. Scripts from $29.95.",
+                      a: "Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
@@ -338,7 +338,7 @@ export default function ShiftWorkersPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">$19.95 • 8am-10pm, 7 days</p>
+                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • 8am-10pm, 7 days</p>
                 </div>
               </div>
             </div>

@@ -307,7 +307,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates for students are $19.95 — one flat fee. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
+                      a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">
@@ -335,7 +335,7 @@ export default function StudentsPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">$19.95 • Accepted by all unis</p>
+                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Accepted by all unis</p>
                 </div>
               </div>
             </div>

@@ -15,6 +15,7 @@ export const CONTACT_PHONE_NUMBER = "1800467826"
 // Service pricing (in AUD)
 export const PRICING = {
   MED_CERT: 19.95,
+  MED_CERT_2DAY: 29.95,
   REPEAT_SCRIPT: 29.95,
   NEW_SCRIPT: 49.95,
   CONSULT: 49.95,
@@ -24,6 +25,7 @@ export const PRICING = {
 // Formatted pricing strings for display
 export const PRICING_DISPLAY = {
   MED_CERT: `$${PRICING.MED_CERT.toFixed(2)}`,
+  MED_CERT_2DAY: `$${PRICING.MED_CERT_2DAY.toFixed(2)}`,
   REPEAT_SCRIPT: `$${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
   NEW_SCRIPT: `$${PRICING.NEW_SCRIPT.toFixed(2)}`,
   CONSULT: `$${PRICING.CONSULT.toFixed(2)}`,

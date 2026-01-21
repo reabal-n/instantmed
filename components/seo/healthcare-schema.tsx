@@ -467,8 +467,8 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
       baseUrl={baseUrl}
       steps={[
         {
-          name: "Complete the online form",
-          text: "Answer a few questions about your symptoms and the type of certificate you need (work, study, or carer's leave). Takes about 2 minutes."
+          name: "Fill out a quick form",
+          text: "Tell us about your symptoms and how long you need off. Takes about 2 minutes."
         },
         {
           name: "Verify your identity",
@@ -476,7 +476,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
         },
         {
           name: "Make payment",
-          text: "Pay securely online. Medical certificates start at $19.95."
+          text: "Pay securely online. 1-day certificates $19.95, 2-day certificates $29.95."
         },
         {
           name: "Doctor reviews your request",

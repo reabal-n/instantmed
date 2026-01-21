@@ -263,7 +263,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "What's it cost?",
-                      a: "Med certs from $19.95. Scripts from $29.95. One flat fee, no surprises.",
+                      a: "Med certs from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95. No surprises.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-content1/50 backdrop-blur-sm border border-divider/50">

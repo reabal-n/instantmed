@@ -38,6 +38,7 @@ import type { User } from "@supabase/supabase-js"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { MICROCOPY } from "@/lib/microcopy/med-cert"
+import { PRICING } from "@/lib/constants"
 import { TagsSelector } from "@/components/ui/tags-selector"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 // SmartValidation removed - simplified checkout flow
@@ -75,13 +76,13 @@ const CERT_TYPES = [
   { id: "carer", label: MICROCOPY.type.carer.label, emoji: "❤️", description: MICROCOPY.type.carer.description },
 ] as const
 
-// Duration options with icons for AnimatedSelect
+// Duration options with icons and pricing for AnimatedSelect
 const DURATION_OPTIONS = [
-  { value: "1", label: MICROCOPY.duration.options["1"], icon: CalendarDays, color: "#10B981" },
-  { value: "2", label: MICROCOPY.duration.options["2"], icon: CalendarDays, color: "#4f46e5" },
-  { value: "3", label: MICROCOPY.duration.options["3"], icon: CalendarDays, color: "#3B82F6" },
-  { value: "4-7", label: MICROCOPY.duration.options["4-7"], icon: CalendarRange, color: "#4f46e5" },
-  { value: "1-2weeks", label: MICROCOPY.duration.options["1-2weeks"], icon: CalendarRange, color: "#EC4899" },
+  { value: "1", label: `${MICROCOPY.duration.options["1"]} · $${PRICING.MED_CERT}`, icon: CalendarDays, color: "#10B981" },
+  { value: "2", label: `${MICROCOPY.duration.options["2"]} · $${PRICING.MED_CERT_2DAY}`, icon: CalendarDays, color: "#4f46e5" },
+  { value: "3", label: `${MICROCOPY.duration.options["3"]} · Consult required`, icon: CalendarDays, color: "#3B82F6" },
+  { value: "4-7", label: `${MICROCOPY.duration.options["4-7"]} · Consult required`, icon: CalendarRange, color: "#4f46e5" },
+  { value: "1-2weeks", label: `${MICROCOPY.duration.options["1-2weeks"]} · Consult required`, icon: CalendarRange, color: "#EC4899" },
   { value: "specific", label: MICROCOPY.duration.options["specific"], icon: CalendarClock, color: "#F59E0B" },
 ] as const
 
@@ -554,8 +555,12 @@ export function MedCertFlowClient({
         is_authenticated: isAuthenticated,
       })
     } else if (step === "duration" && formData.duration) {
+      const priceTier = formData.duration === "2" ? "2_day" : "1_day"
+      const price = formData.duration === "2" ? PRICING.MED_CERT_2DAY : PRICING.MED_CERT
       posthog.capture("med_cert_duration_selected", {
         duration_days: formData.duration,
+        price_tier: priceTier,
+        price_amount: price,
         cert_type: formData.certType,
       })
     } else if (step === "symptoms") {
@@ -1217,7 +1222,9 @@ export function MedCertFlowClient({
             <div className="rounded-xl border border-border bg-white p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="font-semibold">Total</span>
-                <span className="text-xl font-bold text-primary">$19.95</span>
+                <span className="text-xl font-bold text-primary">
+                  ${formData.duration === "2" ? PRICING.MED_CERT_2DAY.toFixed(2) : PRICING.MED_CERT.toFixed(2)}
+                </span>
               </div>
               <div className="space-y-1.5 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
@@ -1356,7 +1363,7 @@ export function MedCertFlowClient({
                   </>
                 ) : (
                   <>
-                    Pay $19.95 &amp; Submit
+                    Pay ${formData.duration === "2" ? PRICING.MED_CERT_2DAY.toFixed(2) : PRICING.MED_CERT.toFixed(2)} &amp; Submit
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}

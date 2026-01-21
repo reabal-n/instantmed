@@ -43,6 +43,7 @@ export interface FlowConfig {
 
 export interface PricingConfig {
   basePriceCents: number
+  twoDayPriceCents?: number  // For tiered pricing (e.g., 2-day med certs)
   priorityFeeCents: number
   backdatingFeeCents?: number
 }

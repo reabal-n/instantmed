@@ -58,7 +58,7 @@ import { PaymentMethodIcons } from "@/components/checkout/trust-badges"
 import { SocialProofCheckout } from "@/components/shared/social-proof-checkout"
 import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
-import { PRICING_DISPLAY, GP_COMPARISON } from "@/lib/constants"
+import { PRICING_DISPLAY, PRICING, GP_COMPARISON } from "@/lib/constants"
 import { logger } from "@/lib/observability/logger"
 import { useFormAutosave } from "@/hooks/use-form-autosave"
 
@@ -148,12 +148,14 @@ interface EnhancedIntakeFlowProps {
 // CONSTANTS
 // ============================================
 
-const SERVICES: Array<{
-  id: ServiceType
+const SERVICES: ReadonlyArray<{
+  id: string
   title: string
   subtitle: string
   icon: React.ElementType
   price: string
+  basePrice?: number
+  twoDayPrice?: number
   time: string
   noCall: boolean
   popular?: boolean
@@ -164,7 +166,9 @@ const SERVICES: Array<{
     title: "Medical Certificate",
     subtitle: "Sick leave, carer's leave, study",
     icon: FileText,
-    price: PRICING_DISPLAY.MED_CERT,
+    price: `From ${PRICING_DISPLAY.MED_CERT}`,
+    basePrice: PRICING.MED_CERT,
+    twoDayPrice: PRICING.MED_CERT_2DAY,
     time: "Under 30 min",
     noCall: true,
     popular: true,
@@ -368,18 +372,29 @@ function FormField({
 /**
  * Persistent price summary chip - shows selected service price throughout the flow
  * Provides price certainty and reduces checkout abandonment
+ * For med certs, shows dynamic pricing based on duration (1-day: $19.95, 2-day: $29.95)
  */
 function PriceSummaryChip({ 
   service, 
+  duration,
   className 
 }: { 
   service: ServiceType | null
+  duration?: string
   className?: string 
 }) {
   if (!service) return null
   
   const selectedService = SERVICES.find(s => s.id === service)
   if (!selectedService) return null
+  
+  // Calculate dynamic price for med certs based on duration
+  let displayPrice = selectedService.price
+  if (service === "med-cert" && duration && selectedService.basePrice && selectedService.twoDayPrice) {
+    const is2Day = duration === "2" || duration === "2 days"
+    const price = is2Day ? selectedService.twoDayPrice : selectedService.basePrice
+    displayPrice = `$${price.toFixed(2)}`
+  }
   
   return (
     <div className={cn(
@@ -391,7 +406,7 @@ function PriceSummaryChip({
         {selectedService.title}:
       </span>
       <span className="text-sm font-semibold text-green-800 dark:text-green-200">
-        {selectedService.price}
+        {displayPrice}
       </span>
     </div>
   )
@@ -715,6 +730,18 @@ export function EnhancedIntakeFlow({
           const newErrors = { ...prev }
           delete newErrors[field]
           return newErrors
+        })
+      }
+
+      // PostHog: Track duration tier selection for med certs
+      if (field === "duration" && value && state.service === "med-cert") {
+        const priceTier = value === "2" ? "2_day" : "1_day"
+        const price = value === "2" ? PRICING.MED_CERT_2DAY : PRICING.MED_CERT
+        posthog.capture("med_cert_duration_selected", {
+          duration_days: value,
+          price_tier: priceTier,
+          price_amount: price,
+          cert_type: state.certType,
         })
       }
 
@@ -1158,25 +1185,35 @@ export function EnhancedIntakeFlow({
                 </div>
               </FormField>
 
-              {/* Duration */}
+              {/* Duration with tiered pricing */}
               <FormField
                 label="How many days?"
                 required
                 error={errors.duration}
-                hint="Select the number of days you need off"
+                hint="Price varies by duration"
               >
                 <div className="space-y-3">
                   <div className="flex gap-2">
-                    {["1", "2"].map((d) => (
-                      <SelectableChip
-                        key={d}
-                        selected={state.duration === d}
-                        onClick={() => updateField("duration", d as "1" | "2")}
-                        className="flex-1 touch-target"
-                      >
-                        {d} day{d !== "1" ? "s" : ""}
-                      </SelectableChip>
-                    ))}
+                    <SelectableChip
+                      selected={state.duration === "1"}
+                      onClick={() => updateField("duration", "1" as "1" | "2")}
+                      className="flex-1 touch-target"
+                    >
+                      <span className="flex flex-col items-center gap-0.5">
+                        <span>1 day</span>
+                        <span className="text-[10px] font-normal opacity-70">${PRICING.MED_CERT}</span>
+                      </span>
+                    </SelectableChip>
+                    <SelectableChip
+                      selected={state.duration === "2"}
+                      onClick={() => updateField("duration", "2" as "1" | "2")}
+                      className="flex-1 touch-target"
+                    >
+                      <span className="flex flex-col items-center gap-0.5">
+                        <span>2 days</span>
+                        <span className="text-[10px] font-normal opacity-70">${PRICING.MED_CERT_2DAY}</span>
+                      </span>
+                    </SelectableChip>
                   </div>
                   {/* Discreet link for longer durations - shows interstitial before redirect */}
                   <button
@@ -1742,7 +1779,9 @@ export function EnhancedIntakeFlow({
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-bold text-primary">
-                    {selectedService?.price}
+                    {state.service === "med-cert" && selectedService?.basePrice && selectedService?.twoDayPrice
+                      ? `$${(state.duration === "2" ? selectedService.twoDayPrice : selectedService.basePrice).toFixed(2)}`
+                      : selectedService?.price}
                   </span>
                   <p className="text-xs text-muted-foreground">One-time payment</p>
                 </div>
@@ -1752,7 +1791,11 @@ export function EnhancedIntakeFlow({
               <div className="pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground">{selectedService?.title}</span>
-                  <span>{selectedService?.price}</span>
+                  <span>
+                    {state.service === "med-cert" && selectedService?.basePrice && selectedService?.twoDayPrice
+                      ? `$${(state.duration === "2" ? selectedService.twoDayPrice : selectedService.basePrice).toFixed(2)}`
+                      : selectedService?.price}
+                  </span>
                 </div>
                 {state.service === "med-cert" && state.startDate && (() => {
                   const selectedDate = new Date(state.startDate)
@@ -1773,7 +1816,14 @@ export function EnhancedIntakeFlow({
                   <span>Total</span>
                   <span className="text-primary">
                     {(() => {
-                      const basePrice = parseFloat(selectedService?.price?.replace('$', '') || '0')
+                      // Calculate base price - for med certs, use duration-based pricing
+                      let basePrice: number
+                      if (state.service === "med-cert" && selectedService?.basePrice && selectedService?.twoDayPrice) {
+                        basePrice = state.duration === "2" ? selectedService.twoDayPrice : selectedService.basePrice
+                      } else {
+                        basePrice = parseFloat(selectedService?.price?.replace('$', '').replace('From ', '') || '0')
+                      }
+                      
                       const selectedDate = new Date(state.startDate)
                       const today = new Date()
                       today.setHours(0, 0, 0, 0)
@@ -2154,7 +2204,7 @@ export function EnhancedIntakeFlow({
         {/* Price summary chip - visible after service selection */}
         {!showExtendedDurationInterstitial && state.service && step !== "service" && step !== "review" && (
           <div className="flex justify-center mb-3">
-            <PriceSummaryChip service={state.service} />
+            <PriceSummaryChip service={state.service} duration={state.duration ?? undefined} />
           </div>
         )}
 
@@ -2223,7 +2273,13 @@ export function EnhancedIntakeFlow({
                 </>
               ) : isLastStep ? (
                 <>
-                  Pay {SERVICES.find((s) => s.id === state.service)?.price}
+                  Pay {(() => {
+                    const svc = SERVICES.find((s) => s.id === state.service)
+                    if (state.service === "med-cert" && svc?.basePrice && svc?.twoDayPrice) {
+                      return `$${(state.duration === "2" ? svc.twoDayPrice : svc.basePrice).toFixed(2)}`
+                    }
+                    return svc?.price
+                  })()}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </>
               ) : (

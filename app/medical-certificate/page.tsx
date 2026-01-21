@@ -26,12 +26,14 @@ import {
 import { GridStagger } from "@/components/effects/stagger-container"
 
 // Certificate types - 3 tiers
+// Pricing: 1-day $19.95, 2-day $29.95 (tiered based on duration selected in flow)
 const CERT_TYPES = [
   {
     id: "personal",
     title: "Personal Sick Leave",
     subtitle: "1-2 days off work",
     price: 19.95,
+    priceLabel: "from $19.95",
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Briefcase,
@@ -48,6 +50,7 @@ const CERT_TYPES = [
     title: "Study Leave",
     subtitle: "Uni, TAFE or exams",
     price: 19.95,
+    priceLabel: "from $19.95",
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: GraduationCap,
@@ -64,6 +67,7 @@ const CERT_TYPES = [
     title: "Carer's Leave",
     subtitle: "Looking after someone",
     price: 19.95,
+    priceLabel: "from $19.95",
     comparePrice: 39.95,
     time: "Under 1 hour",
     icon: Heart,
@@ -472,8 +476,8 @@ export default function MedicalCertificatePage() {
                 transition={{ duration: 0.6, delay: 0.5 }}
               >
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-foreground mb-1">$19.95</div>
-                  <p className="text-xs text-muted-foreground">Flat fee</p>
+                  <div className="text-2xl font-bold text-foreground mb-1">From $19.95</div>
+                  <p className="text-xs text-muted-foreground">1-2 days</p>
                 </div>
                 <div className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm">
                   <div className="flex justify-center gap-0.5 mb-1">
@@ -964,7 +968,7 @@ export default function MedicalCertificatePage() {
                       
                       {/* Price anchoring */}
                       <p className="mt-6 text-xs text-muted-foreground">
-                        <span className="font-semibold text-foreground">$19.95</span> flat fee
+                        <span className="font-semibold text-foreground">From $19.95</span>
                         <span className="mx-2">•</span>
                         <span className="line-through opacity-60">$60+ GP visit</span>
                       </p>
@@ -982,7 +986,7 @@ export default function MedicalCertificatePage() {
         <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">$19.95 flat fee</p>
+              <p className="text-sm font-semibold text-foreground">From $19.95</p>
               <p className="text-xs text-muted-foreground truncate">Doctor-reviewed certificate</p>
             </div>
             <Button

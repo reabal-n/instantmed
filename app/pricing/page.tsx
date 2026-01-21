@@ -22,6 +22,8 @@ const services = [
   {
     name: "Medical Certificate",
     price: PRICING.MED_CERT,
+    priceLabel: `From $${PRICING.MED_CERT}`,
+    priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
     features: ["Same-day delivery", "Accepted by all employers", "AHPRA-registered GP", "PDF via email"],
     popular: true,
@@ -32,6 +34,7 @@ const services = [
   {
     name: "Prescription",
     price: PRICING.REPEAT_SCRIPT,
+    priceLabel: `$${PRICING.REPEAT_SCRIPT}`,
     description: "Repeat scripts for ongoing meds",
     features: ["E-script to your phone", "Any pharmacy Australia-wide", "Fast turnaround", "SMS token delivery"],
     popular: false,
@@ -143,8 +146,11 @@ export default function PricingPage() {
                   </div>
 
                   <div className="text-center mb-4">
-                    <span className="text-3xl font-bold">${service.price}</span>
+                    <span className="text-3xl font-bold">{service.priceLabel || `$${service.price}`}</span>
                     <span className="text-muted-foreground ml-1 text-sm">AUD</span>
+                    {service.priceSubtext && (
+                      <p className="text-xs text-muted-foreground mt-1">{service.priceSubtext}</p>
+                    )}
                   </div>
 
                   <ul className="space-y-2 mb-6">

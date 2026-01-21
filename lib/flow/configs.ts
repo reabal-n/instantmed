@@ -183,6 +183,7 @@ export const medCertConfig: FlowConfig = {
   questionnaire: medCertQuestionnaire,
   pricing: {
     basePriceCents: 1995,
+    twoDayPriceCents: 2995,
     priorityFeeCents: 1000,
   },
   requirements: {
