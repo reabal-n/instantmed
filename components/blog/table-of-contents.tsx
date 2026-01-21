@@ -27,10 +27,10 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       level: section.level || 2,
     }))
 
-  // Don't render if fewer than 4 headings
-  if (headings.length < 4) return null
+  const hasEnoughHeadings = headings.length >= 4
 
   useEffect(() => {
+    if (!hasEnoughHeadings) return
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -48,7 +48,10 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     })
 
     return () => observer.disconnect()
-  }, [headings])
+  }, [headings, hasEnoughHeadings])
+
+  // Don't render if fewer than 4 headings
+  if (!hasEnoughHeadings) return null
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id)

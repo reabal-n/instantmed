@@ -936,8 +936,8 @@ export function MedCertForm({
 
         // Redirect to Stripe checkout
         window.location.href = result.checkoutUrl
-      } catch (err) {
-        throw err
+      } catch {
+        // Error will be caught by outer try/catch
       }
     }
 

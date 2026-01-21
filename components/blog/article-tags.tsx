@@ -75,12 +75,6 @@ interface AllTagsProps {
 export function AllTags({ tags, currentTag, className }: AllTagsProps) {
   if (!tags || tags.length === 0) return null
 
-  // Count tag frequency (simulated - in real app would come from articles)
-  const tagCounts = tags.reduce((acc, tag) => {
-    acc[tag] = (acc[tag] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
   const uniqueTags = Array.from(new Set(tags)).slice(0, 20)
 
   return (

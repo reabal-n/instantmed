@@ -186,7 +186,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const { signOut } = useClerk()
-  const { user, isLoaded } = useUser()
+  const { user, isLoaded: _isLoaded } = useUser()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -238,40 +238,37 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <div className="relative z-10 hidden items-center gap-1 md:flex">
               {variant === "marketing" && (
                 <>
-                  {/* Services Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors",
-                          isActivePath("/medical-certificate") || isActivePath("/repeat-prescription") || isActivePath("/general-consult")
-                            ? "text-foreground"
-                            : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        Services
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64">
-                      {services.map((service) => (
-                        <DropdownMenuItem 
-                          key={service.href}
-                          className="cursor-pointer py-2"
-                          onPress={() => router.push(service.href)}
-                        >
-                          <div className="flex items-center gap-3">
+                  {/* Services Hover Menu */}
+                  <div className="relative group">
+                    <span
+                      className={cn(
+                        "flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-default",
+                        isActivePath("/medical-certificate") || isActivePath("/prescriptions") || isActivePath("/consult")
+                          ? "text-foreground"
+                          : "text-muted-foreground group-hover:text-foreground"
+                      )}
+                    >
+                      Services
+                      <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
+                    </span>
+                    <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      <div className="w-64 rounded-2xl border border-white/50 dark:border-white/15 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-2">
+                        {services.map((service) => (
+                          <Link
+                            key={service.href}
+                            href={service.href}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/5 transition-colors"
+                          >
                             <service.icon className="h-4 w-4 text-primary" />
                             <div>
                               <p className="text-sm font-medium">{service.title}</p>
                               <p className="text-xs text-muted-foreground">{service.description}</p>
                             </div>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
                   <AnimatedNavLink href="/trust" isActive={isActivePath("/trust")}>
                     Why us?
@@ -301,6 +298,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       </SignInButton>
                     </SignedOut>
                     <SignedIn>
+                      <Link
+                        href="/patient"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <LayoutDashboard className="h-3.5 w-3.5" />
+                        Dashboard
+                      </Link>
                       <UserButton afterSignOutUrl="/" />
                     </SignedIn>
                   </div>

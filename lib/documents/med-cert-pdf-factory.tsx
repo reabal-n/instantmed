@@ -243,7 +243,7 @@ function MedCertDocument({
         {/* Header with Logo and Clinic Info */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            { }
             <Image style={styles.logo} src={logoUrl} />
           </View>
           <View style={styles.headerText}>
@@ -311,7 +311,7 @@ function MedCertDocument({
 
         {/* Signature Section */}
         <View style={styles.signature}>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          { }
           <Image style={styles.signatureImage} src={signatureUrl} />
           <Text style={styles.signatureName}>{data.doctor_name || "Dr Reabal Najjar"}</Text>
           <Text style={styles.signatureDetails}>

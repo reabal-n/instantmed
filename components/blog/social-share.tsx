@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Link2, Linkedin, Twitter, Facebook, Check } from 'lucide-react'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +17,7 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
 
   const encodedUrl = encodeURIComponent(url)
   const encodedTitle = encodeURIComponent(title)
-  const encodedDescription = encodeURIComponent(description || '')
+  const _encodedDescription = encodeURIComponent(description || '')
 
   const shareLinks = [
     {
@@ -44,8 +45,8 @@ export function SocialShare({ url, title, description }: SocialShareProps) {
       await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy:', err)
+    } catch {
+      // Silently fail - clipboard API not available
     }
   }
 

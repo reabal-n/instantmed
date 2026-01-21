@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
  * to improve initial page load performance.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface LazyComponentProps<T extends object> {
   loader: () => Promise<{ default: ComponentType<T> }>
   props: T
@@ -149,6 +150,7 @@ export function LazyImage({
       
       {/* Actual image */}
       {isInView && (
+        /* eslint-disable-next-line @next/next/no-img-element -- LazyImage uses native img for intersection observer control */
         <img
           src={src}
           alt={alt}

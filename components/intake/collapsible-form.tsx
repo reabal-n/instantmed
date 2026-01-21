@@ -200,7 +200,7 @@ function QuestionField({
         </div>
       )
 
-    case "text":
+    case "text": {
       const isMultiline = question.placeholder?.includes("...") || question.id === "notes"
       return (
         <div className="space-y-2">
@@ -219,6 +219,7 @@ function QuestionField({
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
       )
+    }
 
     case "date":
       return (

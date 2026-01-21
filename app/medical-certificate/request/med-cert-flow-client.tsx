@@ -708,7 +708,7 @@ export function MedCertFlowClient({
           : formData.duration !== null
       case "startDate":
         return !!formData.startDate
-      case "symptoms":
+      case "symptoms": {
         // Must have symptom description (min 10 chars) and emergency confirmation
         const hasValidDescription = isSymptomInputValid(formData.symptomDescription, 10)
         if (isCarer) {
@@ -720,6 +720,7 @@ export function MedCertFlowClient({
           )
         }
         return hasValidDescription && formData.safetyAnswers.notEmergency === true
+      }
       case "review":
         return true
       default:

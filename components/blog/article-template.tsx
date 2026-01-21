@@ -15,7 +15,6 @@ import {
   Stethoscope,
   Pill,
   ArrowRight,
-  ExternalLink,
   BadgeCheck,
   Building2,
   ChevronDown
@@ -27,7 +26,7 @@ import { RelatedArticles } from "@/components/blog/related-articles"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { ArticleTags } from "@/components/blog/article-tags"
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
-import { HeroImage } from "@/components/blog/hero-image"
+import { HeroImage as _HeroImage } from "@/components/blog/hero-image"
 import { PopularArticlesCompact } from "@/components/blog/popular-articles"
 import type { Article, ArticleSection, RelatedService, ArticleFAQ } from "@/lib/blog/types"
 

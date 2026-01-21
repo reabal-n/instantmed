@@ -73,6 +73,8 @@ const eslintConfig = [
           minimumDescriptionLength: 10
         }
       ],
+      // Allow lexical declarations in case blocks (common React pattern)
+      "no-case-declarations": "off",
     }
   },
 ];

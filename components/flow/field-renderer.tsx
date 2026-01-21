@@ -116,7 +116,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
           />
         )
 
-      case 'textarea':
+      case 'textarea': {
         const textValue = (value as string) || ''
         const minLen = field.validation?.minLength || 0
         const maxLen = field.validation?.maxLength
@@ -248,6 +248,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             )}
           </div>
         )
+      }
 
       case 'date':
         return (
@@ -355,7 +356,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
         )
 
       case 'checkbox':
-      case 'multiselect':
+      case 'multiselect': {
         const selectedValues = Array.isArray(value) ? value : []
         return (
           <div className="space-y-2">
@@ -437,6 +438,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             })}
           </div>
         )
+      }
 
       case 'boolean':
         return (

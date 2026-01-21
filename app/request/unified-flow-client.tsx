@@ -570,7 +570,9 @@ export function UnifiedFlowClient({
         // Load other form fields if they exist in the draft
         setForm((prev) => ({ ...prev, ...draft }))
       }
-    } catch {}
+    } catch {
+      // Silently ignore draft loading errors
+    }
   }, [handleMedicareChange])
 
   // Sync Supabase auth state

@@ -175,6 +175,7 @@ export function checkPromptInjection(input: string): PromptSafetyResult {
  */
 export function sanitizeForPrompt(input: string): string {
   // Remove null bytes and other control characters
+  // eslint-disable-next-line no-control-regex -- Intentionally matching control characters for sanitization
   let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
   
   // Escape triple backticks (common delimiter)

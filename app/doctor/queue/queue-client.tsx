@@ -308,7 +308,7 @@ export function QueueClient({
       
       // Then apply selected sort
       switch (sortOption) {
-        case "flagged":
+        case "flagged": {
           // Flagged cases first
           const aFlagged = hasRedFlags(a)
           const bFlagged = hasRedFlags(b)
@@ -316,17 +316,19 @@ export function QueueClient({
           if (!aFlagged && bFlagged) return 1
           // Then by wait time
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        }
         
         case "wait":
           // Longest wait first
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         
-        case "service":
+        case "service": {
           // Group by service type
           const aService = (a.service as { type?: string })?.type || ""
           const bService = (b.service as { type?: string })?.type || ""
           if (aService !== bService) return aService.localeCompare(bService)
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        }
         
         default:
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()

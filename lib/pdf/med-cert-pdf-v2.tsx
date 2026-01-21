@@ -446,7 +446,7 @@ export function MedCertPdfDocumentV2({
             <View style={styles.headerLogoLeft}>
               <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
                 {logoUrl && (
-                  /* eslint-disable-next-line jsx-a11y/alt-text */
+                   
                   <Image src={logoUrl} style={[styles.logo, { marginRight: 12 }]} />
                 )}
                 <View style={styles.clinicBlock}>
@@ -479,7 +479,7 @@ export function MedCertPdfDocumentV2({
           {layout.headerStyle === "logo-center" && (
             <View style={styles.headerLogoCenter}>
               {logoUrl && (
-                /* eslint-disable-next-line jsx-a11y/alt-text */
+                 
                 <Image src={logoUrl} style={[styles.logo, { marginBottom: 8 }]} />
               )}
               <View style={styles.clinicBlockCenter}>
@@ -612,7 +612,7 @@ export function MedCertPdfDocumentV2({
               {/* Signature */}
               <View style={styles.signatureContainer}>
                 {options.signatureStyle === "image" && data.doctorSignatureUrl ? (
-                  /* eslint-disable-next-line jsx-a11y/alt-text */
+                   
                   <Image src={data.doctorSignatureUrl} style={styles.signatureImage} />
                 ) : (
                   <Text style={styles.signatureTyped}>Electronically signed</Text>

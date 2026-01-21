@@ -14,7 +14,7 @@
  * which don't support alt prop (not rendered to HTML).
  */
 
-/* eslint-disable jsx-a11y/alt-text */
+ 
 
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
 import type { MedCertDraft } from "@/types/db"

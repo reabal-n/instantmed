@@ -1548,7 +1548,7 @@ export function EnhancedIntakeFlow({
 
       // ======= ACCOUNT DETAILS =======
       // Progressive disclosure: show fields sequentially on mobile to reduce cognitive load
-      case "account":
+      case "account": {
         const hasValidName = state.firstName && state.lastName
         const hasValidEmail = state.email && state.email.includes("@")
         const hasValidPhone = state.phone && state.phone.replace(/\D/g, "").length >= 10
@@ -1702,9 +1702,10 @@ export function EnhancedIntakeFlow({
             </motion.div>
           </motion.div>
         )
+      }
 
       // ======= REVIEW =======
-      case "review":
+      case "review": {
         const selectedService = SERVICES.find((s) => s.id === state.service)
         
         return (
@@ -2001,6 +2002,7 @@ export function EnhancedIntakeFlow({
             </div>
           </motion.div>
         )
+      }
     }
   }
 

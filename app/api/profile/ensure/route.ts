@@ -56,7 +56,6 @@ export async function POST() {
       .single()
 
     if (insertError) {
-      console.error("[api/profile/ensure] Profile creation failed:", insertError.message)
       return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
     }
     

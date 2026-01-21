@@ -1,14 +1,7 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Source_Sans_3, Lora, JetBrains_Mono, Caveat } from "next/font/google"
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs"
+import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
