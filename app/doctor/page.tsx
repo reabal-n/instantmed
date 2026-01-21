@@ -6,6 +6,9 @@ import { QueueClient } from "./queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
 import { DoctorPerformance } from "@/components/doctor/doctor-performance"
 import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("doctor-dashboard")
 
 export const dynamic = "force-dynamic"
 
@@ -20,13 +23,19 @@ export default async function DoctorDashboardPage() {
   }
 
   // Fetch all data in parallel for performance
-  const [queueResult, monitoringStats, personalStats, slaData, doctorIdentity] = await Promise.all([
-    getDoctorQueue(),
-    getIntakeMonitoringStats(),
-    getDoctorPersonalStats(profile.id),
-    getSlaBreachIntakes(),
-    getDoctorIdentity(profile.id),
-  ])
+  let queueResult, monitoringStats, personalStats, slaData, doctorIdentity
+  try {
+    [queueResult, monitoringStats, personalStats, slaData, doctorIdentity] = await Promise.all([
+      getDoctorQueue(),
+      getIntakeMonitoringStats(),
+      getDoctorPersonalStats(profile.id),
+      getSlaBreachIntakes(),
+      getDoctorIdentity(profile.id),
+    ])
+  } catch (error) {
+    log.error("Data fetch error", { profileId: profile.id }, error)
+    throw error // Re-throw to trigger error boundary
+  }
 
   // Merge SLA data into monitoring stats
   const enrichedMonitoringStats = {

@@ -39,7 +39,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       created_at,
       updated_at
     `)
-    .eq("auth_user_id", userId)
+    .eq("clerk_user_id", userId)
     .single()
 
   if (error || !data) {
