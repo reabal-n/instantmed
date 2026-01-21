@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { useAuth } from "@/components/providers/supabase-auth-provider"
+import { useClerk } from "@clerk/nextjs"
 
 interface SettingsContentProps {
   user: { 
@@ -30,7 +30,7 @@ interface SettingsContentProps {
 }
 
 export function PatientSettingsContent({ user }: SettingsContentProps) {
-  const { signOut } = useAuth()
+  const { signOut } = useClerk()
   const [activeSection, setActiveSection] = useState<"profile" | "security" | "notifications">(
     "profile"
   )

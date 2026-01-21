@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/components/providers/supabase-auth-provider"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Loader2, Shield, CheckCircle } from "lucide-react"
 import { logger } from "@/lib/observability/logger"
@@ -40,75 +40,65 @@ interface InlineAuthStepProps {
 
 export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAuthStepProps) {
   const router = useRouter()
-  const { isSignedIn, user, profile, signInWithGoogle, isLoading: authLoading } = useAuth()
+  const { user, isLoaded, isSignedIn } = useUser()
+  const { openSignIn } = useClerk()
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [profileChecked, setProfileChecked] = useState(false)
 
-  // Handle auth - when user is signed in via Supabase, complete the flow
+  // Handle auth - when user is signed in via Clerk, ensure profile and complete flow
   useEffect(() => {
     const completeAuth = async () => {
-      if (isSignedIn && user && profile) {
-        setIsLoading(true)
-        try {
-          onAuthComplete(user.id, profile.id)
-          router.refresh()
-        } catch (err) {
-          logger.error("Auth completion error", { component: 'InlineAuthStep' }, err instanceof Error ? err : undefined)
-          setError("Failed to complete authentication")
-        } finally {
-          setIsLoading(false)
-        }
-      } else if (isSignedIn && user && !profile) {
-        // User is signed in but profile needs to be created
-        setIsLoading(true)
-        try {
-          const { ensureProfile } = await import("@/app/actions/ensure-profile")
-          const userEmail = user.email || ""
-          const userName = user.user_metadata?.full_name || user.user_metadata?.name || ""
-          
-          const { profileId } = await ensureProfile(user.id, userEmail, { 
-            fullName: userName, 
-            dateOfBirth: "" 
-          })
-
+      if (!isLoaded || !isSignedIn || !user || profileChecked) return
+      
+      setIsLoading(true)
+      setProfileChecked(true)
+      
+      try {
+        // Fetch or create profile from Supabase
+        const response = await fetch('/api/profile/ensure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        
+        if (response.ok) {
+          const { profileId } = await response.json()
           if (profileId) {
             onAuthComplete(user.id, profileId)
             router.refresh()
           }
-        } catch (err) {
-          logger.error("Auth completion error", { component: 'InlineAuthStep' }, err instanceof Error ? err : undefined)
-          setError("Failed to complete authentication")
-        } finally {
-          setIsLoading(false)
+        } else {
+          setError("Failed to set up your profile")
         }
+      } catch (err) {
+        logger.error("Auth completion error", { component: 'InlineAuthStep' }, err instanceof Error ? err : undefined)
+        setError("Failed to complete authentication")
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    if (!authLoading) {
-      completeAuth()
-    }
-  }, [isSignedIn, user, profile, onAuthComplete, router, authLoading])
+    completeAuth()
+  }, [isLoaded, isSignedIn, user, profileChecked, onAuthComplete, router])
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true)
-      // Pass current URL so user comes back here after auth
-      await signInWithGoogle(window.location.pathname + window.location.search)
-    } catch (_err) {
-      setError("Failed to sign in with Google")
-      setIsLoading(false)
-    }
+  const handleSignIn = () => {
+    // Open Clerk sign-in modal or redirect
+    const returnUrl = window.location.pathname + window.location.search
+    openSignIn({
+      afterSignInUrl: returnUrl,
+      afterSignUpUrl: returnUrl,
+    })
   }
 
   const handleEmailSignIn = () => {
-    // Redirect to login page with return URL
+    // Redirect to sign-in page with return URL
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search)
-    router.push(`/auth/login?redirect=${returnUrl}&flow=questionnaire`)
+    router.push(`/sign-in?redirect=${returnUrl}`)
   }
 
   // If loading (checking auth status)
-  if (isLoading || authLoading) {
+  if (isLoading || !isLoaded) {
     return (
       <div className="space-y-6 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
@@ -150,7 +140,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
       <div className="space-y-3">
         <Button
-          onClick={handleGoogleSignIn}
+          onClick={handleSignIn}
           disabled={isLoading}
           className="w-full h-12 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
         >
