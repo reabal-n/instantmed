@@ -1,7 +1,7 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AnalyticsDashboardClient } from "./analytics-client"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
@@ -12,7 +12,7 @@ export default async function AnalyticsDashboardPage() {
     redirect("/")
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Fetch analytics data
   const now = new Date()

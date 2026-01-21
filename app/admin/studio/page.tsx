@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getAllActiveTemplates } from "@/lib/data/certificate-templates"
 import { TemplateStudioClient } from "./studio-client"
 
@@ -9,19 +9,14 @@ export const metadata = {
 }
 
 export default async function TemplateStudioPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthenticatedUserWithProfile()
 
-  if (!user) {
+  if (!authUser) {
     redirect("/sign-in?redirect=/admin/studio")
   }
 
   // Check admin role
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, role, full_name")
-    .eq("auth_user_id", user.id)
-    .single()
+  const profile = authUser.profile
 
   if (!profile || profile.role !== "admin") {
     redirect("/")

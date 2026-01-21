@@ -1,7 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { auth } from "@/lib/auth"
 import {
   getAllActiveTemplates,
   getTemplateVersionHistory,
@@ -15,10 +16,9 @@ import type { TemplateConfig, TemplateType } from "@/types/certificate-template"
  * Get all active templates
  */
 export async function getActiveTemplatesAction() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await auth()
   
-  if (!user) {
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
 
@@ -30,10 +30,9 @@ export async function getActiveTemplatesAction() {
  * Get template version history
  */
 export async function getTemplateHistoryAction(templateType: TemplateType) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await auth()
   
-  if (!user) {
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
 
@@ -45,10 +44,9 @@ export async function getTemplateHistoryAction(templateType: TemplateType) {
  * Get single template by ID
  */
 export async function getTemplateAction(id: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await auth()
   
-  if (!user) {
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
 
@@ -68,18 +66,19 @@ export async function saveTemplateAction(
   config: TemplateConfig,
   name: string
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await auth()
   
-  if (!user) {
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
+
+  const supabase = createServiceRoleClient()
 
   // Check admin role
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
-    .eq("auth_user_id", user.id)
+    .eq("auth_user_id", userId)
     .single()
 
   if (!profile || profile.role !== "admin") {
@@ -99,18 +98,19 @@ export async function saveTemplateAction(
  * Activate a specific template version (rollback)
  */
 export async function activateTemplateAction(templateId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { userId } = await auth()
   
-  if (!user) {
+  if (!userId) {
     return { success: false, error: "Not authenticated" }
   }
+
+  const supabase = createServiceRoleClient()
 
   // Check admin role
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
-    .eq("auth_user_id", user.id)
+    .eq("auth_user_id", userId)
     .single()
 
   if (!profile || profile.role !== "admin") {

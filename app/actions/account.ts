@@ -1,15 +1,15 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 /**
- * Helper to get the current authenticated user ID from Supabase
+ * Helper to get the current authenticated Clerk user ID
  */
 async function getAuthUserId(): Promise<string | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user?.id ?? null
+  const { userId } = await auth()
+  return userId
 }
 
 /**
@@ -26,23 +26,16 @@ export async function changePassword(
 }
 
 /**
- * Request password reset - sends reset email via Supabase Auth
+ * Request password reset - now handled by Clerk
+ * Users should use the Clerk Account Portal for password management
  */
-export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
-  const supabase = await createClient()
-  
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'}/auth/reset-password`,
-  })
-  
-  if (error) {
-    // Don't reveal if email exists or not for security
-    // Error logged server-side only, no PII exposed
-    void error
+export async function requestPasswordReset(_email: string): Promise<{ success: boolean; error: string | null }> {
+  // Password reset is handled by Clerk Account Portal
+  // Redirect users to: https://accounts.instantmed.com.au/user
+  return { 
+    success: false, 
+    error: "Password reset is managed through your account settings. Please visit the account portal." 
   }
-  
-  // Always return success to prevent email enumeration attacks
-  return { success: true, error: null }
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; error: string | null }> {
@@ -52,7 +45,7 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
     return { success: false, error: "Not authenticated" }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Soft delete - mark profile as deleted
   const { error: updateError } = await supabase
@@ -88,7 +81,7 @@ export async function updateNotificationPreferences(
     return { success: false, error: "Not authenticated" }
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("profiles")

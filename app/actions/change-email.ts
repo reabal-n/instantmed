@@ -1,7 +1,6 @@
 "use server"
 import { createLogger } from "@/lib/observability/logger"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("change-email")
 
@@ -11,47 +10,27 @@ interface ChangeEmailResult {
   message?: string
 }
 
-export async function requestEmailChangeAction(newEmail: string): Promise<ChangeEmailResult> {
+/**
+ * Request email change - now handled by Clerk
+ * Email management is done through Clerk's Account Portal
+ */
+export async function requestEmailChangeAction(_newEmail: string): Promise<ChangeEmailResult> {
   try {
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(newEmail)) {
-      return { success: false, error: "Please enter a valid email address" }
-    }
-
-    // Get authenticated user
     const authUser = await getAuthenticatedUserWithProfile()
     if (!authUser) {
       return { success: false, error: "You must be logged in to change your email" }
     }
 
-    // Check if new email is same as current
-    if (authUser.user.email?.toLowerCase() === newEmail.toLowerCase()) {
-      return { success: false, error: "New email must be different from your current email" }
-    }
-
-    // Use Supabase Auth to update email (sends verification to new email)
-    const supabase = await createClient()
-    const { error: updateError } = await supabase.auth.updateUser({
-      email: newEmail,
-    })
-
-    if (updateError) {
-      log.error("Error updating email", { userId: authUser.user.id }, updateError)
-      return { success: false, error: updateError.message || "Unable to update email. Please try again." }
-    }
-
-    // Note: We do NOT update the profiles table here.
-    // The profile email should only be updated after the user verifies the new email.
-    // This happens via Supabase auth webhook or when the user next signs in after verification.
-    // Updating the profile email before verification would cause data inconsistency.
-
+    // Email changes are now handled by Clerk Account Portal
+    // Users should visit: https://accounts.instantmed.com.au/user
+    log.info("Email change requested - redirecting to Clerk", { userId: authUser.user.id })
+    
     return {
-      success: true,
-      message: `A verification email has been sent to ${newEmail}. Please click the link to confirm your new email address.`,
+      success: false,
+      error: "Email changes are managed through your account settings. Please visit the account portal to update your email.",
     }
   } catch (error) {
-    log.error("Unexpected error changing email", {}, error)
+    log.error("Unexpected error in email change request", {}, error)
     return {
       success: false,
       error: "An unexpected error occurred. Please try again.",
@@ -59,6 +38,10 @@ export async function requestEmailChangeAction(newEmail: string): Promise<Change
   }
 }
 
+/**
+ * Resend email verification - now handled by Clerk
+ * Clerk automatically handles email verification
+ */
 export async function resendEmailVerificationAction(): Promise<ChangeEmailResult> {
   try {
     const authUser = await getAuthenticatedUserWithProfile()
@@ -66,25 +49,15 @@ export async function resendEmailVerificationAction(): Promise<ChangeEmailResult
       return { success: false, error: "You must be logged in" }
     }
 
-    const supabase = await createClient()
+    // Email verification is handled automatically by Clerk
+    log.info("Email verification requested - handled by Clerk", { userId: authUser.user.id })
     
-    // Trigger password reset which also verifies email
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: authUser.user.email!,
-    })
-
-    if (error) {
-      log.error("Error resending verification", { userId: authUser.user.id }, error)
-      return { success: false, error: "Failed to resend verification email" }
-    }
-
     return {
-      success: true,
-      message: "Verification email resent. Please check your inbox.",
+      success: false,
+      error: "Email verification is managed through your account settings. Please visit the account portal.",
     }
   } catch (error) {
     log.error("Unexpected error resending verification", {}, error)
-    return { success: false, error: "Failed to resend verification email" }
+    return { success: false, error: "Failed to process request" }
   }
 }

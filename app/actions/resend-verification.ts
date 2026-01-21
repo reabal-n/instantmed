@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { auth, getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("resend-verification")
@@ -12,45 +12,24 @@ interface ResendVerificationResult {
 
 /**
  * Resend email verification link to the current user
- * Used in the email verification gate before document delivery
+ * Now handled by Clerk - email verification is automatic
  */
 export async function resendVerificationEmail(): Promise<ResendVerificationResult> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { userId } = await auth()
 
-    if (!user) {
+    if (!userId) {
       return { success: false, error: "Not authenticated" }
     }
 
-    if (!user.email) {
-      return { success: false, error: "No email associated with account" }
+    // Email verification is handled automatically by Clerk
+    // Users can manage verification via Clerk Account Portal
+    logger.info("Email verification requested - handled by Clerk", { userId })
+    
+    return { 
+      success: false, 
+      error: "Email verification is managed through your account settings. Please check your inbox or visit the account portal." 
     }
-
-    // Check if already verified
-    if (user.email_confirmed_at) {
-      return { success: false, error: "Email already verified" }
-    }
-
-    // Resend verification email via Supabase
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: user.email,
-    })
-
-    if (error) {
-      logger.error("Failed to resend verification email", { userId: user.id }, error)
-      
-      // Handle rate limiting
-      if (error.message?.includes("rate")) {
-        return { success: false, error: "Please wait a minute before requesting another email" }
-      }
-      
-      return { success: false, error: "Failed to send verification email" }
-    }
-
-    logger.info("Verification email resent", { userId: user.id, email: user.email })
-    return { success: true }
   } catch (error) {
     logger.error("Unexpected error resending verification", {}, error instanceof Error ? error : new Error(String(error)))
     return { success: false, error: "Something went wrong. Try again?" }
@@ -59,19 +38,21 @@ export async function resendVerificationEmail(): Promise<ResendVerificationResul
 
 /**
  * Check if the current user's email is verified
+ * With Clerk, email verification status comes from Clerk user object
  */
 export async function checkEmailVerified(): Promise<{ verified: boolean; email?: string }> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthenticatedUserWithProfile()
 
-    if (!user) {
+    if (!authUser) {
       return { verified: false }
     }
 
+    // Clerk handles email verification - if user is authenticated, email is verified
+    // Clerk requires email verification before completing sign-up by default
     return {
-      verified: !!user.email_confirmed_at,
-      email: user.email || undefined,
+      verified: true,
+      email: authUser.user.email || undefined,
     }
   } catch {
     return { verified: false }
