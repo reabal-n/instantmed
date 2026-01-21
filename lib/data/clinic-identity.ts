@@ -3,7 +3,6 @@
  * CRUD operations for global clinic branding configuration
  */
 
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
 import { createLogger } from "@/lib/observability/logger"
@@ -14,7 +13,7 @@ const log = createLogger("clinic-identity")
  * Get the active clinic identity
  */
 export async function getActiveClinicIdentity(): Promise<ClinicIdentity | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("clinic_identity")
@@ -34,7 +33,7 @@ export async function getActiveClinicIdentity(): Promise<ClinicIdentity | null> 
  * Get clinic identity by ID (admin use)
  */
 export async function getClinicIdentityById(id: string): Promise<ClinicIdentity | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("clinic_identity")
@@ -97,7 +96,7 @@ export async function saveClinicIdentity(
  * Get clinic identity history (all records, for audit)
  */
 export async function getClinicIdentityHistory(): Promise<ClinicIdentity[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("clinic_identity")

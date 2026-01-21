@@ -6,7 +6,7 @@
  * Tracks time from payment → doctor review → decision for SLA monitoring.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface RequestLatencyData {
@@ -28,7 +28,7 @@ export interface RequestLatencyData {
  * Record payment completion timestamp
  */
 export async function recordPaymentCompleted(requestId: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   await supabase
@@ -44,7 +44,7 @@ export async function recordPaymentCompleted(requestId: string): Promise<void> {
  * Record when doctor is assigned to request
  */
 export async function recordDoctorAssigned(requestId: string, doctorId: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   const { data: existing } = await supabase
@@ -71,7 +71,7 @@ export async function recordDoctorAssigned(requestId: string, doctorId: string):
  * Record when doctor starts reviewing (opens the case)
  */
 export async function recordReviewStarted(requestId: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   const { data: existing } = await supabase
@@ -100,7 +100,7 @@ export async function recordDecisionMade(
   requestId: string,
   decision: "approved" | "declined" | "needs_call"
 ): Promise<RequestLatencyData | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   const { data: existing } = await supabase
@@ -171,7 +171,7 @@ export async function getLatencyMetrics(
   requestsCompleted: number
   requestsBreachingSLA: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const since = new Date(Date.now() - periodHours * 60 * 60 * 1000).toISOString()
 
   const { data } = await supabase

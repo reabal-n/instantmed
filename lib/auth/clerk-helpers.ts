@@ -6,14 +6,14 @@
  * For email lookups, use getUserEmailFromAuthUserId from @/lib/data/profiles.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Get user email from Clerk user ID - falls back to profile lookup
  */
 export async function getUserEmailFromClerkId(clerkUserId: string): Promise<string | null> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data: profile } = await supabase
       .from("profiles")
       .select("email")
@@ -31,7 +31,7 @@ export async function getUserEmailFromClerkId(clerkUserId: string): Promise<stri
  */
 export async function getUserEmailFromAuthUserId(authUserId: string): Promise<string | null> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data: profile } = await supabase
       .from("profiles")
       .select("email")
@@ -49,7 +49,7 @@ export async function getUserEmailFromAuthUserId(authUserId: string): Promise<st
  */
 export async function getClerkUserInfo(clerkUserId: string) {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")

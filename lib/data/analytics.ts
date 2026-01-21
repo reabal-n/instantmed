@@ -1,5 +1,5 @@
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 import type { DashboardAnalytics } from "@/types/db"
 
@@ -7,7 +7,7 @@ import type { DashboardAnalytics } from "@/types/db"
  * Get comprehensive analytics for the admin dashboard
  */
 export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const now = new Date()
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()

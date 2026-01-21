@@ -1,11 +1,11 @@
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Generate or retrieve a referral code for a patient
  */
 export async function generateReferralCode(patientId: string): Promise<string> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Check if patient already has a referral code
   const { data: existing } = await supabase
@@ -38,7 +38,7 @@ export async function getReferralStats(patientId: string): Promise<{
   successfulReferrals: number
   pendingReferrals: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: referrals, error } = await supabase
     .from("referrals")

@@ -6,7 +6,7 @@
  * Tracks detailed abandon reasons including payment, safety blocks, and form context.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface EnhancedAbandonEvent {
   // Base fields (from existing IntakeAbandonEvent)
@@ -102,7 +102,7 @@ export function parseBrowserInfo(userAgent: string): { browser: string; version:
  * Track enhanced abandon event
  */
 export async function trackEnhancedAbandon(event: EnhancedAbandonEvent): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   await supabase.from("intake_abandonment").insert({
     session_id: event.sessionId,
@@ -162,7 +162,7 @@ export async function getAbandonmentAnalytics(
   paymentAbandons: number
   safetyBlockAbandons: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const since = new Date(Date.now() - periodHours * 60 * 60 * 1000).toISOString()
   
   const { data } = await supabase

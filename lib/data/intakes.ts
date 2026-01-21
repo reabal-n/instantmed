@@ -1,5 +1,4 @@
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("data-intakes")
@@ -27,7 +26,7 @@ import {
  * Returns intakes sorted by created_at descending (newest first).
  */
 export async function getPatientIntakes(patientId: string, status?: IntakeStatus): Promise<IntakeWithPatient[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   let query = supabase
     .from("intakes")
@@ -64,7 +63,7 @@ export async function getPatientIntakeStats(patientId: string): Promise<{
   pending_info: number
   awaiting_payment: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -91,7 +90,7 @@ export async function getPatientIntakeStats(patientId: string): Promise<{
  * Fetch a single intake for a patient (with ownership check)
  */
 export async function getIntakeForPatient(intakeId: string, patientId: string): Promise<IntakeWithPatient | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -126,7 +125,7 @@ export async function getAllIntakesByStatus(
   status: IntakeStatus,
   options?: { page?: number; pageSize?: number }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
@@ -607,7 +606,7 @@ export async function createIntake(
     status?: IntakeStatus
   }
 ): Promise<Intake | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: intake, error: intakeError } = await supabase
     .from("intakes")
@@ -655,7 +654,7 @@ export async function updateIntakeStatus(
     return null
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Fetch current state
   const { data: currentIntake, error: fetchError } = await supabase
@@ -751,7 +750,7 @@ export async function updateScriptSent(
   parchmentReference?: string,
   reviewedBy?: string
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
 
   // First, update only the script-related fields
@@ -799,7 +798,7 @@ export async function updateScriptSent(
  * Save doctor notes for an intake
  */
 export async function saveDoctorNotes(intakeId: string, notes: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("intakes")
@@ -825,7 +824,7 @@ export async function markIntakeRefunded(
   doctorId: string, 
   reason?: string
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("intakes")
@@ -850,7 +849,7 @@ export async function markIntakeRefunded(
  * Flag intake for follow-up
  */
 export async function flagForFollowup(intakeId: string, reason: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("intakes")
@@ -873,7 +872,7 @@ export async function flagForFollowup(intakeId: string, reason: string): Promise
  * Mark intake as reviewed
  */
 export async function markAsReviewed(intakeId: string, doctorId: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("intakes")
@@ -902,7 +901,7 @@ export async function declineIntake(
   reasonCode: string,
   reasonNote?: string
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("intakes")
@@ -940,7 +939,7 @@ export async function getPatientNotes(
   noteType?: string,
   limit: number = 50
 ): Promise<PatientNote[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   let query = supabase
     .from("patient_notes")
@@ -977,7 +976,7 @@ export async function createPatientNote(
     metadata?: Record<string, unknown>
   }
 ): Promise<PatientNote | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("patient_notes")
@@ -1009,7 +1008,7 @@ export async function updatePatientNote(
   content: string,
   title?: string
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { error } = await supabase
     .from("patient_notes")
@@ -1113,7 +1112,7 @@ export async function getIntakeDocuments(intakeId: string): Promise<Array<{
   certificate_number: string | null
   created_at: string
 }>> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intake_documents")

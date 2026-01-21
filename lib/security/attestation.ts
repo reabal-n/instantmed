@@ -7,7 +7,7 @@
  * All attestations are logged with IP address and timestamp for audit trail.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface AttestationData {
   text: string
@@ -102,7 +102,7 @@ export async function saveAttestation(
   attestationType: keyof typeof ATTESTATION_TEXTS
 ): Promise<AttestationResult> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
       .from("audit_log")

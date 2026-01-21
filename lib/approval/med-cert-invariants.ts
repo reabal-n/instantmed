@@ -5,7 +5,7 @@
  * These invariants must pass before a certificate can be marked as approved
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 
@@ -24,7 +24,7 @@ export class ApprovalInvariantError extends Error {
 export async function assertDraftExists(
   requestId: string
 ): Promise<{ id: string; request_id: string }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("document_drafts")
@@ -85,7 +85,7 @@ export async function assertDocumentUrlIsPermanent(
 export async function assertGeneratedDocumentExists(
   requestId: string
 ): Promise<{ id: string; pdf_url: string; created_at: string }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("generated_documents")
@@ -112,7 +112,7 @@ export async function assertGeneratedDocumentExists(
 export async function assertNotAlreadyApproved(
   requestId: string
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: request, error } = await supabase
     .from("med_cert_requests")

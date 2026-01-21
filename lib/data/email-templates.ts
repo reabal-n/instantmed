@@ -4,7 +4,6 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -49,7 +48,7 @@ export interface EmailTemplateInput {
  * Get all email templates
  */
 export async function getAllEmailTemplates(): Promise<EmailTemplate[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("email_templates")
@@ -68,7 +67,7 @@ export async function getAllEmailTemplates(): Promise<EmailTemplate[]> {
  * Get active email template by slug
  */
 export async function getEmailTemplateBySlug(slug: string): Promise<EmailTemplate | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("email_templates")
@@ -89,7 +88,7 @@ export async function getEmailTemplateBySlug(slug: string): Promise<EmailTemplat
  * Get email template by ID
  */
 export async function getEmailTemplateById(id: string): Promise<EmailTemplate | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("email_templates")

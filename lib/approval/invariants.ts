@@ -1,6 +1,6 @@
 import "server-only"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { isPermanentStorageUrl } from "../storage/documents"
 
 /**
@@ -26,7 +26,7 @@ export async function checkApprovalInvariants(
   const errors: string[] = []
   const warnings: string[] = []
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // 1. Fetch intake to check payment status (intakes is single source of truth)
   const { data: intake, error: intakeError } = await supabase
@@ -74,7 +74,7 @@ export async function checkApprovalInvariants(
  * Verify document exists in database after creation
  */
 export async function verifyDocumentExists(intakeId: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { count, error } = await supabase
     .from("documents")
@@ -98,7 +98,7 @@ export async function verifyDocumentUrlIsPermanent(intakeId: string): Promise<{
   url?: string
   error?: string
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: doc, error } = await supabase
     .from("documents")

@@ -1,5 +1,5 @@
-import { createClient } from "../supabase/server"
 import { createServiceRoleClient } from "../supabase/service-role"
+import { auth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("data-profiles")
 import type { Profile, AustralianState } from "../../types/db"
@@ -9,14 +9,13 @@ import type { Profile, AustralianState } from "../../types/db"
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
-  const supabase = await createClient()
+  const { userId } = await auth()
   
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
-  if (userError || !user) {
+  if (!userId) {
     return null
   }
 
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("profiles")
     .select(`
@@ -40,7 +39,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       created_at,
       updated_at
     `)
-    .eq("auth_user_id", user.id)
+    .eq("auth_user_id", userId)
     .single()
 
   if (error || !data) {
@@ -54,7 +53,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
  * Fetch a profile by its ID.
  */
 export async function getProfileById(profileId: string): Promise<Profile | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("profiles")
@@ -97,7 +96,7 @@ export async function updateProfile(
   profileId: string,
   updates: Partial<Omit<Profile, "id" | "created_at" | "auth_user_id" | "role">>,
 ): Promise<Profile | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("profiles")
@@ -128,7 +127,7 @@ export interface OnboardingData {
 }
 
 export async function completeOnboarding(profileId: string, data: OnboardingData): Promise<Profile | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -156,7 +155,7 @@ export async function completeOnboarding(profileId: string, data: OnboardingData
  * Uses service role client for auth.admin access.
  */
 export async function getPatientEmailFromRequest(requestId: string): Promise<string | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Get the request with patient profile
   const { data: request, error: requestError } = await supabase
@@ -209,7 +208,7 @@ export async function getPatientEmailFromRequest(requestId: string): Promise<str
  * Get user email from auth_user_id (legacy - for backward compatibility)
  */
 export async function getUserEmailFromAuthUserId(authUserId: string): Promise<string | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Try to get from profile first (most common case)
   const { data: profile } = await supabase

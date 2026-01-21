@@ -4,7 +4,6 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
 import crypto from "crypto"
 import type { ClinicIdentity, TemplateConfig } from "@/types/certificate-template"
@@ -367,7 +366,7 @@ export async function revokeCertificate(
 export async function getCertificateById(
   certificateId: string
 ): Promise<IssuedCertificate | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("issued_certificates")
@@ -410,7 +409,7 @@ export async function getCertificateByVerificationCode(
 export async function getPatientCertificates(
   patientId: string
 ): Promise<IssuedCertificate[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("issued_certificates")
@@ -432,7 +431,7 @@ export async function getPatientCertificates(
 export async function getCertificateForIntake(
   intakeId: string
 ): Promise<IssuedCertificate | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("issued_certificates")

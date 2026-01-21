@@ -6,7 +6,6 @@
  * @/lib/data/doctor-identity.shared instead.
  */
 
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -68,7 +67,7 @@ export async function updateDoctorIdentity(
   profileId: string,
   input: DoctorIdentityInput
 ): Promise<{ success: boolean; data?: DoctorIdentity; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Validate provider number if provided
   if (input.provider_number) {

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { IntakeDocument } from "@/types/db"
 
 /**
@@ -9,7 +9,7 @@ export async function getIntakeDocument(
   intakeId: string,
   documentType?: string
 ): Promise<IntakeDocument | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   let query = supabase
     .from("intake_documents")
@@ -35,7 +35,7 @@ export async function getIntakeDocument(
  * Get all documents for an intake.
  */
 export async function getIntakeDocuments(intakeId: string): Promise<IntakeDocument[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("intake_documents")

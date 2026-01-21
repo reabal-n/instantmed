@@ -4,7 +4,6 @@ import _crypto from "crypto"
 import { revalidatePath } from "next/cache"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { requireAuth } from "@/lib/auth"
@@ -50,7 +49,7 @@ export async function approveAndSendCert(
       return { success: false, error: "Unauthorized: Doctor access required" }
     }
 
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
 
     // 2. Fetch the intake with patient details and service info
     const { data: intake, error: intakeError } = await supabase

@@ -6,7 +6,7 @@
  * Tracks doctor review activity and alerts when no doctors are active.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface DoctorActivityMetrics {
@@ -39,7 +39,7 @@ const INACTIVITY_CRITICAL_MINUTES = 60
  * Get current doctor activity metrics
  */
 export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date()
   
   // Check if business hours (AU Eastern, 8am-10pm)
@@ -152,7 +152,7 @@ export async function getDoctorPerformance(
   doctorId: string,
   period: "hourly" | "daily" | "weekly" = "daily"
 ): Promise<DoctorPerformanceMetrics | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date()
   
   let since: Date
@@ -244,7 +244,7 @@ export async function getDoctorPerformance(
 export async function getAllDoctorPerformance(
   period: "hourly" | "daily" | "weekly" = "daily"
 ): Promise<DoctorPerformanceMetrics[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date()
   
   let since: Date

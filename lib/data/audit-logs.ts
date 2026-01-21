@@ -4,7 +4,7 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
 // Re-export types and helpers from shared module (for backward compatibility)
@@ -27,7 +27,7 @@ export async function getAuditLogs(
   page: number = 1,
   pageSize: number = 50
 ): Promise<{ data: AuditLog[]; total: number }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   let query = supabase
     .from("audit_log")
@@ -82,7 +82,7 @@ export async function getAuditLogs(
  * Get audit logs for a specific intake
  */
 export async function getAuditLogsForIntake(intakeId: string): Promise<AuditLog[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("audit_log")
@@ -110,7 +110,7 @@ export async function getAuditLogStats(): Promise<{
   byType: { type: string; count: number }[]
   byActor: { actor_type: string; count: number }[]
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)

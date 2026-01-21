@@ -4,7 +4,6 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -24,7 +23,7 @@ const log = createLogger("services-data")
  * Get all services (admin view - includes inactive)
  */
 export async function getAllServices(): Promise<Service[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("services")
@@ -43,7 +42,7 @@ export async function getAllServices(): Promise<Service[]> {
  * Get active services only (public view)
  */
 export async function getActiveServices(): Promise<Service[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("services")
@@ -63,7 +62,7 @@ export async function getActiveServices(): Promise<Service[]> {
  * Get service by ID
  */
 export async function getServiceById(id: string): Promise<Service | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("services")
@@ -83,7 +82,7 @@ export async function getServiceById(id: string): Promise<Service | null> {
  * Get service by slug
  */
 export async function getServiceBySlug(slug: string): Promise<Service | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("services")

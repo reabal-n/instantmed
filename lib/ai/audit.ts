@@ -5,7 +5,7 @@
  * Logs to ai_chat_audit_log for TGA compliance.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
 import { PROMPT_VERSION } from './prompts'
 
@@ -34,7 +34,7 @@ export interface AIAuditParams {
  */
 export async function logAIAudit(params: AIAuditParams): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     const entry = {
       session_id: params.sessionId || `${params.endpoint}_${Date.now()}`,
@@ -86,7 +86,7 @@ export async function trackTokenUsage(params: {
   responseTimeMs: number
 }): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     // Insert into token usage tracking table (create if doesn't exist)
     const { error } = await supabase
@@ -122,7 +122,7 @@ export async function logDoctorFeedback(params: {
   wasSignificantEdit: boolean
 }): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     // Calculate edit distance ratio
     const editRatio = calculateEditRatio(params.originalOutput, params.editedOutput)

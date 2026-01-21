@@ -6,7 +6,7 @@
  * Monitors pending request queue and alerts on SLA breaches.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface QueueHealthMetrics {
@@ -30,7 +30,7 @@ const SLA_BREACH_MINUTES = 60
  * Get current queue health metrics
  */
 export async function getQueueHealth(): Promise<QueueHealthMetrics> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Get all pending requests
   const { data: pendingRequests } = await supabase
@@ -150,7 +150,7 @@ export async function checkQueueHealthAndAlert(): Promise<QueueHealthMetrics> {
  * Get queue breakdown by service type
  */
 export async function getQueueByServiceType(): Promise<Record<string, number>> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   const { data } = await supabase
     .from("intakes")

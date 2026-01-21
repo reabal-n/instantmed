@@ -4,7 +4,6 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   CertificateTemplate,
@@ -25,7 +24,7 @@ const log = createLogger("certificate-templates")
 export async function getActiveTemplate(
   templateType: TemplateType
 ): Promise<CertificateTemplate | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("certificate_templates")
@@ -46,7 +45,7 @@ export async function getActiveTemplate(
  * Get active templates for all types
  */
 export async function getAllActiveTemplates(): Promise<CertificateTemplate[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("certificate_templates")
@@ -68,7 +67,7 @@ export async function getAllActiveTemplates(): Promise<CertificateTemplate[]> {
 export async function getTemplateById(
   id: string
 ): Promise<CertificateTemplateWithCreator | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("certificate_templates")
@@ -95,7 +94,7 @@ export async function getTemplateVersionHistory(
   templateType: TemplateType,
   limit: number = 10
 ): Promise<CertificateTemplateWithCreator[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("certificate_templates")
@@ -122,7 +121,7 @@ export async function getTemplateVersionHistory(
 export async function getLatestVersionNumber(
   templateType: TemplateType
 ): Promise<number> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("certificate_templates")

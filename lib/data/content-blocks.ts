@@ -4,7 +4,6 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -24,7 +23,7 @@ const log = createLogger("content-blocks")
  * Get all content blocks
  */
 export async function getAllContentBlocks(): Promise<ContentBlock[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("content_blocks")
@@ -44,7 +43,7 @@ export async function getAllContentBlocks(): Promise<ContentBlock[]> {
  * Get content block by key
  */
 export async function getContentBlockByKey(key: string): Promise<ContentBlock | null> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("content_blocks")
@@ -64,7 +63,7 @@ export async function getContentBlockByKey(key: string): Promise<ContentBlock | 
  * Get content blocks by category
  */
 export async function getContentBlocksByCategory(category: string): Promise<ContentBlock[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("content_blocks")

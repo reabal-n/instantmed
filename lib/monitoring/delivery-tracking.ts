@@ -6,7 +6,7 @@
  * Tracks delivery status from providers (Resend webhooks, Twilio callbacks).
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface DeliveryEvent {
@@ -51,7 +51,7 @@ export async function recordDeliverySent(params: {
   providerId: string
   recipient: string
 }): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   // Mask recipient for privacy
   const maskedRecipient = params.channel === "email"
@@ -85,7 +85,7 @@ export async function updateDeliveryStatus(
     errorMessage?: string
   }
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
   
   const updateData: Record<string, unknown> = {
@@ -156,7 +156,7 @@ export async function getDeliveryMetrics(
   bounceRate: number
   byTemplate: Record<string, { sent: number; delivered: number; bounced: number }>
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const since = new Date(Date.now() - periodHours * 60 * 60 * 1000).toISOString()
   
   let query = supabase

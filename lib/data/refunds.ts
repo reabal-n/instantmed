@@ -4,7 +4,6 @@
  */
 
 import "server-only"
-import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -28,7 +27,7 @@ export async function getPaymentsWithRefunds(
   page: number = 1,
   pageSize: number = 50
 ): Promise<{ data: PaymentWithRefund[]; total: number }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   let query = supabase
     .from("payments")
@@ -76,7 +75,7 @@ export async function getPaymentsWithRefunds(
  * Get refund-eligible payments
  */
 export async function getEligibleRefunds(): Promise<PaymentWithRefund[]> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("payments")
@@ -110,7 +109,7 @@ export async function getRefundStats(): Promise<{
   failed: number
   totalRefunded: number
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("payments")

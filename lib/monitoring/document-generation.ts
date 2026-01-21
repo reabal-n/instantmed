@@ -6,7 +6,7 @@
  * Tracks success/failure rates for document generation.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
 
 export interface DocumentGenerationMetrics {
@@ -26,7 +26,7 @@ export interface DocumentGenerationMetrics {
 export async function recordDocumentGeneration(
   metrics: DocumentGenerationMetrics
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   
   await supabase.from("document_generation_metrics").insert({
     request_id: metrics.requestId,
@@ -72,7 +72,7 @@ export async function getDocumentGenerationMetrics(
   byType: Record<string, { success: number; failed: number; avgLatencyMs: number }>
   errorsByType: Record<string, number>
 }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const since = new Date(Date.now() - periodHours * 60 * 60 * 1000).toISOString()
   
   const { data } = await supabase

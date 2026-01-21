@@ -7,7 +7,7 @@
  * Any manual changes require audit trail and manager approval.
  */
 
-import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface DateChangeRequest {
   requestId: string
@@ -62,7 +62,7 @@ export async function requestDateChange(
   reason: string,
   requestedBy: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Log the request attempt
   const { error } = await supabase.from("date_change_requests").insert({
@@ -103,7 +103,7 @@ export async function processDateChangeRequest(
   approvedBy: string,
   approvalReason?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   // Get the original request
   const { data: request, error: fetchError } = await supabase

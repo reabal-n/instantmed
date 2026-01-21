@@ -5,7 +5,7 @@
  * Stored in Supabase for querying and retention.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
 
 const log = createLogger('ai-audit-trail')
@@ -53,7 +53,7 @@ export interface AuditQueryFilters {
  */
 export async function logAIInteraction(entry: AIAuditEntry): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     // Sanitize sensitive data - don't store full content, just metadata
     const sanitizedEntry = {
@@ -103,7 +103,7 @@ export async function logSafetyBlock(
   modelVersion: string
 ): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     const { error } = await supabase
       .from('ai_safety_blocks')
@@ -144,7 +144,7 @@ export async function logIntakeCompletion(
   flags: string[]
 ): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     const { error } = await supabase
       .from('ai_intake_completions')
@@ -177,7 +177,7 @@ export async function logIntakeCompletion(
  */
 export async function queryAuditTrail(filters: AuditQueryFilters) {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceRoleClient()
     
     let query = supabase
       .from('ai_chat_audit_log')
