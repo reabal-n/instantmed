@@ -11,8 +11,8 @@
  */
 
 import type { Metadata } from 'next'
-import type { SEOPage, PageType } from './registry'
-import { getCanonicalUrl, getRobotsConfig } from './registry'
+import type { SEOPage, PageType, MedicationPageData, IntentPageData } from './registry'
+import { getCanonicalUrl, getRobotsConfig, isMedicationPage, isIntentPage } from './registry'
 
 // ============================================
 // TITLE TEMPLATES
@@ -20,12 +20,11 @@ import { getCanonicalUrl, getRobotsConfig } from './registry'
 
 const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to medication type for dynamic access
-    const med = page as any
-    const brandInfo = med.medication?.brandNames?.length > 0 
-      ? ` (${med.medication.brandNames[0]})` 
+    if (!isMedicationPage(page)) return `${page.h1} | InstantMed`
+    const brandInfo = page.medication.brandNames?.length > 0 
+      ? ` (${page.medication.brandNames[0]})` 
       : ''
-    return `${med.medication?.genericName || page.h1}${brandInfo} Online Australia | Prescription | InstantMed`
+    return `${page.medication.genericName || page.h1}${brandInfo} Online Australia | Prescription | InstantMed`
   },
   
   condition: (page) => {
@@ -33,9 +32,8 @@ const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   intent: (page) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
-    const intentPage = page as any
-    const urgency = intentPage.intent?.urgency === 'immediate' ? 'Urgent ' : ''
+    if (!isIntentPage(page)) return `${page.h1} | InstantMed`
+    const urgency = page.intent.urgency === 'immediate' ? 'Urgent ' : ''
     return `${urgency}${page.h1} | Online Doctors Australia | InstantMed`
   },
   
@@ -78,11 +76,10 @@ const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
 
 const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to medication type
-    const med = page as any
-    const use = med.clinicalInfo?.uses?.[0] || 'various conditions'
-    const turnaround = med.consultInfo?.turnaroundTime || '24 hours'
-    return `Get ${med.medication?.genericName || page.slug} prescribed online for ${use}. Australian doctors review within ${turnaround}. E-script sent to your phone. From ${med.consultInfo?.pricing || '$29.95'}.`
+    if (!isMedicationPage(page)) return page.content.intro.substring(0, 155)
+    const use = page.clinicalInfo?.uses?.[0] || 'various conditions'
+    const turnaround = page.consultInfo?.turnaroundTime || '24 hours'
+    return `Get ${page.medication.genericName || page.slug} prescribed online for ${use}. Australian doctors review within ${turnaround}. E-script sent to your phone. From ${page.consultInfo?.pricing || '$29.95'}.`
   },
   
   condition: (page) => {
@@ -90,9 +87,8 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   intent: (page) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
-    const intentPage = page as any
-    return `${intentPage.intent?.userNeed}. ${page.content.intro.substring(0, 100)}... Australian doctors available 7 days.`
+    if (!isIntentPage(page)) return page.content.intro.substring(0, 155)
+    return `${page.intent.userNeed}. ${page.content.intro.substring(0, 100)}... Australian doctors available 7 days.`
   },
   
   'category-hub': (page) => {
@@ -151,10 +147,8 @@ function generateKeywords(page: SEOPage): string[] {
       `${page.slug} telehealth`,
       `treat ${page.slug} online`,
     )
-  } else if (page.type === 'intent') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast to intent page type
-    const intentPage = page as any
-    generatedKeywords.push(...(intentPage.intent?.alternateQueries || []))
+  } else if (isIntentPage(page)) {
+    generatedKeywords.push(...(page.intent.alternateQueries || []))
   }
   
   // Combine and deduplicate
@@ -362,8 +356,15 @@ export function generateMedicalBusinessSchema() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Medication schema is dynamic
-export function generateDrugSchema(medication: any) {
+export interface DrugSchemaInput {
+  genericName: string
+  brandNames: string[]
+  description?: string
+  dosageForms: string[]
+  commonDosages: string[]
+}
+
+export function generateDrugSchema(medication: DrugSchemaInput) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Drug',
@@ -371,7 +372,7 @@ export function generateDrugSchema(medication: any) {
     alternateName: medication.brandNames,
     description: medication.description,
     administrationRoute: medication.dosageForms.join(', '),
-    availableStrength: medication.commonDosages.map((d: string) => ({
+    availableStrength: medication.commonDosages.map((d) => ({
       '@type': 'DrugStrength',
       description: d,
     })),

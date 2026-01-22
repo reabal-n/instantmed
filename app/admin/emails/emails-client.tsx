@@ -28,12 +28,14 @@ import {
   Loader2,
   Code,
   FileText,
+  Send,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
   updateEmailTemplateAction,
   toggleEmailTemplateActiveAction,
 } from "@/app/actions/admin-config"
+import { sendTestEmailAction } from "@/app/actions/send-test-email"
 import type { EmailTemplate } from "@/lib/data/email-templates"
 
 interface EmailTemplatesClientProps {
@@ -48,6 +50,9 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isTestEmailOpen, setIsTestEmailOpen] = useState(false)
+  const [isSendingTest, setIsSendingTest] = useState(false)
+  const [testEmail, setTestEmail] = useState("")
 
   // Form state
   const [formData, setFormData] = useState({
@@ -76,6 +81,32 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
     setSelectedTemplate(template)
     setIsPreviewOpen(true)
   }, [])
+
+  const handleOpenTestEmail = useCallback((template: EmailTemplate) => {
+    setSelectedTemplate(template)
+    setTestEmail("")
+    setIsTestEmailOpen(true)
+  }, [])
+
+  const handleSendTestEmail = async () => {
+    if (!selectedTemplate || !testEmail) return
+
+    setIsSendingTest(true)
+    try {
+      const result = await sendTestEmailAction(selectedTemplate.slug, testEmail)
+      if (result.success) {
+        toast.success(`Test email sent to ${testEmail}`)
+        setIsTestEmailOpen(false)
+        setTestEmail("")
+      } else {
+        toast.error(result.error || "Failed to send test email")
+      }
+    } catch {
+      toast.error("Failed to send test email")
+    } finally {
+      setIsSendingTest(false)
+    }
+  }
 
   const handleToggleActive = async (template: EmailTemplate) => {
     const newStatus = !template.is_active
@@ -219,13 +250,23 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
                     variant="ghost"
                     size="sm"
                     onClick={() => handlePreviewTemplate(template)}
+                    title="Preview"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => handleOpenTestEmail(template)}
+                    title="Send test email"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleEditTemplate(template)}
+                    title="Edit"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -371,6 +412,60 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
                   }}
                 />
               )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Test Email Dialog */}
+      <Dialog open={isTestEmailOpen} onOpenChange={setIsTestEmailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Send Test Email
+            </DialogTitle>
+            <DialogDescription>
+              Send a test version of &quot;{selectedTemplate?.name}&quot; with sample data
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Email Address</Label>
+              <Input
+                id="test-email"
+                type="email"
+                placeholder="test@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                The email will include a test banner and sample merge tag values.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsTestEmailOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendTestEmail}
+                disabled={isSendingTest || !testEmail}
+              >
+                {isSendingTest ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Test
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </DialogContent>

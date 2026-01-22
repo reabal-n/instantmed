@@ -249,6 +249,29 @@ export function isRedisEnabled(): boolean {
 }
 
 /**
+ * Rate limit for server actions (no Request object)
+ * Uses user ID as identifier
+ */
+export async function checkServerActionRateLimit(
+  userId: string,
+  config: keyof typeof rateLimitConfigs = "sensitive"
+): Promise<{ success: boolean; error?: string; retryAfter?: number }> {
+  const identifier = `action:${userId}`
+  const result = await checkRateLimitRedis(identifier, config)
+
+  if (!result.success) {
+    const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000)
+    return {
+      success: false,
+      error: "Too many requests. Please wait a moment before trying again.",
+      retryAfter,
+    }
+  }
+
+  return { success: true }
+}
+
+/**
  * Get rate limit status without incrementing
  */
 export async function getRateLimitStatus(

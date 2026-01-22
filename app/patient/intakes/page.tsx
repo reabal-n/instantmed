@@ -11,14 +11,26 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientIntakesPage() {
+interface PageProps {
+  searchParams: Promise<{ page?: string }>
+}
+
+export default async function PatientIntakesPage({ searchParams }: PageProps) {
   const authUser = await getAuthenticatedUserWithProfile()
   
   if (!authUser) {
     redirect("/sign-in")
   }
   
-  const intakes = await getPatientIntakes(authUser.profile.id)
+  const params = await searchParams
+  const page = parseInt(params.page || "1", 10)
+  const { data: intakes, total, pageSize } = await getPatientIntakes(authUser.profile.id, { page })
   
-  return <IntakesClient intakes={intakes} patientId={authUser.profile.id} />
+  return (
+    <IntakesClient
+      intakes={intakes}
+      patientId={authUser.profile.id}
+      pagination={{ page, total, pageSize }}
+    />
+  )
 }

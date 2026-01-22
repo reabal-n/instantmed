@@ -30,24 +30,36 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Download,
 } from "lucide-react"
 import type { Profile } from "@/types/db"
 import { toast } from "sonner"
 import { changePassword, deleteAccount } from "@/app/actions/account"
+import { exportPatientData } from "@/app/actions/export-data"
 import { AvatarPicker } from "@/components/ui/avatar-picker"
+import { updateEmailPreferences, type EmailPreferences } from "@/app/actions/email-preferences"
+import { Mail } from "lucide-react"
 
 interface PatientSettingsClientProps {
   profile: Profile
   email: string
+  emailPreferences?: EmailPreferences | null
 }
 
-export function PatientSettingsClient({ profile, email }: PatientSettingsClientProps) {
+export function PatientSettingsClient({ profile, email, emailPreferences }: PatientSettingsClientProps) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [isExportingData, setIsExportingData] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
+  const [isSavingEmailPrefs, setIsSavingEmailPrefs] = useState(false)
+  
+  const [emailPrefs, setEmailPrefs] = useState({
+    marketing_emails: emailPreferences?.marketing_emails ?? true,
+    abandoned_checkout_emails: emailPreferences?.abandoned_checkout_emails ?? true,
+  })
 
   // Extended profile data (cast through unknown for optional fields not in base type)
   const extProfile = profile as unknown as Record<string, unknown>
@@ -113,6 +125,22 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
     }
   }
 
+  const handleSaveEmailPreferences = async () => {
+    setIsSavingEmailPrefs(true)
+    try {
+      const result = await updateEmailPreferences(emailPrefs)
+      if (result.success) {
+        toast.success("Email preferences saved")
+      } else {
+        toast.error(result.error || "Failed to save email preferences")
+      }
+    } catch {
+      toast.error("Failed to save email preferences")
+    } finally {
+      setIsSavingEmailPrefs(false)
+    }
+  }
+
   const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("New passwords do not match")
@@ -137,6 +165,32 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
       toast.error("Failed to change password")
     } finally {
       setIsChangingPassword(false)
+    }
+  }
+
+  const handleExportData = async () => {
+    setIsExportingData(true)
+    try {
+      const result = await exportPatientData()
+      if (result.success && result.data) {
+        // Create and download JSON file
+        const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `instantmed-data-export-${new Date().toISOString().split("T")[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        toast.success("Data exported successfully")
+      } else {
+        toast.error(result.error || "Failed to export data")
+      }
+    } catch {
+      toast.error("Failed to export data. Please try again.")
+    } finally {
+      setIsExportingData(false)
     }
   }
 
@@ -504,6 +558,71 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
                 </Button>
               </div>
             </div>
+
+            {/* Email Subscription Preferences */}
+            <div className="pt-6 border-t border-white/20">
+              <div className="flex items-center gap-2 mb-4">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+                <h3 className="font-medium text-foreground">Email Subscriptions</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Control which marketing emails you receive. Transactional emails about your requests will always be sent.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                  <div>
+                    <p className="font-medium text-foreground">Marketing emails</p>
+                    <p className="text-sm text-muted-foreground">Occasional updates about new services and features</p>
+                  </div>
+                  <Switch 
+                    checked={emailPrefs.marketing_emails}
+                    onCheckedChange={(checked) => setEmailPrefs((prev) => ({ ...prev, marketing_emails: checked }))}
+                    aria-label="Marketing emails" 
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                  <div>
+                    <p className="font-medium text-foreground">Checkout reminders</p>
+                    <p className="text-sm text-muted-foreground">Reminders if you have an incomplete request</p>
+                  </div>
+                  <Switch 
+                    checked={emailPrefs.abandoned_checkout_emails}
+                    onCheckedChange={(checked) => setEmailPrefs((prev) => ({ ...prev, abandoned_checkout_emails: checked }))}
+                    aria-label="Checkout reminder emails" 
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/30 border border-white/20">
+                  <div>
+                    <p className="font-medium text-foreground">Transactional emails</p>
+                    <p className="text-sm text-muted-foreground">Updates about your requests, certificates, and account</p>
+                  </div>
+                  <Switch 
+                    checked={true}
+                    disabled
+                    aria-label="Transactional emails (always on)" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <Button onClick={handleSaveEmailPreferences} disabled={isSavingEmailPrefs} className="rounded-xl">
+                  {isSavingEmailPrefs ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Email Preferences
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -511,6 +630,9 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
           <div className="glass-card rounded-2xl p-6 space-y-6">
             <div>
               <h3 className="font-medium text-foreground mb-4">Change Password</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Password changes are managed through your secure account portal for added security.
+              </p>
 
               <div className="space-y-4 max-w-md">
                 <div className="space-y-2">
@@ -586,6 +708,34 @@ export function PatientSettingsClient({ profile, email }: PatientSettingsClientP
             </div>
 
             <hr className="border-white/20" />
+
+            <div>
+              <h3 className="font-medium mb-4">Data & Privacy</h3>
+              <div className="p-4 rounded-xl bg-muted/50 border border-border max-w-md mb-4">
+                <p className="font-medium">Export Your Data</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Download a copy of all your personal data in JSON format.
+                </p>
+                <Button
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={handleExportData}
+                  disabled={isExportingData}
+                >
+                  {isExportingData ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export My Data
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
 
             <div>
               <h3 className="font-medium text-red-700 mb-4">Danger Zone</h3>

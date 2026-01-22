@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "InstantMed Health Guides",
     description: "Doctor-reviewed health guides from Australian medical professionals.",
+    url: "https://instantmed.com.au/blog",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "InstantMed Health Guides",
+    description: "Doctor-reviewed health guides from Australian medical professionals.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/blog",

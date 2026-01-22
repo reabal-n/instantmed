@@ -24,6 +24,22 @@
     {
       "path": "/api/cron/health-check",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/process-email-retries",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/expire-certificates",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-orphaned-storage",
+      "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/release-stale-claims",
+      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [

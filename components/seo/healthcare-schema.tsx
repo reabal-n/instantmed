@@ -18,7 +18,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     legalName: "InstantMed Telehealth Pty Ltd",
     alternateName: "InstantMed Australia",
     url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
+    logo: `${baseUrl}/logo.svg`,
     image: `${baseUrl}/og-image.png`,
     description: "Australian telehealth service providing medical certificates and prescriptions reviewed by AHPRA-registered doctors with Medical Director oversight and RACGP-aligned clinical protocols.",
     slogan: "Healthcare that fits your schedule",
@@ -320,7 +320,7 @@ export function ArticleSchema({
       name: "InstantMed",
       logo: {
         "@type": "ImageObject",
-        url: `${baseUrl}/logo.png`
+        url: `${baseUrl}/logo.svg`
       }
     },
     mainEntityOfPage: {

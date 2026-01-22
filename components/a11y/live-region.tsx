@@ -71,14 +71,53 @@ export function AlertRegion({
 
 /**
  * Hook for programmatic announcements
+ * 
+ * Usage:
+ * ```tsx
+ * const { message, announce, announcePolite, announceAssertive, LiveRegionPortal } = useAnnounce()
+ * 
+ * // Announce a message
+ * announce('Form saved successfully')
+ * 
+ * // Urgent announcement
+ * announceAssertive('Error: Please fix the form')
+ * 
+ * // Render the portal
+ * return <><LiveRegionPortal />{children}</>
+ * ```
  */
 export function useAnnounce() {
   const [message, setMessage] = useState("")
+  const [politeness, setPoliteness] = useState<"polite" | "assertive">("polite")
   
   const announce = (text: string, duration = 1000) => {
+    setPoliteness("polite")
     setMessage(text)
     setTimeout(() => setMessage(""), duration)
   }
   
-  return { message, announce }
+  const announcePolite = (text: string, duration = 1000) => {
+    setPoliteness("polite")
+    setMessage(text)
+    setTimeout(() => setMessage(""), duration)
+  }
+  
+  const announceAssertive = (text: string, duration = 1500) => {
+    setPoliteness("assertive")
+    setMessage(text)
+    setTimeout(() => setMessage(""), duration)
+  }
+  
+  const LiveRegionPortal = () => (
+    <div
+      role={politeness === "assertive" ? "alert" : "status"}
+      aria-live={politeness}
+      aria-atomic="true"
+      className="sr-only"
+    >
+      {message}
+    </div>
+  )
+  
+  return { message, announce, announcePolite, announceAssertive, LiveRegionPortal }
 }

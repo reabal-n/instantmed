@@ -10,6 +10,7 @@ import React from "react"
 interface MedCertEmailProps {
   patientName: string
   dashboardUrl: string
+  verificationCode?: string
 }
 
 export function MedCertEmail({ patientName, dashboardUrl }: MedCertEmailProps) {
@@ -201,8 +202,9 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
   // In a real implementation, you might use react-dom/server's renderToString
   // For now, we'll return a template string that matches the component structure
   
-  const { patientName, dashboardUrl } = props
+  const { patientName, dashboardUrl, verificationCode } = props
   const baseUrl = dashboardUrl.split("/patient")[0]
+  const verifyUrl = `${baseUrl}/verify`
 
   return `<!DOCTYPE html>
 <html>
@@ -244,6 +246,21 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
       </a>
     </div>
     
+    <!-- Verification Code (if provided) -->
+    ${verificationCode ? `
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin: 24px 0;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534; font-weight: 600;">
+        Verification Code
+      </p>
+      <p style="margin: 0; font-size: 20px; font-family: monospace; font-weight: bold; color: #15803d; letter-spacing: 2px;">
+        ${verificationCode}
+      </p>
+      <p style="margin: 8px 0 0 0; font-size: 12px; color: #166534;">
+        Your employer can verify this certificate at <a href="${verifyUrl}" style="color: #16a34a;">${verifyUrl.replace('https://', '')}</a>
+      </p>
+    </div>
+    ` : ''}
+    
     <!-- What's Next -->
     <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0;">
       <h3 style="margin: 0 0 12px 0; color: #0A0F1C; font-size: 16px; font-weight: 600;">What happens next?</h3>
@@ -264,7 +281,10 @@ export function renderMedCertEmailToHtml(props: MedCertEmailProps): string {
     
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
       InstantMed Pty Ltd · Australia<br>
-      <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a>
+      <a href="${baseUrl}/privacy" style="color: #9ca3af;">Privacy</a> · <a href="${baseUrl}/terms" style="color: #9ca3af;">Terms</a> · <a href="${baseUrl}/account?tab=notifications" style="color: #9ca3af;">Email Preferences</a>
+    </p>
+    <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 8px 0 0 0;">
+      This is a transactional email related to your medical certificate request.
     </p>
   </div>
 </body>

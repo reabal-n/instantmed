@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback, useRef } from 'react'
 import { Loader2, ArrowRight, Check, AlertCircle, Cloud, CloudOff } from 'lucide-react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -49,15 +50,36 @@ export function FlowCTA({
   showSaveIndicator = true,
 }: FlowCTAProps) {
   const prefersReducedMotion = useReducedMotion()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const submitLockRef = useRef(false)
 
-  // Determine CTA state
+  // Determine CTA state - consider internal submitting state
   const getState = (): CTAState => {
-    if (isLoading) return 'loading'
+    if (isLoading || isSubmitting) return 'loading'
     if (disabled || !isComplete) return 'disabled'
     return 'enabled'
   }
 
   const state = getState()
+
+  // Protected click handler to prevent double-submit
+  const handleClick = useCallback(async () => {
+    // Prevent double-click with ref lock (synchronous check)
+    if (submitLockRef.current || isSubmitting || isLoading || disabled) return
+    
+    submitLockRef.current = true
+    setIsSubmitting(true)
+    
+    try {
+      await onClick?.()
+    } finally {
+      // Reset after a delay to prevent rapid re-clicks
+      setTimeout(() => {
+        submitLockRef.current = false
+        setIsSubmitting(false)
+      }, 500)
+    }
+  }, [onClick, isSubmitting, isLoading, disabled])
 
   // Generate intelligent helper text
   const getHelperText = (): string | null => {
@@ -155,7 +177,7 @@ export function FlowCTA({
           whileTap={state === 'enabled' && !prefersReducedMotion ? { scale: 0.99 } : {}}
         >
           <Button
-            onClick={onClick}
+            onClick={handleClick}
             disabled={state === 'disabled' || state === 'loading'}
             size="lg"
             className={cn(
@@ -163,7 +185,7 @@ export function FlowCTA({
               'transition-all duration-200',
               variant === 'primary' && [
                 state === 'enabled' && [
-                  'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
+                  'bg-linear-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
                   'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
                   'hover:-translate-y-0.5 active:scale-[0.98]',
                 ],
@@ -172,7 +194,7 @@ export function FlowCTA({
                   'shadow-none',
                 ],
                 state === 'loading' && [
-                  'bg-gradient-to-r from-primary-500 to-primary-600 text-white cursor-wait',
+                  'bg-linear-to-r from-primary-500 to-primary-600 text-white cursor-wait',
                   'shadow-[0_8px_30px_rgb(59,130,246,0.3)]',
                 ],
               ],
@@ -280,7 +302,7 @@ export function InlineFlowCTA({
           'w-full h-13 sm:h-14 text-base font-semibold rounded-full',
           'transition-all duration-200',
           !disabled && [
-            'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
+            'bg-linear-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white',
             'shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)]',
             'hover:-translate-y-0.5 active:scale-[0.98]',
           ],

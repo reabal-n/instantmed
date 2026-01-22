@@ -179,7 +179,7 @@ export function MarketingNavbar() {
               {/* Subtle separator */}
               <div className="h-4 w-px bg-border/50 mx-1" />
 
-              {navLinks.map((link, index) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -201,7 +201,7 @@ export function MarketingNavbar() {
               <Button
                 asChild
                 size="sm"
-                className="relative bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all group"
+                className="relative bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all group"
               >
                 <Link href="/start">
                   See a doctor now
@@ -271,7 +271,7 @@ export function MarketingNavbar() {
               </Button>
               <Button
                 asChild
-                className="w-full justify-center bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl"
+                className="w-full justify-center bg-linear-to-r from-indigo-500 to-violet-600 text-white rounded-xl"
               >
                 <Link href="/start">See a doctor now</Link>
               </Button>

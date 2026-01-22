@@ -345,3 +345,59 @@ export async function sendPaymentReceivedEmail(params: {
     patientId: params.patientId,
   })
 }
+
+/**
+ * Send payment failed notification to patient
+ */
+export async function sendPaymentFailedEmail(params: {
+  to: string
+  patientName: string
+  serviceName: string
+  failureReason: string
+  retryUrl: string
+  intakeId?: string
+  patientId?: string
+}): Promise<SendResult> {
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "payment_failed",
+    data: {
+      patient_name: params.patientName,
+      service_name: params.serviceName,
+      failure_reason: params.failureReason,
+      retry_url: params.retryUrl,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+  })
+}
+
+/**
+ * Send dispute alert to admin team
+ */
+export async function sendDisputeAlertEmail(params: {
+  disputeId: string
+  chargeId: string
+  intakeId?: string
+  amount: string
+  currency: string
+  reason: string
+  evidenceDueBy?: string
+}): Promise<SendResult> {
+  const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0] || "support@instantmed.com.au"
+  
+  return sendTemplateEmail({
+    to: adminEmail,
+    templateSlug: "dispute_alert",
+    data: {
+      dispute_id: params.disputeId,
+      charge_id: params.chargeId,
+      intake_id: params.intakeId || "Unknown",
+      amount: `${params.currency} ${params.amount}`,
+      reason: params.reason,
+      evidence_due_by: params.evidenceDueBy || "Check Stripe Dashboard",
+      stripe_dashboard_url: `https://dashboard.stripe.com/disputes/${params.disputeId}`,
+    },
+    isCritical: true,
+  })
+}

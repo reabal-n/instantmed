@@ -302,9 +302,9 @@ export function HowItWorksSection({ className }: { className?: string }) {
     {
       step: 3,
       title: "Get your script or certificate",
-      description: "E-script or PDF delivered to your email instantly",
+      description: "E-script or PDF delivered to your email",
       icon: CheckCircle2,
-      time: "Instant",
+      time: "Same day",
     },
   ]
 

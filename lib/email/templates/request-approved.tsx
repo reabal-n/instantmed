@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface RequestApprovedEmailProps {
   patientName: string
   requestType: string
@@ -16,7 +18,7 @@ export function RequestApprovedEmail({
   doctorName,
 }: RequestApprovedEmailProps) {
   return (
-    <BaseLayout previewText={`Your ${requestType} has been approved`}>
+    <BaseLayout previewText={`Your ${requestType} has been approved`} appUrl={APP_URL}>
       <h1>Good news! Your request is approved ✓</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -33,7 +35,7 @@ export function RequestApprovedEmail({
       )}
 
       <p>
-        <a href={`https://instantmed.com.au/patient/requests/${requestId}`} className="button button-secondary">
+        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button button-secondary">
           View in Dashboard
         </a>
       </p>

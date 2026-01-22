@@ -10,8 +10,7 @@ import { requireAuth } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { generateCertificateNumber } from "@/lib/pdf/generate-med-cert"
-import { renderMedCertPdf, generateVerificationCode } from "@/lib/pdf/med-cert-render"
+import { renderMedCertPdf, generateVerificationCode, generateCertificateNumber } from "@/lib/pdf/med-cert-render"
 import {
   findExistingCertificate,
   atomicApproveCertificate,
@@ -22,6 +21,7 @@ import {
 } from "@/lib/data/issued-certificates"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
+import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 
 interface ApproveCertResult {
@@ -49,6 +49,20 @@ export async function approveAndSendCert(
 
     if (!doctorProfile || doctorProfile.role !== "doctor") {
       return { success: false, error: "Unauthorized: Doctor access required" }
+    }
+
+    // P0 SECURITY: Rate limiting to prevent mass-approval attacks
+    const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)
+    if (!rateLimitResult.allowed) {
+      logger.warn("Certificate rate limit exceeded", {
+        doctorId: doctorProfile.id,
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      })
+      return {
+        success: false,
+        error: `Rate limit exceeded. You can issue more certificates after ${rateLimitResult.resetAt.toLocaleTimeString()}. Contact support if this is urgent.`,
+      }
     }
 
     // P2 FIX: Early verification that doctor has required credentials configured
@@ -98,6 +112,19 @@ export async function approveAndSendCert(
     const service = intake.service as { slug: string; type: string } | null
     if (!service || service.type !== "med_certs") {
       return { success: false, error: "This action is only for medical certificate intakes" }
+    }
+
+    // SELF-APPROVAL PREVENTION: Doctor cannot approve their own request
+    const patientInfo = intake.patient as { id: string } | null
+    if (patientInfo && patientInfo.id === doctorProfile.id) {
+      logger.warn("Doctor attempted self-approval", {
+        doctorId: doctorProfile.id,
+        intakeId,
+      })
+      return { 
+        success: false, 
+        error: "You cannot approve your own medical certificate request. Please have another doctor review this case." 
+      }
     }
 
     // Verify intake is in reviewable status (allow approved for idempotency)
@@ -377,10 +404,12 @@ export async function approveAndSendCert(
     }
 
     // 6. Generate email HTML - link to dashboard, NOT raw file
+    // P1 FIX: Include verification code so employers can verify authenticity
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
     const emailHtml = renderMedCertEmailToHtml({
       patientName: patient.full_name,
       dashboardUrl,
+      verificationCode,
     })
 
     // 7. Send email notification (NO attachment - patient downloads from dashboard)

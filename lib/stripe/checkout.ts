@@ -1,6 +1,7 @@
 "use server"
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
+import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
@@ -15,7 +16,7 @@ import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
 const logger = createLogger("stripe-checkout")
 
 interface CreateCheckoutInput {
-  category: ServiceCategory
+  category: string
   subtype: string
   type: string
   answers: Record<string, unknown>
@@ -47,7 +48,7 @@ function isValidUrl(url: string): boolean {
 }
 
 // Map category to service slug
-function getServiceSlug(category: ServiceCategory, subtype: string): string {
+function getServiceSlug(category: string, subtype: string): string {
   const slugMap: Record<string, string> = {
     "medical_certificate:work": "med-cert-sick",
     "medical_certificate:uni": "med-cert-sick",
@@ -67,7 +68,7 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
 export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
     // KILL SWITCH: Check if service category is disabled
-    const categoryMap: Record<ServiceCategory, "medical_certificate" | "prescription" | "other"> = {
+    const categoryMap: Record<string, "medical_certificate" | "prescription" | "other"> = {
       medical_certificate: "medical_certificate",
       prescription: "prescription",
       consult: "other",
@@ -285,7 +286,17 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       })
       return { 
         success: false, 
-        error: "Invalid request. Please refresh and try again." 
+        error: "Invalid request. Please refresh the page and try again." 
+      }
+    }
+
+    // P1 FIX: Rate limit checkout session creation to prevent abuse
+    const rateLimitResult = checkRateLimit(`checkout:${patientId}`, RATE_LIMIT_SENSITIVE)
+    if (!rateLimitResult.success) {
+      logger.warn("Checkout rate limited", { patientId })
+      return {
+        success: false,
+        error: "Too many checkout attempts. Please wait a moment before trying again.",
       }
     }
 
@@ -376,7 +387,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     // 7. Get the price ID
     const priceId = getPriceIdForRequest({
-      category: input.category,
+      category: input.category as ServiceCategory,
       subtype: input.subtype,
       answers: input.answers,
     })
@@ -509,10 +520,10 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     const supabase = createServiceRoleClient()
 
-    // Fetch the existing intake with ownership check
+    // Fetch the existing intake with ownership check and answers for safety re-validation
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("*, service:services!service_id(slug, price_cents)")
+      .select("*, service:services!service_id(slug, price_cents), answers:intake_answers(answers)")
       .eq("id", intakeId)
       .eq("patient_id", patientId)
       .single()
@@ -524,6 +535,29 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     // Verify the intake is in pending_payment status
     if (intake.status !== "pending_payment" && intake.payment_status !== "pending") {
       return { success: false, error: "This request has already been paid or is not awaiting payment" }
+    }
+
+    // Re-validate safety rules before allowing retry payment
+    // This prevents users from bypassing safety checks by saving an intake then retrying later
+    const categoryForSafety = intake.category as ServiceCategory | null
+    const serviceForSafety = intake.service as { slug: string; price_cents: number } | null
+    const serviceSlugForSafety = serviceForSafety?.slug || getServiceSlug(categoryForSafety || "medical_certificate", intake.subtype || "")
+    const intakeAnswers = (intake.answers as Array<{ answers: Record<string, unknown> }> | null)?.[0]?.answers || {}
+    
+    const safetyCheck = checkSafetyForServer(serviceSlugForSafety, intakeAnswers)
+    
+    if (!safetyCheck.isAllowed) {
+      logger.warn("Safety check blocked retry payment", {
+        intakeId,
+        serviceSlug: serviceSlugForSafety,
+        outcome: safetyCheck.outcome,
+        triggeredRules: safetyCheck.triggeredRuleIds,
+      })
+      
+      return {
+        success: false,
+        error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular GP.",
+      }
     }
 
     // Expire previous checkout session if it exists (P2 fix)
@@ -540,10 +574,13 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       }
     }
 
-    // Get the price ID using stored category (P1 fix - no more fragile slug inference)
+    // P3 FIX: Use stored stripe_price_id if available for pricing consistency
+    // Fall back to recalculating from category if not stored (older intakes)
     const service = intake.service as { slug: string; price_cents: number } | null
+    const storedPriceId = (intake as { stripe_price_id?: string }).stripe_price_id
     const storedCategory = intake.category as ServiceCategory | null
-    const priceId = getPriceIdForRequest({
+    
+    const priceId = storedPriceId || getPriceIdForRequest({
       category: storedCategory || (service?.slug?.includes("med-cert") ? "medical_certificate" : "prescription"),
       subtype: intake.subtype || "",
       answers: {},

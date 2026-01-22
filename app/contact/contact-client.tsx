@@ -31,6 +31,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import posthog from "posthog-js"
+import { submitContactForm } from "@/app/actions/contact-form"
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare, emoji: "💬" },
@@ -44,12 +45,15 @@ export function ContactClient() {
   const [selectedReason, setSelectedReason] = useState("general")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setSubmitError(null)
 
     const formData = new FormData(e.currentTarget)
+    formData.set("reason", selectedReason)
 
     // Track contact form submission in PostHog
     posthog.capture('contact_form_submitted', {
@@ -60,9 +64,16 @@ export function ContactClient() {
       has_message: !!formData.get('message'),
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    const result = await submitContactForm(formData)
+    
     setIsSubmitting(false)
-    setIsSubmitted(true)
+    
+    if (result.success) {
+      setIsSubmitted(true)
+    } else {
+      setSubmitError(result.error || "Failed to send message. Please try again.")
+      posthog.capture('contact_form_error', { error: result.error })
+    }
   }
 
   if (isSubmitted) {
@@ -168,10 +179,10 @@ export function ContactClient() {
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <a
-                          href="mailto:hello@LumenHealth.com.au"
+                          href="mailto:hello@instantmed.com.au"
                           className="text-sm text-muted-foreground hover:text-primary transition-colors"
                         >
-                          hello@LumenHealth.com.au
+                          hello@instantmed.com.au
                         </a>
                       </div>
                     </div>
@@ -301,6 +312,12 @@ export function ContactClient() {
                       className="resize-none"
                     />
                   </div>
+
+                  {submitError && (
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm" role="alert">
+                      {submitError}
+                    </div>
+                  )}
 
                   <Button
                     type="submit"

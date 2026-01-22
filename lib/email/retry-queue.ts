@@ -8,6 +8,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { sendViaResend } from "./resend"
+import * as Sentry from "@sentry/nextjs"
 
 const logger = createLogger("email-retry")
 
@@ -150,6 +151,23 @@ export async function processEmailRetries(): Promise<{
           emailId: email.id,
           intakeId: email.intake_id,
           lastError: result.error,
+        })
+        
+        // Alert operators via Sentry - critical email permanently failed
+        Sentry.captureMessage("Email delivery permanently failed after max retries", {
+          level: "error",
+          tags: {
+            source: "email-retry-queue",
+            email_type: email.email_type,
+          },
+          extra: {
+            emailId: email.id,
+            intakeId: email.intake_id,
+            recipient: email.recipient.replace(/(.{2}).*@/, "$1***@"), // Sanitize
+            subject: email.subject,
+            retryCount: newRetryCount,
+            lastError: result.error,
+          },
         })
       } else {
         // Schedule next retry

@@ -401,8 +401,9 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
 
 export async function markAsRefundedAction(
   intakeId: string,
-  reason?: string
-): Promise<{ success: boolean; error?: string }> {
+  reason?: string,
+  processStripeRefund: boolean = false
+): Promise<{ success: boolean; error?: string; refundId?: string; amountRefunded?: number }> {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -413,6 +414,35 @@ export async function markAsRefundedAction(
   }
 
   try {
+    // If processStripeRefund is true, actually process the Stripe refund
+    if (processStripeRefund) {
+      const { refundIfEligible } = await import("@/lib/stripe/refunds")
+      const refundResult = await refundIfEligible(intakeId, profile.id)
+      
+      if (!refundResult.success) {
+        return { 
+          success: false, 
+          error: refundResult.reason || "Failed to process Stripe refund" 
+        }
+      }
+      
+      if (refundResult.refunded) {
+        revalidatePath("/doctor")
+        revalidatePath("/doctor/queue")
+        revalidatePath(`/doctor/intakes/${intakeId}`)
+        revalidatePath(`/patient/intakes/${intakeId}`)
+        
+        return { 
+          success: true, 
+          refundId: refundResult.stripeRefundId,
+          amountRefunded: refundResult.amountRefunded
+        }
+      }
+      
+      // If not refunded but successful (e.g., not eligible), fall through to manual marking
+    }
+    
+    // Manual marking (for cases already refunded externally or not eligible for auto-refund)
     const { markIntakeRefunded } = await import("@/lib/data/intakes")
     const success = await markIntakeRefunded(intakeId, profile.id, reason)
     

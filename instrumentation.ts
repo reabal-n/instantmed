@@ -12,25 +12,30 @@ import * as Sentry from "@sentry/nextjs";
 export async function register() {
   // P0 FIX: Verify encryption is properly configured at startup
   // This fails fast instead of silently using plaintext PHI
-  if (process.env.ENCRYPTION_KEY) {
+  // Only run in Node.js runtime (not edge) since crypto module is Node-only
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.ENCRYPTION_KEY) {
     try {
       const { verifyEncryptionSetup } = await import("@/lib/security/encryption")
       const result = verifyEncryptionSetup()
       if (!result.valid) {
+        // eslint-disable-next-line no-console
         console.error("[CRITICAL] Encryption verification failed:", result.error)
         if (process.env.NODE_ENV === "production") {
           throw new Error(`Encryption setup invalid: ${result.error}`)
         }
       } else {
+        // eslint-disable-next-line no-console
         console.log("[Startup] Encryption verification passed")
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("[CRITICAL] Failed to verify encryption:", error)
       if (process.env.NODE_ENV === "production") {
         throw error
       }
     }
-  } else if (process.env.NODE_ENV === "production") {
+  } else if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NODE_ENV === "production") {
+    // eslint-disable-next-line no-console
     console.warn("[WARNING] ENCRYPTION_KEY not set - PHI will be stored in plaintext")
   }
 

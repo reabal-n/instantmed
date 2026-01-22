@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface PaymentConfirmedEmailProps {
   patientName: string
   requestType: string
@@ -9,7 +11,7 @@ interface PaymentConfirmedEmailProps {
 
 export function PaymentConfirmedEmail({ patientName, requestType, amount, requestId }: PaymentConfirmedEmailProps) {
   return (
-    <BaseLayout previewText={`Payment confirmed for your ${requestType}`}>
+    <BaseLayout previewText={`Payment confirmed for your ${requestType}`} appUrl={APP_URL}>
       <h1>Payment confirmed ✓</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -27,7 +29,7 @@ export function PaymentConfirmedEmail({ patientName, requestType, amount, reques
       </p>
 
       <p>
-        <a href={`https://instantmed.com.au/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
           Track Your Request
         </a>
       </p>

@@ -1,8 +1,19 @@
 /**
- * Medical Certificate PDF Generation Service
+ * @deprecated LEGACY - DO NOT USE FOR NEW CODE
  * 
- * Uses @react-pdf/renderer to generate PDFs server-side,
- * uploads to Supabase Storage, and sends via Resend.
+ * This file is deprecated in favor of the canonical V2 pipeline:
+ * - Rendering: lib/pdf/med-cert-render.ts
+ * - Template: lib/pdf/med-cert-pdf-v2.tsx
+ * 
+ * generateCertificateNumber() has been moved to lib/pdf/med-cert-render.ts
+ * 
+ * This file remains only for backward compatibility with legacy certificates
+ * stored in the med_cert_certificates table. New certificates use the
+ * issued_certificates table and V2 pipeline.
+ * 
+ * Original description:
+ * Medical Certificate PDF Generation Service - Uses @react-pdf/renderer
+ * to generate PDFs server-side, uploads to Supabase Storage, sends via Resend.
  */
 
 import React from "react"
@@ -325,16 +336,27 @@ export async function getCertificateByRequestId(requestId: string): Promise<{
       return { success: false, error: "Certificate not found" }
     }
 
-    // Build public URL
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const pdfUrl = `${supabaseUrl}/storage/v1/object/public/documents/${data.pdf_storage_path}`
+    // P0 SECURITY FIX: Use signed URL instead of public URL
+    // Signed URLs expire after 7 days for security
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(data.pdf_storage_path, 7 * 24 * 60 * 60) // 7 days
+
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      logger.error("[MedCertPdf] Failed to create signed URL", {
+        requestId,
+        storagePath: data.pdf_storage_path,
+        error: signedUrlError,
+      })
+      return { success: false, error: "Failed to generate secure download link" }
+    }
 
     return {
       success: true,
       certificate: {
         id: data.id,
         certificateNumber: data.certificate_number,
-        pdfUrl,
+        pdfUrl: signedUrlData.signedUrl,
         generatedAt: data.generated_at,
       },
     }

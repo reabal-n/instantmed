@@ -10,6 +10,15 @@ export const metadata: Metadata = {
     title: 'Online Repeat Prescriptions | InstantMed',
     description: 'Renew your regular medications online. Australian doctors review your request and send scripts to any pharmacy.',
     type: 'website',
+    url: 'https://instantmed.com.au/prescriptions',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Online Repeat Prescriptions | InstantMed',
+    description: 'Renew your regular medications online. Australian doctors review your request and send eScripts to your phone.',
+  },
+  alternates: {
+    canonical: 'https://instantmed.com.au/prescriptions',
   },
 }
 

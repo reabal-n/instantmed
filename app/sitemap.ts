@@ -15,8 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/medical-certificate",
     "/prescriptions",
-    "/repeat-prescription",
-    "/repeat-prescriptions",
+    // Note: /repeat-prescription and /repeat-prescriptions removed - they redirect to /prescriptions
     "/pricing",
     "/how-it-works",
     "/faq",

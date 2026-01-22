@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Phone, Heart, Shield, ArrowRight } from 'lucide-react'
 import { FlowContent } from '../flow-content'
@@ -8,18 +8,37 @@ import { IOSToggle } from '@/components/ui/ios-toggle'
 import { useFlowStore, useFlowAnswers, SAFETY_SCREENING_SYMPTOMS } from '@/lib/flow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { fetchSafetySymptoms } from '@/app/actions/safety-symptoms'
+
+interface SafetyScreeningStepProps {
+  /** Optional pre-loaded symptoms from server component */
+  symptoms?: string[]
+}
 
 /**
  * Step 2: Safety Screening
  * Hard gate with iOS-style toggle confirmation
  * Per refined intake spec - user must confirm they are NOT experiencing emergency symptoms
+ * 
+ * Symptoms can be dynamically updated via feature flags without code deploy.
+ * Falls back to static SAFETY_SCREENING_SYMPTOMS if feature flags unavailable.
  */
-export function SafetyScreeningStep() {
+export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeningStepProps) {
+  const [symptoms, setSymptoms] = useState<string[]>(initialSymptoms || SAFETY_SCREENING_SYMPTOMS)
   const answers = useFlowAnswers()
   const { updateAnswer, nextStep } = useFlowStore()
   
   const safetyConfirmed = answers.safety_confirmed === true
   const [showEmergencyResources, setShowEmergencyResources] = useState(false)
+
+  // Load dynamic symptoms from feature flags if not pre-loaded
+  useEffect(() => {
+    if (!initialSymptoms) {
+      fetchSafetySymptoms()
+        .then(setSymptoms)
+        .catch(() => {/* Keep static fallback on error */})
+    }
+  }, [initialSymptoms])
 
   const handleToggle = (checked: boolean) => {
     updateAnswer('safety_confirmed', checked)
@@ -62,7 +81,7 @@ export function SafetyScreeningStep() {
           </div>
 
           <ul className="space-y-2.5 ml-1">
-            {SAFETY_SCREENING_SYMPTOMS.map((symptom: string, index: number) => (
+            {symptoms.map((symptom: string, index: number) => (
               <motion.li
                 key={symptom}
                 initial={{ opacity: 0, x: -10 }}

@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface RequestReceivedEmailProps {
   patientName: string
   requestType: string
@@ -14,7 +16,7 @@ export function RequestReceivedEmail({
   estimatedTime,
 }: RequestReceivedEmailProps) {
   return (
-    <BaseLayout previewText={`Your ${requestType} request has been received`}>
+    <BaseLayout previewText={`Your ${requestType} request has been received`} appUrl={APP_URL}>
       <h1>We&apos;ve received your request</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -34,7 +36,7 @@ export function RequestReceivedEmail({
       </p>
 
       <p>
-        <a href={`https://instantmed.com.au/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
           View Request Status
         </a>
       </p>

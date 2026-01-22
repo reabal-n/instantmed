@@ -41,7 +41,7 @@ export function BrandLogo({
         style={{ width: logo, height: logo }}
       >
         <Image
-          src="/branding/logo.png"
+          src="/branding/logo.svg"
           alt="InstantMed"
           width={logo}
           height={logo}

@@ -73,7 +73,7 @@ export function validateMedCertPayload(
   }
 
   // Symptom details are required with minimum length
-  const symptomDetails = answers.symptom_details || answers.symptomDetails
+  const symptomDetails = answers.symptoms_description || answers.symptom_details || answers.symptomDetails
   if (!symptomDetails || typeof symptomDetails !== "string" || symptomDetails.trim().length < 20) {
     return {
       valid: false,

@@ -11,6 +11,15 @@ export const metadata: Metadata = {
     title: 'Online GP Consultation | InstantMed',
     description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
     type: 'website',
+    url: 'https://instantmed.com.au/consult',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Online GP Consultation | InstantMed',
+    description: 'A proper GP consult without the clinic visit. Australian doctors assess your health concerns.',
+  },
+  alternates: {
+    canonical: 'https://instantmed.com.au/consult',
   },
 }
 

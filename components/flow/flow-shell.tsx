@@ -6,6 +6,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { FlowTopBar } from './flow-top-bar'
 import { FlowStepper } from './flow-stepper'
 import { FlowCTA } from './flow-cta'
+import { FlowErrorBoundary } from './flow-error-boundary'
+import { SkipLink } from '@/components/a11y/skip-link'
+import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 import { useFlowStore, useFlowProgress, useFlowUI } from '@/lib/flow'
 import type { FlowConfig, FlowState } from '@/lib/flow'
 import { cn } from '@/lib/utils'
@@ -95,8 +98,32 @@ export function FlowShell({
     }
   }, [stepIndex, prevStep, handleExit])
 
+  // Handle browser back button (popstate)
+  useEffect(() => {
+    // Push initial state to enable back button interception
+    if (typeof window !== 'undefined' && stepIndex > 0) {
+      window.history.pushState({ flowStep: currentStepId }, '')
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      // Prevent default browser navigation and handle in-app
+      if (event.state?.flowStep || stepIndex > 0) {
+        event.preventDefault()
+        handleBack()
+        // Push state again to keep back button functional
+        window.history.pushState({ flowStep: currentStepId }, '')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [currentStepId, stepIndex, handleBack])
+
   return (
     <div className="min-h-dvh bg-linear-to-b from-slate-50 via-blue-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
+      {/* Skip link for keyboard accessibility */}
+      <SkipLink href="#flow-main-content" />
+      
       {/* Subtle noise texture */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.02] z-0"
@@ -126,7 +153,7 @@ export function FlowShell({
       </div>
 
       {/* Main content area */}
-      <main className="flex-1 relative z-10">
+      <main id="flow-main-content" className="flex-1 relative z-10" tabIndex={-1}>
         <div className={cn(
           'max-w-2xl mx-auto px-4 py-5 sm:py-6 pb-28',
           className
@@ -146,7 +173,9 @@ export function FlowShell({
                 'overflow-hidden'
               )}
             >
-              {children}
+              <FlowErrorBoundary>
+                {children}
+              </FlowErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -161,6 +190,12 @@ export function FlowShell({
           onClick={onCTAClick}
         />
       )}
+
+      {/* Exit intent popup for save-for-later */}
+      <ExitIntentPopup 
+        variant="save" 
+        service={config.serviceSlug?.includes('med-cert') ? 'med-cert' : config.serviceSlug?.includes('script') ? 'repeat-prescription' : 'consult'}
+      />
     </div>
   )
 }

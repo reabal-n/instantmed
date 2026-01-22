@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useSyncExternalStore } from "react"
-import { X, Star, Clock, Users, Sparkles } from "lucide-react"
+import { X, Star, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/lib/hooks/use-reduced-motion"
@@ -96,8 +96,8 @@ export function AnnouncementBar({
         exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          "relative z-[60] w-full",
-          "bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600",
+          "relative z-60 w-full",
+          "bg-linear-to-r from-indigo-600 via-violet-600 to-purple-600",
           "text-white text-sm",
           className
         )}

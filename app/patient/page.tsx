@@ -27,6 +27,7 @@ export default async function PatientDashboard() {
   const patientId = authUser.profile.id
 
   // Fetch intakes with service info for the dashboard
+  // Show more intakes on dashboard for better overview
   const [intakesResult, prescriptionsResult] = await Promise.all([
     supabase
       .from("intakes")
@@ -36,7 +37,7 @@ export default async function PatientDashboard() {
       `)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(20),
 
     supabase
       .from("prescriptions")

@@ -91,11 +91,15 @@ export interface FieldValidation {
   max?: number
   pattern?: string
   patternMessage?: string
+  // Date-specific constraints
+  maxBackdateDays?: number    // Max days in the past allowed
+  maxDurationDays?: number    // Max days duration from another field
+  relativeToField?: string    // Field to calculate relative constraints from
 }
 
 export interface ConditionalLogic {
   fieldId: string
-  operator: 'equals' | 'not_equals' | 'contains' | 'gt' | 'lt' | 'includes'
+  operator: 'equals' | 'not_equals' | 'contains' | 'gt' | 'lt' | 'includes' | 'not_includes'
   value: unknown
 }
 

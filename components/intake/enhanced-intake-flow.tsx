@@ -991,6 +991,7 @@ export function EnhancedIntakeFlow({
           guestEmail: state.email,
           guestName: `${state.firstName} ${state.lastName}`,
           guestDateOfBirth: state.dob,
+          guestPhone: state.phone || undefined, // P1 FIX: Pass phone for eScript SMS delivery
         })
       }
 
@@ -1025,7 +1026,7 @@ export function EnhancedIntakeFlow({
       logger.error("Submit error", { component: 'EnhancedIntakeFlow' }, error instanceof Error ? error : undefined)
       
       setErrors({ 
-        agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at hello@LumenHealth.com.au` 
+        agreedToTerms: `An unexpected error occurred: ${errorMessage}. Please try again or contact support at hello@instantmed.com.au` 
       })
     } finally {
       setIsSubmitting(false)

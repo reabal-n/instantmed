@@ -97,7 +97,7 @@ export function FAQSection() {
         >
           <p className="text-muted-foreground mb-2 text-sm">Still have questions?</p>
           <Link 
-            href="mailto:hello@LumenHealth.com.au" 
+            href="mailto:hello@instantmed.com.au" 
             color="primary"
             showAnchorIcon
           >

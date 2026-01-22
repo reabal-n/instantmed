@@ -67,6 +67,8 @@ export function UnifiedQuestionsStep({
         return typeof currentValue === 'string' && currentValue.includes(value as string)
       case 'includes':
         return Array.isArray(currentValue) && currentValue.includes(value)
+      case 'not_includes':
+        return Array.isArray(currentValue) && !currentValue.includes(value)
       default:
         return true
     }

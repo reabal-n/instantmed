@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e5]:
+      - status [ref=e6]: "Step 2 of 5: Your medication"
+      - generic [ref=e7]:
+        - img [ref=e8]
+        - generic [ref=e18]:
+          - generic [ref=e19]: Doctors online now
+          - text: "— Average response: 45 min"
+      - banner [ref=e21]:
+        - generic [ref=e22]:
+          - button "Close and return to home" [ref=e23]:
+            - img [ref=e24]
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic "Service" [ref=e34]
+              - generic "Details" [ref=e38]
+              - generic "Safety" [ref=e42]
+              - generic "Account" [ref=e46]
+              - generic "Review" [ref=e50]
+            - generic [ref=e52]:
+              - img [ref=e53]
+              - generic [ref=e56]: About 4 min to go
+      - main [ref=e57]:
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - generic [ref=e62]: AHPRA Doctors
+          - generic [ref=e64]:
+            - img [ref=e65]
+            - generic [ref=e68]: Encrypted
+          - generic [ref=e70]:
+            - img [ref=e71]
+            - generic [ref=e74]: Quick Review
+        - generic [ref=e76]:
+          - generic [ref=e77]: "Repeat Prescription:"
+          - generic [ref=e78]: $29.95
+        - generic [ref=e79]:
+          - heading "Your medication" [level=1] [ref=e80]
+          - paragraph [ref=e81]: This helps our doctors help you faster
+        - generic [ref=e83]:
+          - generic [ref=e85]:
+            - img [ref=e86]
+            - generic [ref=e89]: Doctor reviews your request
+            - generic [ref=e90]: • eScript sent to your phone via SMS
+          - generic [ref=e91]:
+            - generic [ref=e92]: Medication name (optional)
+            - generic [ref=e93]:
+              - img [ref=e94]
+              - combobox "Medication name search" [ref=e97]
+            - paragraph [ref=e98]: This helps with record accuracy. A doctor will review everything.
+            - button "I don't know the exact name" [ref=e99]
+            - status [ref=e100]
+          - generic [ref=e101]:
+            - generic [ref=e103]: Dosage & strength (if known)
+            - textbox "e.g., 500mg twice daily" [ref=e108]
+          - generic [ref=e109]:
+            - generic [ref=e111]:
+              - text: When was this last prescribed?
+              - generic [ref=e112]: "*"
+            - paragraph [ref=e113]: Required for repeat prescriptions
+            - generic [ref=e114]:
+              - button "Within 3 months" [ref=e115]:
+                - generic [ref=e116]: Within 3 months
+              - button "3-6 months" [ref=e117]:
+                - generic [ref=e118]: 3-6 months
+              - button "6-12 months" [ref=e119]:
+                - generic [ref=e120]: 6-12 months
+              - button "Over a year" [ref=e121]:
+                - generic [ref=e122]: Over a year
+          - paragraph [ref=e124]:
+            - strong [ref=e125]: "Attestation:"
+            - text: By requesting this repeat prescription, I confirm I am currently taking this medication as prescribed by my regular doctor and have not experienced any significant side effects.
+          - generic [ref=e126]:
+            - generic [ref=e128]:
+              - text: Your email
+              - generic [ref=e129]: "*"
+            - paragraph [ref=e130]: We'll send your e-script details here
+            - textbox "you@example.com" [ref=e135]
+      - contentinfo [ref=e136]:
+        - generic [ref=e138]:
+          - button [ref=e139]:
+            - img [ref=e140]
+          - button "Continue" [ref=e143]:
+            - text: Continue
+            - img [ref=e144]
+    - region "Notifications alt+T"
+    - button "Open chat assistant" [ref=e147]:
+      - img [ref=e148]
+  - generic [ref=e154] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e155]:
+      - img [ref=e156]
+    - generic [ref=e160]:
+      - button "Open issues overlay" [ref=e161]:
+        - generic [ref=e162]:
+          - generic [ref=e163]: "0"
+          - generic [ref=e164]: "1"
+        - generic [ref=e165]: Issue
+      - button "Collapse issues badge" [ref=e166]:
+        - img [ref=e167]
+  - alert [ref=e169]
+```

@@ -4,9 +4,12 @@ import Head from "next/head"
 interface BaseLayoutProps {
   previewText: string
   children: React.ReactNode
+  appUrl?: string
 }
 
-export function BaseLayout({ previewText, children }: BaseLayoutProps) {
+const DEFAULT_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
+export function BaseLayout({ previewText, children, appUrl = DEFAULT_APP_URL }: BaseLayoutProps) {
   return (
     <html>
       <Head>
@@ -98,18 +101,22 @@ export function BaseLayout({ previewText, children }: BaseLayoutProps) {
       <body>
         <div className="container">
           <div className="card">
-            <a href="https://instantmed.com.au" className="logo">
+            <a href={appUrl} className="logo">
               Instant<span>Med</span>
             </a>
             {children}
             <div className="footer">
               <p>
-                InstantMed | Australian Telehealth
+                InstantMed Pty Ltd | Australian Telehealth
                 <br />
-                <a href="https://instantmed.com.au/privacy">Privacy</a> ·
-                <a href="https://instantmed.com.au/terms">Terms</a>
+                ABN 12 345 678 901 · Sydney, Australia
               </p>
-              <p style={{ fontSize: "11px", marginTop: "8px" }}>
+              <p style={{ marginTop: "8px" }}>
+                <a href={`${appUrl}/privacy`}>Privacy</a> ·{" "}
+                <a href={`${appUrl}/terms`}>Terms</a> ·{" "}
+                <a href={`${appUrl}/contact`}>Contact</a>
+              </p>
+              <p style={{ fontSize: "11px", marginTop: "8px", color: "#9ca3af" }}>
                 This email was sent by InstantMed. If you have questions,
                 <br />
                 reply to this email or visit our help centre.

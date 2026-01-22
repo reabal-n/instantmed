@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface PaymentRetryEmailProps {
   patientName: string
   requestType: string
@@ -9,7 +11,7 @@ interface PaymentRetryEmailProps {
 
 export function PaymentRetryEmail({ patientName, requestType, amount, paymentUrl }: PaymentRetryEmailProps) {
   return (
-    <BaseLayout previewText={`Complete your payment for ${requestType}`}>
+    <BaseLayout previewText={`Complete your payment for ${requestType}`} appUrl={APP_URL}>
       <h1>Complete your payment</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -124,7 +126,7 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
 <body>
   <div class="container">
     <div class="card">
-      <a href="https://instantmed.com.au" class="logo">
+      <a href="${APP_URL}" class="logo">
         Instant<span>Med</span>
       </a>
       
@@ -160,8 +162,8 @@ export function renderPaymentRetryEmailToHtml(props: PaymentRetryEmailProps): st
         <p>
           InstantMed | Australian Telehealth
           <br />
-          <a href="https://instantmed.com.au/privacy">Privacy</a> ·
-          <a href="https://instantmed.com.au/terms">Terms</a>
+          <a href="${APP_URL}/privacy">Privacy</a> ·
+          <a href="${APP_URL}/terms">Terms</a>
         </p>
         <p style="font-size: 11px; margin-top: 8px;">
           This email was sent by InstantMed. If you have questions,

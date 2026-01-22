@@ -104,6 +104,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   if (!profile) {
     const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || null
     
+    // P1 FIX: Clerk users have verified emails - mark as verified for guest profile linking security
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
@@ -115,6 +116,8 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
         avatar_url: user.imageUrl || null,
         role: "patient",
         onboarding_completed: false,
+        email_verified: true,
+        email_verified_at: new Date().toISOString(),
       })
       .select()
       .single()

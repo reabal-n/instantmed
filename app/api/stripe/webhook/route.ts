@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
-import { sendRefundEmail } from "@/lib/email/template-sender"
+import { sendRefundEmail, sendPaymentFailedEmail, sendDisputeAlertEmail } from "@/lib/email/template-sender"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -109,6 +109,7 @@ async function recordEventError(
 /**
  * Add failed event to dead letter queue for manual resolution
  * Also sends Sentry alert so operators are notified immediately
+ * P2 FIX: Added threshold alerting when DLQ grows too large
  */
 async function addToDeadLetterQueue(
   supabase: ReturnType<typeof getServiceClient>,
@@ -148,6 +149,34 @@ async function addToDeadLetterQueue(
         payload,
       },
     })
+
+    // P2 FIX: Check DLQ size and alert if threshold exceeded
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    const { count: dlqCount } = await supabase
+      .from("stripe_webhook_dead_letter")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", oneHourAgo)
+      .is("resolved_at", null)
+    
+    const DLQ_ALERT_THRESHOLD = 5
+    if (dlqCount && dlqCount >= DLQ_ALERT_THRESHOLD) {
+      Sentry.captureMessage(`CRITICAL: Stripe webhook DLQ has ${dlqCount} unresolved items in last hour`, {
+        level: "fatal",
+        tags: {
+          source: "stripe-webhook-dlq-threshold",
+          dlq_count: String(dlqCount),
+        },
+        extra: {
+          threshold: DLQ_ALERT_THRESHOLD,
+          recentCount: dlqCount,
+          latestEventId: eventId,
+        },
+      })
+      log.error("DLQ threshold exceeded - possible systemic webhook failure", { 
+        dlqCount, 
+        threshold: DLQ_ALERT_THRESHOLD 
+      })
+    }
   } catch (dlqError) {
     log.error("Failed to add to dead letter queue", { eventId }, dlqError)
     // Still try to alert even if DLQ insert failed
@@ -671,6 +700,128 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", intakeId)
+
+      // P1 FIX: Send payment failure notification to patient
+      try {
+        const { data: intake } = await supabase
+          .from("intakes")
+          .select("patient:profiles!patient_id(email, first_name), service:services!service_id(name)")
+          .eq("id", intakeId)
+          .single()
+
+        const patient = intake?.patient as { email?: string; first_name?: string } | null
+        const service = intake?.service as { name?: string } | null
+        
+        if (patient?.email) {
+          await sendPaymentFailedEmail({
+            to: patient.email,
+            patientName: patient.first_name || "there",
+            serviceName: service?.name || "your request",
+            failureReason: paymentIntent.last_payment_error?.message || "Your payment could not be processed",
+            retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${intakeId}?retry=true`,
+            intakeId,
+          })
+          log.info("Sent payment failure notification", { intakeId, email: patient.email })
+        }
+      } catch (emailError) {
+        log.error("Failed to send payment failure notification", { intakeId }, emailError)
+      }
+    }
+  }
+
+  // P0 FIX: Handle charge.dispute.created - critical for revenue protection
+  if (event.type === "charge.dispute.created") {
+    const dispute = event.data.object as Stripe.Dispute
+    const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id
+    
+    log.error("DISPUTE CREATED - Immediate attention required", {
+      eventId: event.id,
+      disputeId: dispute.id,
+      chargeId,
+      amount: dispute.amount,
+      reason: dispute.reason,
+      status: dispute.status,
+    })
+
+    const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, undefined, chargeId)
+    if (!shouldProcess) {
+      return NextResponse.json({ received: true, skipped: true })
+    }
+
+    // Find the intake associated with this charge
+    let intakeId: string | undefined
+    try {
+      if (chargeId) {
+        const charge = await stripe.charges.retrieve(chargeId)
+        const paymentIntentId = typeof charge.payment_intent === "string" 
+          ? charge.payment_intent 
+          : charge.payment_intent?.id
+        
+        if (paymentIntentId) {
+          const { data: intake } = await supabase
+            .from("intakes")
+            .select("id")
+            .eq("stripe_payment_intent_id", paymentIntentId)
+            .single()
+          
+          intakeId = intake?.id
+        }
+      }
+    } catch {
+      // Intake lookup failed - continue with alerting
+    }
+
+    // Record dispute in database (upsert to handle duplicates)
+    await supabase.from("stripe_disputes").upsert({
+      dispute_id: dispute.id,
+      charge_id: chargeId,
+      intake_id: intakeId || null,
+      amount: dispute.amount,
+      currency: dispute.currency,
+      reason: dispute.reason,
+      status: dispute.status,
+      created_at: new Date(dispute.created * 1000).toISOString(),
+    }, { onConflict: "dispute_id", ignoreDuplicates: true })
+
+    // Update intake if found
+    if (intakeId) {
+      await supabase
+        .from("intakes")
+        .update({
+          payment_status: "disputed",
+          dispute_id: dispute.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intakeId)
+    }
+
+    // Alert admin team via Sentry and email
+    Sentry.captureMessage(`Stripe Dispute Created: ${dispute.id}`, {
+      level: "error",
+      extra: {
+        disputeId: dispute.id,
+        chargeId,
+        intakeId,
+        amount: dispute.amount,
+        reason: dispute.reason,
+      },
+    })
+
+    // Send alert email to admin
+    try {
+      await sendDisputeAlertEmail({
+        disputeId: dispute.id,
+        chargeId: chargeId || "unknown",
+        intakeId,
+        amount: (dispute.amount / 100).toFixed(2),
+        currency: dispute.currency.toUpperCase(),
+        reason: dispute.reason,
+        evidenceDueBy: dispute.evidence_details?.due_by 
+          ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+          : undefined,
+      })
+    } catch (emailError) {
+      log.error("Failed to send dispute alert email", { disputeId: dispute.id }, emailError)
     }
   }
 
@@ -680,6 +831,7 @@ export async function POST(request: Request) {
     "checkout.session.expired",
     "charge.refunded",
     "payment_intent.payment_failed",
+    "charge.dispute.created",
   ]
   if (!handledEvents.includes(event.type)) {
     log.info("Unhandled event type", { eventType: event.type })

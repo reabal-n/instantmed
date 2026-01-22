@@ -5,6 +5,7 @@ import { sendViaResend } from "./resend"
 import { renderAbandonedCheckoutEmail } from "./templates/abandoned-checkout"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
+import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 
 const logger = createLogger("abandoned-checkout")
 
@@ -29,6 +30,7 @@ const SERVICE_NAMES: Record<string, string> = {
 /**
  * Find intakes that were created but never paid for (abandoned checkouts)
  * Only targets intakes that are 1-24 hours old to avoid spamming
+ * P1 FIX: Now includes guest checkouts by checking guest_email column
  */
 export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
   const supabase = createServiceRoleClient()
@@ -45,6 +47,7 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
       category,
       subtype,
       created_at,
+      guest_email,
       patient:profiles!patient_id(email, first_name)
     `)
     .eq("status", "pending_payment")
@@ -59,10 +62,16 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
   }
   
   // Transform data - Supabase returns joined tables as arrays
-  return (data || []).map(item => ({
-    ...item,
-    patient: Array.isArray(item.patient) ? item.patient[0] : item.patient
-  })) as AbandonedIntake[]
+  // P1 FIX: Include guest_email for guest checkout recovery
+  return (data || []).map(item => {
+    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
+    // For guest checkouts, use guest_email if no profile email
+    const guestEmail = (item as { guest_email?: string }).guest_email
+    return {
+      ...item,
+      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient)
+    }
+  }) as AbandonedIntake[]
 }
 
 /**
@@ -75,6 +84,15 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
   if (!patient?.email) {
     logger.warn("Skipping abandoned checkout email - no patient email", { intakeId: intake.id })
     return false
+  }
+
+  // Check if patient has opted out of marketing emails
+  if (intake.patient_id) {
+    const canSend = await canSendMarketingEmail(intake.patient_id)
+    if (!canSend) {
+      logger.info("Skipping abandoned checkout email - user opted out", { intakeId: intake.id })
+      return false
+    }
   }
   
   const patientName = patient.first_name || "there"
@@ -90,6 +108,9 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
     hoursAgo,
   })
   
+  // Generate unsubscribe URL for marketing emails (Spam Act compliance)
+  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
+  
   const result = await sendViaResend({
     to: patient.email,
     subject: `Complete your ${serviceName} request`,
@@ -98,6 +119,10 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
       { name: "category", value: "abandoned_checkout" },
       { name: "intake_id", value: intake.id },
     ],
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   })
   
   if (result.success) {

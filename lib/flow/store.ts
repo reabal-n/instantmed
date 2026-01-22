@@ -126,17 +126,31 @@ export const useFlowStore = create<FlowStore>()(
       },
 
       nextStep: () => {
-        const { currentStepId } = get()
+        const { currentStepId, serviceSlug, sessionId } = get()
         const currentIndex = STEP_ORDER.indexOf(currentStepId)
 
         if (currentIndex < STEP_ORDER.length - 1) {
+          const nextStepId = STEP_ORDER[currentIndex + 1]
           set({
-            currentStepId: STEP_ORDER[currentIndex + 1],
+            currentStepId: nextStepId,
             currentGroupIndex: 0,
             error: null,
             pendingChanges: true,
           })
           get().markPendingChanges()
+          
+          // Track step completion for analytics
+          if (typeof window !== 'undefined') {
+            const ph = (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog
+            ph?.capture('flow_step_completed', {
+              from_step: currentStepId,
+              to_step: nextStepId,
+              service: serviceSlug,
+              session_id: sessionId,
+              step_index: currentIndex + 1,
+              total_steps: STEP_ORDER.length,
+            })
+          }
         }
       },
 

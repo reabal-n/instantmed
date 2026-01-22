@@ -31,7 +31,7 @@ const steps = [
     icon: FileCheck,
     title: "Get your certificate or script",
     description: "Certificate to your inbox. eScript to your phone. Done.",
-    time: "Instant",
+    time: "Same day",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
@@ -101,7 +101,7 @@ export function HowItWorks() {
                 
                 {/* Connector line (not on last item) */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 lg:-right-5 w-8 lg:w-10 h-0.5 bg-gradient-to-r from-border to-transparent" />
+                  <div className="hidden md:block absolute top-1/2 -right-4 lg:-right-5 w-8 lg:w-10 h-0.5 bg-linear-to-r from-border to-transparent" />
                 )}
               </div>
             </motion.div>

@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [active]:
+  - generic:
+    - link "Skip to main content" [ref=e1] [cursor=pointer]:
+      - /url: "#main-content"
+    - region "Notifications alt+T"
+    - button "Open chat assistant" [ref=e2] [cursor=pointer]:
+      - generic [ref=e3]:
+        - generic [ref=e4]:
+          - paragraph [ref=e5]: Need a hand?
+          - paragraph [ref=e6]: Chat with our assistant
+        - button "Dismiss" [ref=e7]:
+          - img [ref=e8]
+    - button "Open chat assistant" [ref=e12]:
+      - img [ref=e13]
+    - dialog "Cookie consent" [ref=e16]:
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - img [ref=e20]
+          - paragraph [ref=e39]:
+            - text: We use cookies to keep things running smoothly.
+            - link "Learn more" [ref=e40] [cursor=pointer]:
+              - /url: /privacy#cookies
+        - generic [ref=e41]:
+          - button "Manage" [ref=e42]
+          - button "Essential only" [ref=e44] [cursor=pointer]
+          - button "Accept all" [ref=e46] [cursor=pointer]
+  - generic [ref=e51] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e52]:
+      - img [ref=e53]
+    - generic [ref=e57]:
+      - button "Open issues overlay" [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]: "4"
+          - generic [ref=e61]: "5"
+        - generic [ref=e62]:
+          - text: Issue
+          - generic [ref=e63]: s
+      - button "Collapse issues badge" [ref=e64]:
+        - img [ref=e65]
+  - alert [ref=e67]
+```

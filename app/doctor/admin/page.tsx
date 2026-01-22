@@ -11,14 +11,15 @@ export default async function AdminDashboardPage() {
     redirect("/sign-in")
   }
 
-  const [allIntakes, stats] = await Promise.all([
-    getAllIntakesForAdmin(),
+  const [intakesResult, stats] = await Promise.all([
+    getAllIntakesForAdmin({ page: 1, pageSize: 50 }),
     getDoctorDashboardStats(),
   ])
 
   return (
     <AdminDashboardClient
-      allIntakes={allIntakes}
+      allIntakes={intakesResult.data}
+      totalIntakes={intakesResult.total}
       stats={stats}
       doctorName={profile.full_name}
     />

@@ -5,7 +5,7 @@ import { AboutClient } from "./about-client"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "About Us",
+  title: "About Us | Australian Telehealth | InstantMed",
   description: "InstantMed is an Australian telehealth platform connecting patients with AHPRA-registered doctors for medical certificates, prescriptions, and consultations.",
   openGraph: {
     title: "About InstantMed | Australian Telehealth",

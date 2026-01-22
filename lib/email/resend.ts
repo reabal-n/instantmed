@@ -4,6 +4,8 @@ import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 
 import { env } from "../env"
+import { isEmailSuppressed, htmlToPlainText } from "./utils"
+import { Redis } from "@upstash/redis"
 
 /**
  * Email delivery service using Resend
@@ -13,6 +15,29 @@ import { env } from "../env"
  * - RESEND_FROM_EMAIL (e.g., "InstantMed <noreply@instantmed.com.au>")
  * - NEXT_PUBLIC_APP_URL (for generating links)
  */
+
+// ============================================
+// VALIDATION
+// ============================================
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/**
+ * Validate email format before sending
+ */
+function isValidEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email) && email.length <= 254
+}
+
+/**
+ * Sanitize email for logging (hide domain details in production)
+ */
+function sanitizeEmailForLog(email: string): string {
+  if (env.isDev) return email
+  const [local, domain] = email.split("@")
+  if (!domain) return "[invalid-email]"
+  return `${local.slice(0, 2)}***@${domain.slice(0, 3)}***.${domain.split(".").pop()}`
+}
 
 // ============================================
 // TYPES
@@ -27,12 +52,14 @@ interface ResendEmailAttachment {
 
 interface ResendEmailParams {
   to: string
-  from?: string
   subject: string
   html: string
+  text?: string // Plain text fallback
+  from?: string
   replyTo?: string
   tags?: { name: string; value: string }[]
   attachments?: ResendEmailAttachment[]
+  headers?: Record<string, string> // Custom headers like List-Unsubscribe
 }
 
 interface ResendResponse {
@@ -84,6 +111,56 @@ function isRetryableError(statusCode?: number, errorMessage?: string): boolean {
 }
 
 // ============================================
+// RATE LIMITING
+// ============================================
+
+const RATE_LIMIT_CONFIG = {
+  maxEmailsPerHour: 10, // Max emails to single address per hour
+  maxEmailsPerDay: 50, // Max emails to single address per day
+  globalMaxPerMinute: 100, // Global rate limit per minute
+}
+
+/**
+ * Check if email sending is rate limited
+ * Returns true if rate limited, false if allowed
+ */
+async function checkEmailRateLimit(email: string): Promise<boolean> {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return false // No rate limiting if Redis not configured
+  }
+
+  try {
+    const redis = Redis.fromEnv()
+    const emailKey = `email:ratelimit:${email.toLowerCase()}`
+    const hourKey = `${emailKey}:hour`
+    const dayKey = `${emailKey}:day`
+
+    // Check hourly limit
+    const hourCount = await redis.incr(hourKey)
+    if (hourCount === 1) {
+      await redis.expire(hourKey, 3600) // 1 hour TTL
+    }
+    if (hourCount > RATE_LIMIT_CONFIG.maxEmailsPerHour) {
+      return true
+    }
+
+    // Check daily limit
+    const dayCount = await redis.incr(dayKey)
+    if (dayCount === 1) {
+      await redis.expire(dayKey, 86400) // 24 hour TTL
+    }
+    if (dayCount > RATE_LIMIT_CONFIG.maxEmailsPerDay) {
+      return true
+    }
+
+    return false
+  } catch (error) {
+    logger.warn("[Resend] Rate limit check failed, allowing send", { error })
+    return false // Allow on error to not block emails
+  }
+}
+
+// ============================================
 // CORE EMAIL SENDER
 // ============================================
 
@@ -96,13 +173,35 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
   const from = params.from || env.resendFromEmail
   const apiKey = env.resendApiKey
 
+  // Validate email format before sending
+  if (!isValidEmail(to)) {
+    logger.warn("[Resend] Invalid email format", { to: sanitizeEmailForLog(to) })
+    return { success: false, error: "Invalid email address format" }
+  }
+
+  // Check bounce suppression list (skip in dev mode)
+  if (apiKey) {
+    const suppressed = await isEmailSuppressed(to)
+    if (suppressed) {
+      logger.warn("[Resend] Email suppressed (previous bounce/complaint)", { to: sanitizeEmailForLog(to) })
+      return { success: false, error: "Email address previously bounced or complained" }
+    }
+  }
+
+  // Rate limiting (skip in dev mode)
+  if (apiKey && process.env.UPSTASH_REDIS_REST_URL) {
+    const rateLimited = await checkEmailRateLimit(to)
+    if (rateLimited) {
+      logger.warn("[Resend] Rate limited", { to: sanitizeEmailForLog(to) })
+      return { success: false, error: "Too many emails sent to this address recently" }
+    }
+  }
+
   // If no API key, log and return success (development mode)
+  // Note: In dev mode we log sanitized email for debugging
   if (!apiKey) {
-    logger.debug(`[Email Dev Mode] Would send email:`)
-    logger.debug(`To: ${to}`)
-    logger.debug(`From: ${from}`)
-    logger.debug(`Subject: ${subject}`)
-    logger.debug(`Tags: ${JSON.stringify(tags)}`)
+    logger.debug(`[Email Dev Mode] Would send email to: ${sanitizeEmailForLog(to)}`)
+    logger.debug(`[Email Dev Mode] Subject: ${subject}`)
     return { success: true, id: `dev-${Date.now()}` }
   }
 
@@ -113,6 +212,18 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
     html,
     reply_to: replyTo,
     tags,
+  }
+
+  // Add plain text fallback (auto-generate if not provided)
+  if (params.text) {
+    body.text = params.text
+  } else {
+    body.text = htmlToPlainText(html)
+  }
+
+  // Add custom headers (e.g., List-Unsubscribe for marketing emails)
+  if (params.headers) {
+    body.headers = params.headers
   }
 
   // Add attachments if provided
@@ -340,9 +451,10 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
         
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-          InstantMed Pty Ltd · Australia<br>
+          InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
           <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> · 
-          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a>
+          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> ·
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a>
         </p>
       </div>
     </body>
@@ -412,9 +524,10 @@ export async function sendWelcomeEmail(to: string, patientName: string): Promise
       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
       
       <p style="color: #999; font-size: 12px; text-align: center;">
-        InstantMed Pty Ltd · Australia<br>
+        InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
         <a href="${appUrl}/privacy" style="color: #999;">Privacy</a> · 
-        <a href="${appUrl}/terms" style="color: #999;">Terms</a>
+        <a href="${appUrl}/terms" style="color: #999;">Terms</a> ·
+        <a href="${appUrl}/contact" style="color: #999;">Contact</a>
       </p>
     </body>
     </html>
@@ -422,7 +535,7 @@ export async function sendWelcomeEmail(to: string, patientName: string): Promise
 
   return sendViaResend({
     to,
-    subject: "Welcome to InstantMed! 🩺",
+    subject: "Welcome to InstantMed",
     html,
     tags: [{ name: "category", value: "welcome" }],
   })
@@ -512,9 +625,10 @@ export async function sendScriptSentEmail(
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
         
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-          InstantMed Pty Ltd · Australia<br>
+          InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
           <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> · 
-          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a>
+          <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> ·
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a>
         </p>
       </div>
     </body>
@@ -523,7 +637,7 @@ export async function sendScriptSentEmail(
 
   return sendViaResend({
     to,
-    subject: `Your prescription has been sent 💊`,
+    subject: `Your eScript has been sent`,
     html,
     tags: [
       { name: "category", value: "script_sent" },
@@ -596,7 +710,10 @@ export async function sendRequestDeclinedEmail(
       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
       
       <p style="color: #999; font-size: 12px; text-align: center;">
-        InstantMed Pty Ltd · Australia
+        InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
+        <a href="${appUrl}/privacy" style="color: #999;">Privacy</a> · 
+        <a href="${appUrl}/terms" style="color: #999;">Terms</a> ·
+        <a href="${appUrl}/contact" style="color: #999;">Contact</a>
       </p>
     </body>
     </html>

@@ -292,6 +292,9 @@ export type RequestSubtype =
 export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA"
 
 // Table: profiles
+// NOTE: DB column is address_line_1 (with underscore), mapped to address_line1 in app layer
+// DB column is address_line_2 (with underscore), mapped to address_line2 in app layer (not in interface)
+// street_address and my_health_record_consent are app-layer aliases, not direct DB columns
 export interface Profile {
   id: string // uuid, PK
   auth_user_id: string // uuid, references auth.users.id (Supabase Auth)
@@ -301,10 +304,10 @@ export interface Profile {
   full_name: string
   date_of_birth: string // ISO date string
   role: UserRole
-  // Contact & address fields
+  // Contact & address fields (DB uses address_line_1, app maps to address_line1)
   phone: string | null
-  address_line1: string | null
-  street_address: string | null
+  address_line1: string | null // Maps to DB: address_line_1
+  street_address: string | null // Alias for address_line1
   suburb: string | null
   state: AustralianState | null
   postcode: string | null
@@ -321,6 +324,9 @@ export interface Profile {
   consent_myhr: boolean
   my_health_record_consent: boolean
   onboarding_completed: boolean
+  // P1 FIX: Email verification for guest profile linking security
+  email_verified: boolean
+  email_verified_at: string | null
   // Stripe customer linking
   stripe_customer_id: string | null
   // Timestamps
@@ -432,6 +438,13 @@ export interface MedCertDraftData {
   provider_name?: string | null
   provider_address?: string | null
   signature_asset_url?: string | null
+  
+  // Clinic identity fields (from clinic_identity_snapshot)
+  clinic_name?: string | null
+  clinic_tagline?: string | null
+  clinic_email?: string | null
+  clinic_website?: string | null
+  clinic_abn?: string | null
 }
 
 // Pathology draft data structure

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,7 @@ import {
   Ban,
 } from "lucide-react"
 import { formatIntakeStatus } from "@/lib/format-intake"
-import { createClient } from "@/lib/supabase/client"
+import { COPY } from "@/lib/microcopy/universal"
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
@@ -183,33 +183,11 @@ export function IntakeDetailClient({
   
   const service = intake.service as { name?: string; short_name?: string } | undefined
 
-  // Supabase Realtime subscription for live status updates
-  useEffect(() => {
-    const supabase = createClient()
-    
-    const channel = supabase
-      .channel(`intake-${intake.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "intakes",
-          filter: `id=eq.${intake.id}`,
-        },
-        (payload) => {
-          // Update local state with new intake data
-          setIntake((prev) => ({ ...prev, ...payload.new }))
-          // Also refresh server data
-          router.refresh()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [intake.id, router])
+  // Handle status updates from IntakeStatusTracker (single realtime subscription)
+  const handleStatusChange = (newStatus: IntakeStatus) => {
+    setIntake((prev) => ({ ...prev, status: newStatus }))
+    router.refresh()
+  }
 
   const handleCancel = () => {
     setActionError(null)
@@ -251,8 +229,8 @@ export function IntakeDetailClient({
     })
   }
 
-  // Check if cancellation is allowed
-  const canCancel = ["draft", "pending_payment", "pending_info"].includes(intake.status)
+  // Check if cancellation is allowed (only unpaid requests)
+  const canCancel = ["draft", "pending_payment"].includes(intake.status)
   
   // Check if resend is available
   const canResend = ["approved", "completed"].includes(intake.status) && intakeDocument
@@ -351,16 +329,24 @@ export function IntakeDetailClient({
           {/* Status Message */}
           <div className="p-4 rounded-lg bg-muted/50">
             {intake.status === "paid" && (
-              <p className="text-sm">
-                Your request has been received and is waiting for doctor review. 
-                You&apos;ll be notified when it&apos;s been processed.
-              </p>
+              <div className="text-sm space-y-1">
+                <p>
+                  Your request has been received and is waiting for doctor review.
+                </p>
+                <p className="text-muted-foreground">
+                  {COPY.global.slaPendingMessage}
+                </p>
+              </div>
             )}
             {intake.status === "in_review" && (
-              <p className="text-sm">
-                A doctor is currently reviewing your request. 
-                You&apos;ll be notified when a decision has been made.
-              </p>
+              <div className="text-sm space-y-1">
+                <p>
+                  A doctor is currently reviewing your request.
+                </p>
+                <p className="text-muted-foreground">
+                  You&apos;ll be notified when a decision has been made.
+                </p>
+              </div>
             )}
             {intake.status === "approved" && (
               <p className="text-sm text-emerald-700">
@@ -438,6 +424,7 @@ export function IntakeDetailClient({
               intakeId={intake.id}
               initialStatus={intake.status as IntakeStatus}
               isPriority={intake.is_priority}
+              onStatusChange={handleStatusChange}
             />
           )}
 

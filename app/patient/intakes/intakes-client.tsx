@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   FileText,
   Pill,
@@ -28,24 +29,39 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 interface IntakesClientProps {
   intakes: IntakeWithPatient[]
   patientId: string
+  pagination?: {
+    page: number
+    total: number
+    pageSize: number
+  }
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   approved: { label: "Approved", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
   completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700", icon: CheckCircle },
-  paid: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
+  paid: { label: "In Queue", color: "bg-blue-100 text-blue-700", icon: Clock },
   in_review: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  pending: { label: "Pending", color: "bg-amber-100 text-amber-700", icon: Clock },
+  pending: { label: "Awaiting Payment", color: "bg-amber-100 text-amber-700", icon: Clock },
+  pending_payment: { label: "Awaiting Payment", color: "bg-amber-100 text-amber-700", icon: Clock },
   declined: { label: "Declined", color: "bg-red-100 text-red-700", icon: XCircle },
-  pending_info: { label: "Info Needed", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
+  pending_info: { label: "Needs Info", color: "bg-orange-100 text-orange-700", icon: AlertCircle },
   cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-700", icon: XCircle },
+  awaiting_script: { label: "Awaiting Script", color: "bg-blue-100 text-blue-700", icon: Clock },
 }
 
-export function IntakesClient({ intakes: initialIntakes, patientId }: IntakesClientProps) {
+export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [intakes, setIntakes] = useState<IntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
   const supabase = createClient()
+  
+  // Server-side pagination
+  const currentPage = pagination?.page ?? 1
+  const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
+  const hasNextPage = currentPage < totalPages
+  const hasPrevPage = currentPage > 1
 
   // Fetch fresh intakes data
   const refreshIntakes = useCallback(async () => {
@@ -144,6 +160,13 @@ export function IntakesClient({ intakes: initialIntakes, patientId }: IntakesCli
   }
   
   const intakesToShow = getIntakesToShow()
+  
+  // Navigate to page
+  const goToPage = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", String(page))
+    router.push(`/patient/intakes?${params.toString()}`)
+  }
   
   return (
     <div className="container max-w-4xl py-8 px-4 sm:px-6">
@@ -252,6 +275,31 @@ export function IntakesClient({ intakes: initialIntakes, patientId }: IntakesCli
               {intakesToShow.map((intake) => (
                 <IntakeCard key={intake.id} intake={intake} />
               ))}
+              
+              {/* Server-side Pagination */}
+              {pagination && totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={!hasPrevPage}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground px-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={!hasNextPage}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>

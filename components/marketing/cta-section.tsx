@@ -94,7 +94,7 @@ export function CTASection() {
               <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground">
                 <span>No account required</span>
                 <span className="hidden sm:inline">•</span>
-                <span>Pay only if approved</span>
+                <span>Pay after doctor review</span>
                 <span className="hidden sm:inline">•</span>
                 <span className="inline-flex items-center gap-1.5 text-success font-medium">
                   <ShieldCheck className="h-3.5 w-3.5" />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef } from "react"
+import { useState, useTransition, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,8 @@ import {
   Send,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
+import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
+import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
@@ -134,9 +136,80 @@ export function IntakeDetailClient({
   }
   const [parchmentReference, setParchmentReference] = useState("")
   const [refundReason, setRefundReason] = useState("")
+  
+  // P0 SAFETY: Red flag acknowledgment before approval
+  const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
+  
+  // P0 SAFETY: Detect red flags that require acknowledgment before approval
+  const intakeAnswers = intake.answers?.answers as Record<string, unknown> | undefined
+  const hasRedFlags = Boolean(
+    intakeAnswers?.red_flags_detected || 
+    intakeAnswers?.emergency_symptoms ||
+    intake.risk_tier === "high" ||
+    intake.requires_live_consult
+  )
+  const redFlagDetails = [
+    intakeAnswers?.red_flags_detected && `Red flags: ${intakeAnswers.red_flags_detected}`,
+    intakeAnswers?.emergency_symptoms && `Emergency symptoms: ${intakeAnswers.emergency_symptoms}`,
+    intake.risk_tier === "high" && "High risk tier",
+    intake.requires_live_consult && "Requires live consult",
+  ].filter(Boolean) as string[]
   const notesRef = useRef<HTMLTextAreaElement>(null)
+  const viewStartTime = useRef<number>(Date.now())
+  const hasLoggedView = useRef(false)
+
+  // P1 MEDICOLEGAL: Log clinician view events for audit trail
+  // P1 EFFICIENCY: Acquire soft lock to prevent duplicate review work
+  useEffect(() => {
+    if (hasLoggedView.current) return
+    hasLoggedView.current = true
+    
+    // Log that clinician viewed intake answers
+    logViewedIntakeAnswersAction(intake.id, service?.type)
+    
+    // Log safety flags view if present
+    const flagAnswers = intake.answers?.answers as Record<string, unknown> | undefined
+    if (flagAnswers?.red_flags_detected || flagAnswers?.yellow_flags_detected || flagAnswers?.emergency_symptoms) {
+      logViewedSafetyFlagsAction(intake.id, service?.type)
+    }
+    
+    // Acquire soft lock on intake
+    acquireIntakeLockAction(intake.id).then((result) => {
+      if (result.warning) {
+        setActionMessage({
+          type: "error",
+          text: result.warning,
+        })
+      }
+    })
+    
+    // Extend lock periodically while viewing
+    const lockInterval = setInterval(() => {
+      extendIntakeLockAction(intake.id)
+    }, 5 * 60 * 1000) // Every 5 minutes
+    
+    // Log page unload to capture view duration and release lock
+    const handleUnload = () => {
+      const duration = Date.now() - viewStartTime.current
+      // Fire-and-forget - can't await on unload
+      navigator.sendBeacon?.(
+        '/api/doctor/log-view-duration',
+        JSON.stringify({ intakeId: intake.id, durationMs: duration })
+      )
+      // Release lock on page unload
+      releaseIntakeLockAction(intake.id)
+    }
+    
+    window.addEventListener('beforeunload', handleUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload)
+      clearInterval(lockInterval)
+      // Release lock on component unmount
+      releaseIntakeLockAction(intake.id)
+    }
+  }, [intake.id, intake.answers, service?.type])
 
   // P1 RK-1: Minimum clinical notes length for defensibility
   const MIN_CLINICAL_NOTES_LENGTH = 20
@@ -170,6 +243,15 @@ export function IntakeDetailClient({
   })
 
   const handleStatusChange = async (status: IntakeStatus) => {
+    // P0 SAFETY: Block approval if red flags not acknowledged
+    if ((status === "approved" || status === "awaiting_script") && hasRedFlags && !redFlagsAcknowledged) {
+      setActionMessage({
+        type: "error",
+        text: "This case has safety flags that require acknowledgment before approval. Please review and acknowledge the flags below.",
+      })
+      return
+    }
+    
     // P1 RK-1: Require clinical notes before approval per MEDICOLEGAL_AUDIT_REPORT
     if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
       setActionMessage({
@@ -444,6 +526,42 @@ export function IntakeDetailClient({
                 )
               })}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* P0 SAFETY: Red Flag Acknowledgment Card */}
+      {hasRedFlags && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-destructive flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              Safety Flags Detected
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm space-y-1">
+              {redFlagDetails.map((detail, i) => (
+                <p key={i} className="text-destructive-foreground">• {detail}</p>
+              ))}
+            </div>
+            <div className="flex items-center space-x-2 pt-2 border-t border-destructive/20">
+              <input
+                type="checkbox"
+                id="acknowledge-flags"
+                checked={redFlagsAcknowledged}
+                onChange={(e) => setRedFlagsAcknowledged(e.target.checked)}
+                className="h-4 w-4 rounded border-destructive text-destructive focus:ring-destructive"
+              />
+              <label htmlFor="acknowledge-flags" className="text-sm font-medium text-destructive-foreground">
+                I have reviewed these safety flags and determined it is appropriate to proceed
+              </label>
+            </div>
+            {!redFlagsAcknowledged && (
+              <p className="text-xs text-muted-foreground italic">
+                You must acknowledge safety flags before approving this case.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

@@ -32,8 +32,8 @@ export default async function DoctorIntakeDetailPage({
   await logClinicianOpenedRequest(id, "intake", profile.id)
 
   // Fetch patient's previous intakes for history
-  const patientHistory = await getPatientIntakes(intake.patient.id)
-  const previousIntakes = patientHistory.filter(r => r.id !== id).slice(0, 5)
+  const { data: patientHistory } = await getPatientIntakes(intake.patient.id, { pageSize: 6 })
+  const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Fetch AI drafts for this intake
   const aiDrafts = await getAIDraftsForIntake(id)

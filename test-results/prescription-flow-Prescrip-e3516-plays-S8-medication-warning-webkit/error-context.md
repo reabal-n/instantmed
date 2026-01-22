@@ -1,0 +1,10 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3]:
+    - /url: "#main-content"
+  - region "Notifications alt+T"
+  - button "Open chat assistant" [ref=e4]:
+    - img [ref=e5]
+```

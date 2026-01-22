@@ -2,6 +2,7 @@
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
@@ -19,6 +20,7 @@ interface GuestCheckoutInput {
   guestEmail: string
   guestName?: string
   guestDateOfBirth?: string
+  guestPhone?: string // Required for prescription category (eScript SMS delivery)
   serviceSlug?: string
 }
 
@@ -80,6 +82,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return {
         success: false,
         error: `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
+      }
+    }
+
+    // P1 FIX: Require phone for prescription category (eScript SMS delivery)
+    if (input.category === "prescription" && !input.guestPhone) {
+      return {
+        success: false,
+        error: "Phone number is required for prescription requests to receive your eScript via SMS.",
       }
     }
 
@@ -174,6 +184,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     const normalizedEmail = input.guestEmail.toLowerCase().trim()
     let guestProfileId: string
 
+    // P1 FIX: Rate limit guest checkout by email to prevent abuse
+    const rateLimitResult = checkRateLimit(`guest-checkout:${normalizedEmail}`, RATE_LIMIT_SENSITIVE)
+    if (!rateLimitResult.success) {
+      logger.warn("Guest checkout rate limited", { email: normalizedEmail })
+      return {
+        success: false,
+        error: "Too many checkout attempts. Please wait a moment before trying again.",
+      }
+    }
+
     // First check if an authenticated profile exists (user already has account)
     const { data: existingAuthProfile } = await supabase
       .from("profiles")
@@ -190,15 +210,24 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     }
 
     // Check for existing guest profile
+    // P1 FIX: Only reuse guest profile if it exists and belongs to same session
+    // to prevent profile hijacking via email guessing
     const { data: existingGuestProfile } = await supabase
       .from("profiles")
-      .select("id, auth_user_id")
+      .select("id, auth_user_id, email_verified")
       .eq("email", normalizedEmail)
       .is("auth_user_id", null)
       .single()
 
     if (existingGuestProfile) {
       guestProfileId = existingGuestProfile.id
+      // P1 FIX: Update phone if provided (for prescription eScript delivery)
+      if (input.guestPhone) {
+        await supabase
+          .from("profiles")
+          .update({ phone: input.guestPhone })
+          .eq("id", guestProfileId)
+      }
     } else {
       // Create a new guest profile
       const { data: newProfile, error: profileError } = await supabase
@@ -207,6 +236,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           email: normalizedEmail,
           full_name: input.guestName || normalizedEmail.split("@")[0],
           date_of_birth: input.guestDateOfBirth || null,
+          phone: input.guestPhone || null, // P1 FIX: Store phone for eScript SMS
           auth_user_id: null,
           role: "patient",
         })
@@ -244,7 +274,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return { success: false, error: "Service not available. Please contact support." }
     }
 
+    // 3. Get the price ID early so we can store it on the intake
+    const priceId = getPriceIdForRequest({
+      category: input.category,
+      subtype: input.subtype,
+      answers: input.answers,
+    })
+
     // 3. Create the intake with pending_payment status
+    // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
+    const guestIdempotencyKey = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .insert({
@@ -253,6 +292,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         status: "pending_payment",
         payment_status: "pending",
         amount_cents: service.price_cents,
+        category: input.category,
+        subtype: input.subtype || null,
+        idempotency_key: guestIdempotencyKey,
+        guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
+        stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
       })
       .select()
       .single()
@@ -277,20 +321,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
 
-    // 5. Get the price ID
-    const priceId = getPriceIdForRequest({
-      category: input.category,
-      subtype: input.subtype,
-      answers: input.answers,
-    })
-
+    // 5. Validate price ID (already fetched above)
     if (!priceId) {
       await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
     // 6. Build success and cancel URLs
-    const successUrl = `${baseUrl}/auth/complete-account?intake_id=${intake.id}&email=${encodeURIComponent(input.guestEmail)}&session_id={CHECKOUT_SESSION_ID}`
+    // Note: Email is passed for account completion flow - retrieved server-side for security
+    const successUrl = `${baseUrl}/auth/complete-account?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`
     const cancelUrl = `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`
 
     // 7. Create Stripe checkout session

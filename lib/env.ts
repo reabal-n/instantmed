@@ -33,6 +33,12 @@ const serverEnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   INTERNAL_API_SECRET: z.string().optional(),
   
+  // Stripe price IDs (required for checkout functionality)
+  STRIPE_PRICE_MEDCERT: z.string().optional(),
+  STRIPE_PRICE_MEDCERT_2DAY: z.string().optional(),
+  STRIPE_PRICE_PRESCRIPTION: z.string().optional(),
+  STRIPE_PRICE_CONSULT: z.string().optional(),
+  
   // Optional with defaults
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
@@ -58,8 +64,11 @@ const productionRequirements = z.object({
   STRIPE_SECRET_KEY: z.string().min(1, "Production requires STRIPE_SECRET_KEY"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "Production requires STRIPE_WEBHOOK_SECRET"),
   INTERNAL_API_SECRET: z.string().min(1, "Production requires INTERNAL_API_SECRET"),
-  // Note: ENCRYPTION_KEY is validated at runtime in lib/security/encryption.ts
-  // This allows builds to succeed, while enforcing encryption when PHI is accessed
+  ENCRYPTION_KEY: z.string().min(32, "Production requires ENCRYPTION_KEY (min 32 bytes base64)"),
+  // Stripe price IDs - required in production for payment functionality
+  STRIPE_PRICE_MEDCERT: z.string().min(1, "Production requires STRIPE_PRICE_MEDCERT"),
+  STRIPE_PRICE_PRESCRIPTION: z.string().min(1, "Production requires STRIPE_PRICE_PRESCRIPTION"),
+  STRIPE_PRICE_CONSULT: z.string().min(1, "Production requires STRIPE_PRICE_CONSULT"),
 })
 
 /**

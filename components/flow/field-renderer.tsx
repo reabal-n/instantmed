@@ -250,7 +250,27 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
         )
       }
 
-      case 'date':
+      case 'date': {
+        // Calculate min/max dates from validation constraints
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        let minDate: string | undefined
+        let maxDate: string | undefined
+        
+        // maxBackdateDays: limit how far back user can select
+        if (field.validation?.maxBackdateDays !== undefined) {
+          const minDateTime = new Date(today)
+          minDateTime.setDate(minDateTime.getDate() - field.validation.maxBackdateDays)
+          minDate = minDateTime.toISOString().split('T')[0]
+        }
+        
+        // For end_date, max is today + maxDurationDays (if no relative field)
+        // For start_date, max is today
+        if (!field.validation?.relativeToField) {
+          maxDate = today.toISOString().split('T')[0]
+        }
+        
         return (
           <input
             ref={inputRef as React.RefObject<HTMLInputElement>}
@@ -259,9 +279,12 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            min={minDate}
+            max={maxDate}
             className={cn(inputBaseClass, 'h-12 px-4')}
           />
         )
+      }
 
       case 'select':
         return (

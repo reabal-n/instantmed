@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
   AlertTriangle, 
+  AlertCircle,
   Calendar, 
   Thermometer, 
   Activity,
@@ -40,6 +41,11 @@ const FIELD_LABELS: Record<string, string> = {
   // Prescription fields
   medication_name: "Medication",
   medication_dosage: "Dosage",
+  drug_name: "Drug Name",
+  pbs_code: "PBS Code",
+  form: "Form",
+  strength: "Strength",
+  manufacturer: "Manufacturer",
   last_prescribed: "Last Prescribed",
   pharmacy_preference: "Preferred Pharmacy",
   is_repeat: "Repeat Prescription",
@@ -48,12 +54,17 @@ const FIELD_LABELS: Record<string, string> = {
   // Safety fields
   emergency_symptoms: "Emergency Symptoms",
   red_flags_detected: "Red Flags",
+  yellow_flags_detected: "Caution Flags",
+  yellow_flags: "Caution Flags",
   // Consent
   telehealth_consent_given: "Telehealth Consent",
 }
 
-// Fields to highlight as critical
-const CRITICAL_FIELDS = ["emergency_symptoms", "red_flags_detected", "symptom_severity"]
+// Fields to highlight as critical (red - requires immediate attention)
+const RED_FLAG_FIELDS = ["emergency_symptoms", "red_flags_detected", "symptom_severity"]
+
+// Fields to highlight as warnings (yellow/amber - requires caution)
+const YELLOW_FLAG_FIELDS = ["yellow_flags_detected", "yellow_flags", "caution_notes", "requires_followup"]
 
 // Fields to show duration/time formatting
 const DATE_FIELDS = ["start_date", "last_prescribed"]
@@ -114,7 +125,8 @@ function getFieldIcon(key: string) {
 
 export function ClinicalSummary({ answers, serviceType: _serviceType, className }: ClinicalSummaryProps) {
   // Extract and categorize fields
-  const criticalFields: [string, unknown][] = []
+  const redFlagFields: [string, unknown][] = []
+  const yellowFlagFields: [string, unknown][] = []
   const primaryFields: [string, unknown][] = []
   const secondaryFields: [string, unknown][] = []
   
@@ -122,7 +134,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
   const priorityOrder = [
     "symptoms", "symptom_details", "symptom_duration",
     "certificate_type", "duration", "start_date",
-    "medication_name", "medication_dosage", "last_prescribed",
+    "medication_name", "drug_name", "pbs_code", "strength", "form", "medication_dosage", "last_prescribed",
     "consult_reason",
   ]
   
@@ -142,8 +154,10 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
     // Skip patient details (shown separately)
     if (key.startsWith("patient_")) continue
     
-    if (CRITICAL_FIELDS.includes(key) && value) {
-      criticalFields.push([key, value])
+    if (RED_FLAG_FIELDS.includes(key) && value) {
+      redFlagFields.push([key, value])
+    } else if (YELLOW_FLAG_FIELDS.includes(key) && value) {
+      yellowFlagFields.push([key, value])
     } else if (priorityOrder.includes(key)) {
       primaryFields.push([key, value])
     } else {
@@ -160,19 +174,37 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Critical/Red Flags - Always prominent */}
-        {criticalFields.length > 0 && (
+        {/* Red Flags - Critical, requires immediate attention */}
+        {redFlagFields.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2 text-destructive font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
-              Flags Requiring Attention
+              Red Flags — Requires Immediate Attention
             </div>
-            {criticalFields.map(([key, value]) => (
+            {redFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
                 <Badge variant="destructive" className="text-xs">
                   {FIELD_LABELS[key] || key.replace(/_/g, " ")}
                 </Badge>
                 <span className="text-destructive-foreground">{formatValue(key, value)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Yellow Flags - Caution, review carefully */}
+        {yellowFlagFields.length > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium text-sm">
+              <AlertCircle className="h-4 w-4" />
+              Caution Flags — Review Carefully
+            </div>
+            {yellowFlagFields.map(([key, value]) => (
+              <div key={key} className="flex items-start gap-2 text-sm">
+                <Badge className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                  {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                </Badge>
+                <span className="text-amber-900 dark:text-amber-200">{formatValue(key, value)}</span>
               </div>
             ))}
           </div>
@@ -227,7 +259,7 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
         )}
         
         {/* Empty state */}
-        {primaryFields.length === 0 && secondaryFields.length === 0 && criticalFields.length === 0 && (
+        {primaryFields.length === 0 && secondaryFields.length === 0 && redFlagFields.length === 0 && yellowFlagFields.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No intake data available
           </p>

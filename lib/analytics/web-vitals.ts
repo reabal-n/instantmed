@@ -61,18 +61,21 @@ function reportMetric(metric: WebVitalMetric, config: WebVitalsConfig) {
   // Send to Vercel Analytics (automatically handled by @vercel/analytics)
   // For custom analytics, you can add here:
   
-  // Example: Send to custom endpoint
+  // Send to PostHog for production monitoring
   if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
-    // Beacon API for reliable delivery - uncomment when you have an analytics endpoint
-    // const body = JSON.stringify({
-    //   name: metric.name,
-    //   value: metric.value,
-    //   rating: metric.rating,
-    //   id: metric.id,
-    //   page: window.location.pathname,
-    //   timestamp: Date.now(),
-    // })
-    // navigator.sendBeacon?.('/api/analytics/vitals', body)
+    // Use PostHog to track Web Vitals
+    const posthog = (window as unknown as { posthog?: { capture: (event: string, properties: Record<string, unknown>) => void } }).posthog
+    if (posthog?.capture) {
+      posthog.capture("$web_vitals", {
+        $web_vitals_name: metric.name,
+        $web_vitals_value: metric.value,
+        $web_vitals_rating: metric.rating,
+        $web_vitals_id: metric.id,
+        $web_vitals_delta: metric.delta,
+        $current_url: window.location.href,
+        $pathname: window.location.pathname,
+      })
+    }
   }
 }
 

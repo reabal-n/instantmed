@@ -3,10 +3,18 @@
 /**
  * PHI Encryption Backfill Script
  *
- * Encrypts existing plaintext PHI fields in the profiles table:
+ * Encrypts existing plaintext PHI fields in multiple tables:
+ * 
+ * profiles table:
  * - medicare_number -> medicare_number_encrypted
  * - date_of_birth -> date_of_birth_encrypted
  * - phone -> phone_encrypted
+ * 
+ * intake_answers table (CRITICAL PHI):
+ * - answers (JSONB) -> answers_encrypted
+ * 
+ * intake_drafts table:
+ * - draft_data (JSONB) -> draft_data_encrypted
  *
  * Features:
  * - Batch processing (configurable batch size)
@@ -14,16 +22,18 @@
  * - Idempotent (skips already-encrypted records)
  * - Dry-run mode for testing
  * - Resume support (continues from where it left off)
+ * - Envelope encryption (unique DEK per record)
  *
  * Required env vars:
  * - NEXT_PUBLIC_SUPABASE_URL
  * - SUPABASE_SERVICE_ROLE_KEY
- * - ENCRYPTION_KEY (32-byte base64 encoded key)
+ * - PHI_MASTER_KEY (32-byte base64 encoded key) OR AWS_KMS_KEY_ARN
  *
  * Usage:
- *   npm run encrypt:backfill           # Production run
- *   npm run encrypt:backfill -- --dry  # Dry run (no changes)
- *   npm run encrypt:backfill -- --batch=100  # Custom batch size
+ *   npm run encrypt:backfill                    # All tables
+ *   npm run encrypt:backfill -- --table=intake_answers  # Specific table
+ *   npm run encrypt:backfill -- --dry           # Dry run (no changes)
+ *   npm run encrypt:backfill -- --batch=100     # Custom batch size
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
@@ -200,7 +210,7 @@ async function main() {
   let encrypted = 0
   let errors = 0
   let lastError: string | null = null
-  let offset = 0
+  const offset = 0
 
   while (processed < total) {
     // Fetch batch of profiles

@@ -13,7 +13,7 @@
 // CORE TYPES
 // ============================================
 
-export interface SEOPage {
+export interface SEOPageBase {
   slug: string
   type: PageType
   title: string
@@ -36,6 +36,96 @@ export interface SEOPage {
   links: {
     related: RelatedLink[]
   }
+}
+
+// Discriminated union types for page-specific data
+export interface MedicationPageData extends SEOPageBase {
+  type: 'medication'
+  medication: {
+    genericName: string
+    brandNames: string[]
+    dosageForms: string[]
+    commonDosages: string[]
+    schedule: string
+    description?: string
+  }
+  clinicalInfo?: {
+    uses: string[]
+    contraindications?: string[]
+    sideEffects?: string[]
+  }
+  consultInfo?: {
+    turnaroundTime: string
+    pricing: string
+  }
+}
+
+export interface IntentPageData extends SEOPageBase {
+  type: 'intent'
+  intent: {
+    userNeed: string
+    urgency: 'immediate' | 'routine' | 'planned'
+    alternateQueries: string[]
+  }
+}
+
+export interface ConditionPageData extends SEOPageBase {
+  type: 'condition'
+}
+
+export interface CategoryHubPageData extends SEOPageBase {
+  type: 'category-hub'
+}
+
+export interface AudiencePageData extends SEOPageBase {
+  type: 'audience'
+}
+
+export interface SymptomPageData extends SEOPageBase {
+  type: 'symptom'
+}
+
+export interface ComparisonPageData extends SEOPageBase {
+  type: 'comparison'
+}
+
+export interface LocationPageData extends SEOPageBase {
+  type: 'location'
+}
+
+export interface CertificatePageData extends SEOPageBase {
+  type: 'certificate'
+}
+
+export interface BenefitPageData extends SEOPageBase {
+  type: 'benefit'
+}
+
+export interface ResourcePageData extends SEOPageBase {
+  type: 'resource'
+}
+
+// Union type for all SEO pages
+export type SEOPage = 
+  | MedicationPageData
+  | IntentPageData
+  | ConditionPageData
+  | CategoryHubPageData
+  | AudiencePageData
+  | SymptomPageData
+  | ComparisonPageData
+  | LocationPageData
+  | CertificatePageData
+  | BenefitPageData
+  | ResourcePageData
+
+// Type guards for specific page types
+export function isMedicationPage(page: SEOPage): page is MedicationPageData {
+  return page.type === 'medication'
+}
+
+export function isIntentPage(page: SEOPage): page is IntentPageData {
+  return page.type === 'intent'
 }
 
 export type PageType = 

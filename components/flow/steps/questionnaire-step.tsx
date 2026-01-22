@@ -238,6 +238,8 @@ function evaluateCondition(
       return typeof fieldValue === 'number' && fieldValue < (condition.value as number)
     case 'includes':
       return typeof fieldValue === 'string' && fieldValue.includes(condition.value as string)
+    case 'not_includes':
+      return Array.isArray(fieldValue) && !fieldValue.includes(condition.value)
     default:
       return true
   }

@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Loader2, Calendar, User, FileText } from "lucide-react"
+import { Loader2, Calendar, User, FileText, Eye } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { RequestWithDetails } from "@/types/db"
 import { AiReviewSummary } from "@/components/doctor/ai-review-summary"
 import { AIDraftsPanel } from "@/components/doctor/ai-drafts-panel"
@@ -42,6 +43,7 @@ export function CertReviewModal({
   onConfirm,
 }: CertReviewModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const [formData, setFormData] = useState<CertReviewData>({
     doctorName: doctorName || "",
     consultDate: new Date().toISOString().split("T")[0],
@@ -268,7 +270,71 @@ export function CertReviewModal({
             </div>
           </div>
 
-          <DialogFooter>
+          {/* Certificate Preview Section */}
+          {showPreview && (
+            <Card className="border-2 border-primary/20 bg-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Certificate Preview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="border-b pb-3">
+                  <h4 className="font-bold text-center text-lg">MEDICAL CERTIFICATE</h4>
+                  <p className="text-center text-muted-foreground text-xs mt-1">InstantMed Pty Ltd</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-muted-foreground">Patient Name:</span>
+                    <p className="font-medium">{patientName}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Date of Consultation:</span>
+                    <p className="font-medium">
+                      {formData.consultDate ? new Date(formData.consultDate).toLocaleDateString("en-AU", {
+                        day: "numeric", month: "long", year: "numeric"
+                      }) : "—"}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-muted-foreground mb-1">This is to certify that the above patient was examined and found to be unfit for work/study due to:</p>
+                  <p className="font-medium">{formData.medicalReason || "Medical Illness"}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-muted-foreground">Period:</span>
+                    <p className="font-medium">
+                      {formData.startDate && formData.endDate ? (
+                        <>
+                          {new Date(formData.startDate).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                          {" — "}
+                          {new Date(formData.endDate).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                          {" ("}
+                          {Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1}
+                          {" days)"}
+                        </>
+                      ) : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Issued By:</span>
+                    <p className="font-medium">{formData.doctorName || "Dr."}</p>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground italic pt-2 border-t">
+                  This certificate will include a unique verification code, QR code, and digital signature.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
@@ -276,6 +342,15 @@ export function CertReviewModal({
               disabled={isSubmitting}
             >
               Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowPreview(!showPreview)}
+              disabled={isSubmitting}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              {showPreview ? "Hide Preview" : "Preview"}
             </Button>
             <Button
               type="submit"

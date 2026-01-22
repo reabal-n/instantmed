@@ -7,6 +7,7 @@ import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
 import { verifyAddress } from "@/lib/addressfinder/server"
+import { encryptIfNeeded } from "@/lib/security/encryption"
 
 interface OnboardingInput {
   phone: string
@@ -103,7 +104,7 @@ export async function completeOnboardingAction(
       suburb: finalAddress.suburb,
       state: finalAddress.state,
       postcode: finalAddress.postcode,
-      medicare_number: data.medicare_number || null,
+      medicare_number: data.medicare_number ? encryptIfNeeded(data.medicare_number) : null,
       medicare_irn: data.medicare_irn || null,
       medicare_expiry: data.medicare_expiry || null,
       consent_myhr: data.consent_myhr,

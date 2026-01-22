@@ -54,7 +54,7 @@ const PROGRESS_STEPS = ["Details", "Review", "Pay"]
 const _MAX_ASYNC_DAYS = 3
 
 // Storage key for draft persistence (for future implementation)
-const _STORAGE_KEY = "LumenHealth_medcert_v2_draft"
+const _STORAGE_KEY = "instantmed_medcert_v2_draft"
 const _DRAFT_EXPIRY_HOURS = 24
 
 // ============================================================================

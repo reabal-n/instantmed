@@ -1,8 +1,14 @@
 /**
- * Medical Certificate PDF Template (react-pdf version)
+ * @deprecated LEGACY TEMPLATE - DO NOT USE FOR NEW CODE
  * 
- * Uses @react-pdf/renderer for server-side PDF generation.
- * This creates a professional, AHPRA-compliant medical certificate.
+ * Use lib/pdf/med-cert-pdf-v2.tsx instead.
+ * 
+ * This template is deprecated in favor of the V2 config-driven template
+ * which supports template versioning, clinic identity, and doctor signatures.
+ * 
+ * Original description:
+ * Medical Certificate PDF Template (react-pdf version) - Uses @react-pdf/renderer
+ * for server-side PDF generation. Creates AHPRA-compliant medical certificate.
  */
 
 import React from "react"

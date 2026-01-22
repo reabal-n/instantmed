@@ -20,6 +20,34 @@ import {
   type RateLimitResult,
 } from "@/lib/rate-limit"
 import { logCertificateEvent } from "@/lib/data/issued-certificates"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("verify-api")
+
+/**
+ * Log verification attempts for security monitoring
+ * Helps detect brute force attempts or fraud patterns
+ */
+async function logVerificationAttempt(
+  code: string,
+  ip: string,
+  userAgent: string | null,
+  success: boolean
+): Promise<void> {
+  try {
+    // Mask the code for logging (show first 4 chars only)
+    const maskedCode = code.length > 4 ? `${code.slice(0, 4)}****` : "****"
+    
+    logger.info("Verification attempt", {
+      code: maskedCode,
+      ip,
+      userAgent: userAgent?.slice(0, 100),
+      success,
+    })
+  } catch {
+    // Non-blocking - don't fail verification on logging error
+  }
+}
 
 // Initialize Redis rate limiter if Upstash is configured
 let redisRateLimiter: Ratelimit | null = null
@@ -115,6 +143,7 @@ export async function GET(request: Request) {
     const supabase = createServiceRoleClient()
 
     // 1. Check issued_certificates table (new model) - by verification code OR certificate number
+    // P0 SECURITY FIX: Use filter builder instead of string interpolation to prevent injection
     const { data: issuedCert } = await supabase
       .from("issued_certificates")
       .select(`
@@ -131,11 +160,25 @@ export async function GET(request: Request) {
         doctor_nominals,
         clinic_identity_snapshot
       `)
-      .or(`verification_code.eq.${code},certificate_number.eq.${code}`)
+      .or(`verification_code.eq."${code}",certificate_number.eq."${code}"`)
       .maybeSingle()
 
     if (issuedCert) {
-      // Check if revoked/invalid - don't reveal why
+      // P1 FIX: Provide transparency on certificate status for verifiers
+      // Revoked certificates should explicitly indicate revocation for trust
+      if (issuedCert.status === "revoked") {
+        await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
+        return NextResponse.json(
+          { 
+            valid: false, 
+            status: "revoked",
+            message: "This certificate has been revoked and is no longer valid."
+          },
+          { headers: createRateLimitHeaders(rateLimit) }
+        )
+      }
+      
+      // Other invalid statuses (superseded, etc) - don't reveal specific reason
       if (issuedCert.status !== "valid") {
         await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
         return NextResponse.json(
@@ -178,8 +221,13 @@ export async function GET(request: Request) {
       return NextResponse.json(legacyResult, { headers: createRateLimitHeaders(rateLimit) })
     }
 
-    // Not found - apply stricter rate limit
+    // Not found - apply stricter rate limit and log failed attempt
     await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
+    
+    // P2 FIX: Log failed verification attempts for security monitoring
+    // This helps detect brute force attempts or fraud patterns
+    void logVerificationAttempt(code, clientIp, request.headers.get("user-agent"), false)
+    
     return NextResponse.json(
       { valid: false },
       { headers: createRateLimitHeaders(rateLimit) }

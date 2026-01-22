@@ -231,6 +231,7 @@ export async function incrementRateLimit(
 
 /**
  * Rate limit middleware helper
+ * Uses atomic check-and-increment to prevent race conditions
  */
 export async function rateLimit(userId: string | null, endpoint: string): Promise<RateLimitResult> {
   const ip = await getClientIP()
@@ -238,11 +239,6 @@ export async function rateLimit(userId: string | null, endpoint: string): Promis
   const identifierType = userId ? "user" : "ip"
   const config = userId ? RATE_LIMITS.authenticated : RATE_LIMITS.unauthenticated
 
-  const result = await checkRateLimit(identifier, identifierType, endpoint, config)
-
-  if (result.allowed) {
-    await incrementRateLimit(identifier, identifierType, endpoint, config)
-  }
-
-  return result
+  // Use atomic operation instead of separate check + increment
+  return checkAndIncrementRateLimit(identifier, identifierType, endpoint, config)
 }

@@ -5,11 +5,41 @@ import { createServiceClient } from "@/lib/supabase/server"
 import { checkEligibility, generateSuggestedDecision } from "@/lib/repeat-rx/rules-engine"
 import { rateLimit } from "@/lib/rate-limit/limiter"
 import { createLogger } from "@/lib/observability/logger"
+import { z } from "zod"
 const log = createLogger("route")
 import type {
   ClinicalSummary,
   RepeatRxSubmitPayload,
 } from "@/types/repeat-rx"
+
+// Zod schema for request validation
+const medicationSchema = z.object({
+  amt_code: z.string().min(1, "Medication code is required"),
+  display: z.string(),
+  medication_name: z.string(),
+  strength: z.string(),
+  form: z.string(),
+})
+
+const consentTimestampsSchema = z.object({
+  emergencyDisclaimer: z.string().min(1, "Emergency disclaimer consent required"),
+  gpAttestation: z.string().min(1, "GP attestation consent required"),
+  terms: z.string().optional(),
+})
+
+const pharmacyDetailsSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  phone: z.string(),
+}).optional()
+
+const repeatRxSubmitSchema = z.object({
+  medication: medicationSchema,
+  answers: z.record(z.string(), z.unknown()),
+  consentTimestamps: consentTimestampsSchema,
+  pharmacyDetails: pharmacyDetailsSchema,
+  guestEmail: z.string().email().optional(),
+})
 
 /**
  * POST /api/repeat-rx/submit
@@ -41,38 +71,21 @@ export async function POST(request: Request) {
       )
     }
     
-    const body = await request.json() as RepeatRxSubmitPayload
-    const { medication, answers, consentTimestamps, pharmacyDetails } = body
+    // Parse and validate request body with Zod
+    const rawBody = await request.json()
+    const parseResult = repeatRxSubmitSchema.safeParse(rawBody)
     
-    // Validate required fields
-    if (!medication || !medication.amt_code) {
+    if (!parseResult.success) {
+      log.warn("[Repeat Rx Submit] Validation failed", { 
+        errors: parseResult.error.flatten().fieldErrors 
+      })
       return NextResponse.json(
-        { error: "Medication is required" },
+        { error: "Invalid request", details: parseResult.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
     
-    if (!answers) {
-      return NextResponse.json(
-        { error: "Answers are required" },
-        { status: 400 }
-      )
-    }
-    
-    // Check consent timestamps
-    if (!consentTimestamps?.emergencyDisclaimer) {
-      return NextResponse.json(
-        { error: "Emergency disclaimer consent required" },
-        { status: 400 }
-      )
-    }
-    
-    if (!consentTimestamps?.gpAttestation) {
-      return NextResponse.json(
-        { error: "GP attestation consent required" },
-        { status: 400 }
-      )
-    }
+    const { medication, answers, consentTimestamps, pharmacyDetails, guestEmail } = parseResult.data as RepeatRxSubmitPayload
     
     const supabase = createServiceRoleClient()
     
@@ -101,7 +114,7 @@ export async function POST(request: Request) {
         id: patientId || undefined,
         name: "", // Will be filled from profile later
         dob: "",
-        email: body.guestEmail || "",
+        email: guestEmail || "",
         isGuest,
       },
       requestId: "", // Will be filled after insert
@@ -150,7 +163,7 @@ export async function POST(request: Request) {
       .insert({
         patient_id: patientId,
         is_guest: isGuest,
-        guest_email: isGuest ? body.guestEmail : null,
+        guest_email: isGuest ? guestEmail : null,
         medication_code: medication.amt_code,
         medication_display: medication.display,
         medication_strength: medication.strength,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { 
   Bell, 
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import { formatDistanceToNow, format } from "date-fns"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import type { RealtimeChannel } from "@supabase/supabase-js"
 
 interface Notification {
   id: string
@@ -67,6 +68,57 @@ export function NotificationsClient({ notifications: initialNotifications }: Not
   const [notifications, setNotifications] = useState(initialNotifications)
   const [filter, setFilter] = useState<"all" | "unread">("all")
   const supabase = createClient()
+
+  // Subscribe to new notifications in realtime
+  useEffect(() => {
+    let channel: RealtimeChannel | null = null
+
+    const setupRealtimeSubscription = () => {
+      channel = supabase
+        .channel("patient-notifications")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+          },
+          (payload) => {
+            // Add new notification to the top of the list
+            const newNotification = payload.new as Notification
+            setNotifications((prev) => [newNotification, ...prev])
+            toast.info(newNotification.title, {
+              description: newNotification.message,
+            })
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "notifications",
+          },
+          (payload) => {
+            // Update notification in state
+            setNotifications((prev) =>
+              prev.map((n) =>
+                n.id === payload.new.id ? { ...n, ...payload.new } : n
+              )
+            )
+          }
+        )
+        .subscribe()
+    }
+
+    setupRealtimeSubscription()
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [supabase])
 
   const filteredNotifications = filter === "unread" 
     ? notifications.filter(n => !n.read) 

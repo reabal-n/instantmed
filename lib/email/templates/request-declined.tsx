@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface RequestDeclinedEmailProps {
   patientName: string
   requestType: string
@@ -9,7 +11,7 @@ interface RequestDeclinedEmailProps {
 
 export function RequestDeclinedEmail({ patientName, requestType, requestId, reason }: RequestDeclinedEmailProps) {
   return (
-    <BaseLayout previewText={`Update on your ${requestType} request`}>
+    <BaseLayout previewText={`Update on your ${requestType} request`} appUrl={APP_URL}>
       <h1>About your request</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -37,7 +39,7 @@ export function RequestDeclinedEmail({ patientName, requestType, requestId, reas
       </div>
 
       <p>
-        <a href={`https://instantmed.com.au/patient/requests/${requestId}`} className="button button-secondary">
+        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button button-secondary">
           View Details
         </a>
       </p>

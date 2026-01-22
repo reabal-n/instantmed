@@ -38,6 +38,7 @@ function formatIntakeStatus(status: string): string {
 
 interface AdminDashboardClientProps {
   allIntakes: IntakeWithPatient[]
+  totalIntakes?: number
   stats: {
     total: number
     in_queue: number

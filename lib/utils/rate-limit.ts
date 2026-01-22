@@ -74,3 +74,23 @@ export function createRateLimiter(options: RateLimitOptions = {}) {
 export const authRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }) // 5 auth attempts per minute
 export const apiRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 30 }) // 30 API calls per minute
 export const webhookRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 100 }) // 100 webhooks per minute
+export const intakeRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }) // 5 intake submissions per minute
+export const checkoutRateLimiter = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 3 }) // 3 checkout attempts per minute
+
+/**
+ * Get client identifier for rate limiting
+ * Uses IP address from headers, falls back to session ID
+ */
+export function getClientIdentifier(headers: Headers, sessionId?: string): string {
+  // Try common headers for real IP (behind proxies/load balancers)
+  const forwardedFor = headers.get('x-forwarded-for')
+  const realIp = headers.get('x-real-ip')
+  const cfConnectingIp = headers.get('cf-connecting-ip')
+  
+  const ip = cfConnectingIp || realIp || forwardedFor?.split(',')[0]?.trim()
+  
+  if (ip) return `ip:${ip}`
+  if (sessionId) return `session:${sessionId}`
+  
+  return 'unknown'
+}

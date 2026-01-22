@@ -115,7 +115,7 @@ export function OneHourPromise() {
                   <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center mx-auto mb-3">
                     <Send className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-white mb-1">Instant</p>
+                  <p className="text-3xl font-bold text-white mb-1">Same day</p>
                   <p className="text-sm text-indigo-100">delivery</p>
                 </div>
               </div>

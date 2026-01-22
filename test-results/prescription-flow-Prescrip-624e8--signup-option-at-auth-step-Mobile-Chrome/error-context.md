@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e5]:
+      - status [ref=e6]
+      - generic [ref=e7]:
+        - img [ref=e8]
+        - generic [ref=e14]:
+          - generic [ref=e15]: Doctors online now
+          - text: "— Average response: 45 min"
+      - banner [ref=e17]:
+        - generic [ref=e18]:
+          - button "Close and return to home" [ref=e19]:
+            - img [ref=e20]
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic "Service" [ref=e30]
+              - generic "Details" [ref=e34]
+              - generic "Safety" [ref=e38]
+              - generic "Account" [ref=e42]
+              - generic "Review" [ref=e46]
+            - generic [ref=e48]:
+              - img [ref=e49]
+              - generic [ref=e52]: About 4 min to go
+      - main [ref=e53]:
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - img [ref=e56]
+            - generic [ref=e58]: AHPRA Doctors
+          - generic [ref=e60]:
+            - img [ref=e61]
+            - generic [ref=e64]: Encrypted
+          - generic [ref=e66]:
+            - img [ref=e67]
+            - generic [ref=e70]: Quick Review
+        - generic [ref=e72]:
+          - generic [ref=e73]: "Repeat Prescription:"
+          - generic [ref=e74]: $29.95
+        - generic [ref=e75]:
+          - heading "Your medication" [level=1] [ref=e76]
+          - paragraph [ref=e77]: This helps our doctors help you faster
+        - generic [ref=e79]:
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e85]: Doctor reviews your request
+            - generic [ref=e86]: • eScript sent to your phone via SMS
+          - generic [ref=e87]:
+            - generic [ref=e88]: Medication name (optional)
+            - generic [ref=e89]:
+              - img [ref=e90]
+              - combobox "Medication name search" [ref=e93]
+            - paragraph [ref=e94]: This helps with record accuracy. A doctor will review everything.
+            - button "I don't know the exact name" [ref=e95]
+            - status [ref=e96]
+          - generic [ref=e97]:
+            - generic [ref=e99]: Dosage & strength (if known)
+            - textbox "e.g., 500mg twice daily" [ref=e104]
+          - generic [ref=e105]:
+            - generic [ref=e107]:
+              - text: When was this last prescribed?
+              - generic [ref=e108]: "*"
+            - paragraph [ref=e109]: Required for repeat prescriptions
+            - generic [ref=e110]:
+              - button "Within 3 months" [ref=e111]:
+                - generic [ref=e112]: Within 3 months
+              - button "3-6 months" [ref=e113]:
+                - generic [ref=e114]: 3-6 months
+              - button "6-12 months" [ref=e115]:
+                - generic [ref=e116]: 6-12 months
+              - button "Over a year" [ref=e117]:
+                - generic [ref=e118]: Over a year
+          - paragraph [ref=e120]:
+            - strong [ref=e121]: "Attestation:"
+            - text: By requesting this repeat prescription, I confirm I am currently taking this medication as prescribed by my regular doctor and have not experienced any significant side effects.
+          - generic [ref=e122]:
+            - generic [ref=e124]:
+              - text: Your email
+              - generic [ref=e125]: "*"
+            - paragraph [ref=e126]: We'll send your e-script details here
+            - textbox "you@example.com" [ref=e131]
+      - contentinfo [ref=e132]:
+        - generic [ref=e134]:
+          - button [ref=e135]:
+            - img [ref=e136]
+          - button "Continue" [ref=e138]:
+            - text: Continue
+            - img [ref=e139]
+    - region "Notifications alt+T"
+    - button "Open chat assistant" [ref=e141]:
+      - img [ref=e142]
+    - dialog "Cookie consent" [ref=e144]:
+      - generic [ref=e146]:
+        - generic [ref=e147]:
+          - img [ref=e148]
+          - paragraph [ref=e167]:
+            - text: We use cookies to keep things running smoothly.
+            - link "Learn more" [ref=e168] [cursor=pointer]:
+              - /url: /privacy#cookies
+        - generic [ref=e169]:
+          - button "Manage" [ref=e170]
+          - button "Essential only" [ref=e172] [cursor=pointer]
+          - button "Accept all" [ref=e174] [cursor=pointer]
+  - generic [ref=e179] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e180]:
+      - img [ref=e181]
+    - generic [ref=e184]:
+      - button "Open issues overlay" [ref=e185]:
+        - generic [ref=e186]:
+          - generic [ref=e187]: "3"
+          - generic [ref=e188]: "4"
+        - generic [ref=e189]:
+          - text: Issue
+          - generic [ref=e190]: s
+      - button "Collapse issues badge" [ref=e191]:
+        - img [ref=e192]
+  - alert [ref=e194]
+```

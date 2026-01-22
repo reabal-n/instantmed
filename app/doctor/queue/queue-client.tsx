@@ -88,6 +88,7 @@ export function QueueClient({
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
   const [sortOption, setSortOption] = useState<"flagged" | "wait" | "service">("flagged")
   const [filterService, setFilterService] = useState<string>("all")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
   const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
   const [focusMode, setFocusMode] = useState(false)
@@ -136,7 +137,19 @@ export function QueueClient({
     return `${diffMins}m`
   }
 
-  const getWaitTimeSeverity = (createdAt: string) => {
+  const getWaitTimeSeverity = (createdAt: string, slaDeadline?: string | null) => {
+    // Use SLA deadline if available for severity calculation
+    if (slaDeadline) {
+      const deadline = new Date(slaDeadline)
+      const now = new Date()
+      const diffMins = Math.floor((deadline.getTime() - now.getTime()) / (1000 * 60))
+      
+      if (diffMins < 0) return "critical" // Past SLA
+      if (diffMins < 30) return "warning" // Within 30 mins of SLA
+      return "normal"
+    }
+    
+    // Fallback to wait time based severity
     const created = new Date(createdAt)
     const now = new Date()
     const diffMins = Math.floor((now.getTime() - created.getTime()) / (1000 * 60))
@@ -144,6 +157,31 @@ export function QueueClient({
     if (diffMins > 60) return "critical"
     if (diffMins > 30) return "warning"
     return "normal"
+  }
+
+  // Calculate time until SLA deadline (countdown)
+  const calculateSlaCountdown = (slaDeadline: string | null | undefined): string | null => {
+    if (!slaDeadline) return null
+    
+    const deadline = new Date(slaDeadline)
+    const now = new Date()
+    const diffMs = deadline.getTime() - now.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    
+    if (diffMins < 0) {
+      const overdueMins = Math.abs(diffMins)
+      const overdueHours = Math.floor(overdueMins / 60)
+      if (overdueHours > 0) {
+        return `${overdueHours}h ${overdueMins % 60}m overdue`
+      }
+      return `${overdueMins}m overdue`
+    }
+    
+    const hours = Math.floor(diffMins / 60)
+    if (hours > 0) {
+      return `${hours}h ${diffMins % 60}m left`
+    }
+    return `${diffMins}m left`
   }
 
   const calculateAge = (dob: string): number => {
@@ -347,10 +385,15 @@ export function QueueClient({
   }, [intakes, sortOption, hasRedFlags])
 
   const filteredIntakes = sortedIntakes.filter((r) => {
-    // Filter by service type first
+    // Filter by service type
     if (filterService !== "all") {
       const service = r.service as { type?: string } | undefined
       if (service?.type !== filterService) return false
+    }
+    
+    // Filter by status
+    if (filterStatus !== "all") {
+      if (r.status !== filterStatus) return false
     }
     
     // Then filter by search query
@@ -465,6 +508,19 @@ export function QueueClient({
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-center gap-2">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Filter status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="paid">New (Paid)</SelectItem>
+                <SelectItem value="in_review">In Review</SelectItem>
+                <SelectItem value="pending_info">Pending Info</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
@@ -481,7 +537,7 @@ export function QueueClient({
         ) : (
           filteredIntakes.map((intake, index) => {
             const isExpanded = expandedId === intake.id
-            const waitSeverity = getWaitTimeSeverity(intake.created_at)
+            const waitSeverity = getWaitTimeSeverity(intake.created_at, intake.sla_deadline)
             const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
@@ -566,18 +622,36 @@ export function QueueClient({
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <div
-                            className={`flex items-center gap-1.5 text-sm ${
-                              waitSeverity === "critical"
-                                ? "text-destructive"
-                                : waitSeverity === "warning"
-                                  ? "text-dawn-600"
-                                  : "text-muted-foreground"
-                            }`}
-                          >
-                            <Clock className="h-4 w-4" />
-                            <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
-                          </div>
+                          {/* SLA Countdown - Primary metric */}
+                          {intake.sla_deadline && (
+                            <div
+                              className={`flex items-center gap-1.5 text-sm font-medium ${
+                                waitSeverity === "critical"
+                                  ? "text-destructive"
+                                  : waitSeverity === "warning"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                              }`}
+                            >
+                              <Clock className="h-4 w-4" />
+                              <span>{calculateSlaCountdown(intake.sla_deadline)}</span>
+                            </div>
+                          )}
+                          {/* Wait time - Secondary if no SLA */}
+                          {!intake.sla_deadline && (
+                            <div
+                              className={`flex items-center gap-1.5 text-sm ${
+                                waitSeverity === "critical"
+                                  ? "text-destructive"
+                                  : waitSeverity === "warning"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-muted-foreground"
+                              }`}
+                            >
+                              <Clock className="h-4 w-4" />
+                              <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
+                            </div>
+                          )}
                           {waitSeverity === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
                         </div>
                       </div>

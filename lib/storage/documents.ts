@@ -122,11 +122,13 @@ export async function uploadPdfBuffer(
     const storagePath = generateStoragePath(requestId, documentType, subtype)
     const supabase = getStorageClient()
 
+    // P1 FIX: Use private cache-control for access-controlled documents
+    // Documents are served via signed URLs, so shouldn't be cached publicly
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(storagePath, pdfBuffer, {
         contentType: "application/pdf",
-        cacheControl: "public, max-age=31536000",
+        cacheControl: "private, max-age=3600",
         upsert: false,
       })
 
@@ -138,7 +140,7 @@ export async function uploadPdfBuffer(
           .from(BUCKET_NAME)
           .upload(retryPath, pdfBuffer, {
             contentType: "application/pdf",
-            cacheControl: "public, max-age=31536000",
+            cacheControl: "private, max-age=3600",
             upsert: false,
           })
 

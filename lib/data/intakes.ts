@@ -24,10 +24,36 @@ import {
 /**
  * Fetch all intakes for a given patient with service info.
  * Returns intakes sorted by created_at descending (newest first).
+ * Supports optional pagination for scalability.
  */
-export async function getPatientIntakes(patientId: string, status?: IntakeStatus): Promise<IntakeWithPatient[]> {
+export async function getPatientIntakes(
+  patientId: string,
+  options?: { status?: IntakeStatus; page?: number; pageSize?: number }
+): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = createServiceRoleClient()
+  const page = options?.page ?? 1
+  const pageSize = Math.min(options?.pageSize ?? 20, 100) // Cap at 100
+  const offset = (page - 1) * pageSize
 
+  // Build base query conditions
+  let countQuery = supabase
+    .from("intakes")
+    .select("id", { count: "exact", head: true })
+    .eq("patient_id", patientId)
+
+  if (options?.status) {
+    countQuery = countQuery.eq("status", options.status)
+  }
+
+  // Get total count first
+  const { count, error: countError } = await countQuery
+
+  if (countError) {
+    logger.error("Error fetching patient intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    return { data: [], total: 0, page, pageSize }
+  }
+
+  // Build data query
   let query = supabase
     .from("intakes")
     .select(`
@@ -36,19 +62,25 @@ export async function getPatientIntakes(patientId: string, status?: IntakeStatus
     `)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
+    .range(offset, offset + pageSize - 1)
 
-  if (status) {
-    query = query.eq("status", status)
+  if (options?.status) {
+    query = query.eq("status", options.status)
   }
 
   const { data, error } = await query
 
   if (error) {
     logger.error("Error fetching patient intakes", {}, error instanceof Error ? error : new Error(String(error)))
-    return []
+    return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  return data as unknown as IntakeWithPatient[]
+  return {
+    data: data as unknown as IntakeWithPatient[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
 }
 
 /**
@@ -98,7 +130,7 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
       *,
       patient:profiles!patient_id(id, full_name, email, date_of_birth, medicare_number, phone, suburb, state),
       service:services!service_id(id, name, short_name, type, slug),
-      answers:intake_answers(id, answers)
+      answers:intake_answers(id, answers, answers_encrypted, encryption_metadata)
     `)
     .eq("id", intakeId)
     .eq("patient_id", patientId)
@@ -277,6 +309,8 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         id,
         intake_id,
         answers,
+        answers_encrypted,
+        encryption_metadata,
         has_allergies,
         allergy_details,
         has_current_medications,
@@ -305,30 +339,104 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
 
 /**
  * Get all intakes for admin dashboard
+ * Supports pagination and date range filtering for scalability at high volume.
  */
-export async function getAllIntakesForAdmin(): Promise<IntakeWithPatient[]> {
+export async function getAllIntakesForAdmin(
+  options?: { 
+    page?: number
+    pageSize?: number
+    dateFrom?: string  // ISO date string
+    dateTo?: string    // ISO date string
+    status?: string[]  // Filter by status
+  }
+): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = createServiceRoleClient()
+  const page = options?.page ?? 1
+  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
+  const offset = (page - 1) * pageSize
 
-  const { data, error } = await supabase
+  // Build count query with filters
+  let countQuery = supabase
+    .from("intakes")
+    .select("id", { count: "exact", head: true })
+
+  // Apply date range filter (default: last 30 days for performance)
+  const defaultFrom = new Date()
+  defaultFrom.setDate(defaultFrom.getDate() - 30)
+  const dateFrom = options?.dateFrom || defaultFrom.toISOString()
+  countQuery = countQuery.gte("created_at", dateFrom)
+  
+  if (options?.dateTo) {
+    countQuery = countQuery.lte("created_at", options.dateTo)
+  }
+
+  if (options?.status && options.status.length > 0) {
+    countQuery = countQuery.in("status", options.status)
+  }
+
+  // Get total count first
+  const { count, error: countError } = await countQuery
+
+  if (countError) {
+    logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    return { data: [], total: 0, page, pageSize }
+  }
+
+  // Fetch paginated data with only necessary fields
+  let dataQuery = supabase
     .from("intakes")
     .select(`
-      *,
-      patient:profiles!patient_id (*),
+      id,
+      patient_id,
+      service_id,
+      status,
+      payment_status,
+      category,
+      subtype,
+      is_priority,
+      sla_deadline,
+      reference_number,
+      created_at,
+      updated_at,
+      paid_at,
+      approved_at,
+      declined_at,
+      reviewed_by,
+      reviewed_at,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state),
       service:services!service_id (slug, name, short_name, type)
     `)
+
+  // Apply same filters as count query
+  dataQuery = dataQuery.gte("created_at", dateFrom)
+  if (options?.dateTo) {
+    dataQuery = dataQuery.lte("created_at", options.dateTo)
+  }
+  if (options?.status && options.status.length > 0) {
+    dataQuery = dataQuery.in("status", options.status)
+  }
+
+  const { data, error } = await dataQuery
     .order("created_at", { ascending: false })
+    .range(offset, offset + pageSize - 1)
 
   if (error) {
     logger.error("Error fetching all intakes", {}, error instanceof Error ? error : new Error(String(error)))
-    return []
+    return { data: [], total: count ?? 0, page, pageSize }
   }
 
   const validData = (data || []).filter((r) => r.patient !== null)
-  return validData as unknown as IntakeWithPatient[]
+  return {
+    data: validData as unknown as IntakeWithPatient[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
 }
 
 /**
  * Get dashboard stats for doctor
+ * Uses SQL COUNT queries for efficiency at scale
  */
 export async function getDoctorDashboardStats(): Promise<{
   total: number
@@ -340,32 +448,64 @@ export async function getDoctorDashboardStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("status, script_sent, payment_status")
-    .neq("status", "draft")
-    .neq("status", "cancelled")
+  // Run all count queries in parallel for efficiency
+  const [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult] = await Promise.all([
+    // Total paid intakes
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_status", "paid")
+      .not("status", "in", '("draft","cancelled")'),
+    // In queue (paid or in_review status)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["paid", "in_review"]),
+    // Approved or completed
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["approved", "completed"]),
+    // Declined
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "declined"),
+    // Pending info
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending_info"),
+    // Scripts pending (approved but not sent)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "approved")
+      .eq("script_sent", false),
+  ])
 
-  if (error || !data) {
-    logger.error("Error fetching dashboard stats", {}, error instanceof Error ? error : new Error(String(error)))
-    return { total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
-  }
-
-  const paidIntakes = data.filter((r) => r.payment_status === "paid")
+  // Log any errors but don't fail completely
+  const results = [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult]
+  results.forEach((r, i) => {
+    if (r.error) {
+      logger.error(`Error fetching dashboard stat ${i}`, {}, r.error instanceof Error ? r.error : new Error(String(r.error)))
+    }
+  })
 
   return {
-    total: paidIntakes.length,
-    in_queue: data.filter((r) => ["paid", "in_review"].includes(r.status)).length,
-    approved: data.filter((r) => ["approved", "completed"].includes(r.status)).length,
-    declined: data.filter((r) => r.status === "declined").length,
-    pending_info: data.filter((r) => r.status === "pending_info").length,
-    scripts_pending: data.filter((r) => r.status === "approved" && r.script_sent === false).length,
+    total: totalResult.count ?? 0,
+    in_queue: inQueueResult.count ?? 0,
+    approved: approvedResult.count ?? 0,
+    declined: declinedResult.count ?? 0,
+    pending_info: pendingInfoResult.count ?? 0,
+    scripts_pending: scriptsPendingResult.count ?? 0,
   }
 }
 
 /**
  * Get live intake monitoring stats for doctor dashboard
  * Includes today's submissions, queue metrics, and review time stats
+ * Uses SQL COUNT queries for efficiency at scale
  */
 export async function getIntakeMonitoringStats(): Promise<{
   todaySubmissions: number
@@ -379,86 +519,103 @@ export async function getIntakeMonitoringStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
   
-  // Get start of today in local timezone
+  // Get start of today in UTC (server time)
   const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  todayStart.setUTCHours(0, 0, 0, 0)
+  const todayStartISO = todayStart.toISOString()
 
-  // Fetch all relevant intakes
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("id, status, payment_status, created_at, reviewed_at, paid_at, approved_at, declined_at")
-    .neq("status", "draft")
-    .neq("status", "cancelled")
+  // Run count queries in parallel
+  const [
+    todaySubmissionsResult,
+    queueSizeResult,
+    paidCountResult,
+    pendingCountResult,
+    approvedTodayResult,
+    declinedTodayResult,
+    oldestInQueueResult,
+    recentCompletedResult,
+  ] = await Promise.all([
+    // Today's submissions (paid today)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("paid_at", todayStartISO),
+    // Queue size
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["paid", "in_review", "pending_info"]),
+    // Paid count
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_status", "paid")
+      .not("status", "in", '("draft","cancelled")'),
+    // Pending count
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_status", "pending")
+      .not("status", "in", '("draft","cancelled")'),
+    // Approved today
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("approved_at", todayStartISO),
+    // Declined today
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("declined_at", todayStartISO),
+    // Oldest in queue (single row, ordered by paid_at/created_at)
+    supabase
+      .from("intakes")
+      .select("paid_at, created_at")
+      .in("status", ["paid", "in_review", "pending_info"])
+      .order("paid_at", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single(),
+    // Recent completed for avg review time (last 100 to keep query fast)
+    supabase
+      .from("intakes")
+      .select("paid_at, approved_at, declined_at")
+      .not("paid_at", "is", null)
+      .in("status", ["approved", "declined", "completed"])
+      .order("approved_at", { ascending: false, nullsFirst: true })
+      .limit(100),
+  ])
 
-  if (error || !data) {
-    logger.error("Error fetching monitoring stats", {}, error instanceof Error ? error : new Error(String(error)))
-    return {
-      todaySubmissions: 0,
-      queueSize: 0,
-      paidCount: 0,
-      pendingCount: 0,
-      approvedToday: 0,
-      declinedToday: 0,
-      avgReviewTimeMinutes: null,
-      oldestInQueueMinutes: null,
+  // Calculate oldest in queue minutes
+  let oldestInQueueMinutes: number | null = null
+  if (oldestInQueueResult.data) {
+    const oldestTime = new Date(oldestInQueueResult.data.paid_at || oldestInQueueResult.data.created_at).getTime()
+    oldestInQueueMinutes = Math.round((Date.now() - oldestTime) / (1000 * 60))
+  }
+
+  // Calculate average review time from recent completed intakes
+  let avgReviewTimeMinutes: number | null = null
+  if (recentCompletedResult.data && recentCompletedResult.data.length > 0) {
+    const validIntakes = recentCompletedResult.data.filter(
+      (r) => r.paid_at && (r.approved_at || r.declined_at)
+    )
+    if (validIntakes.length > 0) {
+      const totalMinutes = validIntakes.reduce((sum, r) => {
+        const startTime = new Date(r.paid_at!).getTime()
+        const endTime = new Date(r.approved_at || r.declined_at!).getTime()
+        return sum + (endTime - startTime) / (1000 * 60)
+      }, 0)
+      avgReviewTimeMinutes = Math.round(totalMinutes / validIntakes.length)
     }
   }
 
-  // Today's submissions (created today with payment)
-  const todaySubmissions = data.filter(
-    (r) => r.paid_at && new Date(r.paid_at) >= todayStart
-  ).length
-
-  // Queue size (paid, in_review, pending_info)
-  const queueIntakes = data.filter((r) => 
-    ["paid", "in_review", "pending_info"].includes(r.status)
-  )
-  const queueSize = queueIntakes.length
-
-  // Paid vs pending payment
-  const paidCount = data.filter((r) => r.payment_status === "paid").length
-  const pendingCount = data.filter((r) => r.payment_status === "pending").length
-
-  // Approved/declined today
-  const approvedToday = data.filter(
-    (r) => r.approved_at && new Date(r.approved_at) >= todayStart
-  ).length
-  const declinedToday = data.filter(
-    (r) => r.declined_at && new Date(r.declined_at) >= todayStart
-  ).length
-
-  // Calculate average review time (from paid_at to approved_at or declined_at)
-  const completedIntakes = data.filter(
-    (r) => r.paid_at && (r.approved_at || r.declined_at)
-  )
-  
-  let avgReviewTimeMinutes: number | null = null
-  if (completedIntakes.length > 0) {
-    const totalMinutes = completedIntakes.reduce((sum, r) => {
-      const startTime = new Date(r.paid_at!).getTime()
-      const endTime = new Date(r.approved_at || r.declined_at!).getTime()
-      return sum + (endTime - startTime) / (1000 * 60)
-    }, 0)
-    avgReviewTimeMinutes = Math.round(totalMinutes / completedIntakes.length)
-  }
-
-  // Oldest item in queue
-  let oldestInQueueMinutes: number | null = null
-  if (queueIntakes.length > 0) {
-    const oldestCreated = queueIntakes.reduce((oldest, r) => {
-      const created = new Date(r.paid_at || r.created_at).getTime()
-      return created < oldest ? created : oldest
-    }, Date.now())
-    oldestInQueueMinutes = Math.round((Date.now() - oldestCreated) / (1000 * 60))
-  }
-
   return {
-    todaySubmissions,
-    queueSize,
-    paidCount,
-    pendingCount,
-    approvedToday,
-    declinedToday,
+    todaySubmissions: todaySubmissionsResult.count ?? 0,
+    queueSize: queueSizeResult.count ?? 0,
+    paidCount: paidCountResult.count ?? 0,
+    pendingCount: pendingCountResult.count ?? 0,
+    approvedToday: approvedTodayResult.count ?? 0,
+    declinedToday: declinedTodayResult.count ?? 0,
     avgReviewTimeMinutes,
     oldestInQueueMinutes,
   }

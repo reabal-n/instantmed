@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 
 interface CancelIntakeResult {
   success: boolean
@@ -22,6 +23,12 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
     
     if (!authUser) {
       return { success: false, error: "Please sign in to continue" }
+    }
+
+    // Rate limiting - prevent abuse
+    const rateLimit = await checkServerActionRateLimit(authUser.user.id, "standard")
+    if (!rateLimit.success) {
+      return { success: false, error: rateLimit.error || "Too many requests. Please wait." }
     }
 
     const supabase = createServiceRoleClient()
@@ -49,9 +56,19 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
     }
 
     // Verify status allows cancellation
-    const cancellableStatuses = ["draft", "pending_payment", "pending_info"]
+    // Note: pending_info removed - doctor is waiting for response, patient should respond instead
+    const cancellableStatuses = ["draft", "pending_payment"]
     if (!cancellableStatuses.includes(intake.status)) {
       logger.warn("Cancel intake: invalid status", { intakeId, status: intake.status })
+      
+      // Provide specific message for pending_info status
+      if (intake.status === "pending_info") {
+        return { 
+          success: false, 
+          error: "This request cannot be cancelled while the doctor is waiting for information. Please respond to the doctor's question first." 
+        }
+      }
+      
       return { 
         success: false, 
         error: "This request cannot be cancelled. Only unpaid requests can be cancelled." 

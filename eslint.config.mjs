@@ -20,6 +20,8 @@ const eslintConfig = [
       "*.config.mjs",
       "**/*.d.ts",
       "public/sw.js",
+      "playwright-report/**",
+      "test-results/**",
     ],
   },
   // Base JS recommended

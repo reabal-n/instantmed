@@ -1,5 +1,7 @@
 import { BaseLayout } from "./base-layout"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+
 interface NeedsMoreInfoEmailProps {
   patientName: string
   requestType: string
@@ -9,7 +11,7 @@ interface NeedsMoreInfoEmailProps {
 
 export function NeedsMoreInfoEmail({ patientName, requestType, requestId, doctorMessage }: NeedsMoreInfoEmailProps) {
   return (
-    <BaseLayout previewText={`Action needed: Additional information required`}>
+    <BaseLayout previewText={`Action needed: Additional information required`} appUrl={APP_URL}>
       <h1>We need a bit more information</h1>
       <p>Hi {patientName},</p>
       <p>
@@ -23,7 +25,7 @@ export function NeedsMoreInfoEmail({ patientName, requestType, requestId, doctor
       </div>
 
       <p>
-        <a href={`https://instantmed.com.au/patient/requests/${requestId}`} className="button">
+        <a href={`${APP_URL}/patient/requests/${requestId}`} className="button">
           Respond Now
         </a>
       </p>

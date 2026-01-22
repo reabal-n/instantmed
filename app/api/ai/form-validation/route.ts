@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
 import { getDefaultModel } from "@/lib/ai/provider"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { z } from "zod"
 
 export const runtime = "edge"
 
@@ -12,10 +13,12 @@ export const runtime = "edge"
  * that might cause rejection before submission.
  */
 
-interface ValidationRequest {
-  formType: "med_cert" | "repeat_rx" | "consult"
-  formData: Record<string, unknown>
-}
+const validationRequestSchema = z.object({
+  formType: z.enum(["med_cert", "repeat_rx", "consult"]),
+  formData: z.record(z.string(), z.unknown()),
+})
+
+type ValidationRequest = z.infer<typeof validationRequestSchema>
 
 interface ValidationIssue {
   field: string
@@ -206,12 +209,18 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse
     }
 
-    const body: ValidationRequest = await req.json()
-    const { formType, formData } = body
-
-    if (!formType || !formData) {
-      return NextResponse.json({ error: "Missing form type or data" }, { status: 400 })
+    // Parse and validate request body with Zod
+    const rawBody = await req.json()
+    const parseResult = validationRequestSchema.safeParse(rawBody)
+    
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     }
+
+    const { formType, formData } = parseResult.data
 
     // Run rule-based validation first
     const ruleIssues = runRuleBasedValidation(formType, formData)

@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2 } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { Button } from "@/components/ui/button"
 
 interface SuccessClientProps {
   intakeId?: string
@@ -24,13 +25,39 @@ export function SuccessClient({
   const [status, setStatus] = useState(initialStatus)
   const [isVerifying, setIsVerifying] = useState(initialStatus === "pending_payment")
   const [verificationFailed, setVerificationFailed] = useState(false)
+  const [pollingError, setPollingError] = useState(false)
+  const [resendingEmail, setResendingEmail] = useState(false)
+  const [emailResent, setEmailResent] = useState(false)
+
+  // P0 FIX: Fallback to resend confirmation email if not received
+  const handleResendConfirmation = useCallback(async () => {
+    if (!intakeId || resendingEmail || emailResent) return
+    
+    setResendingEmail(true)
+    try {
+      const response = await fetch("/api/patient/resend-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intakeId }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        setEmailResent(true)
+      }
+    } catch {
+      // Silently fail - user can try again
+    } finally {
+      setResendingEmail(false)
+    }
+  }, [intakeId, resendingEmail, emailResent])
 
   useEffect(() => {
     if (!intakeId || initialStatus !== "pending_payment") return
 
     // Poll for status update if still pending_payment
+    // Increased timeout to 45 seconds to handle webhook delays
     let attempts = 0
-    const maxAttempts = 10 // 10 attempts * 2s = 20 seconds max wait
+    const maxAttempts = 15 // 15 attempts * 3s = 45 seconds max wait
 
     const checkStatus = async () => {
       try {
@@ -55,7 +82,16 @@ export function SuccessClient({
         }
 
         return false
-      } catch {
+      } catch (err) {
+        // P2 FIX: Track polling errors and show fallback after multiple failures
+        // eslint-disable-next-line no-console
+        console.error("Status polling error:", err)
+        attempts++
+        if (attempts >= maxAttempts) {
+          setPollingError(true)
+          setIsVerifying(false)
+          return true
+        }
         return false
       }
     }
@@ -65,7 +101,7 @@ export function SuccessClient({
       if (done) {
         clearInterval(intervalId)
       }
-    }, 2000)
+    }, 3000)
 
     // Initial check
     checkStatus()
@@ -90,7 +126,37 @@ export function SuccessClient({
     )
   }
 
-  // Show warning if verification failed but still show the what happens next page
+  // P2 FIX: Show error state if polling failed due to errors (not just timeout)
+  if (pollingError) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Connection issue</h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              We couldn&apos;t verify your payment status. Don&apos;t worry — if you completed payment, 
+              your request is being processed.
+            </p>
+          </div>
+        </div>
+        <div className="p-4 rounded-lg bg-muted/50 text-sm space-y-2">
+          <p><strong>What to do next:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+            <li>Check your <a href="/patient" className="underline hover:no-underline">dashboard</a> for your request status</li>
+            <li>Look for a confirmation email in your inbox</li>
+            <li>If you don&apos;t see your request within 10 minutes, <a href="/contact" className="underline hover:no-underline">contact support</a></li>
+          </ul>
+        </div>
+      </div>
+    )
+  }
+
+  // Show warning if verification timed out - payment likely succeeded, webhook may be delayed
   if (verificationFailed) {
     return (
       <div className="space-y-6">
@@ -100,14 +166,21 @@ export function SuccessClient({
           serviceName={serviceName}
           patientEmail={patientEmail}
           isPriority={isPriority}
-          showConfetti={false}
         />
-        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200">
-          <p>
-            <strong>Note:</strong> Payment is being processed. If you don&apos;t see your request 
-            in your dashboard within a few minutes, please{" "}
-            <a href="/contact" className="underline hover:no-underline">contact support</a>.
-          </p>
+        {/* P0 FIX: Resend confirmation email button */}
+        <div className="p-4 rounded-lg bg-muted/50 text-sm space-y-3">
+          <p><strong>Still confirming your payment</strong> — This can take a minute or two. Your request has been received.</p>
+          <p className="text-muted-foreground">Haven&apos;t received a confirmation email?</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResendConfirmation}
+            disabled={resendingEmail || emailResent}
+            className="gap-2"
+          >
+            <Mail className="w-4 h-4" />
+            {emailResent ? "Email sent!" : resendingEmail ? "Sending..." : "Resend confirmation email"}
+          </Button>
         </div>
       </div>
     )

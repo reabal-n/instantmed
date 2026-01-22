@@ -14,8 +14,6 @@ import {
   FolderOpen,
   ArrowLeft,
 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
 
 interface Certificate {
   id: string
@@ -56,10 +54,8 @@ export function DocumentsClient({ documents }: DocumentsClientProps) {
   const totalDocs = certificates.length + receipts.length
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-linear-to-b from-sky-50/50 to-white pt-20 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="space-y-6">
+      <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>
@@ -194,8 +190,6 @@ export function DocumentsClient({ documents }: DocumentsClientProps) {
             </Tabs>
           )}
         </div>
-      </main>
-      <Footer />
-    </>
+    </div>
   )
 }

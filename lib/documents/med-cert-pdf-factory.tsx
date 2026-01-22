@@ -1,11 +1,19 @@
 /**
- * Medical Certificate PDF Factory
+ * Medical Certificate PDF Factory (Preview Mode)
  * 
- * Consolidated factory for generating med cert PDFs with:
- * - Server-side React-PDF rendering
+ * NOTE: This factory is used ONLY for preview/draft rendering in the doctor UI.
+ * 
+ * CANONICAL PIPELINE for production certificates:
+ * - lib/pdf/med-cert-render.ts (rendering orchestration)
+ * - lib/pdf/med-cert-pdf-v2.tsx (template with clinic identity + template config)
+ * 
+ * This factory provides:
+ * - Server-side React-PDF rendering for previews
  * - Doctor-editable fields from document drafts
  * - Branding assets (logo, signature)
- * - No email logic (handled separately)
+ * - Simpler styling for quick preview generation
+ * 
+ * When approving certificates, use renderMedCertPdf() from med-cert-render.ts
  */
 
 import "server-only"
@@ -247,12 +255,12 @@ function MedCertDocument({
             <Image style={styles.logo} src={logoUrl} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.clinicName}>InstantMed</Text>
-            <Text style={styles.tagline}>Telehealth Medical Services • Australia</Text>
+            <Text style={styles.clinicName}>{data.clinic_name || "InstantMed"}</Text>
+            <Text style={styles.tagline}>{data.clinic_tagline || "Telehealth Medical Services • Australia"}</Text>
             <Text style={styles.contactInfo}>
-              support@instantmed.com.au{"\n"}
-              instantmed.com.au{"\n"}
-              ABN: 00 000 000 000
+              {data.clinic_email || "support@instantmed.com.au"}{"\n"}
+              {data.clinic_website || "instantmed.com.au"}{"\n"}
+              {data.clinic_abn ? `ABN: ${data.clinic_abn}` : ""}
             </Text>
           </View>
         </View>

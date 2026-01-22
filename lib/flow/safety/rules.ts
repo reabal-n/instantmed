@@ -89,7 +89,7 @@ const medCertRules: SafetyRule[] = [
         value: 7,
         derivedFrom: {
           type: 'duration_days',
-          fields: ['absence_start_date', 'today'],
+          fields: ['start_date', 'today'],
         },
       },
     ],
@@ -111,7 +111,7 @@ const medCertRules: SafetyRule[] = [
         value: 3,
         derivedFrom: {
           type: 'duration_days',
-          fields: ['absence_start_date', 'today'],
+          fields: ['start_date', 'today'],
         },
       },
     ],
@@ -133,7 +133,7 @@ const medCertRules: SafetyRule[] = [
         value: 5,
         derivedFrom: {
           type: 'duration_days',
-          fields: ['absence_start_date', 'absence_end_date'],
+          fields: ['start_date', 'end_date'],
         },
       },
     ],
@@ -516,7 +516,7 @@ const weightRules: SafetyRule[] = [
     name: 'Pregnancy/Breastfeeding',
     description: 'Patient is pregnant or breastfeeding',
     conditions: [
-      { fieldId: 'pregnancy_status', operator: 'not_equals', value: 'no' },
+      { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no' },
     ],
     outcome: 'DECLINE',
     riskTier: 'high',

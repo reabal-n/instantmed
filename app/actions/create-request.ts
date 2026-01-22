@@ -7,6 +7,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateConsultPayload } from "@/lib/validation/schemas"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import type { RequestCategory, RequestSubtype } from "@/types/db"
 
 export interface CreateRequestInput {
@@ -32,6 +33,26 @@ export interface CreateRequestResult {
  */
 export async function createRequestAction(input: CreateRequestInput): Promise<CreateRequestResult> {
   try {
+    // 0. Get authenticated user first for rate limiting
+    const authUser = await getAuthenticatedUserWithProfile()
+    if (!authUser) {
+      return {
+        success: false,
+        error: "You must be logged in to submit a request. Please sign in and try again.",
+        errorCode: "AUTH_REQUIRED",
+      }
+    }
+
+    // 0b. Rate limiting - prevent abuse
+    const rateLimit = await checkServerActionRateLimit(authUser.user.id, "sensitive")
+    if (!rateLimit.success) {
+      return {
+        success: false,
+        error: rateLimit.error || "Too many requests. Please wait before trying again.",
+        errorCode: "RATE_LIMITED",
+      }
+    }
+
     // 1. Service availability checks
     const serviceCheck = await checkServiceAvailability(input)
     if (!serviceCheck.available) {
@@ -78,17 +99,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
       }
     }
 
-    // 4. Get authenticated user
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (!authUser) {
-      return {
-        success: false,
-        error: "You must be logged in to submit a request. Please sign in and try again.",
-        errorCode: "AUTH_REQUIRED",
-      }
-    }
-
-    // 5. Get or create profile
+    // 4. Get or create profile (authUser already verified at step 0)
     let patientId = input.patientId || authUser.profile?.id
 
     if (!patientId) {

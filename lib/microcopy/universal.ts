@@ -12,6 +12,11 @@ export const COPY = {
     doctorReview: "A doctor reviews every request",
     noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
+    // SLA messaging for intake status - configurable for seasonal adjustments
+    slaReviewTime: "1–2 hours",
+    slaBusinessHours: "8am–10pm AEST",
+    slaPendingMessage: "Most requests are reviewed within 1–2 hours during business hours (8am–10pm AEST).",
+    slaInReviewMessage: "A doctor is reviewing your request. Most reviews are completed within 1–2 hours.",
     price: {
       medcert: "From $19.95",
       medcertOneDay: "$19.95",

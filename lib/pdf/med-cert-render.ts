@@ -1,12 +1,28 @@
 /**
- * Medical Certificate PDF Rendering Utilities
+ * CANONICAL Medical Certificate PDF Pipeline
  * 
- * Helper functions to build render options from database data,
- * supporting template version locking for previously issued certificates.
+ * This is the SINGLE SOURCE OF TRUTH for production certificate generation.
+ * 
+ * Exports:
+ * - renderMedCertPdf() - Main render function with clinic/doctor identity
+ * - generateVerificationCode() - Secure verification code generation
+ * - generateCertificateNumber() - Certificate number generation (MC-YYYY-XXXXXXXX)
+ * 
+ * Template: lib/pdf/med-cert-pdf-v2.tsx (config-driven, versioned)
+ * 
+ * Features:
+ * - Template version locking for previously issued certificates
+ * - Clinic identity and branding
+ * - Doctor identity with signature
+ * - Audit-ready snapshots
+ * 
+ * For preview/draft rendering in doctor UI, see:
+ * - lib/documents/med-cert-pdf-factory.tsx (simplified preview template)
  */
 
 import { renderToBuffer } from "@react-pdf/renderer"
 import React from "react"
+import crypto from "crypto"
 import { MedCertPdfDocumentV2, type MedCertPdfDataV2, type MedCertPdfRenderOptions } from "./med-cert-pdf-v2"
 import { getActiveClinicIdentity, getClinicLogoUrl } from "@/lib/data/clinic-identity"
 import { getActiveTemplate } from "@/lib/data/certificate-templates"
@@ -196,7 +212,6 @@ function mapCertTypeToTemplateType(certType: "work" | "study" | "carer"): Templa
  */
 export function generateVerificationCode(_certificateNumber?: string): string {
   // Use crypto for secure random generation
-  const crypto = require("crypto")
 
   // Alphanumeric charset excluding ambiguous characters (0/O, 1/I/L)
   const charset = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -208,4 +223,21 @@ export function generateVerificationCode(_certificateNumber?: string): string {
   }
 
   return code
+}
+
+// ============================================================================
+// CERTIFICATE NUMBER GENERATOR
+// ============================================================================
+
+/**
+ * Generate a unique certificate number
+ * Format: MC-YYYY-XXXXXXXX (year + random hex)
+ * 
+ * This is the CANONICAL source for certificate number generation.
+ * Previously in lib/pdf/generate-med-cert.tsx (legacy).
+ */
+export function generateCertificateNumber(): string {
+  const year = new Date().getFullYear()
+  const random = crypto.randomBytes(4).toString("hex").toUpperCase()
+  return `MC-${year}-${random}`
 }

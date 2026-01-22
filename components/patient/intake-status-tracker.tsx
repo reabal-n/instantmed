@@ -100,41 +100,68 @@ function getStatusIndex(status: IntakeStatus): number {
 export function IntakeStatusTracker({
   intakeId,
   initialStatus,
-  isPriority = false,
+  isPriority: _isPriority = false,
   onStatusChange,
   className,
 }: IntakeStatusTrackerProps) {
   const [status, setStatus] = useState<IntakeStatus>(initialStatus)
   const [isConnecting, setIsConnecting] = useState(true)
+  const [isDisconnected, setIsDisconnected] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
-  // Subscribe to realtime status updates
+  // Subscribe to realtime status updates with reconnection logic
   useEffect(() => {
     const supabase = createClient()
+    let reconnectTimeout: NodeJS.Timeout | null = null
 
-    const channel = supabase
-      .channel(`intake-status-${intakeId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "intakes",
-          filter: `id=eq.${intakeId}`,
-        },
-        (payload) => {
-          const newStatus = payload.new.status as IntakeStatus
-          setStatus(newStatus)
-          onStatusChange?.(newStatus)
-        }
-      )
-      .subscribe((status) => {
-        setIsConnecting(status !== "SUBSCRIBED")
-      })
+    const setupChannel = () => {
+      const channel = supabase
+        .channel(`intake-status-${intakeId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "intakes",
+            filter: `id=eq.${intakeId}`,
+          },
+          (payload) => {
+            const newStatus = payload.new.status as IntakeStatus
+            setStatus(newStatus)
+            onStatusChange?.(newStatus)
+          }
+        )
+        .subscribe((subscriptionStatus, _err) => {
+          if (subscriptionStatus === "SUBSCRIBED") {
+            setIsConnecting(false)
+            setIsDisconnected(false)
+            setRetryCount(0)
+          } else if (subscriptionStatus === "CHANNEL_ERROR" || subscriptionStatus === "TIMED_OUT") {
+            setIsDisconnected(true)
+            setIsConnecting(false)
+            
+            // Exponential backoff retry (max 30 seconds)
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 30000)
+            reconnectTimeout = setTimeout(() => {
+              setRetryCount((prev) => prev + 1)
+              supabase.removeChannel(channel)
+              setupChannel()
+            }, delay)
+          } else if (subscriptionStatus === "CLOSED") {
+            setIsDisconnected(true)
+          }
+        })
+
+      return channel
+    }
+
+    const channel = setupChannel()
 
     return () => {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout)
       supabase.removeChannel(channel)
     }
-  }, [intakeId, onStatusChange])
+  }, [intakeId, onStatusChange, retryCount])
 
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES
@@ -153,6 +180,11 @@ export function IntakeStatusTracker({
             <>
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>Connecting...</span>
+            </>
+          ) : isDisconnected ? (
+            <>
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <span>Reconnecting...</span>
             </>
           ) : (
             <>

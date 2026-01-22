@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     const event: ResendWebhookPayload = JSON.parse(payload)
-    const { type: eventType, data } = event
+    const { type: eventType, data, created_at: _eventCreatedAt } = event
 
     logger.info("[Resend Webhook] Received event", {
       type: eventType,
@@ -155,6 +155,19 @@ export async function POST(request: NextRequest) {
     })
 
     const supabase = getServiceClient()
+
+    // Idempotency check: prevent processing same event twice
+    const eventKey = `${data.email_id}:${eventType}`
+    const { data: existingEvent } = await supabase
+      .from("email_logs")
+      .select("metadata")
+      .eq("resend_id", data.email_id)
+      .maybeSingle()
+
+    if (existingEvent?.metadata?.processed_events?.includes(eventKey)) {
+      logger.info("[Resend Webhook] Duplicate event, skipping", { eventKey })
+      return NextResponse.json({ received: true, duplicate: true })
+    }
 
     // Find email log by resend_id
     const { data: emailLog, error: findError } = await supabase
@@ -190,18 +203,25 @@ export async function POST(request: NextRequest) {
       updates.status = emailStatus
     }
 
+    // Get current metadata to merge with updates
+    const { data: currentLog } = await supabase
+      .from("email_logs")
+      .select("metadata")
+      .eq("id", emailLog.id)
+      .single()
+
+    const existingMetadata = (currentLog?.metadata || {}) as Record<string, unknown>
+    const processedEvents = (existingMetadata.processed_events || []) as string[]
+
+    // Track processed events for idempotency
+    updates.metadata = {
+      ...existingMetadata,
+      processed_events: [...processedEvents, eventKey],
+    }
+
     // Add bounce info to metadata if bounced
     if (eventType === "email.bounced" && data.bounce) {
-      const { data: currentLog } = await supabase
-        .from("email_logs")
-        .select("metadata")
-        .eq("id", emailLog.id)
-        .single()
-
-      updates.metadata = {
-        ...(currentLog?.metadata || {}),
-        bounce: data.bounce,
-      }
+      (updates.metadata as Record<string, unknown>).bounce = data.bounce
       updates.last_error = data.bounce.message
     }
 

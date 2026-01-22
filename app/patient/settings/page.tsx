@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { PatientSettingsClient } from "./settings-client"
+import { decryptIfNeeded } from "@/lib/security/encryption"
+import { getEmailPreferences } from "@/app/actions/email-preferences"
 
 // Prevent static generation for dynamic auth
 
@@ -21,5 +23,22 @@ export default async function PatientSettingsPage() {
     redirect("/doctor")
   }
 
-  return <PatientSettingsClient profile={authUser.profile} email={authUser.user.email || ""} />
+  // Decrypt sensitive fields before passing to client
+  const profileWithDecryptedFields = {
+    ...authUser.profile,
+    medicare_number: authUser.profile.medicare_number 
+      ? decryptIfNeeded(authUser.profile.medicare_number) 
+      : null,
+  }
+
+  // Fetch email preferences
+  const emailPreferences = await getEmailPreferences()
+
+  return (
+    <PatientSettingsClient 
+      profile={profileWithDecryptedFields} 
+      email={authUser.user.email || ""} 
+      emailPreferences={emailPreferences}
+    />
+  )
 }

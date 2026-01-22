@@ -15,7 +15,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     subheadline: 'Get a valid certificate for work or uni, reviewed by an Australian-registered doctor. Most requests sorted in under an hour.',
     reassurances: [
       'No signup to get started',
-      'No phone call unless needed',
+      'Most requests reviewed via text',
       'Refund if we can\'t help',
       'AHPRA registered doctors',
     ],
@@ -26,8 +26,8 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       secondary: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face',
     },
     highlightBadge: {
-      text: 'No phone call needed',
-      glow: true,
+      text: 'Most requests don\'t need a call',
+      glow: false,
     },
   },
   
@@ -121,7 +121,6 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
     title: 'Simple, transparent pricing',
     subtitle: 'One flat fee. No hidden costs.',
     price: 19.95,
-    originalPrice: 60,
     features: [
       'Valid for all employers & institutions',
       'Reviewed by AHPRA-registered doctor',
@@ -208,15 +207,15 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     subheadline: 'For medications you already take. A doctor reviews your request and sends an eScript to your phone via SMS.',
     reassurances: [
       'No signup to get started',
-      'No phone call unless needed',
+      'Most requests reviewed via text',
       'Refund if we can\'t help',
       'Any pharmacy Australia-wide',
     ],
     ctaText: 'Request your script',
     ctaHref: '/start?service=repeat-script',
     highlightBadge: {
-      text: 'No phone call needed',
-      glow: true,
+      text: 'Most requests don\'t need a call',
+      glow: false,
     },
   },
   
@@ -310,7 +309,6 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     title: 'Simple, transparent pricing',
     subtitle: 'Consultation fee only. Medication cost is separate at your pharmacy.',
     price: 29.95,
-    originalPrice: 70,
     features: [
       'Doctor review of your request',
       'eScript sent to your phone',
@@ -495,7 +493,6 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     title: 'Consultation pricing',
     subtitle: 'A fraction of typical GP costs, with the same quality of care.',
     price: 49.95,
-    originalPrice: 90,
     features: [
       'Full clinical assessment',
       'Phone or video consultation',

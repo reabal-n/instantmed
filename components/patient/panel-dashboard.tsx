@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import {
   FileText,
@@ -13,6 +14,7 @@ import {
   AlertTriangle,
   Lightbulb,
   Heart,
+  CreditCard,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import { usePanel, DrawerPanel } from "@/components/panels"
@@ -22,6 +24,7 @@ import { TiltCard } from "@/components/shared/tilt-card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { motion } from "framer-motion"
+import posthog from "posthog-js"
 
 /**
  * Panel-Based Patient Dashboard
@@ -97,9 +100,9 @@ interface PatientDashboardProps {
 const STATUS_CONFIG = {
   approved: { color: "bg-green-100 text-green-700", icon: CheckCircle, label: "Approved" },
   rejected: { color: "bg-red-100 text-red-700", icon: AlertCircle, label: "Declined" },
-  pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Pending review" },
-  in_review: { color: "bg-blue-100 text-primary", icon: Clock, label: "Being reviewed" },
-  requires_info: { color: "bg-orange-100 text-orange-700", icon: AlertCircle, label: "More info needed" },
+  pending: { color: "bg-blue-100 text-blue-700", icon: Clock, label: "Under Review" },
+  in_review: { color: "bg-blue-100 text-primary", icon: Clock, label: "Under Review" },
+  requires_info: { color: "bg-orange-100 text-orange-700", icon: AlertCircle, label: "Needs Info" },
 }
 
 export function PanelDashboard({
@@ -115,11 +118,35 @@ export function PanelDashboard({
   const activeRxCount = prescriptions.filter((p) => p.status === "active").length
   const prescriptionsNeedingRenewal = prescriptions.filter((p) => p.status === "active" && needsRenewalSoon(p.renewal_date))
   
+  // Find stale pending_payment intakes (older than 1 hour) for payment recovery
+  const stalePaymentIntakes = intakes.filter((r) => {
+    if (r.status !== "pending_payment") return false
+    const createdAt = new Date(r.created_at)
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    return createdAt < hourAgo
+  })
+  
   // Deterministic health tip based on day of week
   const tipIndex = new Date().getDay() % HEALTH_TIPS.length
   const dailyTip = HEALTH_TIPS[tipIndex]
 
+  // Track dashboard view on mount
+  useEffect(() => {
+    posthog.capture("patient_dashboard_viewed", {
+      total_requests: intakes.length,
+      pending_requests: pendingIntakes.length,
+      stale_payment_requests: stalePaymentIntakes.length,
+      active_prescriptions: activeRxCount,
+    })
+  }, [intakes.length, pendingIntakes.length, stalePaymentIntakes.length, activeRxCount])
+
   const handleViewIntake = (intake: Intake) => {
+    // Track intake view
+    posthog.capture("intake_detail_opened", {
+      intake_id: intake.id,
+      status: intake.status,
+      source: "dashboard",
+    })
     openPanel({
       id: `intake-${intake.id}`,
       type: 'drawer',
@@ -144,6 +171,44 @@ export function PanelDashboard({
             : "All caught up"}
         </p>
       </div>
+
+      {/* Payment Recovery Prompt */}
+      {stalePaymentIntakes.length > 0 && (
+        <section className="p-4 rounded-xl bg-blue-50 border border-blue-200 space-y-3">
+          <div className="flex items-center gap-2 text-blue-700">
+            <CreditCard className="w-5 h-5" />
+            <h3 className="font-semibold">Complete your request</h3>
+          </div>
+          <p className="text-sm text-blue-600">
+            {stalePaymentIntakes.length === 1 
+              ? "You have a request waiting to be completed."
+              : `You have ${stalePaymentIntakes.length} requests waiting to be completed.`}
+          </p>
+          <div className="space-y-2">
+            {stalePaymentIntakes.slice(0, 2).map((intake) => {
+              const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
+              const serviceName = serviceData?.name || serviceData?.short_name || "Request"
+              return (
+                <Link 
+                  key={intake.id}
+                  href={`/patient/intakes/${intake.id}`}
+                  className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100 hover:border-blue-300 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-foreground">{serviceName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Started {new Date(intake.created_at).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    Complete
+                  </Button>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Quick Stats - Enhanced with TiltCard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
