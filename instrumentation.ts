@@ -4,11 +4,36 @@
  * Runs once when the server starts. Perfect for:
  * - Initializing monitoring services (Sentry)
  * - One-time setup tasks
+ * - P0: Verifying encryption configuration
  */
 
 import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
+  // P0 FIX: Verify encryption is properly configured at startup
+  // This fails fast instead of silently using plaintext PHI
+  if (process.env.ENCRYPTION_KEY) {
+    try {
+      const { verifyEncryptionSetup } = await import("@/lib/security/encryption")
+      const result = verifyEncryptionSetup()
+      if (!result.valid) {
+        console.error("[CRITICAL] Encryption verification failed:", result.error)
+        if (process.env.NODE_ENV === "production") {
+          throw new Error(`Encryption setup invalid: ${result.error}`)
+        }
+      } else {
+        console.log("[Startup] Encryption verification passed")
+      }
+    } catch (error) {
+      console.error("[CRITICAL] Failed to verify encryption:", error)
+      if (process.env.NODE_ENV === "production") {
+        throw error
+      }
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    console.warn("[WARNING] ENCRYPTION_KEY not set - PHI will be stored in plaintext")
+  }
+
   // Skip Sentry initialization in development to avoid compilation issues
   if (process.env.NODE_ENV === "development") {
     return;

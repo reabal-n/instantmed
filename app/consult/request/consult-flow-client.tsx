@@ -337,6 +337,7 @@ export function ConsultFlowClient({
     setError(null)
 
     try {
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         category: "consult",
         subtype: "general",
@@ -348,6 +349,7 @@ export function ConsultFlowClient({
           current_medications: currentMedications,
           safetyAnswers,
         },
+        idempotencyKey,
       })
 
       if (!result.success) {

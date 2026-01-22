@@ -20,7 +20,7 @@ interface CreateCheckoutInput {
   type: string
   answers: Record<string, unknown>
   serviceSlug?: string // Service slug to look up service_id
-  idempotencyKey?: string // Client-generated key to prevent duplicate submissions
+  idempotencyKey: string // P1 FIX: Required - client-generated key to prevent duplicate submissions
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -277,9 +277,21 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       // Don't block, but log for review - actual blocking handled by clinical team
     }
 
+    // P1 FIX: Validate idempotency key is provided (now required)
+    if (!input.idempotencyKey || input.idempotencyKey.length < 16) {
+      logger.error("Missing or invalid idempotency key", { 
+        hasKey: !!input.idempotencyKey,
+        keyLength: input.idempotencyKey?.length 
+      })
+      return { 
+        success: false, 
+        error: "Invalid request. Please refresh and try again." 
+      }
+    }
+
     // 6. Create the intake with pending_payment status
     // Store category and subtype at creation for reliable retry pricing
-    // Use idempotency key to prevent duplicate submissions on double-click
+    // Idempotency key prevents duplicate submissions on double-click
     const intakeData: Record<string, unknown> = {
       patient_id: patientId,
       service_id: service.id,
@@ -288,11 +300,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       amount_cents: service.price_cents,
       category: input.category,
       subtype: input.subtype,
-    }
-    
-    // Add idempotency key if provided
-    if (input.idempotencyKey) {
-      intakeData.idempotency_key = input.idempotencyKey
+      idempotency_key: input.idempotencyKey, // P1 FIX: Always required
     }
 
     const { data: intake, error: intakeError } = await supabase

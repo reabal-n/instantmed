@@ -967,11 +967,13 @@ export function EnhancedIntakeFlow({
 
       if (isAuthenticated) {
         // Authenticated user checkout
+        const idempotencyKey = crypto.randomUUID()
         result = await createIntakeAndCheckoutAction({
           category,
           subtype,
           type: state.service || "consult",
           answers,
+          idempotencyKey,
         })
       } else {
         // Guest checkout - validate email

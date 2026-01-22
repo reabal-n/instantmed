@@ -318,11 +318,13 @@ export function PrescriptionFlowClient({
 
     try {
       const answers = buildAnswers()
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         category: "prescription",
         subtype,
         type: "script",
         answers,
+        idempotencyKey,
       })
 
       if (!result.success) {

@@ -866,11 +866,14 @@ export function MedCertFlowClient({
 
     try {
       // Create request and redirect to Stripe checkout (authenticated users only)
+      // Generate idempotency key to prevent duplicate submissions on double-click
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         category: "medical_certificate",
         subtype: formData.certType || "work",
         type: "med_cert",
         answers,
+        idempotencyKey,
       })
 
       if (!result.success) {

@@ -103,10 +103,17 @@ export async function getClinicLogoUrlAction(storagePath: string) {
 // ============================================================================
 
 export async function getAllDoctorsAction() {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   const { createClient } = await import("@/lib/supabase/server")
   const supabase = await createClient()
+
+  // P1 FIX: Audit log access to sensitive provider/AHPRA numbers
+  log.info("Admin accessing doctor list with sensitive identifiers", {
+    adminId: admin.id,
+    adminEmail: admin.email,
+    accessedFields: ["provider_number", "ahpra_number"],
+  })
 
   const { data, error } = await supabase
     .from("profiles")
@@ -123,9 +130,15 @@ export async function getAllDoctorsAction() {
     .order("full_name", { ascending: true })
 
   if (error) {
-    log.error("Failed to fetch doctors", {}, error)
+    log.error("Failed to fetch doctors", { adminId: admin.id }, error)
     return []
   }
+
+  // P1 FIX: Log how many records were accessed
+  log.info("Admin doctor list query completed", {
+    adminId: admin.id,
+    recordCount: data?.length || 0,
+  })
 
   return data
 }

@@ -690,12 +690,14 @@ export function UnifiedFlowClient({
         }
       }
 
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         patientId,
         category,
         subtype,
         type: service,
         answers: { ...details },
+        idempotencyKey,
       })
 
       if (result.error) throw new Error(result.error)

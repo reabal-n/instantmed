@@ -894,6 +894,7 @@ export function MedCertForm({
 
         if (isAuthenticated && patientId) {
           // Authenticated user checkout
+          const idempotencyKey = crypto.randomUUID()
           result = await createIntakeAndCheckoutAction({
             category: "medical_certificate",
             subtype: formData.certType || "work",
@@ -901,6 +902,7 @@ export function MedCertForm({
             answers,
             patientId,
             patientEmail: formData.email,
+            idempotencyKey,
           })
         } else {
           // Guest checkout

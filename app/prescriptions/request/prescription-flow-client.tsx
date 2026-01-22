@@ -833,6 +833,8 @@ export function PrescriptionFlowClient({
     setError(null)
 
     try {
+      // Generate idempotency key to prevent duplicate submissions on double-click
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         category: "prescription",
         subtype: rxType || "repeat",
@@ -855,6 +857,7 @@ export function PrescriptionFlowClient({
           notes,
           safetyAnswers,
         },
+        idempotencyKey,
       })
 
       if (!result.success) {

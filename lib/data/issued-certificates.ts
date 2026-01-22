@@ -282,6 +282,12 @@ export interface AtomicApprovalResult {
 }
 
 /**
+ * Valid intake states that can be atomically approved
+ * P0 FIX: Explicit state machine enforcement
+ */
+const APPROVABLE_INTAKE_STATES = ["processing", "approved"] as const
+
+/**
  * Atomically approve a certificate:
  * - Creates issued_certificates record
  * - Creates intake_documents record (legacy)
@@ -289,11 +295,55 @@ export interface AtomicApprovalResult {
  *
  * All operations happen in a single database transaction.
  * If any operation fails, all changes are rolled back.
+ * 
+ * P0 FIX: Validates intake state before calling RPC to prevent bypassing state machine
  */
 export async function atomicApproveCertificate(
   input: AtomicApprovalInput
 ): Promise<AtomicApprovalResult> {
   const supabase = createServiceRoleClient()
+
+  // P0 FIX: Pre-validate intake state before calling RPC
+  // This prevents direct RPC calls from bypassing the state machine
+  const { data: intakeCheck, error: intakeCheckError } = await supabase
+    .from("intakes")
+    .select("id, status, payment_status, claimed_by")
+    .eq("id", input.intake_id)
+    .single()
+
+  if (intakeCheckError || !intakeCheck) {
+    log.error("Intake validation failed - not found", { intakeId: input.intake_id }, intakeCheckError)
+    return { success: false, error: "Intake not found" }
+  }
+
+  // Validate intake is in approvable state
+  if (!APPROVABLE_INTAKE_STATES.includes(intakeCheck.status as typeof APPROVABLE_INTAKE_STATES[number])) {
+    log.error("Intake validation failed - invalid state", {
+      intakeId: input.intake_id,
+      currentStatus: intakeCheck.status,
+      allowedStates: APPROVABLE_INTAKE_STATES,
+    })
+    return { success: false, error: `Cannot approve intake in '${intakeCheck.status}' state` }
+  }
+
+  // Validate payment status
+  if (intakeCheck.payment_status !== "paid") {
+    log.error("Intake validation failed - payment not completed", {
+      intakeId: input.intake_id,
+      paymentStatus: intakeCheck.payment_status,
+    })
+    return { success: false, error: "Cannot approve intake without completed payment" }
+  }
+
+  // Validate doctor holds the claim (unless already approved - idempotent case)
+  if (intakeCheck.status === "processing" && intakeCheck.claimed_by !== input.doctor_id) {
+    log.error("Intake validation failed - doctor does not hold claim", {
+      intakeId: input.intake_id,
+      claimedBy: intakeCheck.claimed_by,
+      requestingDoctor: input.doctor_id,
+    })
+    return { success: false, error: "You do not have a claim on this intake" }
+  }
 
   // Generate idempotency key
   const idempotencyKey = generateIdempotencyKey(
@@ -306,6 +356,7 @@ export async function atomicApproveCertificate(
     intakeId: input.intake_id,
     certificateNumber: input.certificate_number,
     idempotencyKey,
+    preValidatedStatus: intakeCheck.status,
   })
 
   const { data, error } = await supabase.rpc("atomic_approve_certificate", {

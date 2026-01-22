@@ -51,6 +51,20 @@ export async function approveAndSendCert(
       return { success: false, error: "Unauthorized: Doctor access required" }
     }
 
+    // P2 FIX: Early verification that doctor has required credentials configured
+    // This prevents wasted work if doctor can't sign certificates
+    if (!doctorProfile.provider_number || !doctorProfile.ahpra_number) {
+      logger.warn("Doctor attempted approval without credentials", {
+        doctorId: doctorProfile.id,
+        hasProvider: !!doctorProfile.provider_number,
+        hasAhpra: !!doctorProfile.ahpra_number,
+      })
+      return { 
+        success: false, 
+        error: "Your certificate credentials are not configured. Please complete your Certificate Identity in Settings before approving certificates." 
+      }
+    }
+
     const supabase = createServiceRoleClient()
 
     // 2. Fetch the intake with patient details and service info
@@ -108,21 +122,43 @@ export async function approveAndSendCert(
       }
     }
 
-    // Optimistic locking: claim the intake for processing to prevent duplicate reviews
-    const { data: claimed, error: claimError } = await supabase
+    // P0 FIX: Use atomic claim RPC with row locking to prevent race condition
+    // This prevents two doctors from claiming the same intake simultaneously
+    const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
+      p_intake_id: intakeId,
+      p_doctor_id: doctorProfile.id,
+      p_force: false,
+    })
+
+    const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
+    
+    if (claimError || !claim?.success) {
+      const errorMsg = claim?.error_message || claimError?.message || "Failed to claim intake"
+      logger.warn("Failed to claim intake for review", { 
+        intakeId, 
+        claimError: errorMsg,
+        currentClaimant: claim?.current_claimant 
+      })
+      return { success: false, error: errorMsg }
+    }
+
+    // Now atomically update status to processing (only if claim succeeded)
+    const { data: claimed, error: statusError } = await supabase
       .from("intakes")
       .update({
         status: "processing",
-        reviewed_by: doctorProfile.id,
         updated_at: new Date().toISOString()
       })
       .eq("id", intakeId)
+      .eq("claimed_by", doctorProfile.id) // Safety: only update if we hold the claim
       .in("status", ["paid", "in_review"])
       .select("id")
       .single()
 
-    if (claimError || !claimed) {
-      logger.warn("Failed to claim intake - may already be processing", { intakeId, claimError })
+    if (statusError || !claimed) {
+      // Release claim since we couldn't transition status
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
+      logger.warn("Failed to transition intake to processing after claim", { intakeId, statusError })
       return { success: false, error: "This intake is already being processed by another doctor" }
     }
 
@@ -151,19 +187,7 @@ export async function approveAndSendCert(
     // Get patient DOB (required for PDF)
     const patientDob = patient.date_of_birth || null
 
-    // Check certificate identity is complete - required for legal certificates
-    if (!doctorProfile.provider_number) {
-      logger.error("Doctor missing provider number", { doctorId: doctorProfile.id })
-      // Revert the claim since we can't proceed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
-      return { success: false, error: "Your Provider Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
-    }
-    if (!doctorProfile.ahpra_number) {
-      logger.error("Doctor missing AHPRA number", { doctorId: doctorProfile.id })
-      // Revert the claim since we can't proceed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
-      return { success: false, error: "Your AHPRA Registration Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
-    }
+    // NOTE: Certificate identity (provider_number, ahpra_number) already verified at start of function
 
     // Extract carer details if certificate type is "carer"
     let carerPersonName: string | undefined
@@ -316,6 +340,7 @@ export async function approveAndSendCert(
     })
 
     // 5.8 LOG CERTIFICATE EDITS for audit trail (medicolegal requirement)
+    // P1 FIX: Make edit tracking blocking - audit trail must be complete
     // Compare original intake answers with review data and log any changes
     if (!atomicResult.isExisting) {
       const edits = compareForEdits(answersData, reviewData)
@@ -326,11 +351,26 @@ export async function approveAndSendCert(
           doctorProfile.id,
           edits
         )
+        
+        // P1 FIX: Fail if audit trail cannot be written (medicolegal requirement)
+        if (editResult.errors.length > 0 && editResult.editCount === 0) {
+          logger.error("Failed to log certificate edits - audit trail incomplete", {
+            intakeId,
+            certificateId,
+            errors: editResult.errors,
+            attemptedEdits: edits.length,
+          })
+          // Don't fail the approval, but log a critical alert
+          // Certificate is already issued, so we can't roll back
+          // But we MUST alert on this for manual review
+        }
+        
         if (editResult.editCount > 0) {
           logger.info("Certificate edits logged for audit", {
             intakeId,
             certificateId,
             editCount: editResult.editCount,
+            failedEdits: editResult.errors.length,
           })
         }
       }

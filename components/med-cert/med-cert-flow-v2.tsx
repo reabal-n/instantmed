@@ -583,12 +583,14 @@ export function MedCertFlowV2({
         : "med-cert-sick"
 
       // Create intake and redirect to Stripe checkout
+      const idempotencyKey = crypto.randomUUID()
       const result = await createIntakeAndCheckoutAction({
         category: "medical_certificate",
         subtype: formData.certificateType || "work",
         type: `med-cert-${formData.certificateType || "work"}`,
         answers,
         serviceSlug,
+        idempotencyKey,
       })
 
       if (!result.success) {

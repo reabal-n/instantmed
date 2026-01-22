@@ -14,7 +14,8 @@ function isEncryptionEnabled(): boolean {
 
 /**
  * Decrypt PHI fields in a profile object
- * Handles both encrypted and plaintext values during migration
+ * P0 FIX: Fails loudly on decryption errors instead of silent fallback
+ * This prevents returning corrupted/wrong data to users
  */
 function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
   if (!profile) return profile
@@ -27,9 +28,13 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
       decrypted.medicare_number = decryptField<string>(
         profile.medicare_number_encrypted as string
       )
-    } catch {
-      logger.warn("Failed to decrypt medicare_number, using plaintext fallback")
-      // Keep original plaintext value if decryption fails
+    } catch (error) {
+      // P0 FIX: Log error with context and throw - do not silently use plaintext
+      logger.error("PHI decryption failed for medicare_number", {
+        profileId: profile.id,
+        hasPlaintext: !!profile.medicare_number,
+      }, error instanceof Error ? error : new Error(String(error)))
+      throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }
 
@@ -39,8 +44,11 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
       decrypted.date_of_birth = decryptField<string>(
         profile.date_of_birth_encrypted as string
       )
-    } catch {
-      logger.warn("Failed to decrypt date_of_birth, using plaintext fallback")
+    } catch (error) {
+      logger.error("PHI decryption failed for date_of_birth", {
+        profileId: profile.id,
+      }, error instanceof Error ? error : new Error(String(error)))
+      throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }
 
@@ -48,8 +56,11 @@ function decryptProfilePhi<T extends Record<string, unknown>>(profile: T): T {
   if (profile.phone_encrypted) {
     try {
       decrypted.phone = decryptField<string>(profile.phone_encrypted as string)
-    } catch {
-      logger.warn("Failed to decrypt phone, using plaintext fallback")
+    } catch (error) {
+      logger.error("PHI decryption failed for phone", {
+        profileId: profile.id,
+      }, error instanceof Error ? error : new Error(String(error)))
+      throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   }
 
