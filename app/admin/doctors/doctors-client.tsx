@@ -54,12 +54,12 @@ interface DoctorProfile {
   full_name: string
   email: string
   role: string
-  nominals: string | null
+  nominals?: string | null
   provider_number: string | null
   ahpra_number: string | null
-  signature_storage_path: string | null
-  certificate_identity_complete: boolean
-  is_active: boolean
+  signature_storage_path?: string | null
+  certificate_identity_complete?: boolean
+  is_active?: boolean
   created_at: string
 }
 

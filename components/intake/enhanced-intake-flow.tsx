@@ -59,6 +59,7 @@ import { SocialProofCheckout } from "@/components/shared/social-proof-checkout"
 import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
 import { PRICING_DISPLAY, PRICING, GP_COMPARISON } from "@/lib/constants"
+import { BLOCKED_S8_TERMS, containsBlockedSubstance } from "@/lib/validation/repeat-script-schema"
 import { logger } from "@/lib/observability/logger"
 import { useFormAutosave } from "@/hooks/use-form-autosave"
 
@@ -799,6 +800,14 @@ export function EnhancedIntakeFlow({
         } else if (state.service === "repeat-script" || state.service === "new-script") {
           if (!state.medicationName)
             newErrors.medicationName = "Please enter medication name"
+          // Check for controlled substances - client-side (server also validates)
+          if (state.medicationName && containsBlockedSubstance(state.medicationName)) {
+            newErrors.medicationName = "This medication cannot be prescribed online. Please visit your GP."
+          }
+          // P1: lastPrescribed required for repeat scripts (clinical risk)
+          if (state.service === "repeat-script" && !state.lastPrescribed) {
+            newErrors.lastPrescribed = "Please indicate when this was last prescribed"
+          }
         }
         break
 
@@ -1462,6 +1471,25 @@ export function EnhancedIntakeFlow({
               }}
             />
 
+            {/* Controlled substance warning */}
+            {state.medicationName && containsBlockedSubstance(state.medicationName) && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Controlled Substance</AlertTitle>
+                <AlertDescription>
+                  This medication cannot be prescribed through our online service.
+                  Schedule 8 and controlled substances require an in-person consultation with your regular GP.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {errors.medicationName && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {errors.medicationName}
+              </p>
+            )}
+
             {/* Dosage */}
             <FormField label="Dosage & strength (if known)">
               <Input
@@ -1472,11 +1500,13 @@ export function EnhancedIntakeFlow({
               />
             </FormField>
 
-            {/* When last prescribed */}
-            <div>
-              <Label className="text-sm font-medium mb-3 block">
-                When was this last prescribed?
-              </Label>
+            {/* When last prescribed - REQUIRED for repeat scripts */}
+            <FormField
+              label="When was this last prescribed?"
+              required={state.service === "repeat-script"}
+              error={errors.lastPrescribed}
+              hint={state.service === "repeat-script" ? "Required for repeat prescriptions" : undefined}
+            >
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: "within_3mo", label: "Within 3 months" },
@@ -1493,7 +1523,7 @@ export function EnhancedIntakeFlow({
                   </SelectableChip>
                 ))}
               </div>
-            </div>
+            </FormField>
 
             {/* P2 RX-1: Medication adherence attestation per MEDICOLEGAL_AUDIT_REPORT */}
             {state.service === "repeat-script" && (

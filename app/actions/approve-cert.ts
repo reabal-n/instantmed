@@ -1,6 +1,6 @@
 "use server"
 
-import _crypto from "crypto"
+import crypto from "crypto"
 import { revalidatePath } from "next/cache"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
@@ -17,6 +17,8 @@ import {
   atomicApproveCertificate,
   updateEmailStatus,
   logCertificateEvent,
+  logCertificateEdits,
+  compareForEdits,
 } from "@/lib/data/issued-certificates"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
@@ -109,10 +111,10 @@ export async function approveAndSendCert(
     // Optimistic locking: claim the intake for processing to prevent duplicate reviews
     const { data: claimed, error: claimError } = await supabase
       .from("intakes")
-      .update({ 
-        status: "processing", 
+      .update({
+        status: "processing",
         reviewed_by: doctorProfile.id,
-        claimed_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq("id", intakeId)
       .in("status", ["paid", "in_review"])
@@ -153,13 +155,13 @@ export async function approveAndSendCert(
     if (!doctorProfile.provider_number) {
       logger.error("Doctor missing provider number", { doctorId: doctorProfile.id })
       // Revert the claim since we can't proceed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
       return { success: false, error: "Your Provider Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
     }
     if (!doctorProfile.ahpra_number) {
       logger.error("Doctor missing AHPRA number", { doctorId: doctorProfile.id })
       // Revert the claim since we can't proceed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
       return { success: false, error: "Your AHPRA Registration Number is not configured. Please complete your Certificate Identity in Settings before approving certificates." }
     }
 
@@ -199,7 +201,7 @@ export async function approveAndSendCert(
     if (!pdfResult.success || !pdfResult.buffer) {
       logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
       // Revert the claim since we can't proceed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
       return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
 
@@ -243,7 +245,7 @@ export async function approveAndSendCert(
         error: uploadError 
       })
       // Revert the claim since we can't proceed without storage
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
 
@@ -251,6 +253,9 @@ export async function approveAndSendCert(
 
     // 5.6 Get doctor identity for snapshot
     const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
+
+    // 5.6.5 Generate PDF hash for integrity verification
+    const pdfHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex")
 
     // 5.7 ATOMIC APPROVAL: Create certificate, document record, and update status in single transaction
     // This ensures consistency - either all operations succeed or all fail
@@ -275,12 +280,13 @@ export async function approveAndSendCert(
       storage_path: storagePath,
       file_size_bytes: pdfBuffer.length,
       filename: `Medical_Certificate_${certificateNumber}.pdf`,
+      pdf_hash: pdfHash,
     })
 
     if (!atomicResult.success) {
       logger.error("Atomic approval failed", { intakeId, error: atomicResult.error })
       // Revert the claim since atomic operation failed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
       return { success: false, error: atomicResult.error || "Failed to create certificate records" }
     }
 
@@ -308,6 +314,27 @@ export async function approveAndSendCert(
       certificateId,
       isExisting: atomicResult.isExisting,
     })
+
+    // 5.8 LOG CERTIFICATE EDITS for audit trail (medicolegal requirement)
+    // Compare original intake answers with review data and log any changes
+    if (!atomicResult.isExisting) {
+      const edits = compareForEdits(answersData, reviewData)
+      if (edits.length > 0) {
+        const editResult = await logCertificateEdits(
+          certificateId!,
+          intakeId,
+          doctorProfile.id,
+          edits
+        )
+        if (editResult.editCount > 0) {
+          logger.info("Certificate edits logged for audit", {
+            intakeId,
+            certificateId,
+            editCount: editResult.editCount,
+          })
+        }
+      }
+    }
 
     // 6. Generate email HTML - link to dashboard, NOT raw file
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`

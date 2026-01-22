@@ -19,7 +19,7 @@ export const PRICING = {
   REPEAT_SCRIPT: 29.95,
   NEW_SCRIPT: 49.95,
   CONSULT: 49.95,
-  PRIORITY_ADDON: 10.0,
+  // PRIORITY_ADDON removed - feature disabled
 } as const
 
 // Formatted pricing strings for display
@@ -29,7 +29,7 @@ export const PRICING_DISPLAY = {
   REPEAT_SCRIPT: `$${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
   NEW_SCRIPT: `$${PRICING.NEW_SCRIPT.toFixed(2)}`,
   CONSULT: `$${PRICING.CONSULT.toFixed(2)}`,
-  PRIORITY_ADDON: `$${PRICING.PRIORITY_ADDON.toFixed(0)}`,
+  // PRIORITY_ADDON removed - feature disabled
 } as const
 
 // GP comparison pricing (for context, not exact)

@@ -41,6 +41,133 @@ interface IntakeDetailClientProps {
   userEmail?: string
 }
 
+/**
+ * Format a field label from snake_case/camelCase to Title Case
+ */
+function formatFieldLabel(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim()
+}
+
+/**
+ * Format field value for display
+ */
+function formatFieldValue(value: unknown): string | null {
+  if (value === null || value === undefined) return null
+  if (typeof value === "boolean") return value ? "Yes" : "No"
+  if (Array.isArray(value)) return value.join(", ")
+  if (typeof value === "object") return null // Skip nested objects
+  return String(value)
+}
+
+/**
+ * Component to display submitted answers to patients
+ * Filters out internal/sensitive fields and formats for readability
+ */
+function SubmittedAnswers({
+  answers,
+  serviceType,
+}: {
+  answers: Record<string, unknown>
+  serviceType: string
+}) {
+  // Fields to hide from patient view (internal/sensitive)
+  const hiddenFields = [
+    "patient_id",
+    "patient_email",
+    "patient_name",
+    "patient_phone",
+    "patient_dob",
+    "medicare_number",
+    "medicare_irn",
+    "telehealth_consent_given",
+    "telehealth_limitations_acknowledged",
+    "accuracy_confirmed",
+    "terms_agreed",
+    "consent_timestamp",
+    "attribution",
+    "_form_start_time",
+    "medication_search_used",
+    "medication_selected",
+    "selected_pbs_code",
+    "idempotency_key",
+    "amt_code",
+    "pbs_code",
+  ]
+
+  // Field display order and grouping
+  const medCertFields = [
+    { key: "certificate_type", label: "Certificate Type" },
+    { key: "duration", label: "Duration (days)" },
+    { key: "start_date", label: "Start Date" },
+    { key: "symptoms", label: "Symptoms" },
+    { key: "symptom_details", label: "Symptom Details" },
+    { key: "symptom_duration", label: "Symptom Duration" },
+    { key: "employer_name", label: "Employer Name" },
+  ]
+
+  const scriptFields = [
+    { key: "medication_name", label: "Medication" },
+    { key: "medication_display", label: "Medication Details" },
+    { key: "medication_dosage", label: "Dosage" },
+    { key: "last_prescribed", label: "Last Prescribed" },
+    { key: "pharmacy_preference", label: "Preferred Pharmacy" },
+    { key: "is_repeat", label: "Repeat Prescription" },
+  ]
+
+  const consultFields = [
+    { key: "consult_reason", label: "Reason for Consultation" },
+  ]
+
+  // Determine which fields to show based on service type
+  const isMedCert = serviceType.toLowerCase().includes("cert") || answers.certificate_type
+  const isScript = serviceType.toLowerCase().includes("script") || serviceType.toLowerCase().includes("prescription") || answers.medication_name
+  const isConsult = serviceType.toLowerCase().includes("consult") || answers.consult_reason
+
+  const displayFields = isMedCert ? medCertFields : isScript ? scriptFields : isConsult ? consultFields : []
+
+  // Get ordered fields first, then any remaining fields
+  const orderedEntries: Array<{ key: string; label: string; value: string }> = []
+
+  for (const field of displayFields) {
+    const value = answers[field.key]
+    const formatted = formatFieldValue(value)
+    if (formatted) {
+      orderedEntries.push({ key: field.key, label: field.label, value: formatted })
+    }
+  }
+
+  // Add any remaining fields not in the ordered list
+  for (const [key, value] of Object.entries(answers)) {
+    if (hiddenFields.includes(key)) continue
+    if (displayFields.some((f) => f.key === key)) continue
+    const formatted = formatFieldValue(value)
+    if (formatted) {
+      orderedEntries.push({ key, label: formatFieldLabel(key), value: formatted })
+    }
+  }
+
+  if (orderedEntries.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">No details available.</p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {orderedEntries.map(({ key, label, value }) => (
+        <div key={key} className="flex flex-col sm:flex-row sm:justify-between text-sm">
+          <span className="text-muted-foreground">{label}:</span>
+          <span className="font-medium sm:text-right sm:max-w-[60%]">{value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function IntakeDetailClient({ 
   intake: initialIntake, 
   document, 
@@ -413,6 +540,17 @@ export function IntakeDetailClient({
                   <Link href="/contact">Contact support</Link>
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Submitted Answers - Show what the patient submitted */}
+          {intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers && (
+            <div className="pt-4 border-t">
+              <h3 className="font-medium mb-3">Your Submitted Information</h3>
+              <SubmittedAnswers
+                answers={intake.answers[0].answers}
+                serviceType={service?.short_name || service?.name || ""}
+              />
             </div>
           )}
 

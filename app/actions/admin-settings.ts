@@ -115,12 +115,8 @@ export async function getAllDoctorsAction() {
       full_name,
       email,
       role,
-      nominals,
       provider_number,
       ahpra_number,
-      signature_storage_path,
-      certificate_identity_complete,
-      is_active,
       created_at
     `)
     .in("role", ["doctor", "admin"])

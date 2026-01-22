@@ -97,7 +97,8 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     .select(`
       *,
       patient:profiles!patient_id(id, full_name, email, date_of_birth, medicare_number, phone, suburb, state),
-      service:services!service_id(id, name, short_name, type, slug)
+      service:services!service_id(id, name, short_name, type, slug),
+      answers:intake_answers(id, answers)
     `)
     .eq("id", intakeId)
     .eq("patient_id", patientId)
@@ -208,6 +209,7 @@ export async function getDoctorQueue(
     .from("intakes")
     .select(`
       id,
+      patient_id,
       status,
       payment_status,
       category,
@@ -216,9 +218,12 @@ export async function getDoctorQueue(
       sla_deadline,
       created_at,
       updated_at,
-      claimed_by,
-      claimed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth),
+      flagged_for_followup,
+      risk_tier,
+      risk_flags,
+      risk_score,
+      requires_live_consult,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state),
       service:services!service_id (slug, name, short_name, type)
     `)
     .in("status", ["paid", "in_review", "pending_info"])

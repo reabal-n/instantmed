@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Clock, Users, Zap, CheckCircle2, Bell } from "lucide-react"
+import { Clock, Users, CheckCircle2, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -24,12 +24,13 @@ interface QueueData {
 /**
  * Real-time queue position and ETA display
  * Best practice from Instant Scripts / Doctors on Demand
+ * Note: Priority feature has been disabled - isPriority prop is ignored
  */
 export function QueueStatus({
   requestId,
   status,
   createdAt,
-  isPriority = false,
+  isPriority: _isPriority = false, // Disabled - always treat as non-priority
   className,
 }: QueueStatusProps) {
   // Use stable seed based on createdAt to avoid impure render
@@ -48,7 +49,8 @@ export function QueueStatus({
     if (status !== "pending") return null
 
     const basePosition = Math.max(1, 5 - Math.floor(randomSeed.ageMinutes / 10))
-    const position = isPriority ? Math.max(1, Math.ceil(basePosition / 2)) : basePosition
+    // Priority feature disabled - no longer affects queue position
+    const position = basePosition
 
     return {
       position,
@@ -56,7 +58,7 @@ export function QueueStatus({
       estimatedMinutes: position * 12 + randomSeed.minuteOffset,
       doctorsOnline: 2 + randomSeed.doctorOffset,
     }
-  }, [isPriority, status, randomSeed])
+  }, [status, randomSeed])
 
   const [queueData, setQueueData] = useState<QueueData | null>(initialQueue)
   const [notifyEnabled, setNotifyEnabled] = useState(false)
@@ -78,7 +80,7 @@ export function QueueStatus({
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [requestId, status, createdAt, isPriority])
+  }, [requestId, status, createdAt])
 
   const requestBrowserNotification = async () => {
     if ("Notification" in window) {
@@ -106,31 +108,18 @@ export function QueueStatus({
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "rounded-2xl border p-4 sm:p-5",
-        isPriority
-          ? "bg-linear-to-br from-dawn-50 to-orange-50 border-dawn-200 dark:from-dawn-950/30 dark:to-orange-950/30 dark:border-dawn-800"
-          : "bg-linear-to-br from-blue-50 to-cyan-50 border-primary dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-primary",
+        "bg-linear-to-br from-blue-50 to-cyan-50 border-primary dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-primary",
         className
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div
-            className={cn(
-              "h-8 w-8 rounded-full flex items-center justify-center",
-              isPriority ? "bg-dawn-500" : "bg-primary"
-            )}
-          >
-            {isPriority ? (
-              <Zap className="h-4 w-4 text-white" />
-            ) : (
-              <Clock className="h-4 w-4 text-white" />
-            )}
+          <div className="h-8 w-8 rounded-full flex items-center justify-center bg-primary">
+            <Clock className="h-4 w-4 text-white" />
           </div>
           <div>
-            <p className="font-semibold text-sm">
-              {isPriority ? "Priority Queue" : "In Queue"}
-            </p>
+            <p className="font-semibold text-sm">In Queue</p>
             <p className="text-xs text-muted-foreground">
               {queueData.doctorsOnline} doctor{queueData.doctorsOnline > 1 ? "s" : ""} online
             </p>
@@ -206,12 +195,7 @@ export function QueueStatus({
         </div>
         <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
-            className={cn(
-              "h-full rounded-full",
-              isPriority
-                ? "bg-linear-to-r from-dawn-500 to-orange-500"
-                : "bg-linear-to-r from-blue-500 to-cyan-500"
-            )}
+            className="h-full rounded-full bg-linear-to-r from-blue-500 to-cyan-500"
             initial={{ width: "10%" }}
             animate={{
               width: `${Math.min(90, 30 + (5 - queueData.position) * 15)}%`,

@@ -385,12 +385,6 @@ export function MedCertPdfDocumentV2({
       borderTopColor: colors.border,
       paddingTop: 12,
     },
-    verificationRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: 8,
-    },
     verificationBlock: {
       maxWidth: "60%",
     },
@@ -409,17 +403,6 @@ export function MedCertPdfDocumentV2({
       fontSize: fontSize.tiny,
       color: colors.secondary,
       marginTop: 2,
-    },
-    qrPlaceholder: {
-      width: 50,
-      height: 50,
-      backgroundColor: "#f0f0f0",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    qrText: {
-      fontSize: 6,
-      color: colors.muted,
     },
     disclaimer: {
       fontSize: fontSize.tiny,
@@ -646,17 +629,12 @@ export function MedCertPdfDocumentV2({
         {/* ================================================================ */}
         <View style={styles.footer} fixed>
           {options.showVerificationBlock && (
-            <View style={styles.verificationRow}>
-              <View style={styles.verificationBlock}>
-                <Text style={styles.verificationLabel}>Verification Code</Text>
-                <Text style={styles.verificationCode}>{data.verificationCode}</Text>
-                <Text style={styles.verificationUrl}>
-                  Verify at: instantmed.com.au/verify
-                </Text>
-              </View>
-              <View style={styles.qrPlaceholder}>
-                <Text style={styles.qrText}>[QR]</Text>
-              </View>
+            <View style={styles.verificationBlock}>
+              <Text style={styles.verificationLabel}>Verification Code</Text>
+              <Text style={styles.verificationCode}>{data.verificationCode}</Text>
+              <Text style={styles.verificationUrl}>
+                Verify at: instantmed.com.au/verify
+              </Text>
             </View>
           )}
           

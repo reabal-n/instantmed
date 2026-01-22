@@ -173,6 +173,16 @@ export function validateRepeatScriptPayload(
     }
   }
 
+  // P1: lastPrescribed is required for repeat scripts (clinical risk)
+  const lastPrescribed = answers.last_prescribed || answers.lastPrescribed
+  if (!lastPrescribed || typeof lastPrescribed !== "string" || lastPrescribed.trim() === "") {
+    return {
+      valid: false,
+      error: "Please indicate when this medication was last prescribed. This is required for clinical safety.",
+      requiresConsult: false,
+    }
+  }
+
   return { valid: true }
 }
 

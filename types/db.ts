@@ -235,6 +235,7 @@ export interface PatientNote {
 export interface IntakeWithPatient extends Intake {
   patient: Profile
   service?: Service
+  answers?: Array<{ id: string; answers: Record<string, unknown> }> | null
 }
 
 export interface IntakeWithDetails extends Intake {

@@ -66,9 +66,16 @@ export function QueueClient({
   intakes: initialIntakes,
   doctorId,
   identityComplete = true,
+  pagination,
 }: QueueClientProps) {
   const router = useRouter()
   const [intakes, setIntakes] = useState(initialIntakes)
+
+  // Calculate pagination info
+  const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
+  const currentPage = pagination?.page ?? 1
+  const hasNextPage = currentPage < totalPages
+  const hasPrevPage = currentPage > 1
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isPending, startTransition] = useTransition()
@@ -737,6 +744,71 @@ export function QueueClient({
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {pagination && totalPages > 1 && (
+        <div className="flex items-center justify-between py-4 px-2 border-t">
+          <div className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * pagination.pageSize + 1} - {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total} requests
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!hasPrevPage}
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search)
+                params.set("page", String(currentPage - 1))
+                router.push(`/doctor?${params.toString()}`)
+              }}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Show pages around current page
+                let pageNum: number
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pageNum === currentPage ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 p-0"
+                    onClick={() => {
+                      const params = new URLSearchParams(window.location.search)
+                      params.set("page", String(pageNum))
+                      router.push(`/doctor?${params.toString()}`)
+                    }}
+                  >
+                    {pageNum}
+                  </Button>
+                )
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!hasNextPage}
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search)
+                params.set("page", String(currentPage + 1))
+                router.push(`/doctor?${params.toString()}`)
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Decline Dialog */}
       <Dialog open={!!declineDialog} onOpenChange={() => {

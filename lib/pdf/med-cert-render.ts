@@ -188,11 +188,24 @@ function mapCertTypeToTemplateType(certType: "work" | "study" | "carer"): Templa
 }
 
 /**
- * Generate a verification code from certificate number
- * Format: First 8 characters of certificate number, uppercase
+ * Generate a cryptographically random verification code
+ * Format: 8-character alphanumeric code (A-Z, 0-9, excluding ambiguous chars)
+ *
+ * Note: This is independent of certificate number for security.
+ * The _certificateNumber parameter is kept for backward compatibility but not used.
  */
-export function generateVerificationCode(certificateNumber: string): string {
-  // Remove any prefix like "MC-" and take first 8 alphanumeric characters
-  const cleaned = certificateNumber.replace(/[^A-Z0-9]/gi, "").toUpperCase()
-  return cleaned.slice(0, 8)
+export function generateVerificationCode(_certificateNumber?: string): string {
+  // Use crypto for secure random generation
+  const crypto = require("crypto")
+
+  // Alphanumeric charset excluding ambiguous characters (0/O, 1/I/L)
+  const charset = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+  const bytes = crypto.randomBytes(8)
+
+  let code = ""
+  for (let i = 0; i < 8; i++) {
+    code += charset[bytes[i] % charset.length]
+  }
+
+  return code
 }

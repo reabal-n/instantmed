@@ -270,6 +270,7 @@ export interface AtomicApprovalInput {
   storage_path: string
   file_size_bytes: number
   filename: string
+  pdf_hash?: string // SHA-256 hash of PDF for integrity verification
 }
 
 export interface AtomicApprovalResult {
@@ -329,6 +330,7 @@ export async function atomicApproveCertificate(
     p_storage_path: input.storage_path,
     p_file_size_bytes: input.file_size_bytes,
     p_filename: input.filename,
+    p_pdf_hash: input.pdf_hash || null,
   })
 
   if (error) {
@@ -683,4 +685,221 @@ export async function getSecureDownloadUrl(
   }
 
   return result
+}
+
+// ============================================================================
+// CERTIFICATE EDIT TRACKING (Medicolegal requirement)
+// ============================================================================
+
+interface CertificateEdit {
+  fieldName: string
+  originalValue: string | null
+  newValue: string | null
+  editReason?: string
+}
+
+/**
+ * Log a single certificate field edit
+ */
+export async function logCertificateEdit(
+  certificateId: string | null,
+  intakeId: string,
+  doctorId: string,
+  fieldName: string,
+  originalValue: string | null,
+  newValue: string | null,
+  editReason?: string
+): Promise<{ success: boolean; editId?: string; error?: string }> {
+  try {
+    const supabase = createServiceRoleClient()
+
+    const { data, error } = await supabase.rpc("log_certificate_edit", {
+      p_certificate_id: certificateId,
+      p_intake_id: intakeId,
+      p_doctor_id: doctorId,
+      p_field_name: fieldName,
+      p_original_value: originalValue,
+      p_new_value: newValue,
+      p_edit_reason: editReason || null,
+    })
+
+    if (error) {
+      // If RPC doesn't exist (migration not run), log warning and continue
+      if (error.message?.includes("function") || error.code === "42883") {
+        log.warn("Certificate edit tracking not available (migration pending)", { intakeId, fieldName })
+        return { success: false, error: "Feature not yet enabled" }
+      }
+      log.error("Failed to log certificate edit", { intakeId, fieldName, error })
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, editId: data }
+  } catch (err) {
+    // Gracefully handle any unexpected errors - edit logging is not critical
+    log.warn("Certificate edit logging failed (non-blocking)", {
+      intakeId,
+      fieldName,
+      error: err instanceof Error ? err.message : String(err)
+    })
+    return { success: false, error: "Edit logging temporarily unavailable" }
+  }
+}
+
+/**
+ * Log multiple certificate edits at once
+ * Compares original intake data with review data and logs all differences
+ */
+export async function logCertificateEdits(
+  certificateId: string | null,
+  intakeId: string,
+  doctorId: string,
+  edits: CertificateEdit[]
+): Promise<{ success: boolean; editCount: number; errors: string[] }> {
+  const errors: string[] = []
+  let editCount = 0
+
+  for (const edit of edits) {
+    // Skip if values are the same
+    if (edit.originalValue === edit.newValue) continue
+
+    const result = await logCertificateEdit(
+      certificateId,
+      intakeId,
+      doctorId,
+      edit.fieldName,
+      edit.originalValue,
+      edit.newValue,
+      edit.editReason
+    )
+
+    if (result.success) {
+      editCount++
+    } else if (result.error) {
+      errors.push(`${edit.fieldName}: ${result.error}`)
+    }
+  }
+
+  return { success: errors.length === 0, editCount, errors }
+}
+
+/**
+ * Get edit history for a certificate
+ */
+export async function getCertificateEditHistory(
+  certificateId: string
+): Promise<{
+  edits: Array<{
+    id: string
+    fieldName: string
+    originalValue: string | null
+    newValue: string | null
+    changeSummary: string | null
+    editTimestamp: string
+    doctorName: string
+  }>
+  error?: string
+}> {
+  const supabase = createServiceRoleClient()
+
+  const { data, error } = await supabase
+    .from("certificate_edit_history")
+    .select(`
+      id,
+      field_name,
+      original_value,
+      new_value,
+      change_summary,
+      edit_timestamp,
+      doctor:profiles!doctor_id(full_name)
+    `)
+    .eq("certificate_id", certificateId)
+    .order("edit_timestamp", { ascending: true })
+
+  if (error) {
+    return { edits: [], error: error.message }
+  }
+
+  return {
+    edits: (data || []).map((row) => {
+      // Handle the doctor relation - may be object or array depending on Supabase client version
+      const doctor = row.doctor as unknown
+      const doctorObj = Array.isArray(doctor) ? doctor[0] : doctor
+      const doctorName = (doctorObj as { full_name?: string } | null)?.full_name || "Unknown"
+      return {
+        id: row.id,
+        fieldName: row.field_name,
+        originalValue: row.original_value,
+        newValue: row.new_value,
+        changeSummary: row.change_summary,
+        editTimestamp: row.edit_timestamp,
+        doctorName,
+      }
+    }),
+  }
+}
+
+/**
+ * Helper to compare intake answers with review data and generate edit list
+ */
+export function compareForEdits(
+  originalAnswers: Record<string, unknown> | null,
+  reviewData: {
+    startDate: string
+    endDate: string
+    medicalReason?: string
+    consultDate?: string
+  }
+): CertificateEdit[] {
+  const edits: CertificateEdit[] = []
+
+  if (!originalAnswers) {
+    // If no original answers, we can't compare
+    return edits
+  }
+
+  // Compare start date
+  const originalStartDate = originalAnswers.start_date as string | undefined ||
+                           originalAnswers.startDate as string | undefined
+  if (originalStartDate && originalStartDate !== reviewData.startDate) {
+    edits.push({
+      fieldName: "start_date",
+      originalValue: originalStartDate,
+      newValue: reviewData.startDate,
+    })
+  }
+
+  // Compare end date (calculated from duration in original)
+  const originalDuration = originalAnswers.duration as string | number | undefined
+  const originalStart = originalAnswers.start_date as string | undefined ||
+                       originalAnswers.startDate as string | undefined
+  if (originalStart && originalDuration) {
+    const durationDays = typeof originalDuration === "string"
+      ? parseInt(originalDuration.replace(/\D/g, "") || "1", 10)
+      : originalDuration
+    const expectedEnd = new Date(originalStart)
+    expectedEnd.setDate(expectedEnd.getDate() + durationDays - 1)
+    const originalEndDate = expectedEnd.toISOString().split("T")[0]
+
+    if (originalEndDate !== reviewData.endDate) {
+      edits.push({
+        fieldName: "end_date",
+        originalValue: originalEndDate,
+        newValue: reviewData.endDate,
+      })
+    }
+  }
+
+  // Compare medical reason (symptom details)
+  const originalReason = originalAnswers.symptom_details as string | undefined ||
+                        originalAnswers.symptomDetails as string | undefined ||
+                        originalAnswers.medical_reason as string | undefined
+  if (reviewData.medicalReason && originalReason && originalReason !== reviewData.medicalReason) {
+    edits.push({
+      fieldName: "medical_reason",
+      originalValue: originalReason,
+      newValue: reviewData.medicalReason,
+    })
+  }
+
+  return edits
 }

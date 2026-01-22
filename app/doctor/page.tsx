@@ -16,17 +16,26 @@ export const metadata = {
   title: "Doctor Dashboard | InstantMed",
 }
 
-export default async function DoctorDashboardPage() {
+export default async function DoctorDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>
+}) {
   const { profile } = await requireAuth("doctor")
   if (!profile) {
     redirect("/sign-in")
   }
 
+  // Parse pagination params
+  const params = await searchParams
+  const page = Math.max(1, parseInt(params.page || "1", 10))
+  const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
+
   // Fetch all data in parallel for performance
   let queueResult, monitoringStats, personalStats, slaData, doctorIdentity
   try {
     [queueResult, monitoringStats, personalStats, slaData, doctorIdentity] = await Promise.all([
-      getDoctorQueue(),
+      getDoctorQueue({ page, pageSize }),
       getIntakeMonitoringStats(),
       getDoctorPersonalStats(profile.id),
       getSlaBreachIntakes(),
@@ -75,6 +84,11 @@ export default async function DoctorDashboardPage() {
         doctorId={profile.id}
         doctorName={profile.full_name}
         identityComplete={identityComplete}
+        pagination={{
+          page: queueResult.page,
+          pageSize: queueResult.pageSize,
+          total: queueResult.total,
+        }}
       />
     </div>
   )
