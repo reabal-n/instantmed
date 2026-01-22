@@ -20,5 +20,5 @@ export default async function PatientIntakesPage() {
   
   const intakes = await getPatientIntakes(authUser.profile.id)
   
-  return <IntakesClient intakes={intakes} />
+  return <IntakesClient intakes={intakes} patientId={authUser.profile.id} />
 }

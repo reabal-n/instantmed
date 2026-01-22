@@ -228,14 +228,28 @@ interface MedCertReadyEmailParams {
   verificationCode?: string
   requestId: string
   certType?: string // "work" | "uni" | "carer"
+  pdfContent?: string // Base64 encoded PDF for attachment
+  attachPdf?: boolean // Whether to attach the PDF directly
 }
 
 /**
  * Send email when medical certificate is approved and PDF is ready
+ * Optionally attaches the PDF directly for better UX
  */
 export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Promise<EmailResult> {
-  const { to, patientName, pdfUrl, verificationCode, requestId, certType = "work" } = params
+  const { to, patientName, pdfUrl, verificationCode, requestId, certType = "work", pdfContent, attachPdf = true } = params
   const appUrl = env.appUrl
+
+  // If PDF content is provided and attachment is enabled, include it
+  const attachments: ResendEmailAttachment[] = []
+  if (attachPdf && pdfContent) {
+    attachments.push({
+      filename: `medical-certificate-${requestId.slice(0, 8)}.pdf`,
+      content: pdfContent,
+      type: "application/pdf",
+      disposition: "attachment",
+    })
+  }
 
   const certTypeLabel =
     certType === "uni"
@@ -344,6 +358,7 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
       { name: "request_id", value: requestId },
       { name: "cert_type", value: certType },
     ],
+    attachments: attachments.length > 0 ? attachments : undefined,
   })
 }
 

@@ -1,18 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { 
-  FileText, 
+import {
+  FileText,
   Pill,
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Plus,
   Filter,
   Calendar,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,10 +21,13 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { formatIntakeStatus } from "@/lib/format-intake"
+import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
+import type { RealtimeChannel } from "@supabase/supabase-js"
 
 interface IntakesClientProps {
   intakes: IntakeWithPatient[]
+  patientId: string
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -37,8 +41,83 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-700", icon: XCircle },
 }
 
-export function IntakesClient({ intakes }: IntakesClientProps) {
+export function IntakesClient({ intakes: initialIntakes, patientId }: IntakesClientProps) {
+  const [intakes, setIntakes] = useState<IntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const supabase = createClient()
+
+  // Fetch fresh intakes data
+  const refreshIntakes = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const { data, error } = await supabase
+        .from("intakes")
+        .select(`
+          *,
+          service:services!service_id (id, name, short_name, type)
+        `)
+        .eq("patient_id", patientId)
+        .order("created_at", { ascending: false })
+
+      if (!error && data) {
+        setIntakes(data as IntakeWithPatient[])
+      }
+    } catch {
+      // Silently fail - user can manually refresh
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [supabase, patientId])
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    let channel: RealtimeChannel | null = null
+
+    const setupRealtimeSubscription = () => {
+      channel = supabase
+        .channel(`patient-intakes-${patientId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "intakes",
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE") {
+              // Update the specific intake in state
+              setIntakes((prev) =>
+                prev.map((intake) =>
+                  intake.id === payload.new.id
+                    ? { ...intake, ...payload.new }
+                    : intake
+                )
+              )
+            } else if (payload.eventType === "INSERT") {
+              // Add new intake to state - refresh to get full data with relations
+              refreshIntakes()
+            } else if (payload.eventType === "DELETE") {
+              // Remove deleted intake from state
+              setIntakes((prev) =>
+                prev.filter((intake) => intake.id !== payload.old.id)
+              )
+            }
+          }
+        )
+        .subscribe()
+    }
+
+    setupRealtimeSubscription()
+
+    // Cleanup on unmount
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [supabase, patientId, refreshIntakes])
   
   // Filter intakes by status
   const upcomingIntakes = intakes.filter(i => 
@@ -76,12 +155,23 @@ export function IntakesClient({ intakes }: IntakesClientProps) {
             View and manage all your medical requests
           </p>
         </div>
-        <Link href="/start">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Request
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={refreshIntakes}
+            disabled={isRefreshing}
+            title="Refresh requests"
+          >
+            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
           </Button>
-        </Link>
+          <Link href="/start">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Request
+            </Button>
+          </Link>
+        </div>
       </div>
       
       {/* Stats */}

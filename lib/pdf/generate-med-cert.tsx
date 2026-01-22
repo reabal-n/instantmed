@@ -256,13 +256,15 @@ export async function generateMedCertPdf(
       },
     })
 
-    // Send email to patient
+    // Send email to patient with PDF attachment for better UX
     const emailResult = await sendMedCertReadyEmail({
       to: patientEmail,
       patientName,
       pdfUrl: uploadResult.permanentUrl,
       requestId,
       certType: certificateType,
+      pdfContent: pdfBuffer.toString("base64"), // Attach PDF directly
+      attachPdf: true,
     })
 
     if (!emailResult.success) {

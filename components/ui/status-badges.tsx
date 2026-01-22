@@ -125,8 +125,13 @@ export function PremiumStatusBadge({
   const Icon = config.icon
   const shouldPulse = showPulse ?? config.pulse
 
+  // Generate accessible description
+  const ariaLabel = `Status: ${label}${shouldPulse ? " (action required)" : ""}`
+
   return (
     <span
+      role="status"
+      aria-label={ariaLabel}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full font-medium",
         size === "sm" ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-sm",
@@ -136,14 +141,14 @@ export function PremiumStatusBadge({
       )}
     >
       {showIcon && (
-        <span className="relative">
+        <span className="relative" aria-hidden="true">
           <Icon className={cn(size === "sm" ? "h-3 w-3" : "h-4 w-4")} />
           {shouldPulse && (
             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
           )}
         </span>
       )}
-      {label}
+      <span>{label}</span>
     </span>
   )
 }

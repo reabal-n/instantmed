@@ -21,7 +21,7 @@ const config = {
         handwritten: ["var(--font-handwritten)", "Caveat", "cursive"],
       },
       colors: {
-        // Lumen Health Brand Colors — Morning Spectrum
+        // InstantMed Brand Colors — Morning Spectrum
         sky: {
           50: '#F7FAFC',
           100: '#EDF4F8',
@@ -65,7 +65,7 @@ const config = {
         loose: "1.8",
       },
       boxShadow: {
-        // Lumen Design System — Soft, warm shadows
+        // InstantMed Design System — Soft, warm shadows
         "soft": "0 4px 20px rgba(197, 221, 240, 0.15)",
         "soft-md": "0 8px 30px rgba(197, 221, 240, 0.20)",
         "soft-lg": "0 12px 40px rgba(197, 221, 240, 0.25)",

@@ -7,6 +7,59 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("auth-callback")
 
 /**
+ * Validate redirect URL to prevent open redirect attacks
+ * Only allows relative paths or URLs matching our allowed hosts
+ */
+function isValidRedirectUrl(url: string, allowedOrigin: string): boolean {
+  // Allow relative paths
+  if (url.startsWith('/') && !url.startsWith('//')) {
+    return true
+  }
+
+  // For absolute URLs, validate the host matches our allowed origin
+  try {
+    const parsedUrl = new URL(url)
+    const parsedOrigin = new URL(allowedOrigin)
+
+    // Only allow same host or explicitly allowed subdomains
+    const allowedHosts = [
+      parsedOrigin.host,
+      `www.${parsedOrigin.host}`,
+      // Add any other allowed hosts here
+    ]
+
+    return allowedHosts.includes(parsedUrl.host)
+  } catch {
+    // Invalid URL format
+    return false
+  }
+}
+
+/**
+ * Safely construct redirect destination
+ */
+function getSafeRedirectUrl(next: string | null, origin: string, defaultPath: string): string {
+  if (!next) {
+    return `${origin}${defaultPath}`
+  }
+
+  const decodedNext = decodeURIComponent(next)
+
+  if (!isValidRedirectUrl(decodedNext, origin)) {
+    log.warn("Blocked potentially malicious redirect", { attemptedUrl: decodedNext })
+    return `${origin}${defaultPath}`
+  }
+
+  // For relative paths, prepend origin
+  if (decodedNext.startsWith('/')) {
+    return `${origin}${decodedNext}`
+  }
+
+  // For validated absolute URLs, use as-is
+  return decodedNext
+}
+
+/**
  * CLERK AUTH CALLBACK
  * 
  * Flow:
@@ -98,24 +151,15 @@ export async function GET(request: NextRequest) {
       logLogin(profile.id, ipAddress, userAgent).catch(() => {})
     }
 
-    // Determine redirect destination
+    // Determine redirect destination with open redirect protection
     let destination = `${origin}/patient`
-    
+
     if (profile) {
       if (profile.role === "doctor" || profile.role === "admin") {
         destination = `${origin}/doctor`
       } else if (profile.role === "patient") {
-        if (next) {
-          // Decode the redirect URL if it was encoded
-          const decodedNext = decodeURIComponent(next)
-          destination = decodedNext.startsWith('http') 
-            ? decodedNext 
-            : `${origin}${decodedNext.startsWith('/') ? decodedNext : '/' + decodedNext}`
-        } else {
-          destination = profile.onboarding_completed 
-            ? `${origin}/patient`
-            : `${origin}/patient/onboarding`
-        }
+        const defaultPatientPath = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+        destination = getSafeRedirectUrl(next, origin, defaultPatientPath)
       }
     }
 

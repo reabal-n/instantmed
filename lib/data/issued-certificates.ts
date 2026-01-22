@@ -245,6 +245,122 @@ export async function createIssuedCertificate(
   return { success: true, certificate: data as IssuedCertificate, isExisting: false }
 }
 
+// ============================================================================
+// ATOMIC APPROVAL (uses PostgreSQL transaction via RPC)
+// ============================================================================
+
+export interface AtomicApprovalInput {
+  intake_id: string
+  certificate_number: string
+  verification_code: string
+  certificate_type: "work" | "study" | "carer"
+  issue_date: string
+  start_date: string
+  end_date: string
+  patient_id: string
+  patient_name: string
+  patient_dob: string | null
+  doctor_id: string
+  doctor_name: string
+  doctor_nominals: string | null
+  doctor_provider_number: string
+  doctor_ahpra_number: string
+  template_config_snapshot: Record<string, unknown>
+  clinic_identity_snapshot: Record<string, unknown>
+  storage_path: string
+  file_size_bytes: number
+  filename: string
+}
+
+export interface AtomicApprovalResult {
+  success: boolean
+  certificateId?: string
+  intakeDocumentId?: string
+  isExisting?: boolean
+  error?: string
+}
+
+/**
+ * Atomically approve a certificate:
+ * - Creates issued_certificates record
+ * - Creates intake_documents record (legacy)
+ * - Updates intake status to "approved"
+ *
+ * All operations happen in a single database transaction.
+ * If any operation fails, all changes are rolled back.
+ */
+export async function atomicApproveCertificate(
+  input: AtomicApprovalInput
+): Promise<AtomicApprovalResult> {
+  const supabase = createServiceRoleClient()
+
+  // Generate idempotency key
+  const idempotencyKey = generateIdempotencyKey(
+    input.intake_id,
+    input.doctor_id,
+    input.issue_date
+  )
+
+  log.info("Calling atomic approval RPC", {
+    intakeId: input.intake_id,
+    certificateNumber: input.certificate_number,
+    idempotencyKey,
+  })
+
+  const { data, error } = await supabase.rpc("atomic_approve_certificate", {
+    p_intake_id: input.intake_id,
+    p_certificate_number: input.certificate_number,
+    p_verification_code: input.verification_code,
+    p_idempotency_key: idempotencyKey,
+    p_certificate_type: input.certificate_type,
+    p_issue_date: input.issue_date,
+    p_start_date: input.start_date,
+    p_end_date: input.end_date,
+    p_patient_id: input.patient_id,
+    p_patient_name: input.patient_name,
+    p_patient_dob: input.patient_dob,
+    p_doctor_id: input.doctor_id,
+    p_doctor_name: input.doctor_name,
+    p_doctor_nominals: input.doctor_nominals,
+    p_doctor_provider_number: input.doctor_provider_number,
+    p_doctor_ahpra_number: input.doctor_ahpra_number,
+    p_template_config_snapshot: input.template_config_snapshot,
+    p_clinic_identity_snapshot: input.clinic_identity_snapshot,
+    p_storage_path: input.storage_path,
+    p_file_size_bytes: input.file_size_bytes,
+    p_filename: input.filename,
+  })
+
+  if (error) {
+    log.error("Atomic approval RPC failed", { intakeId: input.intake_id }, error)
+    return { success: false, error: error.message }
+  }
+
+  // RPC returns array with single row
+  const result = Array.isArray(data) ? data[0] : data
+
+  if (!result?.success) {
+    log.error("Atomic approval returned failure", {
+      intakeId: input.intake_id,
+      error: result?.error_message,
+    })
+    return { success: false, error: result?.error_message || "Unknown error" }
+  }
+
+  log.info("Atomic approval succeeded", {
+    intakeId: input.intake_id,
+    certificateId: result.certificate_id,
+    isExisting: result.is_duplicate,
+  })
+
+  return {
+    success: true,
+    certificateId: result.certificate_id,
+    intakeDocumentId: result.intake_document_id,
+    isExisting: result.is_duplicate,
+  }
+}
+
 /**
  * Update email delivery status
  */

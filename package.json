@@ -8,10 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",
-    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm test run && pnpm build",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
     "check:rls": "npx tsx scripts/rls-check.ts",
-    "import:artg": "npx tsx scripts/import_artg.ts"
+    "import:artg": "npx tsx scripts/import_artg.ts",
+    "encrypt:backfill": "npx tsx scripts/encrypt-phi-backfill.ts",
+    "encrypt:backfill:dry": "npx tsx scripts/encrypt-phi-backfill.ts --dry"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.12",

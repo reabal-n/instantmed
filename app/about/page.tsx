@@ -10,6 +10,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About InstantMed | Australian Telehealth",
     description: "Learn about InstantMed - connecting Australians with AHPRA-registered doctors for fast, secure online healthcare.",
+    url: "https://instantmed.com.au/about",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About InstantMed | Australian Telehealth",
+    description: "Learn about InstantMed - connecting Australians with AHPRA-registered doctors for fast, secure online healthcare.",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/about",
   },
 }
 

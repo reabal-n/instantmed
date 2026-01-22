@@ -1,16 +1,16 @@
-# Lumen Health Design System
+# InstantMed Design System
 
 > **Version 3.0** — Clarity Emerging
-> 
-> A calm, premium design system for Lumen Health's telehealth platform. Defined by morning light, restraint, and quiet confidence.
+>
+> A calm, premium design system for InstantMed's telehealth platform. Defined by morning light, restraint, and quiet confidence.
 
 ---
 
 ## Brand Reference
 
-See `/brand/LUMEN_BRAND_STYLE.md` for the complete brand guidelines. This design system implements those principles into code.
+This design system implements the brand principles into code.
 
-**Core Mantra:** *Lumen does not shout. Lumen does not rush. Lumen illuminates.*
+**Core Mantra:** *InstantMed does not shout. InstantMed does not rush. InstantMed illuminates.*
 
 ---
 

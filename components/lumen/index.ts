@@ -1,12 +1,14 @@
 /**
- * Lumen Design System Components
- * 
+ * InstantMed Design System Components
+ *
  * Brand-aligned component variants for InstantMed.
  * These components embody the "Clarity Emerging" visual personality:
  * - Calm, premium, restrained
  * - Morning light palette (sky blues, dawn warmth)
  * - Gentle, intentional motion
  * - Glass effects with subtle warmth
+ *
+ * Note: Components named "Lumen*" are legacy naming, kept for backwards compatibility.
  */
 
 export { LumenButton } from "./lumen-button"

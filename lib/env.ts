@@ -43,7 +43,10 @@ const serverEnvSchema = z.object({
   // Rate limiting (optional but recommended)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
-  
+
+  // Encryption (required for PHI protection)
+  ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY must be at least 32 bytes base64 encoded").optional(),
+
   // Monitoring
   SENTRY_DSN: z.string().optional(),
   
@@ -55,6 +58,8 @@ const productionRequirements = z.object({
   STRIPE_SECRET_KEY: z.string().min(1, "Production requires STRIPE_SECRET_KEY"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "Production requires STRIPE_WEBHOOK_SECRET"),
   INTERNAL_API_SECRET: z.string().min(1, "Production requires INTERNAL_API_SECRET"),
+  // Note: ENCRYPTION_KEY is validated at runtime in lib/security/encryption.ts
+  // This allows builds to succeed, while enforcing encryption when PHI is accessed
 })
 
 /**

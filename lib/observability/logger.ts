@@ -51,12 +51,24 @@ function sanitizeContext(context: LogContext): LogContext {
   }
   
   const sensitiveKeys = [
-    'password', 'token', 'secret', 'key', 'auth', 
-    'medicare', 'credit', 'card', 'ssn', 'dob',
+    // Authentication & secrets
+    'password', 'token', 'secret', 'key', 'auth',
+    // Australian identifiers
+    'medicare', 'irn', 'referenceNumber', 'providerNumber', 'prescriberNumber',
+    // Financial
+    'credit', 'card', 'ssn', 'bsb', 'accountNumber',
+    // Personal identifiable information
+    'dob', 'dateOfBirth', 'date_of_birth',
     'address', 'street', 'postcode', 'suburb',
     'phone', 'mobile', 'email',
     'full_name', 'fullName', 'firstName', 'lastName',
-    'dateOfBirth', 'date_of_birth'
+    // Medical/clinical terms (PHI compliance)
+    'diagnosis', 'medication', 'prescription', 'symptom', 'symptoms',
+    'condition', 'treatment', 'medical_history', 'medicalHistory',
+    'allergy', 'allergies', 'pmhx', 'clinical_note', 'clinicalNote',
+    'drug', 'dosage', 'icd10', 'snomed', 'indication',
+    'mentalHealth', 'mental_health', 'psychiatric',
+    'hiv', 'std', 'genetic', 'pregnancy',
   ]
   
   const sanitized: LogContext = {}

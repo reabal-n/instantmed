@@ -13,6 +13,7 @@ import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase } from "@/components/ui/glowing-effect"
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { LiveServiceCounter, ViewingNowIndicator } from "@/components/marketing/social-proof-notifications"
+import { useState, useEffect } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
@@ -161,7 +162,17 @@ const doctorImages = [
 
 export default function RepeatPrescriptionPage() {
   const prefersReducedMotion = useReducedMotion()
-  
+  const [showStickyCTA, setShowStickyCTA] = useState(false)
+
+  // Show sticky CTA after scrolling past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyCTA(window.scrollY > 600)
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar variant="marketing" />
@@ -732,6 +743,24 @@ export default function RepeatPrescriptionPage() {
           </section>
         </ParallaxSection>
       </main>
+
+      {/* Sticky Mobile CTA - shows after scrolling past hero */}
+      <motion.div
+        className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/95 backdrop-blur-lg border-t border-border/50 md:hidden"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{
+          y: showStickyCTA ? 0 : 100,
+          opacity: showStickyCTA ? 1 : 0
+        }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <Link href="/start?service=repeat-script" className="block">
+          <ShimmerButton className="w-full flex items-center justify-center gap-2 py-3">
+            Request prescription
+            <ArrowRight className="w-4 h-4" />
+          </ShimmerButton>
+        </Link>
+      </motion.div>
 
       <MarketingFooter />
     </div>

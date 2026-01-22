@@ -212,16 +212,24 @@ export async function refundIfEligible(
 
     let stripeRefund
     try {
-      stripeRefund = await stripe.refunds.create({
-        payment_intent: stripePaymentIntentId,
-        reason: "requested_by_customer",
-        metadata: {
-          intake_id: intakeId,
-          category: category || "unknown",
-          declined_by: actorId,
-          refund_type: "auto_decline",
+      // Generate idempotency key to prevent duplicate refunds on retry
+      const idempotencyKey = `refund_${intakeId}_${stripePaymentIntentId}`
+
+      stripeRefund = await stripe.refunds.create(
+        {
+          payment_intent: stripePaymentIntentId,
+          reason: "requested_by_customer",
+          metadata: {
+            intake_id: intakeId,
+            category: category || "unknown",
+            declined_by: actorId,
+            refund_type: "auto_decline",
+          },
         },
-      })
+        {
+          idempotencyKey,
+        }
+      )
     } catch (stripeError) {
       const errorMessage = stripeError instanceof Error ? stripeError.message : "Unknown Stripe error"
 

@@ -14,7 +14,7 @@ import { generateCertificateNumber } from "@/lib/pdf/generate-med-cert"
 import { renderMedCertPdf, generateVerificationCode } from "@/lib/pdf/med-cert-render"
 import {
   findExistingCertificate,
-  createIssuedCertificate,
+  atomicApproveCertificate,
   updateEmailStatus,
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
@@ -247,30 +247,14 @@ export async function approveAndSendCert(
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
 
-    // Record the document in legacy table
-    await storageClient.from("intake_documents").insert({
-      intake_id: intakeId,
-      document_type: "med_cert",
-      filename: `Medical_Certificate_${certificateNumber}.pdf`,
-      storage_path: storagePath,
-      mime_type: "application/pdf",
-      file_size_bytes: pdfBuffer.length,
-      certificate_number: certificateNumber,
-      created_by: doctorProfile.id,
-      metadata: {
-        patient_name: patient.full_name,
-        certificate_type: certificateType,
-        start_date: reviewData.startDate,
-        end_date: reviewData.endDate,
-      },
-    })
     logger.info("PDF stored successfully", { intakeId, certificateNumber, storagePath })
 
     // 5.6 Get doctor identity for snapshot
     const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
 
-    // 5.7 Create issued certificate record with idempotency
-    const certResult = await createIssuedCertificate({
+    // 5.7 ATOMIC APPROVAL: Create certificate, document record, and update status in single transaction
+    // This ensures consistency - either all operations succeed or all fail
+    const atomicResult = await atomicApproveCertificate({
       intake_id: intakeId,
       certificate_number: certificateNumber,
       verification_code: verificationCode,
@@ -286,41 +270,44 @@ export async function approveAndSendCert(
       doctor_nominals: doctorIdentity?.nominals || null,
       doctor_provider_number: doctorProfile.provider_number!,
       doctor_ahpra_number: doctorProfile.ahpra_number!,
-      template_config_snapshot: pdfResult.templateConfig!,
-      clinic_identity_snapshot: pdfResult.clinicIdentity!,
+      template_config_snapshot: pdfResult.templateConfig! as unknown as Record<string, unknown>,
+      clinic_identity_snapshot: pdfResult.clinicIdentity! as unknown as Record<string, unknown>,
       storage_path: storagePath,
       file_size_bytes: pdfBuffer.length,
+      filename: `Medical_Certificate_${certificateNumber}.pdf`,
     })
 
-    if (!certResult.success) {
-      logger.error("Failed to create certificate record", { intakeId, error: certResult.error })
-      // PDF is stored but record failed - this is a partial failure state
-      // Continue anyway as the PDF exists
+    if (!atomicResult.success) {
+      logger.error("Atomic approval failed", { intakeId, error: atomicResult.error })
+      // Revert the claim since atomic operation failed
+      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, claimed_at: null }).eq("id", intakeId)
+      return { success: false, error: atomicResult.error || "Failed to create certificate records" }
     }
 
-    const certificateId = certResult.certificate?.id
+    const certificateId = atomicResult.certificateId
 
-    // If this was an idempotent re-approval, don't send another email
-    if (certResult.isExisting && certResult.certificate?.email_sent_at) {
-      logger.info("Certificate already issued and email sent (idempotent)", {
-        intakeId,
-        certificateId,
-      })
-      return { 
-        success: true, 
-        certificateId,
-        isExisting: true,
+    // If this was an idempotent re-approval, check if email was already sent
+    if (atomicResult.isExisting) {
+      // Check if email was already sent for this certificate
+      const existingCert = await findExistingCertificate(intakeId)
+      if (existingCert?.email_sent_at) {
+        logger.info("Certificate already issued and email sent (idempotent)", {
+          intakeId,
+          certificateId,
+        })
+        return {
+          success: true,
+          certificateId,
+          isExisting: true,
+        }
       }
     }
 
-    // Log issuance event
-    if (certificateId) {
-      await logCertificateEvent(certificateId, "issued", doctorProfile.id, "doctor", {
-        intake_id: intakeId,
-        certificate_type: certificateType,
-        template_version: pdfResult.templateConfig?.layout?.marginPreset,
-      })
-    }
+    logger.info("Atomic approval completed", {
+      intakeId,
+      certificateId,
+      isExisting: atomicResult.isExisting,
+    })
 
     // 6. Generate email HTML - link to dashboard, NOT raw file
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
@@ -368,31 +355,13 @@ export async function approveAndSendCert(
       }
     }
 
-    logger.info("Certificate issuance complete", { 
-      intakeId, 
+    logger.info("Certificate issuance complete", {
+      intakeId,
       certificateId,
       emailSent: emailResult.success,
     })
 
-    // 8. Update intake status in Supabase
-    const { error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        status: "approved",
-        reviewed_by: doctorProfile.id,
-        reviewed_at: new Date().toISOString(),
-        decided_at: new Date().toISOString(),
-        decision: "approved",
-        approved_at: new Date().toISOString(),
-      })
-      .eq("id", intakeId)
-
-    if (updateError) {
-      logger.error("Failed to update intake status", { intakeId, error: updateError })
-      return { success: false, error: `Failed to update intake: ${updateError.message}` }
-    }
-
-    logger.info("Intake updated successfully", { intakeId, status: "approved" })
+    // Status already updated by atomic approval - no separate update needed
 
     // Create in-app notification for patient
     await createNotification({

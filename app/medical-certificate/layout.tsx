@@ -32,13 +32,14 @@ export const metadata: Metadata = {
   },
 }
 
-// FAQ data for schema
+// FAQ data for schema - must match FAQs displayed on page
 const faqSchemaData = [
-  { question: "Will my employer accept this?", answer: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers and universities." },
-  { question: "Can I use this for university?", answer: "Yes. Our medical certificates are accepted by all Australian universities, TAFEs, and educational institutions for special consideration or extensions." },
-  { question: "How do I receive my certificate?", answer: "Once approved, your certificate is emailed to you as a PDF. You can also download it from your patient dashboard." },
+  { question: "Will my employer accept this?", answer: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers. Same as what you'd get from a clinic." },
+  { question: "Can I use this for uni or TAFE?", answer: "Yes. Our certificates are accepted by all Australian universities and TAFEs for special consideration, extensions, or deferred exams." },
+  { question: "What if I'm actually quite sick?", answer: "Then you definitely need one. If our doctors spot anything concerning, they'll let you know whether in-person care would be better." },
+  { question: "How do I receive my certificate?", answer: "Once approved, it lands in your inbox as a PDF. You can also grab it from your dashboard anytime." },
   { question: "Is this legal?", answer: "Yes. Our doctors are AHPRA-registered and practicing in Australia. Medical certificates issued through telehealth are legally equivalent to in-person consultations." },
-  { question: "What if my request is declined?", answer: "You'll receive a full refund. Our doctors may decline requests if they believe an in-person consultation is more appropriate for your situation." },
+  { question: "What if my request is declined?", answer: "Full refund, no questions. Sometimes our doctors recommend in-person care instead — we'd rather be honest than just take your money." },
 ]
 
 export default function MedicalCertificateLayout({

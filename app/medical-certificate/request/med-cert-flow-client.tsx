@@ -601,13 +601,23 @@ export function MedCertFlowClient({
         
         if (currentUser && !isAuthenticated) {
           const userMetadata = currentUser.user_metadata || {}
+          // Retrieve pending profile data from sessionStorage (set before auth redirect)
+          const pendingName = sessionStorage.getItem("pending_profile_name")
+          const pendingDob = sessionStorage.getItem("pending_profile_dob")
+
           const { profileId } = await createOrGetProfile(
             currentUser.id,
-            userMetadata.full_name || userMetadata.name || currentUser.email?.split('@')[0] || "",
-            "",
+            pendingName || userMetadata.full_name || userMetadata.name || currentUser.email?.split('@')[0] || "",
+            pendingDob || "",
           )
 
           if (profileId) {
+            // Clear pending profile data from sessionStorage
+            sessionStorage.removeItem("pending_profile_name")
+            sessionStorage.removeItem("pending_profile_dob")
+            sessionStorage.removeItem("questionnaire_flow")
+            sessionStorage.removeItem("questionnaire_path")
+
             setPatientId(profileId)
             setIsAuthenticated(true)
             setNeedsOnboarding(false)
@@ -638,13 +648,23 @@ export function MedCertFlowClient({
       
       if (session?.user && !isAuthenticated) {
         const userMetadata = session.user.user_metadata || {}
+        // Retrieve pending profile data from sessionStorage (set before auth redirect)
+        const pendingName = sessionStorage.getItem("pending_profile_name")
+        const pendingDob = sessionStorage.getItem("pending_profile_dob")
+
         const { profileId } = await createOrGetProfile(
           session.user.id,
-          userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || "",
-          "",
+          pendingName || userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || "",
+          pendingDob || "",
         )
 
         if (profileId) {
+          // Clear pending profile data from sessionStorage
+          sessionStorage.removeItem("pending_profile_name")
+          sessionStorage.removeItem("pending_profile_dob")
+          sessionStorage.removeItem("questionnaire_flow")
+          sessionStorage.removeItem("questionnaire_path")
+
           setPatientId(profileId)
           setIsAuthenticated(true)
           setNeedsOnboarding(false)

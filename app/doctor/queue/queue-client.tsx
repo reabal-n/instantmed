@@ -47,6 +47,8 @@ import {
   Filter,
   ShieldAlert,
   ArrowUpDown,
+  Focus,
+  Maximize2,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import {
@@ -81,6 +83,7 @@ export function QueueClient({
   const [filterService, setFilterService] = useState<string>("all")
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
   const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
+  const [focusMode, setFocusMode] = useState(false)
 
   // Real-time subscription for intakes
   useEffect(() => {
@@ -365,21 +368,42 @@ export function QueueClient({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search patients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64"
-            startContent={<Search className="h-4 w-4 text-muted-foreground" />}
-          />
+          {!focusMode && (
+            <Input
+              placeholder="Search patients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64"
+              startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+            />
+          )}
+          <Button
+            variant={focusMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFocusMode(!focusMode)}
+            className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white" : ""}
+            aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
+          >
+            {focusMode ? (
+              <>
+                <Maximize2 className="h-4 w-4 mr-1.5" />
+                Exit Focus
+              </>
+            ) : (
+              <>
+                <Focus className="h-4 w-4 mr-1.5" />
+                Focus Mode
+              </>
+            )}
+          </Button>
           <Button variant="outline" size="icon" onClick={() => router.refresh()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Flagged Cases Summary */}
-      {flaggedCount > 0 && (
+      {/* Flagged Cases Summary - Hidden in focus mode */}
+      {!focusMode && flaggedCount > 0 && (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="py-3">
             <div className="flex items-center justify-between">
@@ -402,38 +426,40 @@ export function QueueClient({
         </Card>
       )}
 
-      {/* Sort & Filter Controls */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="flagged">Flagged first</SelectItem>
-              <SelectItem value="wait">Longest wait</SelectItem>
-              <SelectItem value="service">By service type</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Sort & Filter Controls - Hidden in focus mode */}
+      {!focusMode && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="flagged">Flagged first</SelectItem>
+                <SelectItem value="wait">Longest wait</SelectItem>
+                <SelectItem value="service">By service type</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filterService} onValueChange={setFilterService}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Filter service..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All services</SelectItem>
+                {serviceTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {formatServiceType(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={filterService} onValueChange={setFilterService}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Filter service..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All services</SelectItem>
-              {serviceTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {formatServiceType(type)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      )}
 
       {/* Queue List */}
       <div className="space-y-3">

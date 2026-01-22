@@ -12,10 +12,18 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("pbs-client")
 
 const PBS_API_BASE_URL = "https://data-api.health.gov.au/pbs/api/v3"
-// Public API key - rate limited to 1 req/20s shared globally
-// Note: Dedicated API key registration at data-api.health.gov.au is unavailable.
-// Using public key with circuit breaker pattern to handle rate limits gracefully.
-const PBS_API_KEY = process.env.PBS_API_KEY || "2384af7c667342ceb5a736fe29f1dc6b"
+// PBS API key must be set in environment variables
+// Register for a key at: https://data-api.health.gov.au/
+const PBS_API_KEY = process.env.PBS_API_KEY
+
+// Warn if PBS API key is not configured (only logs once)
+let warnedAboutMissingKey = false
+function warnIfNoApiKey(): void {
+  if (!PBS_API_KEY && !warnedAboutMissingKey) {
+    warnedAboutMissingKey = true
+    log.warn("PBS_API_KEY not configured - medication search will be unavailable")
+  }
+}
 const API_TIMEOUT_MS = 5000 // 5 second timeout to prevent hanging
 
 // Circuit breaker state - prevents cascading failures when PBS API is down
@@ -190,6 +198,12 @@ async function searchPBSByField(
   query: string,
   limit: number
 ): Promise<PBSSearchResult[]> {
+  // Check if API key is configured
+  if (!PBS_API_KEY) {
+    warnIfNoApiKey()
+    return []
+  }
+
   // Circuit breaker - fast fail if API is known to be down
   if (isCircuitOpen()) {
     log.debug("PBS API circuit open, skipping request", { field, query })
@@ -261,6 +275,12 @@ export async function searchPBSItems(
  * Get detailed information about a specific PBS item
  */
 export async function getPBSItem(pbsCode: string): Promise<PBSItem | null> {
+  // Check if API key is configured
+  if (!PBS_API_KEY) {
+    warnIfNoApiKey()
+    return null
+  }
+
   // Circuit breaker check
   if (isCircuitOpen()) {
     log.debug("PBS API circuit open, skipping getPBSItem")
