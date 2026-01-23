@@ -36,6 +36,7 @@ export async function getPaymentsWithRefunds(
       intake:intakes!intake_id (
         id,
         status,
+        category,
         patient:profiles!patient_id (full_name, email)
       )
     `, { count: "exact" })
@@ -83,6 +84,7 @@ export async function getEligibleRefunds(): Promise<PaymentWithRefund[]> {
       intake:intakes!intake_id (
         id,
         status,
+        category,
         patient:profiles!patient_id (full_name, email)
       )
     `)

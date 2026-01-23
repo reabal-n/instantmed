@@ -19,7 +19,7 @@ export default async function OpsDashboardPage() {
   const dayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000)
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  // Fetch operations data
+  // Fetch operations data - some tables may not exist in production
   const [
     webhookDlqResult,
     emailQueueResult,
@@ -27,19 +27,21 @@ export default async function OpsDashboardPage() {
     auditLogsResult,
     systemHealthResult,
   ] = await Promise.all([
-    // Failed webhooks (DLQ)
+    // Failed webhooks (DLQ) - table may not exist
     supabase
       .from("webhook_dlq")
       .select("id, created_at, status, event_type", { count: "exact" })
       .in("status", ["failed", "pending"])
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(10)
+      .then(r => r.error ? { data: [], count: 0 } : r),
     
-    // Email queue status
+    // Email queue status - table may not exist
     supabase
       .from("email_logs")
       .select("id, status, created_at")
-      .gte("created_at", dayAgo.toISOString()),
+      .gte("created_at", dayAgo.toISOString())
+      .then(r => r.error ? { data: [] } : r),
     
     // Recent errors from audit logs
     supabase

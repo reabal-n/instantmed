@@ -325,7 +325,7 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                         </div>
                       </TableCell>
                       <TableCell>
-                        {payment.intake?.service?.short_name || payment.intake?.service?.name || "—"}
+                        {payment.intake?.category || "—"}
                       </TableCell>
                       <TableCell className="font-mono">
                         {formatAmount(payment.amount)}
@@ -435,7 +435,7 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Service</Label>
-                    <p className="font-medium">{selectedPayment.intake?.service?.name}</p>
+                    <p className="font-medium">{selectedPayment.intake?.category || "—"}</p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Amount</Label>

@@ -21,81 +21,106 @@ const log = createLogger("services-data")
 
 /**
  * Get all services (admin view - includes inactive)
+ * Note: services table may not exist in production - returns empty array gracefully
  */
 export async function getAllServices(): Promise<Service[]> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .order("display_order", { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .order("display_order", { ascending: true })
 
-  if (error) {
-    log.error("Failed to fetch all services", {}, error)
+    if (error) {
+      // Table may not exist - return empty array instead of failing
+      log.warn("Services table query failed (may not exist)", {}, error)
+      return []
+    }
+
+    return data as Service[]
+  } catch (err) {
+    log.warn("Services table not available", {}, err)
     return []
   }
-
-  return data as Service[]
 }
 
 /**
  * Get active services only (public view)
+ * Note: services table may not exist in production - returns empty array gracefully
  */
 export async function getActiveServices(): Promise<Service[]> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
 
-  if (error) {
-    log.error("Failed to fetch active services", {}, error)
+    if (error) {
+      log.warn("Services table query failed (may not exist)", {}, error)
+      return []
+    }
+
+    return data as Service[]
+  } catch (err) {
+    log.warn("Services table not available", {}, err)
     return []
   }
-
-  return data as Service[]
 }
 
 /**
  * Get service by ID
+ * Note: services table may not exist in production - returns null gracefully
  */
 export async function getServiceById(id: string): Promise<Service | null> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("id", id)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("id", id)
+      .single()
 
-  if (error) {
-    log.error("Failed to fetch service by ID", { id }, error)
+    if (error) {
+      log.warn("Service by ID query failed (may not exist)", { id }, error)
+      return null
+    }
+
+    return data as Service
+  } catch (err) {
+    log.warn("Services table not available", { id }, err)
     return null
   }
-
-  return data as Service
 }
 
 /**
  * Get service by slug
+ * Note: services table may not exist in production - returns null gracefully
  */
 export async function getServiceBySlug(slug: string): Promise<Service | null> {
   const supabase = createServiceRoleClient()
 
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("slug", slug)
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("slug", slug)
+      .single()
 
-  if (error) {
-    log.error("Failed to fetch service by slug", { slug }, error)
+    if (error) {
+      log.warn("Service by slug query failed (may not exist)", { slug }, error)
+      return null
+    }
+
+    return data as Service
+  } catch (err) {
+    log.warn("Services table not available", { slug }, err)
     return null
   }
-
-  return data as Service
 }
 
 // ============================================================================

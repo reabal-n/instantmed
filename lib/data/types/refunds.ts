@@ -28,10 +28,7 @@ export interface PaymentWithRefund {
   intake?: {
     id: string
     status: string
-    service: {
-      name: string
-      short_name: string
-    }
+    category: string | null
     patient: {
       full_name: string
       email: string
