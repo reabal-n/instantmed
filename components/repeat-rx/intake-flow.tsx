@@ -43,6 +43,7 @@ import { CompactStepper } from "@/components/ui/form-stepper"
 import { SafetyStep } from "./steps/safety-step"
 import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
 import { SmartValidation } from "@/components/intake/smart-validation"
+import { useFormAnalytics } from "@/hooks/use-form-analytics"
 
 // ============================================================================
 // CONSTANTS
@@ -412,6 +413,12 @@ export function RepeatRxIntakeFlow({
   const searchParams = useSearchParams()
   const supabase = createClient()
   
+  // Form analytics for conversion tracking
+  const formAnalytics = useFormAnalytics({
+    formName: "repeat_rx_intake",
+    service: "repeat-prescription",
+  })
+  
   // Supabase auth state
   const [user, setUser] = useState<User | null>(null)
   const [_isAuthLoading, setIsAuthLoading] = useState(true)
@@ -518,12 +525,18 @@ export function RepeatRxIntakeFlow({
   }
   
   const goToStep = useCallback((step: RepeatRxStep) => {
+    // Track step completion for analytics
+    const fromIndex = STEPS.indexOf(currentStep)
+    const toIndex = STEPS.indexOf(step)
+    if (toIndex > fromIndex && fromIndex >= 0) {
+      formAnalytics.trackStepComplete(currentStep, fromIndex, STEPS.length)
+    }
     setIsTransitioning(true)
     setTimeout(() => {
       setCurrentStep(step)
       setIsTransitioning(false)
     }, 150)
-  }, [])
+  }, [currentStep, formAnalytics])
   
   const goBack = useCallback(() => {
     const currentIndex = STEPS.indexOf(currentStep)

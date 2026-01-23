@@ -1,5 +1,10 @@
 -- Fix mutable search_path vulnerability in functions
 -- This prevents potential SQL injection via search path manipulation
+-- APPLIED TO PRODUCTION: 2025-01-23
+
+-- Drop functions that need signature changes first
+DROP FUNCTION IF EXISTS public.release_stale_intake_claims(integer);
+DROP FUNCTION IF EXISTS public.audit_phi_access(text, uuid, text, uuid, text, text);
 
 -- Fix audit_phi_access
 CREATE OR REPLACE FUNCTION public.audit_phi_access(

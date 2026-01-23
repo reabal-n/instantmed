@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock, ArrowRight, CheckCircle2, Users, Star, Zap, Shield } from 'lucide-react'
+import { Clock, ArrowRight, CheckCircle2, Star, Shield } from 'lucide-react'
 import { Button } from "@heroui/react"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { ReassuranceStrip } from '@/components/shared/reassurance-strip'
@@ -108,16 +108,16 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* Headline - Static, clear value prop */}
+          {/* Headline - Clinical credibility first, efficiency second */}
           <motion.h1 
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4 leading-[1.1]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
-            <span className="text-foreground">Doctor-reviewed documents.</span>
+            <span className="text-foreground">Real GPs. Real clinical decisions.</span>
             <br />
-            <span className="text-premium-gradient">Delivered in under an hour.</span>
+            <span className="text-premium-gradient">Healthcare done properly.</span>
           </motion.h1>
           
           {/* Authority marker - immediately below headline */}
@@ -131,14 +131,14 @@ export function Hero() {
             <span>Every request reviewed by an AHPRA-registered GP</span>
           </motion.p>
 
-          {/* Subtext - Outcome-focused */}
+          {/* Subtext - Clinical process + transparency about decisions */}
           <motion.p 
             className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto xl:mx-0 mb-8 leading-relaxed"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            Need a medical certificate for work? Or a repeat script sent to your phone? Fill out a quick form, a GP reviews it, and you&apos;re done. No phone call needed for most requests.
+            Medical certificates and repeat prescriptions reviewed by AHPRA-registered Australian doctors. Every request is assessed individually — not every request is approved, and that&apos;s how proper healthcare works.
           </motion.p>
 
           {/* CTAs - Intent-specific */}
@@ -183,7 +183,7 @@ export function Hero() {
             />
           </motion.div>
 
-          {/* Trust signals - outcome-focused row */}
+          {/* Trust signals - clinical credibility first, efficiency last */}
           <motion.div 
             className="flex flex-wrap justify-center xl:justify-start gap-6 sm:gap-8"
             initial={{ opacity: 0, y: 20 }}
@@ -191,9 +191,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.6 }}
           >
             {[
-              { icon: Clock, text: "Usually done in under an hour" },
-              { icon: CheckCircle2, text: "AHPRA-registered doctors" },
-              { icon: Shield, text: "RACGP-aligned protocols" },
+              { icon: CheckCircle2, text: "AHPRA-registered Australian GPs" },
+              { icon: Shield, text: "RACGP Standards 5th Edition" },
+              { icon: Clock, text: "Most requests reviewed within an hour" },
             ].map((signal) => (
               <div 
                 key={signal.text} 
@@ -207,7 +207,7 @@ export function Hero() {
         </div>
         </div>
 
-        {/* Social proof stats - below hero */}
+        {/* Social proof stats - clinical credibility first */}
         <motion.div
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
@@ -215,10 +215,10 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           {[
-            { value: "4.9", label: "Average rating", icon: Star, showStars: true },
-            { value: "<30 min", label: "Typical response", icon: Zap },
-            { value: "7 days", label: "Available every day", icon: Users },
-            { value: "AHPRA", label: "Registered doctors", icon: CheckCircle2 },
+            { value: "100%", label: "GP reviewed", icon: CheckCircle2 },
+            { value: "AHPRA", label: "Registered doctors", icon: Shield },
+            { value: "4.9", label: "Patient rating", icon: Star, showStars: true },
+            { value: "<1 hr", label: "Typical turnaround", icon: Clock },
           ].map((stat) => (
             <motion.div
               key={stat.label}

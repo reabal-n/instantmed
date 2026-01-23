@@ -15,9 +15,11 @@ import {
   Zap,
   Palette,
   Building2,
-  Shield
+  Shield,
+  Keyboard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 
 interface NavItem {
   href: string
@@ -191,10 +193,25 @@ export function DashboardSidebar({
           </div>
         )}
 
-        {/* Export Button - Doctor only */}
+        {/* Export & Shortcuts - Doctor only */}
         {variant === "doctor" && (
-          <div className="glass-card rounded-2xl p-4 border border-white/20">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Data Export</h4>
+          <div className="glass-card rounded-2xl p-4 border border-white/20 space-y-3">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tools</h4>
+            <KeyboardShortcutsModal 
+              trigger={
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full rounded-xl bg-white/50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors justify-between"
+                >
+                  <span className="flex items-center">
+                    <Keyboard className="w-4 h-4 mr-2" />
+                    Shortcuts
+                  </span>
+                  <kbd className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">⌘?</kbd>
+                </Button>
+              }
+            />
             <Button 
               variant="outline" 
               size="sm" 
@@ -204,7 +221,6 @@ export function DashboardSidebar({
               <Download className="w-4 h-4 mr-2" />
               Export to CSV
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">Download all requests for your records</p>
           </div>
         )}
 

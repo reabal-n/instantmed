@@ -84,3 +84,189 @@ export function formatMedicareNumber(medicareNumber: string): string {
   if (cleaned.length !== 10) return medicareNumber
   return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 9)} ${cleaned.slice(9)}`
 }
+
+/**
+ * Individual Healthcare Identifier (IHI) validation
+ * IHI is a 16-digit number assigned to individuals in Australia's healthcare system
+ */
+export function validateIHI(ihi: string): {
+  valid: boolean
+  error?: string
+} {
+  const cleaned = ihi.replace(/[\s-]/g, "")
+
+  // Must be exactly 16 digits
+  if (!/^\d{16}$/.test(cleaned)) {
+    return { valid: false, error: "IHI must be 16 digits" }
+  }
+
+  // IHI starts with 800360 (Australia's health identifier prefix)
+  if (!cleaned.startsWith("800360")) {
+    return { valid: false, error: "Invalid IHI format" }
+  }
+
+  // Luhn algorithm check for IHI
+  let sum = 0
+  let isEven = false
+  for (let i = cleaned.length - 1; i >= 0; i--) {
+    let digit = Number.parseInt(cleaned[i], 10)
+    if (isEven) {
+      digit *= 2
+      if (digit > 9) digit -= 9
+    }
+    sum += digit
+    isEven = !isEven
+  }
+
+  if (sum % 10 !== 0) {
+    return { valid: false, error: "Invalid IHI - please check and try again" }
+  }
+
+  return { valid: true }
+}
+
+/**
+ * Service types that require Medicare or IHI
+ */
+export const SERVICES_REQUIRING_MEDICARE = [
+  "repeat-prescription",
+  "general-consult",
+] as const
+
+export const SERVICES_NOT_REQUIRING_MEDICARE = [
+  "medical-certificate",
+] as const
+
+export type ServiceType = 
+  | typeof SERVICES_REQUIRING_MEDICARE[number] 
+  | typeof SERVICES_NOT_REQUIRING_MEDICARE[number]
+
+/**
+ * Check if a service requires Medicare/IHI validation
+ */
+export function serviceRequiresMedicare(serviceType: string): boolean {
+  return SERVICES_REQUIRING_MEDICARE.includes(serviceType as typeof SERVICES_REQUIRING_MEDICARE[number])
+}
+
+/**
+ * Server-side Medicare validation result
+ */
+export interface MedicareValidationResult {
+  valid: boolean
+  requiresMedicare: boolean
+  medicareValid?: boolean
+  ihiValid?: boolean
+  error?: string
+  warnings?: string[]
+}
+
+/**
+ * Validate patient identification for a given service
+ * 
+ * Rules:
+ * - Medical certificates: Medicare NOT required
+ * - Prescriptions: Medicare OR IHI required
+ * - General consults: Medicare OR IHI required
+ */
+export function validatePatientIdentification(params: {
+  serviceType: string
+  medicareNumber?: string | null
+  medicareIrn?: string | null
+  ihi?: string | null
+}): MedicareValidationResult {
+  const { serviceType, medicareNumber, medicareIrn, ihi } = params
+  const requiresMedicare = serviceRequiresMedicare(serviceType)
+  const warnings: string[] = []
+
+  // If service doesn't require Medicare, always valid
+  if (!requiresMedicare) {
+    return {
+      valid: true,
+      requiresMedicare: false,
+      warnings: medicareNumber 
+        ? [] 
+        : ["Medicare details not provided (not required for this service)"],
+    }
+  }
+
+  // Service requires Medicare OR IHI
+  const hasMedicare = !!medicareNumber && medicareNumber.trim().length > 0
+  const hasIHI = !!ihi && ihi.trim().length > 0
+
+  if (!hasMedicare && !hasIHI) {
+    return {
+      valid: false,
+      requiresMedicare: true,
+      error: "Medicare number or IHI is required for this service",
+    }
+  }
+
+  // Validate Medicare if provided
+  if (hasMedicare) {
+    const medicareResult = validateMedicareNumber(medicareNumber!)
+    if (!medicareResult.valid) {
+      // If IHI is also provided and valid, we can still proceed
+      if (hasIHI) {
+        const ihiResult = validateIHI(ihi!)
+        if (ihiResult.valid) {
+          warnings.push(`Medicare validation failed: ${medicareResult.error}. Using IHI instead.`)
+          return {
+            valid: true,
+            requiresMedicare: true,
+            medicareValid: false,
+            ihiValid: true,
+            warnings,
+          }
+        }
+      }
+      return {
+        valid: false,
+        requiresMedicare: true,
+        medicareValid: false,
+        error: medicareResult.error,
+      }
+    }
+
+    // Validate IRN if Medicare is provided
+    if (medicareIrn) {
+      const irnCleaned = medicareIrn.replace(/\s/g, "")
+      if (!/^[1-9]$/.test(irnCleaned)) {
+        warnings.push("Medicare IRN should be a single digit 1-9")
+      }
+    }
+
+    return {
+      valid: true,
+      requiresMedicare: true,
+      medicareValid: true,
+      ihiValid: hasIHI ? validateIHI(ihi!).valid : undefined,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    }
+  }
+
+  // Only IHI provided
+  if (hasIHI) {
+    const ihiResult = validateIHI(ihi!)
+    if (!ihiResult.valid) {
+      return {
+        valid: false,
+        requiresMedicare: true,
+        ihiValid: false,
+        error: ihiResult.error,
+      }
+    }
+    return {
+      valid: true,
+      requiresMedicare: true,
+      ihiValid: true,
+      warnings: ["Using IHI for identification (no Medicare number provided)"],
+    }
+  }
+
+  // Should not reach here
+  return {
+    valid: false,
+    requiresMedicare: true,
+    error: "Unable to validate patient identification",
+  }
+}

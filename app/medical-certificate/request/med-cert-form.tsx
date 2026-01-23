@@ -53,6 +53,7 @@ import {
 } from "@/lib/motion"
 import { validators } from "@/lib/form-validation"
 import posthog from 'posthog-js'
+import { useFormAnalytics } from "@/hooks/use-form-analytics"
 import { FormattedInput } from "@/components/ui/formatted-input"
 import { FieldLabelWithHelp } from "@/components/ui/help-tooltip"
 import { InfoCard } from "@/components/ui/contextual-help"
@@ -522,6 +523,12 @@ export function MedCertForm({
   const supabase = createClient()
   const mainRef = useRef<HTMLElement>(null)
   
+  // Form analytics for conversion tracking
+  const formAnalytics = useFormAnalytics({
+    formName: "med_cert_intake",
+    service: "medical-certificate",
+  })
+  
   // Supabase auth state
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [_isLoading, setIsLoading] = useState(true)
@@ -743,37 +750,42 @@ export function MedCertForm({
     }
   }
 
-  // Auto-advance handlers
-  const selectCertType = useCallback((type: string) => {
-    setFormData((prev) => ({ ...prev, certType: type }))
-    setTimeout(() => goToStep("duration", 1), 200)
-  }, [])
-
-  const selectDuration = useCallback((duration: string) => {
-    setFormData((prev) => ({ ...prev, duration }))
-    setTimeout(() => goToStep("startDate", 1), 200)
-  }, [])
-
   // Navigation
-  const goToStep = (targetStep: FlowStep, dir: number) => {
+  const goToStep = useCallback((targetStep: FlowStep, dir: number) => {
+    // Track step completion for analytics
+    const targetIndex = STEPS.indexOf(targetStep)
+    if (dir > 0 && targetIndex > 0) {
+      formAnalytics.trackStepComplete(step, currentIndex, STEPS.length)
+    }
     setDirection(dir)
     setError(null)
     setStep(targetStep)
-  }
+  }, [step, currentIndex, formAnalytics])
 
   const goNext = useCallback(() => {
     const currentIdx = STEPS.indexOf(step)
     if (currentIdx < STEPS.length - 1) {
       goToStep(STEPS[currentIdx + 1], 1)
     }
-  }, [step])
+  }, [step, goToStep])
 
   const goBack = useCallback(() => {
     const currentIdx = STEPS.indexOf(step)
     if (currentIdx > 0) {
       goToStep(STEPS[currentIdx - 1], -1)
     }
-  }, [step])
+  }, [step, goToStep])
+
+  // Auto-advance handlers
+  const selectCertType = useCallback((type: string) => {
+    setFormData((prev) => ({ ...prev, certType: type }))
+    setTimeout(() => goToStep("duration", 1), 200)
+  }, [goToStep])
+
+  const selectDuration = useCallback((duration: string) => {
+    setFormData((prev) => ({ ...prev, duration }))
+    setTimeout(() => goToStep("startDate", 1), 200)
+  }, [goToStep])
 
   // Toggle symptom selection
   const toggleSymptom = (symptom: string) => {
