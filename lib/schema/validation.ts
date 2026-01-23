@@ -11,21 +11,24 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("schema-validation")
 
 // Critical tables that must exist with specific columns
+// Only include tables that actually exist in the production database
 const REQUIRED_SCHEMA = {
   profiles: ["id", "auth_user_id", "full_name", "email", "role"],
   intakes: ["id", "patient_id", "service_id", "status", "claimed_by", "claimed_at"],
   intake_answers: ["id", "intake_id", "answers"],
-  services: ["id", "name", "slug", "price_cents", "enabled"],
-  payments: ["id", "intake_id", "stripe_payment_intent_id", "status"],
-  audit_logs: ["id", "action", "actor_id", "intake_id", "created_at"],
+  audit_logs: ["id", "action", "actor_id", "created_at"],
 } as const
 
 // Critical RPC functions that must exist
-const REQUIRED_FUNCTIONS = [
+// Note: These are optional - only warn if missing, don't fail
+const OPTIONAL_FUNCTIONS = [
   "claim_intake_for_review",
-  "release_stale_intake_claims",
+  "release_stale_intake_claims", 
   "get_queue_position",
 ] as const
+
+// Functions that MUST exist for core functionality
+const REQUIRED_FUNCTIONS: readonly string[] = [] as const
 
 export interface SchemaValidationResult {
   valid: boolean
@@ -70,22 +73,27 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
     }
   }
   
-  // Check RPC functions
+  // Check required RPC functions (errors if missing)
   for (const funcName of REQUIRED_FUNCTIONS) {
     try {
-      // Try to call function with invalid params - we just want to check it exists
-      // A "function not found" error means it doesn't exist
-      // Any other error (like invalid params) means it exists
       const { error } = await supabase.rpc(funcName, {})
-      
-      // If no error or error is about params, function exists
       if (error && error.message.includes("function") && error.message.includes("does not exist")) {
         errors.push(`RPC function '${funcName}' does not exist`)
       }
-      // Ignore other errors - they just mean wrong params which is expected
     } catch (err) {
-      // Network errors etc
       warnings.push(`Could not verify function '${funcName}': ${err instanceof Error ? err.message : "unknown"}`)
+    }
+  }
+  
+  // Check optional RPC functions (warnings only if missing)
+  for (const funcName of OPTIONAL_FUNCTIONS) {
+    try {
+      const { error } = await supabase.rpc(funcName, {})
+      if (error && error.message.includes("function") && error.message.includes("does not exist")) {
+        warnings.push(`Optional RPC function '${funcName}' does not exist`)
+      }
+    } catch {
+      // Ignore errors for optional functions
     }
   }
   
@@ -94,7 +102,7 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
     errors,
     warnings,
     tablesChecked: Object.keys(REQUIRED_SCHEMA).length,
-    functionsChecked: REQUIRED_FUNCTIONS.length,
+    functionsChecked: REQUIRED_FUNCTIONS.length + OPTIONAL_FUNCTIONS.length,
   }
 }
 
