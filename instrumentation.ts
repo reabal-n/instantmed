@@ -39,6 +39,21 @@ export async function register() {
     console.warn("[WARNING] ENCRYPTION_KEY not set - PHI will be stored in plaintext")
   }
 
+  // Schema validation - detect drift between code and DB
+  // Only run in Node.js runtime with Supabase configured
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    try {
+      const { runSchemaValidation } = await import("@/lib/schema/validation")
+      await runSchemaValidation()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[CRITICAL] Schema validation failed:", error)
+      if (process.env.NODE_ENV === "production") {
+        throw error
+      }
+    }
+  }
+
   // Skip Sentry initialization in development to avoid compilation issues
   if (process.env.NODE_ENV === "development") {
     return;

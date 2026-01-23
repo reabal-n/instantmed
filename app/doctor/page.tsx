@@ -6,6 +6,7 @@ import { QueueClient } from "./queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
 import { DoctorPerformance } from "@/components/doctor/doctor-performance"
 import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
+import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("doctor-dashboard")
@@ -74,22 +75,28 @@ export default async function DoctorDashboardPage({
 
       {/* Monitoring and Performance Row */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <IntakeMonitor initialStats={enrichedMonitoringStats} />
-        <DoctorPerformance stats={personalStats} doctorName={profile.full_name} />
+        <DashboardErrorBoundary fallbackTitle="Unable to load monitoring stats">
+          <IntakeMonitor initialStats={enrichedMonitoringStats} />
+        </DashboardErrorBoundary>
+        <DashboardErrorBoundary fallbackTitle="Unable to load performance stats">
+          <DoctorPerformance stats={personalStats} doctorName={profile.full_name} />
+        </DashboardErrorBoundary>
       </div>
       
       {/* Queue */}
-      <QueueClient
-        intakes={queueResult.data}
-        doctorId={profile.id}
-        doctorName={profile.full_name}
-        identityComplete={identityComplete}
-        pagination={{
-          page: queueResult.page,
-          pageSize: queueResult.pageSize,
-          total: queueResult.total,
-        }}
-      />
+      <DashboardErrorBoundary fallbackTitle="Unable to load queue">
+        <QueueClient
+          intakes={queueResult.data}
+          doctorId={profile.id}
+          doctorName={profile.full_name}
+          identityComplete={identityComplete}
+          pagination={{
+            page: queueResult.page,
+            pageSize: queueResult.pageSize,
+            total: queueResult.total,
+          }}
+        />
+      </DashboardErrorBoundary>
     </div>
   )
 }
