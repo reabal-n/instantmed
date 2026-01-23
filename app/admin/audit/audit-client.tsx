@@ -222,11 +222,12 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[200px] relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search events..."
                 onChange={(e) => handleSearch(e.target.value)}
-                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+                className="pl-9"
               />
             </div>
             <Select
@@ -303,7 +304,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[300px] truncate">
-                        {log.description}
+                        {log.description || <span className="text-muted-foreground italic">No description</span>}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -387,9 +388,9 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                     <p>{selectedLog.actor.full_name} ({selectedLog.actor.email})</p>
                   </div>
                 )}
-                {selectedLog.request_id && (
+                {(selectedLog.intake_id || selectedLog.request_id) && (
                   <div>
-                    <Label className="text-muted-foreground">Request ID</Label>
+                    <Label className="text-muted-foreground">Intake ID</Label>
                     <p className="font-mono text-xs">{selectedLog.request_id}</p>
                   </div>
                 )}
@@ -401,10 +402,12 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                 )}
               </div>
 
-              <div>
-                <Label className="text-muted-foreground">Description</Label>
-                <p className="mt-1">{selectedLog.description}</p>
-              </div>
+              {selectedLog.description && (
+                <div>
+                  <Label className="text-muted-foreground">Description</Label>
+                  <p className="mt-1">{selectedLog.description}</p>
+                </div>
+              )}
 
               {selectedLog.previous_state && (
                 <div>
