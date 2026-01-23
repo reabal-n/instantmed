@@ -107,7 +107,7 @@ export async function saveAttestation(
     const { data, error } = await supabase
       .from("audit_logs")
       .insert({
-        event_type: "attestation_signed",
+        action: "attestation_signed",
         request_id: requestId,
         request_type: requestType,
         patient_id: patientId,

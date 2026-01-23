@@ -39,7 +39,7 @@ export async function getAuditLogs(
 
   // Apply filters
   if (filters.eventType) {
-    query = query.eq("event_type", filters.eventType)
+    query = query.eq("action", filters.eventType)
   }
   if (filters.actorType) {
     query = query.eq("actor_type", filters.actorType)
@@ -129,7 +129,7 @@ export async function getAuditLogStats(): Promise<{
   // Get recent logs for aggregation
   const { data: recentLogs } = await supabase
     .from("audit_logs")
-    .select("event_type, actor_type")
+    .select("action, actor_type")
     .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
   // Aggregate by type
@@ -137,7 +137,7 @@ export async function getAuditLogStats(): Promise<{
   const actorCount: Record<string, number> = {}
   
   for (const log of recentLogs || []) {
-    typeCount[log.event_type] = (typeCount[log.event_type] || 0) + 1
+    typeCount[log.action] = (typeCount[log.action] || 0) + 1
     actorCount[log.actor_type] = (actorCount[log.actor_type] || 0) + 1
   }
 

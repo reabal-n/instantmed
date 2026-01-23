@@ -52,7 +52,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const { data: lastAction } = await supabase
     .from("audit_logs")
     .select("created_at, actor_id")
-    .in("event_type", ["intake_approved", "intake_declined", "intake_reviewed", "outcome_assigned"])
+    .in("action", ["intake_approved", "intake_declined", "intake_reviewed", "outcome_assigned"])
     .order("created_at", { ascending: false })
     .limit(1)
     .single()
@@ -67,7 +67,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const { data: recentActions } = await supabase
     .from("audit_logs")
     .select("actor_id")
-    .in("event_type", ["intake_approved", "intake_declined", "intake_reviewed"])
+    .in("action", ["intake_approved", "intake_declined", "intake_reviewed"])
     .gte("created_at", thirtyMinAgo)
   
   const activeDoctors = new Set(recentActions?.map(a => a.actor_id) || [])
@@ -77,7 +77,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const { count: casesLast1Hr } = await supabase
     .from("audit_logs")
     .select("*", { count: "exact", head: true })
-    .in("event_type", ["intake_approved", "intake_declined"])
+    .in("action", ["intake_approved", "intake_declined"])
     .gte("created_at", oneHourAgo)
   
   // Get cases reviewed today
@@ -86,7 +86,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const { count: casesToday } = await supabase
     .from("audit_logs")
     .select("*", { count: "exact", head: true })
-    .in("event_type", ["intake_approved", "intake_declined"])
+    .in("action", ["intake_approved", "intake_declined"])
     .gte("created_at", todayStart.toISOString())
   
   return {
@@ -181,9 +181,9 @@ export async function getDoctorPerformance(
   // Get decisions
   const { data: decisions } = await supabase
     .from("audit_logs")
-    .select("event_type, details, created_at")
+    .select("action, metadata, created_at")
     .eq("actor_id", doctorId)
-    .in("event_type", ["intake_approved", "intake_declined", "needs_call_scheduled"])
+    .in("action", ["intake_approved", "intake_declined", "needs_call_scheduled"])
     .gte("created_at", since.toISOString())
   
   if (!decisions) {
@@ -200,14 +200,14 @@ export async function getDoctorPerformance(
     }
   }
   
-  const approved = decisions.filter(d => d.event_type === "intake_approved").length
-  const declined = decisions.filter(d => d.event_type === "intake_declined").length
-  const needsCall = decisions.filter(d => d.event_type === "needs_call_scheduled").length
+  const approved = decisions.filter(d => d.action === "intake_approved").length
+  const declined = decisions.filter(d => d.action === "intake_declined").length
+  const needsCall = decisions.filter(d => d.action === "needs_call_scheduled").length
   const total = approved + declined + needsCall
   
   // Get review times from request_latency
   const requestIds = decisions
-    .map(d => (d.details as { request_id?: string })?.request_id)
+    .map(d => (d.metadata as { request_id?: string })?.request_id)
     .filter(Boolean)
   
   let avgReviewTimeMs = 0
@@ -265,7 +265,7 @@ export async function getAllDoctorPerformance(
   const { data: decisions } = await supabase
     .from("audit_logs")
     .select("actor_id")
-    .in("event_type", ["intake_approved", "intake_declined"])
+    .in("action", ["intake_approved", "intake_declined"])
     .gte("created_at", since.toISOString())
   
   if (!decisions) return []

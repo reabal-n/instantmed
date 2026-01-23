@@ -11,8 +11,8 @@
 
 export interface AuditLog {
   id: string
-  event_type: string
-  intake_id: string | null
+  action: string
+  request_id: string | null
   profile_id: string | null
   admin_action_id: string | null
   actor_id: string | null
@@ -23,7 +23,6 @@ export interface AuditLog {
   metadata: Record<string, unknown>
   client_ip: string | null
   client_user_agent: string | null
-  request_id: string | null
   created_at: string
   // Joined fields
   actor?: {

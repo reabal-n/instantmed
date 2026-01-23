@@ -81,7 +81,7 @@ export async function requestDateChange(
 
   // Also log to audit trail
   await supabase.from("audit_logs").insert({
-    event_type: "date_change_requested",
+    action: "date_change_requested",
     request_id: requestId,
     details: {
       originalDate,
@@ -152,7 +152,7 @@ export async function processDateChangeRequest(
 
   // Log to audit trail
   await supabase.from("audit_logs").insert({
-    event_type: `date_change_${decision}`,
+    action: `date_change_${decision}`,
     request_id: request.request_id,
     details: {
       originalDate: request.original_date,
