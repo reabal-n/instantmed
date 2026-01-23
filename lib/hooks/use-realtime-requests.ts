@@ -86,8 +86,7 @@ export function useRealtimeRequests(
               *,
               patient:profiles!patient_id (
                 id, full_name, email, date_of_birth, medicare_number, phone
-              ),
-              service:services!service_id (slug, name, short_name, type)
+              )
             `)
             .eq("id", newIntake.id)
             .single()
@@ -118,8 +117,7 @@ export function useRealtimeRequests(
               *,
               patient:profiles!patient_id (
                 id, full_name, email, date_of_birth, medicare_number, phone
-              ),
-              service:services!service_id (slug, name, short_name, type)
+              )
             `)
             .eq("id", updatedIntake.id)
             .single()

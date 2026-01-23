@@ -56,10 +56,7 @@ export async function getPatientIntakes(
   // Build data query
   let query = supabase
     .from("intakes")
-    .select(`
-      *,
-      service:services!service_id(id, name, short_name, type, slug)
-    `)
+    .select(`*`)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -129,7 +126,6 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     .select(`
       *,
       patient:profiles!patient_id(id, full_name, email, date_of_birth, medicare_number, phone, suburb, state),
-      service:services!service_id(id, name, short_name, type, slug),
       answers:intake_answers(id, answers, answers_encrypted, encryption_metadata)
     `)
     .eq("id", intakeId)
@@ -188,8 +184,7 @@ export async function getAllIntakesByStatus(
       updated_at,
       claimed_by,
       claimed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth),
-      service:services!service_id (slug, name, short_name, type)
+      patient:profiles!patient_id (id, full_name, email, date_of_birth)
     `)
     .eq("status", status)
     .in("payment_status", ["paid", "pending"])
@@ -251,8 +246,7 @@ export async function getDoctorQueue(
       risk_flags,
       risk_score,
       requires_live_consult,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state),
-      service:services!service_id (slug, name, short_name, type)
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state)
     `)
     .in("status", ["paid", "in_review", "pending_info"])
     .order("is_priority", { ascending: false })
@@ -300,7 +294,6 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         state,
         postcode
       ),
-      service:services!service_id (slug, name, short_name, type),
       answers:intake_answers (
         id,
         intake_id,
@@ -397,8 +390,7 @@ export async function getAllIntakesForAdmin(
       declined_at,
       reviewed_by,
       reviewed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state),
-      service:services!service_id (slug, name, short_name, type)
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state)
     `)
 
   // Apply same filters as count query

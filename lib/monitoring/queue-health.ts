@@ -154,14 +154,13 @@ export async function getQueueByServiceType(): Promise<Record<string, number>> {
   
   const { data } = await supabase
     .from("intakes")
-    .select("service_id, service:services!service_id(type)")
+    .select("id, category")
     .in("status", ["paid", "in_review", "pending_info"])
   
   if (!data) return {}
   
   return data.reduce((acc, r) => {
-    const service = r.service as { type?: string } | null
-    const type = service?.type || "unknown"
+    const type = r.category || "unknown"
     acc[type] = (acc[type] || 0) + 1
     return acc
   }, {} as Record<string, number>)

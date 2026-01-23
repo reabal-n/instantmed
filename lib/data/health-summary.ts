@@ -71,8 +71,7 @@ export async function getPatientHealthSummary(patientId: string): Promise<Health
         category,
         subtype,
         created_at,
-        approved_at,
-        service:services!service_id(name, slug)
+        approved_at
       `)
       .eq("patient_id", patientId)
       .order("created_at", { ascending: false })
@@ -112,7 +111,7 @@ export async function getPatientHealthSummary(patientId: string): Promise<Health
       subtype: intake.subtype,
       created_at: intake.created_at,
       approved_at: intake.approved_at,
-      service: Array.isArray(intake.service) ? intake.service[0] : intake.service,
+      service: null,
     }))
     
     // Fetch medical certificates

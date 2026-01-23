@@ -523,7 +523,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     // Fetch the existing intake with ownership check and answers for safety re-validation
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("*, service:services!service_id(slug, price_cents), answers:intake_answers(answers)")
+      .select("*, answers:intake_answers(answers)")
       .eq("id", intakeId)
       .eq("patient_id", patientId)
       .single()

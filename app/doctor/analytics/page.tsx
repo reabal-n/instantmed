@@ -28,7 +28,7 @@ async function getAnalytics() {
       created_at,
       updated_at,
       reviewed_at,
-      service:services!service_id(id, name, type, short_name)
+      category
     `)
     .order("created_at", { ascending: false })
 
@@ -42,7 +42,7 @@ async function getAnalytics() {
 
   // Service type counts
   const serviceTypeCounts = intakes.reduce((acc: Record<string, number>, i) => {
-    const serviceType = (i.service as { type?: string })?.type || "other"
+    const serviceType = i.category || "other"
     acc[serviceType] = (acc[serviceType] || 0) + 1
     return acc
   }, {})
