@@ -44,8 +44,9 @@ function Input({
           "transition-all duration-200",
           // Hover
           "hover:!border-slate-300 dark:hover:!border-slate-600",
-          // Focus - border color only, no ring
+          // Focus - border color AND ring for accessibility
           "data-[focused=true]:!border-primary",
+          "data-[focused=true]:!ring-2 data-[focused=true]:!ring-primary/20",
           // Mobile touch target
           "min-h-[48px] md:min-h-0",
           classNames?.inputWrapper
@@ -58,7 +59,7 @@ function Input({
         ),
         input: cn(
           "!bg-transparent",
-          "text-foreground placeholder:text-muted-foreground/60",
+          "text-foreground placeholder:text-muted-foreground/80",
           "text-base md:text-sm",
           "font-sans",
           // Override global input styles from globals.css

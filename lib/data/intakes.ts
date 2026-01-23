@@ -182,8 +182,6 @@ export async function getAllIntakesByStatus(
       id,
       status,
       payment_status,
-      category,
-      subtype,
       is_priority,
       sla_deadline,
       created_at,
@@ -244,8 +242,6 @@ export async function getDoctorQueue(
       patient_id,
       status,
       payment_status,
-      category,
-      subtype,
       is_priority,
       sla_deadline,
       created_at,
@@ -391,8 +387,6 @@ export async function getAllIntakesForAdmin(
       service_id,
       status,
       payment_status,
-      category,
-      subtype,
       is_priority,
       sla_deadline,
       reference_number,
@@ -575,7 +569,7 @@ export async function getIntakeMonitoringStats(): Promise<{
       .order("paid_at", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true })
       .limit(1)
-      .single(),
+      .maybeSingle(),
     // Recent completed for avg review time (last 100 to keep query fast)
     supabase
       .from("intakes")

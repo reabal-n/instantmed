@@ -73,10 +73,17 @@ export function SmartValidation({
       }
       setHasValidated(true)
     } catch {
-      // On error, assume valid to not block submission
-      setIssues([])
+      // On error, show warning but allow submission (don't silently fail)
+      const warningIssue: ValidationIssue = {
+        field: "_system",
+        severity: "warning",
+        message: "Validation check unavailable",
+        suggestion: "Please review your information carefully before submitting."
+      }
+      setIssues([warningIssue])
       setIsValid(true)
-      setSummary(null)
+      setSummary("Automatic checks temporarily unavailable. Manual review recommended.")
+      onValidationComplete?.(true, [warningIssue])
     } finally {
       setIsValidating(false)
     }

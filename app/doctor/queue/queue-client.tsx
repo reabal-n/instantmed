@@ -652,7 +652,13 @@ export function QueueClient({
                               <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
                             </div>
                           )}
-                          {waitSeverity === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                          {/* Icons for colorblind accessibility - not just color */}
+                          {waitSeverity === "critical" && (
+                            <AlertTriangle className="h-4 w-4 text-destructive" aria-label="Critical urgency" />
+                          )}
+                          {waitSeverity === "warning" && (
+                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 animate-pulse" aria-label="Approaching deadline" />
+                          )}
                         </div>
                       </div>
                     </CardHeader>

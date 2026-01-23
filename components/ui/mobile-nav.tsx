@@ -62,6 +62,8 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
+              aria-current={isActive ? "page" : undefined}
+              aria-label={`${item.label}${item.badge ? `, ${item.badge} notifications` : ''}`}
               className={cn(
                 "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
                 "min-w-[60px] relative",
@@ -69,7 +71,7 @@ export function MobileNav({ items = defaultItems, className }: MobileNavProps) {
                 "tap-bounce",
                 isActive
                   ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  : "text-slate-600 dark:text-slate-400 hover:text-foreground hover:bg-muted/50"
               )}
             >
               <div className="relative">

@@ -362,7 +362,7 @@ export function PanelDashboard({
 
       {/* Floating Action Button - New Request */}
       <motion.div
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed bottom-20 md:bottom-6 right-6 z-50"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
