@@ -369,9 +369,10 @@ export function getPreviousStepId(
 
 /**
  * Map URL service params to UnifiedServiceType
+ * Defaults to 'med-cert' when no param provided (most common service)
  */
-export function mapServiceParam(param: string | undefined): UnifiedServiceType | null {
-  if (!param) return null
+export function mapServiceParam(param: string | undefined): UnifiedServiceType {
+  if (!param) return 'med-cert'
   
   const mapping: Record<string, UnifiedServiceType> = {
     'med-cert': 'med-cert',
@@ -385,5 +386,5 @@ export function mapServiceParam(param: string | undefined): UnifiedServiceType |
     'referral': 'referral',
   }
   
-  return mapping[param.toLowerCase()] || null
+  return mapping[param.toLowerCase()] || 'med-cert'
 }
