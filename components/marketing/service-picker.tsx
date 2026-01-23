@@ -251,7 +251,7 @@ export function ServicePicker() {
                           <ul className="space-y-1 mb-1 flex-1">
                             {service.benefits.map((benefit, idx) => (
                               <li key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                                <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                                <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                                 <span>{benefit}</span>
                               </li>
                             ))}
@@ -280,7 +280,7 @@ export function ServicePicker() {
                       
                       <Divider className="opacity-50" />
                       
-                      <div className="flex items-center justify-between px-3 py-2.5 flex-shrink-0">
+                      <div className="flex items-center justify-between px-3 py-2.5 shrink-0">
                         {/* #2: Price with savings framing */}
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ export function ServicePicker() {
                       {service.popular && 'testimonial' in service && service.testimonial && (
                         <div className="px-3 pb-2 pt-1 border-t border-border/30">
                           <div className="flex items-center gap-2 text-[10px]">
-                            <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                            <Star className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />
                             <span className="text-muted-foreground italic">
                               &ldquo;{(service.testimonial as { quote: string; author: string }).quote}&rdquo;
                             </span>

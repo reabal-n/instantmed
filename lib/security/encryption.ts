@@ -1,5 +1,5 @@
 import "server-only"
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync, timingSafeEqual } from "crypto"
+import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
 
 /**
  * Field-Level Encryption Module
@@ -21,7 +21,7 @@ const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16 // 128 bits
 const AUTH_TAG_LENGTH = 16 // 128 bits
 const KEY_LENGTH = 32 // 256 bits
-const SALT_LENGTH = 16
+const _SALT_LENGTH = 16 // Reserved for future key derivation
 
 // Encryption key from environment - validated at startup
 let encryptionKey: Buffer | null = null

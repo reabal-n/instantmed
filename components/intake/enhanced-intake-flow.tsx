@@ -59,7 +59,7 @@ import { SocialProofCheckout } from "@/components/shared/social-proof-checkout"
 import { getUTMParamsForIntake } from "@/lib/analytics/utm-capture"
 import posthog from "posthog-js"
 import { PRICING_DISPLAY, PRICING, GP_COMPARISON } from "@/lib/constants"
-import { BLOCKED_S8_TERMS, containsBlockedSubstance } from "@/lib/validation/repeat-script-schema"
+import { containsBlockedSubstance } from "@/lib/validation/repeat-script-schema"
 import { logger } from "@/lib/observability/logger"
 import { useFormAutosave } from "@/hooks/use-form-autosave"
 

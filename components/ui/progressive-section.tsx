@@ -55,7 +55,7 @@ export function ProgressiveSection({
       >
         <div className="flex items-center gap-3 flex-1 text-left">
           {Icon && (
-            <Icon className="w-5 h-5 text-primary flex-shrink-0" />
+            <Icon className="w-5 h-5 text-primary shrink-0" />
           )}
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-foreground">{title}</h3>
@@ -68,7 +68,7 @@ export function ProgressiveSection({
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+          <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />
         </motion.div>
       </button>
       <AnimatePresence>

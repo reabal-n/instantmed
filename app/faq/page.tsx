@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { FAQAccordion } from "./faq-accordion"
 import { MessageCircle, HelpCircle, BadgeCheck } from "lucide-react"
@@ -214,6 +214,11 @@ export default function FAQPage() {
             </div>
           </section>
         </ParallaxSection>
+
+        {/* Social Proof */}
+        <LiveWaitTime variant="strip" />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+        <MediaMentions variant="strip" className="bg-muted/30" />
       </main>
 
       <MarketingFooter />

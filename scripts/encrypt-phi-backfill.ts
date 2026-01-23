@@ -36,10 +36,9 @@
  *   npm run encrypt:backfill -- --batch=100     # Custom batch size
  */
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js"
 import {
   encrypt,
-  isEncrypted,
   verifyEncryptionSetup,
 } from "../lib/security/encryption"
 
@@ -61,7 +60,7 @@ interface Profile {
   phi_encrypted_at: string | null
 }
 
-interface MigrationStatus {
+interface _MigrationStatus {
   id: string
   table_name: string
   total_records: number

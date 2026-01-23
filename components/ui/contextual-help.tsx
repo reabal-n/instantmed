@@ -54,7 +54,7 @@ export function ContextualHelp({
         )}
       >
         <div className="flex items-start gap-2">
-          <Icon className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <Icon className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
           <div className="text-sm text-blue-900 flex-1">
             {typeof content === "string" ? <p>{content}</p> : content}
           </div>
@@ -141,7 +141,7 @@ export function InfoCard({
       )}
     >
       <div className="flex items-start gap-2">
-        <DisplayIcon className={cn("w-4 h-4 mt-0.5 flex-shrink-0", styles.iconColor)} />
+        <DisplayIcon className={cn("w-4 h-4 mt-0.5 shrink-0", styles.iconColor)} />
         <div className="flex-1 min-w-0">
           <p className={cn("font-medium mb-1 text-sm", styles.titleColor)}>{title}</p>
           <div className={cn("text-xs", styles.textColor)}>

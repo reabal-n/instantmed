@@ -387,7 +387,7 @@ export default function MedicalCertificatePage() {
 
                 {/* Hero Image - Desktop */}
                 <motion.div
-                  className="hidden lg:block relative mt-12 lg:mt-0 flex-shrink-0"
+                  className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
                   initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.7, delay: 0.5 }}
@@ -402,7 +402,7 @@ export default function MedicalCertificatePage() {
                         className="object-cover"
                         priority
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
                     </div>
                     
                     {/* Floating AHPRA badge */}
@@ -449,7 +449,7 @@ export default function MedicalCertificatePage() {
                 >
                   <div className="relative">
                     {/* Phone mockup */}
-                    <div className="relative w-48 h-32 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
+                    <div className="relative w-48 h-32 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                           <Smartphone className="w-5 h-5 text-emerald-600" />

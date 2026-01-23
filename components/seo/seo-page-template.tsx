@@ -92,7 +92,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <ul className="space-y-3">
                     {condPage.symptoms.map((symptom, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
                         <span className="text-slate-700 dark:text-slate-300">{symptom}</span>
                       </li>
                     ))}
@@ -102,7 +102,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 {/* When to See GP (Red Flags) */}
                 <div className="mb-16 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                   <div className="flex items-start gap-3 mb-4">
-                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0 dark:text-red-400" />
+                    <AlertCircle className="h-6 w-6 text-red-600 shrink-0 mt-0 dark:text-red-400" />
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                       When to see a doctor in person
                     </h3>
@@ -125,7 +125,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <ul className="space-y-3">
                     {condPage.whenWeCanHelp.map((item, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Stethoscope className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5 dark:text-indigo-400" />
+                        <Stethoscope className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5 dark:text-indigo-400" />
                         <span className="text-slate-700 dark:text-slate-300">{item}</span>
                       </li>
                     ))}
@@ -140,7 +140,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <div className="space-y-4">
                     {condPage.howWeHelp.map((step, idx) => (
                       <div key={idx} className="flex gap-4">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
                             <span className="text-indigo-700 dark:text-indigo-300 font-bold">
                               {idx + 1}
@@ -182,7 +182,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <ul className="space-y-3">
                     {certPage.useCases.map((useCase, idx) => (
                       <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
                         <span className="text-slate-700 dark:text-slate-300">{useCase}</span>
                       </li>
                     ))}
@@ -197,7 +197,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   <div className="space-y-4">
                     {certPage.howToUse.map((step, idx) => (
                       <div key={idx} className="flex gap-4">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <FileCheck className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <p className="text-slate-700 dark:text-slate-300">{step}</p>
@@ -265,7 +265,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
             )}
 
             {/* CTA Section */}
-            <div className="mt-16 p-8 bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="mt-16 p-8 bg-linear-to-r from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
               <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">
                 Ready to get started?
               </h2>

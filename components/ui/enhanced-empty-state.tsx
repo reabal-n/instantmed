@@ -163,7 +163,7 @@ export function EnhancedEmptyState({
           <ul className="text-left space-y-2 text-sm text-muted-foreground">
             {tips.map((tip, index) => (
               <li key={index} className="flex items-start gap-2">
-                <Sparkles className="w-3 h-3 mt-0.5 text-primary flex-shrink-0" />
+                <Sparkles className="w-3 h-3 mt-0.5 text-primary shrink-0" />
                 <span>{tip}</span>
               </li>
             ))}

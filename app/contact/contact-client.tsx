@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Chip } from "@heroui/react"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { TiltCard } from "@/components/shared/tilt-card"
 import { useReducedMotion } from "framer-motion"
 import {
@@ -344,6 +344,10 @@ export function ContactClient() {
             </div>
           </div>
         </section>
+        {/* Social Proof */}
+        <LiveWaitTime variant="strip" />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+        <MediaMentions variant="strip" className="bg-muted/30" />
       </main>
 
       <MarketingFooter />

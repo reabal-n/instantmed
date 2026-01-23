@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -341,6 +341,11 @@ export default function EmployersPage() {
             </div>
           </div>
         </section>
+
+        {/* Social Proof */}
+        <LiveWaitTime variant="strip" services={['med-cert']} />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+        <MediaMentions variant="strip" className="bg-muted/30" />
       </main>
 
       <MarketingFooter />

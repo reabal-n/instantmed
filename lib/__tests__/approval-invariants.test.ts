@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockSupabaseSingle, mockDbSuccess, mockDbError, resetAllMocks } from './setup'
+import { mockSupabaseSingle as _mockSupabaseSingle, mockDbSuccess, mockDbError, resetAllMocks } from './setup'
 
 // Mock server-only before any imports
 vi.mock('server-only', () => ({}))

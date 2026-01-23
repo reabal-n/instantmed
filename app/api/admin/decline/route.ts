@@ -25,7 +25,6 @@ function getRequestType(category: string | null): RequestType {
 
 export async function POST(request: Request) {
   let actorId: string | null = null
-  let authMethod: "api_key" | "session" = "session"
 
   try {
     // Get auth header first
@@ -48,7 +47,6 @@ export async function POST(request: Request) {
 
     if (apiKey && authHeader === `Bearer ${apiKey}`) {
       authorized = true
-      authMethod = "api_key"
       actorId = "system_api"
     } else {
       try {

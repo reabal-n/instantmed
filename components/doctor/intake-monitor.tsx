@@ -80,7 +80,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
   const avgTimeHealthy = stats.avgReviewTimeMinutes === null || stats.avgReviewTimeMinutes < 60
 
   return (
-    <Card className="border-dusk-200/50 bg-gradient-to-br from-white to-dusk-50/30">
+    <Card className="border-dusk-200/50 bg-linear-to-br from-white to-dusk-50/30">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">

@@ -18,7 +18,7 @@ const validationRequestSchema = z.object({
   formData: z.record(z.string(), z.unknown()),
 })
 
-type ValidationRequest = z.infer<typeof validationRequestSchema>
+type _ValidationRequest = z.infer<typeof validationRequestSchema>
 
 interface ValidationIssue {
   field: string

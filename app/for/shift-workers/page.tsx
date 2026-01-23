@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Hospital } from "lucide-react"
 import Link from "next/link"
@@ -362,9 +362,14 @@ export default function ShiftWorkersPage() {
               </p>
             </div>
           </section>
+
+          {/* Social Proof */}
+          <LiveWaitTime variant="strip" services={['med-cert']} />
+          <StatsStrip className="bg-muted/20 border-y border-border/30" />
+          <MediaMentions variant="strip" className="bg-muted/30" />
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

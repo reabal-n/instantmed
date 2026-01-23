@@ -11,7 +11,7 @@
  */
 
 import type { Metadata } from 'next'
-import type { SEOPage, PageType, MedicationPageData, IntentPageData } from './registry'
+import type { SEOPage, PageType, MedicationPageData as _MedicationPageData, IntentPageData as _IntentPageData } from './registry'
 import { getCanonicalUrl, getRobotsConfig, isMedicationPage, isIntentPage } from './registry'
 
 // ============================================

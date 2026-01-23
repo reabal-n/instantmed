@@ -12,15 +12,16 @@
 export interface AuditLog {
   id: string
   action: string
-  request_id: string | null
+  intake_id: string | null
+  request_id: string | null // Legacy - use intake_id for new code
   profile_id: string | null
   admin_action_id: string | null
   actor_id: string | null
   actor_type: "patient" | "admin" | "system" | "webhook"
-  description: string
+  description: string | null
   previous_state: Record<string, unknown> | null
   new_state: Record<string, unknown> | null
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown> | null
   client_ip: string | null
   client_user_agent: string | null
   created_at: string

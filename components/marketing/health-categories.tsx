@@ -175,7 +175,7 @@ export function HealthCategories() {
                     "group-hover:scale-[1.02]"
                   )}>
                     {/* Gradient header strip */}
-                    <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />
+                    <div className={`h-1 w-full bg-linear-to-r ${colors.gradient}`} />
                     
                     <div className="p-3 pb-2.5 flex-1 flex flex-col">
                       {/* Icon with animated background */}
@@ -207,7 +207,7 @@ export function HealthCategories() {
                         <ul className="space-y-1 mb-2 flex-1">
                           {category.benefits.slice(0, 3).map((benefit, idx) => (
                             <li key={idx} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
-                              <Check className="h-2.5 w-2.5 text-emerald-500 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                              <Check className="h-2.5 w-2.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                               <span>{benefit}</span>
                             </li>
                           ))}
@@ -238,7 +238,7 @@ export function HealthCategories() {
                     
                     <Divider className="opacity-50" />
                     
-                    <div className="px-3 py-2.5 flex-shrink-0">
+                    <div className="px-3 py-2.5 shrink-0">
                       <MagneticButton>
                         <div
                           className={cn(
@@ -264,7 +264,7 @@ export function HealthCategories() {
                             <ArrowRight className="h-2.5 w-2.5 transition-transform duration-300 group-hover:translate-x-1" />
                           </span>
                           {/* Shimmer effect */}
-                          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-linear-to-r from-transparent via-white/30 to-transparent" />
                           {/* Glow effect */}
                           <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" style={{ background: colors.accent }} />
                         </div>
