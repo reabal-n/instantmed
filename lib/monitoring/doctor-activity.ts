@@ -50,7 +50,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   
   // Get last doctor action from audit log
   const { data: lastAction } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("created_at, actor_id")
     .in("event_type", ["intake_approved", "intake_declined", "intake_reviewed", "outcome_assigned"])
     .order("created_at", { ascending: false })
@@ -65,7 +65,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   // Get active doctors in last 30 minutes
   const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000).toISOString()
   const { data: recentActions } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("actor_id")
     .in("event_type", ["intake_approved", "intake_declined", "intake_reviewed"])
     .gte("created_at", thirtyMinAgo)
@@ -75,7 +75,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   // Get cases reviewed in last hour
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
   const { count: casesLast1Hr } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("*", { count: "exact", head: true })
     .in("event_type", ["intake_approved", "intake_declined"])
     .gte("created_at", oneHourAgo)
@@ -84,7 +84,7 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const todayStart = new Date(now)
   todayStart.setHours(0, 0, 0, 0)
   const { count: casesToday } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("*", { count: "exact", head: true })
     .in("event_type", ["intake_approved", "intake_declined"])
     .gte("created_at", todayStart.toISOString())
@@ -180,7 +180,7 @@ export async function getDoctorPerformance(
   
   // Get decisions
   const { data: decisions } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("event_type, details, created_at")
     .eq("actor_id", doctorId)
     .in("event_type", ["intake_approved", "intake_declined", "needs_call_scheduled"])
@@ -263,7 +263,7 @@ export async function getAllDoctorPerformance(
   
   // Get all doctors who have made decisions in the period
   const { data: decisions } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("actor_id")
     .in("event_type", ["intake_approved", "intake_declined"])
     .gte("created_at", since.toISOString())

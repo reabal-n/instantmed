@@ -30,7 +30,7 @@ export async function getAuditLogs(
   const supabase = createServiceRoleClient()
 
   let query = supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select(`
       *,
       actor:profiles!actor_id (full_name, email)
@@ -85,7 +85,7 @@ export async function getAuditLogsForIntake(intakeId: string): Promise<AuditLog[
   const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select(`
       *,
       actor:profiles!actor_id (full_name, email)
@@ -117,18 +117,18 @@ export async function getAuditLogStats(): Promise<{
 
   // Get total count
   const { count: total } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("*", { count: "exact", head: true })
 
   // Get today's count
   const { count: today } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("*", { count: "exact", head: true })
     .gte("created_at", todayStart.toISOString())
 
   // Get recent logs for aggregation
   const { data: recentLogs } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("event_type, actor_type")
     .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 

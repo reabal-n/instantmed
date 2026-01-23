@@ -105,7 +105,7 @@ export async function saveAttestation(
     const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
-      .from("audit_log")
+      .from("audit_logs")
       .insert({
         event_type: "attestation_signed",
         request_id: requestId,
