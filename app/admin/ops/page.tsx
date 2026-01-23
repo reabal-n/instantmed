@@ -44,8 +44,8 @@ export default async function OpsDashboardPage() {
     // Recent errors from audit logs
     supabase
       .from("audit_logs")
-      .select("id, event_type, created_at, metadata")
-      .ilike("event_type", "%error%")
+      .select("id, action, created_at, metadata")
+      .ilike("action", "%error%")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(20),

@@ -34,7 +34,7 @@ export default async function AnalyticsDashboardPage() {
       .from("audit_logs")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
-      .in("event_type", ["page_view", "session_start"]),
+      .in("action", ["page_view", "session_start"]),
     
     // Started intakes (created)
     supabase

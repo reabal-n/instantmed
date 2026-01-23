@@ -14,6 +14,11 @@ const config = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '475px',
+        'tablet': '834px',  // iPad portrait
+        '3xl': '1920px',
+      },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         serif: ["var(--font-serif)", "Georgia", "serif"],

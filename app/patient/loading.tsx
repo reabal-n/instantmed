@@ -2,7 +2,12 @@ import { Skeleton, CardSkeleton, RequestListSkeleton } from "@/components/ui/loa
 
 export default function PatientLoading() {
   return (
-    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
+    <div 
+      className="min-h-screen bg-linear-to-b from-background to-muted/30"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <span className="sr-only" role="status">Loading your dashboard</span>
       <div className="container max-w-5xl py-8 px-4 space-y-8">
         {/* Header skeleton with stagger animation */}
         <div className="space-y-2">

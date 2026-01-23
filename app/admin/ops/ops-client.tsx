@@ -40,7 +40,7 @@ interface OpsData {
     count: number
     recent: Array<{
       id: string
-      event_type: string
+      action: string
       created_at: string
       metadata: Record<string, unknown> | null
     }>
@@ -283,7 +283,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                   {errors.recent.slice(0, 10).map((error) => (
                     <div key={error.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{error.event_type}</p>
+                        <p className="text-sm font-medium truncate">{error.action}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(error.created_at).toLocaleString("en-AU")}
                         </p>

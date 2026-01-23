@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
+import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { fadeIn, slideUp } from "@/components/ui/animations"
 const log = createLogger("error")
 
@@ -20,12 +21,15 @@ export default function Error({
   const maxRetries = 3
 
   useEffect(() => {
-    // Log error with structured context for observability
+    // Log error with PHI sanitization for compliance
+    const sanitizedError = sanitizeError(error)
+    const sanitizedUrl = typeof window !== "undefined" 
+      ? sanitizeUrl(window.location.href) 
+      : undefined
+
     log.error("[GlobalErrorBoundary]", {
-      message: error.message,
-      name: error.name,
-      digest: error.digest,
-      url: typeof window !== "undefined" ? window.location.href : undefined,
+      ...sanitizedError,
+      url: sanitizedUrl,
       retryCount,
     })
   }, [error, retryCount])

@@ -293,7 +293,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {formatEventType(log.event_type)}
+                          {formatEventType(log.action)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -365,7 +365,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
           <DialogHeader>
             <DialogTitle>Event Details</DialogTitle>
             <DialogDescription>
-              {selectedLog && formatEventType(selectedLog.event_type)}
+              {selectedLog && formatEventType(selectedLog.action)}
             </DialogDescription>
           </DialogHeader>
           {selectedLog && (
@@ -387,10 +387,10 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
                     <p>{selectedLog.actor.full_name} ({selectedLog.actor.email})</p>
                   </div>
                 )}
-                {selectedLog.intake_id && (
+                {selectedLog.request_id && (
                   <div>
-                    <Label className="text-muted-foreground">Intake ID</Label>
-                    <p className="font-mono text-xs">{selectedLog.intake_id}</p>
+                    <Label className="text-muted-foreground">Request ID</Label>
+                    <p className="font-mono text-xs">{selectedLog.request_id}</p>
                   </div>
                 )}
                 {selectedLog.client_ip && (

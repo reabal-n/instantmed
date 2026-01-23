@@ -92,10 +92,20 @@ export function QueueClient({
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
   const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
   const [focusMode, setFocusMode] = useState(false)
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date())
+  const [isStale, setIsStale] = useState(false)
+  const [isReconnecting, setIsReconnecting] = useState(false)
 
-  // Real-time subscription for intakes
+  // Real-time subscription for intakes with stale data detection
   useEffect(() => {
     const supabase = createClient()
+    const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
+      const now = new Date()
+      const timeSinceSync = now.getTime() - lastSyncTime.getTime()
+      if (timeSinceSync > 60000) {
+        setIsStale(true)
+      }
+    }, 30000)
 
     const channel = supabase
       .channel("queue-updates")
@@ -108,6 +118,10 @@ export function QueueClient({
           filter: "status=in.(paid,in_review,pending_info)",
         },
         (payload) => {
+          // Update last sync time on any message
+          setLastSyncTime(new Date())
+          setIsStale(false)
+          
           if (payload.eventType === "INSERT") {
             router.refresh()
           } else if (payload.eventType === "UPDATE") {
@@ -117,12 +131,22 @@ export function QueueClient({
           }
         },
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setLastSyncTime(new Date())
+          setIsStale(false)
+          setIsReconnecting(false)
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setIsStale(true)
+          setIsReconnecting(true)
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)
+      clearInterval(staleCheckInterval)
     }
-  }, [router])
+  }, [router, lastSyncTime])
 
   const calculateWaitTime = (createdAt: string) => {
     const created = new Date(createdAt)
@@ -409,6 +433,33 @@ export function QueueClient({
 
   return (
     <div className="space-y-6">
+      {/* Stale Data Warning - Clinical Safety */}
+      {isStale && (
+        <div 
+          role="alert"
+          className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
+        >
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <div className="flex-1">
+            <p className="font-medium">
+              {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
+            </p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Last synced: {lastSyncTime.toLocaleTimeString()}. Refresh to ensure you have the latest cases.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.refresh()}
+            className="shrink-0 border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+          >
+            <RefreshCw className="h-4 w-4 mr-1.5" />
+            Refresh
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
