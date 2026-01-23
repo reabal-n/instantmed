@@ -26,10 +26,6 @@ export default async function TrackingPage({ params }: PageProps) {
       patient:profiles!patient_id (
         full_name,
         id
-      ),
-      service:services!service_id (
-        name,
-        short_name
       )
     `)
     .eq("id", requestId)

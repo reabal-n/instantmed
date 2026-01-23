@@ -55,23 +55,21 @@ export default async function PatientDocumentsPage() {
 
   const documents = {
     certificates: (intakes || []).map((i) => {
-      const service = Array.isArray(i.service) ? i.service[0] : i.service
       return {
         id: i.id,
         type: "certificate" as const,
         serviceType: i.service_type,
-        serviceName: service?.name || service?.short_name || "Medical Certificate",
+        serviceName: i.category || "Medical Certificate",
         url: i.certificate_url,
         generatedAt: i.certificate_generated_at || i.updated_at,
       }
     }),
     receipts: (payments || []).map((p) => {
-      const service = Array.isArray(p.service) ? p.service[0] : p.service
       return {
         id: p.id,
         type: "receipt" as const,
         serviceType: p.service_type,
-        serviceName: service?.name || service?.short_name || "Payment",
+        serviceName: p.category || "Payment",
         amount: p.amount_paid,
         paidAt: p.paid_at,
         stripeSessionId: p.stripe_checkout_session_id,

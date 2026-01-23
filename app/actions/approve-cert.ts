@@ -92,10 +92,6 @@ export async function approveAndSendCert(
           email,
           date_of_birth
         ),
-        service:services!service_id(
-          slug,
-          type
-        ),
         answers:intake_answers(
           answers
         )

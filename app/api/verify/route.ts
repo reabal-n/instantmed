@@ -319,7 +319,7 @@ async function checkLegacyTables(
       intake:intakes!intake_id(
         patient:profiles!patient_id(full_name),
         reviewed_by,
-        service:services!service_id(slug)
+        category
       )
     `)
     .eq("certificate_number", code)

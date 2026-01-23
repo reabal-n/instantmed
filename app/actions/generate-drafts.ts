@@ -140,11 +140,6 @@ export async function generateDraftsForIntake(
           full_name,
           date_of_birth
         ),
-        service:services!service_id(
-          slug,
-          type,
-          name
-        ),
         answers:intake_answers(
           answers
         )

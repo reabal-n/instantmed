@@ -69,10 +69,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     try {
       const { data, error } = await supabase
         .from("intakes")
-        .select(`
-          *,
-          service:services!service_id (id, name, short_name, type)
-        `)
+        .select(`*`)
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })
 

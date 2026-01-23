@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       .select(`
         id,
         patient_id,
-        service:services!service_id ( name, type ),
+        category,
         patient:profiles!patient_id (
           id,
           full_name,
@@ -191,8 +191,7 @@ export async function POST(request: Request) {
 
     const patientRaw = intakeWithPatient.patient
     const patient = (Array.isArray(patientRaw) ? patientRaw[0] : patientRaw) as PatientData | null
-    const serviceRaw = intakeWithPatient.service
-    const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { name: string; type: string } | null
+    const service = { name: intakeWithPatient.category || "Service", type: intakeWithPatient.category || "unknown" }
 
     if (!patient) {
       log.error('Patient data missing from intake', { intakeId })

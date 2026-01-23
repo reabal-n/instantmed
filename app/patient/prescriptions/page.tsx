@@ -33,7 +33,7 @@ export default async function PrescriptionsPage() {
       created_at,
       updated_at,
       approved_at,
-      service:services!service_id(id, name, short_name, slug, type)
+      category
     `)
     .eq("patient_id", patientId)
     .eq("category", "prescription")
@@ -68,9 +68,15 @@ export default async function PrescriptionsPage() {
     .eq("patient_id", patientId)
     .order("issued_date", { ascending: false })
   
+  // Transform intakes to include service object for compatibility
+  const intakesWithService = (prescriptionIntakes || []).map(i => ({
+    ...i,
+    service: { id: "prescription", name: i.category || "Prescription", short_name: i.category || "Rx", slug: "prescription", type: "prescription" }
+  }))
+
   return (
     <PrescriptionsClient 
-      prescriptionIntakes={prescriptionIntakes || []}
+      prescriptionIntakes={intakesWithService}
       medicationMap={medicationMap}
       activePrescriptions={activePrescriptions || []}
     />

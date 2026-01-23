@@ -33,7 +33,7 @@ export default async function PatientMessagesPage() {
       intake:intakes!intake_id(
         id,
         service_type,
-        service:services!service_id(name, short_name)
+        category
       )
     `)
     .eq("patient_id", patientId)
@@ -47,7 +47,7 @@ export default async function PatientMessagesPage() {
       ...msg,
       intake: intake ? {
         ...intake,
-        service: Array.isArray(intake.service) ? intake.service[0] : intake.service,
+        service: { name: intake.category || "Service", short_name: intake.category || "Service" },
       } : null,
     }
   })
