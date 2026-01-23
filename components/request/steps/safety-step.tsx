@@ -30,14 +30,14 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
 
   if (safetyConfirmed) {
     return (
-      <div className="text-center py-8 animate-in fade-in">
-        <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-950/50 flex items-center justify-center mx-auto">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 animate-in fade-in">
+        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+          <CheckCircle className="w-5 h-5 text-green-600" />
         </div>
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold">Safety confirmed</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            You&apos;ve confirmed this is not a medical emergency
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-green-800 dark:text-green-200">Safety confirmed</p>
+          <p className="text-xs text-green-600 dark:text-green-400">
+            Not a medical emergency
           </p>
         </div>
       </div>

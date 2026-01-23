@@ -40,29 +40,45 @@ interface RequestFlowProps {
 
 function ProgressBar({ 
   steps, 
-  currentIndex 
+  currentIndex,
+  onStepClick,
 }: { 
   steps: { id: string; shortLabel: string }[]
-  currentIndex: number 
+  currentIndex: number
+  onStepClick: (stepId: string, index: number) => void
 }) {
   return (
-    <div className="w-full flex gap-1" role="progressbar" aria-valuenow={currentIndex + 1} aria-valuemax={steps.length}>
-      {steps.map((step, i) => (
-        <div key={step.id} className="flex-1">
-          <div 
-            className={`h-1 rounded-full transition-all duration-300 ${
-              i <= currentIndex ? "bg-primary" : "bg-muted"
-            }`} 
-          />
-          <span 
-            className={`text-[10px] mt-1 block text-center font-medium ${
-              i <= currentIndex ? "text-foreground" : "text-muted-foreground"
-            }`}
+    <div className="w-full flex gap-1" role="navigation" aria-label="Request progress">
+      {steps.map((step, i) => {
+        const isCompleted = i < currentIndex
+        const isCurrent = i === currentIndex
+        const isClickable = i <= currentIndex // Can click current or completed steps
+        
+        return (
+          <button
+            key={step.id}
+            type="button"
+            onClick={() => isClickable && onStepClick(step.id, i)}
+            disabled={!isClickable}
+            className={`flex-1 group ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            aria-current={isCurrent ? 'step' : undefined}
+            aria-label={`${step.shortLabel}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
           >
-            {step.shortLabel}
-          </span>
-        </div>
-      ))}
+            <div 
+              className={`h-1 rounded-full transition-all duration-300 ${
+                i <= currentIndex ? "bg-primary" : "bg-muted"
+              } ${isClickable && !isCurrent ? "group-hover:bg-primary/70" : ""}`} 
+            />
+            <span 
+              className={`text-[10px] mt-1 block text-center font-medium transition-colors ${
+                i <= currentIndex ? "text-foreground" : "text-muted-foreground"
+              } ${isClickable && !isCurrent ? "group-hover:text-primary" : ""}`}
+            >
+              {step.shortLabel}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -130,6 +146,7 @@ export function RequestFlow({
     setServiceType,
     nextStep, 
     prevStep,
+    goToStep,
     answers,
     setIdentity,
     setAuthContext,
@@ -283,6 +300,25 @@ export function RequestFlow({
     posthog?.capture('request_draft_discarded', { service_type: serviceType })
   }, [reset, initialService, setServiceType, serviceType, posthog])
 
+  // Handle step click (navigate to a previous step)
+  const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
+    if (stepIndex === currentStepIndex) return // Already on this step
+    
+    posthog?.capture('request_step_jumped', {
+      service_type: serviceType,
+      from_step: currentStepId,
+      to_step: stepId,
+      from_index: currentStepIndex,
+      to_index: stepIndex,
+    })
+    
+    setIsTransitioning(true)
+    setTimeout(() => {
+      goToStep(stepId as Parameters<typeof goToStep>[0])
+      setIsTransitioning(false)
+    }, 150)
+  }, [currentStepIndex, currentStepId, serviceType, goToStep, posthog])
+
   // Service name for display
   const serviceName = useMemo(() => {
     const names: Record<UnifiedServiceType, string> = {
@@ -336,7 +372,8 @@ export function RequestFlow({
         <div className="container max-w-lg mx-auto px-4 pb-3">
           <ProgressBar 
             steps={activeSteps.map(s => ({ id: s.id, shortLabel: s.shortLabel }))} 
-            currentIndex={currentStepIndex} 
+            currentIndex={currentStepIndex}
+            onStepClick={(stepId, stepIndex) => handleStepClick(stepId, stepIndex)}
           />
         </div>
       </header>

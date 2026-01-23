@@ -49,14 +49,14 @@ export async function getDoctorActivity(): Promise<DoctorActivityMetrics> {
   const isBusinessHours = auHour >= 8 && auHour < 22
   
   // Get last doctor action from audit log
-  const { data: lastAction } = await supabase
+  const { data: lastActions } = await supabase
     .from("audit_logs")
     .select("created_at, actor_id")
     .in("action", ["intake_approved", "intake_declined", "intake_reviewed", "outcome_assigned"])
     .order("created_at", { ascending: false })
     .limit(1)
-    .single()
   
+  const lastAction = lastActions?.[0] || null
   const lastActivityAt = lastAction?.created_at || null
   const lastActivityMinutes = lastActivityAt
     ? (now.getTime() - new Date(lastActivityAt).getTime()) / 60000

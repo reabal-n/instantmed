@@ -103,7 +103,7 @@ export interface RequestActions {
 
 const initialState: RequestState = {
   serviceType: null,
-  currentStepId: 'safety',
+  currentStepId: 'certificate', // First step for med-cert (default)
   direction: 1,
   safetyConfirmed: false,
   safetyTimestamp: null,

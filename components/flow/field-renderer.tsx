@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HelpCircle, Check, AlertCircle, ChevronDown, AlertTriangle, Phone } from 'lucide-react'
+import { HelpCircle, AlertCircle, ChevronDown, AlertTriangle, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { IOSToggle, SegmentedControl } from '@/components/ui/ios-toggle'
 import { MedicationSearch, type MedicationSelection } from './medication-search'
@@ -386,58 +386,19 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             {field.options?.map((opt, idx) => {
               const isSelected = selectedValues.includes(opt.value)
               return (
-                <motion.label
+                <motion.div
                   key={opt.value}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
                   className={cn(
-                    'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer',
-                    'transition-all duration-150 ease-out',
+                    'p-3.5 rounded-xl border-2 transition-all duration-150 ease-out',
                     isSelected
                       ? 'border-emerald-500 bg-emerald-50/50 shadow-sm shadow-emerald-500/10'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                   )}
                 >
-                  <motion.div
-                    className={cn(
-                      'shrink-0 w-5 h-5 rounded-md border-2 mt-0.5',
-                      'flex items-center justify-center',
-                      'transition-colors duration-150',
-                      isSelected
-                        ? 'border-emerald-500 bg-emerald-500'
-                        : 'border-slate-300 bg-white'
-                    )}
-                    animate={{ scale: isSelected ? [1, 1.1, 1] : 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <AnimatePresence>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                        >
-                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                  <div className="flex-1 min-w-0">
-                    <span className={cn(
-                      'text-sm font-medium',
-                      isSelected ? 'text-emerald-900' : 'text-slate-700'
-                    )}>
-                      {opt.label}
-                    </span>
-                    {opt.description && (
-                      <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
-                    )}
-                  </div>
-                  <input
-                    type="checkbox"
+                  <IOSToggle
                     checked={isSelected}
                     onChange={() => {
                       if (isSelected) {
@@ -454,9 +415,11 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                         }
                       }
                     }}
-                    className="sr-only"
+                    label={opt.label}
+                    description={opt.description}
+                    size="md"
                   />
-                </motion.label>
+                </motion.div>
               )
             })}
           </div>
