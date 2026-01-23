@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   try {
     // Call the database function to release stale claims
     const { data, error } = await supabase.rpc("release_stale_intake_claims", {
-      stale_threshold_minutes: 30,
+      p_timeout_minutes: 30,
     })
 
     if (error) {
