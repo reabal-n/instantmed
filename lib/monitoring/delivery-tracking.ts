@@ -168,9 +168,10 @@ export async function getDeliveryMetrics(
     query = query.eq("channel", channel)
   }
   
-  const { data } = await query
+  const { data, error } = await query
   
-  if (!data || data.length === 0) {
+  // Handle missing table gracefully - return empty metrics
+  if (error || !data || data.length === 0) {
     return {
       totalSent: 0,
       delivered: 0,

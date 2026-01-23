@@ -36,7 +36,7 @@ export async function getQueueHealth(): Promise<QueueHealthMetrics> {
   const { data: pendingRequests } = await supabase
     .from("intakes")
     .select("id, created_at, is_priority")
-    .in("status", ["pending_review", "pending", "submitted"])
+    .in("status", ["paid", "in_review", "pending_info"])
     .order("created_at", { ascending: true })
   
   if (!pendingRequests || pendingRequests.length === 0) {
@@ -154,13 +154,14 @@ export async function getQueueByServiceType(): Promise<Record<string, number>> {
   
   const { data } = await supabase
     .from("intakes")
-    .select("service_type")
-    .in("status", ["pending_review", "pending", "submitted"])
+    .select("service_id, service:services!service_id(type)")
+    .in("status", ["paid", "in_review", "pending_info"])
   
   if (!data) return {}
   
   return data.reduce((acc, r) => {
-    const type = r.service_type || "unknown"
+    const service = r.service as { type?: string } | null
+    const type = service?.type || "unknown"
     acc[type] = (acc[type] || 0) + 1
     return acc
   }, {} as Record<string, number>)
