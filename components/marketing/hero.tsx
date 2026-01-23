@@ -150,23 +150,23 @@ export function Hero() {
           >
             <Button 
               as={Link}
-              href="/start"
+              href="/request"
               color="primary"
               size="lg"
               className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
               endContent={<ArrowRight className="h-4 w-4" />}
             >
-              Start your request
+              Get started
             </Button>
             <Button 
               as={Link}
-              href="/start?service=repeat-script"
+              href="/request?service=prescription"
               variant="bordered"
               size="lg"
               className="h-12 px-6"
               endContent={<ArrowRight className="h-4 w-4" />}
             >
-              Request a repeat script
+              Renew your prescription
             </Button>
           </motion.div>
 

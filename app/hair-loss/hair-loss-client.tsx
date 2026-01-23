@@ -156,7 +156,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                      <Link href="/start?service=hair-loss">
+                      <Link href="/request?service=consult">
                         <ShimmerButton className="px-6 h-11 font-semibold bg-teal-600">
                           Start Consultation
                           <ArrowRight className="h-4 w-4 ml-2" />
@@ -260,7 +260,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     <p className="text-xs text-muted-foreground mb-4">
                       Not sure which is right for you? Our doctors will recommend the best option.
                     </p>
-                    <Link href="/start?service=hair-loss">
+                    <Link href="/request?service=consult">
                       <ShimmerButton className="px-6 h-10 text-sm font-semibold bg-teal-600">
                         Start Consultation
                         <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -443,7 +443,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
                     <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                       Complete a confidential consultation in minutes. Our doctors are ready to help.
                     </p>
-                    <Link href="/start?service=hair-loss">
+                    <Link href="/request?service=consult">
                       <ShimmerButton className="px-8 h-12 font-semibold bg-teal-600">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />

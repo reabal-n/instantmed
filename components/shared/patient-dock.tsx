@@ -29,7 +29,7 @@ export function PatientDock() {
     {
       icon: Plus,
       label: "New Request",
-      href: "/start",
+      href: "/request",
       active: false,
     },
     {

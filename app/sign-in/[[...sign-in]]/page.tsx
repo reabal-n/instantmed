@@ -52,8 +52,8 @@ export default function SignInPage() {
               <span className="text-primary">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Medical certificates and prescriptions delivered in under an hour. 
-              No waiting rooms, no phone calls.
+              Medical certificates and prescriptions reviewed in under an hour. 
+              No waiting rooms. Most requests don't require a call.
             </p>
             
             {/* Trust indicators */}

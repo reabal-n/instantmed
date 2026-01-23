@@ -98,7 +98,7 @@ export async function getOrCreateMedCertDraft(
     }
   } catch (error) {
     log.error("Error in getOrCreateMedCertDraft", { error })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't load the certificate draft. Please try again." }
   }
 }
 
@@ -153,7 +153,7 @@ export async function saveMedCertDraft(
     return { success: true }
   } catch (error) {
     log.error("Error in saveMedCertDraft", { error })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't save your changes. Please try again." }
   }
 }
 
@@ -260,6 +260,6 @@ export async function issueMedCertificate(
     }
   } catch (error) {
     log.error("Error in issueMedCertificate", { error })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't issue the certificate. Please try again." }
   }
 }

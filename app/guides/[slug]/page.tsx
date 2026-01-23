@@ -118,7 +118,7 @@ const guides: Record<string, {
     ],
     cta: {
       text: "Get a medical certificate now",
-      href: "/start?service=med-cert",
+      href: "/request?service=med-cert",
       subtext: "From $19.95 · Usually ready in under 1 hour"
     }
   },
@@ -188,7 +188,7 @@ const guides: Record<string, {
     ],
     cta: {
       text: "Get your certificate now",
-      href: "/start?service=med-cert",
+      href: "/request?service=med-cert",
       subtext: "From $19.95 · Perfect for special consideration applications"
     }
   },
@@ -274,7 +274,7 @@ const guides: Record<string, {
     ],
     cta: {
       text: "Try InstantMed telehealth",
-      href: "/start",
+      href: "/request",
       subtext: "Australian doctors · Fast response · From $19.95"
     }
   }

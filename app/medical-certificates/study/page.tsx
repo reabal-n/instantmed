@@ -94,7 +94,7 @@ export default function StudyMedCertPage() {
 
               <Button 
                 as={Link}
-                href="/start?service=med-cert"
+                href="/request?service=med-cert"
                 size="lg" 
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
               >
@@ -397,7 +397,7 @@ export default function StudyMedCertPage() {
               </p>
               <Button 
                 as={Link}
-                href="/start?service=med-cert"
+                href="/request?service=med-cert"
                 size="lg" 
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8"
               >

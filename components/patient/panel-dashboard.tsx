@@ -367,7 +367,7 @@ export function PanelDashboard({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
       >
-        <Link href="/start">
+        <Link href="/request">
           <Button
             size="lg"
             className="h-14 px-6 rounded-full shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all hover:-translate-y-1"

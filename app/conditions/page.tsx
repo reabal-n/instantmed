@@ -153,7 +153,7 @@ export default function ConditionsIndexPage() {
                 Start a consultation and our doctors will help you figure out the best path forward.
               </p>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/start">
+                <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>

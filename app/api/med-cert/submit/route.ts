@@ -210,7 +210,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
   } catch (error) {
     log.error("Med cert submission error", { error })
     return NextResponse.json(
-      { success: false, error: "An unexpected error occurred" },
+      { success: false, error: "We couldn't submit your request. Please try again." },
       { status: 500 }
     )
   }

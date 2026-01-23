@@ -51,7 +51,7 @@ export function ReturningPatientBanner({ className }: ReturningPatientBannerProp
 
   return (
     <div className={cn(
-      "bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-6",
+      "bg-linear-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-4 sm:p-6",
       className
     )}>
       <div className="flex items-start justify-between gap-4">
@@ -68,7 +68,7 @@ export function ReturningPatientBanner({ className }: ReturningPatientBannerProp
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Button asChild size="sm" className="rounded-full">
-                <Link href="/start?express=true">
+                <Link href="/request?express=true">
                   Express checkout
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>

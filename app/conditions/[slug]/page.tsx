@@ -104,7 +104,7 @@ const conditions: Record<string, {
     relatedConditions: ["sore-throat", "cough", "fever", "headache"],
     serviceType: "both",
     ctaText: "Get a medical certificate",
-    ctaHref: "/start?service=med-cert&condition=cold-flu",
+    ctaHref: "/request?service=med-cert&condition=cold-flu",
     stats: {
       avgTime: "45 mins",
       satisfaction: "4.9/5"
@@ -173,7 +173,7 @@ const conditions: Record<string, {
     relatedConditions: ["food-poisoning", "stomach-pain", "nausea"],
     serviceType: "both",
     ctaText: "Get assessed now",
-    ctaHref: "/start?service=med-cert&condition=gastro",
+    ctaHref: "/request?service=med-cert&condition=gastro",
     stats: {
       avgTime: "40 mins",
       satisfaction: "4.8/5"
@@ -241,7 +241,7 @@ const conditions: Record<string, {
     relatedConditions: ["sciatica", "muscle-strain", "neck-pain"],
     serviceType: "both",
     ctaText: "Get a medical certificate",
-    ctaHref: "/start?service=med-cert&condition=back-pain",
+    ctaHref: "/request?service=med-cert&condition=back-pain",
     stats: {
       avgTime: "50 mins",
       satisfaction: "4.8/5"
@@ -309,7 +309,7 @@ const conditions: Record<string, {
     relatedConditions: ["headache", "tension-headache", "cluster-headache"],
     serviceType: "both",
     ctaText: "Speak with a doctor",
-    ctaHref: "/start?service=consult&condition=migraine",
+    ctaHref: "/request?service=consult&condition=migraine",
     stats: {
       avgTime: "55 mins",
       satisfaction: "4.9/5"
@@ -377,7 +377,7 @@ const conditions: Record<string, {
     relatedConditions: ["stress", "panic-attacks", "depression", "insomnia"],
     serviceType: "both",
     ctaText: "Get support today",
-    ctaHref: "/start?service=consult&condition=anxiety",
+    ctaHref: "/request?service=consult&condition=anxiety",
     stats: {
       avgTime: "60 mins",
       satisfaction: "4.9/5"
@@ -445,7 +445,7 @@ const conditions: Record<string, {
     relatedConditions: ["kidney-infection", "cystitis"],
     serviceType: "consult",
     ctaText: "Get assessed now",
-    ctaHref: "/start?service=consult&condition=uti",
+    ctaHref: "/request?service=consult&condition=uti",
     stats: {
       avgTime: "35 mins",
       satisfaction: "4.9/5"
@@ -511,7 +511,7 @@ const conditions: Record<string, {
     relatedConditions: ["eczema", "hives", "allergic-reaction"],
     serviceType: "consult",
     ctaText: "Get your rash assessed",
-    ctaHref: "/start?service=consult&condition=skin-rash",
+    ctaHref: "/request?service=consult&condition=skin-rash",
     stats: {
       avgTime: "45 mins",
       satisfaction: "4.7/5"
@@ -576,7 +576,7 @@ const conditions: Record<string, {
     relatedConditions: ["anxiety", "fatigue", "stress", "depression"],
     serviceType: "both",
     ctaText: "Speak with a doctor",
-    ctaHref: "/start?service=consult&condition=insomnia",
+    ctaHref: "/request?service=consult&condition=insomnia",
     stats: {
       avgTime: "55 mins",
       satisfaction: "4.8/5"

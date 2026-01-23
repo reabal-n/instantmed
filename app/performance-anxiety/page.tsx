@@ -165,7 +165,7 @@ export default function PerformanceAnxietyPage() {
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                    <Link href="/start?service=performance-anxiety">
+                    <Link href="/request?service=performance-anxiety">
                       <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm px-6 w-full sm:w-auto">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
@@ -435,7 +435,7 @@ export default function PerformanceAnxietyPage() {
                   <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                     Complete a confidential consultation in minutes. Be prepared for your next big moment.
                   </p>
-                  <Link href="/start?service=performance-anxiety">
+                  <Link href="/request?service=performance-anxiety">
                     <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-background text-sm px-8 h-12">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />

@@ -85,7 +85,7 @@ export default function BlogPage() {
                 Get assessed by an AHPRA-registered doctor. Most requests reviewed within an hour.
               </p>
               <Link 
-                href="/start"
+                href="/request"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors"
               >
                 Get started

@@ -16,7 +16,7 @@ export const medicationArticles: Article[] = [
     heroImage: blogImages.repeatPrescriptions,
     heroImageAlt: 'Prescription medication at pharmacy',
     content: [
-      { type: 'paragraph', content: 'Repeat prescriptions allow you to get additional supplies of your medication without seeing a doctor each time. Understanding how they work helps you manage your medications effectively.' },
+      { type: 'paragraph', content: 'Repeat prescriptions allow you to get additional supplies of your medication without seeing a doctor each time. Understanding how they work helps you manage your medications effectively.', links: [{ text: 'manage your medications', href: '/blog/how-escripts-work', title: 'How eScripts work' }] },
       { type: 'heading', content: 'How Repeats Work', level: 2 },
       { type: 'paragraph', content: 'When a doctor prescribes medication, they can authorise a certain number of repeats. Each repeat allows you to get one more supply of the medication from the pharmacy.' },
       { type: 'list', content: '', items: ['Original prescription = first supply', 'Each repeat = one additional supply', 'You collect repeats from the pharmacy when needed', 'Repeats have an expiry date (usually 12 months from original prescription)'] },
@@ -57,7 +57,7 @@ export const medicationArticles: Article[] = [
     heroImage: blogImages.medicationsNotOnline,
     heroImageAlt: 'Prescription medications with restrictions',
     content: [
-      { type: 'paragraph', content: 'While telehealth can prescribe many medications, some have restrictions requiring in-person assessment. These restrictions exist for patient safety and regulatory compliance.' },
+      { type: 'paragraph', content: 'While telehealth can prescribe many medications, some have restrictions requiring in-person assessment. These restrictions exist for patient safety and regulatory compliance.', links: [{ text: 'telehealth', href: '/blog/is-telehealth-legal-australia', title: 'Telehealth regulations' }] },
       { type: 'heading', content: 'Controlled Medications (Schedule 8)', level: 2 },
       { type: 'paragraph', content: 'Schedule 8 medications are controlled drugs with potential for misuse or dependence. These generally require in-person consultations and have strict prescribing rules.' },
       { type: 'list', content: '', items: ['Strong opioid painkillers (morphine, oxycodone, fentanyl)', 'Stimulants for ADHD (dexamphetamine, methylphenidate)', 'Some anxiety medications (alprazolam)', 'Sleep medications with dependence risk'] },
@@ -98,7 +98,7 @@ export const medicationArticles: Article[] = [
     heroImage: blogImages.genericHealth,
     heroImageAlt: 'Subsidised medications through PBS',
     content: [
-      { type: 'paragraph', content: 'The Pharmaceutical Benefits Scheme (PBS) is an Australian Government program that subsidises the cost of prescription medications, making them more affordable for everyone.' },
+      { type: 'paragraph', content: 'The Pharmaceutical Benefits Scheme (PBS) is an Australian Government program that subsidises the cost of prescription medications, making them more affordable for everyone.', links: [{ text: 'prescription medications', href: '/blog/online-prescription-australia', title: 'Get a prescription online' }] },
       { type: 'heading', content: 'How the PBS Works', level: 2 },
       { type: 'paragraph', content: 'The government negotiates prices with pharmaceutical companies and pays part of the cost. You pay a set co-payment amount, and the government covers the rest.' },
       { type: 'heading', content: 'PBS Co-payment Amounts (2024)', level: 2 },
@@ -139,7 +139,7 @@ export const medicationArticles: Article[] = [
     heroImage: blogImages.antibioticsGuide,
     heroImageAlt: 'Generic and brand name medication comparison',
     content: [
-      { type: 'paragraph', content: 'When a pharmaceutical company develops a new medication, they hold a patent allowing exclusive sales for a period. Once the patent expires, other companies can make the same medication — these are called generics.' },
+      { type: 'paragraph', content: 'When a pharmaceutical company develops a new medication, they hold a patent allowing exclusive sales for a period. Once the patent expires, other companies can make the same medication — these are called generics.', links: [{ text: 'generics', href: '/blog/pbs-pharmaceutical-benefits-scheme', title: 'PBS and medication costs' }] },
       { type: 'heading', content: 'What Makes Generics Different?', level: 2 },
       { type: 'paragraph', content: 'Generic medications contain the same active ingredient in the same dose as the brand name. Differences may include:' },
       { type: 'list', content: '', items: ['Different inactive ingredients (fillers, colours)', 'Different shape, size, or colour of tablet', 'Different packaging', 'Different name', 'Lower price'] },

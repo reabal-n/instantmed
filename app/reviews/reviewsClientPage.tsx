@@ -324,7 +324,7 @@ export function ReviewsClientPageComponent() {
                 <p className="text-muted-foreground mb-8">
                   Join thousands of Australians who&apos;ve made the switch to smarter healthcare.
                 </p>
-                <Link href="/start">
+                <Link href="/request">
                   <ShimmerButton className="px-8 h-14 font-semibold text-base">
                     Get started
                     <ArrowRight className="ml-2 h-4 w-4" />

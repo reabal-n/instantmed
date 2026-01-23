@@ -134,6 +134,6 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't resend your certificate. Please try again." }
   }
 }

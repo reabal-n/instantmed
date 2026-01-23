@@ -16,7 +16,7 @@ export const workplaceArticles: Article[] = [
     heroImage: blogImages.sickLeaveRights,
     heroImageAlt: 'Employee understanding workplace rights',
     content: [
-      { type: 'paragraph', content: 'Understanding your sick leave rights helps you take the time you need to recover without unnecessary stress. Here\'s what Australian workplace law says about sick leave.' },
+      { type: 'paragraph', content: 'Understanding your sick leave rights helps you take the time you need to recover without unnecessary stress. Here\'s what Australian workplace law says about sick leave.', links: [{ text: 'sick leave rights', href: '/blog/medical-certificate-mental-health-day', title: 'Mental health days count as sick leave' }] },
       { type: 'heading', content: 'Your Basic Entitlements', level: 2 },
       { type: 'paragraph', content: 'Under the National Employment Standards (NES), full-time and part-time employees are entitled to:' },
       { type: 'list', content: '', items: ['10 days of paid personal/carer\'s leave per year', 'Leave accumulates year to year if unused', 'Part-time employees receive pro-rata entitlements', 'Casual employees don\'t get paid sick leave but can take unpaid leave'] },
@@ -58,7 +58,7 @@ export const workplaceArticles: Article[] = [
     heroImage: blogImages.workFromHomeSick,
     heroImageAlt: 'Person considering whether to work while unwell',
     content: [
-      { type: 'paragraph', content: 'Working from home has made it tempting to "push through" when sick. But just because you can work doesn\'t mean you should. Here\'s how to make the right call.' },
+      { type: 'paragraph', content: 'Working from home has made it tempting to "push through" when sick. But just because you can work doesn\'t mean you should. Here\'s how to make the right call.', links: [{ text: 'push through', href: '/blog/return-to-work-after-illness', title: 'When to return to work' }] },
       { type: 'heading', content: 'When You Might Work From Home', level: 2 },
       { type: 'list', content: '', items: ['Very mild symptoms that don\'t affect concentration', 'End of an illness when you\'re mostly recovered', 'Conditions where rest isn\'t critical (mild allergies)', 'When you genuinely feel up to it, not pressured'] },
       { type: 'heading', content: 'When You Should Take Proper Sick Leave', level: 2 },
@@ -96,7 +96,7 @@ export const workplaceArticles: Article[] = [
     heroImage: blogImages.universityMedCert,
     heroImageAlt: 'University student managing health and study',
     content: [
-      { type: 'paragraph', content: 'University has different requirements for medical documentation than workplaces. Understanding what\'s needed helps you get the right support when illness affects your studies.' },
+      { type: 'paragraph', content: 'University has different requirements for medical documentation than workplaces. Understanding what\'s needed helps you get the right support when illness affects your studies.', links: [{ text: 'medical documentation', href: '/blog/medical-certificate-online-australia', title: 'Get a medical certificate online' }] },
       { type: 'heading', content: 'When You Might Need Documentation', level: 2 },
       { type: 'list', content: '', items: ['Missed exams', 'Assignment extensions', 'Special consideration applications', 'Leave of absence', 'Reduced study load requests'] },
       { type: 'heading', content: 'What Universities Typically Require', level: 2 },
@@ -136,7 +136,7 @@ export const workplaceArticles: Article[] = [
     heroImage: blogImages.returnToWork,
     heroImageAlt: 'Person preparing to return to work after recovery',
     content: [
-      { type: 'paragraph', content: 'After being unwell, it can be hard to judge when you\'re ready to return to work. Going back too early risks relapse, while staying off too long can have its own challenges.' },
+      { type: 'paragraph', content: 'After being unwell, it can be hard to judge when you\'re ready to return to work. Going back too early risks relapse, while staying off too long can have its own challenges.', links: [{ text: 'return to work', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave entitlements' }] },
       { type: 'heading', content: 'Signs You\'re Ready to Return', level: 2 },
       { type: 'list', content: '', items: ['Fever-free for at least 24 hours (without medication)', 'Energy levels improving', 'Able to concentrate for reasonable periods', 'Symptoms manageable without affecting work', 'No longer contagious (if that was a concern)'] },
       { type: 'heading', content: 'Common Recovery Timelines', level: 2 },

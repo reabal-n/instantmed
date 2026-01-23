@@ -33,7 +33,7 @@ const CONSULT_TYPES = [
     description: "For new symptoms or conditions you want a doctor to assess and advise on.",
     benefits: ["Full clinical assessment", "Treatment advice", "Prescriptions if appropriate"],
     popular: true,
-    href: "/start?service=consult",
+    href: "/request?service=consult",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
     borderColor: "border-violet-500/20",
@@ -48,7 +48,7 @@ const CONSULT_TYPES = [
     description: "Need to start a new medication? A doctor will assess if it is right for you.",
     benefits: ["Medical assessment", "E-script to any pharmacy", "Follow-up messaging"],
     popular: false,
-    href: "/start?service=consult",
+    href: "/request?service=consult",
     color: "from-blue-500 to-blue-600",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/20",
@@ -63,7 +63,7 @@ const CONSULT_TYPES = [
     description: "Need a referral to a specialist, pathology, or imaging? Start here.",
     benefits: ["Referral letters", "Pathology requests", "Imaging referrals"],
     popular: false,
-    href: "/start?service=consult",
+    href: "/request?service=consult",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
@@ -235,7 +235,7 @@ export default function GeneralConsultPage() {
                 >
                   <Button 
                     as={Link}
-                    href="/start?service=consult"
+                    href="/request?service=consult"
                     color="primary"
                     size="lg"
                     className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -664,7 +664,7 @@ export default function GeneralConsultPage() {
               >
                 <Button
                   as={Link}
-                  href="/start?service=consult"
+                  href="/request?service=consult"
                   color="primary"
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -825,7 +825,7 @@ export default function GeneralConsultPage() {
                       
                       <Button 
                         as={Link}
-                        href="/start?service=consult"
+                        href="/request?service=consult"
                         color="primary"
                         size="lg"
                         className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"

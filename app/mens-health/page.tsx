@@ -139,7 +139,7 @@ export default function MensHealthPage() {
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                    <Link href="/start?service=mens-health">
+                    <Link href="/request?service=consult">
                       <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm px-6 w-full sm:w-auto">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
@@ -227,7 +227,7 @@ export default function MensHealthPage() {
                   <p className="text-xs text-muted-foreground mb-4">
                     Not sure which is right for you? Our doctors will help you choose.
                   </p>
-                  <Link href="/start?service=mens-health">
+                  <Link href="/request?service=consult">
                     <Button className="bg-blue-600 hover:bg-blue-700 text-xs h-9">
                       Start Consultation
                       <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -369,7 +369,7 @@ export default function MensHealthPage() {
                   <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                     Complete a confidential consultation in minutes. Our doctors are ready to help.
                   </p>
-                  <Link href="/start?service=mens-health">
+                  <Link href="/request?service=consult">
                     <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-background text-sm px-8 h-12">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />

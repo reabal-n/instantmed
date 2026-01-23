@@ -143,8 +143,11 @@ export async function GET(request: Request) {
     const supabase = createServiceRoleClient()
 
     // 1. Check issued_certificates table (new model) - by verification code OR certificate number
-    // P0 SECURITY FIX: Use filter builder instead of string interpolation to prevent injection
-    const { data: issuedCert } = await supabase
+    // P0 SECURITY FIX: Query by each field separately to avoid SQL injection from string interpolation
+    // First try verification_code, then certificate_number
+    let issuedCert = null
+    
+    const { data: certByVerificationCode } = await supabase
       .from("issued_certificates")
       .select(`
         id,
@@ -160,8 +163,34 @@ export async function GET(request: Request) {
         doctor_nominals,
         clinic_identity_snapshot
       `)
-      .or(`verification_code.eq."${code}",certificate_number.eq."${code}"`)
+      .eq("verification_code", code)
       .maybeSingle()
+    
+    if (certByVerificationCode) {
+      issuedCert = certByVerificationCode
+    } else {
+      // Try certificate_number if not found by verification_code
+      const { data: certByCertNumber } = await supabase
+        .from("issued_certificates")
+        .select(`
+          id,
+          certificate_number,
+          verification_code,
+          certificate_type,
+          status,
+          issue_date,
+          start_date,
+          end_date,
+          patient_name,
+          doctor_name,
+          doctor_nominals,
+          clinic_identity_snapshot
+        `)
+        .eq("certificate_number", code)
+        .maybeSingle()
+      
+      issuedCert = certByCertNumber
+    }
 
     if (issuedCert) {
       // P1 FIX: Provide transparency on certificate status for verifiers

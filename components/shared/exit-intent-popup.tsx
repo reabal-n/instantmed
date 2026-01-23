@@ -43,19 +43,19 @@ const SERVICE_MESSAGES = {
     heading: "Need that certificate today?",
     subheading: "Most certificates are reviewed within 45 minutes. Valid for all employers.",
     cta: "Get your certificate",
-    href: "/start?service=med-cert",
+    href: "/request?service=med-cert",
   },
   'repeat-prescription': {
     heading: "Running low on your medication?",
     subheading: "Get your repeat sorted without the wait. eScript sent to your phone.",
     cta: "Renew prescription",
-    href: "/start?service=repeat-script",
+    href: "/request?service=prescription",
   },
   'consult': {
     heading: "Want to talk to a doctor?",
     subheading: "Real Australian GPs available 7 days a week. No waiting rooms.",
     cta: "Start your consult",
-    href: "/start?service=consult",
+    href: "/request?service=consult",
   },
 }
 

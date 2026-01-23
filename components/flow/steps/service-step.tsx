@@ -213,7 +213,7 @@ export function ServiceStep({ onServiceSelect }: ServiceStepProps) {
                   </ul>
                 </div>
                 <p className="text-slate-500 italic pt-1">
-                  If unsure, start your request — our doctors will guide you to the right care.
+                  If unsure, continue — our doctors will guide you to the right care.
                 </p>
               </div>
             </motion.div>

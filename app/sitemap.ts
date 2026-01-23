@@ -170,7 +170,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }))
 
   const locationRoutes = locationSlugs.map((slug) => ({
-    url: `${baseUrl}/medical-certificate/location/${slug}`,
+    url: `${baseUrl}/locations/${slug}`,
     lastModified: BUILD_DATE,
     changeFrequency: "monthly" as const,
     priority: 0.7,

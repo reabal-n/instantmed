@@ -41,7 +41,7 @@ const CERT_TYPES = [
     description: "Feeling rough? Get it sorted without leaving the couch.",
     benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: true,
-    href: "/start?service=med-cert",
+    href: "/request?service=med-cert",
     color: "from-blue-500 to-blue-600",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/20",
@@ -58,7 +58,7 @@ const CERT_TYPES = [
     description: "Missed that deadline? We've got you covered.",
     benefits: ["No appointments needed", "Accepted by all unis", "PDF straight to your inbox"],
     popular: false,
-    href: "/start?service=med-cert",
+    href: "/request?service=med-cert",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
     borderColor: "border-violet-500/20",
@@ -75,7 +75,7 @@ const CERT_TYPES = [
     description: "Looking after someone who needs you? That counts.",
     benefits: ["No appointments needed", "Valid for all employers", "PDF straight to your inbox"],
     popular: false,
-    href: "/start?service=med-cert",
+    href: "/request?service=med-cert",
     color: "from-rose-500 to-pink-600",
     bgColor: "bg-rose-500/10",
     borderColor: "border-rose-500/20",
@@ -302,7 +302,7 @@ export default function MedicalCertificatePage() {
                   >
                     <Button 
                       as={Link}
-                      href="/start?service=med-cert"
+                      href="/request?service=med-cert"
                       color="primary"
                       size="lg"
                       className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -801,7 +801,7 @@ export default function MedicalCertificatePage() {
               >
                 <Button
                   as={Link}
-                  href="/start?service=med-cert"
+                  href="/request?service=med-cert"
                   color="primary"
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -967,7 +967,7 @@ export default function MedicalCertificatePage() {
                         ))}
                       </div>
                       
-                      <Link href="/start?service=med-cert">
+                      <Link href="/request?service=med-cert">
                         <ShimmerButton className="px-8 h-12 font-semibold">
                           Get started
                           <ArrowRight className="h-4 w-4 ml-2" />
@@ -999,7 +999,7 @@ export default function MedicalCertificatePage() {
             </div>
             <Button
               as={Link}
-              href="/start?service=med-cert"
+              href="/request?service=med-cert"
               color="primary"
               size="sm"
               className="px-5 font-semibold shadow-lg shadow-primary/25 shrink-0"

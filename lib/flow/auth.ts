@@ -315,7 +315,7 @@ export async function checkFlowAccess(
   if (requiresAuth && !session.isAuthenticated) {
     return {
       allowed: false,
-      redirectTo: `/start?step=account&returnTo=${encodeURIComponent(step)}`,
+      redirectTo: `/request?step=account&returnTo=${encodeURIComponent(step)}`,
       reason: 'Authentication required',
     }
   }
@@ -348,7 +348,7 @@ export async function checkCheckoutAccess(
   if (!session.isAuthenticated) {
     return {
       allowed: false,
-      redirectTo: `/start?service=${serviceSlug}&step=account`,
+      redirectTo: `/request?service=${serviceSlug}&step=account`,
       reason: 'Please sign in to complete your order',
     }
   }
@@ -358,7 +358,7 @@ export async function checkCheckoutAccess(
   if (!isOwner || !data) {
     return {
       allowed: false,
-      redirectTo: `/start?service=${serviceSlug}`,
+      redirectTo: `/request?service=${serviceSlug}`,
       reason: 'Session expired. Please start again.',
     }
   }
@@ -368,7 +368,7 @@ export async function checkCheckoutAccess(
   if (safetyEval?.outcome && safetyEval.outcome !== 'ALLOW') {
     return {
       allowed: false,
-      redirectTo: `/start?service=${serviceSlug}&step=safety`,
+      redirectTo: `/request?service=${serviceSlug}&step=safety`,
       reason: 'Safety check required',
     }
   }
@@ -411,7 +411,7 @@ export async function restoreFlowState(
         draftId: state.draftId,
         serviceSlug: state.serviceSlug,
         step: state.step,
-        redirectUrl: returnTo || `/start?service=${state.serviceSlug}&step=${state.nextStep || 'checkout'}`,
+        redirectUrl: returnTo || `/request?service=${state.serviceSlug}&step=${state.nextStep || 'checkout'}`,
       }
     } catch {
       // Invalid state, clear it
@@ -421,7 +421,7 @@ export async function restoreFlowState(
 
   // Default redirect
   return {
-    redirectUrl: returnTo || '/start',
+    redirectUrl: returnTo || '/request',
   }
 }
 

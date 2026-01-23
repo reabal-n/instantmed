@@ -163,7 +163,7 @@ export default function WeightLossPage() {
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                    <Link href="/start?service=weight-loss">
+                    <Link href="/request?service=consult">
                       <ShimmerButton className="px-6 h-11 font-semibold bg-violet-600">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
@@ -258,7 +258,7 @@ export default function WeightLossPage() {
                   <p className="text-xs text-muted-foreground mb-4">
                     Not sure which is right for you? Our doctors will help you choose the best option.
                   </p>
-                  <Link href="/start?service=weight-loss">
+                  <Link href="/request?service=consult">
                     <Button className="bg-violet-600 hover:bg-violet-700 text-xs h-9">
                       Start Consultation
                       <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -417,7 +417,7 @@ export default function WeightLossPage() {
                   <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                     Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option.
                   </p>
-                  <Link href="/start?service=weight-loss">
+                  <Link href="/request?service=consult">
                     <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />

@@ -27,10 +27,10 @@ const heroVariants: HeroVariant[] = [
     cta: "Request a script",
   },
   {
-    id: "speed",
-    headline: "Doctor-reviewed documents. Delivered in under an hour.",
-    subheadline: "Medical certificates and repeat prescriptions from real Australian GPs. No phone call needed for most requests.",
-    cta: "Choose your service",
+    id: "trust",
+    headline: "Doctor-reviewed requests. Delivered in under an hour.",
+    subheadline: "Medical certificates and repeat prescriptions reviewed by AHPRA-registered Australian doctors. Most requests don't require a call.",
+    cta: "Get started",
   },
 ]
 

@@ -128,7 +128,7 @@ export async function POST(request: Request) {
   } catch (error) {
     log.error("Resend confirmation error", {}, error)
     return NextResponse.json(
-      { success: false, error: "An error occurred" },
+      { success: false, error: "We couldn't resend the confirmation. Please try again." },
       { status: 500 }
     )
   }

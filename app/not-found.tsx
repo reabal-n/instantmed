@@ -68,8 +68,8 @@ export default function NotFound() {
           <p className="text-sm text-muted-foreground mb-4">Quick links:</p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { href: "/start?service=med-cert", label: "Med Cert", icon: FileText },
-              { href: "/prescriptions/request", label: "Prescriptions", icon: Pill },
+              { href: "/request?service=med-cert", label: "Med Cert", icon: FileText },
+              { href: "/request?service=prescription", label: "Prescriptions", icon: Pill },
               { href: "/faq", label: "FAQ", icon: HelpCircle },
             ].map((link) => (
               <Link

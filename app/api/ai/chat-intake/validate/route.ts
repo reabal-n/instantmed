@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 import { auth } from "@clerk/nextjs/server"
-import { validateIntakePayload, type IntakePayload } from "@/lib/intake/chat-validation"
+import { validateIntakePayload, type IntakePayload } from "@/lib/chat/chat-validation"
 
 const log = createLogger("ai-chat-intake-validate")
 

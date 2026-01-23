@@ -119,7 +119,7 @@ export function PrescriptionSearch() {
 
           {/* Generic search option */}
           <button
-            onClick={() => router.push(`/prescriptions/request?search=${encodeURIComponent(query)}`)}
+            onClick={() => router.push(`/request?service=prescription&search=${encodeURIComponent(query)}`)}
             className="w-full flex items-center gap-3 p-3 text-left border-t hover:bg-muted transition-colors"
           >
             <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">

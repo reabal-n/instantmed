@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import { getCurrentUser, getUserProfile } from "@/lib/auth"
-import { UnifiedFlowClient } from "./unified-flow-client"
+import { RequestFlow } from "@/components/request"
+import { mapServiceParam } from "@/lib/request/step-registry"
 
 // Prevent static generation for dynamic auth
-
 export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "New Request | InstantMed",
   description:
@@ -20,20 +21,17 @@ export default async function RequestPage({
   const user = await getCurrentUser()
   const profile = user ? await getUserProfile(user.id) : null
 
-  const initialService = params.service as "medcert" | "prescription" | "referral" | undefined
+  // Map URL param to unified service type
+  const initialService = mapServiceParam(params.service)
 
   return (
-    <main className="min-h-screen bg-background">
-      <UnifiedFlowClient
-        initialService={initialService}
-        patientId={profile?.id || null}
-        isAuthenticated={!!user}
-        needsOnboarding={!!user && !profile}
-        userEmail={user?.email ?? undefined}
-        userName={profile?.full_name || user?.user_metadata?.full_name}
-        medicareNumber={profile?.medicare_number ?? undefined}
-        medicareIrn={profile?.medicare_irn ?? undefined}
-      />
-    </main>
+    <RequestFlow
+      initialService={initialService}
+      isAuthenticated={!!user}
+      hasProfile={!!profile}
+      hasMedicare={!!profile?.medicare_number}
+      userEmail={user?.email ?? undefined}
+      userName={profile?.full_name ?? undefined}
+    />
   )
 }

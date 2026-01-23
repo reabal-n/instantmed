@@ -498,7 +498,7 @@ export async function approveAndSendCert(
     })
     return {
       success: false,
-      error: error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "We hit an unexpected bump. Please try again.",
     }
   }
 }

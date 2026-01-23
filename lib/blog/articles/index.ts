@@ -3,6 +3,11 @@ import { conditionArticles } from './conditions'
 import { telehealthArticles } from './telehealth'
 import { medicationArticles } from './medications'
 import { workplaceArticles } from './workplace'
+import { seoArticles } from './seo-pages'
+import { highIntentSeoArticles } from './high-intent-seo'
+import { trustBuildingArticles } from './trust-building'
+import { locationArticles } from './locations'
+import { additionalSeoArticles } from './additional-seo'
 import type { Article, ArticleCategory } from '../types'
 
 // Combine all article collections
@@ -12,6 +17,11 @@ export const allArticles: Article[] = [
   ...telehealthArticles,
   ...medicationArticles,
   ...workplaceArticles,
+  ...seoArticles,
+  ...highIntentSeoArticles,
+  ...trustBuildingArticles,
+  ...locationArticles,
+  ...additionalSeoArticles,
 ]
 
 // Get article by slug

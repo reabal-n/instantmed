@@ -33,7 +33,7 @@ export async function requestEmailChangeAction(_newEmail: string): Promise<Chang
     log.error("Unexpected error in email change request", {}, error)
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again.",
+      error: "We couldn't update your email. Please try again.",
     }
   }
 }

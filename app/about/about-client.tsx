@@ -407,7 +407,7 @@ export function AboutClient() {
                 <p className="text-sm text-muted-foreground mb-6">
                   Join thousands of Australians who have made the switch to InstantMed.
                 </p>
-                <Link href="/start">
+                <Link href="/request">
                   <ShimmerButton className="px-8 h-12 font-semibold">
                     Get started
                     <ArrowRight className="ml-2 h-4 w-4" />

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import type { SelectedPBSProduct } from "@/components/intake/medication-search"
+import type { SelectedPBSProduct } from '@/components/shared/medication-search'
 
 /**
  * Hook for integrating PBS medication search into intake forms.

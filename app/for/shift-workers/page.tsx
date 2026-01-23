@@ -78,7 +78,7 @@ export default function ShiftWorkersPage() {
                     Works around your roster • All employers accept • AHPRA doctors
                   </p>
 
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
@@ -332,7 +332,7 @@ export default function ShiftWorkersPage() {
                   <p className="text-sm text-muted-foreground mb-6">
                     Works around your roster, not the other way around.
                   </p>
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />

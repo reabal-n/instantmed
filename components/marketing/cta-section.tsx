@@ -81,7 +81,7 @@ export function CTASection() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button 
                   as={Link}
-                  href="/start"
+                  href="/request"
                   color="primary"
                   size="lg"
                   className="px-8 h-12 font-semibold magnetic-button shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all glow-pulse"

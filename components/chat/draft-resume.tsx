@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { Clock, ArrowRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DraftIntake, getDraftSummary, clearDraft } from "@/lib/intake/draft-intake"
+import { DraftIntake, getDraftSummary, clearDraft } from "@/lib/chat/draft-intake"
 
 interface DraftResumeProps {
   draft: DraftIntake

@@ -210,7 +210,7 @@ export function DashboardContent({
         subtitle="Your health, handled online"
         action={
           <Button asChild size="sm" className="rounded-xl gap-1.5 shadow-lg shadow-primary/20">
-            <Link href="/start">
+            <Link href="/request">
               <Plus className="h-4 w-4" aria-hidden="true" />
               New request
             </Link>
@@ -264,7 +264,7 @@ export function DashboardContent({
           title="Medical Certificate"
           description="Work, uni, or carer's leave"
           icon={<FileText className="h-6 w-6" />}
-          href="/start?service=med-cert"
+          href="/request?service=med-cert"
           gradient="from-indigo-500 to-blue-600"
           delay={0.3}
         />
@@ -272,7 +272,7 @@ export function DashboardContent({
           title="Prescription"
           description="Repeat scripts & reviews"
           icon={<Pill className="h-6 w-6" />}
-          href="/start?service=repeat-script"
+          href="/request?service=prescription"
           gradient="from-violet-500 to-purple-600"
           delay={0.35}
         />
@@ -280,7 +280,7 @@ export function DashboardContent({
 
       {/* Quick Repeat Banner */}
       {showQuickRepeat && (
-        <QuickRepeatBanner href="/start?service=med-cert" />
+        <QuickRepeatBanner href="/request?service=med-cert" />
       )}
 
       {/* Needs Action */}
@@ -396,13 +396,13 @@ export function DashboardContent({
                 actions={
                   <>
                     <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
-                      <Link href="/start?service=med-cert">
+                      <Link href="/request?service=med-cert">
                         <FileText className="mr-1.5 h-4 w-4" aria-hidden="true" />
                         Medical Certificate
                       </Link>
                     </Button>
                     <Button asChild variant="outline" className="rounded-xl">
-                      <Link href="/start?service=repeat-script">
+                      <Link href="/request?service=prescription">
                         <Pill className="mr-1.5 h-4 w-4" aria-hidden="true" />
                         Prescription
                       </Link>

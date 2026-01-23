@@ -140,7 +140,7 @@ export async function ensureProfile(
     log.error("Unexpected error in ensureProfile", { userId }, err)
     return { 
       profileId: null, 
-      error: err instanceof Error ? err.message : "An unexpected error occurred during profile creation" 
+      error: err instanceof Error ? err.message : "We couldn't set up your profile. Please try signing in again." 
     }
   }
 }

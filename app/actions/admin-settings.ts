@@ -215,7 +215,7 @@ export async function createServiceAction(input: ServiceInput) {
 
   if (result.success) {
     revalidatePath("/admin/services")
-    revalidatePath("/start")
+    revalidatePath("/request")
     log.info("Service created by admin", { adminId: admin.id, slug: input.slug })
   }
 
@@ -229,7 +229,7 @@ export async function updateServiceAction(id: string, input: Partial<ServiceInpu
 
   if (result.success) {
     revalidatePath("/admin/services")
-    revalidatePath("/start")
+    revalidatePath("/request")
     log.info("Service updated by admin", { adminId: admin.id, serviceId: id })
   }
 
@@ -243,7 +243,7 @@ export async function toggleServiceActiveAction(id: string, isActive: boolean) {
 
   if (result.success) {
     revalidatePath("/admin/services")
-    revalidatePath("/start")
+    revalidatePath("/request")
     log.info("Service toggled by admin", { adminId: admin.id, serviceId: id, isActive })
   }
 
@@ -257,7 +257,7 @@ export async function updateServiceOrderAction(orderedIds: string[]) {
 
   if (result.success) {
     revalidatePath("/admin/services")
-    revalidatePath("/start")
+    revalidatePath("/request")
     log.info("Service order updated by admin", { adminId: admin.id })
   }
 
@@ -271,7 +271,7 @@ export async function deleteServiceAction(id: string) {
 
   if (result.success) {
     revalidatePath("/admin/services")
-    revalidatePath("/start")
+    revalidatePath("/request")
     log.info("Service deleted by admin", { adminId: admin.id, serviceId: id })
   }
 

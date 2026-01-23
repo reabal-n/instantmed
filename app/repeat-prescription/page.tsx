@@ -229,7 +229,7 @@ export default function RepeatPrescriptionPage() {
                 >
                   <Button 
                     as={Link}
-                    href="/start?service=repeat-script"
+                    href="/request?service=prescription"
                     color="primary"
                     size="lg"
                     className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -454,7 +454,7 @@ export default function RepeatPrescriptionPage() {
               >
                 <Button 
                   as={Link}
-                  href="/start?service=repeat-script"
+                  href="/request?service=prescription"
                   color="primary"
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25"
@@ -566,7 +566,7 @@ export default function RepeatPrescriptionPage() {
               >
                 <Button
                   as={Link}
-                  href="/start?service=repeat-script"
+                  href="/request?service=prescription"
                   color="primary"
                   size="lg"
                   className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
@@ -725,7 +725,7 @@ export default function RepeatPrescriptionPage() {
                         ))}
                       </div>
                       
-                      <Link href="/start?service=repeat-script">
+                      <Link href="/request?service=prescription">
                         <ShimmerButton className="px-8 h-12 font-semibold">
                           Renew your prescription
                           <ArrowRight className="h-4 w-4 ml-2" />
@@ -754,7 +754,7 @@ export default function RepeatPrescriptionPage() {
         }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <Link href="/start?service=repeat-script" className="block">
+        <Link href="/request?service=prescription" className="block">
           <ShimmerButton className="w-full flex items-center justify-center gap-2 py-3">
             Request prescription
             <ArrowRight className="w-4 h-4" />

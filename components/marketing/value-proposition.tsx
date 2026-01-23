@@ -136,7 +136,7 @@ export function ServiceTypeCards({ className }: { className?: string }) {
           </div>
         </div>
 
-        <Link href="/start" className="block mt-6">
+        <Link href="/request" className="block mt-6">
           <Button className="w-full magnetic-button glow-pulse bg-green-600 hover:bg-green-700 text-white">
             Get Started
             <ArrowRight className="h-4 w-4 ml-2 icon-spin-hover" />
@@ -350,7 +350,7 @@ export function HowItWorksSection({ className }: { className?: string }) {
           <strong>No phone call required</strong> for medical certificates and
           repeat prescriptions
         </p>
-        <Link href="/start">
+        <Link href="/request">
           <Button size="lg" className="bg-primary hover:bg-primary/90">
             Get started now
             <ArrowRight className="h-4 w-4 ml-2" />

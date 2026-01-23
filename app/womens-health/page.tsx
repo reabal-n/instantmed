@@ -146,7 +146,7 @@ export default function WomensHealthPage() {
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                    <Link href="/start?service=womens-health">
+                    <Link href="/request?service=consult">
                       <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-background text-sm px-6 w-full sm:w-auto">
                         Start Consultation
                         <ArrowRight className="h-4 w-4 ml-2" />
@@ -258,7 +258,7 @@ export default function WomensHealthPage() {
                         </p>
                       )}
 
-                      <Link href={`/start?service=womens-health&condition=${service.id}`}>
+                      <Link href={`/request?service=consult&condition=${service.id}`}>
                         <Button className="bg-pink-600 hover:bg-pink-700 w-full sm:w-auto text-xs h-9">
                           Start Consultation
                           <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -351,7 +351,7 @@ export default function WomensHealthPage() {
                     Some things are easier to discuss without eye contact. Our online process lets you share what&apos;s happening
                     in your own words, at your own pace. A real doctor reads everything and responds thoughtfully — no judgement, just care.
                   </p>
-                  <Link href="/start?service=womens-health">
+                  <Link href="/request?service=consult">
                     <Button className="bg-pink-600 hover:bg-pink-700 text-sm h-10 px-6">
                       Start Your Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />
@@ -398,7 +398,7 @@ export default function WomensHealthPage() {
                   <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
                     Complete a confidential consultation in minutes. Request a female doctor if you prefer.
                   </p>
-                  <Link href="/start?service=womens-health">
+                  <Link href="/request?service=consult">
                     <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-background text-sm px-8 h-12">
                       Start Consultation
                       <ArrowRight className="h-4 w-4 ml-2" />

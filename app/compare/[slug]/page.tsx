@@ -357,7 +357,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                     ))}
                   </ul>
                   <Button asChild className="mt-6 w-full rounded-full">
-                    <Link href="/start">
+                    <Link href="/request">
                       Try InstantMed
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Link>
@@ -424,7 +424,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 See why thousands of Australians choose InstantMed for their healthcare needs.
               </p>
               <Button asChild size="lg" className="h-14 px-10 rounded-full">
-                <Link href="/start">
+                <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>

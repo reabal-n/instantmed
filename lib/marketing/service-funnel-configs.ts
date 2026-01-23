@@ -20,7 +20,7 @@ export const medCertFunnelConfig: ServiceFunnelConfig = {
       'AHPRA registered doctors',
     ],
     ctaText: 'Get started',
-    ctaHref: '/start?service=med-cert',
+    ctaHref: '/request?service=med-cert',
     images: {
       primary: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=500&fit=crop&crop=face',
       secondary: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face',
@@ -212,7 +212,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
       'Any pharmacy Australia-wide',
     ],
     ctaText: 'Request your script',
-    ctaHref: '/start?service=repeat-script',
+    ctaHref: '/request?service=prescription',
     highlightBadge: {
       text: 'Most requests don\'t need a call',
       glow: false,
@@ -400,7 +400,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       'Prescriptions if appropriate',
     ],
     ctaText: 'Book a consult',
-    ctaHref: '/start?service=consult',
+    ctaHref: '/request?service=consult',
   },
   
   whoItsFor: {

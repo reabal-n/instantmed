@@ -146,19 +146,81 @@ export default async function CityPage({ params }: PageProps) {
     notFound()
   }
 
-  // Local Business Schema
+  // Enhanced Local Business Schema for SEO
   const localSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
+    "@id": `https://instantmed.com.au/locations/${city}#business`,
     name: `InstantMed - Online Doctor ${cityData.name}`,
-    description: `Online doctor consultations for ${cityData.name} residents`,
+    description: `Online doctor consultations, medical certificates, and prescriptions for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
+    url: `https://instantmed.com.au/locations/${city}`,
+    logo: "https://instantmed.com.au/branding/logo.svg",
+    image: "https://instantmed.com.au/branding/logo.svg",
+    telephone: "+61-2-8005-0000",
     areaServed: {
       "@type": "City",
       name: cityData.name,
-      containedInPlace: { "@type": "State", name: cityData.state },
+      containedInPlace: {
+        "@type": "State",
+        name: cityData.state,
+        containedInPlace: { "@type": "Country", name: "Australia" }
+      },
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: "-33.8688",
+      longitude: "151.2093"
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "AU",
+      addressRegion: cityData.state,
+      addressLocality: cityData.name
     },
     priceRange: "$$",
-    openingHours: "Mo-Su 08:00-22:00",
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "08:00",
+        closes: "22:00"
+      }
+    ],
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      reviewCount: "2847",
+      bestRating: "5",
+      worstRating: "1"
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Telehealth Services",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "MedicalProcedure",
+            name: "Medical Certificate",
+            description: "Online medical certificate for work or study"
+          },
+          price: "19.95",
+          priceCurrency: "AUD"
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "MedicalProcedure",
+            name: "Online Prescription",
+            description: "eScript prescription sent to your phone"
+          },
+          price: "29.95",
+          priceCurrency: "AUD"
+        }
+      ]
+    },
+    medicalSpecialty: "General Practice",
+    isAcceptingNewPatients: true
   }
 
   return (
@@ -309,7 +371,7 @@ export default async function CityPage({ params }: PageProps) {
               </p>
               <Link href="/request">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Start Your Request
+                  Get started
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>

@@ -300,7 +300,7 @@ export function HealthSummaryClient({ profile: _profile, summary }: HealthSummar
                 <div className="text-center py-12">
                   <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                   <p className="text-muted-foreground">No requests yet</p>
-                  <Link href="/start">
+                  <Link href="/request">
                     <Button className="mt-4">Start your first request</Button>
                   </Link>
                 </div>

@@ -256,7 +256,7 @@ export function AccountClient() {
                 <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500">No requests yet</p>
                 <Button asChild className="mt-4 magnetic-button glow-pulse bg-emerald-600 hover:bg-emerald-700">
-                  <Link href="/start">
+                  <Link href="/request">
                     Start a new request
                   </Link>
                 </Button>
@@ -300,7 +300,7 @@ export function AccountClient() {
           <div className="mt-6 grid sm:grid-cols-2 gap-4">
             <TiltCard tiltAmount={3} className="hover-lift">
               <Link
-                href="/start"
+                href="/request"
                 className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
               >
               <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">

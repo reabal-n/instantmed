@@ -25,14 +25,14 @@ import {
   saveDraft, 
   clearDraft,
   generateDraftId,
-} from "@/lib/intake/draft-intake"
+} from "@/lib/chat/draft-intake"
 import { 
   detectIntakeStep,
   generateSessionId,
   INTAKE_STEPS,
   type ServiceType,
-} from "@/lib/intake/intake-analytics-types"
-import { savePrefillData } from "@/lib/intake/form-prefill"
+} from "@/lib/chat/intake-analytics-types"
+import { savePrefillData } from "@/lib/chat/form-prefill"
 
 const CHAT_STORAGE_KEY = "instantmed_chat_history"
 const CHAT_BUBBLE_DISMISSED_KEY = "instantmed_chat_bubble_dismissed"

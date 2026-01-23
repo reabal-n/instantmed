@@ -68,7 +68,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
 
               {pageType !== 'resource' && (
                 <Button asChild size="lg" className="rounded-full shadow-lg">
-                  <Link href="/start">
+                  <Link href="/request">
                     Start online consult
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -273,7 +273,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 Complete your request in under 2 minutes. Only pay if we can help.
               </p>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/start">
+                <Link href="/request">
                   Start online consult
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Link>

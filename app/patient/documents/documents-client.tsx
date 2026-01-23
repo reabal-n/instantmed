@@ -80,7 +80,7 @@ export function DocumentsClient({ documents }: DocumentsClientProps) {
                   Once you complete a request and it&apos;s approved, your documents will appear here.
                 </p>
                 <Button asChild>
-                  <Link href="/start">Start a request</Link>
+                  <Link href="/request">Start a request</Link>
                 </Button>
               </CardContent>
             </Card>

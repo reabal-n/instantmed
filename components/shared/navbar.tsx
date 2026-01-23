@@ -283,7 +283,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
                   <div className="ml-2 flex items-center gap-2">
                     <SkyToggle size={8} />
-                    <ShatterButtonLink href="/start" className="text-xs h-7 px-3 py-1">
+                    <ShatterButtonLink href="/request" className="text-xs h-7 px-3 py-1">
                       Get started
                     </ShatterButtonLink>
                     <SignedOut>
@@ -477,7 +477,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </SignedIn>
-                <ShatterButtonLink href="/start" className="w-full rounded-xl">
+                <ShatterButtonLink href="/request" className="w-full rounded-xl">
                   Get started
                 </ShatterButtonLink>
               </>

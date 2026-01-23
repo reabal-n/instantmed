@@ -181,7 +181,7 @@ export async function createRequestAction(input: CreateRequestInput): Promise<Cr
     log.error("[createRequestAction] Unexpected error", { error: String(error) })
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again or contact support at help@instantmed.com.au",
+      error: "We couldn't create your request. Please try again or contact us at help@instantmed.com.au",
       errorCode: "UNEXPECTED_ERROR",
     }
   }
@@ -240,7 +240,7 @@ export async function updateDraftAction(
     return { success: true }
   } catch (error) {
     log.error("[updateDraftAction] Unexpected error", { error: String(error) })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't save your changes. Please try again." }
   }
 }
 

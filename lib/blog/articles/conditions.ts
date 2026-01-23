@@ -16,7 +16,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.hayFever,
     heroImageAlt: 'Person outdoors during spring with seasonal allergies',
     content: [
-      { type: 'paragraph', content: 'Hay fever — medically known as allergic rhinitis — affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.' },
+      { type: 'paragraph', content: 'Hay fever — medically known as allergic rhinitis — affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.', links: [{ text: 'allergic rhinitis', href: '/blog/telehealth-vs-in-person', title: 'When to see a doctor' }] },
       { type: 'heading', content: 'Common Triggers', level: 2 },
       { type: 'list', content: '', items: ['Grass pollen (most common in Australia)', 'Tree pollen (especially in spring)', 'Dust mites', 'Pet dander', 'Mould spores'] },
       { type: 'heading', content: 'Recognising Symptoms', level: 2 },
@@ -52,7 +52,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.conjunctivitis,
     heroImageAlt: 'Close-up of healthy eye representing eye care',
     content: [
-      { type: 'paragraph', content: 'Conjunctivitis — commonly called pink eye — is inflammation of the clear tissue covering the white of your eye. It\'s one of the most common eye conditions and is usually not serious.' },
+      { type: 'paragraph', content: 'Conjunctivitis — commonly called pink eye — is inflammation of the clear tissue covering the white of your eye. It\'s one of the most common eye conditions and is usually not serious.', links: [{ text: 'common eye conditions', href: '/blog/what-is-telehealth', title: 'Online consultations for common conditions' }] },
       { type: 'heading', content: 'Types of Conjunctivitis', level: 2 },
       { type: 'heading', content: 'Viral', level: 3 },
       { type: 'paragraph', content: 'Most common type. Watery discharge, highly contagious, resolves in 1-2 weeks without antibiotics.' },
@@ -199,7 +199,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.backPain,
     heroImageAlt: 'Joint health and mobility concept',
     content: [
-      { type: 'paragraph', content: 'Gout is inflammatory arthritis caused by uric acid crystals forming in joints. The big toe is most commonly affected, but gout can affect any joint.' },
+      { type: 'paragraph', content: 'Gout is inflammatory arthritis caused by uric acid crystals forming in joints. The big toe is most commonly affected, but gout can affect any joint.', links: [{ text: 'inflammatory arthritis', href: '/blog/medical-certificate-online-australia', title: 'Get a medical certificate if you cannot work' }] },
       { type: 'heading', content: 'Risk Factors', level: 2 },
       { type: 'list', content: '', items: ['Diet high in purines (red meat, seafood)', 'Alcohol, especially beer', 'Sugary drinks', 'Obesity', 'Certain medications', 'Kidney disease'] },
       { type: 'heading', content: 'Recognising Gout', level: 2 },
@@ -235,7 +235,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.eczema,
     heroImageAlt: 'Skin health and dermatology concept',
     content: [
-      { type: 'paragraph', content: 'Eczema (atopic dermatitis) is a chronic skin condition causing dry, itchy, inflamed skin. It affects about 1 in 3 Australians at some point.' },
+      { type: 'paragraph', content: 'Eczema (atopic dermatitis) is a chronic skin condition causing dry, itchy, inflamed skin. It affects about 1 in 3 Australians at some point.', links: [{ text: 'chronic skin condition', href: '/blog/online-prescription-australia', title: 'Get treatment online' }] },
       { type: 'heading', content: 'Symptoms', level: 2 },
       { type: 'list', content: '', items: ['Dry, sensitive skin', 'Intense itching (often worse at night)', 'Red or brownish-grey patches', 'Thickened, cracked skin', 'Common on elbows, knees, hands, face'] },
       { type: 'heading', content: 'Common Triggers', level: 2 },
@@ -272,7 +272,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.reflux,
     heroImageAlt: 'Digestive health and wellness concept',
     content: [
-      { type: 'paragraph', content: 'Irritable bowel syndrome (IBS) is a common gut disorder causing abdominal pain, bloating, and changes in bowel habits. It\'s uncomfortable but doesn\'t damage the bowel.' },
+      { type: 'paragraph', content: 'Irritable bowel syndrome (IBS) is a common gut disorder causing abdominal pain, bloating, and changes in bowel habits. It\'s uncomfortable but doesn\'t damage the bowel.', links: [{ text: 'common gut disorder', href: '/blog/medical-certificate-food-poisoning', title: 'Medical certificates for digestive issues' }] },
       { type: 'heading', content: 'Types of IBS', level: 2 },
       { type: 'list', content: '', items: ['IBS-D: Diarrhea predominant', 'IBS-C: Constipation predominant', 'IBS-M: Mixed (alternating)'] },
       { type: 'heading', content: 'Symptoms', level: 2 },

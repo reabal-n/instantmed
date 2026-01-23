@@ -983,7 +983,7 @@ export default function TrustPage() {
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
                 Join thousands of Australians who trust InstantMed for their healthcare needs.
               </p>
-              <Link href="/start">
+              <Link href="/request">
                 <ShimmerButton className="inline-flex items-center gap-2 px-8 py-4 text-lg">
                   Get started
                   <ArrowRight className="w-5 h-5" />
@@ -1011,7 +1011,7 @@ export default function TrustPage() {
         }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <Link href="/start" className="block">
+        <Link href="/request" className="block">
           <ShimmerButton className="w-full flex items-center justify-center gap-2 py-3">
             Get started
             <ArrowRight className="w-4 h-4" />

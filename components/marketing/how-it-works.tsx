@@ -118,7 +118,7 @@ export function HowItWorks() {
         >
           <Button
             as={Link}
-            href="/start"
+            href="/request"
             color="primary"
             size="lg"
             className="px-8 h-12 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"

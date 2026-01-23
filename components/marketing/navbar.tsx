@@ -12,19 +12,19 @@ import { motion } from 'framer-motion'
 const services = [
   {
     label: 'Medical Certificates',
-    href: '/start?service=med-cert',
+    href: '/request?service=med-cert',
     description: 'Work, uni & carer\'s leave',
     icon: FileText,
   },
   {
     label: 'Repeat Scripts',
-    href: '/start?service=repeat-script',
+    href: '/request?service=prescription',
     description: 'Medications you already take',
     icon: Pill,
   },
   {
     label: 'General Consult',
-    href: '/start?service=consult',
+    href: '/request?service=consult',
     description: 'New prescriptions & dose changes',
     icon: Stethoscope,
   },
@@ -203,7 +203,7 @@ export function MarketingNavbar() {
                 size="sm"
                 className="relative bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all group"
               >
-                <Link href="/start">
+                <Link href="/request">
                   See a doctor now
                   <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
@@ -273,7 +273,7 @@ export function MarketingNavbar() {
                 asChild
                 className="w-full justify-center bg-linear-to-r from-indigo-500 to-violet-600 text-white rounded-xl"
               >
-                <Link href="/start">See a doctor now</Link>
+                <Link href="/request">See a doctor now</Link>
               </Button>
             </div>
           </div>

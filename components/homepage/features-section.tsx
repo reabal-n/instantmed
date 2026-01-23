@@ -180,7 +180,7 @@ export function FeaturesSection() {
         >
           <MagneticButton>
             <Button size="lg" asChild className="rounded-full btn-premium px-8 relative overflow-hidden group">
-              <Link href="/start">
+              <Link href="/request">
                 <span className="relative z-10 flex items-center">
                   View all services
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

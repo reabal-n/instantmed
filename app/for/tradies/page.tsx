@@ -78,7 +78,7 @@ export default function TradiesPage() {
                     Valid for all employers • AHPRA doctors • Done from your phone
                   </p>
 
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
@@ -285,7 +285,7 @@ export default function TradiesPage() {
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your cert on your phone. No stuffing around.
                   </p>
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-dawn-500 hover:bg-dawn-600 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />

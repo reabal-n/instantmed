@@ -81,7 +81,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                     <p className="text-4xl font-bold">${med.price}</p>
                   </div>
                   <Button asChild className="w-full h-12 text-base" size="lg">
-                    <Link href={`/prescriptions/request?medication=${med.slug}`}>
+                    <Link href={`/request?service=prescription&medication=${med.slug}`}>
                       Request {med.name}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
@@ -188,7 +188,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
               Fill out a quick questionnaire. A doctor reviews within hours. E-script sent straight to your phone.
             </p>
             <Button asChild size="lg" className="h-12 px-8">
-              <Link href={`/prescriptions/request?medication=${med.slug}`}>
+              <Link href={`/request?service=prescription&medication=${med.slug}`}>
                 Get started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

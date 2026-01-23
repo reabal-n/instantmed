@@ -20,7 +20,8 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Mental health conditions are legitimate medical concerns. Taking time off to manage anxiety, stress, depression, or burnout is not only valid — it\'s often necessary for your overall wellbeing and long-term productivity.'
+        content: 'Mental health conditions are legitimate medical concerns. Taking time off to manage anxiety, stress, depression, or burnout is not only valid — it\'s often necessary for your overall wellbeing and long-term productivity.',
+        links: [{ text: 'Taking time off', href: '/blog/how-long-medical-certificate', title: 'Medical certificate duration guide' }]
       },
       {
         type: 'heading',
@@ -29,7 +30,8 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Yes. In Australia, mental health conditions are treated the same as physical health conditions under workplace law. If you\'re unwell due to a mental health issue and can\'t work, you\'re entitled to take personal leave — and a medical certificate supports this.'
+        content: 'Yes. In Australia, mental health conditions are treated the same as physical health conditions under workplace law. If you\'re unwell due to a mental health issue and can\'t work, you\'re entitled to take personal leave — and a medical certificate supports this.',
+        links: [{ text: 'personal leave', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave rights' }]
       },
       {
         type: 'paragraph',
@@ -251,7 +253,8 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'You can get a medical certificate for food poisoning through a telehealth consultation. The doctor will assess your symptoms and, if appropriate, provide a certificate for the time you need to recover.'
+        content: 'You can get a medical certificate for food poisoning through a telehealth consultation. The doctor will assess your symptoms and, if appropriate, provide a certificate for the time you need to recover.',
+        links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'What is telehealth?' }]
       },
       {
         type: 'paragraph',
@@ -388,7 +391,8 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Severe period pain — medically called dysmenorrhea — affects many women and can significantly impact daily activities, including work. If your period pain is preventing you from working, you have every right to take sick leave.'
+        content: 'Severe period pain — medically called dysmenorrhea — affects many women and can significantly impact daily activities, including work. If your period pain is preventing you from working, you have every right to take sick leave.',
+        links: [{ text: 'sick leave', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave rights' }]
       },
       {
         type: 'heading',
@@ -436,7 +440,8 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'You can get a medical certificate for period pain through a telehealth consultation. The process is straightforward and discreet:'
+        content: 'You can get a medical certificate for period pain through a telehealth consultation. The process is straightforward and discreet:',
+        links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'What is telehealth?' }]
       },
       {
         type: 'list',
@@ -567,7 +572,8 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Centrelink requires medical evidence for various payments and circumstances. Understanding what\'s needed can help you get the right documentation and avoid delays in your claims.'
+        content: 'Centrelink requires medical evidence for various payments and circumstances. Understanding what\'s needed can help you get the right documentation and avoid delays in your claims.',
+        links: [{ text: 'medical evidence', href: '/blog/are-online-medical-certificates-valid', title: 'Are online certificates valid?' }]
       },
       {
         type: 'heading',
@@ -663,7 +669,8 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'A telehealth medical certificate is appropriate for:'
+        content: 'A telehealth medical certificate is appropriate for:',
+        links: [{ text: 'telehealth medical certificate', href: '/blog/medical-certificate-online-australia', title: 'Get a medical certificate online' }]
       },
       {
         type: 'list',
@@ -730,7 +737,7 @@ export const medicalCertificateArticles: Article[] = [
     ],
     seo: {
       title: 'Medical Certificate for Centrelink | Requirements & How to Get One | InstantMed',
-      description: 'What medical certificates does Centrelink accept? Learn about requirements for JobSeeker, DSP, and other payments, and when online certificates are appropriate.',
+      description: 'What medical certificates does Centrelink accept? Requirements for JobSeeker, DSP, and when online certificates work.',
       keywords: [
         'centrelink medical certificate',
         'medical certificate jobseeker',
@@ -758,7 +765,8 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'When a family member or household member is ill and needs your care, you\'re entitled to take carer\'s leave. This comes from the same pool as your personal/sick leave under Australian workplace law.'
+        content: 'When a family member or household member is ill and needs your care, you\'re entitled to take carer\'s leave. This comes from the same pool as your personal/sick leave under Australian workplace law.',
+        links: [{ text: 'personal/sick leave', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave rights' }]
       },
       {
         type: 'heading',

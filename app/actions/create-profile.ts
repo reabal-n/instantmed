@@ -141,7 +141,7 @@ export async function createOrGetProfile(
   } catch (err) {
     return {
       profileId: null,
-      error: err instanceof Error ? err.message : "An unexpected error occurred. Please try again.",
+      error: err instanceof Error ? err.message : "We couldn't create your profile. Please try again.",
     }
   }
 }

@@ -93,7 +93,7 @@ export default function WorkMedCertPage() {
 
               <Button 
                 as={Link}
-                href="/start?service=med-cert"
+                href="/request?service=med-cert"
                 size="lg" 
                 className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-8"
               >
@@ -394,7 +394,7 @@ export default function WorkMedCertPage() {
               </p>
               <Button 
                 as={Link}
-                href="/start?service=med-cert"
+                href="/request?service=med-cert"
                 size="lg" 
                 className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-8"
               >

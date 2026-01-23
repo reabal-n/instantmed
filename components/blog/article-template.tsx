@@ -28,7 +28,7 @@ import { ArticleTags } from "@/components/blog/article-tags"
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
 import { HeroImage as _HeroImage } from "@/components/blog/hero-image"
 import { PopularArticlesCompact } from "@/components/blog/popular-articles"
-import type { Article, ArticleSection, RelatedService, ArticleFAQ } from "@/lib/blog/types"
+import type { Article, ArticleSection, RelatedService, ArticleFAQ, ArticleLink } from "@/lib/blog/types"
 
 interface ArticleTemplateProps {
   article: Article
@@ -95,6 +95,44 @@ function CalloutBox({ variant, content }: { variant: ArticleSection['variant'], 
   )
 }
 
+function renderContentWithLinks(content: string, links?: ArticleLink[]): React.ReactNode {
+  if (!links || links.length === 0) {
+    return content
+  }
+  
+  // Sort links by position in text (longest match first to avoid partial replacements)
+  const sortedLinks = [...links].sort((a, b) => b.text.length - a.text.length)
+  
+  let result: React.ReactNode[] = [content]
+  
+  sortedLinks.forEach((link, linkIndex) => {
+    result = result.flatMap((part, partIndex) => {
+      if (typeof part !== 'string') return part
+      
+      const regex = new RegExp(`(${link.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i')
+      const parts = part.split(regex)
+      
+      return parts.map((segment, segIndex) => {
+        if (segment.toLowerCase() === link.text.toLowerCase()) {
+          return (
+            <Link 
+              key={`link-${linkIndex}-${partIndex}-${segIndex}`}
+              href={link.href}
+              className="text-primary hover:underline"
+              title={link.title}
+            >
+              {segment}
+            </Link>
+          )
+        }
+        return segment
+      })
+    })
+  })
+  
+  return result
+}
+
 function ContentSection({ section }: { section: ArticleSection }) {
   switch (section.type) {
     case 'heading':
@@ -114,7 +152,7 @@ function ContentSection({ section }: { section: ArticleSection }) {
     case 'paragraph':
       return (
         <p className="text-muted-foreground leading-relaxed mb-4">
-          {section.content}
+          {renderContentWithLinks(section.content, section.links)}
         </p>
       )
     
@@ -138,26 +176,51 @@ function ContentSection({ section }: { section: ArticleSection }) {
   }
 }
 
+function generateFaqId(question: string, index: number): string {
+  return `faq-${index + 1}-${question.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)}`
+}
+
 function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   return (
     <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
-      <h2 className="text-xl font-bold text-foreground mb-6">
+      <h2 className="text-xl font-bold text-foreground mb-6" id="faq">
         Frequently Asked Questions
       </h2>
-      <div className="space-y-4">
+      <div className="space-y-4" itemScope itemType="https://schema.org/FAQPage">
+        {faqs.map((faq, i) => {
+          const faqId = generateFaqId(faq.question, i)
+          return (
+            <details 
+              key={i}
+              id={faqId}
+              className="group border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden scroll-mt-24"
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+            >
+              <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-slate-50 dark:hover:bg-slate-900/50 list-none">
+                <span itemProp="name">{faq.question}</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
+              <div 
+                className="px-4 pb-4 text-muted-foreground"
+                itemScope
+                itemProp="acceptedAnswer"
+                itemType="https://schema.org/Answer"
+              >
+                <span itemProp="text">{faq.answer}</span>
+              </div>
+            </details>
+          )
+        })}
+      </div>
+      {/* Hidden content for crawlers - ensures FAQ answers are indexed even when collapsed */}
+      <div className="sr-only" aria-hidden="true">
         {faqs.map((faq, i) => (
-          <details 
-            key={i}
-            className="group border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"
-          >
-            <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-slate-50 dark:hover:bg-slate-900/50 list-none">
-              <span>{faq.question}</span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="px-4 pb-4 text-muted-foreground">
-              {faq.answer}
-            </div>
-          </details>
+          <div key={`seo-${i}`}>
+            <h3>{faq.question}</h3>
+            <p>{faq.answer}</p>
+          </div>
         ))}
       </div>
     </div>
@@ -330,7 +393,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           Get assessed by an Australian-registered doctor. Most requests reviewed within an hour.
         </p>
         <Button asChild size="lg" className="rounded-full">
-          <Link href="/start">
+          <Link href="/request">
             Get started
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>

@@ -102,6 +102,6 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })
-    return { success: false, error: "An unexpected error occurred" }
+    return { success: false, error: "We couldn't process that request. Please try again." }
   }
 }

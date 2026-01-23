@@ -116,7 +116,7 @@ export default function GuidesIndexPage() {
                 Skip the reading — our doctors can help you in under an hour.
               </p>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/start">
+                <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>

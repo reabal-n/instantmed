@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 
-export const dynamic = "force-dynamic"
-
+/**
+ * /prescriptions/new redirects to consult flow (new medications require assessment)
+ */
 export default function NewPrescriptionPage() {
-  redirect("/prescriptions/request")
+  redirect("/request?service=consult")
 }

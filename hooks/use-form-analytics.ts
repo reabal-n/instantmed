@@ -190,8 +190,10 @@ export function useFormAnalytics({ formName, service, enabled = true }: FormAnal
 
   // Track abandonment on unmount if form wasn't submitted
   useEffect(() => {
+    const interactions = fieldInteractions.current
+    const hasStarted = hasTrackedStart.current
     return () => {
-      if (hasTrackedStart.current && fieldInteractions.current.size > 0) {
+      if (hasStarted && interactions.size > 0) {
         trackFormAbandon("page_leave")
       }
     }

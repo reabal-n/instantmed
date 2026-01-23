@@ -270,7 +270,7 @@ export default function OurDoctorsPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild className="rounded-full">
-                  <Link href="/start">Start your request</Link>
+                  <Link href="/request">Get started</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full bg-transparent">
                   <Link href="/clinical-governance">

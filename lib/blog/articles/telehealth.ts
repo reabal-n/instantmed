@@ -18,7 +18,7 @@ export const telehealthArticles: Article[] = [
     heroImage: blogImages.whatIsTelehealth,
     heroImageAlt: 'Doctor consulting with patient via video call',
     content: [
-      { type: 'paragraph', content: 'Telehealth is healthcare delivered remotely using technology. Instead of visiting a clinic, you consult with a doctor via video call, phone, or secure messaging. It\'s been part of Australian healthcare for years, but has become much more common and accessible.' },
+      { type: 'paragraph', content: 'Telehealth is healthcare delivered remotely using technology. Instead of visiting a clinic, you consult with a doctor via video call, phone, or secure messaging. It\'s been part of Australian healthcare for years, but has become much more common and accessible.', links: [{ text: 'secure messaging', href: '/blog/telehealth-privacy-security', title: 'Telehealth privacy and security' }] },
       { type: 'heading', content: 'How Telehealth Works', level: 2 },
       { type: 'list', content: '', items: ['You request a consultation online or via an app', 'A doctor reviews your information', 'You consult via video, phone, or messaging (depending on the service)', 'The doctor provides advice, prescriptions, referrals, or certificates as needed', 'Follow-up is arranged if required'] },
       { type: 'heading', content: 'What Can Telehealth Treat?', level: 2 },
@@ -61,7 +61,7 @@ export const telehealthArticles: Article[] = [
     heroImage: blogImages.telehealthVsInPerson,
     heroImageAlt: 'Comparing telehealth and in-person consultations',
     content: [
-      { type: 'paragraph', content: 'Both telehealth and in-person care have their place. Understanding when each is appropriate helps you get the right care at the right time.' },
+      { type: 'paragraph', content: 'Both telehealth and in-person care have their place. Understanding when each is appropriate helps you get the right care at the right time.', links: [{ text: 'right care', href: '/blog/when-telehealth-cant-help', title: 'When telehealth isn\'t right' }] },
       { type: 'heading', content: 'When Telehealth Works Well', level: 2 },
       { type: 'list', content: '', items: ['Cold, flu, and minor infections', 'Skin issues that can be shown via photo/video', 'Mental health check-ins and counselling', 'Medication refills for stable conditions', 'Medical certificates for common illnesses', 'Sexual health advice and treatment', 'Follow-up consultations', 'Health questions and advice'] },
       { type: 'heading', content: 'When to See a Doctor In Person', level: 2 },
@@ -102,7 +102,7 @@ export const telehealthArticles: Article[] = [
     heroImage: blogImages.eScripts,
     heroImageAlt: 'Electronic prescription on smartphone',
     content: [
-      { type: 'paragraph', content: 'Electronic prescriptions (eScripts) are the digital version of paper prescriptions. Instead of a printed script, you receive a text message with a QR code or token that any pharmacy can scan to dispense your medication.' },
+      { type: 'paragraph', content: 'Electronic prescriptions (eScripts) are the digital version of paper prescriptions. Instead of a printed script, you receive a text message with a QR code or token that any pharmacy can scan to dispense your medication.', links: [{ text: 'text message', href: '/blog/online-prescription-australia', title: 'Get a prescription online' }] },
       { type: 'heading', content: 'How eScripts Work', level: 2 },
       { type: 'list', content: '', items: ['Your doctor creates an electronic prescription', 'You receive an SMS with a link to your eScript', 'The SMS contains a QR code and a token number', 'Take your phone to any pharmacy in Australia', 'The pharmacist scans the QR code or enters the token', 'You receive your medication'] },
       { type: 'callout', variant: 'info', content: 'eScripts are sent directly to your phone via SMS. You don\'t need a special app — just your phone\'s messaging and camera.' },
@@ -143,7 +143,7 @@ export const telehealthArticles: Article[] = [
     heroImage: blogImages.telehealthPrivacy,
     heroImageAlt: 'Secure digital healthcare and privacy concept',
     content: [
-      { type: 'paragraph', content: 'Your health information is sensitive. Understanding how telehealth services protect your privacy can help you feel confident using online healthcare.' },
+      { type: 'paragraph', content: 'Your health information is sensitive. Understanding how telehealth services protect your privacy can help you feel confident using online healthcare.', links: [{ text: 'online healthcare', href: '/blog/is-telehealth-legal-australia', title: 'Is telehealth legal?' }] },
       { type: 'heading', content: 'Legal Protections', level: 2 },
       { type: 'paragraph', content: 'Australian telehealth services are bound by:' },
       { type: 'list', content: '', items: ['Privacy Act 1988 and Australian Privacy Principles', 'State and territory health records legislation', 'AHPRA codes of conduct for registered health practitioners', 'TGA requirements for therapeutic goods'] },
@@ -224,7 +224,7 @@ export const telehealthArticles: Article[] = [
     heroImage: blogImages.telehealthAfterHours,
     heroImageAlt: 'After hours healthcare access concept',
     content: [
-      { type: 'paragraph', content: 'Health problems don\'t always happen during business hours. When your GP is closed, you have several options depending on how urgent your situation is.' },
+      { type: 'paragraph', content: 'Health problems don\'t always happen during business hours. When your GP is closed, you have several options depending on how urgent your situation is.', links: [{ text: 'several options', href: '/blog/telehealth-vs-in-person', title: 'Telehealth vs in-person care' }] },
       { type: 'heading', content: 'Assessing Urgency', level: 2 },
       { type: 'heading', content: 'Emergency (Call 000)', level: 3 },
       { type: 'list', content: '', items: ['Chest pain or difficulty breathing', 'Signs of stroke (facial drooping, arm weakness, speech problems)', 'Severe allergic reaction', 'Heavy bleeding that won\'t stop', 'Loss of consciousness', 'Serious injury'] },

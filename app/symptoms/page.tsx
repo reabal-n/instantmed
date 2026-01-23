@@ -153,7 +153,7 @@ export default function SymptomsIndexPage() {
                 treatment, or medical certificates when appropriate.
               </p>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/start">
+                <Link href="/request">
                   Get assessed by a doctor
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>

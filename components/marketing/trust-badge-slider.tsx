@@ -116,7 +116,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 as={Link}
-                href="/start"
+                href="/request"
                 color="primary"
                 size="lg"
                 className="px-8 font-semibold shadow-lg shadow-primary/25"

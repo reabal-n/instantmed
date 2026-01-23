@@ -392,7 +392,7 @@ export async function PATCH(
   } catch (error) {
     log.error("Med cert decision error", { error })
     return NextResponse.json(
-      { success: false, error: "An unexpected error occurred" },
+      { success: false, error: "We couldn't process that decision. Please try again." },
       { status: 500 }
     )
   }

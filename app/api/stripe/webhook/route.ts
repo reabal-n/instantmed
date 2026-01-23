@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
-import { sendRefundEmail, sendPaymentFailedEmail, sendDisputeAlertEmail } from "@/lib/email/template-sender"
+import { sendRefundEmail, sendPaymentFailedEmail, sendDisputeAlertEmail, sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -418,7 +418,7 @@ export async function POST(request: Request) {
       if (patientId && session.amount_total) {
         const { data: patientProfile } = await supabase
           .from("profiles")
-          .select("email, full_name")
+          .select("email, full_name, auth_user_id")
           .eq("id", patientId)
           .single()
 
@@ -432,6 +432,22 @@ export async function POST(request: Request) {
           }).catch((err) => {
             log.error("Notification error (non-fatal)", { intakeId }, err)
           })
+          
+          // STEP 5b: Send guest account completion email if this was a guest checkout
+          const isGuestCheckout = session.metadata?.guest_checkout === "true" || !patientProfile.auth_user_id
+          if (isGuestCheckout) {
+            const serviceName = session.metadata?.service_slug || "medical certificate"
+            sendGuestCompleteAccountEmail({
+              to: patientProfile.email,
+              patientName: patientProfile.full_name || "there",
+              serviceName,
+              intakeId,
+              patientId,
+            }).catch((err) => {
+              log.error("Guest account email error (non-fatal)", { intakeId }, err)
+            })
+            log.info("Guest account completion email queued", { intakeId, email: patientProfile.email })
+          }
         }
       }
 

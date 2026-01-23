@@ -123,7 +123,7 @@ const symptoms: Record<string, {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed by a doctor",
-      href: "/start?service=consult&symptom=sore-throat"
+      href: "/request?service=consult&symptom=sore-throat"
     }
   },
   "headache": {
@@ -209,7 +209,7 @@ const symptoms: Record<string, {
     serviceRecommendation: {
       type: "both",
       text: "Speak with a doctor",
-      href: "/start?service=consult&symptom=headache"
+      href: "/request?service=consult&symptom=headache"
     }
   },
   "fatigue": {
@@ -298,7 +298,7 @@ const symptoms: Record<string, {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed by a doctor",
-      href: "/start?service=consult&symptom=fatigue"
+      href: "/request?service=consult&symptom=fatigue"
     }
   },
   "cough": {
@@ -384,7 +384,7 @@ const symptoms: Record<string, {
     serviceRecommendation: {
       type: "both",
       text: "Get your cough assessed",
-      href: "/start?service=consult&symptom=cough"
+      href: "/request?service=consult&symptom=cough"
     }
   },
   "fever": {
@@ -463,7 +463,7 @@ const symptoms: Record<string, {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed now",
-      href: "/start?service=consult&symptom=fever"
+      href: "/request?service=consult&symptom=fever"
     }
   }
 }

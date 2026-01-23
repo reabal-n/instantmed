@@ -5,10 +5,10 @@ import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
-import { logAIInteraction, logSafetyBlock, PROMPT_VERSION } from "@/lib/intake/audit-trail"
-import { trackAIInteraction } from "@/lib/intake/intake-analytics"
+import { logAIInteraction, logSafetyBlock, PROMPT_VERSION } from "@/lib/chat/audit-trail"
+import { trackAIInteraction } from "@/lib/chat/intake-analytics"
 // Validation is performed via separate /api/ai/chat-intake/validate endpoint
-// See lib/intake/chat-validation.ts for validation logic
+// See lib/chat/chat-validation.ts for validation logic
 
 const log = createLogger("ai-chat-intake")
 

@@ -20,7 +20,7 @@ test.describe("Prescription Flow", () => {
   test.setTimeout(60000) // Increase timeout for slower CI
   
   test.beforeEach(async ({ page }) => {
-    await page.goto("/prescriptions/request", { waitUntil: "domcontentloaded" })
+    await page.goto("/request?service=prescription", { waitUntil: "domcontentloaded" })
   })
 
   test("flow page loads correctly", async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe("Prescription Flow", () => {
 
   test("responsive design - mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Page should be usable on mobile
@@ -87,7 +87,7 @@ test.describe("Prescription Flow - Auth Step", () => {
     // Mock authenticated state to get to auth step
     // This test verifies the auth step renders correctly
     
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Navigate through flow to reach auth step
@@ -103,7 +103,7 @@ test.describe("Prescription Flow - Auth Step", () => {
   test("unauthenticated user sees signup option at auth step", async ({ page }) => {
     // This would require navigating through the entire flow
     // For a quick smoke test, verify the page loads and flow starts
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Verify initial state
@@ -124,7 +124,7 @@ test.describe("Prescription Flow - Draft Persistence", () => {
       localStorage.setItem("instantmed_rx_draft", JSON.stringify(draft))
     })
     
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Should show recovery prompt
@@ -144,7 +144,7 @@ test.describe("Prescription Flow - Draft Persistence", () => {
       localStorage.setItem("instantmed_rx_draft", JSON.stringify(draft))
     })
     
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Click "Start fresh"
@@ -167,14 +167,14 @@ test.describe("Prescription Flow - Error Handling", () => {
       route.abort("failed")
     })
     
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     
     // Page should still render
     await expect(page.getByText(/Prescription Request/i)).toBeVisible()
   })
 
   test("displays error message on form errors", async ({ page }) => {
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     // Try to continue without selection
@@ -190,7 +190,7 @@ test.describe("Prescription Flow - Safety Screening", () => {
   test("safety questions prevent progression when knocked out", async ({ page }) => {
     // This test would require navigating to the safety step
     // For now, verify the flow loads correctly
-    await page.goto("/prescriptions/request")
+    await page.goto("/request?service=prescription")
     await waitForPageLoad(page)
     
     await expect(page.getByText(/Prescription Request/i)).toBeVisible()

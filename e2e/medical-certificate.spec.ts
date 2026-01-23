@@ -45,15 +45,15 @@ test.describe("Medical Certificate Flow", () => {
     await startButton.click()
     
     // Should navigate to intake or show first step
-    await expect(page).toHaveURL(/intake|medical-certificate|start/i)
+    await expect(page).toHaveURL(/request|medical-certificate/i)
   })
 
   test("intake page loads", async ({ page }) => {
-    // Navigate to intake - may redirect to start flow
-    await page.goto("/medical-certificate/intake")
+    // Navigate directly to unified request flow
+    await page.goto("/request?service=med-cert")
     
-    // Page should load (may redirect to /start or show intake)
-    await expect(page).toHaveURL(/medical-certificate|start|intake/i)
+    // Page should load the unified request flow
+    await expect(page).toHaveURL(/request/i)
   })
 
   test("responsive design - mobile viewport", async ({ page }) => {
@@ -121,8 +121,8 @@ test.describe("Medical Certificate - Error Handling", () => {
       })
     })
     
-    // Navigate to a point where submission happens
-    await page.goto("/medical-certificate/intake")
+    // Navigate to unified request flow
+    await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
     
     // Error handling would show user-friendly message

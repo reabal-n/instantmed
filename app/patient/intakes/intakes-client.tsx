@@ -188,7 +188,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
           >
             <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
           </Button>
-          <Link href="/start">
+          <Link href="/request">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               New Request
@@ -264,7 +264,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                     : "No declined requests."}
                 </p>
                 {activeTab === "all" && (
-                  <Link href="/start">
+                  <Link href="/request">
                     <Button>Get Started</Button>
                   </Link>
                 )}

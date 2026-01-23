@@ -57,7 +57,7 @@ export function MarketingFooter() {
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
         </div>
-        <div className="hidden md:block absolute -top-4 -right-8 rotate-[78deg] scale-75">
+        <div className="hidden md:block absolute -top-4 -right-8 rotate-78 scale-75">
           <TapeDecoration />
         </div>
 
@@ -94,7 +94,7 @@ export function MarketingFooter() {
                     {link.label}
                   </Link>
                 ))}
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=consult">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=consult">
                   General Consult
                 </Link>
               </div>

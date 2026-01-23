@@ -78,7 +78,7 @@ export default function CorporatePage() {
                     All employers accept • Discreet • No time off work needed
                   </p>
 
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm px-6">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />
@@ -310,7 +310,7 @@ export default function CorporatePage() {
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>
-                  <Link href="/start?service=med-cert">
+                  <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-slate-800 hover:bg-slate-900 text-background text-sm h-12 px-8">
                       Get Certificate Now
                       <ArrowRight className="h-4 w-4 ml-2" />

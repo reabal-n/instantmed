@@ -8,7 +8,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { ArticleTemplate } from "@/components/blog/article-template"
 import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles, allArticles } from "@/lib/blog/articles"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { BreadcrumbSchema, FAQSchema, HowToSchema } from "@/components/seo/healthcare-schema"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 
 // Legacy posts for backward compatibility
@@ -76,7 +76,7 @@ const legacyPosts: Record<
     category: "Prescriptions",
     image: "/prescription-medication-pharmacy.jpg",
     relatedLinks: [
-      { href: "/prescriptions/request", text: "Request a Prescription" },
+      { href: "/request?service=prescription", text: "Request a Prescription" },
       { href: "/faq", text: "FAQs" },
     ],
   },
@@ -173,12 +173,36 @@ export default async function BlogPostPage({ params }: PageProps) {
       answer: faq.answer
     })) || []
 
-    // Article schema for SEO
+    // Calculate word count from content
+    const wordCount = article.content.reduce((count, section) => {
+      const text = section.content + (section.items?.join(' ') || '')
+      return count + text.split(/\s+/).filter(Boolean).length
+    }, 0)
+
+    // Check if this is a "how to" article that should have HowToSchema
+    const howToSlugs = [
+      'medical-certificate-online-australia',
+      'online-prescription-australia', 
+      'repeat-prescription-online',
+      'same-day-medical-certificate'
+    ]
+    const isHowToArticle = howToSlugs.includes(slug)
+
+    // Article schema for SEO - enhanced with image, wordCount, reviewedBy, lastReviewed
     const articleSchema = {
       "@context": "https://schema.org",
       "@type": "MedicalWebPage",
       headline: article.title,
       description: article.excerpt,
+      image: {
+        "@type": "ImageObject",
+        url: article.heroImage.startsWith('http') 
+          ? article.heroImage 
+          : `https://instantmed.com.au${article.heroImage}`,
+        width: 1200,
+        height: 630
+      },
+      wordCount,
       author: {
         "@type": "Person",
         name: article.author.name,
@@ -189,12 +213,27 @@ export default async function BlogPostPage({ params }: PageProps) {
           value: article.author.ahpraNumber
         }
       },
+      reviewedBy: {
+        "@type": "Person",
+        name: article.author.name,
+        jobTitle: "Medical Doctor",
+        identifier: {
+          "@type": "PropertyValue",
+          propertyID: "AHPRA",
+          value: article.author.ahpraNumber
+        }
+      },
+      lastReviewed: article.updatedAt,
       datePublished: article.publishedAt,
       dateModified: article.updatedAt,
       publisher: {
         "@type": "MedicalOrganization",
         name: "InstantMed",
-        url: "https://instantmed.com.au"
+        url: "https://instantmed.com.au",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://instantmed.com.au/logo.svg"
+        }
       },
       mainEntityOfPage: {
         "@type": "WebPage",
@@ -203,7 +242,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       about: {
         "@type": "MedicalCondition",
         name: article.title
-      }
+      },
+      inLanguage: "en-AU",
+      isAccessibleForFree: true
     }
 
     return (
@@ -217,6 +258,24 @@ export default async function BlogPostPage({ params }: PageProps) {
           ]} 
         />
         {faqSchemaData.length > 0 && <FAQSchema faqs={faqSchemaData} />}
+        {isHowToArticle && (
+          <HowToSchema
+            name={article.title}
+            description={article.excerpt}
+            totalTime="PT30M"
+            estimatedCost={slug.includes('prescription') ? '29.95' : '19.95'}
+            steps={[
+              { name: 'Complete a brief questionnaire', text: 'Tell us about your situation and what you need. Takes about 2 minutes.' },
+              { name: 'Verify your identity', text: 'Provide your details including name and date of birth. Medicare is optional for certificates.' },
+              { name: 'Make payment', text: 'Pay securely online. Certificates from $19.95, prescriptions $29.95.' },
+              { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most completed within an hour.' },
+              { name: 'Receive your document', text: slug.includes('prescription') 
+                ? 'If approved, your eScript is sent via SMS to your phone. Take it to any pharmacy.'
+                : 'Your medical certificate is emailed as a PDF, valid for work and institutions.' 
+              }
+            ]}
+          />
+        )}
         <script 
           type="application/ld+json" 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} 

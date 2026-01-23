@@ -193,7 +193,7 @@ export function PatientDashboard({
                       <p className="text-sm text-muted-foreground mb-4">
                         Need a medical certificate or prescription?
                       </p>
-                      <Link href="/start">
+                      <Link href="/request">
                         <Button className="w-full">
                           <Plus className="w-4 h-4 mr-2" />
                           Start New Request

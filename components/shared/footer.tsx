@@ -20,7 +20,7 @@ export function Footer() {
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
         </div>
-        <div className="hidden md:block absolute -top-4 -right-8 rotate-[78deg] scale-75">
+        <div className="hidden md:block absolute -top-4 -right-8 rotate-78 scale-75">
           <TapeDecoration />
         </div>
 
@@ -38,13 +38,13 @@ export function Footer() {
             <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
               <h4 className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</h4>
               <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=med-cert">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=med-cert">
                   Medical Certificates
                 </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=repeat-script">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=prescription">
                   Prescriptions
                 </Link>
-                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/start?service=consult">
+                <Link className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors" href="/request?service=consult">
                   General Consult
                 </Link>
               </div>

@@ -120,7 +120,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     return { success: true }
   } catch (error) {
     logger.error("[Contact Form] Unexpected error", { error })
-    return { success: false, error: "An unexpected error occurred. Please try again." }
+    return { success: false, error: "We couldn't send your message. Please try again or email us directly." }
   }
 }
 

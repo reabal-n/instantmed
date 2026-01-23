@@ -401,3 +401,31 @@ export async function sendDisputeAlertEmail(params: {
     isCritical: true,
   })
 }
+
+/**
+ * Send guest account completion reminder
+ * Sent after successful guest checkout to encourage account creation
+ */
+export async function sendGuestCompleteAccountEmail(params: {
+  to: string
+  patientName: string
+  serviceName: string
+  intakeId: string
+  patientId?: string
+}): Promise<SendResult> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const completeAccountUrl = `${appUrl}/auth/complete-account?intake_id=${params.intakeId}`
+  
+  return sendTemplateEmail({
+    to: params.to,
+    templateSlug: "guest_complete_account",
+    data: {
+      patient_name: params.patientName,
+      service_name: params.serviceName,
+      intake_id: params.intakeId,
+      complete_account_url: completeAccountUrl,
+    },
+    intakeId: params.intakeId,
+    patientId: params.patientId,
+  })
+}

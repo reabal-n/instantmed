@@ -186,7 +186,7 @@ export function DashboardSidebar({
               asChild 
               className="w-full rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
             >
-              <Link href="/start">
+              <Link href="/request">
                 New Request
               </Link>
             </Button>

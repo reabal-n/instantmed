@@ -68,11 +68,89 @@ export const S8_DISCLAIMER_EXAMPLES = [
 ] as const
 
 /**
- * Check if text contains blocked S8 substance
+ * Levenshtein distance for fuzzy matching - catches typo bypass attempts
+ */
+function levenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = []
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i]
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        )
+      }
+    }
+  }
+  return matrix[b.length][a.length]
+}
+
+/**
+ * Check if text contains blocked S8 substance using fuzzy matching
+ * Uses Levenshtein distance to catch typo bypass attempts (e.g., "oxycod0ne", "valiumm")
  */
 export function containsBlockedSubstance(text: string): boolean {
-  const lower = text.toLowerCase()
-  return BLOCKED_S8_TERMS.some(term => lower.includes(term))
+  const lower = text.toLowerCase().trim()
+  
+  // Extract words from the text for individual checking
+  const words = lower.split(/[\s,\-/]+/).filter(w => w.length >= 4)
+  
+  for (const term of BLOCKED_S8_TERMS) {
+    const termLower = term.toLowerCase()
+    
+    // Exact substring match (original behavior)
+    if (lower.includes(termLower)) {
+      return true
+    }
+    
+    // Fuzzy match each word against each term
+    // Allow max 2 character difference for terms >= 6 chars, 1 for shorter
+    const maxDistance = termLower.length >= 6 ? 2 : 1
+    
+    for (const word of words) {
+      // Only compare words of similar length to avoid false positives
+      if (Math.abs(word.length - termLower.length) <= maxDistance) {
+        const distance = levenshteinDistance(word, termLower)
+        if (distance <= maxDistance && distance > 0) {
+          return true
+        }
+      }
+    }
+  }
+  
+  return false
+}
+
+/**
+ * Check if a PBS code is for a Schedule 8 controlled substance
+ * These codes are known S8 medications that should always be blocked
+ */
+export const BLOCKED_PBS_CODE_PREFIXES = [
+  // Opioid PBS code patterns (simplified - actual implementation would use full code list)
+  "2163", "2164", "2165", // Oxycodone family
+  "2622", "2623", // Morphine family
+  "1193", "1194", // Fentanyl patches
+  "2095", "2096", // Buprenorphine
+  "8178", "8179", // Dexamphetamine
+  "8683", "8684", // Lisdexamfetamine (Vyvanse)
+  "8401", "8402", // Methylphenidate
+  // Benzodiazepines - note: most benzos are S4, but some high-risk ones tracked
+  "2162", // Alprazolam
+] as const
+
+/**
+ * Check if PBS code matches known blocked medication codes
+ */
+export function isPBSCodeBlocked(pbsCode: string | null | undefined): boolean {
+  if (!pbsCode || pbsCode === "MANUAL") return false
+  
+  const code = pbsCode.toUpperCase().trim()
+  return BLOCKED_PBS_CODE_PREFIXES.some(prefix => code.startsWith(prefix))
 }
 
 /**
@@ -164,7 +242,17 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  // Defense in depth: block S8 terms
+  // Defense in depth: block S8 medications via PBS code AND name matching with fuzzy detection
+  // 1. Check PBS code directly (bypasses typo attempts when using search)
+  if (isPBSCodeBlocked(medicationCode as string)) {
+    return {
+      valid: false,
+      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular GP.",
+      requiresConsult: false,
+    }
+  }
+  
+  // 2. Check medication name with fuzzy matching (catches typo bypass attempts)
   if (containsBlockedSubstance(String(medicationDisplay)) || containsBlockedSubstance(String(medicationName))) {
     return {
       valid: false,

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { IOSToggle, SegmentedControl } from '@/components/ui/ios-toggle'
 import { MedicationSearch, type MedicationSelection } from './medication-search'
 import type { FieldConfig } from '@/lib/flow'
-import { checkSymptoms } from '@/components/intake/symptom-checker'
+import { checkSymptoms } from '@/components/shared/symptom-checker'
 
 // Fields that should be scanned for red flag symptoms
 const RED_FLAG_SCAN_FIELDS = [

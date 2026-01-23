@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-// Redirect old prescription request route to unified /start
+// Redirect old prescription request route to unified /request
 export default function PrescriptionRequestPage() {
-  redirect("/start?service=repeat-script")
+  redirect("/request?service=prescription")
 }
