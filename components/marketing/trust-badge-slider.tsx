@@ -1,16 +1,38 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Shield, Lock, BadgeCheck, Building2, FileCheck, CheckCircle2 } from "lucide-react"
+import { Shield, BadgeCheck, FileCheck, CheckCircle2, BookOpen, UserCheck, ExternalLink } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@heroui/react"
 
 const trustBadges = [
-  { name: "AHPRA Registered", description: "Australian doctors only", icon: BadgeCheck, color: "text-emerald-600" },
-  { name: "TGA Compliant", description: "Meets all regulations", icon: FileCheck, color: "text-blue-600" },
-  { name: "256-bit SSL", description: "Your data is encrypted", icon: Lock, color: "text-violet-600" },
-  { name: "Australian-based", description: "Sydney HQ", icon: Building2, color: "text-amber-600" },
+  { 
+    name: "AHPRA Verified Doctors", 
+    description: "Verify on the public register", 
+    icon: BadgeCheck, 
+    color: "text-emerald-600",
+    href: "https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx"
+  },
+  { 
+    name: "RACGP Standards", 
+    description: "5th Edition aligned protocols", 
+    icon: BookOpen, 
+    color: "text-blue-600",
+    href: "https://www.racgp.org.au/running-a-practice/practice-standards"
+  },
+  { 
+    name: "Medical Director Oversight", 
+    description: "FRACGP clinical leadership", 
+    icon: UserCheck, 
+    color: "text-violet-600" 
+  },
+  { 
+    name: "TGA ePrescribing", 
+    description: "Compliant electronic scripts", 
+    icon: FileCheck, 
+    color: "text-amber-600" 
+  },
 ]
 
 interface TrustBadgeSliderProps {
@@ -29,26 +51,41 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          {trustBadges.map((badge, index) => (
-            <motion.div
-              key={badge.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              className="group"
-            >
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all">
+          {trustBadges.map((badge, index) => {
+            const content = (
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-border hover:shadow-sm transition-all h-full">
                 <div className={`w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center shadow-sm ${badge.color}`}>
                   <badge.icon className="w-5 h-5" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{badge.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1">
+                    {badge.name}
+                    {'href' in badge && badge.href && <ExternalLink className="w-3 h-3 text-muted-foreground" />}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">{badge.description}</p>
                 </div>
               </div>
-            </motion.div>
-          ))}
+            )
+            
+            return (
+              <motion.div
+                key={badge.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="group"
+              >
+                {'href' in badge && badge.href ? (
+                  <a href={badge.href} target="_blank" rel="noopener noreferrer" className="block">
+                    {content}
+                  </a>
+                ) : (
+                  content
+                )}
+              </motion.div>
+            )
+          })}
         </motion.div>
 
         {/* CTA Section */}

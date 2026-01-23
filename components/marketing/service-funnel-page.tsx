@@ -33,6 +33,9 @@ import { MarketingFooter } from './footer'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { RotatingText } from './rotating-text'
 import { HeroTrustBadges } from '@/components/checkout/trust-badges'
+import { LiveWaitTime } from './live-wait-time'
+import { StatsStrip } from './total-patients-counter'
+import { MediaMentions } from './media-mentions'
 
 // Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -221,6 +224,11 @@ export function ServiceFunnelPage({ config }: ServiceFunnelPageProps) {
       
       {/* Section 7: Social Proof */}
       <TestimonialsSection config={config} colors={colors} />
+      
+      {/* Live Wait Time + Stats + Media Mentions */}
+      <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
+      <StatsStrip className="bg-muted/20 border-y border-border/30" />
+      <MediaMentions variant="strip" className="bg-muted/30" />
       
       {/* Final CTA */}
       <FinalCtaSection config={config} colors={colors} />

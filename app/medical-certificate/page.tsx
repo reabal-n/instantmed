@@ -7,6 +7,7 @@ import { MarketingFooter } from "@/components/marketing"
 import { Button, Accordion, AccordionItem } from "@heroui/react"
 import { ArrowRight, Clock, Briefcase, Heart, GraduationCap, Check, CheckCircle2, Shield, BadgeCheck, FileCheck, Lock, Building2, Star, Users, Zap, Smartphone, School, Landmark } from "lucide-react"
 import { TrustLogos } from "@/components/marketing/trust-badges"
+import { MediaMentions, LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { EmergencyDisclaimer } from "@/components/shared/emergency-disclaimer"
 import { ParallaxSection } from "@/components/ui/parallax-section"
 import { MagneticCard, GradientBorderChase, SpotlightReveal } from "@/components/ui/glowing-effect"
@@ -910,6 +911,13 @@ export default function MedicalCertificatePage() {
             </div>
           </section>
         </ParallaxSection>
+
+        {/* Live wait time + Stats strip */}
+        <LiveWaitTime variant="strip" services={['med-cert']} />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+        
+        {/* Media mentions */}
+        <MediaMentions variant="strip" className="bg-muted/30" />
 
         {/* Final CTA */}
         <ParallaxSection speed={0.2}>

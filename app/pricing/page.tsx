@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
 import { AnimatedIcon } from "@/components/shared/animated-icons"
 import { GlowCard } from "@/components/ui/spotlight-card"
 import { ParallaxSection } from "@/components/ui/parallax-section"
@@ -236,6 +236,11 @@ export default function PricingPage() {
         <div className="max-w-2xl mx-auto px-4">
           <GlowLine />
         </div>
+
+        {/* Live Wait Time + Stats + Media */}
+        <LiveWaitTime variant="strip" />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+        <MediaMentions variant="strip" className="bg-muted/30" />
 
         {/* CTA */}
         <ParallaxSection speed={0.15}>

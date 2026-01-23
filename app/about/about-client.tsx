@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Heart, Shield, Zap, Users, CheckCircle2, Stethoscope, GraduationCap, Clock, MapPin, BookOpen, ClipboardCheck } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter, LiveWaitTime, StatsStrip } from "@/components/marketing"
 import { MediaMentions } from "@/components/marketing/media-mentions"
 import { ComplianceBar } from "@/components/shared/compliance-marquee"
 import { useReducedMotion } from "framer-motion"
@@ -385,6 +385,10 @@ export function AboutClient() {
 
         {/* Compliance Bar */}
         <ComplianceBar />
+
+        {/* Live Wait Time + Stats */}
+        <LiveWaitTime variant="strip" />
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
 
         {/* Media mentions */}
         <MediaMentions variant="strip" className="bg-muted/30" />

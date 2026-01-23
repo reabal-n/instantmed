@@ -20,9 +20,9 @@ function CreditCardIcon({ className }: { className?: string }) {
 }
 
 const features = [
-  { Icon: ClockPremium, text: "Under 30 min review" },
-  { Icon: ShieldPremiumAlt, text: "AHPRA registered doctors" },
-  { Icon: CreditCardIcon, text: "7 days a week" },
+  { Icon: ShieldPremiumAlt, text: "AHPRA-registered Australian GPs" },
+  { Icon: ClockPremium, text: "Reviewed within an hour" },
+  { Icon: CreditCardIcon, text: "Available 7 days a week" },
 ]
 
 export function CTASection() {

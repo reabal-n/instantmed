@@ -20,3 +20,6 @@ export {
   SpeedBadge, 
   HowItWorksSection 
 } from './value-proposition'
+export { LiveWaitTime, ServiceWaitBadge } from './live-wait-time'
+export { TotalPatientsCounter, StatsStrip } from './total-patients-counter'
+export { MediaMentions } from './media-mentions'

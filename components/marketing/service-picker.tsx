@@ -45,9 +45,9 @@ const colorConfig: Record<string, {
 
 // Service metadata for additional info
 const serviceMetadata: Record<string, { time: string; callNote: string; gpCost: string; savings: string }> = {
-  'med-cert': { time: 'Reviewed within an hour', callNote: 'No call needed', gpCost: '$60-90', savings: '$40–70' },
-  'scripts': { time: 'Reviewed within an hour', callNote: 'No call needed', gpCost: '$60-90', savings: '$30–60' },
-  'consult': { time: 'Reviewed within an hour', callNote: 'Brief call if needed', gpCost: '$80-120', savings: '$30–70' },
+  'med-cert': { time: 'GP reviewed', callNote: 'Usually online review', gpCost: '$60-90', savings: '$40–70' },
+  'scripts': { time: 'GP reviewed', callNote: 'Usually online review', gpCost: '$60-90', savings: '$30–60' },
+  'consult': { time: 'GP reviewed', callNote: 'May include a call', gpCost: '$80-120', savings: '$30–70' },
 }
 
 // Live stats (would be fetched from API in production)
@@ -117,7 +117,7 @@ export function ServicePicker() {
             />
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-            All requests assessed by AHPRA-registered doctors. Typical turnaround under 30 minutes.
+            Every request reviewed by an AHPRA-registered GP. Not all requests are approved — that&apos;s how proper healthcare works.
           </p>
           
           {/* Live Stats Social Proof */}
@@ -150,7 +150,7 @@ export function ServicePicker() {
             
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>Avg <strong className="text-foreground">{liveStats.avgReviewTime} min</strong> review</span>
+              <span>Typically <strong className="text-foreground">under 1 hour</strong></span>
             </div>
             
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

@@ -8,10 +8,12 @@ import {
   CTASection,
   PlatformStats,
   MarketingFooter,
+  LiveWaitTime,
+  StatsStrip,
+  MediaMentions,
 } from '@/components/marketing'
 import { TrustBadgeSlider } from '@/components/marketing/trust-badge-slider'
 import { TrustpilotReviews } from '@/components/marketing/trustpilot-reviews'
-import { MediaMentions } from '@/components/marketing/media-mentions'
 import { Navbar } from '@/components/shared/navbar'
 import { ParallaxSection } from '@/components/ui/parallax-section'
 import { GlowLine } from '@/components/ui/premium-effects'
@@ -95,6 +97,9 @@ export default function HomePage() {
         {/* Hero with main value prop - above the fold, no parallax for LCP */}
         <Hero />
         
+        {/* Live wait times - shows current doctor response times */}
+        <LiveWaitTime variant="strip" />
+        
         {/* Trust badges - compact strip, no parallax for faster paint */}
         <TrustBadgeSlider />
         
@@ -133,6 +138,9 @@ export default function HomePage() {
             <PlatformStats />
           </ParallaxSection>
         </Suspense>
+        
+        {/* Total patients served + stats */}
+        <StatsStrip className="bg-muted/20 border-y border-border/30" />
         
         {/* Media mentions */}
         <MediaMentions variant="strip" className="bg-muted/30" />
