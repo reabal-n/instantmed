@@ -721,12 +721,12 @@ export async function POST(request: Request) {
       try {
         const { data: intake } = await supabase
           .from("intakes")
-          .select("patient:profiles!patient_id(email, first_name), service:services!service_id(name)")
+          .select("category, patient:profiles!patient_id(email, first_name)")
           .eq("id", intakeId)
           .single()
 
         const patient = intake?.patient as { email?: string; first_name?: string } | null
-        const service = intake?.service as { name?: string } | null
+        const service = { name: intake?.category || "Service" }
         
         if (patient?.email) {
           await sendPaymentFailedEmail({

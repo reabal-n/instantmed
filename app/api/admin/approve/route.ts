@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     // STEP 1: Fetch current intake status to prevent double-approval
     const { data: currentIntake, error: fetchError } = await supabase
       .from('intakes')
-      .select('id, status, patient_id, service:services!service_id(type)')
+      .select('id, status, patient_id, category')
       .eq('id', intakeId)
       .single()
 
@@ -134,8 +134,7 @@ export async function POST(request: Request) {
       .single()
 
     // STEP 4: Log compliance event for audit trail
-    const serviceData = currentIntake.service as unknown as { type: string } | null
-    const requestType = getRequestType(serviceData?.type || null)
+    const requestType = getRequestType(currentIntake.category || null)
 
     await logTriageApproved(
       intakeId,
@@ -159,7 +158,7 @@ export async function POST(request: Request) {
       .select(`
         id,
         patient_id,
-        service:services!service_id ( name, type ),
+        category,
         patient:profiles!patient_id ( id, full_name, clerk_user_id, email )
       `)
       .eq('id', intakeId)
@@ -174,7 +173,6 @@ export async function POST(request: Request) {
       .single()
 
     const patientData = intakeWithPatient?.patient as unknown as { id: string; full_name: string; clerk_user_id: string | null; email: string | null } | null
-    const notificationServiceData = intakeWithPatient?.service as unknown as { name: string; type: string } | null
     
     let patientEmail: string | null = patientData?.email ?? null
     if (!patientEmail && patientData?.clerk_user_id) {
@@ -188,7 +186,7 @@ export async function POST(request: Request) {
       patientId: intakeWithPatient?.patient_id || patientData?.id,
       patientEmail: patientEmail || '',
       patientName: patientData?.full_name || 'there',
-      requestType: notificationServiceData?.type || 'med_certs',
+      requestType: intakeWithPatient?.category || 'med_certs',
       newStatus: 'approved',
       documentUrl,
     })

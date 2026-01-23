@@ -57,10 +57,7 @@ export async function GET() {
           suburb,
           state
         ),
-        service:services!service_id (
-          name,
-          type
-        )
+        category
       `)
       .order("created_at", { ascending: false })
 
@@ -80,21 +77,19 @@ export async function GET() {
       "Created At",
     ]
 
-    const typedIntakes = (intakes || []) as IntakeRow[]
-    const rows = typedIntakes.map((r) => {
-      const patient = r.patient?.[0] || null
-      const service = r.service?.[0] || null
+    const rows = (intakes || []).map((r: Record<string, unknown>) => {
+      const patient = (r.patient as Record<string, unknown>[])?.[0] || null
       return [
         r.id,
         patient?.full_name || "",
         patient?.date_of_birth || "",
         patient?.phone || "",
         `${patient?.suburb || ""}, ${patient?.state || ""}`,
-        service?.name || "",
-        service?.type || "",
+        r.category || "",
+        r.category || "",
         r.status,
         r.is_priority ? "Yes" : "No",
-        (r.doctor_notes || "").replace(/"/g, '""'),
+        ((r.doctor_notes as string) || "").replace(/"/g, '""'),
         r.created_at,
       ]
     })

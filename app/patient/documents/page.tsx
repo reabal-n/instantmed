@@ -30,7 +30,7 @@ export default async function PatientDocumentsPage() {
       updated_at,
       certificate_url,
       certificate_generated_at,
-      service:services!service_id(name, short_name)
+      category
     `)
     .eq("patient_id", patientId)
     .eq("status", "approved")
@@ -46,7 +46,7 @@ export default async function PatientDocumentsPage() {
       amount_paid,
       paid_at,
       service_type,
-      service:services!service_id(name, short_name)
+      category
     `)
     .eq("patient_id", patientId)
     .not("paid_at", "is", null)

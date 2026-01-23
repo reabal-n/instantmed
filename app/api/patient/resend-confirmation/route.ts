@@ -44,8 +44,8 @@ export async function POST(request: Request) {
         payment_status,
         amount_cents,
         confirmation_email_sent_at,
-        patient:profiles!patient_id(id, email, first_name),
-        service:services!service_id(name)
+        category,
+        patient:profiles!patient_id(id, email, first_name)
       `)
       .eq("id", intakeId)
       .single()
@@ -69,8 +69,7 @@ export async function POST(request: Request) {
     // Handle Supabase join response (may be array or object)
     const patientData = intake.patient
     const patient = Array.isArray(patientData) ? patientData[0] : patientData
-    const serviceData = intake.service
-    const service = Array.isArray(serviceData) ? serviceData[0] : serviceData
+    const service = { name: intake.category || "Service" }
 
     if (!patient?.email) {
       return NextResponse.json(

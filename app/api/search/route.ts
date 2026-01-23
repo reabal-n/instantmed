@@ -43,10 +43,7 @@ export async function GET(request: NextRequest) {
             full_name,
             medicare_number
           ),
-          service:services!service_id (
-            name,
-            type
-          )
+          category
         `)
         .order("created_at", { ascending: false })
         .limit(20)
@@ -54,7 +51,7 @@ export async function GET(request: NextRequest) {
       if (intakes) {
         for (const intake of intakes) {
           const patientData = intake.patient as unknown as { id: string; full_name: string; medicare_number?: string } | null
-          const serviceData = intake.service as unknown as { name: string; type: string } | null
+          const serviceData = { name: intake.category || "Service", type: intake.category }
           if (patientData?.full_name?.toLowerCase().includes(query.toLowerCase()) ||
               patientData?.medicare_number?.includes(query)) {
             results.push({
@@ -107,7 +104,7 @@ export async function GET(request: NextRequest) {
             id,
             status,
             created_at,
-            service:services!service_id ( name )
+            category
           `)
           .eq("patient_id", profile.id)
           .order("created_at", { ascending: false })
@@ -115,8 +112,7 @@ export async function GET(request: NextRequest) {
 
         if (intakes) {
           for (const intake of intakes) {
-            const serviceData = intake.service as unknown as { name: string } | null
-            const title = serviceData?.name || "Service"
+            const title = intake.category || "Service"
             if (title.toLowerCase().includes(query.toLowerCase())) {
               results.push({
                 id: intake.id,

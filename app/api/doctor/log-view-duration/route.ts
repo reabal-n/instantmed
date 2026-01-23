@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
-      .select("service:services!service_id (type)")
+      .select("category")
       .eq("id", intakeId)
       .single()
 
-    const serviceType = (intake?.service as { type?: string } | null)?.type
-    const requestType = serviceType === "med_certs" ? "med_cert" : 
-                        (serviceType === "repeat_rx" || serviceType === "common_scripts") ? "repeat_rx" : "intake"
+    const category = intake?.category
+    const requestType = category === "medical_certificate" ? "med_cert" : 
+                        category === "prescription" ? "repeat_rx" : "intake"
 
     // Log the view duration
     await logClinicianViewedIntakeAnswers(

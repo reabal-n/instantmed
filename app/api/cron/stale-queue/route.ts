@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { data: staleIntakes, error, count } = await supabase
       .from("intakes")
-      .select("id, paid_at, status, service_id, service:services!service_id(name, type)", { count: "exact" })
+      .select("id, paid_at, status, category", { count: "exact" })
       .eq("status", "paid")
       .eq("payment_status", "paid")
       .lt("paid_at", staleThreshold.toISOString())
@@ -68,8 +68,7 @@ export async function GET(request: NextRequest) {
     const waitTimes = staleIntakes?.map(i => {
       const paidAt = new Date(i.paid_at)
       const hoursWaiting = (now.getTime() - paidAt.getTime()) / (1000 * 60 * 60)
-      const serviceInfo = i.service as { name?: string; type?: string } | null
-      return { id: i.id, serviceType: serviceInfo?.type || 'unknown', hoursWaiting: Math.round(hoursWaiting * 10) / 10 }
+      return { id: i.id, serviceType: i.category || 'unknown', hoursWaiting: Math.round(hoursWaiting * 10) / 10 }
     }) || []
 
     // Alert based on severity

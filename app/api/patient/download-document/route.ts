@@ -28,7 +28,7 @@ export async function GET(_request: Request) {
       .select(`
         id,
         status,
-        service:services!service_id ( name, type )
+        category
       `)
       .eq("id", intakeId)
       .eq("patient_id", authUser.profile.id)
@@ -59,8 +59,7 @@ export async function GET(_request: Request) {
       )
     }
 
-    const serviceData = intake.service as unknown as { name: string; type: string } | null
-    const filename = `${serviceData?.type || "document"}-${intake.id}.pdf`
+    const filename = `${intake.category || "document"}-${intake.id}.pdf`
     return new NextResponse(document, {
       headers: {
         "Content-Type": "application/pdf",
