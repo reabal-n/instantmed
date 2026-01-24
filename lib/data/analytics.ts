@@ -17,7 +17,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   // Fetch all intakes for the month for aggregations (intakes is single source of truth)
   const { data: monthIntakes, error: intakesError } = await supabase
     .from("intakes")
-    .select("id, status, created_at, reviewed_at, payment_status, service:services(name, type)")
+    .select("id, status, created_at, reviewed_at, payment_status, category")
     .gte("created_at", monthStart)
     .order("created_at", { ascending: true })
 
@@ -73,8 +73,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   // Requests by type
   const typeCount: Record<string, number> = {}
   requests.forEach((r) => {
-    const serviceData = r.service as { name?: string; type?: string } | null
-    const type = serviceData?.type || "other"
+    const type = r.category || "other"
     typeCount[type] = (typeCount[type] || 0) + 1
   })
   const requestsByType = Object.entries(typeCount).map(([type, count]) => ({ type, count }))
