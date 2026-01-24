@@ -29,15 +29,16 @@ export default async function PaymentSuccessPage({
       .from("intakes")
       .select(`
         status,
-        priority,
-        category
+        is_priority,
+        service:services(name, short_name)
       `)
       .eq("id", intakeId)
       .single()
     
     initialStatus = data?.status
-    isPriority = data?.priority || false
-    serviceName = data?.category || undefined
+    isPriority = data?.is_priority || false
+    const serviceData = data?.service as { name?: string; short_name?: string } | null
+    serviceName = serviceData?.short_name || serviceData?.name || undefined
   }
 
   // Get patient email if authenticated

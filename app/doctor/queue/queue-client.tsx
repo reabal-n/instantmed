@@ -346,7 +346,7 @@ export function QueueClient({
       const supabase = createClient()
       const { data } = await supabase
         .from('intakes')
-        .select('id, status, created_at, category')
+        .select('id, status, created_at, service:services(name, short_name)')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -359,7 +359,7 @@ export function QueueClient({
               id: d.id,
               status: d.status,
               created_at: d.created_at,
-              service_type: d.category || 'Request'
+              service_type: (d.service as { name?: string; short_name?: string } | null)?.short_name || (d.service as { name?: string; short_name?: string } | null)?.name || 'Request'
             }))
           }
         }))
