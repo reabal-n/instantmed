@@ -2,6 +2,9 @@ import { getOrCreateAuthenticatedUser } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { redirect } from "next/navigation"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("patient-dashboard")
 
 /**
  * Patient Dashboard Page - Now panel-based
@@ -43,6 +46,14 @@ export default async function PatientDashboard() {
       .order("issued_date", { ascending: false })
       .limit(10),
   ])
+
+  // Log errors but don't crash - show empty state instead
+  if (intakesResult.error) {
+    logger.error("Failed to fetch intakes", { patientId, error: intakesResult.error.message })
+  }
+  if (prescriptionsResult.error) {
+    logger.error("Failed to fetch prescriptions", { patientId, error: prescriptionsResult.error.message })
+  }
 
   return (
     <PanelDashboard
