@@ -6,11 +6,13 @@ import { PatientsListClient } from "./patients-list-client"
 async function getAllPatients() {
   const supabase = createServiceRoleClient()
 
+  // Add pagination to prevent crash with thousands of patients
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("role", "patient")
     .order("created_at", { ascending: false })
+    .limit(100)
 
   if (error) {
     // Server-side error - use logger in production, console in dev

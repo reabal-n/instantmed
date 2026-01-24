@@ -18,6 +18,11 @@ function Progress({
       value={value}
       color="primary"
       radius="full"
+      aria-label="Progress"
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={100}
       className={cn("w-full", className)}
       classNames={{
         base: "max-w-full",
