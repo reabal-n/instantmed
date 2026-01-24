@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { formatIntakeStatus } from "@/lib/format-intake"
+import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
 import type { RealtimeChannel } from "@supabase/supabase-js"
@@ -63,8 +64,10 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   const hasNextPage = currentPage < totalPages
   const hasPrevPage = currentPage > 1
 
-  // Fetch fresh intakes data
-  const refreshIntakes = useCallback(async () => {
+  // Use ref for refreshIntakes to avoid infinite resubscription
+  const refreshIntakesRef = useRef<(() => Promise<void>) | undefined>(undefined)
+  
+  refreshIntakesRef.current = async () => {
     setIsRefreshing(true)
     try {
       const { data, error } = await supabase
@@ -73,15 +76,23 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })
 
-      if (!error && data) {
+      if (error) {
+        toast.error("Failed to refresh requests")
+        return
+      }
+      if (data) {
         setIntakes(data as IntakeWithPatient[])
       }
     } catch {
-      // Silently fail - user can manually refresh
+      toast.error("Failed to refresh requests")
     } finally {
       setIsRefreshing(false)
     }
-  }, [supabase, patientId])
+  }
+
+  const refreshIntakes = useCallback(() => {
+    return refreshIntakesRef.current?.()
+  }, [])
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -110,7 +121,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
               )
             } else if (payload.eventType === "INSERT") {
               // Add new intake to state - refresh to get full data with relations
-              refreshIntakes()
+              refreshIntakesRef.current?.()
             } else if (payload.eventType === "DELETE") {
               // Remove deleted intake from state
               setIntakes((prev) =>
@@ -130,7 +141,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
         supabase.removeChannel(channel)
       }
     }
-  }, [supabase, patientId, refreshIntakes])
+  }, [supabase, patientId])
   
   // Filter intakes by status
   const upcomingIntakes = intakes.filter(i => 

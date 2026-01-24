@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/select"
 import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
+import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
 
 export function QueueClient({
@@ -364,8 +365,8 @@ export function QueueClient({
           }
         }))
       }
-    } catch (_error) {
-      // Silent fail - patient history is supplementary information
+    } catch {
+      toast.error("Failed to load patient history")
     } finally {
       setLoadingHistory(prev => ({ ...prev, [patientId]: false }))
     }
