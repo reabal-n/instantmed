@@ -3,17 +3,26 @@
 /**
  * Patient Details Step - Identity and contact information
  * Collects name, email, DOB, phone for guest checkout or profile update
+ * 
+ * Features:
+ * - Profile autofill from saved preferences
+ * - Real-time field validation
+ * - Help tooltips for sensitive fields
+ * - Keyboard navigation (Enter to continue)
  */
 
-import { useState } from "react"
-import { Info, User, Mail, Phone, Calendar, MapPin } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { useRequestStore } from "../store"
+import { HelpTooltip } from "../help-tooltip"
+import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
+import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface PatientDetailsStepProps {
@@ -29,7 +38,7 @@ function FormField({
   error,
   children,
   hint,
-  helpText,
+  helpContent,
   icon: Icon,
 }: {
   label: string
@@ -37,7 +46,7 @@ function FormField({
   error?: string
   children: React.ReactNode
   hint?: string
-  helpText?: string
+  helpContent?: { title?: string; content: string }
   icon?: React.ElementType
 }) {
   return (
@@ -48,19 +57,8 @@ function FormField({
           {label}
           {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
-        {helpText && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{helpText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {helpContent && (
+          <HelpTooltip title={helpContent.title} content={helpContent.content} />
         )}
       </div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
@@ -73,12 +71,47 @@ function FormField({
 export default function PatientDetailsStep({ serviceType, onNext }: PatientDetailsStepProps) {
   const { firstName, lastName, email, phone, dob, answers, setIdentity, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [showAutofillBanner, setShowAutofillBanner] = useState(false)
+  const [savedData, setSavedData] = useState<ReturnType<typeof getSavedIdentity>>(undefined)
   
   // Address state from answers
   const addressLine1 = (answers.addressLine1 as string) || ""
   const suburb = (answers.suburb as string) || ""
   const state = (answers.state as string) || ""
   const postcode = (answers.postcode as string) || ""
+  
+  // Check for saved identity on mount
+  useEffect(() => {
+    const saved = getSavedIdentity()
+    if (saved && (saved.firstName || saved.email)) {
+      // Only show banner if we have saved data AND current fields are empty
+      if (!firstName && !email) {
+        setSavedData(saved)
+        setShowAutofillBanner(true)
+      }
+    }
+  }, [firstName, email])
+  
+  // Handle autofill from saved preferences
+  const handleAutofill = useCallback(() => {
+    if (savedData) {
+      setIdentity({
+        firstName: savedData.firstName || '',
+        lastName: savedData.lastName || '',
+        email: savedData.email || '',
+        phone: savedData.phone || '',
+        dob: savedData.dob || '',
+      })
+      if (savedData.addressLine1) {
+        setAnswer('addressLine1', savedData.addressLine1)
+        setAnswer('suburb', savedData.suburb || '')
+        setAnswer('state', savedData.state || '')
+        setAnswer('postcode', savedData.postcode || '')
+      }
+      setShowAutofillBanner(false)
+    }
+  }, [savedData, setIdentity, setAnswer])
   
   const handleAddressSelect = (address: AddressComponents) => {
     setAnswer("addressLine1", address.addressLine1 || address.fullAddress)
@@ -90,43 +123,126 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
 
   const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script'
 
+  // Real-time validation on blur
+  const validateField = useCallback((field: string, value: string | undefined) => {
+    let error: string | null = null
+    
+    switch (field) {
+      case 'firstName':
+        error = validateName(value, 'First name')
+        break
+      case 'lastName':
+        error = validateName(value, 'Last name')
+        break
+      case 'email':
+        error = validateEmail(value)
+        break
+      case 'dob':
+        error = validateDOB(value)
+        break
+      case 'phone':
+        error = validatePhone(value, needsPhone)
+        break
+    }
+    
+    setErrors(prev => {
+      if (error) {
+        return { ...prev, [field]: error }
+      }
+      const { [field]: _, ...rest } = prev
+      return rest
+    })
+    
+    return error === null
+  }, [needsPhone])
+  
+  const handleBlur = (field: string, value: string | undefined) => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    validateField(field, value)
+  }
+
   const validate = () => {
     const newErrors: Record<string, string> = {}
     
-    if (!firstName?.trim()) newErrors.firstName = "First name is required"
-    if (!lastName?.trim()) newErrors.lastName = "Last name is required"
-    if (!email?.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address"
-    }
-    if (!dob) {
-      newErrors.dob = "Date of birth is required"
-    } else {
-      const birthDate = new Date(dob)
-      const age = (Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-      if (age < 18) {
-        newErrors.dob = "You must be 18 or older to use this service"
-      }
-    }
-    if (needsPhone && !phone?.trim()) {
-      newErrors.phone = "Phone number is required for prescription requests (eScript delivery)"
-    }
+    const firstNameError = validateName(firstName, 'First name')
+    if (firstNameError) newErrors.firstName = firstNameError
+    
+    const lastNameError = validateName(lastName, 'Last name')
+    if (lastNameError) newErrors.lastName = lastNameError
+    
+    const emailError = validateEmail(email)
+    if (emailError) newErrors.email = emailError
+    
+    const dobError = validateDOB(dob)
+    if (dobError) newErrors.dob = dobError
+    
+    const phoneError = validatePhone(phone, needsPhone)
+    if (phoneError) newErrors.phone = phoneError
     
     setErrors(newErrors)
+    setTouched({ firstName: true, lastName: true, email: true, dob: true, phone: true })
     return Object.keys(newErrors).length === 0
   }
 
   const handleNext = () => {
     if (validate()) {
+      // Save identity for future autofill
+      saveIdentity({
+        firstName,
+        lastName,
+        email,
+        phone,
+        dob,
+        addressLine1,
+        suburb,
+        state,
+        postcode,
+      })
       onNext()
     }
   }
 
   const isComplete = firstName && lastName && email && dob && (!needsPhone || phone)
+  const hasNoErrors = Object.keys(errors).length === 0
+  const canContinue = isComplete && hasNoErrors
+  
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onNext: canContinue ? handleNext : undefined,
+    enabled: Boolean(canContinue),
+  })
 
   return (
     <div className="space-y-5 animate-in fade-in">
+      {/* Autofill banner */}
+      {showAutofillBanner && savedData && (
+        <Alert variant="default" className="border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30">
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <AlertDescription className="flex items-center justify-between gap-2">
+            <span className="text-xs text-emerald-700 dark:text-emerald-300">
+              Use your saved details?
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-7 px-2 text-xs"
+                onClick={() => setShowAutofillBanner(false)}
+              >
+                No thanks
+              </Button>
+              <Button 
+                size="sm" 
+                className="h-7 px-3 text-xs bg-emerald-600 hover:bg-emerald-700"
+                onClick={handleAutofill}
+              >
+                Autofill
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <User className="w-4 h-4" />
@@ -140,27 +256,29 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         <FormField
           label="First name"
           required
-          error={errors.firstName}
+          error={touched.firstName ? errors.firstName : undefined}
           icon={User}
         >
           <Input
             value={firstName}
             onChange={(e) => setIdentity({ firstName: e.target.value })}
+            onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
-            className="h-11"
+            className={`h-11 ${touched.firstName && errors.firstName ? 'border-destructive' : ''}`}
           />
         </FormField>
         
         <FormField
           label="Last name"
           required
-          error={errors.lastName}
+          error={touched.lastName ? errors.lastName : undefined}
         >
           <Input
             value={lastName}
             onChange={(e) => setIdentity({ lastName: e.target.value })}
+            onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
-            className="h-11"
+            className={`h-11 ${touched.lastName && errors.lastName ? 'border-destructive' : ''}`}
           />
         </FormField>
       </div>
@@ -169,16 +287,17 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <FormField
         label="Email"
         required
-        error={errors.email}
+        error={touched.email ? errors.email : undefined}
         icon={Mail}
-        helpText="We'll send your certificate or confirmation here"
+        helpContent={{ title: "Why do we need your email?", content: "We'll send your certificate or confirmation here. Your email is kept private." }}
       >
         <Input
           type="email"
           value={email}
           onChange={(e) => setIdentity({ email: e.target.value })}
+          onBlur={() => handleBlur('email', email)}
           placeholder="jane@example.com"
-          className="h-11"
+          className={`h-11 ${touched.email && errors.email ? 'border-destructive' : ''}`}
         />
       </FormField>
 
@@ -186,15 +305,16 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <FormField
         label="Date of birth"
         required
-        error={errors.dob}
+        error={touched.dob ? errors.dob : undefined}
         icon={Calendar}
-        helpText="Required for your medical record. Must be 18+"
+        helpContent={{ title: "Why do we need your date of birth?", content: "Required for your medical record. Our services are only available to patients aged 18+." }}
       >
         <Input
           type="date"
           value={dob}
           onChange={(e) => setIdentity({ dob: e.target.value })}
-          className="h-11"
+          onBlur={() => handleBlur('dob', dob)}
+          className={`h-11 ${touched.dob && errors.dob ? 'border-destructive' : ''}`}
           max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
         />
       </FormField>
@@ -203,19 +323,22 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <FormField
         label="Mobile phone"
         required={needsPhone}
-        error={errors.phone}
+        error={touched.phone ? errors.phone : undefined}
         icon={Phone}
-        helpText={needsPhone 
-          ? "Required for eScript delivery via SMS" 
-          : "Optional - for urgent updates only"
-        }
+        helpContent={{ 
+          title: "Why do we need your phone?", 
+          content: needsPhone 
+            ? "Required for eScript delivery via SMS. Your prescription will be sent directly to your phone." 
+            : "Optional - we only contact you if there's an urgent issue with your request."
+        }}
       >
         <Input
           type="tel"
           value={phone}
           onChange={(e) => setIdentity({ phone: e.target.value })}
+          onBlur={() => handleBlur('phone', phone)}
           placeholder="0412 345 678"
-          className="h-11"
+          className={`h-11 ${touched.phone && errors.phone ? 'border-destructive' : ''}`}
         />
       </FormField>
 
@@ -243,7 +366,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <Button 
         onClick={handleNext} 
         className="w-full h-12 mt-4"
-        disabled={!isComplete}
+        disabled={!canContinue}
       >
         Continue
       </Button>
