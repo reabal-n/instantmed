@@ -278,7 +278,11 @@ export function getStepsForService(
   serviceType: UnifiedServiceType,
   context: StepContext
 ): StepDefinition[] {
-  const steps = STEP_REGISTRY[serviceType] || STEP_REGISTRY['med-cert']
+  const steps = STEP_REGISTRY[serviceType]
+  
+  if (!steps) {
+    throw new Error(`Unknown service type: ${serviceType}. Supported types: ${Object.keys(STEP_REGISTRY).join(', ')}`)
+  }
   
   return steps.filter(step => {
     if (!step.required) return true

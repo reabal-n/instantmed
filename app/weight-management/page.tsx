@@ -70,7 +70,7 @@ export default function WeightManagementPage() {
                 AHPRA-registered doctors • TGA-approved treatments • Ongoing check-ins included
               </p>
 
-              <Link href="/request?service=weight-management">
+              <Link href="/request?service=consult">
                 <ShimmerButton className="px-8 h-12 font-semibold bg-violet-600">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -309,7 +309,7 @@ export default function WeightManagementPage() {
               <p className="text-muted-foreground mb-6">
                 Complete your health assessment in 10 minutes. A doctor will review your case and create a personalised plan.
               </p>
-              <Link href="/request?service=weight-management">
+              <Link href="/request?service=consult">
                 <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-background">
                   Start Assessment
                   <ArrowRight className="h-4 w-4 ml-2" />

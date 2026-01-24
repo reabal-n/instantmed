@@ -325,28 +325,33 @@ export function RequestFlow({
     }
   }, [lastSavedAt, serviceType, currentStepId])
 
+  // Use initialService as fallback during hydration
+  const effectiveService = serviceType || initialService
+  
   // Build step context with auth state
   const stepContext: StepContext = useMemo(() => ({
     isAuthenticated,
     hasProfile,
     hasMedicare,
-    serviceType: serviceType || 'med-cert',
+    serviceType: effectiveService || 'med-cert',
     answers,
-  }), [isAuthenticated, hasProfile, hasMedicare, serviceType, answers])
+  }), [isAuthenticated, hasProfile, hasMedicare, effectiveService, answers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {
-    if (!serviceType) return []
-    return getStepsForService(serviceType, stepContext)
-  }, [serviceType, stepContext])
+    if (!effectiveService) return []
+    return getStepsForService(effectiveService, stepContext)
+  }, [effectiveService, stepContext])
 
-  // Find current step index
+  // Find current step index - default to first step if current step not found
   const currentStepIndex = useMemo(() => {
-    return activeSteps.findIndex(s => s.id === currentStepId)
+    const index = activeSteps.findIndex(s => s.id === currentStepId)
+    // If step not found in this flow, default to first step
+    return index >= 0 ? index : 0
   }, [activeSteps, currentStepId])
 
-  // Get current step definition
-  const currentStep = activeSteps[currentStepIndex]
+  // Get current step definition (safe now since we default to 0)
+  const currentStep = activeSteps.length > 0 ? activeSteps[currentStepIndex] : null
 
   // Track step views in PostHog
   useEffect(() => {
@@ -517,8 +522,8 @@ export function RequestFlow({
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])
 
-  // Show loading if no service type yet
-  if (!serviceType || !currentStep) {
+  // Show loading only if we truly have no service type
+  if (!effectiveService || !currentStep) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -687,7 +692,7 @@ export function RequestFlow({
               }}
             >
               <StepRouter
-                serviceType={serviceType}
+                serviceType={effectiveService}
                 currentStepId={currentStepId}
                 componentPath={currentStep.componentPath}
                 direction={direction}

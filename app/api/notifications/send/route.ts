@@ -30,9 +30,9 @@ export async function POST(request: Request) {
   try {
     // Verify the request is from an authorized source (internal or webhook)
     const authHeader = request.headers.get("authorization")
-    const apiKey = process.env.INTERNAL_API_KEY
+    const apiSecret = process.env.INTERNAL_API_SECRET
     
-    if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
+    if (!apiSecret || authHeader !== `Bearer ${apiSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

@@ -13,13 +13,12 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { User, Mail, Phone, Calendar, MapPin, Sparkles } from "lucide-react"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { useRequestStore } from "../store"
-import { HelpTooltip } from "../help-tooltip"
+import { FormField } from "../form-field"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
@@ -30,42 +29,6 @@ interface PatientDetailsStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
-}
-
-function FormField({
-  label,
-  required,
-  error,
-  children,
-  hint,
-  helpContent,
-  icon: Icon,
-}: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
-  hint?: string
-  helpContent?: { title?: string; content: string }
-  icon?: React.ElementType
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
-        <Label className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {helpContent && (
-          <HelpTooltip title={helpContent.title} content={helpContent.content} />
-        )}
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
-  )
 }
 
 export default function PatientDetailsStep({ serviceType, onNext }: PatientDetailsStepProps) {

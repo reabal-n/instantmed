@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 const logger = createLogger("cron:release-stale-claims")
 
@@ -12,15 +13,10 @@ export const maxDuration = 60
 // Cron job to release stale intake claims
 // Runs every 5 minutes to prevent queue stalls
 // Configure in vercel.json crons array
-export async function GET(request: Request) {
-  // Verify cron secret to prevent unauthorized access
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    logger.warn("Unauthorized cron attempt")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export async function GET(request: NextRequest) {
+  // Verify cron authentication (fail-closed)
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
 
   const supabase = createServiceRoleClient()
   const startTime = Date.now()

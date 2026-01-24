@@ -11,25 +11,22 @@
  * Cron Schedule: every 5 minutes
  */
 
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { checkQueueHealthAndAlert } from "@/lib/monitoring/queue-health"
 import { checkDoctorActivityAndAlert } from "@/lib/monitoring/doctor-activity"
 import { checkDeliveryHealthAndAlert } from "@/lib/monitoring/delivery-tracking"
 import { getAIHealthMetrics } from "@/lib/monitoring/ai-health"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 import * as Sentry from "@sentry/nextjs"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 30
 
-export async function GET(request: Request) {
-  // Verify cron secret
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export async function GET(request: NextRequest) {
+  // Verify cron authentication (fail-closed)
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
   
   const results: Record<string, unknown> = {
     timestamp: new Date().toISOString(),

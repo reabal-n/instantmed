@@ -6,10 +6,17 @@ import { Page, expect } from "@playwright/test"
  */
 
 /**
- * Wait for page to be fully loaded (no network activity)
+ * Wait for page to be fully loaded (network idle + content visible)
  */
 export async function waitForPageLoad(page: Page) {
-  await page.waitForLoadState("networkidle")
+  // Wait for initial HTML
+  await page.waitForLoadState("domcontentloaded")
+  
+  // Wait for network to settle
+  await page.waitForLoadState("networkidle").catch(() => {})
+  
+  // Wait for React hydration - either content appears or loading state
+  await page.waitForSelector('h1, h2, main, .animate-spin', { timeout: 10000 }).catch(() => {})
 }
 
 /**
