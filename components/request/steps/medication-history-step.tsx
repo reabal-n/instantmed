@@ -2,19 +2,23 @@
 
 /**
  * Medication History Step - Previous prescriptions and side effects
- * For repeat prescription flow - validates ongoing treatment
+ * 
+ * Features:
+ * - Real-time validation
+ * - Help tooltips
+ * - Keyboard navigation
  */
 
-import { useState } from "react"
-import { Info, History, AlertTriangle } from "lucide-react"
-import { Label } from "@/components/ui/label"
+import { useState, useCallback } from "react"
+import { History, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
+import { FormField } from "../form-field"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface MedicationHistoryStepProps {
@@ -32,50 +36,6 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "never", label: "Never prescribed this medication" },
 ] as const
 
-function FormField({
-  label,
-  required,
-  error,
-  children,
-  hint,
-  helpText,
-}: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
-  hint?: string
-  helpText?: string
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Label className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {helpText && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{helpText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
-  )
-}
-
 export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
@@ -85,8 +45,9 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
   const hasSideEffects = answers.hasSideEffects as boolean | undefined
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     
     if (!prescriptionHistory) {
@@ -102,17 +63,26 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
     }
     
     setErrors(newErrors)
+    setTouched({ prescriptionHistory: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
-  }
+  }, [prescriptionHistory, hasSideEffects, sideEffects])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (validate()) {
       onNext()
     }
-  }
+  }, [validate, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
   const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
+  const hasNoErrors = Object.keys(errors).length === 0
+  const canContinue = isComplete && hasNoErrors
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onNext: canContinue ? handleNext : undefined,
+    enabled: Boolean(canContinue),
+  })
 
   return (
     <div className="space-y-5 animate-in fade-in">
@@ -128,8 +98,11 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
       <FormField
         label="When were you last prescribed this medication?"
         required
-        error={errors.prescriptionHistory}
-        helpText="Repeat prescriptions are only available for medications you've been prescribed before"
+        error={touched.prescriptionHistory ? errors.prescriptionHistory : undefined}
+        helpContent={{ 
+          title: "Why do we ask this?", 
+          content: "Repeat prescriptions are only available for medications you've been prescribed before by another doctor. This ensures continuity of care." 
+        }}
       >
         <div className="flex flex-wrap gap-2 mt-2">
           {PRESCRIPTION_HISTORY_OPTIONS.map((option) => (
@@ -219,7 +192,7 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
       <Button 
         onClick={handleNext} 
         className="w-full h-12 mt-4"
-        disabled={!isComplete}
+        disabled={!canContinue}
       >
         Continue
       </Button>

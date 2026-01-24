@@ -2,19 +2,24 @@
 
 /**
  * Certificate Step - Medical certificate type and duration selection
- * Extracted from EnhancedIntakeFlow for the unified /request flow
+ * 
+ * Features:
+ * - Smart defaults from preferences
+ * - Real-time validation
+ * - Help tooltips
+ * - Keyboard navigation
  */
 
-import { useState } from "react"
-import { Briefcase, GraduationCap, Heart, Shield, Info } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Briefcase, GraduationCap, Heart, Shield } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
-import { cn as _cn } from "@/lib/utils"
+import { FormField } from "../form-field"
+import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface CertificateStepProps {
@@ -38,50 +43,6 @@ const PRICING = {
 type CertType = "work" | "study" | "carer"
 type Duration = "1" | "2"
 
-function FormField({
-  label,
-  required,
-  error,
-  children,
-  hint,
-  helpText,
-}: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
-  hint?: string
-  helpText?: string
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Label className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {helpText && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{helpText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
-  )
-}
-
 export default function CertificateStep({ onNext }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
@@ -90,20 +51,43 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   const startDate = (answers.startDate as string) || new Date().toISOString().split("T")[0]
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  const validate = () => {
+  // Load smart defaults on mount
+  useEffect(() => {
+    const defaults = getSmartDefaults('certificate')
+    if (defaults.certType && !certType) {
+      setAnswer('certType', defaults.certType as string)
+    }
+  }, [certType, setAnswer])
+
+  const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     if (!certType) newErrors.certType = "Please select certificate type"
     if (!duration) newErrors.duration = "Please select duration"
     setErrors(newErrors)
+    setTouched({ certType: true, duration: true })
     return Object.keys(newErrors).length === 0
-  }
+  }, [certType, duration])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (validate()) {
+      // Save preferences for future
+      savePreferences({ preferredCertType: certType })
+      recordStepCompletion('certificate', { certType, duration })
       onNext()
     }
-  }
+  }, [validate, certType, duration, onNext])
+
+  const isComplete = certType && duration
+  const hasNoErrors = Object.keys(errors).length === 0
+  const canContinue = isComplete && hasNoErrors
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onNext: canContinue ? handleNext : undefined,
+    enabled: Boolean(canContinue),
+  })
 
   return (
     <div className="space-y-5 animate-in fade-in">
@@ -119,9 +103,12 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       <FormField
         label="Certificate type"
         required
-        error={errors.certType}
+        error={touched.certType ? errors.certType : undefined}
         hint="Choose the type that matches your situation"
-        helpText="Select Work for employer, Study for university/school, or Carer's leave to care for someone"
+        helpContent={{ 
+          title: "Which type should I choose?", 
+          content: "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member." 
+        }}
       >
         <div className="grid grid-cols-3 gap-2 mt-2">
           {CERT_TYPES.map((type) => (
@@ -143,8 +130,11 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       <FormField
         label="How many days?"
         required
-        error={errors.duration}
-        helpText={`1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY} · 3+ days requires a consult`}
+        error={touched.duration ? errors.duration : undefined}
+        helpContent={{ 
+          title: "How long can I get?", 
+          content: `1 day: $${PRICING.MED_CERT}. 2 days: $${PRICING.MED_CERT_2DAY}. For 3+ days, a telehealth consultation is required.` 
+        }}
       >
         <div className="space-y-3 mt-2">
           <div className="flex gap-2">
@@ -192,7 +182,10 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         label="Start date"
         required
         hint="When does your absence start?"
-        helpText="Medical certificates can only be issued from today onwards."
+        helpContent={{ 
+          title: "Which date should I choose?", 
+          content: "Select the first day you were unwell or unable to work/study. Backdating is not permitted." 
+        }}
       >
         <Input
           type="date"
@@ -207,7 +200,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       <Button 
         onClick={handleNext} 
         className="w-full h-12 mt-4"
-        disabled={!certType || !duration}
+        disabled={!canContinue}
       >
         Continue
       </Button>

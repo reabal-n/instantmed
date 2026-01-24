@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { StepRouter } from "./step-router"
 import { useRequestStore } from "./store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { ConnectionBanner } from "./connection-banner"
 import { 
   getStepsForService,
   type UnifiedServiceType,
@@ -543,6 +544,9 @@ export function RequestFlow({
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Connection status banner */}
+      <ConnectionBanner />
+
       {/* Exit confirmation dialog */}
       <AnimatePresence>
         {showExitConfirm && (

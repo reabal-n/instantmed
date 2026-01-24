@@ -16,7 +16,7 @@ export interface UserPreferences {
   lastServiceType?: string
   
   // Certificate preferences
-  preferredCertType?: 'work' | 'uni' | 'carer'
+  preferredCertType?: 'work' | 'study' | 'carer'
   commonDurations?: string[]
   
   // Symptom preferences
@@ -201,7 +201,7 @@ export function recordStepCompletion(stepId: string, answers: Record<string, unk
     case 'certificate':
       if (answers.certType) {
         savePreferences({ 
-          preferredCertType: answers.certType as 'work' | 'uni' | 'carer' 
+          preferredCertType: answers.certType as 'work' | 'study' | 'carer' 
         })
       }
       break

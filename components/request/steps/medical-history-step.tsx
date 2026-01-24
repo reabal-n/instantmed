@@ -2,18 +2,22 @@
 
 /**
  * Medical History Step - Allergies, conditions, other medications
- * Safety screening for all service types
+ * 
+ * Features:
+ * - Real-time validation
+ * - Help tooltips with medical jargon explanations
+ * - Keyboard navigation
  */
 
-import { useState } from "react"
-import { Info, HeartPulse } from "lucide-react"
-import { Label } from "@/components/ui/label"
+import { useState, useCallback } from "react"
+import { HeartPulse } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
+import { FormField } from "../form-field"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface MedicalHistoryStepProps {
@@ -21,50 +25,6 @@ interface MedicalHistoryStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
-}
-
-function FormField({
-  label,
-  required,
-  error,
-  children,
-  hint,
-  helpText,
-}: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
-  hint?: string
-  helpText?: string
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Label className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {helpText && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{helpText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
-  )
 }
 
 export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) {
@@ -78,8 +38,9 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
   const otherMedications = (answers.otherMedications as string) || ""
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     
     if (hasAllergies === undefined) {
@@ -104,19 +65,28 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
     }
     
     setErrors(newErrors)
+    setTouched({ allergies: true, conditions: true, otherMedications: true })
     return Object.keys(newErrors).length === 0
-  }
+  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (validate()) {
       onNext()
     }
-  }
+  }, [validate, onNext])
 
   const isComplete = 
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
     hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
     hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
+  const hasNoErrors = Object.keys(errors).length === 0
+  const canContinue = isComplete && hasNoErrors
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onNext: canContinue ? handleNext : undefined,
+    enabled: Boolean(canContinue),
+  })
 
   return (
     <div className="space-y-5 animate-in fade-in">
@@ -132,8 +102,11 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
       <FormField
         label="Do you have any allergies?"
         required
-        error={errors.allergies}
-        helpText="Including drug allergies, food allergies, or other allergies"
+        error={touched.allergies ? errors.allergies : undefined}
+        helpContent={{ 
+          title: "What counts as an allergy?", 
+          content: "Include drug allergies (e.g., penicillin), food allergies, and environmental allergies. Describe the reaction if known (e.g., rash, anaphylaxis)." 
+        }}
       >
         <div className="flex gap-2 mt-2">
           <EnhancedSelectionButton
@@ -173,8 +146,11 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
       <FormField
         label="Do you have any medical conditions?"
         required
-        error={errors.conditions}
-        helpText="Including chronic conditions, past surgeries, or ongoing health issues"
+        error={touched.conditions ? errors.conditions : undefined}
+        helpContent={{ 
+          title: "What should I include?", 
+          content: "Include chronic conditions (diabetes, asthma, heart disease), past surgeries, and ongoing health issues. This helps ensure safe treatment." 
+        }}
       >
         <div className="flex gap-2 mt-2">
           <EnhancedSelectionButton
@@ -214,8 +190,11 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
       <FormField
         label="Are you taking any other medications?"
         required
-        error={errors.otherMedications}
-        helpText="Including prescription, over-the-counter, and supplements"
+        error={touched.otherMedications ? errors.otherMedications : undefined}
+        helpContent={{ 
+          title: "What medications should I list?", 
+          content: "Include all prescription medications, over-the-counter medicines (paracetamol, ibuprofen), vitamins, and supplements. This helps check for drug interactions." 
+        }}
       >
         <div className="flex gap-2 mt-2">
           <EnhancedSelectionButton
@@ -255,7 +234,7 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
       <Button 
         onClick={handleNext} 
         className="w-full h-12 mt-4"
-        disabled={!isComplete}
+        disabled={!canContinue}
       >
         Continue
       </Button>

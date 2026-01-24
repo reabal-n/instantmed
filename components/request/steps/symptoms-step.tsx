@@ -2,17 +2,22 @@
 
 /**
  * Symptoms Step - Symptom selection and details
- * Extracted from EnhancedIntakeFlow for the unified /request flow
+ * 
+ * Features:
+ * - Smart defaults from recent symptoms
+ * - Real-time validation
+ * - Help tooltips
+ * - Keyboard navigation
  */
 
-import { useState } from "react"
-import { Info } from "lucide-react"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect, useCallback } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
+import { FormField } from "../form-field"
+import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface SymptomsStepProps {
@@ -44,50 +49,6 @@ const SYMPTOM_DURATION_OPTIONS = [
   { value: "1_week_plus", label: "Over a week" },
 ] as const
 
-function FormField({
-  label,
-  required,
-  error,
-  children,
-  hint,
-  helpText,
-}: {
-  label: string
-  required?: boolean
-  error?: string
-  children: React.ReactNode
-  hint?: string
-  helpText?: string
-}) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Label className="text-sm font-medium">
-          {label}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {helpText && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="w-3.5 h-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">{helpText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
-  )
-}
-
 export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
@@ -97,6 +58,16 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const certType = answers.certType as string | undefined
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [suggestedSymptoms, setSuggestedSymptoms] = useState<string[]>([])
+
+  // Load smart defaults on mount
+  useEffect(() => {
+    const defaults = getSmartDefaults('symptoms')
+    if (defaults.suggestedSymptoms) {
+      setSuggestedSymptoms(defaults.suggestedSymptoms as string[])
+    }
+  }, [])
 
   const toggleSymptom = (symptom: string) => {
     const current = symptoms
@@ -104,9 +75,10 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       ? current.filter((s) => s !== symptom)
       : [...current, symptom]
     setAnswer("symptoms", updated)
+    setTouched(prev => ({ ...prev, symptoms: true }))
   }
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     if (symptoms.length === 0) newErrors.symptoms = "Please select at least one symptom"
     if (!symptomDetails || symptomDetails.length < 20) {
@@ -114,26 +86,60 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
     }
     if (!symptomDuration) newErrors.symptomDuration = "Please indicate how long you've had these symptoms"
     setErrors(newErrors)
+    setTouched({ symptoms: true, symptomDetails: true, symptomDuration: true })
     return Object.keys(newErrors).length === 0
-  }
+  }, [symptoms.length, symptomDetails, symptomDuration])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (validate()) {
+      recordStepCompletion('symptoms', { symptoms })
       onNext()
     }
-  }
+  }, [validate, symptoms, onNext])
 
   const isCarer = certType === "carer"
+  const isComplete = symptoms.length > 0 && symptomDuration && symptomDetails.length >= 20
+  const hasNoErrors = Object.keys(errors).length === 0
+  const canContinue = isComplete && hasNoErrors
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    onNext: canContinue ? handleNext : undefined,
+    enabled: Boolean(canContinue),
+  })
 
   return (
     <div className="space-y-5 animate-in fade-in">
+      {/* Recently used symptoms suggestion */}
+      {suggestedSymptoms.length > 0 && symptoms.length === 0 && (
+        <div className="p-3 rounded-lg border bg-muted/30">
+          <p className="text-xs text-muted-foreground mb-2">Previously selected:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestedSymptoms.slice(0, 3).map((s) => (
+              <button
+                key={s}
+                onClick={() => toggleSymptom(s)}
+                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                + {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Symptoms multi-select */}
       <FormField
         label={isCarer ? "What symptoms does the person you're caring for have?" : "What symptoms do you have?"}
         required
-        error={errors.symptoms}
+        error={touched.symptoms ? errors.symptoms : undefined}
         hint="Select all that apply"
-        helpText={isCarer ? "Describe the symptoms of the person you're caring for" : "This helps our doctors understand your condition"}
+        helpContent={{ 
+          title: "Why do we ask this?", 
+          content: isCarer 
+            ? "Describing their symptoms helps the doctor write an accurate certificate." 
+            : "This helps our doctors understand your condition and write an accurate certificate." 
+        }}
       >
         <div className="flex flex-wrap gap-2 mt-2">
           {SYMPTOMS_LIST.map((symptom, index) => (
@@ -159,8 +165,12 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       <FormField
         label={isCarer ? "How long have they had these symptoms?" : "How long have you had these symptoms?"}
         required
-        error={errors.symptomDuration}
+        error={touched.symptomDuration ? errors.symptomDuration : undefined}
         hint="This helps assess whether the condition is acute or ongoing"
+        helpContent={{ 
+          title: "Why does duration matter?", 
+          content: "Symptom duration helps the doctor assess whether this is an acute illness or ongoing condition." 
+        }}
       >
         <div className="flex flex-wrap gap-2 mt-2">
           {SYMPTOM_DURATION_OPTIONS.map((option) => (
@@ -182,18 +192,22 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       <FormField
         label={isCarer ? "Describe their symptoms in more detail" : "Describe your symptoms in more detail"}
         required
-        error={errors.symptomDetails}
+        error={touched.symptomDetails ? errors.symptomDetails : undefined}
         hint="Minimum 20 characters"
-        helpText="This helps the doctor write an accurate certificate"
+        helpContent={{ 
+          title: "What should I include?", 
+          content: "Describe how the symptoms affect you, when they started, and any relevant details. This helps the doctor write an accurate certificate." 
+        }}
       >
         <Textarea
           value={symptomDetails}
           onChange={(e) => setAnswer("symptomDetails", e.target.value)}
+          onBlur={() => setTouched(prev => ({ ...prev, symptomDetails: true }))}
           placeholder={isCarer 
             ? "e.g., They have a high fever since yesterday, severe body aches..." 
             : "e.g., I've had a fever since yesterday, severe body aches, and I can't concentrate at work..."
           }
-          className="min-h-[100px] mt-2"
+          className={`min-h-[100px] mt-2 ${touched.symptomDetails && errors.symptomDetails ? 'border-destructive' : ''}`}
         />
         <p className="text-xs text-muted-foreground text-right mt-1">
           {symptomDetails.length}/20 characters minimum
@@ -204,7 +218,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       <Button 
         onClick={handleNext} 
         className="w-full h-12 mt-4"
-        disabled={symptoms.length === 0 || !symptomDuration || symptomDetails.length < 20}
+        disabled={!canContinue}
       >
         Continue
       </Button>
