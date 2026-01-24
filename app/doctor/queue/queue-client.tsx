@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -92,7 +92,7 @@ export function QueueClient({
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
   const [loadingHistory, setLoadingHistory] = useState<Record<string, boolean>>({})
   const [focusMode, setFocusMode] = useState(false)
-  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date())
+  const lastSyncTimeRef = useRef<Date>(new Date())
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
 
@@ -101,7 +101,7 @@ export function QueueClient({
     const supabase = createClient()
     const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
       const now = new Date()
-      const timeSinceSync = now.getTime() - lastSyncTime.getTime()
+      const timeSinceSync = now.getTime() - lastSyncTimeRef.current.getTime()
       if (timeSinceSync > 60000) {
         setIsStale(true)
       }
@@ -119,7 +119,7 @@ export function QueueClient({
         },
         (payload) => {
           // Update last sync time on any message
-          setLastSyncTime(new Date())
+          lastSyncTimeRef.current = new Date()
           setIsStale(false)
           
           if (payload.eventType === "INSERT") {
@@ -133,7 +133,7 @@ export function QueueClient({
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          setLastSyncTime(new Date())
+          lastSyncTimeRef.current = new Date()
           setIsStale(false)
           setIsReconnecting(false)
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
@@ -146,7 +146,7 @@ export function QueueClient({
       supabase.removeChannel(channel)
       clearInterval(staleCheckInterval)
     }
-  }, [router, lastSyncTime])
+  }, [router])
 
   const calculateWaitTime = (createdAt: string) => {
     const created = new Date(createdAt)
@@ -445,7 +445,7 @@ export function QueueClient({
               {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              Last synced: {lastSyncTime.toLocaleTimeString()}. Refresh to ensure you have the latest cases.
+              Last synced: {lastSyncTimeRef.current.toLocaleTimeString()}. Refresh to ensure you have the latest cases.
             </p>
           </div>
           <Button 

@@ -512,7 +512,7 @@ export async function updatePathologyDraftData(
 }
 
 /**
- * Get med cert certificate for a request (from med_cert_certificates table)
+ * Get med cert certificate for an intake (from issued_certificates table)
  * Used for the new med cert flow that generates PDFs with react-pdf
  */
 export async function getMedCertCertificateForRequest(requestId: string): Promise<GeneratedDocument | null> {
@@ -522,37 +522,15 @@ export async function getMedCertCertificateForRequest(requestId: string): Promis
 
   const supabase = createServiceRoleClient()
 
-  // First check if this is a med cert intake with a certificate
-  const { data: request } = await supabase
-    .from("intakes")
-    .select("category, certificate_id")
-    .eq("id", requestId)
-    .single()
-
-  // If no request or not a med cert or no certificate_id, fall back to regular documents
-  if (!request || request.category !== "medical_certificate" || !request.certificate_id) {
-    return null
-  }
-
-  // Check the med_cert_requests table for certificate link
-  const { data: medCertRequest } = await supabase
-    .from("med_cert_requests")
-    .select("certificate_id")
-    .eq("id", requestId)
-    .single()
-
-  const certificateId = medCertRequest?.certificate_id || request.certificate_id
-
-  if (!certificateId) {
-    return null
-  }
-
-  // Get the certificate from med_cert_certificates
+  // Get certificate directly from issued_certificates using intake_id
   const { data: certificate, error } = await supabase
-    .from("med_cert_certificates")
+    .from("issued_certificates")
     .select("*")
-    .eq("id", certificateId)
-    .single()
+    .eq("intake_id", requestId)
+    .eq("status", "valid")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
   if (error || !certificate) {
     return null
@@ -564,8 +542,8 @@ export async function getMedCertCertificateForRequest(requestId: string): Promis
     request_id: requestId,
     type: "med_cert",
     subtype: certificate.certificate_type,
-    pdf_url: certificate.pdf_url,
-    verification_code: certificate.certificate_number,
+    pdf_url: certificate.storage_path, // issued_certificates uses storage_path
+    verification_code: certificate.verification_code,
     created_at: certificate.created_at,
     updated_at: certificate.updated_at,
   } as GeneratedDocument
