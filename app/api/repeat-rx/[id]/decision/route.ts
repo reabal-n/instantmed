@@ -191,7 +191,12 @@ export async function POST(
       )
     }
     
-    await Promise.all(compliancePromises)
+    // Compliance logging shouldn't crash the endpoint
+    try {
+      await Promise.all(compliancePromises)
+    } catch (complianceError) {
+      log.error("Compliance logging failed (non-fatal)", {}, complianceError instanceof Error ? complianceError : new Error(String(complianceError)))
+    }
     
     // Send notification to patient (email/SMS)
     try {

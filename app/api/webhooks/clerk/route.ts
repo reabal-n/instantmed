@@ -29,8 +29,13 @@ export async function POST(req: Request) {
     return new Response('Missing svix headers', { status: 400 })
   }
 
-  // Get body
-  const payload = await req.json()
+  // Get body - wrap in try-catch for malformed JSON
+  let payload
+  try {
+    payload = await req.json()
+  } catch {
+    return new Response('Invalid JSON payload', { status: 400 })
+  }
   const body = JSON.stringify(payload)
 
   // Verify webhook signature
