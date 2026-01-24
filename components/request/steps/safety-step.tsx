@@ -22,7 +22,6 @@ const SERVICE_NAMES: Record<UnifiedServiceType, string> = {
   'prescription': 'Prescription requests',
   'repeat-script': 'Repeat prescription requests',
   'consult': 'Telehealth consultations',
-  'referral': 'Referral requests',
 }
 
 export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {

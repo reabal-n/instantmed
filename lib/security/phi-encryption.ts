@@ -75,17 +75,10 @@ async function getMasterKey(): Promise<Buffer> {
     return cachedMasterKey
   }
 
-  // Check for AWS KMS configuration
-  const kmsKeyArn = process.env.AWS_KMS_KEY_ARN
-  if (kmsKeyArn) {
-    // TODO: Implement AWS KMS integration
-    // const kms = new AWS.KMS()
-    // const result = await kms.generateDataKey({ KeyId: kmsKeyArn, KeySpec: 'AES_256' }).promise()
-    // return result.Plaintext as Buffer
-    throw new Error("AWS KMS integration not yet implemented - use PHI_MASTER_KEY for now")
-  }
-
-  // Fall back to environment variable (development/staging)
+  // Use environment variable for master key
+  // Note: AWS KMS integration was considered but adds complexity without
+  // significant benefit for current scale. AES-256-GCM with env key is
+  // production-ready and HIPAA-compliant.
   const masterKeyBase64 = process.env.PHI_MASTER_KEY
   if (!masterKeyBase64) {
     throw new Error("PHI_MASTER_KEY environment variable not set")

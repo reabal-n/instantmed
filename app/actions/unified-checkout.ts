@@ -40,7 +40,6 @@ function mapServiceToCategory(serviceType: UnifiedServiceType): { category: Serv
     'prescription': { category: 'prescription', subtype: 'new' },
     'repeat-script': { category: 'prescription', subtype: 'repeat' },
     'consult': { category: 'consult', subtype: 'general' },
-    'referral': { category: 'consult', subtype: 'referral' },
   }
   return mapping[serviceType] || mapping['med-cert']
 }
@@ -77,7 +76,7 @@ function transformAnswers(
   }
   
   // Map consult specific fields
-  if (serviceType === 'consult' || serviceType === 'referral') {
+  if (serviceType === 'consult') {
     transformed.consult_category = answers.consultCategory
     transformed.consult_details = answers.consultDetails
     transformed.consult_urgency = answers.consultUrgency

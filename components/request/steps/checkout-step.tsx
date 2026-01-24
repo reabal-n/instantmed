@@ -29,7 +29,6 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
   'prescription': { base: 29.95, label: 'Prescription Request' },
   'repeat-script': { base: 29.95, label: 'Repeat Prescription' },
   'consult': { base: 39.95, label: 'Doctor Consultation' },
-  'referral': { base: 29.95, label: 'Referral Request' },
 }
 
 function ReviewItem({ label, value }: { label: string; value: string }) {

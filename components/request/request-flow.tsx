@@ -512,7 +512,6 @@ export function RequestFlow({
       'prescription': 'prescription',
       'repeat-script': 'repeat prescription',
       'consult': 'consultation',
-      'referral': 'referral',
     }
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])

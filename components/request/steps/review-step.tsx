@@ -23,7 +23,6 @@ const SERVICE_LABELS: Record<UnifiedServiceType, string> = {
   'prescription': 'Prescription Request',
   'repeat-script': 'Repeat Prescription',
   'consult': 'Doctor Consultation',
-  'referral': 'Referral Request',
 }
 
 const CERT_TYPE_LABELS: Record<string, string> = {

@@ -13,7 +13,6 @@ export type UnifiedServiceType =
   | 'prescription'
   | 'repeat-script'
   | 'consult'
-  | 'referral'
 
 // Step IDs used across all flows
 export type UnifiedStepId =
@@ -25,7 +24,6 @@ export type UnifiedStepId =
   | 'medication-history'// Previous prescriptions + side effects
   | 'medical-history'   // Allergies, conditions, other meds
   | 'consult-reason'    // General consult pathway
-  | 'referral-reason'   // Referral type and reason
   | 'details'           // Patient identity + contact
   | 'review'            // Summary before payment
   | 'checkout'          // Payment + final consents
@@ -271,48 +269,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
     },
   ],
 
-  // TODO: Referral flow not yet implemented - uses consult flow for now
-  'referral': [
-    {
-      id: 'consult-reason',
-      label: 'Referral details',
-      shortLabel: 'Details',
-      componentPath: 'consult-reason-step', // Use consult step temporarily
-      validateFn: 'validateConsultReasonStep',
-      required: true,
-    },
-    {
-      id: 'details',
-      label: 'Your details',
-      shortLabel: 'You',
-      componentPath: 'patient-details-step',
-      validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
-      required: true,
-    },
-    {
-      id: 'safety',
-      label: 'Safety check',
-      shortLabel: 'Safety',
-      componentPath: 'safety-step',
-      required: true,
-    },
-    {
-      id: 'review',
-      label: 'Review',
-      shortLabel: 'Review',
-      componentPath: 'review-step',
-      required: true,
-    },
-    {
-      id: 'checkout',
-      label: 'Payment',
-      shortLabel: 'Pay',
-      componentPath: 'checkout-step',
-      validateFn: 'validateCheckoutStep',
-      required: true,
-    },
-  ],
 }
 
 /**
@@ -383,7 +339,6 @@ export function mapServiceParam(param: string | undefined): UnifiedServiceType {
     'repeat-rx': 'repeat-script',
     'consult': 'consult',
     'consultation': 'consult',
-    'referral': 'referral',
   }
   
   return mapping[param.toLowerCase()] || 'med-cert'
