@@ -28,6 +28,8 @@ export default async function FinanceDashboardPage() {
     revenueByServiceResult,
     pendingPaymentsResult,
     avgTransactionResult,
+    disputesResult,
+    fraudFlagsResult,
   ] = await Promise.all([
     // Total revenue (paid intakes)
     supabase
@@ -70,6 +72,20 @@ export default async function FinanceDashboardPage() {
       .select("amount_paid")
       .not("paid_at", "is", null)
       .gte("paid_at", yearAgo.toISOString()),
+    
+    // Stripe disputes (risk management)
+    supabase
+      .from("stripe_disputes")
+      .select("id, dispute_id, intake_id, amount, currency, reason, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    
+    // Fraud flags (risk management)
+    supabase
+      .from("fraud_flags")
+      .select("id, intake_id, patient_id, flag_type, severity, details, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20),
   ])
 
   // Calculate totals
@@ -133,6 +149,8 @@ export default async function FinanceDashboardPage() {
       avgTransaction,
       pendingPayments: pendingPaymentsResult.count || 0,
       transactionCount,
+      activeDisputes: disputesResult.data?.filter(d => d.status !== "won" && d.status !== "lost").length || 0,
+      recentFraudFlags: fraudFlagsResult.data?.filter(f => f.severity === "high" || f.severity === "critical").length || 0,
     },
     dailyRevenue: Object.entries(dailyRevenue).map(([date, data]) => ({
       date,
@@ -141,6 +159,25 @@ export default async function FinanceDashboardPage() {
     serviceRevenue: Object.entries(serviceRevenue).map(([type, revenue]) => ({
       type,
       revenue,
+    })),
+    disputes: (disputesResult.data || []).map(d => ({
+      id: d.id,
+      disputeId: d.dispute_id,
+      intakeId: d.intake_id,
+      amount: d.amount,
+      currency: d.currency,
+      reason: d.reason,
+      status: d.status,
+      createdAt: d.created_at,
+    })),
+    fraudFlags: (fraudFlagsResult.data || []).map(f => ({
+      id: f.id,
+      intakeId: f.intake_id,
+      patientId: f.patient_id,
+      flagType: f.flag_type,
+      severity: f.severity,
+      details: f.details,
+      createdAt: f.created_at,
     })),
   }
 

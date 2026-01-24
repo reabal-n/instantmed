@@ -13,6 +13,8 @@ import {
   Clock,
   Receipt,
   ExternalLink,
+  AlertTriangle,
+  Shield,
 } from "lucide-react"
 import {
   PieChart,
@@ -40,6 +42,8 @@ interface FinanceData {
     avgTransaction: number
     pendingPayments: number
     transactionCount: number
+    activeDisputes: number
+    recentFraudFlags: number
   }
   dailyRevenue: {
     date: string
@@ -50,6 +54,25 @@ interface FinanceData {
   serviceRevenue: {
     type: string
     revenue: number
+  }[]
+  disputes: {
+    id: string
+    disputeId: string
+    intakeId: string | null
+    amount: number
+    currency: string
+    reason: string
+    status: string
+    createdAt: string
+  }[]
+  fraudFlags: {
+    id: string
+    intakeId: string | null
+    patientId: string
+    flagType: string
+    severity: string
+    details: Record<string, unknown>
+    createdAt: string
   }[]
 }
 
@@ -80,7 +103,7 @@ function formatServiceType(type: string): string {
 }
 
 export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps) {
-  const { summary, dailyRevenue, serviceRevenue } = finance
+  const { summary, dailyRevenue, serviceRevenue, disputes, fraudFlags } = finance
 
   // Format chart data
   const chartData = dailyRevenue.map((d) => ({
@@ -308,6 +331,128 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Risk Management Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Disputes */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    Stripe Disputes
+                  </CardTitle>
+                  <CardDescription>Active payment disputes requiring attention</CardDescription>
+                </div>
+                {summary.activeDisputes > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">
+                    {summary.activeDisputes} active
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {disputes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No disputes recorded</p>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {disputes.map((d) => (
+                    <div key={d.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "px-2 py-0.5 text-xs font-medium rounded",
+                            d.status === "won" ? "bg-emerald-100 text-emerald-800" :
+                            d.status === "lost" ? "bg-red-100 text-red-800" :
+                            "bg-amber-100 text-amber-800"
+                          )}>
+                            {d.status}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {formatCurrency(d.amount)} {d.currency.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Reason: {d.reason.replace(/_/g, " ")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(d.createdAt).toLocaleDateString("en-AU")}
+                          {d.intakeId && ` • Intake: ${d.intakeId.slice(0, 8)}...`}
+                        </p>
+                      </div>
+                      <a
+                        href={`https://dashboard.stripe.com/disputes/${d.disputeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Fraud Flags */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-red-500" />
+                    Fraud Flags
+                  </CardTitle>
+                  <CardDescription>Suspicious activity detected by fraud detection</CardDescription>
+                </div>
+                {summary.recentFraudFlags > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                    {summary.recentFraudFlags} high/critical
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {fraudFlags.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No fraud flags recorded</p>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {fraudFlags.map((f) => (
+                    <div key={f.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "px-2 py-0.5 text-xs font-medium rounded",
+                            f.severity === "critical" ? "bg-red-100 text-red-800" :
+                            f.severity === "high" ? "bg-orange-100 text-orange-800" :
+                            f.severity === "medium" ? "bg-amber-100 text-amber-800" :
+                            "bg-gray-100 text-gray-800"
+                          )}>
+                            {f.severity}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {f.flagType.replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(f.createdAt).toLocaleDateString("en-AU")}
+                          {f.intakeId && ` • Intake: ${f.intakeId.slice(0, 8)}...`}
+                        </p>
+                        {f.details && Object.keys(f.details).length > 0 && (
+                          <p className="text-xs text-muted-foreground truncate max-w-[250px]">
+                            {JSON.stringify(f.details).slice(0, 50)}...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
