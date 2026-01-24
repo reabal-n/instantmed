@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Source_Sans_3, Lora, JetBrains_Mono, Caveat } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
 import { SocialProofPopup } from "@/components/shared/social-proof-popup"
@@ -220,6 +221,7 @@ export default function RootLayout({
                 <StickyCTABar />
                 <ChatIntakeButton />
                 <Analytics />
+                <SpeedInsights />
                 <WebVitalsReporter />
                 <PostHogIdentify />
                 <ServiceWorkerRegistration />
