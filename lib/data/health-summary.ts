@@ -121,11 +121,15 @@ export async function getPatientHealthSummary(patientId: string): Promise<Health
     
     let medicalCertificates: MedicalDocument[] = []
     if (approvedMedCertIntakeIds.length > 0) {
-      const { data: certs } = await supabase
+      const { data: certs, error: certsError } = await supabase
         .from("med_cert_certificates")
         .select("id, intake_id, verification_code, start_date, end_date, created_at")
         .in("intake_id", approvedMedCertIntakeIds)
         .order("created_at", { ascending: false })
+      
+      if (certsError) {
+        logger.error("Failed to fetch medical certificates", { error: certsError.message })
+      }
       
       medicalCertificates = (certs || []).map(cert => ({
         id: cert.id,
@@ -143,10 +147,14 @@ export async function getPatientHealthSummary(patientId: string): Promise<Health
     let prescriptions: PrescriptionRecord[] = []
     
     if (prescriptionIntakes.length > 0) {
-      const { data: answers } = await supabase
+      const { data: answers, error: answersError } = await supabase
         .from("intake_answers")
         .select("intake_id, answers")
         .in("intake_id", prescriptionIntakes.map(i => i.id))
+      
+      if (answersError) {
+        logger.error("Failed to fetch prescription answers", { error: answersError.message })
+      }
       
       prescriptions = prescriptionIntakes.map(intake => {
         const answer = answers?.find(a => a.intake_id === intake.id)

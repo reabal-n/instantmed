@@ -97,7 +97,15 @@ export async function PATCH(
     const supabase = createServiceRoleClient()
 
     // Parse body
-    const body: DecisionBody = await request.json()
+    let body: DecisionBody
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON payload" },
+        { status: 400 }
+      )
+    }
 
     if (!body.decision || !["approve", "reject", "needs_call"].includes(body.decision)) {
       return NextResponse.json(
@@ -180,15 +188,19 @@ export async function PATCH(
       })
 
       // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
-      await Promise.all([
-        logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
-        logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "declined", false, undefined, {
-          rejectionReason: body.rejectionReason,
-        }),
-        logOutcomeAssigned(requestId, "med_cert", profile.id, "declined"),
-        logTriageDeclined(requestId, "med_cert", profile.id, body.rejectionReason || ""),
-        logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
-      ])
+      try {
+        await Promise.all([
+          logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+          logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "declined", false, undefined, {
+            rejectionReason: body.rejectionReason,
+          }),
+          logOutcomeAssigned(requestId, "med_cert", profile.id, "declined"),
+          logTriageDeclined(requestId, "med_cert", profile.id, body.rejectionReason || ""),
+          logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+        ])
+      } catch (auditError) {
+        log.error("Compliance audit logging failed (non-fatal)", { requestId, error: auditError })
+      }
 
       return NextResponse.json({ success: true })
     }
@@ -228,16 +240,20 @@ export async function PATCH(
       })
 
       // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
-      const { logTriageNeedsCall } = await import("@/lib/audit/compliance-audit")
-      await Promise.all([
-        logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
-        logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "needs_call", true, undefined, {
-          needsCallReason: body.needsCallReason,
-        }),
-        logOutcomeAssigned(requestId, "med_cert", profile.id, "needs_call"),
-        logTriageNeedsCall(requestId, "med_cert", profile.id, body.needsCallReason),
-        logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
-      ])
+      try {
+        const { logTriageNeedsCall } = await import("@/lib/audit/compliance-audit")
+        await Promise.all([
+          logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+          logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "needs_call", true, undefined, {
+            needsCallReason: body.needsCallReason,
+          }),
+          logOutcomeAssigned(requestId, "med_cert", profile.id, "needs_call"),
+          logTriageNeedsCall(requestId, "med_cert", profile.id, body.needsCallReason),
+          logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+        ])
+      } catch (auditError) {
+        log.error("Compliance audit logging failed (non-fatal)", { requestId, error: auditError })
+      }
 
       return NextResponse.json({ success: true })
     }
@@ -373,15 +389,19 @@ export async function PATCH(
     })
 
     // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
-    await Promise.all([
-      logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
-      logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "approved", false, undefined, {
-        certificateId: certId,
-      }),
-      logOutcomeAssigned(requestId, "med_cert", profile.id, "approved"),
-      logTriageApproved(requestId, "med_cert", profile.id, { certificateId: certId }),
-      logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
-    ])
+    try {
+      await Promise.all([
+        logClinicianReviewedRequest(requestId, "med_cert", profile.id, undefined, ip, headersList.get("user-agent") || undefined),
+        logClinicianSelectedOutcome(requestId, "med_cert", profile.id, "approved", false, undefined, {
+          certificateId: certId,
+        }),
+        logOutcomeAssigned(requestId, "med_cert", profile.id, "approved"),
+        logTriageApproved(requestId, "med_cert", profile.id, { certificateId: certId }),
+        logNoPrescribingInPlatform(requestId, "med_cert", profile.id),
+      ])
+    } catch (auditError) {
+      log.error("Compliance audit logging failed (non-fatal)", { requestId, error: auditError })
+    }
 
     return NextResponse.json({
       success: true,

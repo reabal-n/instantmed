@@ -126,7 +126,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
     const supabase = createServiceRoleClient()
 
     // Parse body
-    const body: Partial<SubmitRequestBody> = await request.json()
+    let body: Partial<SubmitRequestBody>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON payload" },
+        { status: 400 }
+      )
+    }
 
     // Validate
     const validation = validateSubmission(body)
