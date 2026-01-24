@@ -194,9 +194,23 @@ export async function approveAndSendCert(
     const certificateNumber = generateCertificateNumber()
     const generatedAt = new Date().toISOString()
 
-    // Calculate duration days
+    // Validate and calculate duration days
     const startDate = new Date(reviewData.startDate)
     const endDate = new Date(reviewData.endDate)
+    
+    // Date validation: end date must be >= start date
+    if (endDate < startDate) {
+      logger.warn("Invalid certificate dates: end date before start date", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
+      return { success: false, error: "End date cannot be before start date" }
+    }
+    
+    // Validate reasonable date range (max 30 days)
+    const maxDurationMs = 30 * 24 * 60 * 60 * 1000
+    if (endDate.getTime() - startDate.getTime() > maxDurationMs) {
+      logger.warn("Certificate duration exceeds maximum", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
+      return { success: false, error: "Certificate duration cannot exceed 30 days" }
+    }
+    
     const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
     // Get certificate type from service slug or default to "work"

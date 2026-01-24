@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/send-status"
 import { createLogger } from "@/lib/observability/logger"
+import { timingSafeEqual } from "crypto"
 const log = createLogger("route")
+
+/**
+ * Timing-safe secret comparison to prevent timing attacks
+ */
+function safeCompareSecrets(a: string | null, b: string): boolean {
+  if (!a) return false
+  try {
+    const bufA = Buffer.from(a)
+    const bufB = Buffer.from(b)
+    if (bufA.length !== bufB.length) return false
+    return timingSafeEqual(bufA, bufB)
+  } catch {
+    return false
+  }
+}
 
 /**
  * Internal API route for sending status change emails
@@ -18,7 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
     }
     
-    if (secret !== expectedSecret) {
+    if (!safeCompareSecrets(secret, expectedSecret)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

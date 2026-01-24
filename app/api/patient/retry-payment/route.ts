@@ -5,6 +5,9 @@ import { NextResponse } from "next/server"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderPaymentRetryEmailToHtml } from "@/lib/email/templates/payment-retry"
 import { env } from "@/lib/env"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("api-retry-payment")
 
 interface RetryPaymentRequest {
   invoiceId: string
@@ -101,7 +104,8 @@ export async function POST(request: Request) {
       },
       { status: 200 }
     )
-  } catch (_error) {
+  } catch (error) {
+    logger.error("Failed to retry payment", {}, error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       { error: "Failed to retry payment" },
       { status: 500 }

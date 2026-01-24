@@ -2,6 +2,9 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
+import { createLogger } from "@/lib/observability/logger"
+
+const logger = createLogger("api-refill-prescription")
 
 interface RefillRequest {
   prescription_id: string
@@ -88,7 +91,8 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     )
-  } catch (_error) {
+  } catch (error) {
+    logger.error("Failed to process refill request", {}, error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       { error: "Failed to process refill request" },
       { status: 500 }

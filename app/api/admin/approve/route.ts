@@ -9,8 +9,27 @@ import { requireValidCsrf } from "@/lib/security/csrf"
 import { getClientIdentifier } from "@/lib/rate-limit/redis"
 import { logTriageApproved } from "@/lib/audit/compliance-audit"
 import type { RequestType } from "@/lib/audit/compliance-audit"
+import { timingSafeEqual } from "crypto"
 
 const log = createLogger("admin-approve")
+
+/**
+ * Timing-safe API key comparison to prevent timing attacks
+ */
+function safeCompareApiKey(header: string | null, apiKey: string): boolean {
+  if (!header) return false
+  const prefix = "Bearer "
+  if (!header.startsWith(prefix)) return false
+  const providedKey = header.slice(prefix.length)
+  try {
+    const bufA = Buffer.from(providedKey)
+    const bufB = Buffer.from(apiKey)
+    if (bufA.length !== bufB.length) return false
+    return timingSafeEqual(bufA, bufB)
+  } catch {
+    return false
+  }
+}
 
 // Valid statuses that can be transitioned to approved
 const APPROVABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info"]
@@ -45,7 +64,7 @@ export async function POST(request: Request) {
     let authorized = false
     const supabase = createServiceRoleClient()
 
-    if (apiKey && authHeader === `Bearer ${apiKey}`) {
+    if (apiKey && safeCompareApiKey(authHeader, apiKey)) {
       authorized = true
       authMethod = "api_key"
       actorId = "system_api" // Track API key usage with identifiable actor

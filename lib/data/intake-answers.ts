@@ -99,11 +99,12 @@ export async function saveIntakeAnswers(
           keyId: encrypted.keyId 
         })
       } catch (encryptError) {
-        // Log but don't fail - continue with plaintext
-        logger.error("Failed to encrypt intake answers, continuing with plaintext", 
+        // CRITICAL: Fail the operation - do NOT store PHI unencrypted
+        logger.error("CRITICAL: Failed to encrypt intake answers - aborting to prevent plaintext PHI storage", 
           { intakeId: input.intake_id },
           encryptError instanceof Error ? encryptError : new Error(String(encryptError))
         )
+        return { success: false, error: "Encryption failed - please try again" }
       }
     }
 

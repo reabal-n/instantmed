@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
@@ -56,7 +56,8 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   const [intakes, setIntakes] = useState<IntakeWithPatient[]>(initialIntakes)
   const [activeTab, setActiveTab] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const supabase = createClient()
+  // Memoize Supabase client to prevent memory leak from constant recreation
+  const supabase = useMemo(() => createClient(), [])
   
   // Server-side pagination
   const currentPage = pagination?.page ?? 1

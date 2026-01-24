@@ -99,17 +99,20 @@ export async function ensureProfile(
       profileData.date_of_birth = options.dateOfBirth
     }
 
+    // Use UPSERT to prevent race conditions between check and insert
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
-      .insert(profileData)
+      .upsert(profileData, { 
+        onConflict: "auth_user_id",
+        ignoreDuplicates: false 
+      })
       .select("id")
       .single()
 
     if (insertError) {
-      // Handle duplicate key (trigger created it between our check and insert)
+      // Handle any remaining edge cases
       if (insertError.code === "23505") {
-        log.info("Duplicate key - profile was created by trigger", { userId })
-        // Retry fetch
+        log.info("Duplicate key on upsert - fetching existing", { userId })
         const { data: existingAfterError } = await checkExistingProfile()
         if (existingAfterError) {
           return { profileId: existingAfterError.id, error: null }
