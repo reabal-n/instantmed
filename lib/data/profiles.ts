@@ -362,9 +362,9 @@ export async function completeOnboarding(
 export async function getPatientEmailFromRequest(requestId: string): Promise<string | null> {
   const supabase = createServiceRoleClient()
 
-  // Get the request with patient profile
+  // Get the intake with patient profile
   const { data: request, error: requestError } = await supabase
-    .from("requests")
+    .from("intakes")
     .select(`
       patient_id,
       patient:profiles!patient_id (

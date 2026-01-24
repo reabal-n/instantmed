@@ -24,7 +24,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
 const REQUIRED_TABLES = [
   "profiles",
-  "requests", 
+  "intakes", 
   "payments",
   "documents",
   "document_verifications",
@@ -39,10 +39,10 @@ const OPTIONAL_TABLES = [
 
 const EXPECTED_COLUMNS: Record<string, string[]> = {
   profiles: ["id", "auth_user_id", "email", "full_name", "role"],
-  requests: ["id", "patient_id", "type", "status", "payment_status", "created_at"],
-  payments: ["id", "request_id", "stripe_session_id", "amount", "status"],
-  documents: ["id", "request_id", "type", "pdf_url"],
-  document_verifications: ["id", "request_id", "verification_code", "is_valid"],
+  intakes: ["id", "patient_id", "category", "status", "payment_status", "created_at"],
+  payments: ["id", "intake_id", "stripe_session_id", "amount", "status"],
+  documents: ["id", "intake_id", "type", "pdf_url"],
+  document_verifications: ["id", "intake_id", "verification_code", "is_valid"],
   stripe_webhook_events: ["id", "event_id", "event_type", "processed_at"],
   // Optional tables
   request_answers: ["id", "request_id", "answers"],
@@ -175,12 +175,12 @@ async function testCriticalTablesExist(): Promise<void> {
 }
 
 async function testDoctorQueueQuery(): Promise<void> {
-  // Query the doctor queue - requests that are paid and pending review
+  // Query the doctor queue - intakes that are paid and pending review
   const { data, error } = await supabase
-    .from("requests")
+    .from("intakes")
     .select(`
       id,
-      type,
+      category,
       status,
       payment_status,
       created_at,
@@ -191,7 +191,7 @@ async function testDoctorQueueQuery(): Promise<void> {
       )
     `)
     .eq("payment_status", "paid")
-    .in("status", ["pending", "needs_follow_up"])
+    .in("status", ["paid", "in_review"])
     .order("created_at", { ascending: true })
     .limit(10)
 
@@ -202,13 +202,13 @@ async function testDoctorQueueQuery(): Promise<void> {
   log(`  Queue has ${data?.length || 0} pending items`, "info")
 }
 
-async function testRequestWithJoinsQuery(): Promise<void> {
-  // Test that we can query requests with core joins (payments + profiles)
+async function testIntakeWithJoinsQuery(): Promise<void> {
+  // Test that we can query intakes with core joins (payments + profiles)
   const { data, error } = await supabase
-    .from("requests")
+    .from("intakes")
     .select(`
       id,
-      type,
+      category,
       status,
       payment_status,
       payments (
@@ -226,7 +226,7 @@ async function testRequestWithJoinsQuery(): Promise<void> {
     .limit(1)
 
   if (error) {
-    throw new Error(`Request with joins query failed: ${error.message}`)
+    throw new Error(`Intake with joins query failed: ${error.message}`)
   }
 
   log(`  Join query successful (${data?.length || 0} rows)`, "info")
@@ -238,13 +238,13 @@ async function testDocumentQueries(): Promise<void> {
     .from("documents")
     .select(`
       id,
-      request_id,
+      intake_id,
       type,
       pdf_url,
       verification_code,
-      requests (
+      intakes (
         id,
-        type,
+        category,
         status
       )
     `)
@@ -320,15 +320,15 @@ async function testPaymentsQuery(): Promise<void> {
     .from("payments")
     .select(`
       id,
-      request_id,
+      intake_id,
       stripe_session_id,
       amount,
       currency,
       status,
       created_at,
-      requests (
+      intakes (
         id,
-        type,
+        category,
         patient_id
       )
     `)
@@ -383,7 +383,7 @@ async function main() {
   // Only continue if we have a connection
   if (results[0]?.passed) {
     await runTest("2. Critical Tables Exist with Expected Columns", testCriticalTablesExist)
-    await runTest("3. Request with Joins Query", testRequestWithJoinsQuery)
+    await runTest("3. Intake with Joins Query", testIntakeWithJoinsQuery)
     await runTest("4. Doctor Queue Query", testDoctorQueueQuery)
     await runTest("5. Documents & Verifications Query", testDocumentQueries)
     await runTest("6. Payments Query", testPaymentsQuery)

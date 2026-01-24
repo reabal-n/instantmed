@@ -380,14 +380,14 @@ export async function getOrCreatePathologyDraftForRequest(requestId: string): Pr
     return existingDraft as DocumentDraft
   }
 
-  // Fetch request with patient profile and answers
+  // Fetch intake with patient profile and answers
   const { data: request, error: requestError } = await supabase
-    .from("requests")
+    .from("intakes")
     .select(
       `
       *,
       patient:profiles!patient_id (*),
-      answers:request_answers (*)
+      answers:intake_answers (*)
     `,
     )
     .eq("id", requestId)
@@ -522,15 +522,15 @@ export async function getMedCertCertificateForRequest(requestId: string): Promis
 
   const supabase = createServiceRoleClient()
 
-  // First check if this is a med cert request with a certificate
+  // First check if this is a med cert intake with a certificate
   const { data: request } = await supabase
-    .from("requests")
-    .select("type, certificate_id")
+    .from("intakes")
+    .select("category, certificate_id")
     .eq("id", requestId)
     .single()
 
   // If no request or not a med cert or no certificate_id, fall back to regular documents
-  if (!request || request.type !== "med_cert" || !request.certificate_id) {
+  if (!request || request.category !== "medical_certificate" || !request.certificate_id) {
     return null
   }
 

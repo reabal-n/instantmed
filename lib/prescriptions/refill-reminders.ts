@@ -48,7 +48,7 @@ export async function getPrescriptionsNeedingReminders(): Promise<RefillReminder
     const ninetyDaysAgo = addDays(new Date(), -90)
     
     const { data: prescriptions, error } = await supabase
-      .from("requests")
+      .from("intakes")
       .select(`
         id,
         patient_id,
@@ -56,7 +56,7 @@ export async function getPrescriptionsNeedingReminders(): Promise<RefillReminder
         updated_at,
         category,
         subtype,
-        request_answers (
+        intake_answers (
           answers
         )
       `)
@@ -74,7 +74,7 @@ export async function getPrescriptionsNeedingReminders(): Promise<RefillReminder
 
     for (const rx of prescriptions || []) {
       // Extract medication name from answers
-      const answers = rx.request_answers?.[0]?.answers as Record<string, unknown> | undefined
+      const answers = rx.intake_answers?.[0]?.answers as Record<string, unknown> | undefined
       const medicationName = (answers?.medication_name as string) || 
                             (answers?.medicationName as string) || 
                             "Your medication"
@@ -188,11 +188,11 @@ export async function getUpcomingRefillsForPatient(patientId: string): Promise<{
     const sixtyDaysAgo = addDays(new Date(), -60)
     
     const { data: prescriptions, error } = await supabase
-      .from("requests")
+      .from("intakes")
       .select(`
         id,
         updated_at,
-        request_answers (
+        intake_answers (
           answers
         )
       `)
@@ -208,7 +208,7 @@ export async function getUpcomingRefillsForPatient(patientId: string): Promise<{
     const upcomingRefills: { medication: string; daysRemaining: number; refillUrl: string }[] = []
 
     for (const rx of prescriptions) {
-      const answers = rx.request_answers?.[0]?.answers as Record<string, unknown> | undefined
+      const answers = rx.intake_answers?.[0]?.answers as Record<string, unknown> | undefined
       const medicationName = (answers?.medication_name as string) || 
                             (answers?.medicationName as string) || 
                             "Medication"

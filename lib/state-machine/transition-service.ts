@@ -67,7 +67,7 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
       updateData.reviewed_by = actorId
     }
 
-    const { error: updateError } = await supabase.from("requests").update(updateData).eq("id", requestId)
+    const { error: updateError } = await supabase.from("intakes").update(updateData).eq("id", requestId)
 
     if (updateError) {
       // Server-side error logging
