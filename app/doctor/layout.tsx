@@ -30,7 +30,12 @@ export default async function DoctorLayout({
     redirect("/sign-in")
   }
 
-  const stats = await getDoctorDashboardStats()
+  let stats = { in_queue: 0, total: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
+  try {
+    stats = await getDoctorDashboardStats()
+  } catch (error) {
+    log.error("Failed to load dashboard stats for sidebar", {}, error instanceof Error ? error : new Error(String(error)))
+  }
 
   return (
     <DoctorShell>

@@ -434,8 +434,9 @@ export async function getDoctorDashboardStats(): Promise<{
 }> {
   const supabase = createServiceRoleClient()
 
-  // Run all count queries in parallel for efficiency
-  const [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult] = await Promise.all([
+  try {
+    // Run all count queries in parallel for efficiency
+    const [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult] = await Promise.all([
     // Total paid intakes
     supabase
       .from("intakes")
@@ -470,21 +471,32 @@ export async function getDoctorDashboardStats(): Promise<{
       .eq("script_sent", false),
   ])
 
-  // Log any errors but don't fail completely
-  const results = [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult]
-  results.forEach((r, i) => {
-    if (r.error) {
-      logger.error(`Error fetching dashboard stat ${i}`, {}, r.error instanceof Error ? r.error : new Error(String(r.error)))
-    }
-  })
+    // Log any errors but don't fail completely
+    const results = [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult]
+    results.forEach((r, i) => {
+      if (r.error) {
+        logger.error(`Error fetching dashboard stat ${i}`, {}, r.error instanceof Error ? r.error : new Error(String(r.error)))
+      }
+    })
 
-  return {
-    total: totalResult.count ?? 0,
-    in_queue: inQueueResult.count ?? 0,
-    approved: approvedResult.count ?? 0,
-    declined: declinedResult.count ?? 0,
-    pending_info: pendingInfoResult.count ?? 0,
-    scripts_pending: scriptsPendingResult.count ?? 0,
+    return {
+      total: totalResult.count ?? 0,
+      in_queue: inQueueResult.count ?? 0,
+      approved: approvedResult.count ?? 0,
+      declined: declinedResult.count ?? 0,
+      pending_info: pendingInfoResult.count ?? 0,
+      scripts_pending: scriptsPendingResult.count ?? 0,
+    }
+  } catch (error) {
+    logger.error("Error fetching dashboard stats", {}, error instanceof Error ? error : new Error(String(error)))
+    return {
+      total: 0,
+      in_queue: 0,
+      approved: 0,
+      declined: 0,
+      pending_info: 0,
+      scripts_pending: 0,
+    }
   }
 }
 
@@ -510,17 +522,18 @@ export async function getIntakeMonitoringStats(): Promise<{
   todayStart.setUTCHours(0, 0, 0, 0)
   const todayStartISO = todayStart.toISOString()
 
-  // Run count queries in parallel
-  const [
-    todaySubmissionsResult,
-    queueSizeResult,
-    paidCountResult,
-    pendingCountResult,
-    approvedTodayResult,
-    declinedTodayResult,
-    oldestInQueueResult,
-    recentCompletedResult,
-  ] = await Promise.all([
+  try {
+    // Run count queries in parallel
+    const [
+      todaySubmissionsResult,
+      queueSizeResult,
+      paidCountResult,
+      pendingCountResult,
+      approvedTodayResult,
+      declinedTodayResult,
+      oldestInQueueResult,
+      recentCompletedResult,
+    ] = await Promise.all([
     // Today's submissions (paid today)
     supabase
       .from("intakes")
@@ -595,15 +608,28 @@ export async function getIntakeMonitoringStats(): Promise<{
     }
   }
 
-  return {
-    todaySubmissions: todaySubmissionsResult.count ?? 0,
-    queueSize: queueSizeResult.count ?? 0,
-    paidCount: paidCountResult.count ?? 0,
-    pendingCount: pendingCountResult.count ?? 0,
-    approvedToday: approvedTodayResult.count ?? 0,
-    declinedToday: declinedTodayResult.count ?? 0,
-    avgReviewTimeMinutes,
-    oldestInQueueMinutes,
+    return {
+      todaySubmissions: todaySubmissionsResult.count ?? 0,
+      queueSize: queueSizeResult.count ?? 0,
+      paidCount: paidCountResult.count ?? 0,
+      pendingCount: pendingCountResult.count ?? 0,
+      approvedToday: approvedTodayResult.count ?? 0,
+      declinedToday: declinedTodayResult.count ?? 0,
+      avgReviewTimeMinutes,
+      oldestInQueueMinutes,
+    }
+  } catch (error) {
+    logger.error("Error fetching monitoring stats", {}, error instanceof Error ? error : new Error(String(error)))
+    return {
+      todaySubmissions: 0,
+      queueSize: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      approvedToday: 0,
+      declinedToday: 0,
+      avgReviewTimeMinutes: null,
+      oldestInQueueMinutes: null,
+    }
   }
 }
 
