@@ -330,7 +330,7 @@ export default function CorporatePage() {
                   Shift Workers
                 </Link>
                 {" • "}
-                <Link href="/seo/medical-certificate-for-work" className="text-slate-600 hover:underline">
+                <Link href="/medical-certificate" className="text-slate-600 hover:underline">
                   Work Med Certs
                 </Link>
                 {" • "}

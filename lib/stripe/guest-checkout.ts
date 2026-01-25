@@ -182,7 +182,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 1. Check if a profile already exists for this email
     const normalizedEmail = input.guestEmail.toLowerCase().trim()
-    let guestProfileId: string
+    let guestProfileId: string | null = null
 
     // P1 FIX: Rate limit guest checkout by email to prevent abuse
     const rateLimitResult = checkRateLimit(`guest-checkout:${normalizedEmail}`, RATE_LIMIT_SENSITIVE)
@@ -220,15 +220,23 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .single()
 
     if (existingGuestProfile) {
-      guestProfileId = existingGuestProfile.id
-      // P1 FIX: Update phone if provided (for prescription eScript delivery)
-      if (input.guestPhone) {
-        await supabase
-          .from("profiles")
-          .update({ phone: input.guestPhone })
-          .eq("id", guestProfileId)
+      // Only reuse guest profile if email is verified to prevent takeover
+      if (existingGuestProfile.email_verified) {
+        guestProfileId = existingGuestProfile.id
+        // P1 FIX: Update phone if provided (for prescription eScript delivery)
+        if (input.guestPhone) {
+          await supabase
+            .from("profiles")
+            .update({ phone: input.guestPhone })
+            .eq("id", guestProfileId)
+        }
+      } else {
+        // Unverified guest profile exists - create new one to prevent hijacking
+        logger.info("Skipping unverified guest profile reuse", { email: normalizedEmail })
       }
-    } else {
+    }
+    
+    if (!guestProfileId) {
       // Create a new guest profile
       const { data: newProfile, error: profileError } = await supabase
         .from("profiles")
@@ -258,6 +266,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
 
       guestProfileId = newProfile.id
+    }
+
+    // Ensure we have a valid profile ID
+    if (!guestProfileId) {
+      logger.error("Guest profile ID missing after creation logic")
+      return { success: false, error: "Failed to create guest profile. Please try again." }
     }
 
     // 2. Look up service by slug

@@ -515,6 +515,12 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: "You must be logged in" }
     }
 
+    // Rate limit payment retries to prevent abuse
+    const rateLimitResult = await checkRateLimit(authUser.user.id, RATE_LIMIT_SENSITIVE)
+    if (!rateLimitResult.allowed) {
+      return { success: false, error: "Too many payment attempts. Please try again later." }
+    }
+
     const patientId = authUser.profile.id
     const patientEmail = authUser.user.email
 

@@ -24,11 +24,25 @@ interface CheckoutStepProps {
   onComplete: () => void
 }
 
+// Prices from environment variables with fallback to defaults
+// These should match Stripe prices exactly
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
-  'med-cert': { base: 19.95, label: 'Medical Certificate' },
-  'prescription': { base: 29.95, label: 'Prescription Request' },
-  'repeat-script': { base: 29.95, label: 'Repeat Prescription' },
-  'consult': { base: 39.95, label: 'Doctor Consultation' },
+  'med-cert': { 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_MED_CERT || '19.95'), 
+    label: 'Medical Certificate' 
+  },
+  'prescription': { 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_PRESCRIPTION || '29.95'), 
+    label: 'Prescription Request' 
+  },
+  'repeat-script': { 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_REPEAT_SCRIPT || '29.95'), 
+    label: 'Repeat Prescription' 
+  },
+  'consult': { 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_CONSULT || '39.95'), 
+    label: 'Doctor Consultation' 
+  },
 }
 
 function ReviewItem({ label, value }: { label: string; value: string }) {

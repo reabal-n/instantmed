@@ -345,7 +345,7 @@ export default function StudentsPage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/seo/medical-certificate-for-uni" className="text-indigo-600 hover:underline">
+                <Link href="/medical-certificate" className="text-indigo-600 hover:underline">
                   Uni Med Certs
                 </Link>
                 {" • "}

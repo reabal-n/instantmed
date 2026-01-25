@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { MarketingFooter } from "@/components/marketing"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Shield, Clock, Star } from "lucide-react"
 import Link from "next/link"
@@ -162,7 +162,7 @@ export default function ConditionsIndexPage() {
           </section>
         </main>
 
-        <Footer />
+        <MarketingFooter />
       </div>
     </>
   )

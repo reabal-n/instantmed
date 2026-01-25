@@ -15,6 +15,22 @@ import { validateMedicareNumber } from '@/lib/validation/medicare'
 const SSR_SESSION_ID = 'ssr_placeholder'
 const SSR_TIMESTAMP = '1970-01-01T00:00:00.000Z'
 
+// Save queue to prevent race conditions during rapid updates
+let _saveQueue: Promise<void> = Promise.resolve()
+let _isSaveQueued = false
+
+// Queue a save operation to run sequentially
+function queueSave(saveFn: () => Promise<void>): void {
+  if (_isSaveQueued) return // Already queued, debounce will handle it
+  _isSaveQueued = true
+  _saveQueue = _saveQueue.then(async () => {
+    _isSaveQueued = false
+    await saveFn()
+  }).catch(() => {
+    _isSaveQueued = false
+  })
+}
+
 // Generate a unique session ID (with persistence) - only call on client
 function generateSessionId(): string {
   if (typeof window === 'undefined') {
@@ -284,9 +300,9 @@ export const useFlowStore = create<FlowStore>()(
 
         set({ pendingChanges: true, syncStatus: 'pending' })
 
-        // Set debounced save
+        // Set debounced save with queue to prevent race conditions
         saveTimer = setTimeout(() => {
-          get().saveDraft()
+          queueSave(() => get().saveDraft())
         }, SAVE_DEBOUNCE_MS)
       },
 

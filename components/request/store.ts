@@ -167,10 +167,26 @@ export const useRequestStore = create<RequestState & RequestActions>()(
       },
 
       goToStep: (stepId) => {
-        const { currentStepId } = get()
+        const { currentStepId, safetyConfirmed, answers } = get()
         const steps = ['safety', 'certificate', 'symptoms', 'medication', 'medication-history', 'medical-history', 'consult-reason', 'details', 'review', 'checkout']
         const currentIndex = steps.indexOf(currentStepId)
         const targetIndex = steps.indexOf(stepId)
+        
+        // Block forward navigation if prerequisites not met
+        if (targetIndex > currentIndex) {
+          // Safety step is always required first
+          if (!safetyConfirmed && stepId !== 'safety') {
+            return // Block navigation - safety not confirmed
+          }
+          // Block jumping to checkout without required data
+          if (stepId === 'checkout' || stepId === 'review') {
+            const hasRequiredAnswers = Object.keys(answers).length > 0
+            if (!hasRequiredAnswers) {
+              return // Block navigation - no answers provided
+            }
+          }
+        }
+        
         const direction = targetIndex > currentIndex ? 1 : -1
         set({ currentStepId: stepId, direction: direction as 1 | -1 })
       },
