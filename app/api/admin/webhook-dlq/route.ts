@@ -162,20 +162,20 @@ export async function POST(request: NextRequest) {
         .update({ retry_count: (entry.retry_count || 0) + 1 })
         .eq("id", entryId)
 
-      // Re-process the webhook by calling the webhook handler
-      // This is a simplified retry - in production you might want to
-      // replay the actual Stripe event via Stripe's API
+      // Re-process the webhook by calling the main webhook handler
+      // Pass special header to indicate this is an admin replay (bypass signature verification)
       try {
         const webhookResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/webhook/replay`,
+          `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/webhook`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              eventId: entry.event_id,
-              payload: entry.payload,
-              adminRetry: true,
-            }),
+            headers: { 
+              "Content-Type": "application/json",
+              "X-Admin-Replay": "true",
+              "X-Admin-Replay-Secret": process.env.INTERNAL_API_SECRET || "",
+              "X-Original-Event-Id": entry.event_id,
+            },
+            body: typeof entry.payload === "string" ? entry.payload : JSON.stringify(entry.payload),
           }
         )
 

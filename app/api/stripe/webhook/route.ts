@@ -191,27 +191,51 @@ export async function POST(request: Request) {
   const startTime = Date.now()
   const body = await request.text()
   const signature = request.headers.get("stripe-signature")
-
-  if (!signature) {
-    log.error("Missing stripe-signature header", {})
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 })
-  }
-
-  let webhookSecret: string
-  try {
-    webhookSecret = env.stripeWebhookSecret
-  } catch (error) {
-    log.error("STRIPE_WEBHOOK_SECRET not configured", {}, error)
-    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 })
-  }
+  
+  // Check for admin replay request (from DLQ retry)
+  const isAdminReplay = request.headers.get("X-Admin-Replay") === "true"
+  const adminReplaySecret = request.headers.get("X-Admin-Replay-Secret")
+  const originalEventId = request.headers.get("X-Original-Event-Id")
 
   let event: Stripe.Event
 
-  try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-  } catch (err) {
-    log.error("Signature verification failed", {}, err)
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+  if (isAdminReplay) {
+    // Verify admin replay secret
+    if (!adminReplaySecret || adminReplaySecret !== process.env.INTERNAL_API_SECRET) {
+      log.warn("Invalid admin replay secret", { originalEventId })
+      return NextResponse.json({ error: "Invalid replay credentials" }, { status: 401 })
+    }
+    
+    // Parse the stored payload directly (signature already verified on first receipt)
+    try {
+      const payload = JSON.parse(body)
+      event = payload as Stripe.Event
+      log.info("Processing admin replay", { eventId: event.id, originalEventId, type: event.type })
+    } catch (parseError) {
+      log.error("Failed to parse admin replay payload", { originalEventId }, parseError)
+      return NextResponse.json({ error: "Invalid replay payload" }, { status: 400 })
+    }
+  } else {
+    // Normal webhook flow - verify signature
+    if (!signature) {
+      log.error("Missing stripe-signature header", {})
+      return NextResponse.json({ error: "Missing signature" }, { status: 400 })
+    }
+
+    let webhookSecret: string
+    try {
+      webhookSecret = env.stripeWebhookSecret
+    } catch (error) {
+      log.error("STRIPE_WEBHOOK_SECRET not configured", {}, error)
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 500 })
+    }
+
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    } catch (err) {
+      log.error("Signature verification failed", {}, err)
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+    }
   }
 
   const supabase = getServiceClient()

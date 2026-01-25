@@ -13,7 +13,19 @@ import * as Sentry from "@sentry/nextjs"
 const logger = createLogger("email-retry")
 
 const MAX_RETRIES = 3
-const RETRY_DELAYS_MS = [
+
+// Exponential backoff with jitter for retry delays
+// Base delay doubles each retry: 5min -> 10min -> 20min
+// Jitter adds ±25% randomness to prevent thundering herd
+function getRetryDelayMs(retryCount: number): number {
+  const baseDelayMs = 5 * 60 * 1000 // 5 minutes
+  const exponentialDelay = baseDelayMs * Math.pow(2, retryCount)
+  const jitterFactor = 0.75 + Math.random() * 0.5 // 0.75 to 1.25
+  return Math.min(exponentialDelay * jitterFactor, 4 * 60 * 60 * 1000) // Cap at 4 hours
+}
+
+// Legacy fixed delays for reference (now using exponential backoff)
+const _RETRY_DELAYS_MS = [
   5 * 60 * 1000,   // 5 minutes
   30 * 60 * 1000,  // 30 minutes
   2 * 60 * 60 * 1000, // 2 hours
@@ -45,7 +57,7 @@ export async function queueEmailForRetry(params: {
 }): Promise<void> {
   const supabase = createServiceRoleClient()
   
-  const nextRetryAt = new Date(Date.now() + RETRY_DELAYS_MS[0]).toISOString()
+  const nextRetryAt = new Date(Date.now() + getRetryDelayMs(0)).toISOString()
   
   const { error } = await supabase
     .from("email_retry_queue")
@@ -170,8 +182,8 @@ export async function processEmailRetries(): Promise<{
           },
         })
       } else {
-        // Schedule next retry
-        const nextDelay = RETRY_DELAYS_MS[newRetryCount] || RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
+        // Schedule next retry with exponential backoff + jitter
+        const nextDelay = getRetryDelayMs(newRetryCount)
         const nextRetryAt = new Date(Date.now() + nextDelay).toISOString()
         
         await supabase

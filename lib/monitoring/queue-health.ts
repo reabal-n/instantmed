@@ -20,11 +20,11 @@ export interface QueueHealthMetrics {
   slaBreached: boolean
 }
 
-// Thresholds
-const QUEUE_WARNING_SIZE = 20
-const QUEUE_CRITICAL_SIZE = 50
-const SLA_WARNING_MINUTES = 30
-const SLA_BREACH_MINUTES = 60
+// Thresholds - configurable via environment variables
+const QUEUE_WARNING_SIZE = parseInt(process.env.QUEUE_WARNING_SIZE || "20", 10)
+const QUEUE_CRITICAL_SIZE = parseInt(process.env.QUEUE_CRITICAL_SIZE || "50", 10)
+const SLA_WARNING_MINUTES = parseInt(process.env.SLA_WARNING_MINUTES || "30", 10)
+const SLA_BREACH_MINUTES = parseInt(process.env.SLA_BREACH_MINUTES || "60", 10)
 
 /**
  * Get current queue health metrics

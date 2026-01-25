@@ -90,6 +90,7 @@ export async function getEligibleRefunds(): Promise<PaymentWithRefund[]> {
     `)
     .eq("refund_status", "eligible")
     .order("created_at", { ascending: false })
+    .limit(1000) // Pagination limit to prevent memory issues
 
   if (error) {
     log.error("Failed to fetch eligible refunds", {}, error)

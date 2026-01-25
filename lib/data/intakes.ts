@@ -85,7 +85,8 @@ export async function getPatientIntakes(
   options?: { status?: IntakeStatus; page?: number; pageSize?: number }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
   const supabase = createServiceRoleClient()
-  const page = options?.page ?? 1
+  // Validate page number - must be >= 1, cap at reasonable max
+  const page = Math.max(1, Math.min(options?.page ?? 1, 1000))
   const pageSize = Math.min(options?.pageSize ?? 20, 100) // Cap at 100
   const offset = (page - 1) * pageSize
 
@@ -713,12 +714,13 @@ export async function getDoctorPersonalStats(doctorId: string): Promise<{
   monthStart.setDate(1)
   monthStart.setHours(0, 0, 0, 0)
 
-  // Fetch doctor's reviewed intakes
+  // Fetch doctor's reviewed intakes - filter by month at DB level to avoid N+1
   const { data, error } = await supabase
     .from("intakes")
     .select("id, status, reviewed_by, paid_at, approved_at, declined_at, created_at")
     .eq("reviewed_by", doctorId)
     .in("status", ["approved", "declined", "completed"])
+    .or(`approved_at.gte.${monthStart.toISOString()},declined_at.gte.${monthStart.toISOString()}`)
 
   if (error || !data) {
     logger.error("Error fetching doctor personal stats", { doctorId }, error instanceof Error ? error : new Error(String(error)))
