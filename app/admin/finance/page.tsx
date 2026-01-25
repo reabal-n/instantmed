@@ -20,17 +20,8 @@ export default async function FinanceDashboardPage() {
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
   const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)
 
-  // Fetch financial data
-  const [
-    revenueResult,
-    refundsResult,
-    revenueByDayResult,
-    revenueByServiceResult,
-    pendingPaymentsResult,
-    avgTransactionResult,
-    disputesResult,
-    fraudFlagsResult,
-  ] = await Promise.all([
+  // Fetch financial data - use allSettled to prevent page crash
+  const results = await Promise.allSettled([
     // Total revenue (paid intakes)
     supabase
       .from("intakes")
@@ -87,6 +78,16 @@ export default async function FinanceDashboardPage() {
       .order("created_at", { ascending: false })
       .limit(20),
   ])
+
+  // Extract results with fallbacks
+  const revenueResult = results[0].status === "fulfilled" ? results[0].value : { data: [] }
+  const refundsResult = results[1].status === "fulfilled" ? results[1].value : { data: [] }
+  const revenueByDayResult = results[2].status === "fulfilled" ? results[2].value : { data: [] }
+  const revenueByServiceResult = results[3].status === "fulfilled" ? results[3].value : { data: [] }
+  const pendingPaymentsResult = results[4].status === "fulfilled" ? results[4].value : { count: 0 }
+  const avgTransactionResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
+  const disputesResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
+  const fraudFlagsResult = results[7].status === "fulfilled" ? results[7].value : { data: [] }
 
   // Calculate totals
   const totalRevenue = revenueResult.data?.reduce((sum, i) => sum + (i.amount_paid || 0), 0) || 0

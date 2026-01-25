@@ -105,6 +105,12 @@ export async function GET(request: NextRequest) {
     e => e.id === user.primaryEmailAddressId
   )?.emailAddress
 
+  // Validate email exists before proceeding
+  if (!primaryEmail) {
+    log.error("User has no primary email address", { userId })
+    return NextResponse.redirect(`${origin}/sign-in?error=no_email`)
+  }
+
   log.info("Clerk user found", { userId })
 
   try {
@@ -151,16 +157,20 @@ export async function GET(request: NextRequest) {
       logLogin(profile.id, ipAddress, userAgent).catch(() => {})
     }
 
-    // Determine redirect destination with open redirect protection
-    let destination = `${origin}/patient`
+    // Determine redirect destination with open redirect protection for ALL roles
+    let destination: string
 
     if (profile) {
       if (profile.role === "doctor" || profile.role === "admin") {
-        destination = `${origin}/doctor`
-      } else if (profile.role === "patient") {
+        // Apply safe redirect validation to doctor/admin too
+        destination = getSafeRedirectUrl(next, origin, "/doctor")
+      } else {
+        // Patient role
         const defaultPatientPath = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
         destination = getSafeRedirectUrl(next, origin, defaultPatientPath)
       }
+    } else {
+      destination = getSafeRedirectUrl(next, origin, "/patient")
     }
 
     log.info("Redirecting user", { destination, role: profile?.role })

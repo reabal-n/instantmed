@@ -19,16 +19,8 @@ export default async function AnalyticsDashboardPage() {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  // Get intake funnel data
-  const [
-    totalVisitsResult,
-    startedIntakesResult,
-    paidIntakesResult,
-    completedIntakesResult,
-    intakesByDayResult,
-    intakesByServiceResult,
-    intakesBySourceResult,
-  ] = await Promise.all([
+  // Get intake funnel data - use allSettled to prevent page crash
+  const results = await Promise.allSettled([
     // Total page views (from audit logs or approximation)
     supabase
       .from("audit_logs")
@@ -77,6 +69,15 @@ export default async function AnalyticsDashboardPage() {
       .not("utm_source", "is", null),
   ])
 
+  // Extract results with fallbacks
+  const totalVisitsResult = results[0].status === "fulfilled" ? results[0].value : { count: 0 }
+  const startedIntakesResult = results[1].status === "fulfilled" ? results[1].value : { count: 0 }
+  const paidIntakesResult = results[2].status === "fulfilled" ? results[2].value : { count: 0 }
+  const completedIntakesResult = results[3].status === "fulfilled" ? results[3].value : { count: 0 }
+  const intakesByDayResult = results[4].status === "fulfilled" ? results[4].value : { data: [] }
+  const intakesByServiceResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
+  const intakesBySourceResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
+
   // Process daily data
   const dailyData: Record<string, { visits: number; started: number; paid: number; completed: number }> = {}
   
@@ -90,6 +91,7 @@ export default async function AnalyticsDashboardPage() {
   // Fill in intake data
   if (intakesByDayResult.data) {
     for (const intake of intakesByDayResult.data) {
+      if (!intake.created_at) continue
       const key = intake.created_at.split("T")[0]
       if (dailyData[key]) {
         dailyData[key].started++

@@ -16,15 +16,22 @@ export default async function RefundsPage() {
     redirect("/")
   }
 
-  const [paymentsResult, stats] = await Promise.all([
+  const results = await Promise.allSettled([
     getPaymentsWithRefundsAction({}, 1, 50),
     getRefundStatsAction(),
   ])
 
+  const paymentsResult = results[0].status === "fulfilled" 
+    ? results[0].value 
+    : { data: [] as Awaited<ReturnType<typeof getPaymentsWithRefundsAction>>["data"], total: 0 }
+  const stats = results[1].status === "fulfilled" 
+    ? results[1].value 
+    : { eligible: 0, processing: 0, refunded: 0, failed: 0, totalRefunded: 0 }
+
   return (
     <RefundsClient
-      initialPayments={paymentsResult.data}
-      initialTotal={paymentsResult.total}
+      initialPayments={paymentsResult.data || []}
+      initialTotal={paymentsResult.total || 0}
       stats={stats}
     />
   )

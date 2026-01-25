@@ -44,8 +44,10 @@ export function CompleteAccountForm({
 
   const handleCreateAccount = () => {
     // Redirect to Clerk Account Portal with redirect URL
-    const redirectUrl = `https://instantmed.com.au/patient/intakes/success?intake_id=${intakeId}`
-    const signUpUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'
+    const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
+    const redirectUrl = `${appUrl}/patient/intakes/success?intake_id=${intakeId}`
+    const signUpUrl = `${clerkSignUpUrl}?redirect_url=${encodeURIComponent(redirectUrl)}`
     router.push(signUpUrl)
   }
 

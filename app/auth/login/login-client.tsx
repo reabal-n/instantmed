@@ -5,10 +5,25 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@/components/providers/supabase-auth-provider"
 
+// Validate redirect URL to prevent open redirect attacks
+function isValidRedirect(url: string): boolean {
+  // Must start with / and not contain // (prevents protocol-relative URLs)
+  if (!url.startsWith('/') || url.startsWith('//')) {
+    return false
+  }
+  // Block any URL that could be interpreted as absolute
+  if (url.includes('://') || url.includes('\\')) {
+    return false
+  }
+  return true
+}
+
 export function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams?.get("redirect") || "/account"
+  const rawRedirect = searchParams?.get("redirect") || "/account"
+  // Validate and sanitize redirect URL
+  const redirectTo = isValidRedirect(rawRedirect) ? rawRedirect : "/account"
   const { isSignedIn, isLoading } = useAuth()
 
   useEffect(() => {

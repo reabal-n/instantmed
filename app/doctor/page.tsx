@@ -32,20 +32,39 @@ export default async function DoctorDashboardPage({
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
 
-  // Fetch all data in parallel for performance
-  let queueResult, monitoringStats, personalStats, slaData, doctorIdentity
-  try {
-    [queueResult, monitoringStats, personalStats, slaData, doctorIdentity] = await Promise.all([
-      getDoctorQueue({ page, pageSize }),
-      getIntakeMonitoringStats(),
-      getDoctorPersonalStats(profile.id),
-      getSlaBreachIntakes(),
-      getDoctorIdentity(profile.id),
-    ])
-  } catch (error) {
-    log.error("Data fetch error", { profileId: profile.id }, error)
-    throw error // Re-throw to trigger error boundary
-  }
+  // Fetch all data in parallel for performance - use allSettled for graceful degradation
+  const results = await Promise.allSettled([
+    getDoctorQueue({ page, pageSize }),
+    getIntakeMonitoringStats(),
+    getDoctorPersonalStats(profile.id),
+    getSlaBreachIntakes(),
+    getDoctorIdentity(profile.id),
+  ])
+
+  // Extract results with sensible fallbacks
+  const queueResult = results[0].status === "fulfilled" 
+    ? results[0].value 
+    : { data: [], total: 0, page: 1, pageSize }
+  const monitoringStats = results[1].status === "fulfilled" 
+    ? results[1].value 
+    : { todaySubmissions: 0, queueSize: 0, paidCount: 0, pendingCount: 0, approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, oldestInQueueMinutes: null }
+  const personalStats = results[2].status === "fulfilled" 
+    ? results[2].value 
+    : { reviewedToday: 0, approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, approvalRate: null, reviewedThisWeek: 0, reviewedThisMonth: 0 }
+  const slaData = results[3].status === "fulfilled" 
+    ? results[3].value 
+    : { breached: 0, approaching: 0 }
+  const doctorIdentity = results[4].status === "fulfilled" 
+    ? results[4].value 
+    : null
+
+  // Log any failures for monitoring
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      const names = ["queue", "monitoring", "personal", "sla", "identity"]
+      log.error(`Failed to fetch ${names[index]} data`, { profileId: profile.id }, result.reason)
+    }
+  })
 
   // Merge SLA data into monitoring stats
   const enrichedMonitoringStats = {
