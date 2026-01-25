@@ -148,6 +148,7 @@ export function DocumentBuilderClient({
           className={`p-4 rounded-lg ${
             actionMessage.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
           }`}
+          data-testid={actionMessage.type === "success" ? "success-message" : "error-message"}
         >
           {actionMessage.text}
         </div>
@@ -252,8 +253,13 @@ export function DocumentBuilderClient({
       </Card>
 
       {/* Actions */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving || isPending}>
+      <div className="flex items-center gap-3" data-testid="document-actions">
+        <Button 
+          variant="outline" 
+          onClick={handleSaveDraft} 
+          disabled={isSaving || isPending}
+          data-testid="save-draft-button"
+        >
           {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
           Save Draft
         </Button>
@@ -262,6 +268,7 @@ export function DocumentBuilderClient({
           onClick={handleGenerateAndApprove}
           disabled={isGenerating || isPending || !formData.reason.trim()}
           className="bg-emerald-600 hover:bg-emerald-700"
+          data-testid="approve-button"
         >
           {isGenerating ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />

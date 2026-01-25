@@ -8,7 +8,35 @@ import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 import { fadeIn, slideUp } from "@/components/ui/animations"
+import * as Sentry from "@sentry/nextjs"
+
 const log = createLogger("error")
+
+/**
+ * Derive app area from pathname for Sentry tagging
+ */
+function getAppAreaFromPathname(pathname: string): "admin" | "doctor" | "patient" | "public" {
+  if (pathname.startsWith("/admin")) return "admin"
+  if (pathname.startsWith("/doctor")) return "doctor"
+  if (pathname.startsWith("/patient")) return "patient"
+  return "public"
+}
+
+/**
+ * Get safe E2E cookies for Sentry context (only __e2e_* cookies)
+ */
+function getSafeE2ECookies(): Record<string, string> {
+  if (typeof document === "undefined") return {}
+  const cookies: Record<string, string> = {}
+  const cookieString = document.cookie || ""
+  for (const cookie of cookieString.split(";")) {
+    const [name, value] = cookie.trim().split("=")
+    if (name?.startsWith("__e2e_")) {
+      cookies[name] = value || ""
+    }
+  }
+  return cookies
+}
 
 export default function Error({
   error,
@@ -23,6 +51,8 @@ export default function Error({
   useEffect(() => {
     // Log error with PHI sanitization for compliance
     const sanitizedError = sanitizeError(error)
+    const pathname = typeof window !== "undefined" ? window.location.pathname : ""
+    const searchParams = typeof window !== "undefined" ? window.location.search : ""
     const sanitizedUrl = typeof window !== "undefined" 
       ? sanitizeUrl(window.location.href) 
       : undefined
@@ -32,6 +62,46 @@ export default function Error({
       url: sanitizedUrl,
       retryCount,
     })
+
+    // Capture to Sentry with structured context
+    const appArea = getAppAreaFromPathname(pathname)
+    const e2eCookies = getSafeE2ECookies()
+    const isPlaywright = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1"
+
+    const eventId = Sentry.captureException(error, {
+      tags: {
+        boundary: "error",
+        app_area: appArea,
+        ...(isPlaywright && { playwright: "1" }),
+        ...(e2eCookies.__e2e_run_id && { e2e_run_id: e2eCookies.__e2e_run_id }),
+        ...(e2eCookies.__e2e_auth_role && { user_role: e2eCookies.__e2e_auth_role }),
+      },
+      extra: {
+        digest: error.digest,
+        pathname,
+        searchParams,
+        retryCount,
+        ...(isPlaywright && { e2e_cookies: e2eCookies }),
+      },
+    })
+    
+    // Enhanced E2E diagnostics - log full error details to console for Playwright capture
+    if (isPlaywright || process.env.NODE_ENV === "test") {
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Error Boundary Triggered")
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Sentry Event ID:", eventId)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Error name:", error.name)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Error message:", error.message)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Error digest:", error.digest)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Error stack:", error.stack)
+      // eslint-disable-next-line no-console
+      console.error("[E2E DIAGNOSTIC] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    }
   }, [error, retryCount])
 
   const handleRetry = () => {

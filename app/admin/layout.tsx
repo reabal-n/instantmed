@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -19,14 +18,7 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   // Require admin role for all admin routes
-  const authUser = await getAuthenticatedUserWithProfile()
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-  
-  if (authUser.profile.role !== "admin") {
-    redirect("/")
-  }
+  await requireRole(["admin"], { redirectTo: "/" })
   
   return children
 }

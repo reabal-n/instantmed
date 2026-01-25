@@ -5,6 +5,32 @@ import { useEffect } from "react"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 import * as Sentry from "@sentry/nextjs"
 
+/**
+ * Derive app area from pathname for Sentry tagging
+ */
+function getAppAreaFromPathname(pathname: string): "admin" | "doctor" | "patient" | "public" {
+  if (pathname.startsWith("/admin")) return "admin"
+  if (pathname.startsWith("/doctor")) return "doctor"
+  if (pathname.startsWith("/patient")) return "patient"
+  return "public"
+}
+
+/**
+ * Get safe E2E cookies for Sentry context (only __e2e_* cookies)
+ */
+function getSafeE2ECookies(): Record<string, string> {
+  if (typeof document === "undefined") return {}
+  const cookies: Record<string, string> = {}
+  const cookieString = document.cookie || ""
+  for (const cookie of cookieString.split(";")) {
+    const [name, value] = cookie.trim().split("=")
+    if (name?.startsWith("__e2e_")) {
+      cookies[name] = value || ""
+    }
+  }
+  return cookies
+}
+
 export default function GlobalError({
   error,
   reset,
@@ -14,11 +40,41 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("Global application error:", error)
-    // Report to Sentry for production visibility
-    Sentry.captureException(error, {
-      tags: { boundary: "global-error" },
-      extra: { digest: error.digest },
+
+    // Gather context
+    const pathname = typeof window !== "undefined" ? window.location.pathname : ""
+    const searchParams = typeof window !== "undefined" ? window.location.search : ""
+    const appArea = getAppAreaFromPathname(pathname)
+    const e2eCookies = getSafeE2ECookies()
+    const isPlaywright = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1" || 
+      (typeof window !== "undefined" && (window as unknown as { __PLAYWRIGHT__?: boolean }).__PLAYWRIGHT__)
+    
+    // Report to Sentry with structured context
+    const eventId = Sentry.captureException(error, {
+      tags: {
+        boundary: "global-error",
+        app_area: appArea,
+        ...(isPlaywright && { playwright: "1" }),
+        ...(e2eCookies.__e2e_run_id && { e2e_run_id: e2eCookies.__e2e_run_id }),
+        ...(e2eCookies.__e2e_auth_role && { user_role: e2eCookies.__e2e_auth_role }),
+      },
+      extra: {
+        digest: error.digest,
+        pathname,
+        searchParams,
+        ...(isPlaywright && { e2e_cookies: e2eCookies }),
+      },
     })
+    
+    // Enhanced E2E diagnostics - log full stack trace when PLAYWRIGHT=1
+    if (isPlaywright) {
+      console.error("[E2E DIAGNOSTIC] Global Error Boundary Triggered")
+      console.error("[E2E DIAGNOSTIC] Sentry Event ID:", eventId)
+      console.error("[E2E DIAGNOSTIC] Error name:", error.name)
+      console.error("[E2E DIAGNOSTIC] Error message:", error.message)
+      console.error("[E2E DIAGNOSTIC] Error digest:", error.digest)
+      console.error("[E2E DIAGNOSTIC] Error stack:", error.stack)
+    }
   }, [error])
 
   return (

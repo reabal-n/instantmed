@@ -25,9 +25,28 @@ const isPublicRoute = createRouteMatcher([
   '/api/health',
   '/api/webhooks(.*)',
   '/api/cron(.*)',
+  '/api/test(.*)', // E2E test endpoints
 ])
 
+/**
+ * Check if E2E test mode is enabled and has valid auth cookie.
+ * Only bypasses Clerk when PLAYWRIGHT=1 AND the E2E cookie is present.
+ */
+function hasE2EAuthBypass(req: Request): boolean {
+  if (process.env.PLAYWRIGHT !== "1" && process.env.NODE_ENV !== "test") {
+    return false
+  }
+  
+  const cookies = req.headers.get("cookie") || ""
+  return cookies.includes("__e2e_auth_user_id=")
+}
+
 export default clerkMiddleware(async (auth, req) => {
+  // Skip Clerk auth for E2E tests with valid test cookie
+  if (hasE2EAuthBypass(req)) {
+    return // Allow through without Clerk auth
+  }
+  
   // Protect authenticated routes
   if (isProtectedRoute(req) && !isPublicRoute(req)) {
     await auth.protect()

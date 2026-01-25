@@ -54,14 +54,16 @@ export async function register() {
     }
   }
 
-  // Skip Sentry initialization in development to avoid compilation issues
-  if (process.env.NODE_ENV === "development") {
+  // Skip Sentry initialization in development UNLESS PLAYWRIGHT mode is enabled
+  // This allows E2E tests to verify Sentry integration
+  const isPlaywrightMode = process.env.PLAYWRIGHT === "1"
+  if (process.env.NODE_ENV === "development" && !isPlaywrightMode) {
     return;
   }
   
   Sentry.init({
     dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-    enabled: process.env.NODE_ENV === "production",
+    enabled: process.env.NODE_ENV === "production" || isPlaywrightMode,
     // Increased sampling for better visibility during growth phase
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.5 : 1.0,
     enableLogs: true,

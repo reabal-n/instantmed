@@ -173,6 +173,13 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
   const from = params.from || env.resendFromEmail
   const apiKey = env.resendApiKey
 
+  // E2E TEST ONLY: Force email failure for failure-mode testing
+  // This flag is only checked when PLAYWRIGHT=1 to ensure production safety
+  if (process.env.PLAYWRIGHT === "1" && process.env.E2E_FORCE_EMAIL_FAIL === "true") {
+    logger.info("[Resend] E2E forced email failure", { to: sanitizeEmailForLog(to), subject })
+    return { success: false, error: "E2E_FORCE_EMAIL_FAIL: Simulated email delivery failure" }
+  }
+
   // Validate email format before sending
   if (!isValidEmail(to)) {
     logger.warn("[Resend] Invalid email format", { to: sanitizeEmailForLog(to) })

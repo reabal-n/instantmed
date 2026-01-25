@@ -11,6 +11,9 @@ if (!sentryDsn) {
   console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN not configured - error tracking disabled");
 }
 
+// Enable Sentry in production OR in PLAYWRIGHT mode for E2E testing
+const isPlaywrightMode = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1"
+
 Sentry.init({
   dsn: sentryDsn,
 
@@ -27,8 +30,8 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Only enable in production
-  enabled: process.env.NODE_ENV === "production",
+  // Enable in production OR PLAYWRIGHT mode
+  enabled: process.env.NODE_ENV === "production" || isPlaywrightMode,
 
   // Filter out common non-actionable errors
   ignoreErrors: [
@@ -51,8 +54,8 @@ Sentry.init({
   sendDefaultPii: false,
 
   beforeSend(event) {
-    // Don't send events in development
-    if (process.env.NODE_ENV !== "production") {
+    // Don't send events in development UNLESS PLAYWRIGHT mode
+    if (process.env.NODE_ENV !== "production" && !isPlaywrightMode) {
       return null;
     }
 
@@ -60,6 +63,14 @@ Sentry.init({
     if (event.request?.headers) {
       delete event.request.headers["Authorization"];
       delete event.request.headers["Cookie"];
+    }
+
+    // Add E2E context tags when in PLAYWRIGHT mode
+    if (isPlaywrightMode) {
+      event.tags = {
+        ...event.tags,
+        playwright: "1",
+      }
     }
 
     return event;

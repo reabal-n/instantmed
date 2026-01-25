@@ -6,9 +6,47 @@
  */
 
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
+
+// ============================================================================
+// E2E TEST AUTH BYPASS (test mode only)
+// ============================================================================
+
+/**
+ * Check if E2E test mode is enabled.
+ * Returns true ONLY if NODE_ENV === "test" OR PLAYWRIGHT === "1"
+ * This is intentionally strict to prevent bypass in development/staging.
+ */
+function isE2ETestModeEnabled(): boolean {
+  return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
+}
+
+/**
+ * Check for E2E test auth cookies (only in test mode).
+ * Returns the test user's clerk ID if valid E2E session exists.
+ */
+async function getE2EAuthUser(): Promise<{ clerkUserId: string } | null> {
+  // Only allow when NODE_ENV=test OR PLAYWRIGHT=1
+  if (!isE2ETestModeEnabled()) {
+    return null
+  }
+
+  try {
+    const cookieStore = await cookies()
+    const e2eUserId = cookieStore.get("__e2e_auth_user_id")?.value
+    
+    if (e2eUserId) {
+      return { clerkUserId: e2eUserId }
+    }
+  } catch {
+    // Cookies not available (e.g., in API route without request context)
+  }
+
+  return null
+}
 
 // Backward-compatible type that works with existing code
 export interface AuthenticatedUser {
@@ -29,6 +67,32 @@ export interface AuthenticatedUser {
  * Returns null if not authenticated or profile doesn't exist.
  */
 export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
+  // Check for E2E test auth first (non-production only)
+  const e2eAuth = await getE2EAuthUser()
+  if (e2eAuth) {
+    const supabase = createServiceRoleClient()
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("clerk_user_id", e2eAuth.clerkUserId)
+      .single()
+
+    if (profile) {
+      return {
+        user: {
+          id: e2eAuth.clerkUserId,
+          email: (profile as Profile).email ?? null,
+          user_metadata: {
+            full_name: (profile as Profile).full_name ?? undefined,
+            date_of_birth: (profile as Profile).date_of_birth ?? undefined,
+          },
+        },
+        profile: profile as Profile,
+      }
+    }
+  }
+
+  // Normal Clerk auth flow
   const { userId } = await clerkAuth()
   
   if (!userId) {
@@ -144,8 +208,61 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
 }
 
 /**
+ * Require authentication with one of the specified roles.
+ * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
+ * 
+ * @param allowedRoles - Array of roles that can access this resource
+ * @param options - Additional options for role checking
+ * @returns AuthenticatedUser if authorized
+ * 
+ * @example
+ * // Admin-only route
+ * await requireRole(["admin"])
+ * 
+ * // Doctor or admin route
+ * await requireRole(["doctor", "admin"])
+ */
+export async function requireRole(
+  allowedRoles: Array<"patient" | "doctor" | "admin">,
+  options?: { 
+    allowIncompleteOnboarding?: boolean
+    redirectTo?: string
+  },
+): Promise<AuthenticatedUser> {
+  const authUser = await getAuthenticatedUserWithProfile()
+
+  if (!authUser) {
+    redirect("/sign-in")
+  }
+
+  const userRole = authUser.profile.role
+  
+  // Check if user's role is in the allowed list
+  if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
+    // Redirect to the appropriate dashboard based on role
+    if (options?.redirectTo) {
+      redirect(options.redirectTo)
+    } else if (userRole === "patient") {
+      redirect("/patient")
+    } else if (userRole === "doctor" || userRole === "admin") {
+      redirect("/doctor")
+    } else {
+      redirect("/sign-in")
+    }
+  }
+
+  // Check onboarding for patients (unless explicitly allowed)
+  if (userRole === "patient" && !options?.allowIncompleteOnboarding && !authUser.profile.onboarding_completed) {
+    redirect("/patient/onboarding")
+  }
+
+  return authUser
+}
+
+/**
  * Require authentication with a specific role.
  * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
+ * @deprecated Use requireRole() for more flexible role checking
  */
 export async function requireAuth(
   requiredRole: "patient" | "doctor",

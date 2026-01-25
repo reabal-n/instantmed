@@ -1,212 +1,244 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- HeroUI wrapper requires type assertions for compatibility */
 "use client"
 
 import * as React from "react"
-import {
-  Select as HeroSelect,
-  SelectItem as HeroSelectItem,
-  type SelectProps as HeroSelectProps,
-} from "@heroui/react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export interface SelectProps extends Omit<HeroSelectProps, "children" | "selectedKeys" | "onSelectionChange"> {
-  children?: React.ReactNode
-  // Support shadcn/ui API
-  value?: string
-  onValueChange?: (value: string) => void
-  // Support HeroUI API
+// Backwards-compatible Select that accepts both shadcn/ui and HeroUI APIs
+interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  // HeroUI compatibility
   selectedKeys?: string[] | Set<string>
-  onSelectionChange?: (keys: any) => void
+  onSelectionChange?: (keys: Set<string>) => void
+  // Additional props that HeroUI Select accepts
+  placeholder?: string
+  className?: string
+  classNames?: Record<string, string>
 }
 
-function Select({
-  className,
-  children,
-  value,
-  onValueChange,
-  selectedKeys,
-  onSelectionChange,
-  ...props
+function Select({ 
+  selectedKeys, 
+  onSelectionChange, 
+  className: _className, 
+  classNames: _classNames, 
+  placeholder: _placeholder, 
+  ...props 
 }: SelectProps) {
-  // Map shadcn/ui API to HeroUI API
-  const heroSelectedKeys = selectedKeys ?? (value ? [value] : undefined)
-  const heroOnSelectionChange = onSelectionChange ?? (onValueChange ? (keys: any) => {
-    const selected = Array.from(keys)[0] as string
-    onValueChange(selected)
-  } : undefined)
+  // Map HeroUI API to Radix API
+  let radixValue = props.value
+  let radixOnValueChange = props.onValueChange
+
+  if (selectedKeys !== undefined && radixValue === undefined) {
+    const keysArray = selectedKeys instanceof Set ? Array.from(selectedKeys) : selectedKeys
+    radixValue = keysArray[0]
+  }
+
+  if (onSelectionChange && !radixOnValueChange) {
+    radixOnValueChange = (value: string) => {
+      onSelectionChange(new Set([value]))
+    }
+  }
 
   return (
-    <HeroSelect
-      radius="lg" // Soft Pop Glass: rounded-xl
-      variant="bordered"
-      selectedKeys={heroSelectedKeys}
-      onSelectionChange={heroOnSelectionChange as any}
-      classNames={{
-        // Soft Pop Glass trigger button
-        trigger: cn(
-          "bg-white/60 dark:bg-slate-900/40",
-          "backdrop-blur-lg",
-          "border border-white/30 dark:border-white/10",
-          // Motion
-          "transition-all duration-200",
-          // Hover state
-          "hover:border-primary/30",
-          "hover:bg-white/70 dark:hover:bg-slate-900/50",
-          // Focus state with glow
-          "data-[focused=true]:border-primary/50",
-          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60",
-          "data-[focused=true]:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
-        ),
-        value: "text-foreground",
-        // Soft Pop Glass dropdown
-        popoverContent: cn(
-          "bg-white/90 dark:bg-slate-900/90",
-          "backdrop-blur-2xl",
-          "border border-white/40 dark:border-white/10",
-          "rounded-xl",
-          "shadow-[0_20px_40px_rgba(0,0,0,0.15)]",
-        ),
-        listbox: "bg-transparent",
-      }}
-      className={className}
+    <SelectPrimitive.Root
       {...props}
-    >
-      {children as any}
-    </HeroSelect>
-  )
-}
-
-function SelectGroup({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
-
-function SelectValue({ placeholder: _placeholder }: { placeholder?: string }) {
-  return null // Handled by HeroUI Select
-}
-
-function SelectTrigger({
-  className,
-  size = "default",
-  children,
-  ...props
-}: React.ComponentProps<"button"> & {
-  size?: "sm" | "default"
-}) {
-  return (
-    <button
-      className={cn(
-        // Soft Pop Glass trigger
-        "bg-white/60 dark:bg-slate-900/40",
-        "backdrop-blur-lg",
-        "border border-white/30 dark:border-white/10",
-        "rounded-xl",
-        "flex w-fit items-center justify-between gap-2 px-3 py-2 text-sm",
-        "transition-all duration-200",
-        "hover:border-primary/30",
-        "focus:border-primary/50 focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
-        "data-[placeholder]:text-muted-foreground/50",
-        size === "default" ? "h-11" : "h-9",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  )
-}
-
-function SelectContent({
-  children,
-  ...props
-}: React.ComponentProps<"div">) {
-  return <div {...props}>{children}</div>
-}
-
-function SelectLabel({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs font-medium", className)}
-      {...props}
+      value={radixValue}
+      onValueChange={radixOnValueChange}
     />
   )
 }
 
-interface SelectItemProps extends Omit<React.ComponentProps<typeof HeroSelectItem>, "key"> {
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between gap-2",
+      "rounded-xl px-3 py-2",
+      "text-sm",
+      // Soft Pop Glass styling
+      "bg-white/60 dark:bg-slate-900/40",
+      "backdrop-blur-lg",
+      "border border-white/30 dark:border-white/10",
+      "ring-offset-background",
+      "transition-all duration-200",
+      // Hover state
+      "hover:border-primary/30",
+      "hover:bg-white/70 dark:hover:bg-slate-900/50",
+      // Focus state with glow
+      "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "focus:border-primary/50",
+      "focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+      // Disabled
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      // Placeholder
+      "[&>span]:line-clamp-1",
+      "data-[placeholder]:text-muted-foreground",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden",
+        // Soft Pop Glass styling
+        "bg-white/90 dark:bg-slate-900/90",
+        "backdrop-blur-2xl",
+        "border border-white/40 dark:border-white/10",
+        "rounded-xl",
+        "shadow-[0_20px_40px_rgba(0,0,0,0.15)]",
+        "text-popover-foreground",
+        // Animation
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "data-[side=bottom]:slide-in-from-top-2",
+        "data-[side=left]:slide-in-from-right-2",
+        "data-[side=right]:slide-in-from-left-2",
+        "data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+// SelectItem with HeroUI compatibility (accepts `key` as alias for `value`)
+interface SelectItemProps extends Omit<React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "value"> {
   value?: string
+  // HeroUI uses `key` prop for item identification
   key?: string
 }
 
-function SelectItem({
-  className,
-  children,
-  value,
-  key,
-  ...props
-}: SelectItemProps) {
-  // Map shadcn/ui API (value) to HeroUI API (key)
-  const itemKey = key ?? value
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  SelectItemProps
+>(({ className, children, value, ...props }, ref) => {
+  // Use value prop, falling back to key if provided via props spread
+  const itemValue = value ?? (props as { key?: string }).key ?? ""
   
   return (
-    <HeroSelectItem
-      key={itemKey}
+    <SelectPrimitive.Item
+      ref={ref}
+      value={itemValue}
       className={cn(
-        "rounded-lg",
+        "relative flex w-full cursor-default select-none items-center",
+        "rounded-lg py-1.5 pl-8 pr-2",
+        "text-sm",
+        "outline-none",
         "transition-colors duration-150",
-        "data-[hover=true]:bg-primary/5",
-        "data-[selectable=true]:focus:bg-primary/10",
+        // Focus/hover state
+        "focus:bg-primary/10 focus:text-accent-foreground",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       {...props}
     >
-      {children}
-    </HeroSelectItem>
-  )
-}
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check className="h-4 w-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
 
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("bg-white/20 dark:bg-white/10 pointer-events-none -mx-1 my-1 h-px", className)}
-      {...props}
-    />
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
   )
-}
+})
+SelectItem.displayName = SelectPrimitive.Item.displayName
 
-function SelectScrollUpButton({
-  className,
-  ...props
-}: React.ComponentProps<"button">) {
-  return (
-    <button
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function SelectScrollDownButton({
-  className,
-  ...props
-}: React.ComponentProps<"button">) {
-  return (
-    <button
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-white/20 dark:bg-white/10", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
 export {
   Select,

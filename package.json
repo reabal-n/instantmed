@@ -18,10 +18,16 @@
     "import:artg": "npx tsx scripts/import_artg.ts",
     "encrypt:backfill": "npx tsx scripts/encrypt-phi-backfill.ts",
     "encrypt:backfill:dry": "npx tsx scripts/encrypt-phi-backfill.ts --dry",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:headed": "playwright test --headed",
-    "e2e:debug": "playwright test --debug"
+    "e2e": "PLAYWRIGHT=1 playwright test",
+    "e2e:ui": "PLAYWRIGHT=1 playwright test --ui",
+    "e2e:headed": "PLAYWRIGHT=1 playwright test --headed",
+    "e2e:debug": "PLAYWRIGHT=1 playwright test --debug",
+    "e2e:chromium": "PLAYWRIGHT=1 playwright test --project=chromium",
+    "e2e:seed": "pnpm tsx scripts/e2e/seed.ts",
+    "e2e:teardown": "pnpm tsx scripts/e2e/teardown.ts",
+    "e2e:full": "pnpm e2e:teardown || true && PLAYWRIGHT=1 playwright test && pnpm e2e:teardown || true",
+    "e2e:smoke": "PLAYWRIGHT=1 playwright test --project=chromium e2e/portals.smoke.spec.ts e2e/rbac.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/doctor.patients.spec.ts",
+    "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.12",

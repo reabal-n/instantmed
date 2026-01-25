@@ -10,6 +10,7 @@ import { getClientIdentifier } from "@/lib/rate-limit/redis"
 import { logTriageApproved } from "@/lib/audit/compliance-audit"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 import { timingSafeEqual } from "crypto"
+import { captureApiError } from "@/lib/observability/sentry"
 
 const log = createLogger("admin-approve")
 
@@ -213,6 +214,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     log.error('Admin approve failed', { intakeId: body?.intakeId }, error)
+    
+    // Capture to Sentry with structured context
+    await captureApiError(
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        route: "/api/admin/approve",
+        method: "POST",
+        intakeId: body?.intakeId,
+        userRole: actorId === "system_api" ? "system" : "admin",
+        statusCode: 500,
+      }
+    )
+    
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
