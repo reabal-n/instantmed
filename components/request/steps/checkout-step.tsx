@@ -26,6 +26,7 @@ interface CheckoutStepProps {
 
 // Prices from environment variables with fallback to defaults
 // These should match Stripe prices exactly
+// Note: prescription and repeat-script share the same price (NEXT_PUBLIC_PRICE_PRESCRIPTION)
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
   'med-cert': { 
     base: parseFloat(process.env.NEXT_PUBLIC_PRICE_MED_CERT || '19.95'), 
@@ -36,7 +37,7 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
     label: 'Prescription Request' 
   },
   'repeat-script': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_REPEAT_SCRIPT || '29.95'), 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_PRESCRIPTION || '29.95'), 
     label: 'Repeat Prescription' 
   },
   'consult': { 
