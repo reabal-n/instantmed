@@ -282,10 +282,11 @@ export interface AtomicApprovalResult {
 }
 
 /**
- * Valid intake states that can be atomically approved
- * P0 FIX: Explicit state machine enforcement
+ * Valid intake states that can be atomically approved.
+ * States: paid (fresh from queue), in_review (doctor viewing), approved (idempotent).
+ * NOTE: "processing" removed - we use claim mechanism (claimed_by/claimed_at) for locking.
  */
-const APPROVABLE_INTAKE_STATES = ["processing", "approved"] as const
+const APPROVABLE_INTAKE_STATES = ["paid", "in_review", "approved"] as const
 
 /**
  * Atomically approve a certificate:
@@ -336,7 +337,8 @@ export async function atomicApproveCertificate(
   }
 
   // Validate doctor holds the claim (unless already approved - idempotent case)
-  if (intakeCheck.status === "processing" && intakeCheck.claimed_by !== input.doctor_id) {
+  // For paid/in_review states, verify claim ownership to prevent race conditions
+  if (intakeCheck.status !== "approved" && intakeCheck.claimed_by !== input.doctor_id) {
     log.error("Intake validation failed - doctor does not hold claim", {
       intakeId: input.intake_id,
       claimedBy: intakeCheck.claimed_by,

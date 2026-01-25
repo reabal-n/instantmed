@@ -165,25 +165,10 @@ export async function approveAndSendCert(
       return { success: false, error: errorMsg }
     }
 
-    // Now atomically update status to processing (only if claim succeeded)
-    const { data: claimed, error: statusError } = await supabase
-      .from("intakes")
-      .update({
-        status: "processing",
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", intakeId)
-      .eq("claimed_by", doctorProfile.id) // Safety: only update if we hold the claim
-      .in("status", ["paid", "in_review"])
-      .select("id")
-      .single()
-
-    if (statusError || !claimed) {
-      // Release claim since we couldn't transition status
-      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
-      logger.warn("Failed to transition intake to processing after claim", { intakeId, statusError })
-      return { success: false, error: "This intake is already being processed by another doctor" }
-    }
+    // NOTE: We no longer set a transient "processing" status here.
+    // The claim (claimed_by/claimed_at) provides the lock mechanism.
+    // The atomic RPC will transition directly from paid/in_review -> approved.
+    // This eliminates the "processing" status that wasn't in IntakeStatus type.
 
     const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null } | null
     if (!patient || !patient.email) {
@@ -305,8 +290,8 @@ export async function approveAndSendCert(
         certificateNumber, 
         error: uploadError 
       })
-      // Revert the claim since we can't proceed without storage
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      // Release the claim since we can't proceed without storage
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
 
@@ -346,8 +331,8 @@ export async function approveAndSendCert(
 
     if (!atomicResult.success) {
       logger.error("Atomic approval failed", { intakeId, error: atomicResult.error })
-      // Revert the claim since atomic operation failed
-      await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      // Release the claim since atomic operation failed
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
       return { success: false, error: atomicResult.error || "Failed to create certificate records" }
     }
 

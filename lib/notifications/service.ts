@@ -89,8 +89,12 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           metadata: { requestId, requestType, status: newStatus },
         })
 
-        // Email notification
-        if (documentUrl) {
+        // IMPORTANT: For med_certs, email is sent by approveAndSendCert() directly via sendViaResend.
+        // Skip email here to prevent duplicate sends. Only create in-app notification for med certs.
+        const isMedCert = requestType === "med_certs" || requestType.includes("med_cert")
+        
+        // Email notification - SKIP for med_certs (handled by canonical approveAndSendCert)
+        if (documentUrl && !isMedCert) {
           await sendMedCertReadyEmail({
             to: patientEmail,
             patientName,
