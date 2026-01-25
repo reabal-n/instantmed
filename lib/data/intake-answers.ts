@@ -155,10 +155,12 @@ export async function updateIntakeAnswers(
           encryptedAt: new Date().toISOString(),
         }
       } catch (encryptError) {
-        logger.error("Failed to encrypt intake answers on update", 
+        // CRITICAL: Fail the update if encryption fails - never write plaintext PHI
+        logger.error("Failed to encrypt intake answers on update - aborting to prevent plaintext PHI", 
           { id },
           encryptError instanceof Error ? encryptError : new Error(String(encryptError))
         )
+        return { success: false, error: "Failed to secure data. Please try again." }
       }
     }
 

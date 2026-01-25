@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 const logger = createLogger("cron-cleanup-orphaned-storage")
 
@@ -18,21 +19,12 @@ const logger = createLogger("cron-cleanup-orphaned-storage")
 const BUCKET_NAME = "documents"
 const ORPHAN_GRACE_PERIOD_DAYS = 7
 const MAX_FILES_PER_RUN = 50
-
-function verifyCronSecret(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    return process.env.NODE_ENV !== "production"
-  }
-  
-  const authHeader = request.headers.get("authorization")
-  return authHeader === `Bearer ${cronSecret}`
-}
+// Storage folders to scan for orphans
+const STORAGE_FOLDERS = ["med-certs", "pathology", "prescriptions"]
 
 export async function GET(request: NextRequest) {
-  if (!verifyCronSecret(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
 
   try {
     const supabase = createServiceRoleClient()

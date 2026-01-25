@@ -7,6 +7,14 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 // Type for draft data - using unknown for type safety
 type DraftData = Record<string, unknown>
 
+// CRITICAL: Allowed flow types to prevent injection attacks
+const ALLOWED_FLOW_TYPES = ["prescription", "med_cert", "consult", "repeat_script"] as const
+type FlowType = typeof ALLOWED_FLOW_TYPES[number]
+
+function isValidFlowType(flowType: string): flowType is FlowType {
+  return ALLOWED_FLOW_TYPES.includes(flowType as FlowType)
+}
+
 // Type for Supabase/Postgres errors
 interface DatabaseError {
   message: string
@@ -18,6 +26,12 @@ export async function saveDraftToSupabase(
   flowType: string,
   data: DraftData,
 ): Promise<{ success: boolean; error?: string }> {
+  // CRITICAL: Validate flowType to prevent injection
+  if (!isValidFlowType(flowType)) {
+    log.warn("Invalid flowType in saveDraftToSupabase", { flowType, patientId })
+    return { success: false, error: "Invalid flow type" }
+  }
+
   try {
     const supabase = createServiceRoleClient()
 
@@ -29,12 +43,12 @@ export async function saveDraftToSupabase(
       .single()
 
     if (existing) {
-      // Update existing draft
+      // Update existing draft - only update answers and updated_at, not created_at
       const { error } = await supabase
         .from("request_answers")
         .update({
           answers: data,
-          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
 
@@ -63,6 +77,12 @@ export async function loadDraftFromSupabase(
   patientId: string,
   flowType: string,
 ): Promise<{ success: boolean; data?: DraftData; error?: string }> {
+  // CRITICAL: Validate flowType to prevent injection
+  if (!isValidFlowType(flowType)) {
+    log.warn("Invalid flowType in loadDraftFromSupabase", { flowType, patientId })
+    return { success: false, error: "Invalid flow type" }
+  }
+
   try {
     const supabase = createServiceRoleClient()
 
@@ -86,6 +106,12 @@ export async function loadDraftFromSupabase(
 }
 
 export async function deleteDraft(patientId: string, flowType: string): Promise<{ success: boolean; error?: string }> {
+  // CRITICAL: Validate flowType to prevent injection
+  if (!isValidFlowType(flowType)) {
+    log.warn("Invalid flowType in deleteDraft", { flowType, patientId })
+    return { success: false, error: "Invalid flow type" }
+  }
+
   try {
     const supabase = createServiceRoleClient()
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 const logger = createLogger("cron-expire-certificates")
 
@@ -9,20 +10,9 @@ const logger = createLogger("cron-expire-certificates")
  * Runs daily to update certificate status for certificates past their end_date
  */
 
-function verifyCronSecret(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    return process.env.NODE_ENV !== "production"
-  }
-  
-  const authHeader = request.headers.get("authorization")
-  return authHeader === `Bearer ${cronSecret}`
-}
-
 export async function GET(request: NextRequest) {
-  if (!verifyCronSecret(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
 
   try {
     const supabase = createServiceRoleClient()

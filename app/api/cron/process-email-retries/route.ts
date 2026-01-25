@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { processEmailRetries, getRetryQueueStats } from "@/lib/email/retry-queue"
 import { createLogger } from "@/lib/observability/logger"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 const logger = createLogger("cron-email-retries")
 
-// Verify cron secret to prevent unauthorized access
-function verifyCronSecret(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    // In development, allow without secret
-    return process.env.NODE_ENV !== "production"
-  }
-  
-  const authHeader = request.headers.get("authorization")
-  return authHeader === `Bearer ${cronSecret}`
-}
-
 export async function GET(request: NextRequest) {
-  // Verify authorization
-  if (!verifyCronSecret(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  // Use centralized cron auth
+  const authError = verifyCronRequest(request)
+  if (authError) return authError
 
   try {
     const result = await processEmailRetries()
@@ -52,9 +40,8 @@ export async function POST(request: NextRequest) {
 
 // Stats endpoint for monitoring
 export async function HEAD(request: NextRequest) {
-  if (!verifyCronSecret(request)) {
-    return new NextResponse(null, { status: 401 })
-  }
+  const authError = verifyCronRequest(request)
+  if (authError) return new NextResponse(null, { status: 401 })
 
   try {
     const stats = await getRetryQueueStats()
