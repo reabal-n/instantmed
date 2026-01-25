@@ -203,6 +203,7 @@ export function ConsultFlowClient({
   // CRITICAL: Generate idempotency key once on mount to prevent double-click duplicates
   const idempotencyKey = useMemo(() => crypto.randomUUID(), [])
   const submittingRef = useRef(false) // Synchronous check for rapid double-clicks
+  const authProcessingRef = useRef(false) // Mutex for auth state processing
 
   // Form state
   const [consultReason, setConsultReason] = useState<string | null>(null)
@@ -382,16 +383,28 @@ export function ConsultFlowClient({
     }
   }
 
+  // Sanitize sessionStorage values to prevent XSS
+  const getSanitizedSessionValue = (key: string): string => {
+    const value = sessionStorage.getItem(key)
+    if (!value) return ""
+    // Remove any HTML tags and trim whitespace
+    return value.replace(/<[^>]*>/g, "").trim().slice(0, 200)
+  }
+
   // Check Supabase auth session on mount
   useEffect(() => {
     const checkSession = async () => {
+      // Mutex to prevent concurrent auth processing
+      if (authProcessingRef.current) return
+      authProcessingRef.current = true
+
       try {
         const { data: { user: currentUser } } = await supabase.auth.getUser()
         setUser(currentUser)
         
         if (currentUser && !isAuthenticated) {
-          const pendingName = sessionStorage.getItem("pending_profile_name")
-          const pendingDob = sessionStorage.getItem("pending_profile_dob")
+          const pendingName = getSanitizedSessionValue("pending_profile_name")
+          const pendingDob = getSanitizedSessionValue("pending_profile_dob")
           
           // Get user metadata for name
           const userMetadata = currentUser.user_metadata || {}
@@ -417,34 +430,42 @@ export function ConsultFlowClient({
         // Error checking session - silently fail
       } finally {
         setIsLoading(false)
+        authProcessingRef.current = false
       }
     }
     
     checkSession()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       
+      // Mutex to prevent concurrent auth processing
+      if (authProcessingRef.current) return
       if (session?.user && !isAuthenticated) {
-        const pendingName = sessionStorage.getItem("pending_profile_name")
-        const pendingDob = sessionStorage.getItem("pending_profile_dob")
-        const userMetadata = session.user.user_metadata || {}
-        const userNameFromSession = pendingName || userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || ""
-        const userDob = pendingDob || ""
+        authProcessingRef.current = true
+        try {
+          const pendingName = getSanitizedSessionValue("pending_profile_name")
+          const pendingDob = getSanitizedSessionValue("pending_profile_dob")
+          const userMetadata = session.user.user_metadata || {}
+          const userNameFromSession = pendingName || userMetadata.full_name || userMetadata.name || session.user.email?.split('@')[0] || ""
+          const userDob = pendingDob || ""
 
-        const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
+          const { profileId } = await createOrGetProfile(session.user.id, userNameFromSession, userDob)
 
-        if (profileId) {
-          sessionStorage.removeItem("pending_profile_name")
-          sessionStorage.removeItem("pending_profile_dob")
-          setPatientId(profileId)
-          setIsAuthenticated(true)
-          setNeedsOnboarding(false)
+          if (profileId) {
+            sessionStorage.removeItem("pending_profile_name")
+            sessionStorage.removeItem("pending_profile_dob")
+            setPatientId(profileId)
+            setIsAuthenticated(true)
+            setNeedsOnboarding(false)
 
-          if (step === "signup") {
-            goNext()
+            if (step === "signup") {
+              goNext()
+            }
           }
+        } finally {
+          authProcessingRef.current = false
         }
       }
     })

@@ -408,7 +408,7 @@ interface AuditEventParams {
   reason?: string
 }
 
-async function logAuditEvent(params: AuditEventParams): Promise<void> {
+async function logAuditEvent(params: AuditEventParams): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
   const { error } = await supabase
@@ -440,5 +440,8 @@ async function logAuditEvent(params: AuditEventParams): Promise<void> {
       intakeId: params.intakeId,
       draftId: params.draftId 
     }, error)
+    return { success: false, error: error.message }
   }
+
+  return { success: true }
 }
