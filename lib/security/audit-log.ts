@@ -1,6 +1,7 @@
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { createLogger } from "@/lib/observability/logger"
+import { sanitizeAuditMetadata, assertNoPHI } from "@/lib/security/sanitize-audit"
 const logger = createLogger("audit-log")
 
 export type AuditAction =
@@ -80,6 +81,12 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   }
 
   try {
+    // Sanitize metadata to remove PHI before storing
+    const sanitizedMetadata = sanitizeAuditMetadata(entry.metadata)
+    
+    // Dev assertion to catch unsanitized PHI
+    assertNoPHI(sanitizedMetadata, `audit_log:${entry.action}`)
+    
     const { error } = await supabase.from("audit_logs").insert({
       action: entry.action,
       actor_id: entry.actorId,
@@ -87,7 +94,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       request_id: entry.requestId,
       from_state: entry.fromState,
       to_state: entry.toState,
-      metadata: entry.metadata,
+      metadata: sanitizedMetadata,
       ip_address: entry.ipAddress,
       user_agent: entry.userAgent,
       created_at: new Date().toISOString(),
@@ -134,6 +141,9 @@ export async function retryFailedAuditEvents(): Promise<{ processed: number; fai
   while (failedAuditQueue.length > 0) {
     const entry = failedAuditQueue.shift()!
     try {
+      // Sanitize metadata on retry as well
+      const sanitizedMetadata = sanitizeAuditMetadata({ ...entry.metadata, retried: true })
+      
       const { error } = await supabase.from("audit_logs").insert({
         action: entry.action,
         actor_id: entry.actorId,
@@ -141,7 +151,7 @@ export async function retryFailedAuditEvents(): Promise<{ processed: number; fai
         request_id: entry.requestId,
         from_state: entry.fromState,
         to_state: entry.toState,
-        metadata: { ...entry.metadata, retried: true },
+        metadata: sanitizedMetadata,
         ip_address: entry.ipAddress,
         user_agent: entry.userAgent,
         created_at: new Date().toISOString(),

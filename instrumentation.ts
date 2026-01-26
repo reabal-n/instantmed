@@ -8,6 +8,13 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import {
+  getSentryEnvironment,
+  getSentryRelease,
+  getSentryDsn,
+  isSentryEnabled,
+  getSentryRuntime,
+} from "@/lib/observability/sentry-config";
 
 export async function register() {
   // P0 FIX: Verify encryption is properly configured at startup
@@ -54,18 +61,25 @@ export async function register() {
     }
   }
 
-  // Skip Sentry initialization in development UNLESS PLAYWRIGHT mode is enabled
-  // This allows E2E tests to verify Sentry integration
-  const isPlaywrightMode = process.env.PLAYWRIGHT === "1"
-  if (process.env.NODE_ENV === "development" && !isPlaywrightMode) {
+  // Get Sentry configuration
+  const sentryDsn = getSentryDsn()
+  const sentryEnabled = isSentryEnabled()
+  const sentryEnvironment = getSentryEnvironment()
+  const sentryRelease = getSentryRelease()
+  const sentryRuntime = getSentryRuntime()
+
+  // Skip Sentry initialization if not enabled
+  if (!sentryEnabled) {
     return;
   }
   
   Sentry.init({
-    dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-    enabled: process.env.NODE_ENV === "production" || isPlaywrightMode,
+    dsn: sentryDsn,
+    enabled: sentryEnabled,
+    environment: sentryEnvironment,
+    release: sentryRelease,
     // Increased sampling for better visibility during growth phase
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.5 : 1.0,
+    tracesSampleRate: sentryEnvironment === "production" ? 0.5 : 1.0,
     enableLogs: true,
     sendDefaultPii: false,
     ignoreErrors: [
@@ -86,6 +100,14 @@ export async function register() {
       return 0.5
     },
   });
+
+  // Log startup confirmation (server-side only, once per cold start)
+  if (sentryRuntime === "nodejs") {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[Sentry] Initialized: enabled=${sentryEnabled}, env=${sentryEnvironment}, release=${sentryRelease || "unset"}, runtime=${sentryRuntime}`
+    )
+  }
 }
 
 export function onRequestError(

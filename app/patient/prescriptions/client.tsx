@@ -45,6 +45,7 @@ interface PrescriptionsClientProps {
   prescriptionIntakes: PrescriptionIntake[]
   medicationMap: Record<string, string>
   activePrescriptions: ActivePrescription[]
+  error?: string | null
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -75,6 +76,7 @@ export function PrescriptionsClient({
   prescriptionIntakes,
   medicationMap,
   activePrescriptions,
+  error,
 }: PrescriptionsClientProps) {
   const [activeTab, setActiveTab] = useState("all")
   
@@ -126,6 +128,16 @@ export function PrescriptionsClient({
           </Button>
         </Link>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <Card className="border-red-200 bg-red-50 mb-6">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Renewal Alerts */}
       {renewalNeeded.length > 0 && (

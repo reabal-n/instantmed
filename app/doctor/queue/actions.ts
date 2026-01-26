@@ -10,7 +10,7 @@ import {
   updateScriptSent,
   createPatientNote,
 } from "@/lib/data/intakes"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import type { IntakeStatus } from "@/types/db"
 
@@ -29,7 +29,7 @@ export async function updateStatusAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -87,7 +87,7 @@ export async function saveDoctorNotesAction(
   intakeId: string,
   notes: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -109,7 +109,7 @@ export async function declineIntakeAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -201,7 +201,7 @@ export async function flagForFollowupAction(
   intakeId: string,
   reason: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -219,7 +219,7 @@ export async function markScriptSentAction(
   scriptNotes?: string,
   parchmentReference?: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -264,7 +264,7 @@ export async function addPatientNoteAction(
     title?: string
   }
 ): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -285,7 +285,7 @@ export async function claimIntakeAction(
   intakeId: string,
   force: boolean = false
 ): Promise<{ success: boolean; error?: string; claimedBy?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -337,7 +337,7 @@ export async function claimIntakeAction(
 export async function releaseIntakeClaimAction(
   intakeId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -378,7 +378,7 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
   templates?: Array<{ code: string; label: string; description: string | null; requires_note: boolean }>
   error?: string
 }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -404,7 +404,7 @@ export async function markAsRefundedAction(
   reason?: string,
   processStripeRefund: boolean = false
 ): Promise<{ success: boolean; error?: string; refundId?: string; amountRefunded?: number }> {
-  const { profile } = await requireAuth("doctor")
+  const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }

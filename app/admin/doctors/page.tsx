@@ -16,7 +16,7 @@ export default async function DoctorProfilesPage() {
     redirect("/")
   }
 
-  const doctors = await getAllDoctorsAction()
+  const doctors = await getAllDoctorsAction().catch(() => [])
 
   return <DoctorProfilesClient initialDoctors={doctors} />
 }

@@ -1,6 +1,6 @@
 "use server"
 
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import {
   logClinicianViewedIntakeAnswers,
   logClinicianViewedMedicalHistory,
@@ -37,7 +37,7 @@ export async function logViewedIntakeAnswersAction(
   viewDurationMs?: number
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) return { success: false }
 
     await logClinicianViewedIntakeAnswers(
@@ -58,7 +58,7 @@ export async function logViewedMedicalHistoryAction(
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) return { success: false }
 
     await logClinicianViewedMedicalHistory(
@@ -78,7 +78,7 @@ export async function logViewedSafetyFlagsAction(
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) return { success: false }
 
     await logClinicianViewedSafetyFlags(
@@ -98,7 +98,7 @@ export async function logViewedAISummaryAction(
   serviceType?: string
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) return { success: false }
 
     await logClinicianViewedAISummary(

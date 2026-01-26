@@ -9,6 +9,7 @@ import {
   STATE_TO_PAYMENT_STATUS,
   STATE_EMAIL_TRIGGERS,
 } from "./request-states"
+import { sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
 
 // Service client for server operations
 function getServiceClient() {
@@ -77,7 +78,7 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
       return { success: false, error: updateError.message }
     }
 
-    // Create audit log
+    // Create audit log with sanitized metadata
     await supabase.from("audit_logs").insert({
       request_id: requestId,
       actor_id: actorId,
@@ -85,7 +86,7 @@ export async function executeTransition(params: TransitionParams): Promise<Trans
       action: trigger || "state_change",
       from_state: fromState,
       to_state: toState,
-      metadata: metadata || {},
+      metadata: sanitizeAuditMetadata(metadata) || {},
       ip_address: ipAddress,
       user_agent: userAgent,
     })

@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getDoctorPersonalStats } from "@/lib/data/intakes"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Require doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     const stats = await getDoctorPersonalStats(profile.id)
     return NextResponse.json(stats)

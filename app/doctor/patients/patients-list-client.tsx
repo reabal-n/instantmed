@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectItem } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle } from "lucide-react"
 import type { Profile } from "@/types/db"
 
@@ -35,8 +35,10 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
     })
   }, [patients, searchQuery, stateFilter, onboardingFilter])
 
-  const calculateAge = (dob: string): number => {
+  const calculateAge = (dob: string | null | undefined): number | null => {
+    if (!dob) return null
     const birthDate = new Date(dob)
+    if (isNaN(birthDate.getTime())) return null
     const today = new Date()
     let age = today.getFullYear() - birthDate.getFullYear()
     const monthDiff = today.getMonth() - birthDate.getMonth()
@@ -120,41 +122,29 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
           </div>
 
           <div className="flex gap-3">
-            <Select
-              selectedKeys={stateFilter ? [stateFilter] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string
-                setStateFilter(selected || "all")
-              }}
-              placeholder="State"
-              className="w-[120px]"
-              classNames={{
-                trigger: "rounded-xl bg-white/50 border-white/40",
-              }}
-            >
-              <SelectItem key="all">All States</SelectItem>
-              {states.map((state) => (
-                <SelectItem key={state}>
-                  {state}
-                </SelectItem>
-              ))}
+            <Select value={stateFilter} onValueChange={setStateFilter}>
+              <SelectTrigger className="w-[120px] rounded-xl bg-white/50 border-white/40">
+                <SelectValue placeholder="State" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All States</SelectItem>
+                {states.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
 
-            <Select
-              selectedKeys={onboardingFilter ? [onboardingFilter] : []}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string
-                setOnboardingFilter(selected || "all")
-              }}
-              placeholder="Onboarding"
-              className="w-[150px]"
-              classNames={{
-                trigger: "rounded-xl bg-white/50 border-white/40",
-              }}
-            >
-              <SelectItem key="all">All</SelectItem>
-              <SelectItem key="complete">Onboarded</SelectItem>
-              <SelectItem key="incomplete">Incomplete</SelectItem>
+            <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
+              <SelectTrigger className="w-[150px] rounded-xl bg-white/50 border-white/40">
+                <SelectValue placeholder="Onboarding" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="complete">Onboarded</SelectItem>
+                <SelectItem value="incomplete">Incomplete</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </div>
@@ -201,7 +191,9 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
                           </Avatar>
                           <div>
                             <p className="font-medium text-foreground">{patient.full_name}</p>
-                            <p className="text-xs text-muted-foreground">{age} years old</p>
+                            <p className="text-xs text-muted-foreground">
+                              {age !== null ? `${age} years old` : "Age N/A"}
+                            </p>
                           </div>
                         </div>
                       </TableCell>

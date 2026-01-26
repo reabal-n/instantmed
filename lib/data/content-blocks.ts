@@ -28,6 +28,7 @@ export async function getAllContentBlocks(): Promise<ContentBlock[]> {
   const { data, error } = await supabase
     .from("content_blocks")
     .select("*")
+    .is("deleted_at", null) // Exclude soft-deleted records
     .order("category", { ascending: true })
     .order("name", { ascending: true })
 
@@ -49,6 +50,7 @@ export async function getContentBlockByKey(key: string): Promise<ContentBlock | 
     .from("content_blocks")
     .select("*")
     .eq("key", key)
+    .is("deleted_at", null) // Exclude soft-deleted records
     .single()
 
   if (error) {
@@ -69,6 +71,7 @@ export async function getContentBlocksByCategory(category: string): Promise<Cont
     .from("content_blocks")
     .select("*")
     .eq("category", category)
+    .is("deleted_at", null) // Exclude soft-deleted records
     .order("name", { ascending: true })
 
   if (error) {
@@ -150,24 +153,29 @@ export async function updateContentBlock(
 }
 
 /**
- * Delete a content block
+ * Delete a content block (soft delete only - never hard delete to preserve audit trail)
+ * Sets deleted_at timestamp instead of removing the row
  */
 export async function deleteContentBlock(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
+  // Always soft delete - never hard delete content blocks to preserve audit trail
   const { error } = await supabase
     .from("content_blocks")
-    .delete()
+    .update({ 
+      deleted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString() 
+    })
     .eq("id", id)
 
   if (error) {
-    log.error("Failed to delete content block", { id }, error)
+    log.error("Failed to soft delete content block", { id }, error)
     return { success: false, error: error.message }
   }
 
-  log.info("Content block deleted", { id })
+  log.info("Content block soft deleted", { id })
   return { success: true }
 }
 

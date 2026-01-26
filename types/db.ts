@@ -66,6 +66,8 @@ export interface Intake {
   payment_status: "unpaid" | "pending" | "paid" | "refunded" | "failed"
   amount_cents: number | null
   refund_amount_cents: number
+  stripe_payment_intent_id: string | null // For refund traceability
+  stripe_customer_id: string | null // Customer ID at time of payment
   // Admin/doctor workflow
   admin_notes: string | null
   doctor_notes: string | null

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { processAbandonedCheckouts } from "@/lib/email/abandoned-checkout"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-abandoned-checkouts")
 
@@ -25,9 +26,9 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    logger.error("Cron: abandoned checkouts failed", { 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    })
+    const err = error instanceof Error ? error : new Error(String(error))
+    logger.error("Cron: abandoned checkouts failed", { error: err.message })
+    captureCronError(err, { jobName: "abandoned-checkouts" })
     
     return NextResponse.json(
       { error: "Failed to process abandoned checkouts" },

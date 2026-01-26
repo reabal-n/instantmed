@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getCurrentProfile } from "@/lib/data/profiles"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
@@ -43,13 +42,8 @@ export async function approveAndSendCert(
   reviewData: CertReviewData
 ): Promise<ApproveCertResult> {
   try {
-    // 1. Authenticate doctor
-    await requireAuth("doctor")
-    const doctorProfile = await getCurrentProfile()
-
-    if (!doctorProfile || doctorProfile.role !== "doctor") {
-      return { success: false, error: "Unauthorized: Doctor access required" }
-    }
+    // 1. Authenticate doctor or admin
+    const { profile: doctorProfile } = await requireRole(["doctor", "admin"])
 
     // P0 SECURITY: Rate limiting to prevent mass-approval attacks
     const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)

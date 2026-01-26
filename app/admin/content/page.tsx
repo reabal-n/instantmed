@@ -16,7 +16,7 @@ export default async function ContentBlocksPage() {
     redirect("/")
   }
 
-  const blocks = await getAllContentBlocksAction()
+  const blocks = await getAllContentBlocksAction().catch(() => [])
 
   return <ContentBlocksClient initialBlocks={blocks} />
 }

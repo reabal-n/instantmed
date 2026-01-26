@@ -17,3 +17,17 @@ export {
   parseMedCertDraftOutput,
   safeParseMedCertDraftOutput,
 } from "./med-cert-draft"
+
+export {
+  RepeatRxDraftOutputSchema,
+  type RepeatRxDraftOutput,
+  parseRepeatRxDraftOutput,
+  safeParseRepeatRxDraftOutput,
+} from "./repeat-rx-draft"
+
+export {
+  ConsultDraftOutputSchema,
+  type ConsultDraftOutput,
+  parseConsultDraftOutput,
+  safeParseConsultDraftOutput,
+} from "./consult-draft"

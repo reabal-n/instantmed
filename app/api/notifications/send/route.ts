@@ -1,3 +1,4 @@
+// LEGACY: retained pending external dependency audit (requires INTERNAL_API_SECRET)
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { sendViaResend } from "@/lib/email/resend"

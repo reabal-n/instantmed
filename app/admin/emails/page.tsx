@@ -16,7 +16,7 @@ export default async function EmailTemplatesPage() {
     redirect("/")
   }
 
-  const templates = await getAllEmailTemplatesAction()
+  const templates = await getAllEmailTemplatesAction().catch(() => [])
 
   return <EmailTemplatesClient initialTemplates={templates} />
 }

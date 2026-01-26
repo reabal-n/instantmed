@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { processEmailRetries, getRetryQueueStats } from "@/lib/email/retry-queue"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-email-retries")
 
@@ -25,7 +26,9 @@ export async function GET(request: NextRequest) {
       ...result,
     })
   } catch (error) {
-    logger.error("Email retry cron failed", {}, error instanceof Error ? error : new Error(String(error)))
+    const err = error instanceof Error ? error : new Error(String(error))
+    logger.error("Email retry cron failed", { error: err.message })
+    captureCronError(err, { jobName: "process-email-retries" })
     return NextResponse.json(
       { error: "Failed to process email retries" },
       { status: 500 }

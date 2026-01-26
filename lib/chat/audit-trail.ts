@@ -7,8 +7,19 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
+import * as Sentry from '@sentry/nextjs'
 
 const log = createLogger('ai-audit-trail')
+
+// =============================================================================
+// TRANSCRIPT LIMITS (to prevent unbounded growth)
+// =============================================================================
+
+/** Maximum number of messages per transcript (truncate oldest if exceeded) */
+export const MAX_TRANSCRIPT_MESSAGES = 100
+
+/** Maximum JSON size in bytes for messages field (~500KB) */
+export const MAX_TRANSCRIPT_JSON_SIZE = 500 * 1024
 
 // =============================================================================
 // TYPES
@@ -217,6 +228,391 @@ export async function queryAuditTrail(filters: AuditQueryFilters) {
     return data
   } catch (error) {
     log.error('Audit query error', { error })
+    return []
+  }
+}
+
+// =============================================================================
+// TRANSCRIPT STORAGE (Full conversation for doctor review)
+// =============================================================================
+
+export interface TranscriptMessage {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+}
+
+export interface ChatTranscript {
+  id: string
+  session_id: string
+  patient_id: string | null
+  intake_id: string | null
+  messages: TranscriptMessage[]
+  service_type: string | null
+  model_version: string
+  prompt_version: string
+  total_turns: number
+  is_complete: boolean
+  completion_status: string | null
+  had_safety_flags: boolean
+  safety_flags: string[]
+  was_blocked: boolean
+  block_reason: string | null
+  started_at: string
+  last_activity_at: string
+  completed_at: string | null
+}
+
+// Patterns to redact from transcript content
+const REDACTION_PATTERNS = [
+  // API keys and tokens
+  /\b(sk-[a-zA-Z0-9]{20,})\b/gi,
+  /\b(Bearer\s+[a-zA-Z0-9._-]+)\b/gi,
+  /\b(api[_-]?key[=:]\s*[a-zA-Z0-9._-]+)\b/gi,
+  // Database connection strings
+  /\b(postgres:\/\/[^\s]+)\b/gi,
+  /\b(mongodb:\/\/[^\s]+)\b/gi,
+  /\b(mysql:\/\/[^\s]+)\b/gi,
+  // Supabase/service URLs with keys
+  /\b(supabase[^\s]*key[=:][^\s]+)\b/gi,
+  // Generic secrets
+  /\b(secret[=:]\s*[a-zA-Z0-9._-]{10,})\b/gi,
+  /\b(password[=:]\s*[^\s]+)\b/gi,
+]
+
+/**
+ * Redact sensitive content from text
+ */
+function redactSensitiveContent(text: string): string {
+  let redacted = text
+  for (const pattern of REDACTION_PATTERNS) {
+    redacted = redacted.replace(pattern, '[REDACTED]')
+  }
+  return redacted
+}
+
+/**
+ * Truncate messages array if it exceeds limits
+ * Keeps most recent messages, removes oldest (except first user message for context)
+ */
+function truncateMessagesIfNeeded(
+  messages: TranscriptMessage[],
+  sessionId: string
+): { messages: TranscriptMessage[]; wasTruncated: boolean } {
+  // Check message count
+  if (messages.length > MAX_TRANSCRIPT_MESSAGES) {
+    log.warn('Transcript message count exceeded limit, truncating oldest messages', {
+      sessionId,
+      originalCount: messages.length,
+      limit: MAX_TRANSCRIPT_MESSAGES,
+    })
+    
+    // Keep first message (initial context) and most recent messages
+    const firstMessage = messages[0]
+    const recentMessages = messages.slice(-(MAX_TRANSCRIPT_MESSAGES - 1))
+    
+    // Add truncation marker
+    const truncationMarker: TranscriptMessage = {
+      role: 'assistant',
+      content: `[... ${messages.length - MAX_TRANSCRIPT_MESSAGES} earlier messages truncated for storage limits ...]`,
+      timestamp: new Date().toISOString(),
+    }
+    
+    return {
+      messages: [firstMessage, truncationMarker, ...recentMessages],
+      wasTruncated: true,
+    }
+  }
+  
+  // Check JSON size
+  const jsonSize = JSON.stringify(messages).length
+  if (jsonSize > MAX_TRANSCRIPT_JSON_SIZE) {
+    log.warn('Transcript JSON size exceeded limit, truncating', {
+      sessionId,
+      jsonSize,
+      limit: MAX_TRANSCRIPT_JSON_SIZE,
+    })
+    
+    // Progressively remove oldest messages until under limit
+    const truncatedMessages = [...messages]
+    while (JSON.stringify(truncatedMessages).length > MAX_TRANSCRIPT_JSON_SIZE && truncatedMessages.length > 2) {
+      // Remove second message (keep first for context)
+      truncatedMessages.splice(1, 1)
+    }
+    
+    // Add truncation marker at position 1
+    const truncationMarker: TranscriptMessage = {
+      role: 'assistant',
+      content: `[... earlier messages truncated due to size limits ...]`,
+      timestamp: new Date().toISOString(),
+    }
+    truncatedMessages.splice(1, 0, truncationMarker)
+    
+    return { messages: truncatedMessages, wasTruncated: true }
+  }
+  
+  return { messages, wasTruncated: false }
+}
+
+/**
+ * Upsert (create or update) a chat transcript
+ * Called after each turn to maintain full conversation history
+ * 
+ * RELIABILITY: This function is designed to be failure-tolerant:
+ * - Truncates messages if they exceed limits
+ * - Logs errors to Sentry with context tags
+ * - Never throws - failures are logged but don't break the chat flow
+ */
+export async function upsertChatTranscript(params: {
+  sessionId: string
+  patientId?: string
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  serviceType?: string | null
+  modelVersion: string
+  promptVersion: string
+  safetyFlags?: string[]
+  wasBlocked?: boolean
+  blockReason?: string
+  intakeId?: string // Optional intake ID if already known
+}): Promise<{ success: boolean; wasTruncated?: boolean }> {
+  try {
+    const supabase = createServiceRoleClient()
+    
+    // Convert messages to transcript format with redaction
+    let transcriptMessages: TranscriptMessage[] = params.messages.map(m => ({
+      role: m.role,
+      content: redactSensitiveContent(m.content),
+      timestamp: new Date().toISOString(),
+    }))
+    
+    // Apply truncation guards
+    const truncationResult = truncateMessagesIfNeeded(transcriptMessages, params.sessionId)
+    transcriptMessages = truncationResult.messages
+    
+    const totalTurns = Math.ceil(params.messages.filter(m => m.role === 'user').length)
+    const hadFlags = (params.safetyFlags?.length || 0) > 0
+    
+    const upsertData: Record<string, unknown> = {
+      session_id: params.sessionId,
+      patient_id: params.patientId || null,
+      messages: transcriptMessages,
+      service_type: params.serviceType || null,
+      model_version: params.modelVersion,
+      prompt_version: params.promptVersion,
+      total_turns: totalTurns,
+      had_safety_flags: hadFlags,
+      safety_flags: params.safetyFlags || [],
+      was_blocked: params.wasBlocked || false,
+      block_reason: params.blockReason || null,
+      last_activity_at: new Date().toISOString(),
+    }
+    
+    // Include intake_id if provided
+    if (params.intakeId) {
+      upsertData.intake_id = params.intakeId
+    }
+    
+    const { error } = await supabase
+      .from('ai_chat_transcripts')
+      .upsert(upsertData, {
+        onConflict: 'session_id',
+        ignoreDuplicates: false,
+      })
+    
+    if (error) {
+      log.error('Failed to upsert chat transcript', { error, sessionId: params.sessionId })
+      
+      // Capture to Sentry with context tags
+      Sentry.captureException(new Error(`Chat transcript upsert failed: ${error.message}`), {
+        tags: {
+          feature: 'chat_transcript',
+          route: '/api/ai/chat-intake',
+          session_id: params.sessionId,
+          intake_id: params.intakeId || 'none',
+        },
+        extra: {
+          errorCode: error.code,
+          errorDetails: error.details,
+          messageCount: params.messages.length,
+          wasTruncated: truncationResult.wasTruncated,
+        },
+      })
+      
+      return { success: false }
+    }
+    
+    return { success: true, wasTruncated: truncationResult.wasTruncated }
+  } catch (error) {
+    log.error('Chat transcript upsert error', { error, sessionId: params.sessionId })
+    
+    // Capture unexpected errors to Sentry
+    Sentry.captureException(error, {
+      tags: {
+        feature: 'chat_transcript',
+        route: '/api/ai/chat-intake',
+        session_id: params.sessionId,
+        intake_id: params.intakeId || 'none',
+      },
+      extra: {
+        messageCount: params.messages.length,
+      },
+    })
+    
+    return { success: false }
+  }
+}
+
+/**
+ * Mark transcript as complete and optionally link to intake
+ * 
+ * RELIABILITY: Logs errors to Sentry with context tags
+ */
+export async function completeTranscript(
+  sessionId: string,
+  intakeId?: string,
+  status: 'submitted' | 'abandoned' | 'blocked' = 'submitted'
+): Promise<{ success: boolean }> {
+  try {
+    const supabase = createServiceRoleClient()
+    
+    const updateData: Record<string, unknown> = {
+      is_complete: true,
+      completion_status: status,
+      completed_at: new Date().toISOString(),
+    }
+    
+    if (intakeId) {
+      updateData.intake_id = intakeId
+    }
+    
+    const { error } = await supabase
+      .from('ai_chat_transcripts')
+      .update(updateData)
+      .eq('session_id', sessionId)
+    
+    if (error) {
+      log.error('Failed to complete transcript', { error, sessionId, intakeId })
+      
+      // Capture to Sentry with context tags
+      Sentry.captureException(new Error(`Chat transcript completion failed: ${error.message}`), {
+        tags: {
+          feature: 'chat_transcript',
+          route: '/api/ai/chat-intake',
+          session_id: sessionId,
+          intake_id: intakeId || 'none',
+        },
+        extra: {
+          errorCode: error.code,
+          errorDetails: error.details,
+          completionStatus: status,
+        },
+      })
+      
+      return { success: false }
+    }
+    
+    return { success: true }
+  } catch (error) {
+    log.error('Transcript completion error', { error, sessionId })
+    
+    // Capture unexpected errors to Sentry
+    Sentry.captureException(error, {
+      tags: {
+        feature: 'chat_transcript',
+        route: '/api/ai/chat-intake',
+        session_id: sessionId,
+        intake_id: intakeId || 'none',
+      },
+      extra: {
+        completionStatus: status,
+      },
+    })
+    
+    return { success: false }
+  }
+}
+
+/**
+ * Get transcript by session ID
+ */
+export async function getTranscriptBySession(sessionId: string): Promise<ChatTranscript | null> {
+  try {
+    const supabase = createServiceRoleClient()
+    
+    const { data, error } = await supabase
+      .from('ai_chat_transcripts')
+      .select('*')
+      .eq('session_id', sessionId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null // Not found
+      }
+      log.error('Failed to fetch transcript by session', { error, sessionId })
+      return null
+    }
+    
+    return data as ChatTranscript
+  } catch (error) {
+    log.error('Transcript fetch error', { error, sessionId })
+    return null
+  }
+}
+
+/**
+ * Get transcript by intake ID (for doctor UI)
+ */
+export async function getTranscriptByIntake(intakeId: string): Promise<ChatTranscript | null> {
+  try {
+    const supabase = createServiceRoleClient()
+    
+    const { data, error } = await supabase
+      .from('ai_chat_transcripts')
+      .select('*')
+      .eq('intake_id', intakeId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null // Not found
+      }
+      log.error('Failed to fetch transcript by intake', { error, intakeId })
+      return null
+    }
+    
+    return data as ChatTranscript
+  } catch (error) {
+    log.error('Transcript fetch by intake error', { error, intakeId })
+    return null
+  }
+}
+
+/**
+ * Get transcripts for a patient
+ */
+export async function getTranscriptsForPatient(
+  patientId: string,
+  limit: number = 20
+): Promise<ChatTranscript[]> {
+  try {
+    const supabase = createServiceRoleClient()
+    
+    const { data, error } = await supabase
+      .from('ai_chat_transcripts')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('started_at', { ascending: false })
+      .limit(limit)
+    
+    if (error) {
+      log.error('Failed to fetch patient transcripts', { error, patientId })
+      return []
+    }
+    
+    return data as ChatTranscript[]
+  } catch (error) {
+    log.error('Patient transcripts fetch error', { error, patientId })
     return []
   }
 }

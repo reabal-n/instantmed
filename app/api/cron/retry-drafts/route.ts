@@ -3,6 +3,7 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { createLogger } from "@/lib/observability/logger"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-retry-drafts")
 
@@ -122,7 +123,9 @@ export async function GET(request: NextRequest) {
       failed,
     })
   } catch (error) {
-    logger.error("Cron job error", { error: error instanceof Error ? error.message : String(error) })
+    const err = error instanceof Error ? error : new Error(String(error))
+    logger.error("Cron job error", { error: err.message })
+    captureCronError(err, { jobName: "retry-drafts" })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

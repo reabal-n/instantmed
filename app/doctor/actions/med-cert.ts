@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
@@ -24,11 +24,8 @@ export async function getOrCreateMedCertDraft(
   requestId: string
 ): Promise<{ success: boolean; data?: MedCertDraft; error?: string }> {
   try {
-    // Verify doctor auth
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return { success: false, error: "Unauthorized - doctor access required" }
-    }
+    // Verify doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     if (!isValidUUID(requestId)) {
       return { success: false, error: "Invalid request ID" }
@@ -108,11 +105,8 @@ export async function saveMedCertDraft(
   data: Partial<MedCertDraft>
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Verify doctor auth
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return { success: false, error: "Unauthorized - doctor access required" }
-    }
+    // Verify doctor or admin role
+    await requireRole(["doctor", "admin"])
 
     if (!isValidUUID(draftId)) {
       return { success: false, error: "Invalid draft ID" }
@@ -163,11 +157,8 @@ export async function issueMedCertificate(
   draftId: string
 ): Promise<{ success: boolean; pdfUrl?: string; error?: string }> {
   try {
-    // Verify doctor auth
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return { success: false, error: "Unauthorized - doctor access required" }
-    }
+    // Verify doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     if (!isValidUUID(requestId) || !isValidUUID(draftId)) {
       return { success: false, error: "Invalid IDs" }

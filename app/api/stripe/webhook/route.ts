@@ -256,6 +256,13 @@ export async function POST(request: Request) {
       paymentStatus: session.payment_status,
     })
 
+    Sentry.addBreadcrumb({
+      category: "stripe-webhook",
+      message: "checkout.session.completed received",
+      level: "info",
+      data: { eventId: event.id, intakeId, sessionId: session.id },
+    })
+
     // ATOMIC IDEMPOTENCY CHECK - claim this event for processing
     const shouldProcess = await tryClaimEvent(
       supabase,
@@ -345,7 +352,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true, already_paid: true })
       }
 
-      // STEP 3: Update intake to paid status
+      // STEP 3: Update intake to paid status with Stripe identifiers for refund traceability
+      const paymentIntentId = typeof session.payment_intent === "string" 
+        ? session.payment_intent 
+        : session.payment_intent?.id || null
+      const stripeCustomerId = typeof session.customer === "string"
+        ? session.customer
+        : session.customer?.id || null
+
+      Sentry.addBreadcrumb({
+        category: "stripe-webhook",
+        message: "Updating intake to paid",
+        level: "info",
+        data: { intakeId, paymentIntentId, stripeCustomerId },
+      })
+
       const { error: intakeError, data: intakeData } = await supabase
         .from("intakes")
         .update({
@@ -353,6 +374,9 @@ export async function POST(request: Request) {
           status: "paid", // Now visible to doctor in queue
           paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          // Store Stripe identifiers for refund traceability
+          stripe_payment_intent_id: paymentIntentId,
+          stripe_customer_id: stripeCustomerId,
         })
         .eq("id", intakeId)
         .in("payment_status", ["pending", "unpaid"]) // Only update if still pending
@@ -395,6 +419,15 @@ export async function POST(request: Request) {
         intakeId,
         newStatus: intakeData?.status,
         sessionId: session.id,
+        stripePaymentIntentId: paymentIntentId,
+        stripeCustomerId: stripeCustomerId,
+      })
+
+      Sentry.addBreadcrumb({
+        category: "stripe-webhook",
+        message: "Intake marked as paid",
+        level: "info",
+        data: { intakeId, paymentIntentId, stripeCustomerId },
       })
 
       // Track payment confirmed in PostHog

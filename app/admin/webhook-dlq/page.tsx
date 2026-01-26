@@ -1,15 +1,11 @@
-import { redirect } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { WebhookDlqClient } from "./webhook-dlq-client"
 
 export const dynamic = "force-dynamic"
 
 export default async function WebhookDlqPage() {
-  const { profile } = await requireAuth("doctor")
-  
-  if (!profile || profile.role !== "admin") {
-    redirect("/doctor")
-  }
+  // Require admin role directly
+  await requireRole(["admin"])
 
   return (
     <div className="space-y-6">

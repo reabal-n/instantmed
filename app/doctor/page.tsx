@@ -1,5 +1,4 @@
-import { requireAuth } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { requireRole } from "@/lib/auth"
 import { getDoctorQueue, getIntakeMonitoringStats, getDoctorPersonalStats, getSlaBreachIntakes } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { QueueClient } from "./queue/queue-client"
@@ -22,10 +21,8 @@ export default async function DoctorDashboardPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string }>
 }) {
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+  // Layout already enforces doctor/admin role, but page needs profile
+  const { profile } = await requireRole(["doctor", "admin"])
 
   // Parse pagination params
   const params = await searchParams

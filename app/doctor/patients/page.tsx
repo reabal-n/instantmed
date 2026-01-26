@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PatientsListClient } from "./patients-list-client"
 
@@ -28,10 +27,8 @@ async function getAllPatients() {
 
 export const dynamic = "force-dynamic"
 export default async function PatientsPage() {
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+  // Layout enforces doctor/admin role
+  await requireRole(["doctor", "admin"])
 
   const patients = await getAllPatients()
 

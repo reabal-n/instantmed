@@ -1,6 +1,15 @@
 "use client"
 
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   BarChart,
   Bar,
@@ -24,8 +33,18 @@ import {
   Pill,
   ClipboardList,
   Users,
+  ChevronRight,
+  Calendar,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+export interface PaginationInfo {
+  days: number
+  hasMore: boolean
+  nextCursor: string | null
+  totalInRange: number
+  pageSize: number
+}
 
 export interface AnalyticsData {
   totalIntakes: number
@@ -44,6 +63,7 @@ export interface AnalyticsData {
   priorityCount: number
   priorityPercentage: number
   approvalRate: number
+  pagination: PaginationInfo
 }
 
 interface AnalyticsClientProps {
@@ -95,7 +115,33 @@ function formatMinutes(minutes: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+const DATE_RANGE_OPTIONS = [
+  { value: "7", label: "Last 7 days" },
+  { value: "30", label: "Last 30 days" },
+  { value: "90", label: "Last 90 days" },
+  { value: "180", label: "Last 6 months" },
+  { value: "365", label: "Last year" },
+]
+
 export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentDays = analytics.pagination.days.toString()
+
+  const handleDateRangeChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("days", value)
+    params.delete("cursor") // Reset pagination when changing date range
+    router.push(`/doctor/analytics?${params.toString()}`)
+  }
+
+  const handleLoadMore = () => {
+    if (!analytics.pagination.nextCursor) return
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("cursor", analytics.pagination.nextCursor)
+    router.push(`/doctor/analytics?${params.toString()}`)
+  }
+
   const serviceData = Object.entries(analytics.serviceTypeCounts).map(([type, count]) => ({
     name: formatServiceType(type),
     count,
@@ -112,17 +158,37 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with date range selector */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Performance overview for Dr. {doctorName}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Last 7 days</p>
-          <TrendBadge value={analytics.intakeTrend} suffix="% intakes" />
+        <div className="flex items-center gap-4">
+          {/* Date range selector */}
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={currentDays} onValueChange={handleDateRangeChange}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Select range" />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_RANGE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">
+              {analytics.pagination.totalInRange.toLocaleString()} intakes in range
+            </p>
+            <TrendBadge value={analytics.intakeTrend} suffix="% vs last week" />
+          </div>
         </div>
       </div>
 
@@ -358,7 +424,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Priority Stats */}
       {analytics.priorityCount > 0 && (
-        <Card className="border-amber-200 bg-gradient-to-r from-dawn-50 to-white">
+        <Card className="border-amber-200 bg-linear-to-r from-dawn-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-amber-100">
@@ -373,6 +439,20 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination: Load More */}
+      {analytics.pagination.hasMore && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            className="gap-2"
+          >
+            Load more data
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       )}
     </div>
   )

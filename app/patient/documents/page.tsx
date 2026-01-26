@@ -19,8 +19,8 @@ export default async function PatientDocumentsPage() {
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
 
-  // Fetch all approved intakes with documents
-  const { data: intakes } = await supabase
+  // Fetch approved intakes with documents (limit for performance)
+  const { data: intakes, error: intakesError } = await supabase
     .from("intakes")
     .select(`
       id,
@@ -36,9 +36,10 @@ export default async function PatientDocumentsPage() {
     .eq("status", "approved")
     .not("certificate_url", "is", null)
     .order("updated_at", { ascending: false })
+    .limit(50)
 
-  // Fetch payment receipts
-  const { data: payments } = await supabase
+  // Fetch payment receipts (limit for performance)
+  const { data: payments, error: paymentsError } = await supabase
     .from("intakes")
     .select(`
       id,
@@ -51,7 +52,10 @@ export default async function PatientDocumentsPage() {
     .eq("patient_id", patientId)
     .not("paid_at", "is", null)
     .order("paid_at", { ascending: false })
-    .limit(20)
+    .limit(50)
+
+  // Pass error states to client for display
+  const fetchError = intakesError || paymentsError ? "Unable to load some documents. Please try again later." : null
 
   const documents = {
     certificates: (intakes || []).map((i) => {
@@ -77,5 +81,5 @@ export default async function PatientDocumentsPage() {
     }),
   }
 
-  return <DocumentsClient documents={documents} />
+  return <DocumentsClient documents={documents} error={fetchError} />
 }

@@ -158,18 +158,25 @@ export async function uploadDoctorSignature(
 }
 
 /**
- * Get signature URL
+ * Get signed URL for doctor signature
+ * Uses signed URL since bucket is private (PHI exposure reduction)
+ * 1 hour expiry is sufficient for PDF rendering operations
  */
 export async function getSignatureUrl(storagePath: string): Promise<string | null> {
   if (!storagePath) return null
 
   const supabase = createServiceRoleClient()
 
-  const { data } = supabase.storage
+  const { data, error } = await supabase.storage
     .from("documents")
-    .getPublicUrl(storagePath)
+    .createSignedUrl(storagePath, 60 * 60) // 1 hour expiry for PDF rendering
 
-  return data?.publicUrl || null
+  if (error || !data?.signedUrl) {
+    log.warn("Failed to get signature signed URL", { storagePath, error: error?.message })
+    return null
+  }
+
+  return data.signedUrl
 }
 
 /**

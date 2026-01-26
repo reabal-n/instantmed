@@ -13,6 +13,7 @@ import {
   ExternalLink,
   FolderOpen,
   ArrowLeft,
+  AlertCircle,
 } from "lucide-react"
 
 interface Certificate {
@@ -39,6 +40,7 @@ interface DocumentsClientProps {
     certificates: Certificate[]
     receipts: ReceiptDoc[]
   }
+  error?: string | null
 }
 
 
@@ -49,7 +51,7 @@ function formatCurrency(cents: number): string {
   }).format(cents / 100)
 }
 
-export function DocumentsClient({ documents }: DocumentsClientProps) {
+export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   const { certificates, receipts } = documents
   const totalDocs = certificates.length + receipts.length
 
@@ -71,7 +73,17 @@ export function DocumentsClient({ documents }: DocumentsClientProps) {
             </div>
           </div>
 
-          {totalDocs === 0 ? (
+          {/* Error State */}
+          {error && (
+            <Card className="border-red-200 bg-red-50 mb-6">
+              <CardContent className="flex items-center gap-3 py-4">
+                <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {totalDocs === 0 && !error ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />

@@ -10,7 +10,10 @@ import { Badge } from "@/components/ui/badge"
 // P1 DOCTOR_WORKLOAD_AUDIT: Tabs removed - flattened into single scrollable view
 import {
   Select,
+  SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
   ArrowLeft,
@@ -613,17 +616,15 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                     <>
                       <div className="space-y-2">
                         <Label>PBS Schedule</Label>
-                        <Select
-                          selectedKeys={pbsSchedule ? [pbsSchedule] : []}
-                          onSelectionChange={(keys) => {
-                            const selected = Array.from(keys)[0] as string
-                            setPbsSchedule(selected)
-                          }}
-                          placeholder="Select PBS schedule"
-                        >
-                          <SelectItem key="s85">S85 - General Schedule</SelectItem>
-                          <SelectItem key="s100">S100 - Highly Specialised</SelectItem>
-                          <SelectItem key="private">Private (non-PBS)</SelectItem>
+                        <Select value={pbsSchedule} onValueChange={setPbsSchedule}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select PBS schedule" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="s85">S85 - General Schedule</SelectItem>
+                            <SelectItem value="s100">S100 - Highly Specialised</SelectItem>
+                            <SelectItem value="private">Private (non-PBS)</SelectItem>
+                          </SelectContent>
                         </Select>
                       </div>
                       

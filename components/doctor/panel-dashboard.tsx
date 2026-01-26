@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Select, SelectItem } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FloatingActionBar, FloatingActionBarContent } from "@/components/shell"
@@ -241,40 +241,28 @@ export function PanelDoctorDashboard({
               startContent={<Search className="w-4 h-4 text-gray-400" />}
             />
           </div>
-          <Select
-            selectedKeys={statusFilter ? [statusFilter] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string
-              setStatusFilter(selected || "all")
-            }}
-            placeholder="Filter by status"
-            className="w-full md:w-48"
-            classNames={{
-              trigger: "w-full md:w-48",
-            }}
-          >
-            <SelectItem key="all">All Statuses</SelectItem>
-            <SelectItem key="submitted">New</SelectItem>
-            <SelectItem key="in_review">Reviewing</SelectItem>
-            <SelectItem key="approved">Approved</SelectItem>
-            <SelectItem key="rejected">Declined</SelectItem>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="submitted">New</SelectItem>
+              <SelectItem value="in_review">Reviewing</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Declined</SelectItem>
+            </SelectContent>
           </Select>
-          <Select
-            selectedKeys={typeFilter ? [typeFilter] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string
-              setTypeFilter(selected || "all")
-            }}
-            placeholder="Filter by type"
-            className="w-full md:w-48"
-            classNames={{
-              trigger: "w-full md:w-48",
-            }}
-          >
-            <SelectItem key="all">All Types</SelectItem>
-            <SelectItem key="medical_certificate">Med Cert</SelectItem>
-            <SelectItem key="prescription">Prescription</SelectItem>
-            <SelectItem key="consult">Consult</SelectItem>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="medical_certificate">Med Cert</SelectItem>
+              <SelectItem value="prescription">Prescription</SelectItem>
+              <SelectItem value="consult">Consult</SelectItem>
+            </SelectContent>
           </Select>
         </div>
       </div>

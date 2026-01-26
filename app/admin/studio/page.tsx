@@ -23,7 +23,7 @@ export default async function TemplateStudioPage() {
   }
 
   // Get all active templates
-  const templates = await getAllActiveTemplates()
+  const templates = await getAllActiveTemplates().catch(() => [])
 
   return (
     <TemplateStudioClient 

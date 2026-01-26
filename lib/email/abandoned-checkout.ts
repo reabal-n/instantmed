@@ -5,6 +5,7 @@ import { sendViaResend } from "./resend"
 import { renderAbandonedCheckoutEmail } from "./templates/abandoned-checkout"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
+import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 
 const logger = createLogger("abandoned-checkout")
@@ -178,6 +179,11 @@ async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
     }
   } catch (error) {
     logger.error("Failed to acquire cron lock", { error })
+    captureRedisWarning(error, {
+      operation: 'lock',
+      keyPrefix: 'cron:abandoned-checkout',
+      subsystem: 'cron_lock',
+    })
     return async () => {} // Allow run if lock system fails
   }
 }

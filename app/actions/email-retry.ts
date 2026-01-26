@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getCurrentProfile } from "@/lib/data/profiles"
+import { requireRole } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { env } from "@/lib/env"
@@ -23,10 +23,7 @@ interface RetryResult {
 }
 
 async function requireAdminRole() {
-  const profile = await getCurrentProfile()
-  if (!profile || profile.role !== "admin") {
-    throw new Error("Admin access required")
-  }
+  const { profile } = await requireRole(["admin"])
   return profile
 }
 

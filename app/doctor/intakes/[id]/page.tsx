@@ -1,5 +1,5 @@
-import { redirect, notFound } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { notFound } from "next/navigation"
+import { requireRole } from "@/lib/auth"
 import { getIntakeWithDetails, getPatientIntakes } from "@/lib/data/intakes"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
@@ -17,10 +17,8 @@ export default async function DoctorIntakeDetailPage({
   const { id } = await params
   const { action } = await searchParams
 
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+  // Layout enforces doctor/admin role
+  const { profile } = await requireRole(["doctor", "admin"])
 
   const intake = await getIntakeWithDetails(id)
 

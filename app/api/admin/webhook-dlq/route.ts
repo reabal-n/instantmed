@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { logAdminAction } from "@/lib/security/audit-log"
@@ -14,11 +14,10 @@ export const dynamic = "force-dynamic"
  */
 export async function GET(request: NextRequest) {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile || profile.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized - Admin only" }, { status: 403 })
-    }
+    // Require admin role directly
+    const { profile } = await requireRole(["admin"])
 
+    const _adminId = profile.id // Used for audit logging below
     const searchParams = request.nextUrl.searchParams
     const showResolved = searchParams.get("resolved") === "true"
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100)
@@ -83,10 +82,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile || profile.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized - Admin only" }, { status: 403 })
-    }
+    // Require admin role directly
+    const { profile } = await requireRole(["admin"])
 
     const body = await request.json()
     const { action, entryId, notes } = body as {

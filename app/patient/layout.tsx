@@ -1,15 +1,14 @@
 import type React from "react"
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { PatientShell } from "./patient-shell"
 
 /**
  * Patient Layout - Now uses panel-based AuthenticatedShell
  * 
- * Changes:
- * - Replaced Navbar + DashboardSidebar + PatientDock
- * - Now uses AuthenticatedShell with LeftRail
- * - "New Request" button opens ServiceSelector panel
+ * Uses requireRole(["patient"]) which handles:
+ * - Authentication (redirects to /sign-in if not logged in)
+ * - Role check (redirects doctors/admins to /doctor)
+ * - Onboarding check (redirects to /patient/onboarding if incomplete)
  */
 
 export default async function PatientLayout({
@@ -17,23 +16,8 @@ export default async function PatientLayout({
 }: {
   children: React.ReactNode
 }) {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (authUser.profile.role !== "patient") {
-    if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
-      redirect("/doctor")
-    }
-    redirect("/sign-in")
-  }
-
-  // Check onboarding status
-  if (!authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
+  // requireRole handles auth, role check, and onboarding enforcement
+  const authUser = await requireRole(["patient"])
 
   return (
     <PatientShell

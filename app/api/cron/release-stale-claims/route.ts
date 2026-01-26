@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron:release-stale-claims")
 
@@ -64,10 +65,11 @@ export async function GET(request: NextRequest) {
       durationMs: duration,
     })
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Unknown error"
-    logger.error("Cron job failed", { error: errorMessage })
+    const error = err instanceof Error ? err : new Error(String(err))
+    logger.error("Cron job failed", { error: error.message })
+    captureCronError(error, { jobName: "release-stale-claims" })
     return NextResponse.json(
-      { success: false, error: errorMessage },
+      { success: false, error: error.message },
       { status: 500 }
     )
   }

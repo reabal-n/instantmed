@@ -2,6 +2,7 @@ import "server-only"
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { createClient } from "@supabase/supabase-js"
+import * as Sentry from "@sentry/nextjs"
 import { RequestReceivedEmail } from "./templates/request-received"
 import { PaymentConfirmedEmail } from "./templates/payment-confirmed"
 import { RequestApprovedEmail } from "./templates/request-approved"
@@ -117,6 +118,11 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
 
     if (!result.success) {
       logger.warn(`[Email] Failed to send to ${to}: ${result.error}`, { subject, template, to })
+      Sentry.captureMessage(`Email send failed: ${template}`, {
+        level: "warning",
+        tags: { email_template: template },
+        extra: { to, subject, error: result.error, requestId },
+      })
       return { success: false, error: result.error }
     }
 
@@ -124,6 +130,10 @@ export async function sendEmail(params: SendEmailParams): Promise<{ success: boo
     return { success: true }
   } catch (error) {
     logger.error("Error sending email", {}, error instanceof Error ? error : new Error(String(error)))
+    Sentry.captureException(error, {
+      tags: { email_template: template },
+      extra: { to, requestId },
+    })
     return { success: false, error: String(error) }
   }
 }

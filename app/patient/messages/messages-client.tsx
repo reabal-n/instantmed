@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,6 +16,7 @@ import {
   Clock,
   CheckCheck,
   Inbox,
+  AlertCircle,
 } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
@@ -41,6 +43,7 @@ interface MessagesClientProps {
   messagesByIntake: Record<string, Message[]>
   unreadCount: number
   patientId: string
+  error?: string | null
 }
 
 function formatServiceType(type: string): string {
@@ -57,7 +60,9 @@ export function MessagesClient({
   messagesByIntake,
   unreadCount,
   patientId: _patientId,
+  error,
 }: MessagesClientProps) {
+  const router = useRouter()
   const [selectedIntake, setSelectedIntake] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -95,7 +100,8 @@ export function MessagesClient({
 
       toast.success("Message sent")
       setNewMessage("")
-      // Refresh would happen here in production
+      // Refresh to show the new message immediately
+      router.refresh()
     } catch {
       toast.error("Failed to send message. Please try again.")
     } finally {
@@ -126,7 +132,17 @@ export function MessagesClient({
             )}
           </div>
 
-          {messages.length === 0 ? (
+          {/* Error State */}
+          {error && (
+            <Card className="border-red-200 bg-red-50 mb-6">
+              <CardContent className="flex items-center gap-3 py-4">
+                <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {messages.length === 0 && !error ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <Inbox className="h-12 w-12 text-muted-foreground mb-4" />

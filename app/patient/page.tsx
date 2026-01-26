@@ -1,6 +1,5 @@
-import { getOrCreateAuthenticatedUser } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { redirect } from "next/navigation"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -15,16 +14,8 @@ const logger = createLogger("patient-dashboard")
 export const dynamic = "force-dynamic"
 
 export default async function PatientDashboard() {
-  // Use getOrCreate to ensure profile exists (fallback for webhook)
-  const authUser = await getOrCreateAuthenticatedUser()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  if (!authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
+  // Layout enforces patient role and onboarding - just get profile for data
+  const authUser = await requireRole(["patient"])
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
@@ -47,7 +38,7 @@ export default async function PatientDashboard() {
       .limit(10),
   ])
 
-  // Log errors but don't crash - show empty state instead
+  // Log errors but don't crash - show error state instead of empty state
   if (intakesResult.error) {
     logger.error("Failed to fetch intakes", { patientId, error: intakesResult.error.message })
   }
@@ -55,12 +46,18 @@ export default async function PatientDashboard() {
     logger.error("Failed to fetch prescriptions", { patientId, error: prescriptionsResult.error.message })
   }
 
+  // Capture fetch errors for explicit display
+  const fetchError = intakesResult.error || prescriptionsResult.error 
+    ? "Unable to load some data. Please refresh the page or try again later." 
+    : null
+
   return (
     <PanelDashboard
       fullName={authUser.profile.full_name || "Patient"}
       patientId={patientId}
       intakes={intakesResult.data || []}
       prescriptions={prescriptionsResult.data || []}
+      error={fetchError}
     />
   )
 }

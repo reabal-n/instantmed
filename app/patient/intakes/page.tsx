@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getPatientIntakes } from "@/lib/data/intakes"
 import { IntakesClient } from "./intakes-client"
 import type { Metadata } from "next"
@@ -16,11 +15,8 @@ interface PageProps {
 }
 
 export default async function PatientIntakesPage({ searchParams }: PageProps) {
-  const authUser = await getAuthenticatedUserWithProfile()
-  
-  if (!authUser) {
-    redirect("/sign-in")
-  }
+  // Layout enforces patient role and onboarding
+  const authUser = await requireRole(["patient"])
   
   const params = await searchParams
   const page = parseInt(params.page || "1", 10)

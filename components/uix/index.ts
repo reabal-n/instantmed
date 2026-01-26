@@ -46,14 +46,6 @@ export {
   type AccordionItemProps 
 } from "./accordion"
 export { 
-  Tabs, 
-  Tab, 
-  UIXTabs, 
-  UIXTab,
-  type TabsProps,
-  type TabProps 
-} from "./tabs"
-export { 
   Stepper, 
   CompactStepper,
   UIXStepper,

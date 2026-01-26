@@ -1,7 +1,6 @@
 "use server"
 
-import { getCurrentProfile } from "@/lib/data/profiles"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import {
   getCertificateById,
   getCertificateForIntake,
@@ -26,12 +25,7 @@ export async function getCertificateDownloadUrl(
   certificateId: string
 ): Promise<DownloadResult> {
   try {
-    await requireAuth("patient")
-    const profile = await getCurrentProfile()
-
-    if (!profile) {
-      return { success: false, error: "Not authenticated" }
-    }
+    const { profile } = await requireRole(["patient"])
 
     const certificate = await getCertificateById(certificateId)
     if (!certificate) {
@@ -83,12 +77,7 @@ export async function getCertificateDownloadUrlForIntake(
   intakeId: string
 ): Promise<DownloadResult> {
   try {
-    await requireAuth("patient")
-    const profile = await getCurrentProfile()
-
-    if (!profile) {
-      return { success: false, error: "Not authenticated" }
-    }
+    const { profile } = await requireRole(["patient"])
 
     const certificate = await getCertificateForIntake(intakeId)
     if (!certificate) {
@@ -145,12 +134,7 @@ export async function getCertificateInfo(intakeId: string): Promise<{
   error?: string
 }> {
   try {
-    await requireAuth("patient")
-    const profile = await getCurrentProfile()
-
-    if (!profile) {
-      return { success: false, error: "Not authenticated" }
-    }
+    const { profile } = await requireRole(["patient"])
 
     const certificate = await getCertificateForIntake(intakeId)
     if (!certificate) {

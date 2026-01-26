@@ -1,6 +1,6 @@
 "use server"
 
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { acquireIntakeLock, releaseIntakeLock, extendIntakeLock } from "@/lib/data/intake-lock"
 
 /**
@@ -13,7 +13,7 @@ export async function acquireIntakeLockAction(
   intakeId: string
 ): Promise<{ success: boolean; warning?: string; lockedByName?: string }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) {
       return { success: false }
     }
@@ -42,7 +42,7 @@ export async function releaseIntakeLockAction(
   intakeId: string
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) {
       return { success: false }
     }
@@ -58,7 +58,7 @@ export async function extendIntakeLockAction(
   intakeId: string
 ): Promise<{ success: boolean }> {
   try {
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) {
       return { success: false }
     }

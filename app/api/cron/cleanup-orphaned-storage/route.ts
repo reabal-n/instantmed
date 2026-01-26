@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-cleanup-orphaned-storage")
 
@@ -112,7 +113,9 @@ export async function GET(request: NextRequest) {
       ...stats,
     })
   } catch (error) {
-    logger.error("Orphaned storage cleanup failed", {}, error instanceof Error ? error : new Error(String(error)))
+    const err = error instanceof Error ? error : new Error(String(error))
+    logger.error("Orphaned storage cleanup failed", { error: err.message })
+    captureCronError(err, { jobName: "cleanup-orphaned-storage" })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

@@ -349,22 +349,28 @@ export function IntakeDetailClient({
               </div>
             )}
             {intake.status === "approved" && (
-              <p className="text-sm text-emerald-700">
-                Your request has been approved! {document?.pdf_url ? "Download your document below." : "Your certificate has been sent to your email."}
-              </p>
+              <div className="text-sm text-emerald-700 space-y-1">
+                <p>Your request has been approved!</p>
+                {document?.pdf_url ? (
+                  <p>Download your document below.</p>
+                ) : (
+                  <p className="flex items-center gap-2 text-blue-700">
+                    <Clock className="h-4 w-4 animate-pulse" />
+                    Your document is being generated. This usually takes a few minutes.
+                  </p>
+                )}
+              </div>
             )}
             {intake.status === "declined" && (
               <div className="space-y-2">
                 <p className="text-sm text-red-700">
                   Unfortunately, your request was declined.
                 </p>
-                {intake.decline_reason_note && (
-                  <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                    <p className="text-sm text-red-800">
-                      <strong>Reason:</strong> {intake.decline_reason_note}
-                    </p>
-                  </div>
-                )}
+                <div className="p-3 rounded-md bg-red-50 border border-red-200">
+                  <p className="text-sm text-red-800">
+                    <strong>Reason:</strong> {intake.decline_reason_note || "This request could not be fulfilled via our telehealth service. For your safety, we recommend consulting with your regular GP who has access to your full medical history."}
+                  </p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   If you have questions, please <Link href="/contact" className="underline hover:text-foreground">contact support</Link>.
                 </p>
@@ -382,9 +388,14 @@ export function IntakeDetailClient({
               </p>
             )}
             {intake.status === "completed" && (
-              <p className="text-sm text-emerald-700">
-                Your request has been completed. {document?.pdf_url ? "Download your document below." : ""}
-              </p>
+              <div className="text-sm text-emerald-700 space-y-1">
+                <p>Your request has been completed.</p>
+                {/* Special message for repeat prescriptions */}
+                {intake.service?.type === "common_scripts" && (
+                  <p>Your repeat prescription has been issued. You should receive the eScript via SMS shortly.</p>
+                )}
+                {document?.pdf_url && <p>Download your document below.</p>}
+              </div>
             )}
             {intake.status === "cancelled" && (
               <p className="text-sm text-muted-foreground">

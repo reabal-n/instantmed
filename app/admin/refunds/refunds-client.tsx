@@ -115,7 +115,8 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
       const result = await processRefundAction(
         selectedPayment.id,
         mockRefundId,
-        selectedPayment.amount
+        selectedPayment.amount,
+        selectedPayment.intake?.id
       )
 
       if (result.success) {

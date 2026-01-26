@@ -5,7 +5,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
-import { logAIInteraction, logSafetyBlock, PROMPT_VERSION } from "@/lib/chat/audit-trail"
+import { logAIInteraction, logSafetyBlock, upsertChatTranscript, PROMPT_VERSION } from "@/lib/chat/audit-trail"
 import { trackAIInteraction } from "@/lib/chat/intake-analytics"
 // Validation is performed via separate /api/ai/chat-intake/validate endpoint
 // See lib/chat/chat-validation.ts for validation logic
@@ -367,6 +367,19 @@ export async function POST(request: NextRequest) {
       baseURL: process.env.VERCEL_AI_GATEWAY_URL || 'https://api.openai.com/v1',
     })
 
+    // RELIABILITY: Upsert transcript BEFORE streaming starts
+    // This ensures we capture user messages even if the stream aborts
+    await upsertChatTranscript({
+      sessionId,
+      patientId: clerkUserId ?? undefined,
+      messages: messages, // Current messages (without assistant response yet)
+      serviceType: null, // Will be detected after AI response
+      modelVersion: modelName,
+      promptVersion: PROMPT_VERSION,
+      safetyFlags: [],
+      wasBlocked: false,
+    })
+
     // Stream the response
     const result = streamText({
       model: openai(modelName),
@@ -377,7 +390,7 @@ export async function POST(request: NextRequest) {
         const detectedService = detectServiceType(text)
         const flags = extractFlags(text)
         
-        // Log to audit trail
+        // Log to audit trail (truncated previews)
         await logAIInteraction({
           sessionId,
           patientId: clerkUserId ?? undefined,
@@ -388,6 +401,22 @@ export async function POST(request: NextRequest) {
           inputTokens: usage?.totalTokens ? Math.floor(usage.totalTokens * 0.3) : undefined,
           outputTokens: usage?.totalTokens ? Math.floor(usage.totalTokens * 0.7) : undefined,
           responseTimeMs: responseTime,
+          modelVersion: modelName,
+          promptVersion: PROMPT_VERSION,
+          safetyFlags: flags,
+          wasBlocked: false,
+        })
+        
+        // Store full transcript (with redaction)
+        const fullMessages = [
+          ...messages,
+          { role: 'assistant' as const, content: text }
+        ]
+        await upsertChatTranscript({
+          sessionId,
+          patientId: clerkUserId ?? undefined,
+          messages: fullMessages,
+          serviceType: detectedService,
           modelVersion: modelName,
           promptVersion: PROMPT_VERSION,
           safetyFlags: flags,

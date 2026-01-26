@@ -9,6 +9,16 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   AlertTriangle,
   ArrowLeft,
   Loader2,
@@ -29,14 +39,30 @@ interface FeatureFlagsClientProps {
   initialFlags: FeatureFlags
 }
 
+// Kill switch flags that require confirmation before disabling
+const KILL_SWITCH_FLAGS: FlagKey[] = [
+  FLAG_KEYS.DISABLE_MED_CERT,
+  FLAG_KEYS.DISABLE_REPEAT_SCRIPTS,
+  FLAG_KEYS.DISABLE_CONSULTS,
+]
+
+const KILL_SWITCH_LABELS: Record<string, string> = {
+  [FLAG_KEYS.DISABLE_MED_CERT]: "Medical Certificates",
+  [FLAG_KEYS.DISABLE_REPEAT_SCRIPTS]: "Repeat Prescriptions",
+  [FLAG_KEYS.DISABLE_CONSULTS]: "Consultations",
+}
+
 export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
   const router = useRouter()
   const [flags, setFlags] = useState(initialFlags)
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [newBlockedTerm, setNewBlockedTerm] = useState("")
   const [newSafetySymptom, setNewSafetySymptom] = useState("")
+  
+  // Kill switch confirmation state
+  const [pendingToggle, setPendingToggle] = useState<{ key: FlagKey; currentValue: boolean } | null>(null)
 
-  const handleToggleFlag = useCallback(async (key: FlagKey, currentValue: boolean) => {
+  const executeToggle = useCallback(async (key: FlagKey, currentValue: boolean) => {
     setIsSaving(key)
     try {
       const result = await updateFeatureFlagAction(key, !currentValue)
@@ -53,6 +79,18 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
       setIsSaving(null)
     }
   }, [router])
+
+  const handleToggleFlag = useCallback((key: FlagKey, currentValue: boolean) => {
+    // If this is a kill switch being DISABLED (turned off), require confirmation
+    const isKillSwitch = KILL_SWITCH_FLAGS.includes(key)
+    const isDisabling = !currentValue // Toggling from false to true means disabling the service
+    
+    if (isKillSwitch && isDisabling) {
+      setPendingToggle({ key, currentValue })
+    } else {
+      executeToggle(key, currentValue)
+    }
+  }, [executeToggle])
 
   const handleUpdateList = useCallback(async (key: FlagKey, newList: string[]) => {
     setIsSaving(key)
@@ -333,6 +371,44 @@ export function FeatureFlagsClient({ initialFlags }: FeatureFlagsClientProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Kill Switch Confirmation Dialog */}
+      <AlertDialog open={!!pendingToggle} onOpenChange={(open) => !open && setPendingToggle(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Disable {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key] : "Service"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                This will immediately prevent patients from creating new{" "}
+                {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key].toLowerCase() : "requests"}.
+              </p>
+              <p className="font-medium text-amber-700">
+                Existing requests will continue processing, but no new ones can be submitted.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (pendingToggle) {
+                  executeToggle(pendingToggle.key, pendingToggle.currentValue)
+                  setPendingToggle(null)
+                }
+              }}
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : null}
+              Disable Service
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { updateScriptSent } from "@/lib/data/intakes"
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Require doctor or admin role
+    await requireRole(["doctor", "admin"])
 
     let body
     try {

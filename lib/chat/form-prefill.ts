@@ -10,6 +10,7 @@
 
 export interface ChatCollectedData {
   service_type: string
+  chatSessionId?: string // Session ID from AI chat flow for transcript linking
   purpose?: string
   certType?: string
   symptoms?: string[] | string
@@ -326,16 +327,30 @@ function parseDuration(duration: string): number {
 
 const PREFILL_STORAGE_KEY = 'instantmed_form_prefill'
 
-export function savePrefillData(data: ChatCollectedData): void {
+/**
+ * Save prefill data including optional chatSessionId for transcript linking
+ */
+export function savePrefillData(data: ChatCollectedData, chatSessionId?: string): void {
   if (typeof window === 'undefined') return
   try {
+    const dataWithSession = chatSessionId 
+      ? { ...data, chatSessionId } 
+      : data
     localStorage.setItem(PREFILL_STORAGE_KEY, JSON.stringify({
-      data,
+      data: dataWithSession,
       timestamp: Date.now(),
     }))
   } catch {
     // Ignore storage errors
   }
+}
+
+/**
+ * Get the chat session ID from prefill data if available
+ */
+export function getChatSessionId(): string | null {
+  const prefillData = loadPrefillData()
+  return prefillData?.chatSessionId || null
 }
 
 export function loadPrefillData(): ChatCollectedData | null {

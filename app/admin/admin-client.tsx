@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectItem } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -552,23 +552,17 @@ export function AdminClient({
                     startContent={<Search className="h-4 w-4 text-muted-foreground" />}
                   />
                 </div>
-                <Select
-                  selectedKeys={statusFilter ? [statusFilter] : []}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as string
-                    setStatusFilter(selected || "all")
-                  }}
-                  placeholder="Status"
-                  className="w-[160px]"
-                  classNames={{
-                    trigger: "rounded-xl bg-white/50 border-white/40",
-                  }}
-                >
-                  <SelectItem key="all">All Status</SelectItem>
-                  <SelectItem key="pending">Pending</SelectItem>
-                  <SelectItem key="awaiting_prescribe">Awaiting eScript</SelectItem>
-                  <SelectItem key="approved">Approved</SelectItem>
-                  <SelectItem key="declined">Declined</SelectItem>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px] rounded-xl bg-white/50 border-white/40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="awaiting_prescribe">Awaiting eScript</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="declined">Declined</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
               <div className="mt-4 text-sm text-muted-foreground">

@@ -1,5 +1,5 @@
 import { redirect, notFound } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake } from "@/lib/data/documents"
 import { DocumentBuilderClient } from "./document-builder-client"
@@ -13,10 +13,8 @@ export default async function IntakeDocumentBuilderPage({
 }) {
   const { id } = await params
 
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+  // Layout enforces doctor/admin role
+  await requireRole(["doctor", "admin"])
 
   const intake = await getIntakeWithDetails(id)
 

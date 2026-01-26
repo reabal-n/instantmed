@@ -11,7 +11,7 @@ import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("ai-drafts-db")
 
-export type DraftType = "clinical_note" | "med_cert"
+export type DraftType = "clinical_note" | "med_cert" | "repeat_rx" | "consult"
 export type DraftStatus = "ready" | "failed" | "pending"
 
 export interface DocumentDraft {

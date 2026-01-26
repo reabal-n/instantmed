@@ -332,7 +332,7 @@ export function ChatIntake({
   const [lastError, setLastError] = useState<string | null>(null)
   
   // New state for enhanced features
-  const [_sessionId] = useState(() => generateSessionId())
+  const [sessionId] = useState(() => generateSessionId())
   const [draftId] = useState(() => generateDraftId())
   const [serviceType, setServiceType] = useState<ServiceType>(null)
   const [collectedData, setCollectedData] = useState<Record<string, unknown>>({})
@@ -340,6 +340,7 @@ export function ChatIntake({
   const [savedDraft, setSavedDraft] = useState<DraftIntake | null>(null)
   const [showMedicationSearch, setShowMedicationSearch] = useState(false)
   const [showDateSuggestions, setShowDateSuggestions] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -491,7 +492,10 @@ export function ChatIntake({
     try {
       const response = await fetch("/api/ai/chat-intake", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId,
+        },
         body: JSON.stringify({ messages: [] }),
         signal: abortControllerRef.current.signal,
       })
@@ -563,7 +567,10 @@ export function ChatIntake({
     try {
       const response = await fetch("/api/ai/chat-intake", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId,
+        },
         body: JSON.stringify({
           messages: newMessages.filter(m => !m.error).map(m => ({
             role: m.role,
@@ -603,7 +610,9 @@ export function ChatIntake({
       if (jsonContent) {
         try {
           const intakeData = JSON.parse(jsonContent)
-          if ((intakeData.ready || intakeData.status === 'ready_for_review') && onComplete) {
+          // Only proceed if payload indicates ready state
+          const isReady = intakeData.ready || intakeData.status === 'ready_for_review'
+          if (isReady) {
             // CRITICAL: Validate server-side before allowing submission
             const validateRes = await fetch("/api/ai/chat-intake/validate", {
               method: "POST",
@@ -614,20 +623,44 @@ export function ChatIntake({
             if (validateRes.ok) {
               const validation = await validateRes.json()
               if (validation.valid && validation.data) {
-                // Save prefill data for form transition
+                // Save prefill data for form transition (include sessionId for transcript linking)
                 savePrefillData({
                   service_type: intakeData.service_type,
                   ...intakeData.collected,
-                })
+                }, sessionId)
                 // Update collected data state
                 setCollectedData(intakeData.collected || {})
                 // Clear draft on successful completion
                 clearDraft()
-                onComplete({
-                  ...validation.data,
-                  service_type: intakeData.service_type,
-                  _validated: true,
-                })
+                
+                // Deterministic completion: use callback if provided, otherwise redirect
+                if (onComplete) {
+                  onComplete({
+                    ...validation.data,
+                    service_type: intakeData.service_type,
+                    chatSessionId: sessionId,
+                    _validated: true,
+                  })
+                } else {
+                  // Fallback: direct redirect to form with prefill
+                  setIsRedirecting(true)
+                  // Map service_type to URL-friendly format
+                  const serviceSlugMap: Record<string, string> = {
+                    'med_cert': 'med-cert',
+                    'medical_certificate': 'med-cert',
+                    'repeat_rx': 'repeat-script',
+                    'repeat_prescription': 'repeat-script',
+                    'new_rx': 'prescription',
+                    'new_prescription': 'prescription',
+                    'consult': 'consult',
+                    'general_consult': 'consult',
+                  }
+                  const serviceSlug = serviceSlugMap[intakeData.service_type] || 'med-cert'
+                  // Small delay to show redirect message
+                  setTimeout(() => {
+                    window.location.href = `/request/${serviceSlug}?prefill=true&from=chat`
+                  }, 300)
+                }
               }
               // If validation failed, user can still continue chatting
             }
@@ -747,6 +780,21 @@ export function ChatIntake({
                 </div>
               )}
             </div>
+
+            {/* Redirect overlay */}
+            {isRedirecting && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-10 flex items-center justify-center bg-background/95 backdrop-blur-sm"
+              >
+                <div className="flex flex-col items-center gap-3 text-center px-6">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-medium">Taking you to the form…</p>
+                  <p className="text-xs text-muted-foreground">Your answers have been saved</p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Messages */}
             <div 

@@ -21,8 +21,8 @@ export default async function PrescriptionsPage() {
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
   
-  // Fetch all prescription-related intakes
-  const { data: prescriptionIntakes } = await supabase
+  // Fetch prescription-related intakes (limit for performance)
+  const { data: prescriptionIntakes, error: intakesError } = await supabase
     .from("intakes")
     .select(`
       id,
@@ -38,6 +38,7 @@ export default async function PrescriptionsPage() {
     .eq("patient_id", patientId)
     .eq("category", "prescription")
     .order("created_at", { ascending: false })
+    .limit(50)
   
   // Fetch intake answers for medication names
   const intakeIds = prescriptionIntakes?.map(i => i.id) || []
@@ -61,12 +62,16 @@ export default async function PrescriptionsPage() {
     }, {} as Record<string, string>)
   }
   
-  // Fetch from prescriptions table for active prescriptions
-  const { data: activePrescriptions } = await supabase
+  // Fetch from prescriptions table for active prescriptions (limit for performance)
+  const { data: activePrescriptions, error: prescriptionsError } = await supabase
     .from("prescriptions")
     .select("*")
     .eq("patient_id", patientId)
     .order("issued_date", { ascending: false })
+    .limit(50)
+  
+  // Capture error for display
+  const fetchError = intakesError || prescriptionsError ? "Unable to load some prescriptions. Please try again later." : null
   
   // Transform intakes to include service object for compatibility
   const intakesWithService = (prescriptionIntakes || []).map(i => ({
@@ -79,6 +84,7 @@ export default async function PrescriptionsPage() {
       prescriptionIntakes={intakesWithService}
       medicationMap={medicationMap}
       activePrescriptions={activePrescriptions || []}
+      error={fetchError}
     />
   )
 }

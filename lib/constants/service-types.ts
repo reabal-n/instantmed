@@ -265,3 +265,42 @@ export function getServiceMetadata(serviceType: ServiceType): ServiceMetadata {
 export function serviceRequiresConsult(serviceType: ServiceType): boolean {
   return SERVICE_METADATA[serviceType]?.requiresConsult ?? true
 }
+
+// ============================================================================
+// DRAFT GENERATION MAPPING
+// ============================================================================
+
+/**
+ * Draft category for AI draft generation
+ * Maps canonical service types to the type of draft to generate
+ */
+export type DraftCategory = "med_cert" | "repeat_rx" | "consult"
+
+/**
+ * Map canonical service type to draft category
+ * Used by generate-drafts.ts to determine which draft type to generate
+ */
+export function getDraftCategory(serviceType: ServiceType): DraftCategory {
+  switch (serviceType) {
+    case "med_certs":
+      return "med_cert"
+    case "common_scripts":
+      return "repeat_rx"
+    // All other service types get a consult draft
+    case "weight_loss":
+    case "mens_health":
+    case "womens_health":
+    case "referrals":
+    case "pathology":
+    default:
+      return "consult"
+  }
+}
+
+/**
+ * Check if a service type supports AI draft generation
+ * Returns true for all known service types
+ */
+export function supportsDraftGeneration(serviceType: ServiceType): boolean {
+  return serviceType in SERVICE_METADATA
+}

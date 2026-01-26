@@ -7,6 +7,7 @@
 
 import { Redis } from '@upstash/redis'
 import { createLogger } from '@/lib/observability/logger'
+import { captureRedisWarning } from '@/lib/observability/redis-sentry'
 
 const log = createLogger('ai-cache')
 
@@ -73,6 +74,11 @@ export async function getCachedResponse<T>(
     return null
   } catch (error) {
     log.warn('AI cache get error', { error, type })
+    captureRedisWarning(error, {
+      operation: 'get',
+      keyPrefix: `ai:${type}`,
+      subsystem: 'ai_cache',
+    })
     return null
   }
 }
@@ -97,6 +103,11 @@ export async function setCachedResponse<T>(
     log.debug('AI cache set', { type, key, ttl })
   } catch (error) {
     log.warn('AI cache set error', { error, type })
+    captureRedisWarning(error, {
+      operation: 'set',
+      keyPrefix: `ai:${type}`,
+      subsystem: 'ai_cache',
+    })
   }
 }
 
@@ -117,6 +128,11 @@ export async function invalidateCache(
     log.debug('AI cache invalidated', { type, key })
   } catch (error) {
     log.warn('AI cache invalidate error', { error, type })
+    captureRedisWarning(error, {
+      operation: 'del',
+      keyPrefix: `ai:${type}`,
+      subsystem: 'ai_cache',
+    })
   }
 }
 

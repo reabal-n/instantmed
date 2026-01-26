@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-expire-certificates")
 
@@ -74,7 +75,9 @@ export async function GET(request: NextRequest) {
       expired: expiredCerts.length,
     })
   } catch (error) {
-    logger.error("Certificate expiry cron failed", {}, error instanceof Error ? error : new Error(String(error)))
+    const err = error instanceof Error ? error : new Error(String(error))
+    logger.error("Certificate expiry cron failed", { error: err.message })
+    captureCronError(err, { jobName: "expire-certificates" })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

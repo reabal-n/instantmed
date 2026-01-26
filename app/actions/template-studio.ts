@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import {
   getActiveClinicIdentity,
   saveClinicIdentity,
@@ -29,17 +29,7 @@ const log = createLogger("template-studio-actions")
  * Throws if not authenticated or not an admin
  */
 async function requireAdminAuth() {
-  const authUser = await getAuthenticatedUserWithProfile()
-  
-  if (!authUser) {
-    throw new Error("Not authenticated")
-  }
-  
-  if (authUser.profile.role !== "admin") {
-    throw new Error("Admin access required")
-  }
-  
-  return authUser
+  return requireRole(["admin"])
 }
 
 // ============================================================================

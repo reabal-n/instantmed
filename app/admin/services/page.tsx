@@ -16,7 +16,7 @@ export default async function ServicesConfigPage() {
     redirect("/")
   }
 
-  const services = await getAllServicesAction()
+  const services = await getAllServicesAction().catch(() => [])
 
   return <ServicesConfigClient initialServices={services} />
 }

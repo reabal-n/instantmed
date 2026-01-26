@@ -29,6 +29,29 @@ CREATE TABLE IF NOT EXISTS public.email_logs (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Add missing columns if table already exists (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'resend_id') THEN
+    ALTER TABLE public.email_logs ADD COLUMN resend_id TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'status') THEN
+    ALTER TABLE public.email_logs ADD COLUMN status TEXT DEFAULT 'pending';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'delivery_status') THEN
+    ALTER TABLE public.email_logs ADD COLUMN delivery_status TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'delivery_status_updated_at') THEN
+    ALTER TABLE public.email_logs ADD COLUMN delivery_status_updated_at TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'last_error') THEN
+    ALTER TABLE public.email_logs ADD COLUMN last_error TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'email_logs' AND column_name = 'metadata') THEN
+    ALTER TABLE public.email_logs ADD COLUMN metadata JSONB DEFAULT '{}';
+  END IF;
+END $$;
+
 -- Indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_email_logs_request ON public.email_logs(request_id);
 CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON public.email_logs(recipient_email);

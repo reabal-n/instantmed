@@ -56,7 +56,7 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 }
 
 export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
-  const { answers, getIdentity, agreedToTerms, confirmedAccuracy, setConsent } = useRequestStore()
+  const { answers, getIdentity, agreedToTerms, confirmedAccuracy, setConsent, chatSessionId } = useRequestStore()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -80,6 +80,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         serviceType,
         answers,
         identity,
+        chatSessionId: chatSessionId || undefined, // Pass chat session ID for transcript linking
       })
       
       if (!result.success) {

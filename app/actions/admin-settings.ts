@@ -6,7 +6,7 @@
  */
 
 import { revalidatePath } from "next/cache"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import {
   getActiveClinicIdentity,
   getClinicIdentityHistory,
@@ -33,6 +33,7 @@ import {
 import type { ClinicIdentityInput } from "@/types/certificate-template"
 import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import { createLogger } from "@/lib/observability/logger"
+import { logAuditEvent } from "@/lib/security/audit-log"
 
 const log = createLogger("admin-settings-actions")
 
@@ -41,11 +42,8 @@ const log = createLogger("admin-settings-actions")
 // ============================================================================
 
 async function requireAdmin() {
-  const authUser = await getAuthenticatedUserWithProfile()
-  if (!authUser || authUser.profile.role !== "admin") {
-    throw new Error("Unauthorized: Admin access required")
-  }
-  return authUser.profile
+  const { profile } = await requireRole(["admin"])
+  return profile
 }
 
 // ============================================================================
@@ -160,6 +158,18 @@ export async function updateDoctorIdentityAction(
     revalidatePath("/admin/doctors")
     revalidatePath("/admin")
     log.info("Doctor identity updated by admin", { adminId: admin.id, doctorId: profileId })
+    
+    // Audit log for compliance
+    await logAuditEvent({
+      action: "settings_changed",
+      actorId: admin.id,
+      actorType: "admin",
+      metadata: {
+        settingType: "doctor_identity",
+        targetDoctorId: profileId,
+        updatedFields: Object.keys(input),
+      },
+    })
   }
 
   return result
@@ -217,6 +227,17 @@ export async function createServiceAction(input: ServiceInput) {
     revalidatePath("/admin/services")
     revalidatePath("/request")
     log.info("Service created by admin", { adminId: admin.id, slug: input.slug })
+    
+    await logAuditEvent({
+      action: "settings_changed",
+      actorId: admin.id,
+      actorType: "admin",
+      metadata: {
+        settingType: "service_created",
+        serviceSlug: input.slug,
+        serviceName: input.name,
+      },
+    })
   }
 
   return result
@@ -231,6 +252,17 @@ export async function updateServiceAction(id: string, input: Partial<ServiceInpu
     revalidatePath("/admin/services")
     revalidatePath("/request")
     log.info("Service updated by admin", { adminId: admin.id, serviceId: id })
+    
+    await logAuditEvent({
+      action: "settings_changed",
+      actorId: admin.id,
+      actorType: "admin",
+      metadata: {
+        settingType: "service_updated",
+        serviceId: id,
+        updatedFields: Object.keys(input),
+      },
+    })
   }
 
   return result
@@ -245,6 +277,17 @@ export async function toggleServiceActiveAction(id: string, isActive: boolean) {
     revalidatePath("/admin/services")
     revalidatePath("/request")
     log.info("Service toggled by admin", { adminId: admin.id, serviceId: id, isActive })
+    
+    await logAuditEvent({
+      action: "settings_changed",
+      actorId: admin.id,
+      actorType: "admin",
+      metadata: {
+        settingType: "service_toggled",
+        serviceId: id,
+        isActive,
+      },
+    })
   }
 
   return result
@@ -273,6 +316,16 @@ export async function deleteServiceAction(id: string) {
     revalidatePath("/admin/services")
     revalidatePath("/request")
     log.info("Service deleted by admin", { adminId: admin.id, serviceId: id })
+    
+    await logAuditEvent({
+      action: "settings_changed",
+      actorId: admin.id,
+      actorType: "admin",
+      metadata: {
+        settingType: "service_deleted",
+        serviceId: id,
+      },
+    })
   }
 
   return result

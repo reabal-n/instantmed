@@ -20,7 +20,7 @@ export default async function PatientMessagesPage() {
   const patientId = authUser.profile.id
 
   // Fetch messages for this patient
-  const { data: rawMessages } = await supabase
+  const { data: rawMessages, error: messagesError } = await supabase
     .from("patient_messages")
     .select(`
       id,
@@ -39,6 +39,9 @@ export default async function PatientMessagesPage() {
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .limit(50)
+  
+  // Capture fetch error for display
+  const fetchError = messagesError ? "Unable to load messages. Please try again later." : null
 
   // Transform messages to match expected type (joins return arrays)
   const messages = (rawMessages || []).map((msg) => {
@@ -76,6 +79,7 @@ export default async function PatientMessagesPage() {
       messagesByIntake={messagesByIntake}
       unreadCount={unreadCount || 0}
       patientId={patientId}
+      error={fetchError}
     />
   )
 }

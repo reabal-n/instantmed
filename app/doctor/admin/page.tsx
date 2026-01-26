@@ -1,15 +1,12 @@
-import { redirect } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import { AdminDashboardClient } from "./admin-dashboard-client"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminDashboardPage() {
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+  // Layout enforces doctor/admin role
+  const { profile } = await requireRole(["doctor", "admin"])
 
   const results = await Promise.allSettled([
     getAllIntakesForAdmin({ page: 1, pageSize: 50 }),

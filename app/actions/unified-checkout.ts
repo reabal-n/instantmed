@@ -22,6 +22,7 @@ interface UnifiedCheckoutInput {
     dateOfBirth?: string
     phone?: string
   }
+  chatSessionId?: string // Session ID from AI chat flow for transcript linking
 }
 
 interface CheckoutResult {
@@ -98,7 +99,7 @@ function transformAnswers(
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity } = input
+  const { serviceType, answers, identity, chatSessionId } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers for med-cert
@@ -120,6 +121,7 @@ export async function createCheckoutFromUnifiedFlow(
       type: serviceType,
       answers: transformedAnswers,
       idempotencyKey: crypto.randomUUID(),
+      chatSessionId, // Pass chat session ID for transcript linking
     })
   } else {
     // Guest checkout - requires identity info

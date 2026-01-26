@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
@@ -12,10 +12,8 @@ export async function saveMedCertDraftAction(
   data: MedCertDraftData
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return { success: false, error: "Unauthorized" }
-    }
+    // Require doctor or admin role
+    await requireRole(["doctor", "admin"])
 
     const supabase = createServiceRoleClient()
 
@@ -39,10 +37,8 @@ export async function generateMedCertPdfAndApproveAction(
   _draftId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return { success: false, error: "Unauthorized" }
-    }
+    // Require doctor or admin role
+    await requireRole(["doctor", "admin"])
 
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()

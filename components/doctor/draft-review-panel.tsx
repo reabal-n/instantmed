@@ -38,7 +38,9 @@ import {
   Loader2,
   Clock,
   Shield,
+  GitCompare,
 } from "lucide-react"
+import { computeLineDiff, formatContentForDiff, isDiffTooLarge, type DiffLine } from "@/lib/utils/text-diff"
 import { approveDraft, rejectDraft, regenerateDrafts, checkDraftStaleness } from "@/app/actions/draft-approval"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -75,6 +77,154 @@ function getStatusBadge(draft: AIDraft) {
     return <Badge className="bg-amber-100 text-amber-800">Generating...</Badge>
   }
   return <Badge className="bg-blue-100 text-blue-800">Ready for Review</Badge>
+}
+
+/**
+ * Side-by-side fallback view when diff is too large to compute safely
+ */
+function SideBySideFallback({
+  originalText,
+  editedText,
+  reason,
+}: {
+  originalText: string
+  editedText: string
+  reason: string
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <div className="flex items-center gap-2 text-amber-800 text-sm font-medium">
+          <AlertTriangle className="h-4 w-4" />
+          Diff too large to render safely
+        </div>
+        <p className="text-xs text-amber-700 mt-1">{reason}</p>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+            <span className="w-2 h-2 rounded bg-red-300" />
+            Original
+          </div>
+          <div className="border rounded-lg p-3 bg-red-50/30 max-h-[300px] overflow-y-auto">
+            <pre className="text-xs whitespace-pre-wrap font-mono text-muted-foreground">
+              {originalText || '(empty)'}
+            </pre>
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+            <span className="w-2 h-2 rounded bg-emerald-300" />
+            Edited
+          </div>
+          <div className="border rounded-lg p-3 bg-emerald-50/30 max-h-[300px] overflow-y-auto">
+            <pre className="text-xs whitespace-pre-wrap font-mono text-muted-foreground">
+              {editedText || '(empty)'}
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Diff view component for clinical note edits
+ * Shows line-by-line comparison between original and edited content
+ * 
+ * PERFORMANCE GUARD: If content exceeds safe thresholds (8000 lines / 200k chars),
+ * falls back to side-by-side plain text view instead of computing LCS diff.
+ */
+function ClinicalNoteDiffView({ 
+  original, 
+  edited 
+}: { 
+  original: Record<string, unknown>
+  edited: Record<string, unknown> 
+}) {
+  // Format content and check size - all hooks must be called unconditionally
+  const { originalText, editedText, sizeCheck, diff } = useMemo(() => {
+    const origText = formatContentForDiff(original)
+    const editText = formatContentForDiff(edited)
+    const check = isDiffTooLarge(origText, editText)
+    
+    // Only compute diff if content is within safe limits
+    const diffResult = check.tooLarge 
+      ? null 
+      : computeLineDiff(origText, editText)
+    
+    return { 
+      originalText: origText, 
+      editedText: editText, 
+      sizeCheck: check,
+      diff: diffResult,
+    }
+  }, [original, edited])
+
+  // PERFORMANCE GUARD: Show fallback for large content
+  if (sizeCheck.tooLarge || !diff) {
+    return (
+      <SideBySideFallback
+        originalText={originalText}
+        editedText={editedText}
+        reason={sizeCheck.reason || 'Content exceeds safe rendering limits'}
+      />
+    )
+  }
+
+  if (!diff.hasChanges) {
+    return (
+      <div className="text-sm text-muted-foreground italic p-3 bg-muted/30 rounded">
+        No changes from original AI draft
+      </div>
+    )
+  }
+
+  const renderLine = (line: DiffLine, index: number) => {
+    const baseClass = "font-mono text-xs py-0.5 px-2 whitespace-pre-wrap"
+    switch (line.type) {
+      case 'added':
+        return (
+          <div key={index} className={`${baseClass} bg-emerald-100 text-emerald-900 border-l-2 border-emerald-500`}>
+            <span className="select-none text-emerald-600 mr-2">+</span>
+            {line.content || ' '}
+          </div>
+        )
+      case 'removed':
+        return (
+          <div key={index} className={`${baseClass} bg-red-100 text-red-900 border-l-2 border-red-500`}>
+            <span className="select-none text-red-600 mr-2">−</span>
+            {line.content || ' '}
+          </div>
+        )
+      default:
+        return (
+          <div key={index} className={`${baseClass} text-muted-foreground`}>
+            <span className="select-none mr-2">&nbsp;</span>
+            {line.content || ' '}
+          </div>
+        )
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-red-200 border border-red-400" />
+          {diff.removedCount} removed
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-emerald-200 border border-emerald-400" />
+          {diff.addedCount} added
+        </span>
+      </div>
+      <div className="border rounded-lg overflow-hidden bg-white max-h-[400px] overflow-y-auto">
+        {diff.lines.map((line, i) => renderLine(line, i))}
+      </div>
+    </div>
+  )
 }
 
 function ValidationWarnings({ draft }: { draft: AIDraft }) {
@@ -190,6 +340,12 @@ function SingleDraftCard({
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [stalenessInfo, setStalenessInfo] = useState<{ isStale: boolean; reason?: string } | null>(null)
   const [acknowledgedChanges, setAcknowledgedChanges] = useState(false)
+  const [showDiff, setShowDiff] = useState(false)
+
+  // Check if this is a clinical note with edits (for diff view)
+  const isClinicalNote = draft.type === "clinical_note"
+  const hasEdits = !!draft.edited_content
+  const canShowDiff = isClinicalNote && hasEdits
 
   const isAlreadyDecided = !!draft.approved_at || !!draft.rejected_at
   const canApprove = draft.status === "ready" && !isAlreadyDecided
@@ -325,8 +481,38 @@ function SingleDraftCard({
             </div>
           </div>
         ) : (
-          <div className="bg-muted/50 rounded-lg p-4">
-            <DraftContent content={draft.edited_content || draft.content} />
+          <div className="space-y-3">
+            {/* Diff toggle for clinical notes with edits */}
+            {canShowDiff && (
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={showDiff ? "secondary" : "outline"}
+                  onClick={() => setShowDiff(!showDiff)}
+                  className="text-xs"
+                >
+                  <GitCompare className="h-3 w-3 mr-1" />
+                  {showDiff ? "Hide changes" : "View changes"}
+                </Button>
+                {hasEdits && (
+                  <span className="text-xs text-muted-foreground">
+                    Doctor edited this draft
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Show diff view or normal content */}
+            {showDiff && canShowDiff ? (
+              <ClinicalNoteDiffView 
+                original={draft.content} 
+                edited={draft.edited_content!} 
+              />
+            ) : (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <DraftContent content={draft.edited_content || draft.content} />
+              </div>
+            )}
           </div>
         )}
 

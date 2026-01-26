@@ -55,11 +55,15 @@ function _getPublicUrlBase(): string {
 
 /**
  * P1 FIX: Generate a signed URL for secure document access
- * Signed URLs expire after the specified duration (default 7 days)
+ * Signed URLs expire after the specified duration (default 24 hours)
+ * 
+ * PHI EXPOSURE REDUCTION: Reduced from 7 days to 24 hours to minimize
+ * window of exposure if URL is leaked. Patients can always generate
+ * a fresh URL from their dashboard.
  */
 export async function getSignedUrl(
   storagePath: string,
-  expiresInSeconds: number = 7 * 24 * 60 * 60 // 7 days default
+  expiresInSeconds: number = 24 * 60 * 60 // 24 hours default (reduced from 7 days)
 ): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     const supabase = getStorageClient()

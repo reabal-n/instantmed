@@ -18,6 +18,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -99,6 +109,11 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
   const [isCreating, setIsCreating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
+  
+  // Confirmation dialog state for kill switch toggle
+  const [toggleConfirmOpen, setToggleConfirmOpen] = useState(false)
+  const [serviceToToggle, setServiceToToggle] = useState<Service | null>(null)
+  const [isToggling, setIsToggling] = useState(false)
 
   const [formData, setFormData] = useState<ServiceInput>(EMPTY_SERVICE)
 
@@ -155,20 +170,34 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
     setFormData(prev => ({ ...prev, [field]: value }))
   }, [])
 
-  const handleToggleActive = async (service: Service) => {
-    const newStatus = !service.is_active
+  // Show confirmation dialog before toggling kill switch
+  const handleToggleActive = (service: Service) => {
+    setServiceToToggle(service)
+    setToggleConfirmOpen(true)
+  }
+
+  // Confirmed toggle action
+  const confirmToggleActive = async () => {
+    if (!serviceToToggle) return
+    
+    const newStatus = !serviceToToggle.is_active
+    setIsToggling(true)
     try {
-      const result = await toggleServiceActiveAction(service.id, newStatus)
+      const result = await toggleServiceActiveAction(serviceToToggle.id, newStatus)
       if (result.success) {
         setServices(prev =>
-          prev.map(s => (s.id === service.id ? { ...s, is_active: newStatus } : s))
+          prev.map(s => (s.id === serviceToToggle.id ? { ...s, is_active: newStatus } : s))
         )
         toast.success(`Service ${newStatus ? "enabled" : "disabled"}`)
+        setToggleConfirmOpen(false)
+        setServiceToToggle(null)
       } else {
         toast.error(result.error || "Failed to update service")
       }
     } catch {
       toast.error("Failed to update service")
+    } finally {
+      setIsToggling(false)
     }
   }
 
@@ -756,6 +785,51 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Kill Switch Confirmation Dialog */}
+      <AlertDialog open={toggleConfirmOpen} onOpenChange={setToggleConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {serviceToToggle?.is_active ? (
+                <PowerOff className="h-5 w-5 text-destructive" />
+              ) : (
+                <Power className="h-5 w-5 text-emerald-600" />
+              )}
+              {serviceToToggle?.is_active ? "Disable Service" : "Enable Service"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {serviceToToggle?.is_active ? (
+                <>
+                  This will <strong>immediately disable</strong> &quot;{serviceToToggle?.name}&quot; for all patients. 
+                  No new requests can be submitted until re-enabled.
+                </>
+              ) : (
+                <>
+                  This will <strong>enable</strong> &quot;{serviceToToggle?.name}&quot; and make it available to patients immediately.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isToggling}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmToggleActive}
+              disabled={isToggling}
+              className={serviceToToggle?.is_active ? "bg-destructive hover:bg-destructive/90" : ""}
+            >
+              {isToggling ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : serviceToToggle?.is_active ? (
+                <PowerOff className="h-4 w-4 mr-2" />
+              ) : (
+                <Power className="h-4 w-4 mr-2" />
+              )}
+              {serviceToToggle?.is_active ? "Disable Service" : "Enable Service"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

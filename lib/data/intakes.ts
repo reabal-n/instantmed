@@ -301,6 +301,7 @@ export async function getDoctorQueue(
       risk_flags,
       risk_score,
       requires_live_consult,
+      ai_draft_status,
       patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state)
     `)
     .in("status", ["paid", "in_review", "pending_info"])

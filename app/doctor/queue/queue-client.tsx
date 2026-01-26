@@ -49,6 +49,7 @@ import {
   ArrowUpDown,
   Focus,
   Maximize2,
+  Sparkles,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import {
@@ -631,6 +632,12 @@ export function QueueClient({
                                 <Badge className="bg-destructive/10 text-destructive border-destructive/20">
                                   <ShieldAlert className="w-3 h-3 mr-1" />
                                   Clinical flag
+                                </Badge>
+                              )}
+                              {(intake as unknown as { ai_draft_status?: string }).ai_draft_status === "completed" && (
+                                <Badge className="bg-violet-100 text-violet-700 border-violet-200">
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  AI draft ready
                                 </Badge>
                               )}
                             </div>

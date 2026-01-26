@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { generateMedCertPdfFactory } from "@/lib/documents/med-cert-pdf-factory"
@@ -14,14 +14,8 @@ import type { MedCertDraft } from "@/types/db"
  */
 export async function POST(request: NextRequest) {
   try {
-    // Require doctor auth
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized - doctor access required" },
-        { status: 401 }
-      )
-    }
+    // Require doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     const body = await request.json() as {
       requestId: string

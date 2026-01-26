@@ -2,6 +2,7 @@
 
 import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 
 import { env } from "../env"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
@@ -156,6 +157,11 @@ async function checkEmailRateLimit(email: string): Promise<boolean> {
     return false
   } catch (error) {
     logger.warn("[Resend] Rate limit check failed, allowing send", { error })
+    captureRedisWarning(error, {
+      operation: 'limit',
+      keyPrefix: 'email:ratelimit',
+      subsystem: 'email',
+    })
     return false // Allow on error to not block emails
   }
 }

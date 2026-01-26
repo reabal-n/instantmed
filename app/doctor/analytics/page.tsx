@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { AnalyticsClient } from "./analytics-client"
 
@@ -9,38 +8,72 @@ export const metadata = {
   title: "Analytics | InstantMed Doctor Portal",
 }
 
-async function getAnalytics() {
+// Pagination constants
+const PAGE_SIZE = 500 // Reasonable limit for analytics aggregation
+
+export interface AnalyticsSearchParams {
+  days?: string // Date range in days (default: 90)
+  cursor?: string // Cursor for pagination (created_at of last item)
+}
+
+// Intake type for type safety
+interface IntakeRow {
+  id: string
+  status: string
+  is_priority: boolean
+  created_at: string
+  reviewed_at: string | null
+  category: string | null
+}
+
+async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
   const supabase = createServiceRoleClient()
   
   const now = new Date()
+  const days = searchParams.days ? parseInt(searchParams.days, 10) : 90 // Default to 90 days
+  const rangeStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-  // Get all intakes with service info
-  const { data: allIntakes } = await supabase
+  // OPTIMIZED: Only fetch intakes within date range with minimal columns
+  // Uses idx_intakes_created_at index for efficient filtering
+  // BEFORE: .select(*) with no date filter - loaded ALL intakes
+  // AFTER: .select(6 columns) with 90-day filter + pagination
+  let query = supabase
     .from("intakes")
     .select(`
       id,
       status,
-      payment_status,
       is_priority,
       created_at,
-      updated_at,
       reviewed_at,
       category
-    `)
+    `, { count: 'exact' })
+    .gte("created_at", rangeStart.toISOString())
     .order("created_at", { ascending: false })
+    .limit(PAGE_SIZE)
 
-  const intakes = allIntakes || []
+  // Cursor-based pagination: fetch items older than cursor
+  if (searchParams.cursor) {
+    query = query.lt("created_at", searchParams.cursor)
+  }
 
-  // Status counts
+  const { data: pagedIntakes, count: totalInRange } = await query
+  const intakes: IntakeRow[] = pagedIntakes || []
+
+  // Determine next cursor for pagination
+  const lastItem = intakes.length > 0 ? intakes[intakes.length - 1] : null
+  const nextCursor = lastItem && intakes.length === PAGE_SIZE ? lastItem.created_at : null
+  const hasMore = intakes.length === PAGE_SIZE
+
+  // Status counts from fetched data
   const statusCounts = intakes.reduce((acc: Record<string, number>, i) => {
     acc[i.status] = (acc[i.status] || 0) + 1
     return acc
   }, {})
 
-  // Service type counts
+  // Service type counts from fetched data
   const serviceTypeCounts = intakes.reduce((acc: Record<string, number>, i) => {
     const serviceType = i.category || "other"
     acc[serviceType] = (acc[serviceType] || 0) + 1
@@ -99,11 +132,13 @@ async function getAnalytics() {
     avgResponseMinutes = Math.round(totalMinutes / completedIntakes.length)
   }
 
-  // Revenue (from payments table)
+  // Revenue: also apply date filter for consistency
+  // OPTIMIZED: Only fetch payments within date range
   const { data: payments } = await supabase
     .from("payments")
-    .select("amount_paid, created_at, status")
+    .select("amount_paid, created_at")
     .eq("status", "paid")
+    .gte("created_at", rangeStart.toISOString())
 
   const allPayments = payments || []
   const totalRevenue = allPayments.reduce((sum, p) => sum + (p.amount_paid || 0), 0) / 100
@@ -135,7 +170,7 @@ async function getAnalytics() {
 
   return {
     // Summary
-    totalIntakes: intakes.length,
+    totalIntakes: totalInRange || intakes.length,
     todayIntakes: todayIntakes.length,
     todayApproved: todayApproved.length,
     pendingInQueue,
@@ -169,16 +204,28 @@ async function getAnalytics() {
     approvalRate: intakes.length > 0 
       ? Math.round(((statusCounts.approved || 0) / intakes.length) * 100) 
       : 0,
+    
+    // Pagination info
+    pagination: {
+      days,
+      hasMore,
+      nextCursor,
+      totalInRange: totalInRange || 0,
+      pageSize: PAGE_SIZE,
+    },
   }
 }
 
-export default async function AnalyticsPage() {
-  const { profile } = await requireAuth("doctor")
-  if (!profile) {
-    redirect("/sign-in")
-  }
+interface PageProps {
+  searchParams: Promise<AnalyticsSearchParams>
+}
 
-  const analytics = await getAnalytics()
+export default async function AnalyticsPage({ searchParams }: PageProps) {
+  // Layout already enforces doctor/admin role, but page needs profile
+  const { profile } = await requireRole(["doctor", "admin"])
+  const params = await searchParams
+
+  const analytics = await getAnalytics(params)
 
   return <AnalyticsClient analytics={analytics} doctorName={profile.full_name} />
 }

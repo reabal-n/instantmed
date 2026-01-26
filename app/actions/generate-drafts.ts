@@ -14,9 +14,17 @@ import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { upsertDraft, draftsExist, deleteDrafts } from "@/lib/ai/drafts"
 import { getPostHogClient } from "@/lib/posthog-server"
-import { safeParseClinicalNoteOutput, safeParseMedCertDraftOutput } from "@/lib/ai/schemas"
+import { 
+  safeParseClinicalNoteOutput, 
+  safeParseMedCertDraftOutput,
+  safeParseRepeatRxDraftOutput,
+  safeParseConsultDraftOutput,
+} from "@/lib/ai/schemas"
 import { validateClinicalNoteAgainstIntake, validateMedCertAgainstIntake } from "@/lib/ai/validation"
 import { checkAndSanitize, validateAIOutput } from "@/lib/ai/prompt-safety"
+import { normalizeServiceType, getDraftCategory, type DraftCategory } from "@/lib/constants/service-types"
+import type { ServiceType } from "@/types/db"
+import * as Sentry from "@sentry/nextjs"
 
 const log = createLogger("generate-drafts")
 
@@ -44,8 +52,12 @@ function getServiceClient() {
 export interface GenerateDraftsResult {
   success: boolean
   skipped?: boolean
+  serviceType?: ServiceType
+  draftCategory?: DraftCategory
   clinicalNote?: { status: "ready" | "failed"; error?: string }
   medCert?: { status: "ready" | "failed"; error?: string }
+  repeatRx?: { status: "ready" | "failed"; error?: string }
+  consult?: { status: "ready" | "failed"; error?: string }
   error?: string
 }
 
@@ -102,6 +114,64 @@ OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact
   }
 }`
 
+// Prompt for repeat prescription draft generation (JSON output)
+const REPEAT_RX_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs review repeat prescription requests.
+
+Generate a clinical summary for a repeat prescription request based on the patient intake information provided.
+
+IMPORTANT RULES:
+- This is a DRAFT for doctor review only
+- Summarize the medication request factually
+- Do not make prescribing decisions - that's for the reviewing doctor
+- Note any compliance or control concerns from the intake
+- Set controlledSubstance to true if medication may be a controlled substance
+- Set requiresReview to true if < 3 months on medication OR poor control OR recent changes
+
+OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact structure:
+{
+  "medicationSummary": "Patient requesting repeat of [medication] [strength] for [condition/indication]",
+  "indicationStatement": "Brief statement of why patient takes this medication",
+  "treatmentHistory": "Duration on current medication, previous treatments if mentioned",
+  "complianceNotes": "Notes on adherence, side effects, or concerns from intake",
+  "clinicalConsiderations": "Any relevant clinical factors for doctor to consider",
+  "flags": {
+    "requiresReview": false,
+    "flagReason": null,
+    "controlledSubstance": false,
+    "interactionRisk": false
+  }
+}`
+
+// Prompt for consultation draft generation (JSON output)
+const CONSULT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs prepare for telehealth consultations.
+
+Generate a clinical summary for a GP consultation request based on the patient intake information provided.
+
+IMPORTANT RULES:
+- This is a DRAFT for doctor review only
+- Summarize the presenting concern factually
+- Do not diagnose or recommend treatments - that's for the consulting doctor
+- Note urgency level from patient's self-assessment
+- Set urgentConcern to true if patient indicates urgent/severe symptoms
+- Set mentalHealthFlag to true if mental health concerns are mentioned
+
+OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact structure:
+{
+  "chiefComplaint": "Main reason for consultation in patient's words/summary",
+  "historyOfPresentIllness": "Details about symptoms, duration, progression from intake",
+  "relevantHistory": "Any relevant medical history mentioned",
+  "systemsReview": "Other symptoms or concerns mentioned",
+  "urgencyAssessment": "routine|soon|urgent",
+  "suggestedConsultType": "async|phone|video",
+  "clinicalConsiderations": "Any factors that may affect consultation approach",
+  "flags": {
+    "requiresReview": false,
+    "flagReason": null,
+    "urgentConcern": false,
+    "mentalHealthFlag": false
+  }
+}`
+
 /**
  * Generate AI drafts for an intake
  * 
@@ -152,42 +222,100 @@ export async function generateDraftsForIntake(
       return { success: false, error: "Intake not found" }
     }
 
-    // Only generate drafts for medical certificate service
+    // Determine service type and validate
     const service = intake.service as { slug: string; type: string; name: string } | null
-    if (!service || service.type !== "med_certs") {
-      log.info("Not a med cert service, skipping draft generation", { 
-        intakeId, 
-        serviceType: service?.type 
-      })
+    if (!service || !service.type) {
+      log.info("No service type found, skipping draft generation", { intakeId })
       return { success: true, skipped: true }
     }
+
+    // Normalize service type to canonical value using centralized util
+    const serviceType = normalizeServiceType(service.type)
+    
+    if (!serviceType) {
+      // Unknown service type - generate ONLY clinical_note draft and log warning to Sentry
+      log.warn("Unknown service type, generating clinical_note only", { 
+        intakeId, 
+        rawServiceType: service.type 
+      })
+      
+      Sentry.captureMessage("Unknown service type in draft generation", {
+        level: "warning",
+        tags: {
+          service_type: service.type,
+          intake_id: intakeId,
+        },
+        extra: {
+          serviceName: service.name,
+          serviceSlug: service.slug,
+        },
+      })
+      
+      // Generate only clinical note for unknown service types
+      const patient = intake.patient as { id: string; full_name: string; date_of_birth: string | null } | null
+      const answersArray = intake.answers as { answers: Record<string, unknown> }[] | null
+      const answers = answersArray?.[0]?.answers || {}
+      const intakeContext = formatIntakeContext(intake, patient, answers, "med_certs") // Use med_certs as fallback for context
+      
+      const clinicalNoteResult = await generateClinicalNoteDraft(intakeId, intakeContext, answers)
+      
+      return {
+        success: true,
+        clinicalNote: clinicalNoteResult,
+      }
+    }
+    
+    // Get draft category from canonical service type
+    const draftCategory = getDraftCategory(serviceType)
 
     const patient = intake.patient as { id: string; full_name: string; date_of_birth: string | null } | null
     const answersArray = intake.answers as { answers: Record<string, unknown> }[] | null
     const answers = answersArray?.[0]?.answers || {}
 
-    // Prepare intake context for AI
-    const intakeContext = formatIntakeContext(intake, patient, answers)
+    // Prepare intake context for AI (service-type aware)
+    const intakeContext = formatIntakeContext(intake, patient, answers, serviceType)
     
-    // Generate both drafts in parallel
-    const [clinicalNoteResult, medCertResult] = await Promise.all([
-      generateClinicalNoteDraft(intakeId, intakeContext, answers),
-      generateMedCertDraft(intakeId, intakeContext, answers, patient?.full_name || "Patient"),
-    ])
+    // Generate clinical note for ALL service types
+    const clinicalNoteResult = await generateClinicalNoteDraft(intakeId, intakeContext, answers)
+
+    // Generate service-specific draft based on draft category (derived from canonical service type)
+    let serviceSpecificResult: { status: "ready" | "failed"; error?: string }
+    
+    if (draftCategory === "med_cert") {
+      serviceSpecificResult = await generateMedCertDraft(intakeId, intakeContext, answers, patient?.full_name || "Patient")
+    } else if (draftCategory === "repeat_rx") {
+      serviceSpecificResult = await generateRepeatRxDraft(intakeId, intakeContext, answers)
+    } else {
+      serviceSpecificResult = await generateConsultDraft(intakeId, intakeContext, answers)
+    }
 
     const duration = Date.now() - startTime
     log.info("Draft generation completed", {
       intakeId,
+      serviceType,
+      draftCategory,
       durationMs: duration,
       clinicalNote: clinicalNoteResult.status,
-      medCert: medCertResult.status,
+      serviceSpecific: serviceSpecificResult.status,
     })
 
-    return {
+    // Build result based on draft category
+    const result: GenerateDraftsResult = {
       success: true,
+      serviceType,
+      draftCategory,
       clinicalNote: clinicalNoteResult,
-      medCert: medCertResult,
     }
+
+    if (draftCategory === "med_cert") {
+      result.medCert = serviceSpecificResult
+    } else if (draftCategory === "repeat_rx") {
+      result.repeatRx = serviceSpecificResult
+    } else {
+      result.consult = serviceSpecificResult
+    }
+
+    return result
 
   } catch (error) {
     log.error("Unexpected error in draft generation", { intakeId }, error)
@@ -252,6 +380,20 @@ async function generateClinicalNoteDraft(
           },
         })
       } catch { /* non-blocking */ }
+      
+      // Capture to Sentry with intake_id as tag for traceability
+      Sentry.captureMessage("AI draft generation failed: clinical_note", {
+        level: "warning",
+        tags: {
+          source: "ai_draft",
+          draft_type: "clinical_note",
+          intake_id: intakeId,
+        },
+        extra: {
+          error: parseResult.error,
+          zodErrors: parseResult.zodErrors,
+        },
+      })
 
       return { status: "failed", error: parseResult.error }
     }
@@ -394,6 +536,21 @@ async function generateMedCertDraft(
           },
         })
       } catch { /* non-blocking */ }
+      
+      // Capture to Sentry with intake_id and service_type as tags for traceability
+      Sentry.captureMessage("AI draft generation failed: med_cert", {
+        level: "warning",
+        tags: {
+          source: "ai_draft",
+          draft_type: "med_cert",
+          intake_id: intakeId,
+          service_type: "med_certs",
+        },
+        extra: {
+          error: parseResult.error,
+          zodErrors: parseResult.zodErrors,
+        },
+      })
 
       return { status: "failed", error: parseResult.error }
     }
@@ -474,6 +631,254 @@ async function generateMedCertDraft(
 }
 
 /**
+ * Generate repeat prescription draft
+ */
+async function generateRepeatRxDraft(
+  intakeId: string,
+  intakeContext: string,
+  _answers: Record<string, unknown>
+): Promise<{ status: "ready" | "failed"; error?: string }> {
+  const startTime = Date.now()
+  
+  try {
+    const result = await generateText({
+      model: "openai/gpt-4o-mini",
+      system: REPEAT_RX_JSON_PROMPT,
+      prompt: intakeContext,
+    })
+
+    const durationMs = Date.now() - startTime
+
+    // Parse and validate AI output
+    const parseResult = safeParseRepeatRxDraftOutput(result.text)
+    
+    if (!parseResult.success) {
+      log.error("Repeat Rx validation failed", {
+        intakeId,
+        error: parseResult.error,
+        zodErrors: parseResult.zodErrors,
+      })
+      
+      await upsertDraft({
+        intakeId,
+        type: "repeat_rx",
+        content: { raw: result.text },
+        status: "failed",
+        error: parseResult.error,
+        promptTokens: getUsage(result.usage).promptTokens,
+        completionTokens: getUsage(result.usage).completionTokens,
+        generationDurationMs: durationMs,
+        validationErrors: parseResult.zodErrors,
+      })
+      
+      // Track failure in PostHog
+      try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+          distinctId: intakeId,
+          event: 'ai_draft_failed',
+          properties: {
+            intake_id: intakeId,
+            draft_type: 'repeat_rx',
+            error: parseResult.error,
+          },
+        })
+      } catch { /* non-blocking */ }
+      
+      // Capture to Sentry with intake_id and service_type as tags for traceability
+      Sentry.captureMessage("AI draft generation failed: repeat_rx", {
+        level: "warning",
+        tags: {
+          source: "ai_draft",
+          draft_type: "repeat_rx",
+          intake_id: intakeId,
+          service_type: "repeat_scripts",
+        },
+        extra: {
+          error: parseResult.error,
+          zodErrors: parseResult.zodErrors,
+        },
+      })
+
+      return { status: "failed", error: parseResult.error }
+    }
+
+    // Save successful draft (no ground-truth validation for repeat_rx yet)
+    await upsertDraft({
+      intakeId,
+      type: "repeat_rx",
+      content: parseResult.data!,
+      status: "ready",
+      promptTokens: getUsage(result.usage).promptTokens,
+      completionTokens: getUsage(result.usage).completionTokens,
+      generationDurationMs: durationMs,
+    })
+
+    log.info("Repeat Rx draft generated", {
+      intakeId,
+      durationMs,
+      promptTokens: getUsage(result.usage).promptTokens,
+      completionTokens: getUsage(result.usage).completionTokens,
+    })
+
+    // Track in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: intakeId,
+        event: 'ai_draft_generated',
+        properties: {
+          intake_id: intakeId,
+          draft_type: 'repeat_rx',
+          duration_ms: durationMs,
+          prompt_tokens: getUsage(result.usage).promptTokens,
+          completion_tokens: getUsage(result.usage).completionTokens,
+        },
+      })
+    } catch { /* non-blocking */ }
+
+    return { status: "ready" }
+
+  } catch (error) {
+    log.error("Repeat Rx generation error", { intakeId }, error)
+    
+    await upsertDraft({
+      intakeId,
+      type: "repeat_rx",
+      content: {},
+      status: "failed",
+      error: error instanceof Error ? error.message : "Generation failed",
+    })
+    
+    return { status: "failed", error: error instanceof Error ? error.message : "Generation failed" }
+  }
+}
+
+/**
+ * Generate consultation draft
+ */
+async function generateConsultDraft(
+  intakeId: string,
+  intakeContext: string,
+  _answers: Record<string, unknown>
+): Promise<{ status: "ready" | "failed"; error?: string }> {
+  const startTime = Date.now()
+  
+  try {
+    const result = await generateText({
+      model: "openai/gpt-4o-mini",
+      system: CONSULT_JSON_PROMPT,
+      prompt: intakeContext,
+    })
+
+    const durationMs = Date.now() - startTime
+
+    // Parse and validate AI output
+    const parseResult = safeParseConsultDraftOutput(result.text)
+    
+    if (!parseResult.success) {
+      log.error("Consult validation failed", {
+        intakeId,
+        error: parseResult.error,
+        zodErrors: parseResult.zodErrors,
+      })
+      
+      await upsertDraft({
+        intakeId,
+        type: "consult",
+        content: { raw: result.text },
+        status: "failed",
+        error: parseResult.error,
+        promptTokens: getUsage(result.usage).promptTokens,
+        completionTokens: getUsage(result.usage).completionTokens,
+        generationDurationMs: durationMs,
+        validationErrors: parseResult.zodErrors,
+      })
+      
+      // Track failure in PostHog
+      try {
+        const posthog = getPostHogClient()
+        posthog.capture({
+          distinctId: intakeId,
+          event: 'ai_draft_failed',
+          properties: {
+            intake_id: intakeId,
+            draft_type: 'consult',
+            error: parseResult.error,
+          },
+        })
+      } catch { /* non-blocking */ }
+      
+      // Capture to Sentry with intake_id and service_type as tags for traceability
+      Sentry.captureMessage("AI draft generation failed: consult", {
+        level: "warning",
+        tags: {
+          source: "ai_draft",
+          draft_type: "consult",
+          intake_id: intakeId,
+          service_type: "consults",
+        },
+        extra: {
+          error: parseResult.error,
+          zodErrors: parseResult.zodErrors,
+        },
+      })
+
+      return { status: "failed", error: parseResult.error }
+    }
+
+    // Save successful draft (no ground-truth validation for consult yet)
+    await upsertDraft({
+      intakeId,
+      type: "consult",
+      content: parseResult.data!,
+      status: "ready",
+      promptTokens: getUsage(result.usage).promptTokens,
+      completionTokens: getUsage(result.usage).completionTokens,
+      generationDurationMs: durationMs,
+    })
+
+    log.info("Consult draft generated", {
+      intakeId,
+      durationMs,
+      promptTokens: getUsage(result.usage).promptTokens,
+      completionTokens: getUsage(result.usage).completionTokens,
+    })
+
+    // Track in PostHog
+    try {
+      const posthog = getPostHogClient()
+      posthog.capture({
+        distinctId: intakeId,
+        event: 'ai_draft_generated',
+        properties: {
+          intake_id: intakeId,
+          draft_type: 'consult',
+          duration_ms: durationMs,
+          prompt_tokens: getUsage(result.usage).promptTokens,
+          completion_tokens: getUsage(result.usage).completionTokens,
+        },
+      })
+    } catch { /* non-blocking */ }
+
+    return { status: "ready" }
+
+  } catch (error) {
+    log.error("Consult generation error", { intakeId }, error)
+    
+    await upsertDraft({
+      intakeId,
+      type: "consult",
+      content: {},
+      status: "failed",
+      error: error instanceof Error ? error.message : "Generation failed",
+    })
+    
+    return { status: "failed", error: error instanceof Error ? error.message : "Generation failed" }
+  }
+}
+
+/**
  * Sanitize a single user-provided value for AI prompt inclusion
  */
 function sanitizeAnswerValue(value: unknown, intakeId: string): string {
@@ -488,15 +893,19 @@ function sanitizeAnswerValue(value: unknown, intakeId: string): string {
 }
 
 /**
- * Format intake data for AI context
+ * Format intake data for AI context (service-type aware)
  */
 function formatIntakeContext(
   intake: Record<string, unknown>,
   patient: { full_name: string; date_of_birth: string | null } | null,
-  answers: Record<string, unknown>
+  answers: Record<string, unknown>,
+  serviceType: ServiceType
 ): string {
   const intakeId = String(intake.id || "unknown")
   const parts: string[] = []
+  
+  // Get draft category for service-specific field extraction
+  const draftCategory = getDraftCategory(serviceType)
 
   if (patient) {
     parts.push(`Patient: ${sanitizeAnswerValue(patient.full_name, intakeId)}`)
@@ -506,26 +915,9 @@ function formatIntakeContext(
   }
 
   parts.push(`Request Date: ${new Date().toISOString().split("T")[0]}`)
+  parts.push(`Service Type: ${serviceType}`)
 
-  // Extract relevant answer fields - sanitize all user-provided text
-  if (answers.certificateType) {
-    parts.push(`Certificate Type: ${sanitizeAnswerValue(answers.certificateType, intakeId)}`)
-  }
-  
-  if (answers.startDate) {
-    parts.push(`Start Date: ${answers.startDate}`)
-  }
-  
-  if (answers.endDate) {
-    parts.push(`End Date: ${answers.endDate}`)
-  }
-  
-  if (answers.durationDays) {
-    parts.push(`Duration: ${answers.durationDays} day(s)`)
-  } else if (answers.duration) {
-    parts.push(`Duration: ${sanitizeAnswerValue(answers.duration, intakeId)}`)
-  }
-
+  // Common fields across all service types
   if (answers.symptoms && Array.isArray(answers.symptoms)) {
     const sanitizedSymptoms = answers.symptoms.map(s => sanitizeAnswerValue(s, intakeId))
     parts.push(`Symptoms: ${sanitizedSymptoms.join(", ")}`)
@@ -539,13 +931,79 @@ function formatIntakeContext(
     parts.push(`Reason: ${sanitizeAnswerValue(answers.reason, intakeId)}`)
   }
 
-  // Legacy fields
-  if (answers.specificDateFrom) {
-    parts.push(`Start Date: ${answers.specificDateFrom}`)
+  // Service-specific fields (use draftCategory for comparisons)
+  if (draftCategory === "med_cert") {
+    if (answers.certificateType) {
+      parts.push(`Certificate Type: ${sanitizeAnswerValue(answers.certificateType, intakeId)}`)
+    }
+    if (answers.startDate) {
+      parts.push(`Start Date: ${answers.startDate}`)
+    }
+    if (answers.endDate) {
+      parts.push(`End Date: ${answers.endDate}`)
+    }
+    if (answers.durationDays) {
+      parts.push(`Duration: ${answers.durationDays} day(s)`)
+    } else if (answers.duration) {
+      parts.push(`Duration: ${sanitizeAnswerValue(answers.duration, intakeId)}`)
+    }
+    // Legacy fields
+    if (answers.specificDateFrom) {
+      parts.push(`Start Date: ${answers.specificDateFrom}`)
+    }
+    if (answers.specificDateTo) {
+      parts.push(`End Date: ${answers.specificDateTo}`)
+    }
   }
-  
-  if (answers.specificDateTo) {
-    parts.push(`End Date: ${answers.specificDateTo}`)
+
+  if (draftCategory === "repeat_rx") {
+    if (answers.medication || answers.medicationName) {
+      parts.push(`Medication: ${sanitizeAnswerValue(answers.medication || answers.medicationName, intakeId)}`)
+    }
+    if (answers.medicationStrength || answers.strength) {
+      parts.push(`Strength: ${sanitizeAnswerValue(answers.medicationStrength || answers.strength, intakeId)}`)
+    }
+    if (answers.treatmentDuration || answers.medicationDuration) {
+      parts.push(`Treatment Duration: ${sanitizeAnswerValue(answers.treatmentDuration || answers.medicationDuration, intakeId)}`)
+    }
+    if (answers.conditionControl || answers.controlLevel) {
+      parts.push(`Condition Control: ${sanitizeAnswerValue(answers.conditionControl || answers.controlLevel, intakeId)}`)
+    }
+    if (answers.lastDoctorVisit || answers.lastReview) {
+      parts.push(`Last Doctor Visit: ${sanitizeAnswerValue(answers.lastDoctorVisit || answers.lastReview, intakeId)}`)
+    }
+    if (answers.sideEffects) {
+      parts.push(`Side Effects: ${sanitizeAnswerValue(answers.sideEffects, intakeId)}`)
+    }
+    if (answers.recentChanges) {
+      parts.push(`Recent Changes: ${sanitizeAnswerValue(answers.recentChanges, intakeId)}`)
+    }
+    if (answers.changeDetails) {
+      parts.push(`Change Details: ${sanitizeAnswerValue(answers.changeDetails, intakeId)}`)
+    }
+  }
+
+  if (draftCategory === "consult") {
+    if (answers.primaryConcern || answers.concern || answers.concernSummary) {
+      parts.push(`Primary Concern: ${sanitizeAnswerValue(answers.primaryConcern || answers.concern || answers.concernSummary, intakeId)}`)
+    }
+    if (answers.concernCategory || answers.category) {
+      parts.push(`Category: ${sanitizeAnswerValue(answers.concernCategory || answers.category, intakeId)}`)
+    }
+    if (answers.urgency) {
+      parts.push(`Urgency: ${sanitizeAnswerValue(answers.urgency, intakeId)}`)
+    }
+    if (answers.consultType) {
+      parts.push(`Preferred Consult Type: ${sanitizeAnswerValue(answers.consultType, intakeId)}`)
+    }
+    if (answers.duration || answers.symptomDuration) {
+      parts.push(`Duration of Concern: ${sanitizeAnswerValue(answers.duration || answers.symptomDuration, intakeId)}`)
+    }
+  }
+
+  // Additional notes (all service types)
+  if (answers.additionalNotes || answers.notes) {
+    parts.push(`Additional Notes: ${sanitizeAnswerValue(answers.additionalNotes || answers.notes, intakeId)}`)
   }
 
   return parts.join("\n")

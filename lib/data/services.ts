@@ -140,6 +140,18 @@ export async function createService(
     return { success: false, error: "Slug must contain only lowercase letters, numbers, and hyphens" }
   }
 
+  // Validate price_cents >= 0
+  if (input.price_cents < 0) {
+    return { success: false, error: "Price cannot be negative" }
+  }
+
+  // Validate SLA: priority must be less than standard
+  const slaStandard = input.sla_standard_minutes ?? 1440
+  const slaPriority = input.sla_priority_minutes ?? 240
+  if (slaPriority >= slaStandard) {
+    return { success: false, error: "Priority SLA must be faster (fewer minutes) than standard SLA" }
+  }
+
   const { data, error } = await supabase
     .from("services")
     .insert({
@@ -177,6 +189,29 @@ export async function updateService(
   // Validate slug format if provided
   if (input.slug && !/^[a-z0-9-]+$/.test(input.slug)) {
     return { success: false, error: "Slug must contain only lowercase letters, numbers, and hyphens" }
+  }
+
+  // Validate price_cents >= 0 if provided
+  if (input.price_cents !== undefined && input.price_cents < 0) {
+    return { success: false, error: "Price cannot be negative" }
+  }
+
+  // Validate SLA if both are provided, or fetch current values to compare
+  if (input.sla_priority_minutes !== undefined || input.sla_standard_minutes !== undefined) {
+    // If updating SLA values, we need to check the constraint
+    // First get current service to compare
+    const { data: currentService } = await supabase
+      .from("services")
+      .select("sla_standard_minutes, sla_priority_minutes")
+      .eq("id", id)
+      .single()
+
+    const slaStandard = input.sla_standard_minutes ?? currentService?.sla_standard_minutes ?? 1440
+    const slaPriority = input.sla_priority_minutes ?? currentService?.sla_priority_minutes ?? 240
+
+    if (slaPriority >= slaStandard) {
+      return { success: false, error: "Priority SLA must be faster (fewer minutes) than standard SLA" }
+    }
   }
 
   const { data, error } = await supabase
@@ -248,36 +283,30 @@ export async function updateServiceOrder(
 }
 
 /**
- * Delete a service (soft delete by deactivating, or hard delete if no references)
+ * Delete a service (soft delete only - never hard delete to preserve audit trail)
+ * Sets is_active=false and deleted_at timestamp
  */
 export async function deleteService(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceRoleClient()
 
-  // Check if service has any intakes
-  const { count } = await supabase
-    .from("intakes")
-    .select("*", { count: "exact", head: true })
-    .eq("service_id", id)
-
-  if (count && count > 0) {
-    // Soft delete - just deactivate
-    return toggleServiceActive(id, false)
-  }
-
-  // Hard delete if no references
+  // Always soft delete - never hard delete services to preserve audit trail
   const { error } = await supabase
     .from("services")
-    .delete()
+    .update({ 
+      is_active: false, 
+      deleted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString() 
+    })
     .eq("id", id)
 
   if (error) {
-    log.error("Failed to delete service", { id }, error)
+    log.error("Failed to soft delete service", { id }, error)
     return { success: false, error: error.message }
   }
 
-  log.info("Service deleted", { id })
+  log.info("Service soft deleted", { id })
   return { success: true }
 }
 

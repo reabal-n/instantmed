@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
@@ -15,10 +15,8 @@ export async function GET(
   { params }: { params: Promise<{ intakeId: string }> }
 ) {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Require doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     const { intakeId } = await params
 
@@ -57,10 +55,8 @@ export async function POST(
   { params }: { params: Promise<{ intakeId: string }> }
 ) {
   try {
-    const { profile } = await requireAuth("doctor")
-    if (!profile) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Require doctor or admin role
+    const { profile } = await requireRole(["doctor", "admin"])
 
     const { intakeId } = await params
 

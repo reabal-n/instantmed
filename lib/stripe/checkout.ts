@@ -12,6 +12,7 @@ import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock } from "@/lib/posthog-server"
 import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
+import { completeTranscript } from "@/lib/chat/audit-trail"
 
 const logger = createLogger("stripe-checkout")
 
@@ -22,6 +23,7 @@ interface CreateCheckoutInput {
   answers: Record<string, unknown>
   serviceSlug?: string // Service slug to look up service_id
   idempotencyKey: string // P1 FIX: Required - client-generated key to prevent duplicate submissions
+  chatSessionId?: string // Session ID from AI chat flow for transcript linking
   // Legacy fields - patient info is now fetched from auth
   patientId?: string
   patientEmail?: string
@@ -385,6 +387,41 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
 
+    // 6c. Link chat transcript to intake if chat session ID provided
+    if (input.chatSessionId) {
+      try {
+        const linkResult = await completeTranscript(input.chatSessionId, intake.id, 'submitted')
+        if (linkResult.success) {
+          logger.info("Chat transcript linked to intake", { 
+            intakeId: intake.id, 
+            chatSessionId: input.chatSessionId 
+          })
+          // Add Sentry breadcrumb for successful linkage (aids debugging)
+          const Sentry = await import("@sentry/nextjs")
+          Sentry.addBreadcrumb({
+            category: "chat-transcript",
+            message: "Transcript linked to intake",
+            level: "info",
+            data: {
+              intakeId: intake.id,
+              sessionId: input.chatSessionId,
+            },
+          })
+        } else {
+          logger.warn("Chat transcript link returned failure", { 
+            intakeId: intake.id, 
+            chatSessionId: input.chatSessionId 
+          })
+        }
+      } catch (transcriptError) {
+        // Non-blocking - don't fail checkout if transcript linking fails
+        logger.warn("Failed to link chat transcript to intake", { 
+          intakeId: intake.id, 
+          chatSessionId: input.chatSessionId 
+        }, transcriptError instanceof Error ? transcriptError : undefined)
+      }
+    }
+
     // 7. Get the price ID
     const priceId = getPriceIdForRequest({
       category: input.category as ServiceCategory,
@@ -426,18 +463,33 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
     }
 
-    // 10. Create Stripe checkout session
+    // 10. Create Stripe checkout session with idempotency key
     let session
     try {
+      // Use intake.id as fallback idempotency key if client didn't provide one
+      const idempotencyKey = input.idempotencyKey || intake.id
       logger.info("Creating Stripe checkout session", { 
         intakeId: intake.id, 
         category: input.category,
-        hasPriceId: !!priceId 
+        hasPriceId: !!priceId,
+        idempotencyKey,
       })
-      session = await stripe.checkout.sessions.create(sessionParams)
+      
+      // Track checkout latency for observability
+      const checkoutStartTime = performance.now()
+      session = await stripe.checkout.sessions.create(sessionParams, {
+        idempotencyKey: `checkout_${idempotencyKey}`,
+      })
+      const checkoutDurationMs = Math.round(performance.now() - checkoutStartTime)
+      
+      // Emit checkout latency metric via Sentry
+      const Sentry = await import("@sentry/nextjs")
+      Sentry.setMeasurement("checkout.stripe_session_create_ms", checkoutDurationMs, "millisecond")
+      
       logger.info("Stripe checkout session created", { 
         sessionId: session.id, 
-        hasUrl: !!session.url 
+        hasUrl: !!session.url,
+        latencyMs: checkoutDurationMs,
       })
     } catch (stripeError: unknown) {
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
@@ -619,7 +671,11 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
 
     let session
     try {
-      session = await stripe.checkout.sessions.create(sessionParams)
+      // Use intake.id for retry idempotency key with timestamp suffix
+      const retryIdempotencyKey = `retry_${intake.id}_${Date.now()}`
+      session = await stripe.checkout.sessions.create(sessionParams, {
+        idempotencyKey: retryIdempotencyKey,
+      })
     } catch (stripeError: unknown) {
       if (stripeError instanceof Error) {
         if (stripeError.message.includes("No such price")) {

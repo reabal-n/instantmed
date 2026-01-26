@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +46,7 @@ import {
   Search,
   Stethoscope,
   FileSignature,
+  Shield,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -76,6 +87,9 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null)
+  
+  // Confirmation dialog state for AHPRA/provider updates
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false)
 
   // Form state for editing
   const [formData, setFormData] = useState<DoctorIdentityInput>({
@@ -152,7 +166,16 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
     }
   }
 
-  const handleSave = async () => {
+  // Check if provider/AHPRA numbers are being changed (requires confirmation)
+  const isChangingCriticalFields = () => {
+    if (!selectedDoctor) return false
+    const providerChanged = formData.provider_number !== selectedDoctor.provider_number
+    const ahpraChanged = formData.ahpra_number !== selectedDoctor.ahpra_number
+    return providerChanged || ahpraChanged
+  }
+
+  // Initiate save (may show confirmation for critical fields)
+  const handleSave = () => {
     if (!selectedDoctor) return
 
     // Validate provider number
@@ -173,7 +196,20 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
       }
     }
 
+    // Show confirmation if changing critical fields
+    if (isChangingCriticalFields()) {
+      setConfirmSaveOpen(true)
+    } else {
+      confirmSave()
+    }
+  }
+
+  // Confirmed save action
+  const confirmSave = async () => {
+    if (!selectedDoctor) return
+
     setIsSaving(true)
+    setConfirmSaveOpen(false)
     try {
       const result = await updateDoctorIdentityAction(selectedDoctor.id, formData)
 
@@ -489,6 +525,52 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AHPRA/Provider Update Confirmation Dialog */}
+      <AlertDialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-600" />
+              Confirm Credential Update
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                You are about to update <strong>sensitive practitioner credentials</strong> for {selectedDoctor?.full_name}.
+              </p>
+              <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                <p className="font-medium">Changes being made:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  {formData.provider_number !== selectedDoctor?.provider_number && (
+                    <li>
+                      Provider Number: {selectedDoctor?.provider_number || "(none)"} → {formData.provider_number || "(none)"}
+                    </li>
+                  )}
+                  {formData.ahpra_number !== selectedDoctor?.ahpra_number && (
+                    <li>
+                      AHPRA Number: {selectedDoctor?.ahpra_number || "(none)"} → {formData.ahpra_number || "(none)"}
+                    </li>
+                  )}
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                This change will be logged for audit purposes.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSave} disabled={isSaving}>
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Confirm Update
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

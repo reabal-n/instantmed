@@ -49,6 +49,8 @@ import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonC
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
+import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
+import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescription-checklist"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 
 interface IntakeDetailClientProps {
@@ -478,26 +480,73 @@ export function IntakeDetailClient({
         />
       )}
 
-      {/* Doctor Notes */}
+      {/* AI Chat Transcript */}
+      <ChatTranscriptPanel intakeId={intake.id} />
+
+      {/* Repeat Prescription Checklist */}
+      {service?.type === "common_scripts" && (
+        <RepeatPrescriptionChecklist
+          intakeId={intake.id}
+          intakeStatus={intake.status}
+          aiDrafts={aiDrafts}
+          prescriptionSentAt={(intake as unknown as { prescription_sent_at?: string }).prescription_sent_at || null}
+          prescriptionSentBy={(intake as unknown as { prescription_sent_by?: string }).prescription_sent_by || null}
+          prescriptionSentChannel={(intake as unknown as { prescription_sent_channel?: string }).prescription_sent_channel || null}
+        />
+      )}
+
+      {/* Doctor Notes - Editable for pending, read-only for approved/completed */}
       <Card>
         <CardHeader>
-          <CardTitle>Clinical Notes (Private)</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {["approved", "completed", "awaiting_script"].includes(intake.status)
+              ? "Approved Clinical Note"
+              : "Clinical Notes (Private)"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Textarea
-            ref={notesRef}
-            placeholder="Add your clinical notes here... (⌘+N to focus)"
-            value={doctorNotes}
-            onChange={(e) => setDoctorNotes(e.target.value)}
-            className="min-h-[120px]"
-          />
-          <div className="flex items-center gap-2">
-            <Button onClick={handleSaveNotes} disabled={isPending} variant="outline">
-              <Save className="h-4 w-4 mr-2" />
-              Save Notes
-            </Button>
-            {noteSaved && <span className="text-sm text-emerald-600">Saved!</span>}
-          </div>
+          {["approved", "completed", "awaiting_script"].includes(intake.status) ? (
+            // Read-only view for approved intakes
+            <div className="space-y-2">
+              {intake.doctor_notes ? (
+                <div className="p-4 bg-muted/50 rounded-lg border">
+                  <p className="text-sm whitespace-pre-wrap">{intake.doctor_notes}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No clinical notes recorded for this case.</p>
+              )}
+              {intake.reviewed_at && (
+                <p className="text-xs text-muted-foreground">
+                  Reviewed on {new Date(intake.reviewed_at).toLocaleString("en-AU", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              )}
+            </div>
+          ) : (
+            // Editable view for pending intakes
+            <>
+              <Textarea
+                ref={notesRef}
+                placeholder="Add your clinical notes here... (⌘+N to focus)"
+                value={doctorNotes}
+                onChange={(e) => setDoctorNotes(e.target.value)}
+                className="min-h-[120px]"
+              />
+              <div className="flex items-center gap-2">
+                <Button onClick={handleSaveNotes} disabled={isPending} variant="outline">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Notes
+                </Button>
+                {noteSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -511,9 +560,22 @@ export function IntakeDetailClient({
             <div className="space-y-2">
               {previousIntakes.map((prev) => {
                 const prevService = prev.service as { short_name?: string } | undefined
+                const hasNotes = Boolean(prev.doctor_notes)
                 return (
-                  <div key={prev.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                    <span className="text-sm">{prevService?.short_name || "Request"}</span>
+                  <Link 
+                    key={prev.id} 
+                    href={`/doctor/intakes/${prev.id}`}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{prevService?.short_name || "Request"}</span>
+                      {hasNotes && (
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 bg-violet-50 text-violet-700 border-violet-200">
+                          <FileText className="h-2.5 w-2.5 mr-0.5" />
+                          Note
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">
                         {formatIntakeStatus(prev.status)}
@@ -522,7 +584,7 @@ export function IntakeDetailClient({
                         {new Date(prev.created_at).toLocaleDateString("en-AU")}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>

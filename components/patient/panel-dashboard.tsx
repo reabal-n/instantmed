@@ -95,6 +95,7 @@ interface PatientDashboardProps {
   patientId: string
   intakes?: Intake[]
   prescriptions?: Prescription[]
+  error?: string | null
 }
 
 const STATUS_CONFIG = {
@@ -110,6 +111,7 @@ export function PanelDashboard({
   patientId,
   intakes = [],
   prescriptions = [],
+  error,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
@@ -171,6 +173,14 @@ export function PanelDashboard({
             : "All caught up"}
         </p>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
 
       {/* Payment Recovery Prompt */}
       {stalePaymentIntakes.length > 0 && (

@@ -23,6 +23,9 @@ export interface RequestState {
   safetyConfirmed: boolean
   safetyTimestamp: string | null
   
+  // Chat session linkage (for transcript → intake linking)
+  chatSessionId: string | null
+  
   // Form answers (generic key-value store)
   answers: Record<string, unknown>
   
@@ -79,6 +82,9 @@ export interface RequestActions {
   // Safety
   setSafetyConfirmed: (confirmed: boolean) => void
   
+  // Chat session linkage
+  setChatSessionId: (sessionId: string | null) => void
+  
   // Answers
   setAnswer: (key: string, value: unknown) => void
   setAnswers: (answers: Record<string, unknown>) => void
@@ -107,6 +113,7 @@ const initialState: RequestState = {
   direction: 1,
   safetyConfirmed: false,
   safetyTimestamp: null,
+  chatSessionId: null,
   answers: {},
   firstName: '',
   lastName: '',
@@ -196,6 +203,8 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         safetyTimestamp: confirmed ? new Date().toISOString() : null,
       }),
 
+      setChatSessionId: (sessionId) => set({ chatSessionId: sessionId }),
+
       setAnswer: (key, value) => set((state) => ({
         answers: { ...state.answers, [key]: value },
       })),
@@ -236,6 +245,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         currentStepId: state.currentStepId,
         safetyConfirmed: state.safetyConfirmed,
         safetyTimestamp: state.safetyTimestamp,
+        chatSessionId: state.chatSessionId,
         answers: state.answers,
         firstName: state.firstName,
         lastName: state.lastName,

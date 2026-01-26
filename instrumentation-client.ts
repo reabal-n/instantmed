@@ -4,24 +4,52 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-// Only initialize Sentry if DSN is configured
-const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
-if (!sentryDsn) {
+/**
+ * Client-side Sentry environment detection
+ * Mirrors server-side logic for consistency
+ */
+function getClientSentryEnvironment(): "production" | "preview" | "development" | "e2e" {
+  const isPlaywright = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1"
+  if (isPlaywright) return "e2e"
+
+  // Vercel injects NEXT_PUBLIC_VERCEL_ENV at build time
+  const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV
+  if (vercelEnv === "production") return "production"
+  if (vercelEnv === "preview") return "preview"
+  if (vercelEnv === "development") return "development"
+
+  if (process.env.NODE_ENV === "production") return "production"
+  return "development"
+}
+
+function getClientSentryRelease(): string | undefined {
+  // Vercel injects NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA at build time
+  return process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || undefined
+}
+
+// Get configuration
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN
+const sentryEnvironment = getClientSentryEnvironment()
+const sentryRelease = getClientSentryRelease()
+const sentryEnabled = sentryEnvironment === "production" || sentryEnvironment === "preview" || sentryEnvironment === "e2e"
+const isPlaywrightMode = sentryEnvironment === "e2e"
+
+if (!sentryDsn && sentryEnabled) {
   // eslint-disable-next-line no-console
   console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN not configured - error tracking disabled");
 }
 
-// Enable Sentry in production OR in PLAYWRIGHT mode for E2E testing
-const isPlaywrightMode = process.env.NEXT_PUBLIC_PLAYWRIGHT === "1"
-
 Sentry.init({
   dsn: sentryDsn,
+  enabled: sentryEnabled,
+  environment: sentryEnvironment,
+  release: sentryRelease,
 
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
   // Performance Monitoring
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  tracesSampleRate: sentryEnvironment === "production" ? 0.1 : 1.0,
 
   // Enable logs to be sent to Sentry
   enableLogs: true,
@@ -29,9 +57,6 @@ Sentry.init({
   // Session Replay
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
-
-  // Enable in production OR PLAYWRIGHT mode
-  enabled: process.env.NODE_ENV === "production" || isPlaywrightMode,
 
   // Filter out common non-actionable errors
   ignoreErrors: [
@@ -54,8 +79,8 @@ Sentry.init({
   sendDefaultPii: false,
 
   beforeSend(event) {
-    // Don't send events in development UNLESS PLAYWRIGHT mode
-    if (process.env.NODE_ENV !== "production" && !isPlaywrightMode) {
+    // Don't send events if Sentry is not enabled
+    if (!sentryEnabled) {
       return null;
     }
 

@@ -6,7 +6,7 @@
  */
 
 import { revalidatePath } from "next/cache"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import {
   getAllEmailTemplates,
   getEmailTemplateById,
@@ -44,19 +44,17 @@ import {
   type FlagKey,
 } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { logAuditEvent } from "@/lib/security/audit-log"
 
 const log = createLogger("admin-config-actions")
 
 // ============================================================================
-// AUTH HELPER
+// AUTH HELPER - Use canonical requireRole
 // ============================================================================
 
 async function requireAdmin() {
-  const authUser = await getAuthenticatedUserWithProfile()
-  if (!authUser || authUser.profile.role !== "admin") {
-    throw new Error("Unauthorized: Admin access required")
-  }
-  return authUser.profile
+  const { profile } = await requireRole(["admin"])
+  return profile
 }
 
 // ============================================================================
@@ -225,9 +223,25 @@ export async function markRefundEligibleAction(paymentId: string, reason: string
 export async function processRefundAction(
   paymentId: string,
   stripeRefundId: string,
-  refundAmount: number
+  refundAmount: number,
+  intakeId?: string
 ) {
   const admin = await requireAdmin()
+  
+  // Log refund attempt for audit trail
+  await logAuditEvent({
+    action: "refund_attempted",
+    actorId: admin.id,
+    actorType: "admin",
+    requestId: intakeId,
+    fromState: "eligible",
+    toState: "processing",
+    metadata: {
+      paymentId,
+      amount: refundAmount,
+      stripeRefundId,
+    },
+  })
   
   // First mark as processing
   await updateRefundStatus(paymentId, "processing")
@@ -236,8 +250,38 @@ export async function processRefundAction(
   const result = await updateRefundStatus(paymentId, "refunded", stripeRefundId, refundAmount)
   
   if (result.success) {
+    // Log successful refund for audit trail
+    await logAuditEvent({
+      action: "refund_succeeded",
+      actorId: admin.id,
+      actorType: "admin",
+      requestId: intakeId,
+      fromState: "processing",
+      toState: "refunded",
+      metadata: {
+        paymentId,
+        amount: refundAmount,
+        stripeRefundId,
+      },
+    })
     revalidatePath("/admin/refunds")
     log.info("Refund processed", { adminId: admin.id, paymentId, stripeRefundId, refundAmount })
+  } else {
+    // Log failed refund for audit trail
+    await logAuditEvent({
+      action: "refund_failed",
+      actorId: admin.id,
+      actorType: "admin",
+      requestId: intakeId,
+      fromState: "processing",
+      toState: "failed",
+      metadata: {
+        paymentId,
+        amount: refundAmount,
+        stripeRefundId,
+        error: result.error,
+      },
+    })
   }
   return result
 }
