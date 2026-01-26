@@ -65,12 +65,26 @@ jobs:
           echo "Preview not ready after 5 minutes"
           exit 1
 
+      - name: Run smoke tests first (fail fast if env broken)
+        env:
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          E2E_BASE_URL: ${{ steps.url.outputs.PREVIEW_URL }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          pnpm exec playwright test \
+            --config=playwright.preview.config.ts \
+            --project=chromium \
+            e2e/preview-smoke.spec.ts
+
       - name: Run E2E tests against preview
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
           E2E_BASE_URL: ${{ steps.url.outputs.PREVIEW_URL }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           # Supabase credentials for preview testing
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
