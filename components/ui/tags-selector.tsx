@@ -64,7 +64,10 @@ export function TagsSelector({
       <motion.div
         className={cn(
           "w-full flex items-center gap-1.5 bg-background border-2 border-border rounded-xl min-h-[52px] overflow-x-auto p-1.5",
-          "scrollbar-hide"
+          "scrollbar-hide",
+          // Scroll shadow indicators for overflow
+          "mask-[linear-gradient(to_right,transparent,black_8px,black_calc(100%-8px),transparent)]",
+          value.length > 0 && "mask-[linear-gradient(to_right,black,black_calc(100%-16px),transparent)]"
         )}
         ref={selectedContainerRef}
         layout

@@ -1,5 +1,14 @@
 "use client"
 
+/**
+ * @deprecated This component is no longer used in production.
+ * The medical certificate flow now uses the unified /request route with
+ * RequestFlow from components/request/request-flow.tsx.
+ * 
+ * This file is kept for reference only and should be removed in a future cleanup.
+ * See: /app/medical-certificate/request/page.tsx which redirects to /request?service=med-cert
+ */
+
 import type React from "react"
 
 import { useState, useEffect, useCallback, useRef } from "react"

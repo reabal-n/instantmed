@@ -322,6 +322,19 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       .select()
       .single()
 
+    // DEV: Debug log for intake creation tracing (no PHI)
+    if (process.env.NODE_ENV === 'development' && intake) {
+      // eslint-disable-next-line no-console
+      console.log('[Checkout] Intake created:', {
+        intakeId: intake.id,
+        serviceId: service.id,
+        serviceSlug: serviceSlug,
+        category: input.category,
+        subtype: input.subtype,
+        status: intake.status,
+      })
+    }
+
     if (intakeError || !intake) {
       // Check for duplicate idempotency key (unique constraint violation)
       if (intakeError?.code === "23505" && input.idempotencyKey) {

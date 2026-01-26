@@ -10,7 +10,7 @@
  * - Keyboard navigation
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
@@ -52,7 +52,7 @@ const SYMPTOM_DURATION_OPTIONS = [
 export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   
-  const symptoms = (answers.symptoms as string[]) || []
+  const symptoms = useMemo(() => (answers.symptoms as string[]) || [], [answers.symptoms])
   const symptomDetails = (answers.symptomDetails as string) || ""
   const symptomDuration = answers.symptomDuration as string | undefined
   const certType = answers.certType as string | undefined
@@ -142,17 +142,12 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
         }}
       >
         <div className="flex flex-wrap gap-2 mt-2">
-          {SYMPTOMS_LIST.map((symptom, index) => (
+          {SYMPTOMS_LIST.map((symptom) => (
             <EnhancedSelectionButton
               key={symptom}
               variant="chip"
               selected={symptoms.includes(symptom)}
               onClick={() => toggleSymptom(symptom)}
-              gradient={
-                index % 4 === 0 ? "blue-purple" :
-                index % 4 === 1 ? "purple-pink" :
-                index % 4 === 2 ? "teal-emerald" : "orange-red"
-              }
               className="touch-manipulation"
             >
               {symptom}
@@ -179,7 +174,6 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
               variant="chip"
               selected={symptomDuration === option.value}
               onClick={() => setAnswer("symptomDuration", option.value)}
-              gradient="primary-subtle"
               className="touch-manipulation"
             >
               {option.label}

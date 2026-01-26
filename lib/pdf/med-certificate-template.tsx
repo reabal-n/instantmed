@@ -18,6 +18,13 @@
 
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer"
 import type { MedCertDraft } from "@/types/db"
+import type { TemplateConfig } from "@/types/certificate-template"
+import {
+  getCertificateTextWithDefaults,
+  textToParagraphs,
+  SEAL_SIZE_VALUES,
+  type CertificateTextType,
+} from "@/lib/certificate-defaults"
 
 // Professional color scheme
 const colors = {
@@ -318,19 +325,44 @@ function getCertificateTitle(type: "work" | "uni" | "carer" | null | undefined):
 export function MedicalCertificateTemplate({
   draft,
   logoUrl,
+  templateConfig,
+  sealUrl,
 }: {
   draft: MedCertDraft
   logoUrl: string
+  templateConfig?: TemplateConfig
+  sealUrl?: string
 }) {
   const certificateType = draft.certificate_type || "work"
-  const title = getCertificateTitle(certificateType)
-  const statement = getCertificateStatement(
+  
+  // Get certificate text type
+  const certTextType: CertificateTextType = certificateType === "uni" ? "study" : certificateType as CertificateTextType
+  
+  // Get custom text from template config, with defaults
+  const customText = getCertificateTextWithDefaults(
+    certTextType,
+    templateConfig?.certificateText?.[certTextType]
+  )
+  
+  // Use custom title or fall back to default
+  const title = customText.title || getCertificateTitle(certificateType)
+  
+  // Use custom attestation or generate statement
+  const statement = customText.attestation || getCertificateStatement(
     certificateType,
     draft.patient_full_name,
     draft.date_from,
     draft.date_to,
     draft.reason_summary
   )
+  
+  // Split statement into paragraphs
+  const statementParagraphs = textToParagraphs(statement)
+  
+  // Seal configuration
+  const sealConfig = templateConfig?.seal
+  const showSeal = sealConfig?.show ?? true
+  const sealSize = SEAL_SIZE_VALUES[sealConfig?.size ?? "sm"]
 
   return (
     <Document title={title} producer="InstantMed">
@@ -382,10 +414,34 @@ export function MedicalCertificateTemplate({
           </View>
         )}
 
-        {/* Medical Statement */}
+        {/* Medical Statement / Attestation */}
         <View style={styles.statement}>
-          <Text style={styles.statementText}>{statement}</Text>
+          {statementParagraphs.map((paragraph, index) => (
+            <Text key={index} style={index > 0 ? [styles.statementText, { marginTop: 8 }] : styles.statementText}>
+              {paragraph}
+            </Text>
+          ))}
         </View>
+
+        {/* Additional Notes */}
+        {customText.notes && (
+          <View style={styles.spacer}>
+            <Text style={styles.sectionContent}>
+              <Text style={{ fontWeight: "bold" }}>Notes: </Text>
+              {customText.notes}
+            </Text>
+          </View>
+        )}
+
+        {/* Restrictions */}
+        {customText.restrictions && (
+          <View style={styles.spacer}>
+            <Text style={[styles.sectionContent, { fontStyle: "italic" }]}>
+              <Text style={{ fontWeight: "bold" }}>Restrictions: </Text>
+              {customText.restrictions}
+            </Text>
+          </View>
+        )}
 
         {/* Signature Block */}
         <View style={styles.signatureBlock}>
@@ -405,6 +461,13 @@ export function MedicalCertificateTemplate({
             {draft.provider_address}
           </Text>
         </View>
+
+        {/* Seal */}
+        {showSeal && sealUrl && (
+          <View style={{ position: "absolute", bottom: 60, right: 50, opacity: 0.6 }}>
+            <Image src={sealUrl} style={{ width: sealSize, height: sealSize }} />
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>

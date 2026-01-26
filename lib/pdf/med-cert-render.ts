@@ -103,12 +103,22 @@ export async function renderMedCertPdf(
     
     // 2. Resolve template config (use snapshot if provided)
     let templateConfig: TemplateConfig = input.templateConfigSnapshot || DEFAULT_TEMPLATE_CONFIG
+    let templateVersionId: string | null = null
     if (!input.templateConfigSnapshot) {
       const templateType = mapCertTypeToTemplateType(input.certificateType)
       const activeTemplate = await getActiveTemplate(templateType)
       if (activeTemplate?.config) {
         templateConfig = activeTemplate.config as TemplateConfig
+        templateVersionId = activeTemplate.id
       }
+      
+      // Debug log template version (no PHI)
+      log.debug("Using template for PDF generation", {
+        templateType,
+        templateVersionId,
+        hasCustomText: !!templateConfig.certificateText,
+        sealEnabled: templateConfig.seal?.show !== false,
+      })
     }
     
     // 3. Fetch doctor identity
@@ -153,12 +163,19 @@ export async function renderMedCertPdf(
       generatedAt: input.generatedAt,
     }
     
-    // 6. Build render options
+    // 6. Build seal URL (fully qualified)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
+    const sealUrl = templateConfig.seal?.show !== false 
+      ? `${siteUrl}/branding/seal.svg`
+      : null
+    
+    // 7. Build render options
     const renderOptions: MedCertPdfRenderOptions = {
       data: pdfData,
       clinicIdentity,
       templateConfig,
       logoUrl,
+      sealUrl,
     }
     
     // 7. Render PDF to buffer

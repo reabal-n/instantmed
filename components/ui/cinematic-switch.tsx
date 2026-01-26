@@ -29,13 +29,14 @@ export function CinematicSwitch({
 
   // For safety questions, "ON" (Yes) is dangerous, so use red/amber colors
   // For default, "ON" is positive, so use emerald colors
+  // Using CSS color values that work with Tailwind's color palette
   const trackColor = variant === "safety" 
-    ? (isOn ? "#dc2626" : "#27272a") // Red-600 vs Zinc-800 for safety
-    : (isOn ? "#064e3b" : "#27272a"); // Emerald-900 vs Zinc-800 for default
+    ? (isOn ? "rgb(220 38 38)" : "rgb(39 39 42)") // red-600 vs zinc-800 for safety
+    : (isOn ? "rgb(6 78 59)" : "rgb(39 39 42)"); // emerald-900 vs zinc-800 for default
   
   const thumbColor = variant === "safety"
-    ? (isOn ? "#f59e0b" : "#52525b") // Amber-500 vs Zinc-600 for safety
-    : (isOn ? "#34d399" : "#52525b"); // Emerald-400 vs Zinc-600 for default
+    ? (isOn ? "rgb(245 158 11)" : "rgb(82 82 91)") // amber-500 vs zinc-600 for safety
+    : (isOn ? "rgb(52 211 153)" : "rgb(82 82 91)"); // emerald-400 vs zinc-600 for default
 
   const onLabelColor = variant === "safety"
     ? (isOn ? "text-dawn-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-zinc-700")

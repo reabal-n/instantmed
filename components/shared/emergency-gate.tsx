@@ -71,19 +71,18 @@ export function EmergencyGate({
             <Phone className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <h2 className="font-semibold text-red-900 dark:text-red-200">
+            <h2 className="text-base font-medium text-red-900 dark:text-red-200">
               Call 000 immediately if you have:
             </h2>
           </div>
         </div>
 
-        <ul className="space-y-2 ml-2">
+        <ul className="space-y-2 ml-2 list-disc list-inside marker:text-red-500">
           {EMERGENCY_SYMPTOMS.map((symptom, i) => (
             <li
               key={i}
-              className="flex items-start gap-2 text-sm text-red-800 dark:text-red-300"
+              className="text-sm text-red-800 dark:text-red-300"
             >
-              <span className="text-red-500 mt-0.5">•</span>
               {symptom}
             </li>
           ))}

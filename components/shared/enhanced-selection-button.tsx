@@ -14,18 +14,6 @@ interface EnhancedSelectionButtonProps {
   icon?: React.ElementType
   label?: string
   description?: string
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red" | "primary-subtle"
-}
-
-// Lumen brand: No purple/violet, no high-energy gradients
-// Selection states use subtle lightness shifts, not color jumps
-// Gradient prop kept for API compatibility but no longer used
-const _gradientClasses = {
-  "blue-purple": "", // Deprecated
-  "purple-pink": "", // Deprecated  
-  "teal-emerald": "", // Deprecated
-  "orange-red": "", // Deprecated
-  "primary-subtle": "", // Deprecated
 }
 
 export function EnhancedSelectionButton({
@@ -37,7 +25,6 @@ export function EnhancedSelectionButton({
   icon: Icon,
   label,
   description,
-  gradient: _gradient = "blue-purple",
 }: EnhancedSelectionButtonProps) {
   const baseClasses = "relative transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
   
@@ -45,7 +32,9 @@ export function EnhancedSelectionButton({
   // Subtle outline emphasis, gentle surface change, soft light shift
   const variantClasses = {
     chip: cn(
-      "px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-medium",
+      "px-4 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium",
+      // Add right padding to prevent text overlapping with absolute checkmark
+      selected ? "pr-8" : "",
       selected
         ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
         : "bg-white/90 dark:bg-slate-900/60 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
@@ -74,7 +63,7 @@ export function EnhancedSelectionButton({
     <motion.button
       type="button"
       onClick={onClick}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.96 }}
       transition={{ duration: 0.1 }}
       className={cn(baseClasses, variantClasses[variant], className)}
       aria-pressed={selected}
@@ -116,7 +105,7 @@ export function EnhancedSelectionButton({
       </div>
 
       {/* Calm checkmark indicator for selected state */}
-      {selected && (
+      {selected && variant !== "chip" && (
         <div
           className={cn(
             "shrink-0 flex items-center justify-center rounded-full",
@@ -127,6 +116,15 @@ export function EnhancedSelectionButton({
             "text-sky-600 dark:text-sky-400",
             variant === "option" || variant === "card" ? "w-3 h-3" : "w-full h-full"
           )} />
+        </div>
+      )}
+
+      {/* Chip variant: Absolute positioned checkmark (top-right) */}
+      {selected && variant === "chip" && (
+        <div
+          className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-800/40"
+        >
+          <Check className="w-3 h-3 text-sky-600 dark:text-sky-400" />
         </div>
       )}
     </motion.button>

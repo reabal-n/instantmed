@@ -39,8 +39,7 @@ function Switch({
       classNames={{
         base: cn(
           "max-w-fit",
-          // Scale effect on press for tactile feel
-          "active:scale-95",
+          // Smooth transition (removed active:scale-95 to avoid double-scale with HeroUI)
           "transition-transform duration-150",
           className
         ),
@@ -61,6 +60,9 @@ function Switch({
           "w-[26px] h-[26px]",
           // Clean white thumb with subtle shadow
           "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)]",
+          // Explicit thumb translation for slide effect
+          "translate-x-0.5",
+          "group-data-[selected=true]:translate-x-[22px]",
           // Gentle transition
           "transition-all duration-300 ease-out"
         ),

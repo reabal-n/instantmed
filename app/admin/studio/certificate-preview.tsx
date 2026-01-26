@@ -1,11 +1,13 @@
 "use client"
 
 import { useMemo } from "react"
+import Image from "next/image"
 import { QRCodeSVG } from "qrcode.react"
 import { cn } from "@/lib/utils"
 import type { 
   TemplateConfig, 
   TemplateType,
+  SealConfig,
   PreviewData,
 } from "@/types/certificate-template"
 import {
@@ -13,10 +15,17 @@ import {
   FONT_SIZE_VALUES,
   ACCENT_COLORS,
 } from "@/types/certificate-template"
+import {
+  type CertificateTextConfig,
+  SEAL_SIZE_VALUES,
+  textToParagraphs,
+} from "@/lib/certificate-defaults"
 
 interface CertificatePreviewProps {
   config: TemplateConfig
   templateType: TemplateType
+  certificateText?: CertificateTextConfig
+  sealConfig?: SealConfig
 }
 
 // Sample data for preview
@@ -47,14 +56,23 @@ const SAMPLE_CLINIC = {
   email: "support@instantmed.com.au",
 }
 
-export function CertificatePreview({ config, templateType }: CertificatePreviewProps) {
+export function CertificatePreview({ 
+  config, 
+  templateType, 
+  certificateText,
+  sealConfig,
+}: CertificatePreviewProps) {
   const { layout, options } = config
   
   const margin = MARGIN_VALUES[layout.marginPreset]
   const fontSize = FONT_SIZE_VALUES[layout.fontSizePreset]
   const colors = ACCENT_COLORS[layout.accentColorPreset]
   
+  // Use custom title if provided, otherwise fall back to default
   const certTitle = useMemo(() => {
+    if (certificateText?.title) {
+      return certificateText.title.toUpperCase()
+    }
     switch (templateType) {
       case "med_cert_work":
         return "MEDICAL CERTIFICATE"
@@ -65,7 +83,17 @@ export function CertificatePreview({ config, templateType }: CertificatePreviewP
       default:
         return "MEDICAL CERTIFICATE"
     }
-  }, [templateType])
+  }, [templateType, certificateText?.title])
+
+  // Use custom attestation if provided
+  const attestationParagraphs = useMemo(() => {
+    const text = certificateText?.attestation || SAMPLE_DATA.medicalStatement
+    return textToParagraphs(text)
+  }, [certificateText?.attestation])
+
+  // Seal configuration
+  const showSeal = sealConfig?.show ?? true
+  const sealSize = SEAL_SIZE_VALUES[sealConfig?.size ?? "sm"]
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-AU", {
@@ -168,7 +196,7 @@ export function CertificatePreview({ config, templateType }: CertificatePreviewP
             </p>
           </div>
 
-          {/* Medical Statement */}
+          {/* Medical Statement / Attestation */}
           <div 
             className="p-3 rounded-lg border-l-4"
             style={{ 
@@ -176,8 +204,28 @@ export function CertificatePreview({ config, templateType }: CertificatePreviewP
               borderColor: colors.secondary,
             }}
           >
-            <p className="text-xs leading-relaxed">{SAMPLE_DATA.medicalStatement}</p>
+            {attestationParagraphs.map((paragraph, index) => (
+              <p key={index} className={cn("text-xs leading-relaxed", index > 0 && "mt-2")}>
+                {paragraph}
+              </p>
+            ))}
           </div>
+
+          {/* Additional Notes */}
+          {certificateText?.notes && (
+            <div className="text-xs text-gray-600 mt-2">
+              <span className="font-medium">Notes: </span>
+              {certificateText.notes}
+            </div>
+          )}
+
+          {/* Restrictions */}
+          {certificateText?.restrictions && (
+            <div className="text-xs text-gray-600 mt-2 italic">
+              <span className="font-medium">Restrictions: </span>
+              {certificateText.restrictions}
+            </div>
+          )}
 
           {/* Doctor Signature */}
           <div className="mt-6 pt-4 border-t" style={{ borderColor: colors.border }}>
@@ -210,6 +258,27 @@ export function CertificatePreview({ config, templateType }: CertificatePreviewP
             </div>
           </div>
         </div>
+
+        {/* Seal */}
+        {showSeal && (
+          <div 
+            className="absolute opacity-60"
+            style={{ 
+              bottom: options.showVerificationBlock ? 80 : 16,
+              right: 16,
+              width: sealSize * 0.6,
+              height: sealSize * 0.6,
+            }}
+          >
+            <Image
+              src="/branding/seal.svg"
+              alt="Certificate seal"
+              width={sealSize}
+              height={sealSize}
+              className="w-full h-full"
+            />
+          </div>
+        )}
 
         {/* Verification Block */}
         {options.showVerificationBlock && (

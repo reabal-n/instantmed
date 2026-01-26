@@ -129,20 +129,17 @@ function SelectCard({
   onClick,
   children,
   className = "",
-  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
   className?: string
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
     <EnhancedSelectionButton
       variant="card"
       selected={selected}
       onClick={onClick}
-      gradient={gradient}
       className={cn("relative", className)}
     >
       {children}
@@ -155,19 +152,16 @@ function Chip({
   selected,
   onClick,
   children,
-  gradient = "blue-purple",
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
-  gradient?: "blue-purple" | "purple-pink" | "teal-emerald" | "orange-red"
 }) {
   return (
     <EnhancedSelectionButton
       variant="chip"
       selected={selected}
       onClick={onClick}
-      gradient={gradient}
       className="rounded-full"
     >
       {children}
@@ -807,15 +801,14 @@ export function UnifiedFlowClient({
             </div>
             <div className="grid gap-3">
               {[
-                { id: "medcert" as Service, icon: FileText, label: COPY.services.options.medcert.label, description: COPY.services.options.medcert.description, gradient: "blue-purple" as const },
-                { id: "prescription" as Service, icon: Pill, label: COPY.services.options.prescription.label, description: COPY.services.options.prescription.description, gradient: "purple-pink" as const },
+                { id: "medcert" as Service, icon: FileText, label: COPY.services.options.medcert.label, description: COPY.services.options.medcert.description },
+                { id: "prescription" as Service, icon: Pill, label: COPY.services.options.prescription.label, description: COPY.services.options.prescription.description },
               ].map((opt) => (
                 <SelectCard
                   key={opt.id}
                   selected={service === opt.id}
                   onClick={() => selectService(opt.id)}
                   className="flex items-center gap-4"
-                  gradient={opt.gradient}
                 >
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <opt.icon className="w-6 h-6 text-primary" />
@@ -857,7 +850,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.medcert.duration.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.medcert.duration.options.map((opt, idx) => (
+                {COPY.medcert.duration.options.map((opt) => (
                   <Chip
                     key={opt}
                     selected={duration === opt}
@@ -865,7 +858,6 @@ export function UnifiedFlowClient({
                       setDuration(opt)
                       setForm({ ...form, duration: opt })
                     }}
-                    gradient={idx % 3 === 0 ? "blue-purple" : idx % 3 === 1 ? "purple-pink" : "teal-emerald"}
                   >
                     {opt}
                   </Chip>
@@ -1036,7 +1028,7 @@ export function UnifiedFlowClient({
             <div className="space-y-2">
               <Label className="text-sm font-medium">{COPY.prescription.condition.heading}</Label>
               <div className="flex flex-wrap gap-2">
-                {COPY.prescription.condition.options.map((c, idx) => (
+                {COPY.prescription.condition.options.map((c) => (
                   <Chip
                     key={c.id}
                     selected={condition === c.id}
@@ -1044,7 +1036,6 @@ export function UnifiedFlowClient({
                       setCondition(c.id)
                       setForm({ ...form, clinicalReason: c.id })
                     }}
-                    gradient={idx % 3 === 0 ? "blue-purple" : idx % 3 === 1 ? "purple-pink" : "teal-emerald"}
                   >
                     {c.label}
                   </Chip>
@@ -1058,7 +1049,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.duration.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.duration.options.map((d, idx) => (
+                    {COPY.prescription.duration.options.map((d) => (
                       <Chip
                         key={d.id}
                         selected={rxDuration === d.id}
@@ -1066,7 +1057,6 @@ export function UnifiedFlowClient({
                           setRxDuration(d.id)
                           setForm({ ...form, duration: d.id })
                         }}
-                        gradient={idx % 3 === 0 ? "blue-purple" : idx % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {d.label}
                       </Chip>
@@ -1077,7 +1067,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.control.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.control.options.map((c, idx) => (
+                    {COPY.prescription.control.options.map((c) => (
                       <Chip
                         key={c.id}
                         selected={rxControl === c.id}
@@ -1085,7 +1075,6 @@ export function UnifiedFlowClient({
                           setRxControl(c.id)
                           setForm({ ...form, urgency: c.id })
                         }}
-                        gradient={idx % 3 === 0 ? "blue-purple" : idx % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {c.label}
                       </Chip>
@@ -1096,7 +1085,7 @@ export function UnifiedFlowClient({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{COPY.prescription.sideEffects.heading}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {COPY.prescription.sideEffects.options.map((s, idx) => (
+                    {COPY.prescription.sideEffects.options.map((s) => (
                       <Chip
                         key={s.id}
                         selected={rxSideEffects === s.id}
@@ -1104,7 +1093,6 @@ export function UnifiedFlowClient({
                           setRxSideEffects(s.id)
                           setForm({ ...form, notes: s.id }) // Mapping side effects to notes for now
                         }}
-                        gradient={idx % 3 === 0 ? "blue-purple" : idx % 3 === 1 ? "purple-pink" : "teal-emerald"}
                       >
                         {s.label}
                       </Chip>

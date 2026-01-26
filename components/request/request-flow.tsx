@@ -50,7 +50,10 @@ const STEP_TIME_ESTIMATES: Record<string, number> = {
 }
 
 interface RequestFlowProps {
+  /** Service from URL param. null = invalid param was provided */
   initialService: UnifiedServiceType | null
+  /** Raw service param from URL (for error messages) */
+  rawServiceParam?: string
   isAuthenticated: boolean
   hasProfile: boolean
   hasMedicare: boolean
@@ -242,6 +245,7 @@ function DraftRestorationBanner({
 
 export function RequestFlow({
   initialService,
+  rawServiceParam,
   isAuthenticated,
   hasProfile,
   hasMedicare,
@@ -304,12 +308,30 @@ export function RequestFlow({
     }
   }, [userEmail, userName, answers.email, setIdentity])
 
-  // Initialize service type from props
+  // Initialize service type from URL param
+  // IMPORTANT: Always respect URL param when it differs from cached store value
+  // This fixes the bug where cached med-cert would override ?service=prescription
   useEffect(() => {
-    if (initialService && !serviceType) {
+    if (initialService && serviceType !== initialService) {
+      // Reset to first step when service changes
+      reset()
       setServiceType(initialService)
     }
-  }, [initialService, serviceType, setServiceType])
+  }, [initialService, serviceType, setServiceType, reset])
+
+  // Dev sanity check: log service routing on mount
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('[RequestFlow] Mount:', {
+        initialService,
+        rawServiceParam,
+        storeServiceType: serviceType,
+        currentStepId,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Check for existing draft on mount
   useEffect(() => {
@@ -521,6 +543,31 @@ export function RequestFlow({
     }
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])
+
+  // Invalid service param provided - show error screen
+  if (initialService === null && rawServiceParam) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+            <X className="w-8 h-8 text-destructive" />
+          </div>
+          <h1 className="text-xl font-semibold">Unknown service</h1>
+          <p className="text-muted-foreground">
+            The requested service &ldquo;{rawServiceParam}&rdquo; is not available.
+          </p>
+          <div className="flex flex-col gap-2 pt-4">
+            <Button onClick={() => router.push('/request')}>
+              Start a medical certificate request
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/')}>
+              Return home
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Show loading only if we truly have no service type
   if (!effectiveService || !currentStep) {

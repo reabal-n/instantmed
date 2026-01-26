@@ -84,7 +84,6 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
               variant="card"
               selected={consultCategory === category.value}
               onClick={() => setAnswer("consultCategory", category.value)}
-              gradient="primary-subtle"
               className="justify-start gap-2 h-auto py-3 px-3"
             >
               <span className="text-lg">{category.icon}</span>
@@ -138,7 +137,6 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             variant="chip"
             selected={consultUrgency === "routine"}
             onClick={() => setAnswer("consultUrgency", "routine")}
-            gradient="teal-emerald"
             className="flex-1"
           >
             Routine
@@ -147,7 +145,6 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             variant="chip"
             selected={consultUrgency === "soon"}
             onClick={() => setAnswer("consultUrgency", "soon")}
-            gradient="primary-subtle"
             className="flex-1"
           >
             Within a day
@@ -156,7 +153,6 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             variant="chip"
             selected={consultUrgency === "urgent"}
             onClick={() => setAnswer("consultUrgency", "urgent")}
-            gradient="orange-red"
             className="flex-1"
           >
             Urgent

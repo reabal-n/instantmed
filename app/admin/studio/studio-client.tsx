@@ -21,7 +21,10 @@ import {
   Check,
   Loader2,
   RotateCcw,
+  Type,
+  Stamp,
 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { 
@@ -33,8 +36,18 @@ import type {
   FontSizePreset,
   AccentColorPreset,
   SignatureStyle,
+  CertTextType,
+  SealConfig,
 } from "@/types/certificate-template"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
+import {
+  templateTypeToCertType,
+  getCertificateTextWithDefaults,
+  getSealConfigWithDefaults,
+  getDefaultCertificateText,
+  TEXT_LIMITS,
+  type CertificateTextConfig,
+} from "@/lib/certificate-defaults"
 import { getTemplateTypeName } from "@/lib/data/types/certificate-templates"
 import { saveTemplateAction, getTemplateHistoryAction, activateTemplateAction } from "@/app/actions/templates"
 import { CertificatePreview } from "./certificate-preview"
@@ -87,6 +100,20 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
+  // Certificate text state (per type)
+  const [certificateText, setCertificateText] = useState<
+    Partial<Record<CertTextType, Partial<CertificateTextConfig>>>
+  >(() => {
+    const active = initialTemplates.find(t => t.template_type === "med_cert_work")
+    return active?.config?.certificateText || {}
+  })
+
+  // Seal config state
+  const [sealConfig, setSealConfig] = useState<SealConfig>(() => {
+    const active = initialTemplates.find(t => t.template_type === "med_cert_work")
+    return getSealConfigWithDefaults(active?.config?.seal)
+  })
+
   // Get current active template for selected type
   const activeTemplate = templates.find(t => t.template_type === selectedType)
 
@@ -128,6 +155,47 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
     setHasChanges(true)
   }, [])
 
+  // Get current certificate text type based on selected template
+  const currentCertType = templateTypeToCertType(selectedType)
+  const currentText = getCertificateTextWithDefaults(currentCertType, certificateText[currentCertType])
+
+  // Update certificate text for current type
+  const updateCertificateText = useCallback(<K extends keyof CertificateTextConfig>(
+    key: K,
+    value: CertificateTextConfig[K]
+  ) => {
+    setCertificateText(prev => ({
+      ...prev,
+      [currentCertType]: {
+        ...prev[currentCertType],
+        [key]: value,
+      },
+    }))
+    setHasChanges(true)
+  }, [currentCertType])
+
+  // Reset certificate text field to default
+  const resetCertificateTextField = useCallback((field: keyof CertificateTextConfig) => {
+    const defaults = getDefaultCertificateText(currentCertType)
+    setCertificateText(prev => ({
+      ...prev,
+      [currentCertType]: {
+        ...prev[currentCertType],
+        [field]: defaults[field],
+      },
+    }))
+    setHasChanges(true)
+  }, [currentCertType])
+
+  // Update seal config
+  const updateSealConfig = useCallback(<K extends keyof SealConfig>(
+    key: K,
+    value: SealConfig[K]
+  ) => {
+    setSealConfig(prev => ({ ...prev, [key]: value }))
+    setHasChanges(true)
+  }, [])
+
   // Save template
   const handleSave = async () => {
     setIsSaving(true)
@@ -135,7 +203,14 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
       const currentVersion = activeTemplate?.version || 0
       const newName = `${getTemplateTypeName(selectedType)} v${currentVersion + 1}`
       
-      const result = await saveTemplateAction(selectedType, config, newName)
+      // Merge certificateText and seal into config
+      const fullConfig: TemplateConfig = {
+        ...config,
+        certificateText,
+        seal: sealConfig,
+      }
+      
+      const result = await saveTemplateAction(selectedType, fullConfig, newName)
       
       if (result.success && result.template) {
         setTemplates(prev => 
@@ -326,8 +401,8 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                         className={cn(
                           "px-3 py-2 text-xs font-medium rounded-lg border transition-all",
                           config.layout.headerStyle === value
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                         )}
                       >
                         {label}
@@ -347,8 +422,8 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                         className={cn(
                           "px-3 py-2 text-xs font-medium rounded-lg border transition-all",
                           config.layout.marginPreset === value
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                         )}
                       >
                         {label}
@@ -368,8 +443,8 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                         className={cn(
                           "px-3 py-2 text-xs font-medium rounded-lg border transition-all",
                           config.layout.fontSizePreset === value
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                         )}
                       >
                         {label}
@@ -389,12 +464,12 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                         className={cn(
                           "px-3 py-2 text-xs font-medium rounded-lg border transition-all flex items-center gap-2",
                           config.layout.accentColorPreset === value
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                         )}
                       >
                         <div 
-                          className="w-3 h-3 rounded-full" 
+                          className="w-3 h-3 rounded-full border border-white/20" 
                           style={{ backgroundColor: color }}
                         />
                         {label}
@@ -429,8 +504,8 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                         className={cn(
                           "px-3 py-1.5 text-xs font-medium rounded-lg border transition-all capitalize",
                           config.options.signatureStyle === style
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
                         )}
                       >
                         {style}
@@ -472,6 +547,154 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                 </div>
               </CardContent>
             </Card>
+
+            {/* Certificate Text */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Type className="w-4 h-4" />
+                  Certificate Text
+                </CardTitle>
+                <CardDescription>
+                  Customize text for {TEMPLATE_TYPES.find(t => t.type === selectedType)?.label || "this"} certificates
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Title */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Title</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {currentText.title.length}/{TEXT_LIMITS.title}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => resetCertificateTextField("title")}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                  <Textarea
+                    value={currentText.title}
+                    onChange={(e) => updateCertificateText("title", e.target.value)}
+                    placeholder="Certificate title..."
+                    className="min-h-[40px] resize-none"
+                    maxLength={TEXT_LIMITS.title}
+                  />
+                </div>
+
+                {/* Attestation */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Attestation Text</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {currentText.attestation.length}/{TEXT_LIMITS.attestation}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => resetCertificateTextField("attestation")}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                  <Textarea
+                    value={currentText.attestation}
+                    onChange={(e) => updateCertificateText("attestation", e.target.value)}
+                    placeholder="Main certificate attestation text..."
+                    className="min-h-[120px]"
+                    maxLength={TEXT_LIMITS.attestation}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use line breaks to create paragraphs
+                  </p>
+                </div>
+
+                {/* Notes (optional) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">
+                      Additional Notes <span className="text-muted-foreground">(optional)</span>
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {(currentText.notes || "").length}/{TEXT_LIMITS.notes}
+                    </span>
+                  </div>
+                  <Textarea
+                    value={currentText.notes || ""}
+                    onChange={(e) => updateCertificateText("notes", e.target.value || null)}
+                    placeholder="Optional notes..."
+                    className="min-h-[60px]"
+                    maxLength={TEXT_LIMITS.notes}
+                  />
+                </div>
+
+                {/* Restrictions (optional) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">
+                      Restrictions <span className="text-muted-foreground">(optional)</span>
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {(currentText.restrictions || "").length}/{TEXT_LIMITS.restrictions}
+                    </span>
+                  </div>
+                  <Textarea
+                    value={currentText.restrictions || ""}
+                    onChange={(e) => updateCertificateText("restrictions", e.target.value || null)}
+                    placeholder="Optional restrictions or conditions..."
+                    className="min-h-[60px]"
+                    maxLength={TEXT_LIMITS.restrictions}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Seal Options */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Stamp className="w-4 h-4" />
+                  Seal
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Show Seal</Label>
+                  <Switch
+                    checked={sealConfig.show}
+                    onCheckedChange={(checked) => updateSealConfig("show", checked)}
+                  />
+                </div>
+
+                {sealConfig.show && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Seal Size</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["sm", "md", "lg"] as const).map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => updateSealConfig("size", size)}
+                          className={cn(
+                            "px-3 py-2 text-xs font-medium rounded-lg border transition-all capitalize",
+                            sealConfig.size === size
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-slate-200 hover:border-slate-300 dark:border-slate-700"
+                          )}
+                        >
+                          {size === "sm" ? "Small" : size === "md" ? "Medium" : "Large"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Preview & History */}
@@ -503,6 +726,8 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                     <CertificatePreview 
                       config={config}
                       templateType={selectedType}
+                      certificateText={currentText}
+                      sealConfig={sealConfig}
                     />
                   </CardContent>
                 </Card>

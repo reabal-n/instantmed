@@ -34,11 +34,17 @@ interface CheckoutResult {
 
 /**
  * Map unified service type to Stripe category and subtype
+ * 
+ * IMPORTANT: Both 'prescription' and 'repeat-script' map to subtype: 'repeat'
+ * which routes to the 'common-scripts' service (type: common_scripts).
+ * This ensures the doctor RepeatPrescriptionChecklist renders correctly.
+ * 
+ * For NEW prescriptions (not repeats), use 'consult' service type instead.
  */
 function mapServiceToCategory(serviceType: UnifiedServiceType): { category: ServiceCategory; subtype: string } {
   const mapping: Record<UnifiedServiceType, { category: ServiceCategory; subtype: string }> = {
     'med-cert': { category: 'medical_certificate', subtype: 'work' },
-    'prescription': { category: 'prescription', subtype: 'new' },
+    'prescription': { category: 'prescription', subtype: 'repeat' },
     'repeat-script': { category: 'prescription', subtype: 'repeat' },
     'consult': { category: 'consult', subtype: 'general' },
   }
@@ -106,6 +112,17 @@ export async function createCheckoutFromUnifiedFlow(
   let finalSubtype = subtype
   if (serviceType === 'med-cert' && answers.certType) {
     finalSubtype = String(answers.certType)
+  }
+  
+  // DEV: Debug log for prescription flow tracing (no PHI)
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[UnifiedCheckout] Mapping:', {
+      inputServiceType: serviceType,
+      mappedCategory: category,
+      mappedSubtype: finalSubtype,
+      // Service slug will be: prescription:repeat -> common-scripts
+    })
   }
   
   const transformedAnswers = transformAnswers(serviceType, answers)

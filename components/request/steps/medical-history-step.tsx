@@ -116,7 +116,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
               setAnswer("hasAllergies", false)
               setAnswer("allergies", "")
             }}
-            gradient="teal-emerald"
             className="flex-1 touch-manipulation"
           >
             No allergies
@@ -125,7 +124,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
             variant="chip"
             selected={hasAllergies === true}
             onClick={() => setAnswer("hasAllergies", true)}
-            gradient="orange-red"
             className="flex-1 touch-manipulation"
           >
             Yes, I have allergies
@@ -160,7 +158,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
               setAnswer("hasConditions", false)
               setAnswer("conditions", "")
             }}
-            gradient="teal-emerald"
             className="flex-1 touch-manipulation"
           >
             No conditions
@@ -169,7 +166,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
             variant="chip"
             selected={hasConditions === true}
             onClick={() => setAnswer("hasConditions", true)}
-            gradient="orange-red"
             className="flex-1 touch-manipulation"
           >
             Yes, I have conditions
@@ -204,7 +200,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
               setAnswer("hasOtherMedications", false)
               setAnswer("otherMedications", "")
             }}
-            gradient="teal-emerald"
             className="flex-1 touch-manipulation"
           >
             No other medications
@@ -213,7 +208,6 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
             variant="chip"
             selected={hasOtherMedications === true}
             onClick={() => setAnswer("hasOtherMedications", true)}
-            gradient="orange-red"
             className="flex-1 touch-manipulation"
           >
             Yes, I take medications

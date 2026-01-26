@@ -22,11 +22,13 @@ export default async function RequestPage({
   const profile = user ? await getUserProfile(user.id) : null
 
   // Map URL param to unified service type
+  // Returns null for invalid services (RequestFlow will show error)
   const initialService = mapServiceParam(params.service)
 
   return (
     <RequestFlow
       initialService={initialService}
+      rawServiceParam={params.service}
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasMedicare={!!profile?.medicare_number}

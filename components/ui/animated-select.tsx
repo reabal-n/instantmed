@@ -147,7 +147,7 @@ export function AnimatedSelect({
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className={cn("w-full relative z-[55]", className)} ref={dropdownRef}>
+      <div className={cn("w-full relative z-40", className)} ref={dropdownRef}>
         {/* Trigger Button */}
         <button
           type="button"
@@ -226,7 +226,7 @@ export function AnimatedSelect({
                   mass: 1,
                 },
               }}
-              className="absolute left-0 right-0 top-full mt-2 z-[60]"
+              className="absolute left-0 right-0 top-full mt-2 z-50"
             >
               <motion.div
                 className={cn(

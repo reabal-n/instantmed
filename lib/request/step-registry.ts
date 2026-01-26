@@ -327,11 +327,28 @@ export function getPreviousStepId(
   return steps[currentIndex - 1].id
 }
 
+/** Supported URL service param slugs */
+export const SUPPORTED_SERVICE_SLUGS = [
+  'med-cert',
+  'medcert', 
+  'medical-certificate',
+  'prescription',
+  'repeat-script',
+  'repeat-rx',
+  'consult',
+  'consultation',
+] as const
+
 /**
  * Map URL service params to UnifiedServiceType
- * Defaults to 'med-cert' when no param provided (most common service)
+ * 
+ * Returns:
+ * - UnifiedServiceType for valid service params
+ * - null for invalid/unknown service params (caller should show error)
+ * - 'med-cert' when no param provided (default service)
  */
-export function mapServiceParam(param: string | undefined): UnifiedServiceType {
+export function mapServiceParam(param: string | undefined): UnifiedServiceType | null {
+  // No param = default to med-cert
   if (!param) return 'med-cert'
   
   const mapping: Record<string, UnifiedServiceType> = {
@@ -345,5 +362,12 @@ export function mapServiceParam(param: string | undefined): UnifiedServiceType {
     'consultation': 'consult',
   }
   
-  return mapping[param.toLowerCase()] || 'med-cert'
+  const normalized = param.toLowerCase()
+  
+  // Return null for unknown services - caller must handle this case
+  if (!(normalized in mapping)) {
+    return null
+  }
+  
+  return mapping[normalized]
 }

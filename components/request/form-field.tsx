@@ -5,6 +5,7 @@
  * Includes HelpTooltip integration and consistent styling
  */
 
+import { useId } from "react"
 import { Label } from "@/components/ui/label"
 import { HelpTooltip } from "./help-tooltip"
 
@@ -17,6 +18,8 @@ export interface FormFieldProps {
   helpContent?: { title?: string; content: string }
   icon?: React.ElementType
   className?: string
+  /** Optional ID for aria-describedby linking. Auto-generated if not provided. */
+  id?: string
 }
 
 export function FormField({
@@ -28,12 +31,22 @@ export function FormField({
   helpContent,
   icon: Icon,
   className,
+  id: providedId,
 }: FormFieldProps) {
+  const generatedId = useId()
+  const fieldId = providedId || generatedId
+  const errorId = `${fieldId}-error`
+  const hintId = `${fieldId}-hint`
+
   return (
-    <div className={`space-y-1 ${className || ''}`}>
+    <div 
+      className={`space-y-1 ${className || ''}`}
+      role="group"
+      aria-describedby={error ? errorId : hint ? hintId : undefined}
+    >
       <div className="flex items-center gap-2">
         {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
-        <Label className="text-sm font-medium">
+        <Label htmlFor={fieldId} className="text-sm font-medium">
           {label}
           {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
@@ -41,9 +54,9 @@ export function FormField({
           <HelpTooltip title={helpContent.title} content={helpContent.content} />
         )}
       </div>
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p id={hintId} className="text-xs text-muted-foreground">{hint}</p>}
       {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p id={errorId} className="text-xs text-destructive mt-1" role="alert">{error}</p>}
     </div>
   )
 }

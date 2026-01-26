@@ -59,9 +59,28 @@ export interface TemplateOptionsConfig {
   showAddress: boolean
 }
 
+// Certificate text customization per type
+export type CertTextType = "work" | "study" | "carer"
+
+export interface CertificateTextConfig {
+  title: string
+  attestation: string
+  notes: string | null
+  restrictions: string | null
+}
+
+export interface SealConfig {
+  show: boolean
+  size: "sm" | "md" | "lg"
+}
+
 export interface TemplateConfig {
   layout: TemplateLayoutConfig
   options: TemplateOptionsConfig
+  // Per-certificate-type custom text (keyed by work/study/carer)
+  certificateText?: Partial<Record<CertTextType, Partial<CertificateTextConfig>>>
+  // Seal configuration
+  seal?: SealConfig
 }
 
 // ============================================================================

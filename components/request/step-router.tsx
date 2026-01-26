@@ -11,7 +11,6 @@
 
 import { Suspense, lazy, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Loader2 } from "lucide-react"
 import { StepErrorBoundary } from "./step-error-boundary"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 
@@ -44,8 +43,23 @@ export interface StepRouterProps {
 
 function StepLoadingFallback() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    <div className="space-y-5 animate-pulse">
+      {/* Skeleton for form field */}
+      <div className="space-y-2">
+        <div className="h-4 w-32 bg-muted rounded" />
+        <div className="h-11 w-full bg-muted rounded-xl" />
+      </div>
+      {/* Skeleton for selection buttons */}
+      <div className="space-y-2">
+        <div className="h-4 w-40 bg-muted rounded" />
+        <div className="flex gap-2">
+          <div className="h-12 flex-1 bg-muted rounded-xl" />
+          <div className="h-12 flex-1 bg-muted rounded-xl" />
+          <div className="h-12 flex-1 bg-muted rounded-xl" />
+        </div>
+      </div>
+      {/* Skeleton for button */}
+      <div className="h-12 w-full bg-muted rounded-xl mt-4" />
     </div>
   )
 }

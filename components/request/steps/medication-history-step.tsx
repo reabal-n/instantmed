@@ -111,7 +111,6 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
               variant="chip"
               selected={prescriptionHistory === option.value}
               onClick={() => setAnswer("prescriptionHistory", option.value)}
-              gradient="primary-subtle"
               className="touch-manipulation"
             >
               {option.label}
@@ -161,7 +160,6 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
                 setAnswer("hasSideEffects", false)
                 setAnswer("sideEffects", "")
               }}
-              gradient="teal-emerald"
               className="flex-1 touch-manipulation"
             >
               No side effects
@@ -170,7 +168,6 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
               variant="chip"
               selected={hasSideEffects === true}
               onClick={() => setAnswer("hasSideEffects", true)}
-              gradient="orange-red"
               className="flex-1 touch-manipulation"
             >
               Yes, I have

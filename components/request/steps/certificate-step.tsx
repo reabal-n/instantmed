@@ -119,7 +119,6 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
               onClick={() => setAnswer("certType", type.id)}
               icon={type.icon}
               label={type.label}
-              gradient="primary-subtle"
               className="touch-manipulation"
             />
           ))}
@@ -142,30 +141,28 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
               variant="chip"
               selected={duration === "1"}
               onClick={() => setAnswer("duration", "1")}
-              gradient="primary-subtle"
               className="flex-1 touch-manipulation"
             >
               <span className="flex flex-col items-center gap-0.5">
                 <span>1 day</span>
-                <span className="text-[10px] font-normal opacity-70">${PRICING.MED_CERT}</span>
+                <span className="text-xs font-normal opacity-70">${PRICING.MED_CERT}</span>
               </span>
             </EnhancedSelectionButton>
             <EnhancedSelectionButton
               variant="chip"
               selected={duration === "2"}
               onClick={() => setAnswer("duration", "2")}
-              gradient="primary-subtle"
               className="flex-1 touch-manipulation"
             >
               <span className="flex flex-col items-center gap-0.5">
                 <span>2 days</span>
-                <span className="text-[10px] font-normal opacity-70">${PRICING.MED_CERT_2DAY}</span>
+                <span className="text-xs font-normal opacity-70">${PRICING.MED_CERT_2DAY}</span>
               </span>
             </EnhancedSelectionButton>
           </div>
           
           {/* GP comparison - subtle value anchor */}
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-xs text-muted-foreground text-center">
             <span className="line-through opacity-60">~$60 GP visit</span>
             <span className="mx-1.5">→</span>
             <span className="text-primary font-medium">

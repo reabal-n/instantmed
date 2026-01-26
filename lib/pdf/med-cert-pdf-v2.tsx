@@ -25,7 +25,13 @@ import type {
   MarginPreset,
   FontSizePreset,
   AccentColorPreset,
+  CertTextType,
 } from "@/types/certificate-template"
+import {
+  getCertificateTextWithDefaults,
+  textToParagraphs,
+  SEAL_SIZE_VALUES,
+} from "@/lib/certificate-defaults"
 
 // ============================================================================
 // TYPES
@@ -67,6 +73,7 @@ export interface MedCertPdfRenderOptions {
   clinicIdentity: ClinicIdentity
   templateConfig: TemplateConfig
   logoUrl?: string | null
+  sealUrl?: string | null
 }
 
 // ============================================================================
@@ -177,6 +184,7 @@ export function MedCertPdfDocumentV2({
   clinicIdentity, 
   templateConfig,
   logoUrl,
+  sealUrl,
 }: MedCertPdfRenderOptions) {
   const { layout, options } = templateConfig
   
@@ -200,9 +208,27 @@ export function MedCertPdfDocumentV2({
     ? `${data.doctorName}, ${data.doctorNominals}`
     : data.doctorName
   
-  // Generate statement
-  const statement = getGenericStatement(data)
+  // Get certificate text type from data.certificateType
+  const certTextType: CertTextType = data.certificateType === "study" ? "study" : data.certificateType
+  
+  // Get custom text from templateConfig, with defaults fallback
+  const customText = getCertificateTextWithDefaults(
+    certTextType,
+    templateConfig.certificateText?.[certTextType]
+  )
+  
+  // Use custom title or fall back to generic
+  const certTitle = customText.title || "Medical Certificate"
   const certTypeLabel = getCertTypeLabel(data.certificateType)
+  
+  // Use custom attestation or generate generic statement
+  const attestationText = customText.attestation || getGenericStatement(data)
+  const attestationParagraphs = textToParagraphs(attestationText)
+  
+  // Seal configuration
+  const sealConfig = templateConfig.seal
+  const showSeal = sealConfig?.show ?? true
+  const sealSize = SEAL_SIZE_VALUES[sealConfig?.size ?? "sm"]
   
   // Dynamic styles based on config
   const styles = StyleSheet.create({
@@ -518,7 +544,7 @@ export function MedCertPdfDocumentV2({
         {/* TITLE */}
         {/* ================================================================ */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Medical Certificate</Text>
+          <Text style={styles.title}>{certTitle}</Text>
           <Text style={styles.subtitle}>{certTypeLabel}</Text>
         </View>
         
@@ -580,11 +606,38 @@ export function MedCertPdfDocumentV2({
         )}
         
         {/* ================================================================ */}
-        {/* MEDICAL STATEMENT */}
+        {/* MEDICAL STATEMENT / ATTESTATION */}
         {/* ================================================================ */}
         <View style={styles.statementBox}>
-          <Text style={styles.statementText}>{statement}</Text>
+          {attestationParagraphs.map((paragraph, index) => (
+            <Text 
+              key={index} 
+              style={index > 0 ? [styles.statementText, { marginTop: 8 }] : styles.statementText}
+            >
+              {paragraph}
+            </Text>
+          ))}
         </View>
+
+        {/* Additional Notes */}
+        {customText.notes && (
+          <View style={{ marginBottom: 8 }}>
+            <Text style={[styles.statementText, { fontSize: fontSize.small }]}>
+              <Text style={{ fontWeight: "bold" }}>Notes: </Text>
+              {customText.notes}
+            </Text>
+          </View>
+        )}
+
+        {/* Restrictions */}
+        {customText.restrictions && (
+          <View style={{ marginBottom: 8 }}>
+            <Text style={[styles.statementText, { fontSize: fontSize.small, fontStyle: "italic" }]}>
+              <Text style={{ fontWeight: "bold" }}>Restrictions: </Text>
+              {customText.restrictions}
+            </Text>
+          </View>
+        )}
         
         {/* ================================================================ */}
         {/* DOCTOR BLOCK */}
@@ -624,6 +677,15 @@ export function MedCertPdfDocumentV2({
           </View>
         </View>
         
+        {/* ================================================================ */}
+        {/* SEAL */}
+        {/* ================================================================ */}
+        {showSeal && sealUrl && (
+          <View style={{ position: "absolute", bottom: margin + 70, right: margin, opacity: 0.6 }}>
+            <Image src={sealUrl} style={{ width: sealSize, height: sealSize }} />
+          </View>
+        )}
+
         {/* ================================================================ */}
         {/* FOOTER */}
         {/* ================================================================ */}
