@@ -148,6 +148,57 @@ async function seedOperatorProfile() {
   return data
 }
 
+async function seedDoctorProfile() {
+  console.log("🔧 Seeding doctor profile (NOT admin)...")
+  
+  // Check if already exists
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", DOCTOR_PROFILE_ID)
+    .single()
+
+  if (existing) {
+    console.log("   ↳ Reusing existing doctor profile")
+    return existing
+  }
+  
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert({
+      id: DOCTOR_PROFILE_ID,
+      clerk_user_id: DOCTOR_CLERK_ID,
+      email: "e2e-doctor@test.instantmed.com.au",
+      full_name: "Dr. E2E Doctor",
+      date_of_birth: "1985-03-20",
+      role: "doctor", // Doctor role - NOT admin
+      onboarding_completed: true,
+      email_verified: true,
+      email_verified_at: new Date().toISOString(),
+      // Doctor identity fields for certificate issuance
+      provider_number: "7654321B",
+      ahpra_number: "MED0007654321",
+      nominals: "MBBS",
+      certificate_identity_complete: true,
+      // Address for certificate
+      address_line1: "456 Doctor Medical Centre",
+      suburb: "Brisbane",
+      state: "QLD",
+      postcode: "4000",
+      phone: "0423456789",
+    }, { onConflict: "id" })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("❌ Failed to seed doctor profile:", error.message)
+    throw error
+  }
+
+  console.log("   ↳ Created new doctor profile")
+  return data
+}
+
 async function seedPatientProfile() {
   console.log("🔧 Seeding patient profile...")
   
@@ -700,6 +751,13 @@ function printSeedSummary() {
 │  Provider #:    1234567A
 │  AHPRA #:       MED0001234567
 │
+├─ Doctor User (doctor only, NOT admin) ─────────────────────
+│  Profile ID:    ${DOCTOR_PROFILE_ID}
+│  Clerk ID:      ${DOCTOR_CLERK_ID}
+│  Role:          doctor (no admin access)
+│  Provider #:    7654321B
+│  AHPRA #:       MED0007654321
+│
 ├─ Patient User ──────────────────────────────────────────────
 │  Profile ID:    ${PATIENT_PROFILE_ID}
 │  Clerk ID:      ${PATIENT_CLERK_ID}
@@ -729,6 +787,7 @@ async function main() {
   try {
     // Seed in dependency order
     await seedOperatorProfile()
+    await seedDoctorProfile()
     await seedPatientProfile()
     const service = await seedService()
     await seedClinicIdentity()
