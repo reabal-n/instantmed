@@ -7,9 +7,14 @@
  */
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, type StorageValue } from 'zustand/middleware'
 import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
 import { getStepsForService as _getStepsForService, getNextStepId, getPreviousStepId } from '@/lib/request/step-registry'
+import { 
+  canonicalizeServiceType, 
+  saveDraft, 
+  migrateLegacyDraft,
+} from '@/lib/request/draft-storage'
 
 export interface RequestState {
   // Service
@@ -254,6 +259,57 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         dob: state.dob,
         lastSavedAt: new Date().toISOString(),
       }),
+      // Custom storage with dual-write to new service-scoped keys
+      storage: {
+        getItem: (name: string): StorageValue<Partial<RequestState>> | null => {
+          if (typeof localStorage === 'undefined') return null
+          
+          // First, attempt migration from legacy key
+          migrateLegacyDraft()
+          
+          // Read from legacy key (will switch to new keys in Phase 2.3)
+          const stored = localStorage.getItem(name)
+          if (!stored) return null
+          
+          try {
+            return JSON.parse(stored) as StorageValue<Partial<RequestState>>
+          } catch {
+            return null
+          }
+        },
+        setItem: (name: string, value: StorageValue<Partial<RequestState>>): void => {
+          if (typeof localStorage === 'undefined') return
+          
+          // Write to legacy key (for backward compatibility)
+          localStorage.setItem(name, JSON.stringify(value))
+          
+          // Dual-write to new service-scoped key
+          const state = value.state
+          if (state?.serviceType) {
+            const canonical = canonicalizeServiceType(state.serviceType)
+            if (canonical) {
+              saveDraft(canonical, {
+                currentStepId: state.currentStepId || 'safety',
+                answers: state.answers || {},
+                firstName: state.firstName,
+                lastName: state.lastName,
+                email: state.email,
+                phone: state.phone,
+                dob: state.dob,
+                safetyConfirmed: state.safetyConfirmed,
+                safetyTimestamp: state.safetyTimestamp,
+                chatSessionId: state.chatSessionId,
+              })
+            }
+          }
+        },
+        removeItem: (name: string): void => {
+          if (typeof localStorage === 'undefined') return
+          localStorage.removeItem(name)
+          // Note: We don't clear service-scoped keys here
+          // They are cleared explicitly via clearDraft()
+        },
+      },
     }
   )
 )

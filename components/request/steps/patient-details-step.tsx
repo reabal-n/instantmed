@@ -288,12 +288,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         required={needsPhone}
         error={touched.phone ? errors.phone : undefined}
         icon={Phone}
-        helpContent={{ 
-          title: "Why do we need your phone?", 
-          content: needsPhone 
-            ? "Required for eScript delivery via SMS. Your prescription will be sent directly to your phone." 
-            : "Optional - we only contact you if there's an urgent issue with your request."
-        }}
+        hint={needsPhone ? undefined : "Optional - we only contact you if there's an urgent issue"}
       >
         <Input
           type="tel"
@@ -303,6 +298,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           placeholder="0412 345 678"
           className={`h-11 ${touched.phone && errors.phone ? 'border-destructive' : ''}`}
         />
+        {needsPhone && (
+          <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+            <span className="inline-block w-1 h-1 rounded-full bg-primary" />
+            Your eScript will be sent to this number via SMS
+          </p>
+        )}
       </FormField>
 
       {/* Address - for certificate delivery */}

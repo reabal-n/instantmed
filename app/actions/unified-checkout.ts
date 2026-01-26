@@ -108,10 +108,14 @@ export async function createCheckoutFromUnifiedFlow(
   const { serviceType, answers, identity, chatSessionId } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
-  // Update subtype based on answers for med-cert
+  // Update subtype based on answers
   let finalSubtype = subtype
   if (serviceType === 'med-cert' && answers.certType) {
     finalSubtype = String(answers.certType)
+  }
+  // For consults, use the category from answers (e.g., 'new_medication', 'ed', 'general')
+  if (serviceType === 'consult' && answers.consultCategory) {
+    finalSubtype = String(answers.consultCategory)
   }
   
   // DEV: Debug log for prescription flow tracing (no PHI)

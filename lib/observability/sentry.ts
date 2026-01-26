@@ -29,6 +29,10 @@ export interface ApiErrorContext {
   userId?: string
   userRole?: string
   statusCode?: number
+  // Consult flow tags
+  serviceType?: string
+  consultSubtype?: string
+  stepId?: string
   [key: string]: string | number | undefined
 }
 
@@ -43,6 +47,10 @@ export interface ServerErrorContext {
   certificateId?: string
   userId?: string
   userRole?: string
+  // Consult flow tags
+  serviceType?: string
+  consultSubtype?: string
+  stepId?: string
   [key: string]: string | number | undefined
 }
 
@@ -119,6 +127,10 @@ export async function captureApiError(
       ...(context.intakeId && { intake_id: context.intakeId }),
       ...(context.userRole && { user_role: context.userRole }),
       ...(context.statusCode && { status_code: String(context.statusCode) }),
+      // Consult flow tags for diagnosis
+      ...(context.serviceType && { service_type: context.serviceType }),
+      ...(context.consultSubtype && { consult_subtype: context.consultSubtype }),
+      ...(context.stepId && { step_id: context.stepId }),
       ...(e2e.isPlaywright && { playwright: "1" }),
       ...(e2e.e2eRunId && { e2e_run_id: e2e.e2eRunId }),
       ...(e2e.e2eAuthRole && !context.userRole && { user_role: e2e.e2eAuthRole }),
@@ -162,6 +174,10 @@ export async function captureServerError(
       action: context.action,
       ...(context.intakeId && { intake_id: context.intakeId }),
       ...(context.userRole && { user_role: context.userRole }),
+      // Consult flow tags for diagnosis
+      ...(context.serviceType && { service_type: context.serviceType }),
+      ...(context.consultSubtype && { consult_subtype: context.consultSubtype }),
+      ...(context.stepId && { step_id: context.stepId }),
       ...(e2e.isPlaywright && { playwright: "1" }),
       ...(e2e.e2eRunId && { e2e_run_id: e2e.e2eRunId }),
       ...(e2e.e2eAuthRole && !context.userRole && { user_role: e2e.e2eAuthRole }),
@@ -249,6 +265,70 @@ export function withSentryApiCapture(
       throw error // Re-throw to let Next.js handle the error response
     }
   }
+}
+
+/**
+ * Context for checkout/payment error capture
+ * Use this for Stripe checkout session creation failures
+ */
+export interface CheckoutErrorContext {
+  action: "checkout_session_create" | "webhook_process" | "payment_verify"
+  intakeId?: string
+  serviceType?: string
+  consultSubtype?: string
+  stripeSessionId?: string
+  stripeErrorCode?: string
+  priceId?: string
+  [key: string]: string | number | undefined
+}
+
+/**
+ * Capture a checkout/payment error to Sentry with structured context.
+ * These errors are HIGH PRIORITY and should trigger alerts.
+ * 
+ * @param error - The error to capture
+ * @param context - Contextual information about the checkout
+ * @returns The Sentry event ID
+ */
+export async function captureCheckoutError(
+  error: Error,
+  context: CheckoutErrorContext
+): Promise<string> {
+  const e2e = await getE2EContext()
+
+  // Build extra context
+  const extra: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(context)) {
+    if (value !== undefined && key !== "action") {
+      extra[key] = value
+    }
+  }
+
+  const eventId = Sentry.captureException(error, {
+    level: "error",
+    tags: {
+      source: "checkout",
+      action: context.action,
+      // High visibility tags for alerting
+      checkout_error: "true",
+      ...(context.intakeId && { intake_id: context.intakeId }),
+      ...(context.serviceType && { service_type: context.serviceType }),
+      ...(context.consultSubtype && { consult_subtype: context.consultSubtype }),
+      ...(context.stripeErrorCode && { stripe_error_code: context.stripeErrorCode }),
+      ...(context.priceId && { price_id: context.priceId }),
+      ...(e2e.isPlaywright && { playwright: "1" }),
+      ...(e2e.e2eRunId && { e2e_run_id: e2e.e2eRunId }),
+    },
+    extra,
+    // Mark as handled but critical
+    fingerprint: ["checkout-error", context.action, context.stripeErrorCode || "unknown"],
+  })
+
+  // Always log checkout errors for visibility
+  // eslint-disable-next-line no-console
+  console.error(`[SENTRY] Checkout error captured - Event ID: ${eventId}, action=${context.action}`)
+
+  return eventId
 }
 
 /**

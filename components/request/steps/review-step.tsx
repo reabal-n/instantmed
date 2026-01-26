@@ -31,6 +31,14 @@ const CERT_TYPE_LABELS: Record<string, string> = {
   'carer': 'Carer\'s Leave',
 }
 
+const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
+  'less_than_3_months': 'Less than 3 months ago',
+  '3_to_6_months': '3-6 months ago',
+  '6_to_12_months': '6-12 months ago',
+  'over_12_months': 'Over 12 months ago',
+  'never': 'Never prescribed',
+}
+
 function ReviewSection({ 
   title, 
   items, 
@@ -132,7 +140,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     sections.push({
       title: 'Prescription History',
       items: [
-        { label: 'Last prescribed', value: prescriptionHistory?.replace(/_/g, ' ') || '' },
+        { label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory || '' },
         { label: 'Side effects', value: hasSideEffects ? 'Yes' : 'No' },
       ],
       stepId: 'medication-history',

@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 interface ClinicalSummaryProps {
   answers: Record<string, unknown>
   serviceType?: string
+  consultSubtype?: string
   className?: string
 }
 
@@ -65,6 +66,56 @@ const RED_FLAG_FIELDS = ["emergency_symptoms", "red_flags_detected", "symptom_se
 
 // Fields to highlight as warnings (yellow/amber - requires caution)
 const YELLOW_FLAG_FIELDS = ["yellow_flags_detected", "yellow_flags", "caution_notes", "requires_followup"]
+
+// Consult subtype-specific field groupings
+const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; highlight?: string[] }> = {
+  ed: {
+    label: "Erectile Dysfunction Assessment",
+    fields: [
+      "ed_duration", "ed_onset", "ed_frequency", "ed_severity",
+      "morning_erections", "libido_changes", "relationship_impact",
+      "previous_ed_treatment", "cardiovascular_history", "diabetes_status",
+      "current_medications_ed", "nitrate_use", "alpha_blocker_use",
+    ],
+    highlight: ["nitrate_use", "cardiovascular_history"],
+  },
+  hair_loss: {
+    label: "Hair Loss Assessment",
+    fields: [
+      "hair_loss_duration", "hair_loss_pattern", "hair_loss_family_history",
+      "hair_loss_previous_treatment", "scalp_condition", "recent_stress",
+      "recent_illness", "diet_changes", "thyroid_history",
+    ],
+  },
+  womens_health: {
+    label: "Women's Health Assessment",
+    fields: [
+      "contraception_type", "current_contraception", "menstrual_history",
+      "pregnancy_status", "breastfeeding", "smoking_status",
+      "migraine_with_aura", "blood_clot_history", "bmi_category",
+      "blood_pressure_status", "liver_disease", "breast_cancer_history",
+    ],
+    highlight: ["migraine_with_aura", "blood_clot_history", "pregnancy_status"],
+  },
+  weight_loss: {
+    label: "Weight Loss Assessment",
+    fields: [
+      "current_weight", "height", "bmi", "weight_loss_goal",
+      "previous_weight_loss_attempts", "eating_disorder_history",
+      "thyroid_history", "diabetes_status", "cardiovascular_history",
+      "current_medications", "psychiatric_history",
+      "requires_call", "call_scheduled", "call_completed",
+    ],
+    highlight: ["requires_call", "eating_disorder_history", "psychiatric_history"],
+  },
+  new_medication: {
+    label: "New Medication Request",
+    fields: [
+      "requested_medication", "reason_for_request", "previous_use",
+      "allergy_status", "current_medications", "medical_history",
+    ],
+  },
+}
 
 // Fields to show duration/time formatting
 const DATE_FIELDS = ["start_date", "last_prescribed"]
@@ -123,12 +174,18 @@ function getFieldIcon(key: string) {
   return <Activity className="h-4 w-4" />
 }
 
-export function ClinicalSummary({ answers, serviceType: _serviceType, className }: ClinicalSummaryProps) {
+export function ClinicalSummary({ answers, serviceType: _serviceType, consultSubtype, className }: ClinicalSummaryProps) {
   // Extract and categorize fields
   const redFlagFields: [string, unknown][] = []
   const yellowFlagFields: [string, unknown][] = []
   const primaryFields: [string, unknown][] = []
   const secondaryFields: [string, unknown][] = []
+  const subtypeFields: [string, unknown][] = []
+  
+  // Get subtype-specific config if applicable
+  const subtypeConfig = consultSubtype ? CONSULT_SUBTYPE_FIELDS[consultSubtype] : null
+  const subtypeFieldSet = new Set(subtypeConfig?.fields || [])
+  const subtypeHighlightSet = new Set(subtypeConfig?.highlight || [])
   
   // Priority order for display
   const priorityOrder = [
@@ -158,12 +215,19 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
       redFlagFields.push([key, value])
     } else if (YELLOW_FLAG_FIELDS.includes(key) && value) {
       yellowFlagFields.push([key, value])
+    } else if (subtypeFieldSet.has(key)) {
+      // Subtype-specific fields go to their own section
+      subtypeFields.push([key, value])
     } else if (priorityOrder.includes(key)) {
       primaryFields.push([key, value])
     } else {
       secondaryFields.push([key, value])
     }
   }
+  
+  // Check for weight loss call requirement flag
+  const requiresCall = answers.requires_call === true || answers.requires_call === "true"
+  const callCompleted = answers.call_completed === true || answers.call_completed === "true"
 
   return (
     <Card className={cn("", className)}>
@@ -207,6 +271,80 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, className 
                 <span className="text-amber-900 dark:text-amber-200">{formatValue(key, value)}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Weight Loss Call Required Banner */}
+        {consultSubtype === "weight_loss" && requiresCall && (
+          <div className={cn(
+            "rounded-lg p-3 flex items-center gap-3",
+            callCompleted 
+              ? "bg-emerald-500/10 border border-emerald-500/30" 
+              : "bg-purple-500/10 border border-purple-500/30"
+          )}>
+            <div className={cn(
+              "h-8 w-8 rounded-full flex items-center justify-center",
+              callCompleted ? "bg-emerald-500/20" : "bg-purple-500/20"
+            )}>
+              {callCompleted ? (
+                <Activity className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-purple-600" />
+              )}
+            </div>
+            <div>
+              <p className={cn(
+                "font-medium text-sm",
+                callCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-purple-700 dark:text-purple-400"
+              )}>
+                {callCompleted ? "Phone Consultation Completed" : "Phone Consultation Required"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {callCompleted 
+                  ? "Patient has completed the required phone consultation"
+                  : "This weight loss request requires a phone consultation before approval"
+                }
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Consult Subtype-Specific Assessment Section */}
+        {subtypeConfig && subtypeFields.length > 0 && (
+          <div className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center gap-2 font-medium text-sm">
+              <FileText className="h-4 w-4 text-primary" />
+              {subtypeConfig.label}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {subtypeFields.map(([key, value]) => {
+                const isHighlighted = subtypeHighlightSet.has(key)
+                return (
+                  <div 
+                    key={key} 
+                    className={cn(
+                      "flex items-start gap-2 p-2 rounded-lg text-sm",
+                      isHighlighted ? "bg-amber-500/10 border border-amber-500/20" : "bg-muted/50"
+                    )}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        {FIELD_LABELS[key] || key.replace(/_/g, " ")}
+                      </p>
+                      <p className={cn(
+                        "font-medium mt-0.5",
+                        isHighlighted && "text-amber-700 dark:text-amber-400"
+                      )}>
+                        {formatValue(key, value)}
+                      </p>
+                    </div>
+                    {isHighlighted && (
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
         

@@ -267,8 +267,9 @@ export const faqItems = [
 
 export const footerLinks = {
   services: [
-    { label: "Medical Certificates", href: "/medical-certificate" },
-    { label: "Prescriptions", href: "/prescriptions" },
+    { label: "Medical Certificates", href: "/request?service=med-cert" },
+    { label: "Prescriptions", href: "/request?service=prescription" },
+    { label: "Consultations", href: "/request?service=consult" },
   ],
   company: [
     { label: "About Us", href: "/about" },

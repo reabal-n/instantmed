@@ -24,9 +24,35 @@ export type UnifiedStepId =
   | 'medication-history'// Previous prescriptions + side effects
   | 'medical-history'   // Allergies, conditions, other meds
   | 'consult-reason'    // General consult pathway
+  | 'ed-assessment'     // ED-specific assessment
+  | 'ed-safety'         // ED safety screening (nitrates, cardiac)
+  | 'hair-loss-assessment' // Hair loss pattern and history
+  | 'womens-health-type'   // Women's health sub-selection
+  | 'womens-health-assessment' // Women's health specific questions
+  | 'weight-loss-assessment'   // Weight loss goals and screening
+  | 'weight-loss-call-scheduling' // Weight loss call availability
   | 'details'           // Patient identity + contact
   | 'review'            // Summary before payment
   | 'checkout'          // Payment + final consents
+
+// Consult subtype keys (used in URL and intake creation)
+export type ConsultSubtype = 
+  | 'general'
+  | 'new_medication'
+  | 'ed'
+  | 'hair_loss'
+  | 'womens_health'
+  | 'weight_loss'
+
+// Human-readable labels for consult subtypes
+export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
+  general: 'General consult',
+  new_medication: 'New medication',
+  ed: 'Erectile dysfunction',
+  hair_loss: 'Hair loss',
+  womens_health: "Women's health",
+  weight_loss: 'Weight loss',
+}
 
 export interface StepDefinition {
   id: UnifiedStepId
@@ -271,14 +297,171 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
 
 }
 
+// Shared tail steps for all consult subtypes
+const CONSULT_COMMON_TAIL: StepDefinition[] = [
+  {
+    id: 'medical-history',
+    label: 'Medical history',
+    shortLabel: 'Health',
+    componentPath: 'medical-history-step',
+    validateFn: 'validateMedicalHistoryStep',
+    required: true,
+  },
+  {
+    id: 'details',
+    label: 'Your details',
+    shortLabel: 'Details',
+    componentPath: 'patient-details-step',
+    validateFn: 'validateDetailsStep',
+    canSkip: (ctx) => ctx.isAuthenticated && ctx.hasProfile,
+    required: true,
+  },
+  {
+    id: 'safety',
+    label: 'Safety check',
+    shortLabel: 'Safety',
+    componentPath: 'safety-step',
+    required: true,
+  },
+  {
+    id: 'review',
+    label: 'Review',
+    shortLabel: 'Review',
+    componentPath: 'review-step',
+    required: true,
+  },
+  {
+    id: 'checkout',
+    label: 'Payment',
+    shortLabel: 'Pay',
+    componentPath: 'checkout-step',
+    validateFn: 'validateCheckoutStep',
+    required: true,
+  },
+]
+
+// Consult subtype-specific step sequences
+const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
+  // General and new_medication use existing consult-reason step
+  general: [
+    {
+      id: 'consult-reason',
+      label: 'Your concern',
+      shortLabel: 'Concern',
+      componentPath: 'consult-reason-step',
+      validateFn: 'validateConsultReasonStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+  
+  new_medication: [
+    {
+      id: 'consult-reason',
+      label: 'Your concern',
+      shortLabel: 'Concern',
+      componentPath: 'consult-reason-step',
+      validateFn: 'validateConsultReasonStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+  
+  ed: [
+    {
+      id: 'ed-assessment',
+      label: 'ED assessment',
+      shortLabel: 'Assessment',
+      componentPath: 'ed-assessment-step',
+      validateFn: 'validateEdAssessmentStep',
+      required: true,
+    },
+    {
+      id: 'ed-safety',
+      label: 'Safety screening',
+      shortLabel: 'Screening',
+      componentPath: 'ed-safety-step',
+      validateFn: 'validateEdSafetyStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+  
+  hair_loss: [
+    {
+      id: 'hair-loss-assessment',
+      label: 'Hair loss assessment',
+      shortLabel: 'Assessment',
+      componentPath: 'hair-loss-assessment-step',
+      validateFn: 'validateHairLossAssessmentStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+  
+  womens_health: [
+    {
+      id: 'womens-health-type',
+      label: 'What you need',
+      shortLabel: 'Type',
+      componentPath: 'womens-health-type-step',
+      validateFn: 'validateWomensHealthTypeStep',
+      required: true,
+    },
+    {
+      id: 'womens-health-assessment',
+      label: 'Health assessment',
+      shortLabel: 'Assessment',
+      componentPath: 'womens-health-assessment-step',
+      validateFn: 'validateWomensHealthAssessmentStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+  
+  weight_loss: [
+    {
+      id: 'weight-loss-assessment',
+      label: 'Weight loss assessment',
+      shortLabel: 'Assessment',
+      componentPath: 'weight-loss-assessment-step',
+      validateFn: 'validateWeightLossAssessmentStep',
+      required: true,
+    },
+    {
+      id: 'weight-loss-call-scheduling',
+      label: 'Schedule your call',
+      shortLabel: 'Call',
+      componentPath: 'weight-loss-call-step',
+      validateFn: 'validateWeightLossCallStep',
+      required: true,
+    },
+    ...CONSULT_COMMON_TAIL,
+  ],
+}
+
 /**
  * Get the step sequence for a service type, filtering out skippable steps
+ * For consult service, branches based on consultSubtype in answers
  */
 export function getStepsForService(
   serviceType: UnifiedServiceType,
   context: StepContext
 ): StepDefinition[] {
-  const steps = STEP_REGISTRY[serviceType]
+  let steps: StepDefinition[]
+  
+  if (serviceType === 'consult') {
+    // Branch based on consult subtype
+    const subtype = context.answers.consultSubtype as ConsultSubtype | undefined
+    if (subtype && CONSULT_SUBTYPE_STEPS[subtype]) {
+      steps = CONSULT_SUBTYPE_STEPS[subtype]
+    } else {
+      // Fallback to default consult steps (with category selection)
+      steps = STEP_REGISTRY['consult']
+    }
+  } else {
+    steps = STEP_REGISTRY[serviceType]
+  }
   
   if (!steps) {
     throw new Error(`Unknown service type: ${serviceType}. Supported types: ${Object.keys(STEP_REGISTRY).join(', ')}`)
@@ -345,11 +528,11 @@ export const SUPPORTED_SERVICE_SLUGS = [
  * Returns:
  * - UnifiedServiceType for valid service params
  * - null for invalid/unknown service params (caller should show error)
- * - 'med-cert' when no param provided (default service)
+ * - null when no param provided (show service hub)
  */
 export function mapServiceParam(param: string | undefined): UnifiedServiceType | null {
-  // No param = default to med-cert
-  if (!param) return 'med-cert'
+  // No param = show service hub (return null)
+  if (!param) return null
   
   const mapping: Record<string, UnifiedServiceType> = {
     'med-cert': 'med-cert',

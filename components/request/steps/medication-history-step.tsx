@@ -10,11 +10,12 @@
  */
 
 import { useState, useCallback } from "react"
-import { History, AlertTriangle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { History, AlertTriangle, Stethoscope, ArrowLeft } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
@@ -36,7 +37,8 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "never", label: "Never prescribed this medication" },
 ] as const
 
-export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepProps) {
+export default function MedicationHistoryStep({ onNext, onBack }: MedicationHistoryStepProps) {
+  const router = useRouter()
   const { answers, setAnswer } = useRequestStore()
   
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
@@ -119,15 +121,61 @@ export default function MedicationHistoryStep({ onNext }: MedicationHistoryStepP
         </div>
       </FormField>
 
-      {/* Warning for never prescribed */}
+      {/* Warning for never prescribed - improved with clear actions */}
       {isNeverPrescribed && (
-        <Alert variant="destructive">
-          <AlertTriangle className="w-4 h-4" />
-          <AlertDescription className="text-sm">
-            This service is for repeat prescriptions only. If you need a new medication, please{" "}
-            <a href="/request?service=consult" className="underline font-medium">book a consultation</a>.
-          </AlertDescription>
-        </Alert>
+        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 space-y-4">
+          <div className="flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <AlertTitle className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                This service is for repeat prescriptions only
+              </AlertTitle>
+              <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
+                If you&apos;ve never been prescribed this medication before, you&apos;ll need a doctor consultation first.
+              </AlertDescription>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              onClick={() => {
+                // Encode medication context in URL for consult handoff (survives refresh)
+                const medicationName = answers.medicationName as string | undefined
+                const medicationStrength = answers.medicationStrength as string | undefined
+                
+                // Build URL with context params
+                const params = new URLSearchParams({
+                  service: 'consult',
+                  subtype: 'new-medication',
+                })
+                
+                // Add medication context if available
+                if (medicationName) {
+                  const medicationContext = medicationStrength 
+                    ? `${medicationName} ${medicationStrength}`
+                    : medicationName
+                  params.set('medication', medicationContext)
+                }
+                
+                router.push(`/request?${params.toString()}`)
+              }}
+              className="flex-1 gap-2"
+            >
+              <Stethoscope className="w-4 h-4" />
+              Book a consultation
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAnswer("prescriptionHistory", undefined)
+                onBack()
+              }}
+              className="flex-1 gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Go back and change
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Who prescribed */}

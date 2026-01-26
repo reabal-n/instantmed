@@ -111,6 +111,19 @@ const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: strin
   },
 ]
 
+// Format consult subtype for display
+function formatConsultSubtype(subtype: string): string {
+  const labels: Record<string, string> = {
+    general: 'General consult',
+    new_medication: 'New medication',
+    ed: 'Erectile dysfunction',
+    hair_loss: 'Hair loss',
+    womens_health: "Women's health",
+    weight_loss: 'Weight loss',
+  }
+  return labels[subtype] || subtype.replace(/_/g, ' ')
+}
+
 export function IntakeDetailClient({
   intake,
   patientAge,
@@ -443,6 +456,12 @@ export function IntakeDetailClient({
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             {service?.name || formatServiceType(service?.type || "")}
+            {/* Display consult subtype for gp-consult service */}
+            {intake.category === 'consult' && intake.subtype && intake.subtype !== 'general' && (
+              <Badge variant="secondary" className="ml-2 text-xs font-normal">
+                {formatConsultSubtype(intake.subtype)}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -464,6 +483,7 @@ export function IntakeDetailClient({
             <ClinicalSummary 
               answers={answers} 
               serviceType={service?.type}
+              consultSubtype={intake.category === 'consult' && intake.subtype ? intake.subtype : undefined}
               className="border-0 shadow-none p-0"
             />
           )}

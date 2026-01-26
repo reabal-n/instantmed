@@ -27,6 +27,14 @@ const stepComponents = {
   'review-step': lazy(() => import('./steps/review-step')),
   'checkout-step': lazy(() => import('./steps/checkout-step')),
   'referral-reason-step': lazy(() => import('./steps/referral-reason-step')),
+  // Consult subtype-specific steps
+  'ed-assessment-step': lazy(() => import('./steps/ed-assessment-step')),
+  'ed-safety-step': lazy(() => import('./steps/ed-safety-step')),
+  'hair-loss-assessment-step': lazy(() => import('./steps/hair-loss-assessment-step')),
+  'womens-health-type-step': lazy(() => import('./steps/womens-health-type-step')),
+  'womens-health-assessment-step': lazy(() => import('./steps/womens-health-assessment-step')),
+  'weight-loss-assessment-step': lazy(() => import('./steps/weight-loss-assessment-step')),
+  'weight-loss-call-step': lazy(() => import('./steps/weight-loss-call-step')),
 } as const
 
 type StepComponentKey = keyof typeof stepComponents

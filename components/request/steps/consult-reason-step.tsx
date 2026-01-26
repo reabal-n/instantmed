@@ -5,7 +5,7 @@
  * Collects reason for consultation with common categories
  */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Stethoscope, MessageSquare, Info } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -23,20 +23,81 @@ interface ConsultReasonStepProps {
 }
 
 const CONSULT_CATEGORIES = [
-  { value: "ed", label: "Erectile dysfunction", icon: "💊" },
+  { value: "new_medication", label: "New medication", icon: "💊" },
+  { value: "ed", label: "Erectile dysfunction", icon: "🔵" },
   { value: "hair_loss", label: "Hair loss", icon: "💇" },
   { value: "weight_loss", label: "Weight loss", icon: "⚖️" },
   { value: "womens_health", label: "Women's health", icon: "🌸" },
-  { value: "general", label: "General consult", icon: "🩺" },
+  { value: "general", label: "Other / General consult", icon: "🩺" },
 ] as const
+
+// Map hub subtypes to category values
+const SUBTYPE_TO_CATEGORY: Record<string, string> = {
+  'general': 'general',
+  'new-medication': 'new_medication',
+  'ed': 'ed',
+  'hair-loss': 'hair_loss',
+  'womens-health': 'womens_health',
+  'weight-loss': 'weight_loss',
+}
+
+// Subtype-specific guidance and placeholders
+const CATEGORY_GUIDANCE: Record<string, {
+  placeholder: string
+  helperText: string
+  suggestedTopics: string[]
+}> = {
+  new_medication: {
+    placeholder: "Tell us about the medication you need and why you believe it would help...",
+    helperText: "Include any relevant symptoms, previous treatments, or why you're seeking this specific medication.",
+    suggestedTopics: ["Medication name", "Why you need it", "Relevant symptoms", "Previous treatments"],
+  },
+  ed: {
+    placeholder: "Describe when you first noticed symptoms, how often they occur, and any relevant health conditions...",
+    helperText: "Include information about onset, frequency, and any medications you currently take.",
+    suggestedTopics: ["When symptoms started", "Frequency", "Current medications", "Other health conditions"],
+  },
+  hair_loss: {
+    placeholder: "Describe the pattern of hair loss, when you first noticed it, and any family history...",
+    helperText: "Include where hair loss is occurring and any changes to your routine.",
+    suggestedTopics: ["Pattern of loss", "Duration", "Family history", "Recent changes"],
+  },
+  weight_loss: {
+    placeholder: "Describe your weight goals, current diet and exercise, and any previous attempts...",
+    helperText: "Include your current weight, target, and any relevant health conditions.",
+    suggestedTopics: ["Current weight", "Target weight", "Diet history", "Exercise routine"],
+  },
+  womens_health: {
+    placeholder: "Describe your concern, relevant symptoms, and any relevant menstrual or reproductive history...",
+    helperText: "Include cycle regularity, any current contraception, and symptom timing.",
+    suggestedTopics: ["Main concern", "Symptom timing", "Current contraception", "Relevant history"],
+  },
+  general: {
+    placeholder: "Describe your health concern, including any symptoms, how long you've had them, and what you've tried...",
+    helperText: "The more detail you provide, the better the doctor can assess your situation.",
+    suggestedTopics: ["Main concern", "Duration", "Severity", "What you've tried"],
+  },
+}
 
 export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const [errors, setErrors] = useState<Record<string, string>>({})
   
+  // Pre-fill from hub subtype selection
+  const consultSubtype = answers.consultSubtype as string | undefined
   const consultCategory = answers.consultCategory as string | undefined
   const consultDetails = (answers.consultDetails as string) || ""
   const consultUrgency = answers.consultUrgency as string | undefined
+
+  // Apply hub subtype selection on mount
+  useEffect(() => {
+    if (consultSubtype && !consultCategory) {
+      const mappedCategory = SUBTYPE_TO_CATEGORY[consultSubtype]
+      if (mappedCategory) {
+        setAnswer("consultCategory", mappedCategory)
+      }
+    }
+  }, [consultSubtype, consultCategory, setAnswer])
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -106,12 +167,33 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
           </Label>
         </div>
         <p className="text-xs text-muted-foreground">
-          Include symptoms, duration, and any relevant history. The more detail, the better we can help.
+          {consultCategory && CATEGORY_GUIDANCE[consultCategory]
+            ? CATEGORY_GUIDANCE[consultCategory].helperText
+            : "Include symptoms, duration, and any relevant history. The more detail, the better we can help."}
         </p>
+        
+        {/* Suggested topics for the selected category */}
+        {consultCategory && CATEGORY_GUIDANCE[consultCategory] && (
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORY_GUIDANCE[consultCategory].suggestedTopics.map((topic) => (
+              <span
+                key={topic}
+                className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+              >
+                {topic}
+              </span>
+            ))}
+          </div>
+        )}
+        
         <Textarea
           value={consultDetails}
           onChange={(e) => setAnswer("consultDetails", e.target.value)}
-          placeholder="Describe your concern in detail..."
+          placeholder={
+            consultCategory && CATEGORY_GUIDANCE[consultCategory]
+              ? CATEGORY_GUIDANCE[consultCategory].placeholder
+              : "Describe your concern in detail..."
+          }
           className="min-h-[120px] resize-none"
         />
         <div className="flex justify-between text-xs">

@@ -42,19 +42,19 @@ interface NavbarProps {
 const services = [
   {
     title: "Medical Certificates",
-    href: "/medical-certificate",
+    href: "/request?service=med-cert",
     description: "Work, uni & carer's leave",
     icon: FileText,
   },
   {
     title: "Repeat Scripts",
-    href: "/prescriptions",
+    href: "/request?service=prescription",
     description: "Medications you already take",
     icon: Pill,
   },
   {
     title: "General Consult",
-    href: "/consult",
+    href: "/request?service=consult",
     description: "New prescriptions & dose changes",
     icon: Stethoscope,
   },
@@ -504,7 +504,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{
                 label: "Medical certificates",
-                href: "/medical-certificate",
+                href: "/request?service=med-cert",
                 description: "Work, uni & carer's leave",
                 icon: <FileText className="h-5 w-5" />,
               }}
@@ -514,7 +514,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{
                 label: "Repeat Rx",
-                href: "/prescriptions",
+                href: "/request?service=prescription",
                 description: "Medications you already take",
                 icon: <Pill className="h-5 w-5" />,
               }}
@@ -524,7 +524,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <AnimatedMobileMenu.Item
               item={{
                 label: "General consult",
-                href: "/consult",
+                href: "/request?service=consult",
                 description: "New prescriptions & dose changes",
                 icon: <Stethoscope className="h-5 w-5" />,
               }}

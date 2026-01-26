@@ -5,6 +5,7 @@
  */
 
 export { RequestFlow } from './request-flow'
+export { ServiceHubScreen } from './service-hub-screen'
 export { StepRouter } from './step-router'
 export { useRequestStore } from './store'
 export type { RequestState, RequestActions } from './store'

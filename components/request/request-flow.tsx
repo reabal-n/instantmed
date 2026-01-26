@@ -19,12 +19,13 @@
 
 import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff } from "lucide-react"
+import { ArrowLeft, X, RotateCcw, Check, Clock, Cloud, CloudOff, AlertTriangle } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
 import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { StepRouter } from "./step-router"
+import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import { ConnectionBanner } from "./connection-banner"
@@ -33,6 +34,7 @@ import {
   type UnifiedServiceType,
   type StepContext,
 } from "@/lib/request/step-registry"
+import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 
 // Estimated time per step type (in seconds)
 const STEP_TIME_ESTIMATES: Record<string, number> = {
@@ -54,6 +56,10 @@ interface RequestFlowProps {
   initialService: UnifiedServiceType | null
   /** Raw service param from URL (for error messages) */
   rawServiceParam?: string
+  /** Subtype from URL (e.g., 'new-medication' for consult handoff) */
+  initialSubtype?: string
+  /** Medication context from URL (for consult handoff from prescription flow) */
+  initialMedication?: string
   isAuthenticated: boolean
   hasProfile: boolean
   hasMedicare: boolean
@@ -243,9 +249,57 @@ function DraftRestorationBanner({
   )
 }
 
+// Consult subtype mismatch banner - shown when URL subtype differs from draft
+function SubtypeMismatchBanner({ 
+  draftSubtype,
+  urlSubtype,
+  onResumeDraft, 
+  onStartFresh,
+}: { 
+  draftSubtype: string
+  urlSubtype: string
+  onResumeDraft: () => void
+  onStartFresh: () => void 
+}) {
+  // Import labels for display
+  const subtypeLabels: Record<string, string> = {
+    general: 'General consult',
+    new_medication: 'New medication',
+    ed: 'Erectile dysfunction',
+    hair_loss: 'Hair loss',
+    womens_health: "Women's health",
+    weight_loss: 'Weight loss',
+  }
+  
+  const draftLabel = subtypeLabels[draftSubtype] || draftSubtype
+  const urlLabel = subtypeLabels[urlSubtype] || urlSubtype
+  
+  return (
+    <Alert className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+      <AlertTriangle className="w-4 h-4 text-amber-600" />
+      <AlertDescription className="flex flex-col gap-3">
+        <span className="text-sm text-amber-700 dark:text-amber-300">
+          You have an unfinished <strong>{draftLabel}</strong> consult. 
+          You selected <strong>{urlLabel}</strong>.
+        </span>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={onStartFresh}>
+            Start {urlLabel}
+          </Button>
+          <Button size="sm" onClick={onResumeDraft}>
+            Resume {draftLabel}
+          </Button>
+        </div>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
 export function RequestFlow({
   initialService,
   rawServiceParam,
+  initialSubtype,
+  initialMedication,
   isAuthenticated,
   hasProfile,
   hasMedicare,
@@ -255,6 +309,8 @@ export function RequestFlow({
   const router = useRouter()
   const posthog = usePostHog()
   const [showDraftBanner, setShowDraftBanner] = useState(false)
+  const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
+  const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
@@ -270,6 +326,7 @@ export function RequestFlow({
     prevStep,
     goToStep,
     answers,
+    setAnswer,
     setIdentity,
     setAuthContext,
     lastSavedAt,
@@ -309,15 +366,42 @@ export function RequestFlow({
   }, [userEmail, userName, answers.email, setIdentity])
 
   // Initialize service type from URL param
-  // IMPORTANT: Always respect URL param when it differs from cached store value
-  // This fixes the bug where cached med-cert would override ?service=prescription
+  // IMPORTANT: URL param is the source of truth for which service to show
+  // We do NOT reset other service drafts - they are preserved in service-scoped storage
   useEffect(() => {
     if (initialService && serviceType !== initialService) {
-      // Reset to first step when service changes
-      reset()
+      // Set the service type to match URL - drafts for THIS service will be loaded
+      // from service-scoped storage. Other service drafts remain untouched.
       setServiceType(initialService)
     }
-  }, [initialService, serviceType, setServiceType, reset])
+  }, [initialService, serviceType, setServiceType])
+
+  // Apply URL context params for consult handoff (survives refresh)
+  // Also detect subtype mismatch between draft and URL
+  useEffect(() => {
+    if (initialService === 'consult' && initialSubtype) {
+      const storedSubtype = answers.consultSubtype as string | undefined
+      
+      // Check for subtype mismatch - draft has different subtype than URL
+      if (storedSubtype && storedSubtype !== initialSubtype && lastSavedAt) {
+        // Show mismatch banner instead of silently overwriting
+        setDraftSubtype(storedSubtype)
+        setShowSubtypeMismatch(true)
+        return // Don't auto-apply URL subtype - let user decide
+      }
+      
+      // No mismatch or no existing draft - apply URL subtype
+      setAnswer('consultSubtype', initialSubtype)
+      
+      // If medication context is provided, prefill consult details
+      if (initialMedication && !answers.consultDetails) {
+        const decodedMedication = decodeURIComponent(initialMedication)
+        setAnswer('consultDetails', `I would like to discuss getting a prescription for ${decodedMedication}.`)
+      }
+    }
+  // Only run on mount - URL params are the source of truth
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Dev sanity check: log service routing on mount
   useEffect(() => {
@@ -365,6 +449,12 @@ export function RequestFlow({
     return getStepsForService(effectiveService, stepContext)
   }, [effectiveService, stepContext])
 
+  // Canonical service type for analytics (prescription/repeat-script -> 'prescription')
+  const analyticsServiceType = useMemo(() => 
+    canonicalizeServiceType(serviceType) || serviceType || 'unknown',
+    [serviceType]
+  )
+
   // Find current step index - default to first step if current step not found
   const currentStepIndex = useMemo(() => {
     const index = activeSteps.findIndex(s => s.id === currentStepId)
@@ -379,19 +469,19 @@ export function RequestFlow({
   useEffect(() => {
     if (currentStep && serviceType) {
       posthog?.capture('request_step_viewed', {
-        service_type: serviceType,
+        service_type: analyticsServiceType,
         step_id: currentStep.id,
         step_index: currentStepIndex,
         total_steps: activeSteps.length,
         is_authenticated: isAuthenticated,
       })
     }
-  }, [currentStep, serviceType, currentStepIndex, activeSteps.length, isAuthenticated, posthog])
+  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, activeSteps.length, isAuthenticated, posthog])
 
   // Handle back navigation with tracking
   const handleBack = useCallback(() => {
     posthog?.capture('request_step_back', {
-      service_type: serviceType,
+      service_type: analyticsServiceType,
       from_step: currentStepId,
       step_index: currentStepIndex,
     })
@@ -405,12 +495,12 @@ export function RequestFlow({
     } else {
       router.back()
     }
-  }, [currentStepIndex, currentStepId, serviceType, prevStep, router, posthog])
+  }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
 
   // Handle next navigation with tracking
   const handleNext = useCallback(() => {
     posthog?.capture('request_step_completed', {
-      service_type: serviceType,
+      service_type: analyticsServiceType,
       step_id: currentStepId,
       step_index: currentStepIndex,
     })
@@ -420,33 +510,33 @@ export function RequestFlow({
       nextStep()
       setIsTransitioning(false)
     }, 150)
-  }, [serviceType, currentStepId, currentStepIndex, nextStep, posthog])
+  }, [analyticsServiceType, currentStepId, currentStepIndex, nextStep, posthog])
 
   // Handle flow completion with tracking
   const handleComplete = useCallback(() => {
     posthog?.capture('request_flow_completed', {
-      service_type: serviceType,
+      service_type: analyticsServiceType,
       total_steps: activeSteps.length,
       is_authenticated: isAuthenticated,
     })
     router.push('/patient/intakes/success')
-  }, [serviceType, activeSteps.length, isAuthenticated, router, posthog])
+  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog])
 
   // Handle exit with tracking
   const handleExit = useCallback(() => {
     posthog?.capture('request_flow_exited', {
-      service_type: serviceType,
+      service_type: analyticsServiceType,
       exit_step: currentStepId,
       step_index: currentStepIndex,
     })
     router.push('/')
-  }, [serviceType, currentStepId, currentStepIndex, router, posthog])
+  }, [analyticsServiceType, currentStepId, currentStepIndex, router, posthog])
 
   // Handle draft restoration
   const handleRestoreDraft = useCallback(() => {
     setShowDraftBanner(false)
-    posthog?.capture('request_draft_restored', { service_type: serviceType })
-  }, [serviceType, posthog])
+    posthog?.capture('request_draft_restored', { service_type: analyticsServiceType })
+  }, [analyticsServiceType, posthog])
 
   // Handle draft discard
   const handleDiscardDraft = useCallback(() => {
@@ -455,15 +545,52 @@ export function RequestFlow({
     if (initialService) {
       setServiceType(initialService)
     }
-    posthog?.capture('request_draft_discarded', { service_type: serviceType })
-  }, [reset, initialService, setServiceType, serviceType, posthog])
+    posthog?.capture('request_draft_discarded', { service_type: analyticsServiceType })
+  }, [reset, initialService, setServiceType, analyticsServiceType, posthog])
+
+  // Handle consult subtype mismatch - resume existing draft
+  const handleResumeDraft = useCallback(() => {
+    setShowSubtypeMismatch(false)
+    // Keep the draft subtype (don't change consultSubtype in store)
+    // Navigate to the draft's subtype URL for consistency
+    if (draftSubtype) {
+      router.replace(`/request?service=consult&subtype=${draftSubtype}`)
+    }
+    posthog?.capture('consult_draft_resumed', { 
+      service_type: analyticsServiceType,
+      draft_subtype: draftSubtype,
+      url_subtype: initialSubtype,
+    })
+  }, [draftSubtype, initialSubtype, analyticsServiceType, router, posthog])
+
+  // Handle consult subtype mismatch - start fresh with URL subtype
+  const handleStartFreshSubtype = useCallback(() => {
+    setShowSubtypeMismatch(false)
+    // Clear only consult-related answers and apply URL subtype
+    setAnswer('consultSubtype', initialSubtype)
+    setAnswer('consultCategory', undefined)
+    setAnswer('consultDetails', undefined)
+    // Clear any subtype-specific answers
+    setAnswer('edOnset', undefined)
+    setAnswer('edFrequency', undefined)
+    setAnswer('hairPattern', undefined)
+    setAnswer('womensHealthOption', undefined)
+    setAnswer('currentWeight', undefined)
+    setAnswer('preferredTimeSlot', undefined)
+    
+    posthog?.capture('consult_draft_cleared_for_new_subtype', { 
+      service_type: analyticsServiceType,
+      old_subtype: draftSubtype,
+      new_subtype: initialSubtype,
+    })
+  }, [initialSubtype, draftSubtype, analyticsServiceType, setAnswer, posthog])
 
   // Handle step click (navigate to a previous step)
   const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
     if (stepIndex === currentStepIndex) return // Already on this step
     
     posthog?.capture('request_step_jumped', {
-      service_type: serviceType,
+      service_type: analyticsServiceType,
       from_step: currentStepId,
       to_step: stepId,
       from_index: currentStepIndex,
@@ -475,7 +602,7 @@ export function RequestFlow({
       goToStep(stepId as Parameters<typeof goToStep>[0])
       setIsTransitioning(false)
     }, 150)
-  }, [currentStepIndex, currentStepId, serviceType, goToStep, posthog])
+  }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog])
 
   // Handle swipe gestures for mobile navigation
   const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -544,6 +671,24 @@ export function RequestFlow({
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])
 
+  // Handle service selection from hub
+  const handleSelectService = useCallback((service: UnifiedServiceType, consultSubtype?: string) => {
+    // Set the service type (does not reset other drafts)
+    setServiceType(service)
+    
+    // Navigate with URL params (URL is source of truth for subtype)
+    if (service === 'consult' && consultSubtype) {
+      router.push(`/request?service=${service}&subtype=${consultSubtype}`)
+    } else {
+      router.push(`/request?service=${service}`)
+    }
+  }, [setServiceType, router])
+
+  // No service param provided - show service hub
+  if (initialService === null && !rawServiceParam) {
+    return <ServiceHubScreen onSelectService={handleSelectService} />
+  }
+
   // Invalid service param provided - show error screen
   if (initialService === null && rawServiceParam) {
     return (
@@ -558,7 +703,7 @@ export function RequestFlow({
           </p>
           <div className="flex flex-col gap-2 pt-4">
             <Button onClick={() => router.push('/request')}>
-              Start a medical certificate request
+              Choose a service
             </Button>
             <Button variant="outline" onClick={() => router.push('/')}>
               Return home
@@ -711,6 +856,16 @@ export function RequestFlow({
             serviceName={serviceName}
             onRestore={handleRestoreDraft}
             onDiscard={handleDiscardDraft}
+          />
+        )}
+
+        {/* Consult subtype mismatch banner */}
+        {showSubtypeMismatch && draftSubtype && initialSubtype && (
+          <SubtypeMismatchBanner
+            draftSubtype={draftSubtype}
+            urlSubtype={initialSubtype}
+            onResumeDraft={handleResumeDraft}
+            onStartFresh={handleStartFreshSubtype}
           />
         )}
 

@@ -7,15 +7,23 @@ import { mapServiceParam } from "@/lib/request/step-registry"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "New Request | InstantMed",
+  title: "Get Started | InstantMed",
   description:
-    "Get a medical certificate, prescription, or referral online. Reviewed by Australian doctors. Most requests completed within 1 hour.",
+    "Medical certificates from $19, repeat prescriptions $29.95, doctor consultations from $49.95. Reviewed by Australian doctors. Most requests completed within 1 hour.",
+  openGraph: {
+    title: "Get Started | InstantMed",
+    description: "Medical certificates, prescriptions, and consultations online. Reviewed by Australian doctors.",
+  },
 }
 
 export default async function RequestPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string }>
+  searchParams: Promise<{ 
+    service?: string
+    subtype?: string
+    medication?: string
+  }>
 }) {
   const params = await searchParams
   const user = await getCurrentUser()
@@ -29,6 +37,8 @@ export default async function RequestPage({
     <RequestFlow
       initialService={initialService}
       rawServiceParam={params.service}
+      initialSubtype={params.subtype}
+      initialMedication={params.medication}
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasMedicare={!!profile?.medicare_number}

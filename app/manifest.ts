@@ -11,6 +11,27 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#2563EB",
     orientation: "portrait",
     categories: ["health", "medical", "lifestyle"],
+    // Deep link shortcuts for quick access to services
+    shortcuts: [
+      {
+        name: "New Request",
+        short_name: "Request",
+        description: "Start a new medical request",
+        url: "/request",
+      },
+      {
+        name: "Medical Certificate",
+        short_name: "Med Cert",
+        description: "Get a medical certificate",
+        url: "/request?service=med-cert",
+      },
+      {
+        name: "Repeat Prescription",
+        short_name: "Prescription",
+        description: "Refill your prescription",
+        url: "/request?service=prescription",
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",

@@ -10,7 +10,12 @@
 // Event types for the conversion funnel
 export type ConversionEvent = 
   | "page_view"
+  | "service_hub_viewed"
   | "service_selected"
+  | "consult_subtype_selected"
+  | "draft_resumed"
+  | "draft_cleared"
+  | "request_again_clicked"
   | "signup_started"
   | "signup_completed"
   | "onboarding_started"
@@ -137,16 +142,73 @@ function getGoogleAdsConversionId(event: ConversionEvent): string | null {
 // CONVENIENCE FUNCTIONS
 // ============================================
 
+// ============================================
+// SERVICE HUB FUNNEL TRACKING
+// ============================================
+
 /**
- * Track service selection
+ * Track service hub viewed
+ */
+export function trackServiceHubViewed(hasDraft: boolean, hasLastService: boolean) {
+  trackConversion("service_hub_viewed", {
+    has_draft: hasDraft,
+    has_last_service: hasLastService,
+  })
+}
+
+/**
+ * Track service selection from hub
  */
 export function trackServiceSelected(
   serviceType: "med_cert" | "prescription" | "consult",
-  price: number
+  price: number,
+  source?: "hub" | "direct" | "request_again"
 ) {
   trackConversion("service_selected", {
     service_type: serviceType,
     service_price: price,
+    selection_source: source || "hub",
+  })
+}
+
+/**
+ * Track consult subtype selection
+ */
+export function trackConsultSubtypeSelected(subtype: string) {
+  trackConversion("consult_subtype_selected", {
+    consult_subtype: subtype,
+    service_type: "consult",
+  })
+}
+
+/**
+ * Track draft resume
+ */
+export function trackDraftResumed(
+  serviceType: "med_cert" | "prescription" | "consult",
+  stepId: string
+) {
+  trackConversion("draft_resumed", {
+    service_type: serviceType,
+    step_id: stepId,
+  })
+}
+
+/**
+ * Track draft cleared
+ */
+export function trackDraftCleared(serviceType: "med_cert" | "prescription" | "consult") {
+  trackConversion("draft_cleared", {
+    service_type: serviceType,
+  })
+}
+
+/**
+ * Track request again clicked
+ */
+export function trackRequestAgainClicked(serviceType: "med_cert" | "prescription" | "consult") {
+  trackConversion("request_again_clicked", {
+    service_type: serviceType,
   })
 }
 

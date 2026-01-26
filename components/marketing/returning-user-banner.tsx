@@ -20,9 +20,9 @@ interface ReturningUserBannerProps {
 }
 
 const SERVICE_URLS: Record<string, string> = {
-  'med-cert': '/medical-certificate',
-  'repeat-prescription': '/repeat-prescription',
-  'general-consult': '/general-consult',
+  'med-cert': '/request?service=med-cert',
+  'repeat-prescription': '/request?service=prescription',
+  'general-consult': '/request?service=consult',
 }
 
 export function ReturningUserBanner({ className, variant = 'banner' }: ReturningUserBannerProps) {

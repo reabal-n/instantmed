@@ -6,7 +6,7 @@
  */
 
 import { useState } from "react"
-import { Check, Shield, Clock } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -149,6 +149,31 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
           ~1 hour review
         </span>
       </div>
+
+      {/* What you'll get - prescription specific */}
+      {(serviceType === 'prescription' || serviceType === 'repeat-script') && (
+        <div className="p-4 rounded-xl border bg-muted/30 space-y-3">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-primary" />
+            What you&apos;ll get
+          </h4>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <MessageSquare className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>eScript sent directly to your phone via SMS</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>Typically reviewed within 1 hour during business hours</span>
+            </li>
+          </ul>
+          <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
+            Take your phone to any pharmacy — they&apos;ll scan your eScript QR code.
+            If your medication requires a new prescription or has never been prescribed to you before,
+            our doctor will contact you to arrange a consultation.
+          </p>
+        </div>
+      )}
 
       {/* Consents */}
       <div className="space-y-3 p-4 rounded-xl border bg-muted/30">
