@@ -1,18 +1,22 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import * as Sentry from "@sentry/nextjs"
 import {
   updateIntakeStatus,
   saveDoctorNotes,
   flagForFollowup,
   markAsReviewed,
-  declineIntake,
   updateScriptSent,
   createPatientNote,
 } from "@/lib/data/intakes"
 import { requireRole } from "@/lib/auth"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
+import { createLogger } from "@/lib/observability/logger"
 import type { IntakeStatus } from "@/types/db"
+import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
+
+const logger = createLogger("doctor-queue-actions")
 
 // UUID validation helper
 function isValidUUID(id: string): boolean {
@@ -104,89 +108,20 @@ export async function declineIntakeAction(
   intakeId: string,
   reasonCode: string,
   reasonNote?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; refund?: { status: string } }> {
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { profile } = await requireRole(["doctor", "admin"])
-  if (!profile) {
-    return { success: false, error: "Unauthorized" }
-  }
+  // Use canonical decline action - handles refund + email + audit consistently
+  const result = await declineIntakeCanonical({
+    intakeId,
+    reason: reasonNote,
+    reasonCode,
+  })
 
-  // Get intake details for email before declining
-  const { getIntakeWithDetails } = await import("@/lib/data/intakes")
-  const intake = await getIntakeWithDetails(intakeId)
-  
-  const success = await declineIntake(intakeId, profile.id, reasonCode, reasonNote)
-  if (!success) {
-    return { success: false, error: "Failed to decline" }
-  }
-
-  // Send decline notification email (P0 fix)
-  if (intake?.patient?.email) {
-    try {
-      const { sendRequestDeclinedEmail } = await import("@/lib/email/resend")
-      const service = intake.service as { name?: string; type?: string } | undefined
-      const requestType = service?.name || "medical request"
-      
-      const emailResult = await sendRequestDeclinedEmail(
-        intake.patient.email,
-        intake.patient.full_name || "Patient",
-        requestType,
-        intakeId,
-        reasonNote || undefined
-      )
-      
-      // Track email delivery status on intake
-      if (!emailResult.success) {
-        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-        const supabase = createServiceRoleClient()
-        await supabase
-          .from("intakes")
-          .update({ 
-            notification_email_status: "failed",
-            notification_email_error: emailResult.error,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", intakeId)
-        
-        // Log to Sentry for visibility
-        const { captureMessage } = await import("@sentry/nextjs")
-        captureMessage("Decline notification email failed", {
-          level: "warning",
-          tags: { intakeId, action: "decline" },
-          extra: { error: emailResult.error, patientEmail: intake.patient.email },
-        })
-      } else {
-        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-        const supabase = createServiceRoleClient()
-        await supabase
-          .from("intakes")
-          .update({ 
-            notification_email_status: "sent",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", intakeId)
-      }
-    } catch (emailError) {
-      // Log email failure but don't fail the action
-      const { createLogger } = await import("@/lib/observability/logger")
-      const logger = createLogger("decline-intake")
-      logger.error("Failed to send decline email", { intakeId }, emailError instanceof Error ? emailError : new Error(String(emailError)))
-      
-      // Track failure on intake
-      const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-      const supabase = createServiceRoleClient()
-      await supabase
-        .from("intakes")
-        .update({ 
-          notification_email_status: "failed",
-          notification_email_error: emailError instanceof Error ? emailError.message : "Unknown error",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", intakeId)
-    }
+  if (!result.success) {
+    return { success: false, error: result.error }
   }
 
   revalidatePath("/doctor")
@@ -194,7 +129,10 @@ export async function declineIntakeAction(
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
 
-  return { success: true }
+  return { 
+    success: true,
+    refund: result.refund ? { status: result.refund.status } : undefined,
+  }
 }
 
 export async function flagForFollowupAction(
@@ -294,9 +232,14 @@ export async function claimIntakeAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
+  Sentry.setTag("action", "claim_intake")
+  Sentry.setTag("intake_id", intakeId)
+
   try {
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
+
+    logger.info("[ClaimIntake] Attempting claim", { intakeId, doctorId: profile.id, force })
 
     // Use the database function for atomic claim
     const { data, error } = await supabase.rpc("claim_intake_for_review", {
@@ -308,14 +251,24 @@ export async function claimIntakeAction(
     if (error) {
       // If RPC doesn't exist (migration not run), return graceful message
       if (error.message?.includes("function") || error.code === "42883") {
-        // Fallback: just return success - claiming not enforced without migration
+        logger.info("[ClaimIntake] RPC not available, fallback to success", { intakeId })
         return { success: true }
       }
+      logger.error("[ClaimIntake] RPC failed", { intakeId, error: error.message })
+      Sentry.captureMessage("Intake claim RPC failed", {
+        level: "error",
+        tags: { action: "claim_intake", intake_id: intakeId, step_id: "rpc_call" },
+        extra: { error: error.message, doctorId: profile.id },
+      })
       return { success: false, error: "Failed to claim intake" }
     }
 
     const result = data?.[0]
     if (!result?.success) {
+      logger.info("[ClaimIntake] Intake already claimed", { 
+        intakeId, 
+        claimedBy: result?.current_claimant 
+      })
       return {
         success: false,
         error: result?.error_message || "Intake already claimed",
@@ -323,8 +276,13 @@ export async function claimIntakeAction(
       }
     }
 
+    logger.info("[ClaimIntake] Claim successful", { intakeId, doctorId: profile.id })
     return { success: true }
-  } catch {
+  } catch (error) {
+    logger.error("[ClaimIntake] Unexpected error", { intakeId }, error instanceof Error ? error : undefined)
+    Sentry.captureException(error, {
+      tags: { action: "claim_intake", intake_id: intakeId, step_id: "claim_outer_catch" },
+    })
     // Graceful fallback if function doesn't exist
     return { success: true }
   }

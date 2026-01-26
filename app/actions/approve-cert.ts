@@ -2,8 +2,8 @@
 
 import crypto from "crypto"
 import { revalidatePath } from "next/cache"
-import { sendViaResend } from "@/lib/email/resend"
-import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
+import { sendEmail } from "@/lib/email/send-email"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRole } from "@/lib/auth"
 import { env } from "@/lib/env"
@@ -392,22 +392,29 @@ export async function approveAndSendCert(
       }
     }
 
-    // 6. Generate email HTML - link to dashboard, NOT raw file
-    // P1 FIX: Include verification code so employers can verify authenticity
+    // 6. Send email notification via centralized sendEmail (NO attachment - patient downloads from dashboard)
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
-    const emailHtml = renderMedCertEmailToHtml({
-      patientName: patient.full_name,
-      dashboardUrl,
-      verificationCode,
-    })
-
-    // 7. Send email notification (NO attachment - patient downloads from dashboard)
     logger.info("Sending certificate ready notification", { intakeId, to: patient.email })
     
-    const emailResult = await sendViaResend({
+    const emailResult = await sendEmail({
       to: patient.email,
-      subject: "Your Medical Certificate is Ready - InstantMed",
-      html: emailHtml,
+      toName: patient.full_name,
+      subject: medCertPatientEmailSubject,
+      template: MedCertPatientEmail({
+        patientName: patient.full_name,
+        dashboardUrl,
+        verificationCode,
+        certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
+        appUrl: env.appUrl,
+      }),
+      emailType: "med_cert_patient",
+      intakeId,
+      patientId: patient.id,
+      certificateId,
+      metadata: {
+        cert_type: certificateType,
+        verification_code: verificationCode,
+      },
       tags: [
         { name: "category", value: "med_cert_approved" },
         { name: "intake_id", value: intakeId },
@@ -419,10 +426,10 @@ export async function approveAndSendCert(
     if (certificateId) {
       if (emailResult.success) {
         await updateEmailStatus(certificateId, "sent", {
-          deliveryId: emailResult.id,
+          deliveryId: emailResult.messageId,
         })
         await logCertificateEvent(certificateId, "email_sent", null, "system", {
-          resend_id: emailResult.id,
+          resend_id: emailResult.messageId,
         })
       } else {
         await updateEmailStatus(certificateId, "failed", {
@@ -480,11 +487,27 @@ export async function approveAndSendCert(
 
     return { success: true, certificateId }
   } catch (error) {
-    logger.error("Error approving certificate", { 
+    logger.error("[ApproveCert] Error approving certificate", { 
       intakeId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined
     })
+    
+    // Sentry capture with useful tags for clinical workflow failures
+    const Sentry = await import("@sentry/nextjs")
+    Sentry.captureException(error, {
+      tags: {
+        action: "approve_med_cert",
+        service_type: "medical_certificate",
+        intake_id: intakeId,
+        step_id: "approve_cert_outer_catch",
+      },
+      extra: {
+        intakeId,
+        reviewDataKeys: Object.keys(reviewData),
+      },
+    })
+    
     return {
       success: false,
       error: error instanceof Error ? error.message : "We hit an unexpected bump. Please try again.",

@@ -22,10 +22,11 @@ export const siteConfig = {
 }
 
 export const heroRotatingTexts = [
-  "medical certificate",
-  "doctor consultation",
-  "sick note",
-  "repeat request",
+  "Need a sick note? Sorted.",
+  "Prescription running low? We've got you.",
+  "Under the weather? Stay in bed.",
+  "Need a med cert? Done in minutes.",
+  "Real doctors. Real reviews. Real simple.",
 ]
 
 export const trustSignals = [
@@ -108,9 +109,9 @@ export const serviceCategories = [
     popular: false,
     cta: "Book a consult",
     benefits: [
-      "Assessment of common medical concerns",
-      "Treatment advice and management plans",
-      "New prescriptions if clinically appropriate",
+      "Chat about something bothering you",
+      "Get advice on next steps",
+      "Prescriptions if it makes sense",
     ],
   },
 ]
@@ -149,14 +150,14 @@ export const howItWorks = [
   {
     step: 2,
     title: "A doctor reviews it",
-    description: "A real Australian GP looks over everything and makes the call.",
+    description: "A real Australian GP looks at your request and makes the call.",
     icon: "Stethoscope",
     emoji: "🩺",
   },
   {
     step: 3,
     title: "Done",
-    description: "Certificate to your inbox, eScript to your phone. Done.",
+    description: "Certificate to your inbox, eScript to your phone. That's it.",
     icon: "FileCheck",
     emoji: "✅",
   },
@@ -183,7 +184,7 @@ export const pricingTiers = [
   {
     name: "Prescription",
     price: 19.95,
-    description: "Need your regular treatments?",
+    description: "Running low on your regular meds?",
     features: [
       "eScript sent to your phone",
       "Repeats included when suitable",
@@ -199,7 +200,7 @@ export const pricingTiers = [
   {
     name: "Medical Certificate",
     price: 24.95,
-    description: "Sick? Need proof for work?",
+    description: "Unwell and need proof for work?",
     features: [
       "Reviewed in about an hour",
       "Valid for all employers",
@@ -215,11 +216,11 @@ export const pricingTiers = [
   {
     name: "General Consult",
     price: 44.95,
-    description: "Complex health concerns?",
+    description: "Something on your mind?",
     features: [
-      "New treatment options available",
-      "Dose adjustments",
-      "Detailed review",
+      "Talk through what's going on",
+      "Get advice on next steps",
+      "Prescriptions if it makes sense",
       "Pathology requests if needed",
     ],
     cta: "Book a consult",

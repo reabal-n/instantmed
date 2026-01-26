@@ -117,7 +117,7 @@ export function ExitIntentPopup({
   // Save for later variant (for intake forms)
   if (variant === 'save') {
     return (
-      <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
 
         <div className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -188,7 +188,7 @@ export function ExitIntentPopup({
   const testimonial = SERVICE_TESTIMONIALS[service]
   
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsVisible(false)} />
 
       <div className="relative w-full max-w-md bg-card border rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">

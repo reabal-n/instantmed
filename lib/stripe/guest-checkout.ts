@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer } from "@/lib/flow/safety/evaluate"
@@ -65,7 +66,16 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
-    // KILL SWITCH: Check if service category is disabled
+    // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
+    const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
+    if (envKillSwitch.blocked) {
+      return {
+        success: false,
+        error: envKillSwitch.userMessage,
+      }
+    }
+
+    // KILL SWITCH (DB): Check if service category is disabled in database
     const categoryMap: Record<ServiceCategory, "medical_certificate" | "prescription" | "other"> = {
       medical_certificate: "medical_certificate",
       prescription: "prescription",

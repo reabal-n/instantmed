@@ -62,7 +62,7 @@ export function CTASection() {
                 Ready when you are
               </h2>
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                Two minutes to fill out the form. A real GP reviews it. Certificate or script delivered.
+                Quick form. Real doctor review. Sorted.
               </p>
               
               {/* Features */}

@@ -27,7 +27,8 @@ import { cookies } from "next/headers"
 
 // Test user Clerk IDs (must match seed.ts)
 const TEST_USERS = {
-  operator: "user_e2e_operator_001",
+  operator: "user_e2e_operator_001",  // admin + doctor
+  doctor: "user_e2e_doctor_001",      // doctor only (not admin)
   patient: "user_e2e_patient_001",
 } as const
 
@@ -156,10 +157,20 @@ export async function POST(request: NextRequest) {
   })
 
   // Set role cookie for Sentry context (maps userType to role)
-  // operator = admin+doctor, patient = patient
-  const role = userType === "operator" ? "doctor" : "patient"
+  // operator = admin+doctor, doctor = doctor only, patient = patient
+  const role = userType === "patient" ? "patient" : "doctor"
+  const isAdmin = userType === "operator"
   cookieStore.set("__e2e_auth_role", role, {
     httpOnly: false, // Readable by client JS for Sentry context
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60,
+  })
+
+  // Set admin flag cookie for role-based UI checks
+  cookieStore.set("__e2e_auth_is_admin", isAdmin ? "true" : "false", {
+    httpOnly: false,
     secure: false,
     sameSite: "lax",
     path: "/",

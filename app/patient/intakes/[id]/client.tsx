@@ -29,6 +29,7 @@ import { resendVerificationEmail } from "@/app/actions/resend-verification"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
+import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import type { IntakeWithPatient, GeneratedDocument, IntakeDocument } from "@/types/db"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
@@ -481,19 +482,35 @@ export function IntakeDetailClient({
                       <p className="text-xs text-emerald-600">
                         A copy has also been sent to your email.
                       </p>
-                      {/* Resend Email Button */}
-                      {canResend && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={handleResendEmail}
-                          disabled={isPending}
-                          className="mt-2"
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          {isPending ? "Sending..." : "Resend to email"}
-                        </Button>
-                      )}
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {/* Resend Email Button */}
+                        {canResend && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleResendEmail}
+                            disabled={isPending}
+                          >
+                            <Mail className="h-4 w-4 mr-2" />
+                            {isPending ? "Sending..." : "Resend to email"}
+                          </Button>
+                        )}
+                        
+                        {/* Send to Employer - Only for med_certs */}
+                        {intake.service?.type === "med_certs" && (
+                          <SendToEmployerDialog
+                            intakeId={intake.id}
+                            patientName={(intake.patient as { full_name?: string })?.full_name || "Patient"}
+                            trigger={
+                              <Button variant="outline" size="sm" className="gap-2">
+                                <Mail className="h-4 w-4" />
+                                Email to Employer
+                              </Button>
+                            }
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

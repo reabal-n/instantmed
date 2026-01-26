@@ -618,3 +618,316 @@ export function compareClinicIdentitySnapshot(
   
   return { match: differences.length === 0, differences }
 }
+
+// ============================================================================
+// EMAIL OUTBOX HELPERS
+// ============================================================================
+
+/**
+ * Email outbox entry type definition
+ */
+export interface EmailOutboxEntry {
+  id: string
+  email_type: string
+  to_email: string
+  to_name: string | null
+  subject: string
+  status: "pending" | "sent" | "failed" | "skipped_e2e"
+  provider: string
+  provider_message_id: string | null
+  error_message: string | null
+  retry_count: number
+  intake_id: string | null
+  patient_id: string | null
+  certificate_id: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+  sent_at: string | null
+}
+
+/**
+ * Verify email_outbox table exists and is accessible
+ */
+export async function verifyEmailOutboxTable(): Promise<{ exists: boolean; error?: string }> {
+  try {
+    const supabase = getSupabaseClient()
+    const { error } = await supabase
+      .from("email_outbox")
+      .select("id")
+      .limit(1)
+    
+    if (error) {
+      return { exists: false, error: error.message }
+    }
+    return { exists: true }
+  } catch (err) {
+    return { exists: false, error: err instanceof Error ? err.message : "Unknown error" }
+  }
+}
+
+/**
+ * Insert a test row into email_outbox and verify it can be read back
+ */
+export async function testEmailOutboxInsertSelect(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = getSupabaseClient()
+    const testId = `e2e-test-${Date.now()}`
+    
+    // Insert test row
+    const { data: inserted, error: insertError } = await supabase
+      .from("email_outbox")
+      .insert({
+        email_type: "e2e_test",
+        to_email: "test@example.com",
+        subject: `E2E Test ${testId}`,
+        status: "skipped_e2e",
+        provider: "e2e_test",
+        metadata: { test_id: testId },
+      })
+      .select()
+      .single()
+    
+    if (insertError) {
+      return { success: false, error: `Insert failed: ${insertError.message}` }
+    }
+    
+    // Verify we can read it back
+    const { data: selected, error: selectError } = await supabase
+      .from("email_outbox")
+      .select("*")
+      .eq("id", inserted.id)
+      .single()
+    
+    if (selectError) {
+      return { success: false, error: `Select failed: ${selectError.message}` }
+    }
+    
+    // Clean up test row
+    await supabase
+      .from("email_outbox")
+      .delete()
+      .eq("id", inserted.id)
+    
+    return { 
+      success: selected.email_type === "e2e_test" && selected.subject === `E2E Test ${testId}` 
+    }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" }
+  }
+}
+
+/**
+ * Get email outbox entries for an intake
+ */
+export async function getEmailOutboxForIntake(intakeId: string): Promise<EmailOutboxEntry[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("email_outbox")
+    .select("*")
+    .eq("intake_id", intakeId)
+    .order("created_at", { ascending: false })
+  
+  if (error) {
+    console.error("Error fetching email_outbox entries:", error.message)
+    return []
+  }
+  
+  return data as EmailOutboxEntry[]
+}
+
+/**
+ * Get email outbox entry by type for an intake
+ */
+export async function getEmailOutboxByType(
+  intakeId: string, 
+  emailType: string
+): Promise<EmailOutboxEntry | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("email_outbox")
+    .select("*")
+    .eq("intake_id", intakeId)
+    .eq("email_type", emailType)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single()
+  
+  if (error) {
+    console.error("Error fetching email_outbox entry:", error.message)
+    return null
+  }
+  
+  return data as EmailOutboxEntry
+}
+
+/**
+ * Wait for email outbox entry to appear with timeout
+ */
+export async function waitForEmailOutboxEntry(
+  intakeId: string,
+  emailType: string,
+  timeoutMs = 30000
+): Promise<EmailOutboxEntry | null> {
+  const startTime = Date.now()
+  
+  while (Date.now() - startTime < timeoutMs) {
+    const entry = await getEmailOutboxByType(intakeId, emailType)
+    if (entry) {
+      return entry
+    }
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+  
+  return null
+}
+
+/**
+ * Count email outbox entries for an intake
+ */
+export async function countEmailOutboxEntries(
+  intakeId: string,
+  emailType?: string
+): Promise<number> {
+  const supabase = getSupabaseClient()
+  
+  let query = supabase
+    .from("email_outbox")
+    .select("*", { count: "exact", head: true })
+    .eq("intake_id", intakeId)
+  
+  if (emailType) {
+    query = query.eq("email_type", emailType)
+  }
+  
+  const { count, error } = await query
+  
+  if (error) {
+    console.error("Error counting email_outbox entries:", error.message)
+    return 0
+  }
+  
+  return count || 0
+}
+
+/**
+ * Delete email outbox entries for an intake (for test cleanup)
+ */
+export async function deleteEmailOutboxForIntake(intakeId: string): Promise<void> {
+  const supabase = getSupabaseClient()
+  await supabase
+    .from("email_outbox")
+    .delete()
+    .eq("intake_id", intakeId)
+}
+
+// ============================================================================
+// DECLINE FLOW TEST HELPERS
+// ============================================================================
+
+/**
+ * Options for seeding a test intake
+ */
+export interface SeedTestIntakeOptions {
+  status?: string
+  payment_status?: string
+  category?: string
+  refund_status?: string
+  refund_error?: string
+}
+
+/**
+ * Seed a test intake for E2E tests
+ * Uses the existing E2E patient and service if available
+ */
+export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promise<{
+  success: boolean
+  intakeId?: string
+  error?: string
+}> {
+  try {
+    const supabase = getSupabaseClient()
+    
+    // Use E2E patient ID (from seed.ts)
+    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
+    const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
+    
+    // Check if patient exists
+    const { data: patient, error: patientError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", E2E_PATIENT_ID)
+      .single()
+    
+    if (patientError || !patient) {
+      return { success: false, error: "E2E patient not found - run seed script first" }
+    }
+    
+    // Generate unique reference number
+    const refNum = `E2E-${Date.now().toString(36).toUpperCase()}`
+    
+    // Insert test intake
+    const { data: intake, error: insertError } = await supabase
+      .from("intakes")
+      .insert({
+        patient_id: E2E_PATIENT_ID,
+        service_id: E2E_SERVICE_ID,
+        reference_number: refNum,
+        status: options.status || "in_review",
+        payment_status: options.payment_status || "paid",
+        category: options.category || "medical_certificate",
+        refund_status: options.refund_status || null,
+        refund_error: options.refund_error || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single()
+    
+    if (insertError || !intake) {
+      return { success: false, error: insertError?.message || "Failed to insert intake" }
+    }
+    
+    return { success: true, intakeId: intake.id }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" }
+  }
+}
+
+/**
+ * Cleanup a test intake and related data
+ */
+export async function cleanupTestIntake(intakeId: string): Promise<void> {
+  try {
+    const supabase = getSupabaseClient()
+    
+    // Delete related records first (foreign key constraints)
+    await supabase.from("intake_events").delete().eq("intake_id", intakeId)
+    await supabase.from("intake_documents").delete().eq("intake_id", intakeId)
+    await supabase.from("issued_certificates").delete().eq("intake_id", intakeId)
+    await supabase.from("email_outbox").delete().eq("intake_id", intakeId)
+    await supabase.from("intake_answers").delete().eq("intake_id", intakeId)
+    
+    // Delete the intake
+    await supabase.from("intakes").delete().eq("id", intakeId)
+  } catch (err) {
+    console.error("Error cleaning up test intake:", err)
+  }
+}
+
+/**
+ * Get intake refund status
+ */
+export async function getIntakeRefundStatus(intakeId: string): Promise<{
+  refund_status: string | null
+  refund_error: string | null
+} | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("refund_status, refund_error")
+    .eq("id", intakeId)
+    .single()
+  
+  if (error) return null
+  return data
+}

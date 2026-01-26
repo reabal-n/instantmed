@@ -2,14 +2,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Use service role for admin operations (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-)
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
@@ -69,7 +62,8 @@ export async function POST(req: Request) {
     const fullName = [first_name, last_name].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
 
     // Upsert profile in Supabase
-    const { error } = await supabaseAdmin
+    const supabase = createServiceRoleClient()
+    const { error } = await supabase
       .from('profiles')
       .upsert(
         {
@@ -99,7 +93,8 @@ export async function POST(req: Request) {
     const { id } = evt.data
 
     // Soft delete - mark as inactive rather than deleting
-    const { error } = await supabaseAdmin
+    const supabase = createServiceRoleClient()
+    const { error } = await supabase
       .from('profiles')
       .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq('clerk_user_id', id)

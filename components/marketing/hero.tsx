@@ -8,6 +8,8 @@ import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-
 import { ReassuranceStrip } from '@/components/shared/reassurance-strip'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AnimatedOrbs } from '@/components/ui/premium-effects'
+import { RotatingText } from '@/components/marketing/rotating-text'
+import { heroRotatingTexts } from '@/lib/marketing/homepage'
 
 // Friendly, approachable doctor images from Unsplash
 const doctorImages = {
@@ -104,20 +106,22 @@ export function Hero() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10">
               <Shield className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-foreground/90">Medical certificates & repeat scripts — reviewed by Australian GPs</span>
+              <span className="text-sm font-medium text-foreground/90">Med certs & repeat scripts — reviewed by real GPs</span>
             </div>
           </motion.div>
 
-          {/* Headline - Clinical credibility first, efficiency second */}
+          {/* Headline - Rotating engaging copy */}
           <motion.h1 
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4 leading-[1.1]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
-            <span className="text-foreground">Real GPs. Real clinical decisions.</span>
-            <br />
-            <span className="text-premium-gradient">Healthcare done properly.</span>
+            <RotatingText 
+              texts={heroRotatingTexts} 
+              interval={3500}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold"
+            />
           </motion.h1>
           
           {/* Authority marker - immediately below headline */}
@@ -131,14 +135,14 @@ export function Hero() {
             <span>Every request reviewed by an AHPRA-registered GP</span>
           </motion.p>
 
-          {/* Subtext - Clinical process + transparency about decisions */}
+          {/* Subtext - Warm, concise value prop */}
           <motion.p 
             className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto xl:mx-0 mb-8 leading-relaxed"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            Medical certificates and repeat prescriptions reviewed by AHPRA-registered Australian doctors. Every request is assessed individually — not every request is approved, and that&apos;s how proper healthcare works.
+            Skip the waiting room. A real Australian GP reviews your request — usually within an hour.
           </motion.p>
 
           {/* CTAs - Intent-specific */}

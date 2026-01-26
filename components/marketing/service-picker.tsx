@@ -103,7 +103,7 @@ export function ServicePicker() {
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
             <SparklesPremium className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-foreground/80">Select your service</span>
+            <span className="text-xs font-medium text-foreground/80">Pick what you need</span>
           </motion.div>
           
           <div className="mb-4">
@@ -117,7 +117,7 @@ export function ServicePicker() {
             />
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-6">
-            Every request reviewed by an AHPRA-registered GP. Not all requests are approved — that&apos;s how proper healthcare works.
+            Flat pricing. No surprises. A real GP reviews everything.
           </p>
           
           {/* Live Stats Social Proof */}

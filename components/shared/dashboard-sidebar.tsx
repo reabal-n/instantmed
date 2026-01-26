@@ -16,7 +16,11 @@ import {
   Palette,
   Building2,
   Shield,
-  Keyboard
+  Keyboard,
+  Wrench,
+  Mail,
+  AlertTriangle,
+  CreditCard
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
@@ -55,6 +59,19 @@ const adminNavItems: NavItem[] = [
   { href: "/admin/studio", label: "Certificate Studio", icon: Palette },
   { href: "/admin/clinic", label: "Clinic Settings", icon: Building2 },
   { href: "/admin", label: "Admin Dashboard", icon: Shield },
+]
+
+// Ops items visible to all doctors
+const opsNavItemsBase: NavItem[] = [
+  { href: "/doctor/admin/ops", label: "Ops Overview", icon: Wrench },
+  { href: "/doctor/admin/ops/intakes-stuck", label: "Stuck Intakes", icon: AlertTriangle },
+]
+
+// Sensitive ops items - admin only
+const opsNavItemsAdminOnly: NavItem[] = [
+  { href: "/doctor/admin/email-outbox", label: "Email Outbox", icon: Mail },
+  { href: "/doctor/admin/ops/reconciliation", label: "Reconciliation", icon: CreditCard },
+  { href: "/doctor/admin/ops/doctors", label: "Doctor Ops", icon: Users },
 ]
 
 export function DashboardSidebar({ 
@@ -148,6 +165,59 @@ export function DashboardSidebar({
                     isActive
                       ? "bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
                       : "text-amber-700 dark:text-amber-400 hover:bg-amber-100/80 dark:hover:bg-amber-500/10 hover:-translate-y-0.5 hover:shadow-sm",
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-4 h-4 transition-transform duration-300",
+                    !isActive && "group-hover:scale-110"
+                  )} />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+        )}
+
+        {/* Ops Navigation - Doctor/Admin only */}
+        {variant === "doctor" && (
+          <nav className="glass-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-slate-500/5 dark:border-slate-500/20" data-testid="ops-nav-section">
+            <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-4 py-1">Ops</h4>
+            {/* Base ops items - visible to all doctors */}
+            {opsNavItemsBase.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/doctor/admin/ops" && pathname?.startsWith(item.href))
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-testid={`ops-nav-${item.href.split('/').pop()}`}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
+                    isActive
+                      ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-500/10 hover:-translate-y-0.5 hover:shadow-sm",
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-4 h-4 transition-transform duration-300",
+                    !isActive && "group-hover:scale-110"
+                  )} />
+                  {item.label}
+                </Link>
+              )
+            })}
+            {/* Admin-only ops items */}
+            {isAdmin && opsNavItemsAdminOnly.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-testid={`ops-nav-${item.href.split('/').pop()}`}
+                  className={cn(
+                    "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
+                    isActive
+                      ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-500/10 hover:-translate-y-0.5 hover:shadow-sm",
                   )}
                 >
                   <item.icon className={cn(

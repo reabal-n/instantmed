@@ -6,6 +6,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAppUrl } from "@/lib/env"
@@ -69,7 +70,16 @@ function getServiceSlug(category: string, subtype: string): string {
  */
 export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   try {
-    // KILL SWITCH: Check if service category is disabled
+    // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
+    const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
+    if (envKillSwitch.blocked) {
+      return {
+        success: false,
+        error: envKillSwitch.userMessage,
+      }
+    }
+
+    // KILL SWITCH (DB): Check if service category is disabled in database
     const categoryMap: Record<string, "medical_certificate" | "prescription" | "other"> = {
       medical_certificate: "medical_certificate",
       prescription: "prescription",
@@ -561,8 +571,27 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
     logger.error("Unexpected error in createIntakeAndCheckoutAction", { 
       error: errorMessage,
-      stack: error instanceof Error ? error.stack : undefined 
+      stack: error instanceof Error ? error.stack : undefined,
+      category: input.category,
+      subtype: input.subtype,
     })
+    
+    // Sentry capture with useful tags for money path failures
+    const Sentry = await import("@sentry/nextjs")
+    Sentry.captureException(error, {
+      tags: {
+        action: "checkout_session_create",
+        service_type: input.category,
+        consult_subtype: input.subtype,
+        step_id: "checkout_outer_catch",
+      },
+      extra: {
+        category: input.category,
+        subtype: input.subtype,
+        serviceSlug: input.serviceSlug,
+      },
+    })
+    
     return {
       success: false,
       error: "Something went wrong. Please try again or contact support if the issue persists.",

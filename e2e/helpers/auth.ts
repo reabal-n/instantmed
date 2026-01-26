@@ -13,7 +13,7 @@ import { Page, APIRequestContext } from "@playwright/test"
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 
-export type TestUserType = "operator" | "patient"
+export type TestUserType = "operator" | "doctor" | "patient"
 
 /**
  * Login as a test user via the E2E auth endpoint.
@@ -66,6 +66,14 @@ export async function logoutTestUser(page: Page): Promise<void> {
  */
 export async function loginAsOperator(page: Page): Promise<{ success: boolean; error?: string }> {
   return loginAsTestUser(page, "operator")
+}
+
+/**
+ * Login as doctor-only user (NOT admin).
+ * This user has access to /doctor routes but NOT admin-only features.
+ */
+export async function loginAsDoctor(page: Page): Promise<{ success: boolean; error?: string }> {
+  return loginAsTestUser(page, "doctor")
 }
 
 /**

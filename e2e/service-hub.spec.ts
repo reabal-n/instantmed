@@ -31,10 +31,10 @@ test.describe("Service Hub - Display", () => {
   test("displays all three service cards", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
     
-    // All service cards should be visible
-    await expect(page.getByText("Medical certificate")).toBeVisible()
-    await expect(page.getByText("Repeat prescription")).toBeVisible()
-    await expect(page.getByText("Doctor consultation")).toBeVisible()
+    // All service cards should be visible (using stable data-testid selectors)
+    await expect(page.getByTestId("service-card-med-cert")).toBeVisible()
+    await expect(page.getByTestId("service-card-prescription")).toBeVisible()
+    await expect(page.getByTestId("service-card-consult")).toBeVisible()
   })
 
   test("displays pricing on service cards", async ({ page }) => {
@@ -79,8 +79,8 @@ test.describe("Service Hub - Navigation", () => {
   test("clicking medical certificate navigates to flow", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
     
-    // Click medical certificate card
-    await page.getByText("Medical certificate").click()
+    // Click medical certificate card (using stable data-testid)
+    await page.getByTestId("service-card-med-cert").click()
     
     // Should navigate to med-cert flow and show certificate step
     await expect(page).toHaveURL(/service=med-cert/)
@@ -90,8 +90,8 @@ test.describe("Service Hub - Navigation", () => {
   test("clicking repeat prescription navigates to flow", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
     
-    // Click repeat prescription card
-    await page.getByText("Repeat prescription").click()
+    // Click repeat prescription card (using stable data-testid)
+    await page.getByTestId("service-card-prescription").click()
     
     // Should navigate to prescription flow
     await expect(page).toHaveURL(/service=prescription/)
@@ -100,26 +100,26 @@ test.describe("Service Hub - Navigation", () => {
   test("clicking consultation expands subtypes", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
     
-    // Click doctor consultation card
-    await page.getByText("Doctor consultation").click()
+    // Click doctor consultation card (using stable data-testid)
+    await page.getByTestId("service-card-consult").click()
     
-    // Subtypes should be visible
-    await expect(page.getByText("General consult")).toBeVisible()
-    await expect(page.getByText("New medication")).toBeVisible()
-    await expect(page.getByText("ED treatment")).toBeVisible()
+    // Subtypes should be visible (using stable data-testid)
+    await expect(page.getByTestId("consult-subtype-general")).toBeVisible()
+    await expect(page.getByTestId("consult-subtype-new_medication")).toBeVisible()
+    await expect(page.getByTestId("consult-subtype-ed")).toBeVisible()
   })
 
   test("clicking consult subtype navigates to flow", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /What do you need help with/i })).toBeVisible({ timeout: 15000 })
     
-    // Expand consultation
-    await page.getByText("Doctor consultation").click()
+    // Expand consultation (using stable data-testid)
+    await page.getByTestId("service-card-consult").click()
     
-    // Wait for subtypes
-    await expect(page.getByText("General consult")).toBeVisible()
+    // Wait for subtypes (using stable data-testid)
+    await expect(page.getByTestId("consult-subtype-general")).toBeVisible()
     
-    // Click a subtype
-    await page.getByText("General consult").click()
+    // Click a subtype (using stable data-testid)
+    await page.getByTestId("consult-subtype-general").click()
     
     // Should navigate to consult flow
     await expect(page).toHaveURL(/service=consult/)

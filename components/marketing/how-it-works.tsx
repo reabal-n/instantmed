@@ -19,9 +19,9 @@ const steps = [
   {
     number: "02",
     icon: Stethoscope,
-    title: "Doctor reviews your request",
-    description: "A real GP looks over everything and makes the call.",
-    time: "Under 30 min",
+    title: "A doctor reviews it",
+    description: "A real Australian GP looks at your request and makes the call.",
+    time: "~1 hour",
     color: "from-violet-500 to-purple-600",
     bgColor: "bg-violet-500/10",
     borderColor: "border-violet-500/20",
@@ -29,8 +29,8 @@ const steps = [
   {
     number: "03",
     icon: FileCheck,
-    title: "Get your certificate or script",
-    description: "Certificate to your inbox. eScript to your phone. Done.",
+    title: "Done",
+    description: "Certificate to your inbox, eScript to your phone. That's it.",
     time: "Same day",
     color: "from-emerald-500 to-green-600",
     bgColor: "bg-emerald-500/10",

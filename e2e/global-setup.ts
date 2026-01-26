@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Playwright Global Setup
  * 

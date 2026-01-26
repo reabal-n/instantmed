@@ -272,6 +272,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             popularBadge
             onClick={() => handleSelectService('med-cert')}
             index={0}
+            testId="service-card-med-cert"
           />
 
           {/* Repeat Prescription */}
@@ -284,6 +285,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             pricePrefix=""
             onClick={() => handleSelectService('prescription')}
             index={1}
+            testId="service-card-prescription"
           />
 
           {/* Doctor Consultation */}
@@ -297,6 +299,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             onClick={() => setShowConsultSubtypes(!showConsultSubtypes)}
             expanded={showConsultSubtypes}
             index={2}
+            testId="service-card-consult"
           >
             {/* Consult Subtypes */}
             <AnimatePresence>
@@ -321,6 +324,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                           "bg-muted/50 hover:bg-muted transition-colors",
                           "group"
                         )}
+                        data-testid={`consult-subtype-${subtype.id}`}
                       >
                         <div className="flex items-center gap-3">
                           <subtype.icon className="w-4 h-4 text-muted-foreground" />
@@ -384,7 +388,8 @@ function ServiceCard({
   expanded,
   children,
   index,
-}: ServiceCardProps) {
+  testId,
+}: ServiceCardProps & { testId?: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -395,6 +400,7 @@ function ServiceCard({
         type="button"
         onClick={onClick}
         className="w-full text-left"
+        data-testid={testId}
       >
         <Card 
           className="cursor-pointer relative overflow-hidden" 

@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
 
-interface IntakeRow {
+interface _IntakeRow {
   id: string
   service_id: string
   status: string

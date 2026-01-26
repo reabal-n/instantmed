@@ -12,19 +12,19 @@ import { motion } from 'framer-motion'
 const services = [
   {
     label: 'Medical Certificates',
-    href: '/request?service=med-cert',
+    href: '/medical-certificates',
     description: 'Work, uni & carer\'s leave',
     icon: FileText,
   },
   {
     label: 'Repeat Scripts',
-    href: '/request?service=prescription',
+    href: '/repeat-prescriptions',
     description: 'Medications you already take',
     icon: Pill,
   },
   {
     label: 'General Consult',
-    href: '/request?service=consult',
+    href: '/general-consult',
     description: 'New prescriptions & dose changes',
     icon: Stethoscope,
   },

@@ -463,9 +463,9 @@ export function QueueClient({
       )}
 
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-testid="queue-header">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Review Queue</h1>
+          <h1 className="text-2xl font-semibold tracking-tight" data-testid="queue-heading">Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting • Priority first
           </p>

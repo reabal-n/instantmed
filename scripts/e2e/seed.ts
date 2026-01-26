@@ -52,6 +52,8 @@ export const E2E_RUN_ID = process.env.E2E_RUN_ID || "e2e-test-run-001"
 // These use a fixed prefix to ensure consistent lookups across runs
 export const OPERATOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000001"
 export const OPERATOR_CLERK_ID = "user_e2e_operator_001"
+export const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
+export const DOCTOR_CLERK_ID = "user_e2e_doctor_001"
 export const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
 export const PATIENT_CLERK_ID = "user_e2e_patient_001"
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"

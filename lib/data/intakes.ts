@@ -16,6 +16,7 @@ import {
   logTransitionFailure,
   IntakeLifecycleError,
 } from "./intake-lifecycle"
+import { logStatusChange } from "./intake-events"
 
 // ============================================
 // EMAIL NOTIFICATION HELPER
@@ -967,6 +968,18 @@ export async function updateIntakeStatus(
   }
 
   logTransitionSuccess(intakeId, currentStatus, status, reviewedBy || "system")
+
+  // Log intake event for SLA monitoring (non-blocking)
+  logStatusChange(
+    intakeId,
+    currentStatus,
+    status,
+    reviewedBy || null,
+    reviewedBy ? "doctor" : "system",
+    { source: "updateIntakeStatus" }
+  ).catch((err) => {
+    logger.warn("[updateIntakeStatus] Failed to log intake event", { intakeId }, err instanceof Error ? err : new Error(String(err)))
+  })
 
   // Trigger status notification email for key transitions (non-blocking)
   if (["approved", "declined", "pending_info"].includes(status)) {

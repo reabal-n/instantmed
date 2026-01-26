@@ -1,18 +1,15 @@
 // LEGACY: retained pending external dependency audit (requires INTERNAL_API_SECRET)
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 import { getUserEmailFromAuthUserId } from "@/lib/data/profiles"
 
 const log = createLogger("notifications-send")
 
-// Initialize service role client for server-side operations
+// Use centralized service role client
 function getServiceClient() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error("Missing Supabase credentials")
-  return createClient(url, key)
+  return createServiceRoleClient()
 }
 
 interface NotificationBody {
