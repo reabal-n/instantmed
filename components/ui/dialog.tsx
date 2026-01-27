@@ -106,15 +106,13 @@ function DialogContent({
   return (
     <ModalContent
       className={cn(
-        // Soft Pop Glass elevated surface
-        "bg-white/85 dark:bg-slate-900/80",
-        "backdrop-blur-2xl",
-        "border border-white/50 dark:border-white/15",
-        // Geometry: rounded-3xl for modals
-        "rounded-3xl",
-        // Elevated glow shadow
-        "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
-        "dark:shadow-[0_25px_60px_rgba(0,0,0,0.4)]",
+        // Clean surface
+        "bg-white dark:bg-slate-900",
+        "border border-border",
+        // Restrained radius
+        "rounded-xl",
+        // Subtle shadow
+        "shadow-xl",
         // Mobile optimizations
         "max-h-[90vh] overflow-y-auto",
         className
@@ -131,7 +129,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
     <ModalHeader
       className={cn(
         "flex flex-col gap-2 text-center sm:text-left",
-        "border-b border-white/20 dark:border-white/10",
+        "border-b border-border",
         "pb-4",
         className
       )}
@@ -145,7 +143,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
     <ModalFooter
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        "border-t border-white/20 dark:border-white/10",
+        "border-t border-border",
         "pt-4",
         className
       )}

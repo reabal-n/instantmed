@@ -51,7 +51,7 @@ const SAMPLE_CLINIC = {
   suburb: "Melbourne",
   state: "VIC",
   postcode: "3000",
-  abn: "12 345 678 901",
+  abn: "64 694 559 334",
   phone: "1300 000 000",
   email: "support@instantmed.com.au",
 }

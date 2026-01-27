@@ -22,25 +22,24 @@ function Textarea({
   return (
     <HeroTextarea
       size={sizeMap[size]}
-      radius="lg" // Soft Pop Glass: rounded-xl for inputs
+      radius="md" // Craft: restrained radius
       variant="bordered"
       classNames={{
         base: "bg-transparent overflow-visible",
         mainWrapper: "bg-transparent overflow-visible",
         inputWrapper: cn(
-          // Single border from variant="bordered" - no duplicate border class
-          "bg-white/60 dark:bg-slate-900/40",
-          "backdrop-blur-lg",
+          // Clean surface - no backdrop-blur
+          "!bg-white dark:!bg-slate-900",
+          "!border !border-border",
           // Stable min-height - never reset to 0
           "min-h-[100px]",
           // Motion
           "transition-all duration-200",
           // Hover state
-          "hover:border-primary/30",
-          "hover:bg-white/70 dark:hover:bg-slate-900/50",
-          // Focus state - border color only, no glow (single visual boundary)
-          "data-[focused=true]:border-primary",
-          "data-[focused=true]:bg-white/80 dark:data-[focused=true]:bg-slate-900/60"
+          "hover:!border-slate-300 dark:hover:!border-slate-600",
+          // Focus state - clean ring
+          "data-[focused=true]:!border-primary",
+          "data-[focused=true]:!ring-2 data-[focused=true]:!ring-primary/20"
         ),
         innerWrapper: "bg-transparent",
         input: cn(

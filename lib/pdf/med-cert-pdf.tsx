@@ -437,7 +437,7 @@ export function MedCertPdfDocument({ data }: { data: MedCertPdfData }) {
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            InstantMed Pty Ltd | ABN 12 345 678 901 | support@instantmed.com.au
+            InstantMed Pty Ltd | ABN 64 694 559 334 | support@instantmed.com.au
           </Text>
           <Text style={styles.watermark}>{data.watermark}</Text>
           <Text style={styles.verifyText}>

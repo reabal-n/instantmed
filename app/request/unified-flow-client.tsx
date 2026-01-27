@@ -27,6 +27,7 @@ import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import { useFormAnalytics } from "@/hooks/use-form-analytics"
 
 // Types
 type Service = "medcert" | "prescription" | "referral"
@@ -290,6 +291,17 @@ export function UnifiedFlowClient({
   const [_password, _setPassword] = useState("")
   const [_showPassword, _setShowPassword] = useState(false)
   const [_agreedTerms, _setAgreedTerms] = useState(false)
+
+  // Form analytics for conversion tracking
+  const { trackStepComplete, trackFormSubmit, trackFormAbandon } = useFormAnalytics({
+    formName: "unified_request_flow",
+    service: service || "unknown",
+  })
+  
+  // Track step progression - suppress unused warnings until full integration
+  void trackStepComplete
+  void trackFormSubmit  
+  void trackFormAbandon
 
   // Initialize form state from props and saved draft
   const initialFormData = {

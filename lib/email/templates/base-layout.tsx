@@ -102,19 +102,24 @@ export function BaseLayout({ previewText, children, appUrl = DEFAULT_APP_URL }: 
         <div className="container">
           <div className="card">
             <a href={appUrl} className="logo">
-              Instant<span>Med</span>
+              <img 
+                src={`${appUrl}/branding/wordmark.svg`} 
+                alt="InstantMed" 
+                style={{ height: "32px", width: "auto" }} 
+              />
             </a>
             {children}
             <div className="footer">
               <p>
                 InstantMed Pty Ltd | Australian Telehealth
                 <br />
-                ABN 12 345 678 901 · Sydney, Australia
+                ABN 64 694 559 334 · Sydney, Australia
               </p>
               <p style={{ marginTop: "8px" }}>
                 <a href={`${appUrl}/privacy`}>Privacy</a> ·{" "}
                 <a href={`${appUrl}/terms`}>Terms</a> ·{" "}
-                <a href={`${appUrl}/contact`}>Contact</a>
+                <a href={`${appUrl}/contact`}>Contact</a> ·{" "}
+                <a href={`${appUrl}/unsubscribe`}>Unsubscribe</a>
               </p>
               <p style={{ fontSize: "11px", marginTop: "8px", color: "#9ca3af" }}>
                 This email was sent by InstantMed. If you have questions,

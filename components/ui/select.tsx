@@ -60,21 +60,18 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between gap-2",
-      "rounded-xl px-3 py-2",
+      "rounded-md px-3 py-2",
       "text-sm",
-      // Soft Pop Glass styling
-      "bg-white/60 dark:bg-slate-900/40",
-      "backdrop-blur-lg",
-      "border border-white/30 dark:border-white/10",
+      // Clean surface
+      "bg-white dark:bg-slate-900",
+      "border border-border",
       "ring-offset-background",
       "transition-all duration-200",
       // Hover state
-      "hover:border-primary/30",
-      "hover:bg-white/70 dark:hover:bg-slate-900/50",
-      // Focus state with glow
-      "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-      "focus:border-primary/50",
-      "focus:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+      "hover:border-slate-300 dark:hover:border-slate-600",
+      // Focus state - clean ring
+      "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2",
+      "focus:border-primary",
       // Disabled
       "disabled:cursor-not-allowed disabled:opacity-50",
       // Placeholder
@@ -135,12 +132,11 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-50 max-h-96 min-w-[8rem] overflow-hidden",
-        // Soft Pop Glass styling
-        "bg-white/90 dark:bg-slate-900/90",
-        "backdrop-blur-2xl",
-        "border border-white/40 dark:border-white/10",
-        "rounded-xl",
-        "shadow-[0_20px_40px_rgba(0,0,0,0.15)]",
+        // Clean surface
+        "bg-white dark:bg-slate-900",
+        "border border-border",
+        "rounded-md",
+        "shadow-lg",
         "text-popover-foreground",
         // Animation
         "data-[state=open]:animate-in data-[state=closed]:animate-out",

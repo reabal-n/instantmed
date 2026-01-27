@@ -25,13 +25,13 @@ const variantMap: Record<string, HeroChipProps["variant"]> = {
   success: "solid",
 }
 
-// Soft Pop Glass glow colors for badges
-const glowStyles: Record<string, string> = {
-  default: "shadow-[0_4px_16px_rgba(59,130,246,0.25)]",
-  secondary: "shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
-  destructive: "shadow-[0_4px_16px_rgba(239,68,68,0.25)]",
-  outline: "",
-  success: "shadow-[0_4px_16px_rgba(34,197,94,0.25)]",
+// Craft Design System badge styles - no glow, subtle tints
+const craftBadgeStyles: Record<string, string> = {
+  default: "bg-primary/10 text-primary border border-primary/20",
+  secondary: "bg-muted text-muted-foreground border border-border",
+  destructive: "bg-destructive/10 text-destructive border border-destructive/20",
+  outline: "bg-transparent border border-border text-foreground",
+  success: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
 }
 
 function Badge({
@@ -50,17 +50,11 @@ function Badge({
       variant={variantMap[variant]}
       color={colorMap[variant]}
       size="sm"
-      radius="full" // Soft Pop Glass: pill-shaped badges
+      radius="md" // Craft: restrained radius
       className={cn(
-        "text-xs font-semibold",
-        // Soft Pop Glass glow
-        glowStyles[variant],
-        // Glass effect for outline variant
-        variant === "outline" && [
-          "bg-white/60 dark:bg-slate-900/40",
-          "backdrop-blur-lg",
-          "border-white/40 dark:border-white/10",
-        ],
+        "text-xs font-medium",
+        // Craft badge styles (no glow)
+        craftBadgeStyles[variant],
         className
       )}
       {...props}

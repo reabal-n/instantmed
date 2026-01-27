@@ -160,7 +160,7 @@ export function MarketingFooter() {
 
         <div className="flex flex-col items-start md:items-end gap-1 text-xs text-muted-foreground/70">
           <p>AHPRA-registered doctors. RACGP-aligned protocols. Medical Director oversight.</p>
-          <p>ABN: 12 345 678 901</p>
+          <p>ABN: 64 694 559 334</p>
         </div>
       </div>
     </footer>

@@ -464,10 +464,11 @@ export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Pr
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
         
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-          InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
+          InstantMed Pty Ltd · ABN 64 694 559 334 · Sydney, Australia<br>
           <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> · 
           <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> ·
-          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a>
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a> ·
+          <a href="${appUrl}/unsubscribe" style="color: #9ca3af;">Unsubscribe</a>
         </p>
       </div>
     </body>
@@ -537,10 +538,11 @@ export async function sendWelcomeEmail(to: string, patientName: string): Promise
       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
       
       <p style="color: #999; font-size: 12px; text-align: center;">
-        InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
+        InstantMed Pty Ltd · ABN 64 694 559 334 · Sydney, Australia<br>
         <a href="${appUrl}/privacy" style="color: #999;">Privacy</a> · 
         <a href="${appUrl}/terms" style="color: #999;">Terms</a> ·
-        <a href="${appUrl}/contact" style="color: #999;">Contact</a>
+        <a href="${appUrl}/contact" style="color: #999;">Contact</a> ·
+        <a href="${appUrl}/unsubscribe" style="color: #999;">Unsubscribe</a>
       </p>
     </body>
     </html>
@@ -638,10 +640,11 @@ export async function sendScriptSentEmail(
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0 24px 0;" />
         
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-          InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
+          InstantMed Pty Ltd · ABN 64 694 559 334 · Sydney, Australia<br>
           <a href="${appUrl}/privacy" style="color: #9ca3af;">Privacy</a> · 
           <a href="${appUrl}/terms" style="color: #9ca3af;">Terms</a> ·
-          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a>
+          <a href="${appUrl}/contact" style="color: #9ca3af;">Contact</a> ·
+          <a href="${appUrl}/unsubscribe" style="color: #9ca3af;">Unsubscribe</a>
         </p>
       </div>
     </body>
@@ -723,10 +726,11 @@ export async function sendRequestDeclinedEmail(
       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
       
       <p style="color: #999; font-size: 12px; text-align: center;">
-        InstantMed Pty Ltd · ABN 12 345 678 901 · Sydney, Australia<br>
+        InstantMed Pty Ltd · ABN 64 694 559 334 · Sydney, Australia<br>
         <a href="${appUrl}/privacy" style="color: #999;">Privacy</a> · 
         <a href="${appUrl}/terms" style="color: #999;">Terms</a> ·
-        <a href="${appUrl}/contact" style="color: #999;">Contact</a>
+        <a href="${appUrl}/contact" style="color: #999;">Contact</a> ·
+        <a href="${appUrl}/unsubscribe" style="color: #999;">Unsubscribe</a>
       </p>
     </body>
     </html>

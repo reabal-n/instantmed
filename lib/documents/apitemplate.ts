@@ -113,7 +113,7 @@ export async function generateMedCertPdfFromDraft(
     clinic_address: "Telehealth Medical Services, Australia",
     clinic_phone: "1300 INSTMED",
     clinic_email: "support@instantmed.com.au",
-    clinic_abn: "12 345 678 901",
+    clinic_abn: "64 694 559 334",
   }
 
   const subtypeSpecificData: Record<string, unknown> = {
@@ -334,7 +334,7 @@ export async function generatePathologyReferralPdfFromDraft(
     clinic_address: "Telehealth Medical Services, Australia",
     clinic_phone: "1300 INSTMED",
     clinic_email: "support@instantmed.com.au",
-    clinic_abn: "12 345 678 901",
+    clinic_abn: "64 694 559 334",
   }
 
   try {

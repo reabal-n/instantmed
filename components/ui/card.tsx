@@ -25,23 +25,11 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   pressable = false,
   ...props 
 }, ref) => {
-  // Lumen Glass intensity variants - Night sky compatible
-  const glassStyles = {
-    subtle: cn(
-      "bg-white/60 dark:bg-slate-900/50",
-      "backdrop-blur-lg",
-      "border border-sky-300/25 dark:border-slate-400/10",
-    ),
-    normal: cn(
-      "bg-white/75 dark:bg-slate-900/60",
-      "backdrop-blur-xl",
-      "border border-sky-300/35 dark:border-slate-400/12",
-    ),
-    elevated: cn(
-      "bg-white/90 dark:bg-slate-900/75",
-      "backdrop-blur-2xl",
-      "border border-sky-300/45 dark:border-slate-400/15",
-    ),
+  // Craft Design System card styles - clean surfaces, no glass
+  const craftCardStyles = {
+    subtle: "bg-white dark:bg-slate-900 border border-border/60",
+    normal: "bg-white dark:bg-slate-900 border border-border shadow-sm",
+    elevated: "bg-white dark:bg-slate-900 border border-border shadow-md",
   }
 
   return (
@@ -51,22 +39,18 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
       style={style}
       classNames={{
         base: cn(
-          // Lumen Glass surface
-          glassStyles[glass],
-          // Geometry: rounded-2xl for cards
-          "rounded-2xl",
-          // Lumen soft shadow (sky-tinted)
-          "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
-          // Motion: gentle hover lift
-          "transition-all duration-300 ease-out",
+          // Craft surface (no backdrop-blur)
+          craftCardStyles[glass],
+          // Restrained radius
+          "rounded-xl",
+          // Subtle transition
+          "transition-all duration-200",
           hoverable && [
-            "hover:bg-white/85 dark:hover:bg-slate-900/70",
-            "hover:-translate-y-0.5",
-            "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
-            "dark:hover:shadow-[0_8px_30px_rgba(148,163,184,0.12)]",
+            "hover:shadow-md",
+            "hover:border-border/80",
           ],
           // Press effect - subtle
-          pressable && "active:translate-y-0",
+          pressable && "active:scale-[0.99]",
         ),
       }}
       {...props}

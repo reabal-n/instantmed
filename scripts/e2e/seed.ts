@@ -342,7 +342,7 @@ async function seedClinicIdentity() {
       suburb: "Sydney",
       state: "NSW",
       postcode: "2000",
-      abn: "12 345 678 901",
+      abn: "64 694 559 334",
       phone: "1300 123 456",
       email: "clinic@test.instantmed.com.au",
       logo_storage_path: null,

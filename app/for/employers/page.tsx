@@ -131,7 +131,7 @@ export default function EmployersPage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Building2 className="w-4 h-4 text-muted-foreground" />
-                    <span>ABN: 12 345 678 901</span>
+                    <span>ABN: 64 694 559 334</span>
                   </div>
                 </div>
               </div>

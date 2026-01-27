@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'
 import { Divider } from '@heroui/react'
 import { DocumentPremium, PillPremium, StethoscopePremium, SparklesPremium } from '@/components/icons/certification-logos'
 import { cn } from '@/lib/utils'
-import { MagneticButton } from '@/components/effects/magnetic-button'
+import { Button } from '@/components/ui/button'
 import { AnimatedText } from '@/components/ui/animated-underline-text-one'
 
 const iconMap = {
@@ -180,39 +180,29 @@ export function ServicePicker() {
                   className="group block h-full"
                 >
                   <div className="relative h-full">
-                    {/* Popular badge */}
+                    {/* Popular badge - neutral pill */}
                     {service.popular && (
                       <div className="absolute -top-3 right-4 z-20">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-emerald-500/40 dark:shadow-emerald-600/30 backdrop-blur-sm border border-white/20"
-                        >
+                        <div className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
                           Popular
-                        </motion.div>
+                        </div>
                       </div>
                     )}
                     
-                    {/* Glassmorphic card - elevated styling for popular */}
+                    {/* Clean card - Craft style */}
                     <div className={cn(
-                      "relative h-full rounded-2xl overflow-hidden flex flex-col",
-                      "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
-                      "border border-white/20 dark:border-white/10",
-                      "shadow-lg shadow-black/5 dark:shadow-black/20",
-                      "hover:bg-white/80 dark:hover:bg-white/10",
-                      "hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/30",
-                      "transition-all duration-300",
-                      "group-hover:-translate-y-0.5",
-                      // #1: Elevate popular card
+                      "relative h-full rounded-xl overflow-hidden flex flex-col",
+                      "bg-white dark:bg-slate-900",
+                      "border border-border",
+                      "shadow-sm",
+                      "hover:shadow-md hover:border-border/80",
+                      "transition-all duration-200",
+                      // Elevate popular card
                       service.popular && [
-                        "scale-[1.02] lg:scale-105",
-                        "ring-2 ring-emerald-500/30 dark:ring-emerald-400/30",
-                        "shadow-xl shadow-emerald-500/10 dark:shadow-emerald-400/10",
+                        "ring-1 ring-primary/20",
+                        "shadow-md",
                       ]
                     )}>
-                      {/* Gradient header strip */}
-                      <div className={`h-1 w-full bg-gradient-to-r ${colors.gradient}`} />
                       
                       <div className="p-3 pb-2.5 flex-1 flex flex-col">
                         {/* Icon with animated background */}
@@ -296,36 +286,10 @@ export function ServicePicker() {
                           </span>
                         </div>
                         
-                        <MagneticButton>
-                          <div
-                            className={cn(
-                              "relative overflow-hidden inline-flex items-center gap-1",
-                              "px-3 py-1.5 rounded-lg",
-                              "text-white text-xs font-bold",
-                              "shadow-lg shadow-primary/40",
-                              "hover:shadow-xl hover:shadow-primary/50",
-                              "transition-all duration-300",
-                              "cursor-pointer",
-                              "glow-pulse",
-                              "border border-white/20",
-                              "backdrop-blur-sm"
-                            )}
-                            style={{
-                              background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}cc 100%)`,
-                              boxShadow: `0 8px 24px -4px ${colors.accent}40, 0 4px 12px -2px ${colors.accent}30`,
-                            }}
-                          >
-                            {/* #4: Custom CTA per service */}
-                            <span className="relative z-10 flex items-center gap-1">
-                              {'cta' in service ? service.cta : 'Start request'}
-                              <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" />
-                            </span>
-                            {/* Shimmer effect */}
-                            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                            {/* Glow effect */}
-                            <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" style={{ background: colors.accent }} />
-                          </div>
-                        </MagneticButton>
+                        <Button size="sm" className="gap-1">
+                          {'cta' in service ? service.cta : 'Start request'}
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
                       </div>
                       
                       {/* #5: Testimonial for popular card */}

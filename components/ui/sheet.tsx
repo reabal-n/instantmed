@@ -94,14 +94,12 @@ function SheetClose({
     <button
       className={cn(
         "group absolute right-3 top-3 flex size-8 items-center justify-center",
-        // Soft Pop Glass close button
-        "rounded-full",
-        "bg-white/50 dark:bg-slate-800/50",
-        "backdrop-blur-lg",
-        "border border-white/30 dark:border-white/10",
+        // Clean close button
+        "rounded-md",
+        "bg-muted",
+        "border border-border",
         "transition-all duration-200",
-        "hover:bg-white/80 dark:hover:bg-slate-800/80",
-        "hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)]",
+        "hover:bg-muted/80",
         "active:scale-95",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
       )}
@@ -137,17 +135,15 @@ function SheetContent({
     <ModalContent
       className={cn(
         "flex flex-col gap-4",
-        // Soft Pop Glass elevated surface
-        "bg-white/90 dark:bg-slate-900/90",
-        "backdrop-blur-2xl",
+        // Clean surface
+        "bg-white dark:bg-slate-900",
         // Border based on side
-        side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l border-white/40 dark:border-white/10 sm:max-w-sm rounded-l-3xl",
-        side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r border-white/40 dark:border-white/10 sm:max-w-sm rounded-r-3xl",
-        side === "top" && "inset-x-0 top-0 h-auto border-b border-white/40 dark:border-white/10 rounded-b-3xl",
-        side === "bottom" && "inset-x-0 bottom-0 h-auto border-t border-white/40 dark:border-white/10 rounded-t-3xl",
-        // Glow shadow
-        "shadow-[0_25px_60px_rgba(0,0,0,0.15)]",
-        "dark:shadow-[0_25px_60px_rgba(0,0,0,0.4)]",
+        side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l border-border sm:max-w-sm rounded-l-xl",
+        side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r border-border sm:max-w-sm rounded-r-xl",
+        side === "top" && "inset-x-0 top-0 h-auto border-b border-border rounded-b-xl",
+        side === "bottom" && "inset-x-0 bottom-0 h-auto border-t border-border rounded-t-xl",
+        // Subtle shadow
+        "shadow-xl",
         className
       )}
       {...props}
@@ -162,7 +158,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
     <ModalHeader
       className={cn(
         "flex flex-col gap-1.5 p-6",
-        "border-b border-white/20 dark:border-white/10",
+        "border-b border-border",
         className
       )}
       {...props}
@@ -175,7 +171,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
     <ModalFooter
       className={cn(
         "mt-auto flex flex-col gap-2 p-6",
-        "border-t border-white/20 dark:border-white/10",
+        "border-t border-border",
         className
       )}
       {...props}

@@ -94,7 +94,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
                   ? "bg-primary text-primary-foreground"
                   : i === currentIndex
                     ? "bg-primary/20 text-primary border-2 border-primary"
-                    : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+                    : "bg-muted text-muted-foreground border border-border"
               )}
             >
               {i < currentIndex ? <Check className="w-4 h-4" /> : i + 1}
@@ -103,7 +103,7 @@ function ProgressBar({ steps, currentIndex }: { steps: string[]; currentIndex: n
               <div
                 className={cn(
                   "h-0.5 w-12 sm:w-20 mx-2 transition-all duration-300",
-                  i < currentIndex ? "bg-linear-to-r from-primary-500 to-primary-600 shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10"
+                  i < currentIndex ? "bg-primary" : "bg-muted"
                 )}
               />
             )}
@@ -152,8 +152,8 @@ function SelectCard({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         "active:scale-[0.98]",
         selected
-          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]",
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "bg-white dark:bg-slate-900 border-border hover:border-primary/50 hover:shadow-sm",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       whileHover={{ y: -2 }}
@@ -163,7 +163,7 @@ function SelectCard({
         <div
           className={cn(
             "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-            selected ? "bg-linear-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]" : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 text-muted-foreground"
+            selected ? "bg-primary text-white" : "bg-muted text-muted-foreground border border-border"
           )}
         >
           <Icon className="w-6 h-6" />
@@ -203,8 +203,8 @@ function DurationChip({
         "px-4 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
-          ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 hover:border-primary/50 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+          ? "bg-primary text-white shadow-sm"
+          : "bg-white dark:bg-slate-900 border-2 border-border hover:border-primary/50 hover:shadow-sm"
       )}
       whileHover={{ y: -1 }}
       whileTap={{ scale: 0.97 }}
@@ -232,7 +232,7 @@ function SymptomChip({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected
           ? "bg-primary/10 text-primary border border-primary"
-          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
+          : "bg-white dark:bg-slate-900 hover:bg-muted/50 border border-border"
       )}
     >
       {label}

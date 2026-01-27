@@ -41,56 +41,14 @@ const sizeMap: Record<string, HeroButtonProps["size"]> = {
   "icon-lg": "lg",
 }
 
-// Lumen Design System variant styles
-const glassVariantStyles: Record<string, string> = {
-  default: cn(
-    // Dawn glow shadow - warm, not blue
-    "shadow-[0_4px_20px_rgba(245,169,98,0.25)]",
-    "hover:shadow-[0_8px_30px_rgba(245,169,98,0.30)]",
-    // Lumen motion - gentle, intentional
-    "transition-all duration-300 ease-out",
-    "hover:-translate-y-0.5",
-    "active:translate-y-0",
-  ),
-  destructive: cn(
-    "shadow-[0_4px_20px_rgba(224,122,122,0.20)]",
-    "hover:shadow-[0_8px_30px_rgba(224,122,122,0.25)]",
-    "transition-all duration-300 ease-out",
-    "hover:-translate-y-0.5",
-    "active:translate-y-0",
-  ),
-  outline: cn(
-    // Lumen Glass surface
-    "bg-white/75 dark:bg-slate-900/60",
-    "backdrop-blur-xl",
-    "border-sky-300/40 dark:border-white/10",
-    "hover:bg-white/85 dark:hover:bg-slate-900/70",
-    "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
-    "transition-all duration-300 ease-out",
-    "hover:-translate-y-0.5",
-    "active:translate-y-0",
-  ),
-  secondary: cn(
-    // Lumen Glass surface - sky tone
-    "bg-white/60 dark:bg-slate-900/50",
-    "backdrop-blur-lg",
-    "shadow-[0_4px_20px_rgba(197,221,240,0.15)]",
-    "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)]",
-    "transition-all duration-300 ease-out",
-    "hover:-translate-y-0.5",
-    "active:translate-y-0",
-  ),
-  ghost: cn(
-    "hover:bg-dawn-50 dark:hover:bg-dawn-500/10",
-    "transition-all duration-300 ease-out",
-    "hover:-translate-y-0.5",
-    "active:translate-y-0",
-  ),
-  link: cn(
-    "bg-transparent hover:bg-transparent",
-    "underline-offset-4 hover:underline",
-    "text-dawn-600 hover:text-dawn-700",
-  ),
+// Craft Design System variant styles - clean, no glow/transforms
+const craftVariantStyles: Record<string, string> = {
+  default: "shadow-sm hover:shadow-md transition-all duration-200",
+  destructive: "shadow-sm hover:shadow-md transition-all duration-200",
+  outline: "bg-white dark:bg-slate-900 border-border hover:bg-muted/50 transition-all duration-200",
+  secondary: "hover:bg-secondary/80 transition-all duration-200",
+  ghost: "hover:bg-muted/50 transition-all duration-200",
+  link: "bg-transparent underline-offset-4 hover:underline text-primary hover:text-primary/80",
 }
 
 // Size classes for asChild mode (since we can't use HeroUI's size prop)
@@ -107,7 +65,7 @@ const sizeClasses: Record<string, string> = {
 const baseButtonClasses = cn(
   "inline-flex items-center justify-center gap-2",
   "font-sans font-semibold",
-  "rounded-full", // Pill-shaped buttons
+  "rounded-md", // Craft: restrained radius
   "select-none",
   "origin-center",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2",
@@ -131,7 +89,7 @@ function Button({
     const asChildClasses = cn(
       baseButtonClasses,
       sizeClasses[size],
-      glassVariantStyles[variant],
+      craftVariantStyles[variant],
       // Variant-specific colors for asChild
       variant === "default" && "bg-primary text-primary-foreground hover:bg-primary/90",
       variant === "destructive" && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -172,14 +130,14 @@ function Button({
       variant={variantMap[variant]}
       color={colorMap[variant]}
       size={heroSize}
-      radius="full" // Soft Pop Glass: pill-shaped buttons
+      radius="md" // Craft: restrained radius
       isIconOnly={isIconOnly}
       onPress={handlePress}
       className={cn(
         // Base styles - Lumen typography
         "font-sans font-semibold",
         // Lumen variant styles
-        glassVariantStyles[variant],
+        craftVariantStyles[variant],
         // Ensure minimum touch target on mobile (accessibility)
         "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0",
         // Prevent text selection on mobile

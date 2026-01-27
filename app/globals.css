@@ -125,16 +125,15 @@ main > div {
   --chart-5: #F87171;
   
   /* ================================
-     UNIFIED SOFT RADIUS SYSTEM
-     All corners have consistent softness
+     CRAFT RADIUS SYSTEM - Restrained, modern
      ================================ */
-  --radius: 16px;
-  --radius-xs: 8px;
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius: 14px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 26px;
   --radius-full: 9999px;
   
   /* ================================
@@ -167,17 +166,16 @@ main > div {
   --space-16: 4rem;     /* 64px */
   
   /* ================================
-     LUMEN SHADOW SYSTEM
-     Soft, warm, never harsh
+     CRAFT SHADOW SYSTEM - Neutral, subtle
      ================================ */
-  --shadow-xs: 0 1px 3px rgba(197, 221, 240, 0.10);
-  --shadow-sm: 0 2px 8px rgba(197, 221, 240, 0.12);
-  --shadow-md: 0 4px 20px rgba(148, 163, 184, 0.08);
-  --shadow-lg: 0 8px 30px rgba(148, 163, 184, 0.12);
-  --shadow-xl: 0 12px 40px rgba(148, 163, 184, 0.15);
-  --shadow-2xl: 0 20px 60px rgba(148, 163, 184, 0.20);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.10);
-  --shadow-glow-lg: 0 0 40px rgba(59, 130, 246, 0.15);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.06), 0 8px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  --shadow-glow-lg: 0 0 0 4px rgba(59, 130, 246, 0.15);
   
   /* Sidebar — clean white with subtle depth */
   --sidebar: rgba(255, 255, 255, 0.90);

@@ -48,7 +48,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
             <div className="text-right text-xs text-gray-500">
               <p>Level 1/457-459 Elizabeth St</p>
               <p>Surry Hills NSW 2010</p>
-              <p>ABN: 12 345 678 901</p>
+              <p>ABN: 64 694 559 334</p>
             </div>
           </div>
 
