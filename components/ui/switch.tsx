@@ -41,6 +41,9 @@ function Switch({
           "max-w-fit",
           // Smooth transition (removed active:scale-95 to avoid double-scale with HeroUI)
           "transition-transform duration-150",
+          // Remove any visible box/outline
+          "!outline-none !ring-0 !border-0",
+          "[&>span]:!outline-none [&>span]:!ring-0 [&>span]:!border-0",
           className
         ),
         wrapper: cn(
