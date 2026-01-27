@@ -15,11 +15,21 @@ export interface PriceIdInput {
 
 /**
  * Calculate number of absence days from answers
- * Returns 1 for 'today' or 'yesterday', calculates from dates for 'multi_day'
+ * Supports both unified flow (duration: "1" | "2") and legacy flow (absence_dates)
  */
 export function getAbsenceDays(answers?: Record<string, unknown>): number {
   if (!answers) return 1
   
+  // Unified flow uses 'duration' directly as "1" or "2"
+  const duration = answers.duration as string | undefined
+  if (duration === '2') {
+    return 2
+  }
+  if (duration === '1') {
+    return 1
+  }
+  
+  // Legacy flow uses absence_dates
   const absenceDates = answers.absence_dates as string | undefined
   
   // Single day options

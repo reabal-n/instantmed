@@ -91,6 +91,9 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       // Redirect to Stripe checkout
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl
+      } else {
+        // Handle edge case where success is true but no URL returned
+        setError('Unable to create payment session. Please try again.')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
