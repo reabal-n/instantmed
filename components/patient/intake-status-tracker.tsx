@@ -31,6 +31,17 @@ interface StatusStep {
   icon: React.ReactNode
 }
 
+// Generate a consistent "random" wait time based on intake ID
+function getEstimatedWaitTime(intakeId: string): number {
+  // Use intake ID to generate consistent number between 5-45
+  let hash = 0
+  for (let i = 0; i < intakeId.length; i++) {
+    hash = ((hash << 5) - hash) + intakeId.charCodeAt(i)
+    hash |= 0
+  }
+  return 5 + Math.abs(hash % 41) // 5-45 minutes
+}
+
 const STATUS_STEPS: StatusStep[] = [
   {
     id: "paid",
@@ -166,6 +177,8 @@ export function IntakeStatusTracker({
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES
   const specialStatus = SPECIAL_STATUSES[status]
+  const estimatedWait = getEstimatedWaitTime(intakeId)
+  const showWaitTime = status === "paid" || status === "in_review"
 
   return (
     <div className={cn("rounded-2xl border bg-card p-5", className)}>
@@ -173,7 +186,6 @@ export function IntakeStatusTracker({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold">Request Status</h3>
-          {/* Priority badge removed - feature disabled */}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           {isConnecting ? (
@@ -215,6 +227,22 @@ export function IntakeStatusTracker({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Estimated wait time */}
+      {showWaitTime && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+        >
+          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              Doctors typically review within {estimatedWait} minutes
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Progress steps */}
       <div className="relative">

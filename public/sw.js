@@ -134,3 +134,59 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+// Push notification handling
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body || 'You have a new notification',
+      icon: '/logo.png',
+      badge: '/logo.png',
+      tag: data.tag || 'instantmed-notification',
+      data: {
+        url: data.url || '/patient',
+        intakeId: data.intakeId,
+      },
+      actions: data.actions || [],
+      requireInteraction: data.requireInteraction || false,
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'InstantMed', options)
+    );
+  } catch (_error) {
+    // Fallback for plain text push
+    event.waitUntil(
+      self.registration.showNotification('InstantMed', {
+        body: event.data.text(),
+        icon: '/logo.png',
+      })
+    );
+  }
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  const url = event.notification.data?.url || '/patient';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Try to focus existing window
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Open new window if none exists
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});

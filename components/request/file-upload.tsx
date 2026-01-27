@@ -12,18 +12,21 @@
 
 import { useState, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Upload, Camera, X, FileImage, AlertCircle } from "lucide-react"
+import { Upload, Camera, X, FileImage, AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
 interface FileUploadProps {
   value?: File | null
   onChange: (file: File | null) => void
+  onUpload?: (file: File) => Promise<string | void>
   accept?: string
   maxSizeMB?: number
   label?: string
   hint?: string
   className?: string
+  showProgress?: boolean
 }
 
 const MAX_FILE_SIZE_MB = 10
@@ -31,15 +34,20 @@ const MAX_FILE_SIZE_MB = 10
 export function FileUpload({
   value,
   onChange,
+  onUpload,
   accept = "image/*",
   maxSizeMB = MAX_FILE_SIZE_MB,
   label = "Upload file",
   hint = "Drag and drop or click to upload",
   className,
+  showProgress = false,
 }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadComplete, setUploadComplete] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const validateFile = useCallback((file: File): boolean => {
@@ -61,7 +69,7 @@ export function FileUpload({
     return true
   }, [accept, maxSizeMB])
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!validateFile(file)) {
       onChange(null)
       setPreview(null)
@@ -78,7 +86,38 @@ export function FileUpload({
     }
     
     onChange(file)
-  }, [validateFile, onChange])
+    
+    // Handle upload with progress if onUpload is provided
+    if (onUpload && showProgress) {
+      setIsUploading(true)
+      setUploadProgress(0)
+      setUploadComplete(false)
+      
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return prev
+          }
+          return prev + 10
+        })
+      }, 100)
+      
+      try {
+        await onUpload(file)
+        clearInterval(progressInterval)
+        setUploadProgress(100)
+        setUploadComplete(true)
+      } catch (err) {
+        clearInterval(progressInterval)
+        setError(err instanceof Error ? err.message : "Upload failed")
+        setUploadProgress(0)
+      } finally {
+        setIsUploading(false)
+      }
+    }
+  }, [validateFile, onChange, onUpload, showProgress])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -138,22 +177,35 @@ export function FileUpload({
             className="w-full h-48 object-cover"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-white">
-              <FileImage className="w-4 h-4" />
-              <span className="text-sm font-medium truncate max-w-[200px]">
-                {value.name}
-              </span>
+          <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white">
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : uploadComplete ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                ) : (
+                  <FileImage className="w-4 h-4" />
+                )}
+                <span className="text-sm font-medium truncate max-w-[200px]">
+                  {isUploading ? "Uploading..." : uploadComplete ? "Uploaded" : value.name}
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-white hover:bg-white/20"
+                onClick={handleRemove}
+                disabled={isUploading}
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
-              onClick={handleRemove}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            {/* Upload progress bar */}
+            {showProgress && isUploading && (
+              <Progress value={uploadProgress} className="h-1.5 bg-white/20" />
+            )}
           </div>
         </motion.div>
       </div>

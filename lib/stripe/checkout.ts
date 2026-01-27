@@ -484,6 +484,14 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       customer: stripeCustomerId || undefined,
       customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
       customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
+      // Enable saved payment methods for returning customers
+      payment_intent_data: {
+        setup_future_usage: "on_session" as const,
+      },
+      // Show saved payment methods for returning customers
+      saved_payment_method_options: stripeCustomerId ? {
+        payment_method_save: "enabled" as const,
+      } : undefined,
     }
 
     // 10. Create Stripe checkout session with idempotency key
