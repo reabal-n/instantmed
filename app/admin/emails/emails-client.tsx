@@ -29,6 +29,9 @@ import {
   Code,
   FileText,
   Send,
+  Smartphone,
+  Monitor,
+  SendHorizonal,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -53,6 +56,8 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
   const [isTestEmailOpen, setIsTestEmailOpen] = useState(false)
   const [isSendingTest, setIsSendingTest] = useState(false)
   const [testEmail, setTestEmail] = useState("")
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop")
+  const [isSendingBatch, setIsSendingBatch] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -170,6 +175,38 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
     return preview
   }
 
+  const handleSendAllTestEmails = async () => {
+    if (!testEmail) {
+      toast.error("Please enter an email address")
+      return
+    }
+    
+    setIsSendingBatch(true)
+    let successCount = 0
+    let failCount = 0
+    
+    for (const template of templates.filter(t => t.is_active)) {
+      try {
+        const result = await sendTestEmailAction(template.slug, testEmail)
+        if (result.success) {
+          successCount++
+        } else {
+          failCount++
+        }
+      } catch {
+        failCount++
+      }
+    }
+    
+    setIsSendingBatch(false)
+    
+    if (failCount === 0) {
+      toast.success(`Sent ${successCount} test emails successfully`)
+    } else {
+      toast.warning(`Sent ${successCount} emails, ${failCount} failed`)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -189,6 +226,27 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
               Customize transactional email content
             </p>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="email"
+            placeholder="test@example.com"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            className="w-48"
+          />
+          <Button 
+            variant="outline" 
+            onClick={handleSendAllTestEmails}
+            disabled={isSendingBatch || !testEmail}
+          >
+            {isSendingBatch ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <SendHorizonal className="h-4 w-4 mr-2" />
+            )}
+            Test All
+          </Button>
         </div>
       </div>
 
@@ -394,8 +452,32 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Email Preview</DialogTitle>
-            <DialogDescription>{selectedTemplate?.name}</DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Email Preview</DialogTitle>
+                <DialogDescription>{selectedTemplate?.name}</DialogDescription>
+              </div>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <Button
+                  variant={previewMode === "desktop" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setPreviewMode("desktop")}
+                  className="h-8 px-3"
+                >
+                  <Monitor className="h-4 w-4 mr-1" />
+                  Desktop
+                </Button>
+                <Button
+                  variant={previewMode === "mobile" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setPreviewMode("mobile")}
+                  className="h-8 px-3"
+                >
+                  <Smartphone className="h-4 w-4 mr-1" />
+                  Mobile
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
           <div className="mt-4 flex-1 overflow-hidden flex flex-col">
             <div className="p-3 rounded-lg bg-muted/50 border mb-4">
@@ -404,20 +486,22 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
                 {selectedTemplate && getPreviewHtml(selectedTemplate.subject, selectedTemplate.available_tags)}
               </p>
             </div>
-            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-slate-50 to-white">
-              <div className="max-w-[600px] mx-auto p-6">
-                {selectedTemplate && (
-                  <div
-                    className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
-                    dangerouslySetInnerHTML={{
-                      __html: getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags),
-                    }}
-                  />
-                )}
+            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-slate-50 to-white flex justify-center">
+              <div className={previewMode === "mobile" ? "w-[375px] border-x" : "max-w-[600px] w-full"}>
+                <div className="p-6">
+                  {selectedTemplate && (
+                    <div
+                      className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
+                      dangerouslySetInnerHTML={{
+                        __html: getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags),
+                      }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
             <p className="text-xs text-muted-foreground text-center mt-3">
-              Preview uses sample data. Actual emails will contain real patient information.
+              {previewMode === "mobile" ? "Mobile preview (375px)" : "Desktop preview (600px)"} • Sample data shown
             </p>
           </div>
         </DialogContent>

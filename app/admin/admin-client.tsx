@@ -475,7 +475,7 @@ export function AdminClient({
               Email Queue
             </Link>
             <Link
-              href="/admin/email-outbox"
+              href="/admin/ops/email-outbox"
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             >
               <Send className="w-4 h-4" />

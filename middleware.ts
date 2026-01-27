@@ -1,4 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
+
+// Admin route redirects: consolidate /doctor/admin/* into /admin/*
+const adminRedirects: Record<string, string> = {
+  '/doctor/admin/ops': '/admin/ops',
+  '/doctor/admin/ops/intakes-stuck': '/admin/ops/intakes-stuck',
+  '/doctor/admin/ops/reconciliation': '/admin/ops/reconciliation',
+  '/doctor/admin/ops/doctors': '/admin/ops/doctors',
+  '/doctor/admin/email-outbox': '/admin/ops/email-outbox',
+  '/doctor/admin/emails': '/admin/emails',
+  '/doctor/admin': '/admin',
+}
 
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
@@ -42,6 +54,14 @@ function hasE2EAuthBypass(req: Request): boolean {
 }
 
 export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = new URL(req.url)
+  
+  // Handle admin consolidation redirects
+  const redirectTo = adminRedirects[pathname]
+  if (redirectTo) {
+    return NextResponse.redirect(new URL(redirectTo, req.url), 308)
+  }
+  
   // Skip Clerk auth for E2E tests with valid test cookie
   if (hasE2EAuthBypass(req)) {
     return // Allow through without Clerk auth
