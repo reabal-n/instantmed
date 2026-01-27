@@ -9,7 +9,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { SLA_THRESHOLDS } from "./intake-ops"
+import { SLA_THRESHOLDS } from "@/lib/data/types/intake-ops"
 
 const logger = createLogger("doctor-ops")
 
@@ -174,6 +174,7 @@ export async function getDoctorMetrics(options: {
     // Find first actor per intake (the doctor who first touched it)
     const firstActorByIntake = new Map<string, string>()
     for (const [intakeId, intakeEvents] of eventsByIntake) {
+      if (!intakeEvents) continue
       // Events are already sorted by created_at ascending
       const firstDoctorEvent = intakeEvents.find(e => e.actor_id && e.actor_role !== "system")
       if (firstDoctorEvent?.actor_id) {

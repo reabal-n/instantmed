@@ -19,8 +19,16 @@ import type { Profile } from "@/types/db"
  * Check if E2E test mode is enabled.
  * Returns true ONLY if NODE_ENV === "test" OR PLAYWRIGHT === "1"
  * This is intentionally strict to prevent bypass in development/staging.
+ * 
+ * CRITICAL: Explicitly blocked in Vercel production to prevent any possible bypass.
  */
 function isE2ETestModeEnabled(): boolean {
+  // P0 SECURITY: Explicitly block E2E bypass in Vercel production
+  // This is a defense-in-depth measure - even if PLAYWRIGHT=1 is accidentally set
+  if (process.env.VERCEL_ENV === "production") {
+    return false
+  }
+  
   return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
 }
 

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { headers } from "next/headers"
-import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 import { getApiAuth } from "@/lib/auth"
@@ -101,11 +100,8 @@ function validateSubmission(body: Partial<SubmitRequestBody>): { valid: boolean;
 export async function POST(request: NextRequest): Promise<NextResponse<SubmitResponse>> {
   try {
     // Rate limiting
-    const headersList = await headers()
-    const ip = headersList.get("x-forwarded-for") || "unknown"
-    const rateLimitResult = checkRateLimit(`med-cert-submit:${ip}`, RATE_LIMIT_SENSITIVE)
-    
-    if (!rateLimitResult.success) {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive", `med-cert-submit`)
+    if (rateLimitResponse) {
       return NextResponse.json(
         { success: false, error: "Too many requests. Please wait before submitting again." },
         { status: 429 }
@@ -205,8 +201,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SubmitRes
         escalated: needsEscalation,
         template_version: body.templateVersion,
       },
-      ip_address: ip,
-      user_agent: headersList.get("user-agent"),
+      ip_address: getClientIdentifier(request),
+      user_agent: request.headers.get("user-agent"),
     })
 
     return NextResponse.json({

@@ -1,7 +1,7 @@
 "use server"
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
-import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
@@ -303,12 +303,12 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     }
 
     // P1 FIX: Rate limit checkout session creation to prevent abuse
-    const rateLimitResult = checkRateLimit(`checkout:${patientId}`, RATE_LIMIT_SENSITIVE)
+    const rateLimitResult = await checkServerActionRateLimit(patientId, "sensitive")
     if (!rateLimitResult.success) {
       logger.warn("Checkout rate limited", { patientId })
       return {
         success: false,
-        error: "Too many checkout attempts. Please wait a moment before trying again.",
+        error: rateLimitResult.error || "Too many checkout attempts. Please wait a moment before trying again.",
       }
     }
 
@@ -610,9 +610,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     // Rate limit payment retries to prevent abuse
-    const rateLimitResult = await checkRateLimit(authUser.user.id, RATE_LIMIT_SENSITIVE)
-    if (!rateLimitResult.allowed) {
-      return { success: false, error: "Too many payment attempts. Please try again later." }
+    const rateLimitResult = await checkServerActionRateLimit(authUser.user.id, "sensitive")
+    if (!rateLimitResult.success) {
+      return { success: false, error: rateLimitResult.error || "Too many payment attempts. Please try again later." }
     }
 
     const patientId = authUser.profile.id

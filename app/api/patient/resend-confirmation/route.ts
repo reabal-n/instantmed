@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("resend-confirmation")
 
@@ -26,8 +26,8 @@ export async function POST(request: Request) {
     }
 
     // Rate limit by intake ID to prevent spam
-    const rateLimitResult = checkRateLimit(`resend-confirmation:${intakeId}`, RATE_LIMIT_SENSITIVE)
-    if (!rateLimitResult.success) {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive", `resend-confirmation:${intakeId}`)
+    if (rateLimitResponse) {
       return NextResponse.json(
         { success: false, error: "Please wait before requesting another email" },
         { status: 429 }

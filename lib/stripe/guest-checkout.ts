@@ -2,7 +2,7 @@
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { checkRateLimit, RATE_LIMIT_SENSITIVE } from "@/lib/rate-limit"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
@@ -195,12 +195,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     let guestProfileId: string | null = null
 
     // P1 FIX: Rate limit guest checkout by email to prevent abuse
-    const rateLimitResult = checkRateLimit(`guest-checkout:${normalizedEmail}`, RATE_LIMIT_SENSITIVE)
+    const rateLimitResult = await checkServerActionRateLimit(`guest:${normalizedEmail}`, "sensitive")
     if (!rateLimitResult.success) {
       logger.warn("Guest checkout rate limited", { email: normalizedEmail })
       return {
         success: false,
-        error: "Too many checkout attempts. Please wait a moment before trying again.",
+        error: rateLimitResult.error || "Too many checkout attempts. Please wait a moment before trying again.",
       }
     }
 
