@@ -85,7 +85,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
   const overallStatus = allHealthy ? "healthy" : "degraded"
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-sky-50/50 to-white">
+    <div className="min-h-screen admin-page-bg">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -138,85 +138,77 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg", webhooks.failedCount > 0 ? "bg-red-50" : "bg-emerald-50")}>
-                  <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-red-600" : "text-emerald-600")} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Failed Webhooks</p>
-                  <p className={cn("text-2xl font-semibold", webhooks.failedCount > 0 && "text-red-600")}>
-                    {webhooks.failedCount}
-                  </p>
-                </div>
+          <div className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className={cn("p-2.5 rounded-lg", webhooks.failedCount > 0 ? "bg-red-50" : "bg-emerald-50")}>
+                <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-red-600" : "text-emerald-600")} />
               </div>
-              {webhooks.failedCount > 0 && (
-                <Button variant="link" size="sm" className="mt-2 p-0 h-auto" asChild>
-                  <Link href="/admin/webhook-dlq">View DLQ →</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg", emails.failed > 0 ? "bg-amber-50" : "bg-emerald-50")}>
-                  <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-amber-600" : "text-emerald-600")} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Email Success Rate</p>
-                  <p className="text-2xl font-semibold">{emails.successRate}%</p>
-                  <p className="text-xs text-muted-foreground">{emails.total} sent today</p>
-                </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Failed Webhooks</p>
+                <p className={cn("text-2xl font-semibold tracking-tight", webhooks.failedCount > 0 && "text-red-600")}>
+                  {webhooks.failedCount}
+                </p>
               </div>
-              {emails.failed > 0 && (
-                <Button variant="link" size="sm" className="mt-2 p-0 h-auto" asChild>
-                  <Link href="/admin/email-queue">View Queue →</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg", staleIntakes > 0 ? "bg-amber-50" : "bg-emerald-50")}>
-                  <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-amber-600" : "text-emerald-600")} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Stale Intakes</p>
-                  <p className={cn("text-2xl font-semibold", staleIntakes > 0 && "text-amber-600")}>
-                    {staleIntakes}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Awaiting review 2h+</p>
-                </div>
-              </div>
-              {staleIntakes > 0 && (
-                <Button variant="link" size="sm" className="mt-2 p-0 h-auto" asChild>
-                  <Link href="/doctor/queue">View Queue →</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <ScrollText className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Audit Logs (24h)</p>
-                  <p className="text-2xl font-semibold">{auditVolume.toLocaleString()}</p>
-                </div>
-              </div>
-              <Button variant="link" size="sm" className="mt-2 p-0 h-auto" asChild>
-                <Link href="/admin/audit">View Logs →</Link>
+            </div>
+            {webhooks.failedCount > 0 && (
+              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+                <Link href="/admin/webhook-dlq">View DLQ →</Link>
               </Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+
+          <div className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className={cn("p-2.5 rounded-lg", emails.failed > 0 ? "bg-amber-50" : "bg-emerald-50")}>
+                <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-amber-600" : "text-emerald-600")} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Email Success</p>
+                <p className="text-2xl font-semibold tracking-tight">{emails.successRate}%</p>
+                <p className="text-xs text-muted-foreground">{emails.total} sent today</p>
+              </div>
+            </div>
+            {emails.failed > 0 && (
+              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+                <Link href="/admin/email-queue">View Queue →</Link>
+              </Button>
+            )}
+          </div>
+
+          <div className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className={cn("p-2.5 rounded-lg", staleIntakes > 0 ? "bg-amber-50" : "bg-emerald-50")}>
+                <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-amber-600" : "text-emerald-600")} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Stale Intakes</p>
+                <p className={cn("text-2xl font-semibold tracking-tight", staleIntakes > 0 && "text-amber-600")}>
+                  {staleIntakes}
+                </p>
+                <p className="text-xs text-muted-foreground">Awaiting 2h+</p>
+              </div>
+            </div>
+            {staleIntakes > 0 && (
+              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+                <Link href="/doctor/queue">View Queue →</Link>
+              </Button>
+            )}
+          </div>
+
+          <div className="stat-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-blue-50">
+                <ScrollText className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Audit Logs (24h)</p>
+                <p className="text-2xl font-semibold tracking-tight">{auditVolume.toLocaleString()}</p>
+              </div>
+            </div>
+            <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+              <Link href="/admin/audit">View Logs →</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Details Grid */}
