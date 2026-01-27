@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition, useMemo, useCallback, useRef } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback, useRef, useId } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -50,6 +50,8 @@ import {
   Focus,
   Maximize2,
   Sparkles,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import {
@@ -63,6 +65,7 @@ import type { QueueClientProps } from "./types"
 import { formatServiceType } from "@/lib/format-intake"
 import { toast } from "sonner"
 import type { IntakeStatus } from "@/types/db"
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 
 export function QueueClient({
   intakes: initialIntakes,
@@ -97,6 +100,43 @@ export function QueueClient({
   const lastSyncTimeRef = useRef<Date>(new Date())
   const [isStale, setIsStale] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
+  const [audioEnabled, setAudioEnabled] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("queue-audio-notifications") === "true"
+    }
+    return false
+  })
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioEnabledRef = useRef(audioEnabled)
+  const listId = useId()
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    audioEnabledRef.current = audioEnabled
+  }, [audioEnabled])
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio("/sounds/notification.mp3")
+    audioRef.current.volume = 0.5
+  }, [])
+
+  // Toggle audio notifications
+  const toggleAudio = useCallback(() => {
+    setAudioEnabled(prev => {
+      const newValue = !prev
+      localStorage.setItem("queue-audio-notifications", String(newValue))
+      if (newValue && audioRef.current) {
+        // Play a test sound when enabling
+        audioRef.current.play().catch(() => {
+          toast.error("Enable audio in browser settings to hear notifications")
+        })
+      }
+      return newValue
+    })
+  }, [])
 
   // Real-time subscription for intakes with stale data detection
   useEffect(() => {
@@ -125,6 +165,10 @@ export function QueueClient({
           setIsStale(false)
           
           if (payload.eventType === "INSERT") {
+            // Play notification sound for new intakes
+            if (audioEnabledRef.current && audioRef.current) {
+              audioRef.current.play().catch(() => {})
+            }
             router.refresh()
           } else if (payload.eventType === "UPDATE") {
             setIntakes((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
@@ -433,6 +477,73 @@ export function QueueClient({
     )
   })
 
+  // Keyboard shortcuts for queue navigation
+  const keyboardShortcuts = useMemo(() => [
+    {
+      key: "j",
+      action: () => setSelectedIndex(prev => Math.min(prev + 1, filteredIntakes.length - 1)),
+      description: "Next case",
+    },
+    {
+      key: "k", 
+      action: () => setSelectedIndex(prev => Math.max(prev - 1, 0)),
+      description: "Previous case",
+    },
+    {
+      key: "Enter",
+      action: () => {
+        const intake = filteredIntakes[selectedIndex]
+        if (intake) router.push(`/doctor/intakes/${intake.id}`)
+      },
+      description: "View selected case",
+    },
+    {
+      key: "a",
+      action: () => {
+        const intake = filteredIntakes[selectedIndex]
+        if (intake) {
+          const service = intake.service as { type?: string } | undefined
+          handleApprove(intake.id, service?.type)
+        }
+      },
+      description: "Approve selected case",
+    },
+    {
+      key: "d",
+      action: () => {
+        const intake = filteredIntakes[selectedIndex]
+        if (intake) setDeclineDialog(intake.id)
+      },
+      description: "Decline selected case",
+    },
+    {
+      key: "?",
+      shift: true,
+      action: () => setShowShortcutsHelp(prev => !prev),
+      description: "Toggle shortcuts help",
+    },
+    {
+      key: "Escape",
+      action: () => {
+        setShowShortcutsHelp(false)
+        setDeclineDialog(null)
+        setFlagDialog(null)
+      },
+      description: "Close dialogs",
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [filteredIntakes.length, selectedIndex, router])
+
+  useKeyboardShortcuts({
+    shortcuts: keyboardShortcuts,
+    enabled: !declineDialog && !flagDialog,
+  })
+
+  // Reset selected index when filtered list changes
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [filterService, filterStatus, searchQuery])
+
   return (
     <div className="space-y-6">
       {/* Stale Data Warning - Clinical Safety */}
@@ -502,8 +613,48 @@ export function QueueClient({
           <Button variant="outline" size="icon" onClick={() => router.refresh()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <Button 
+            variant={audioEnabled ? "default" : "outline"}
+            size="icon"
+            onClick={toggleAudio}
+            title={audioEnabled ? "Disable sound notifications" : "Enable sound notifications"}
+            className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
+          >
+            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowShortcutsHelp(prev => !prev)}
+            className="text-muted-foreground"
+          >
+            <kbd className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
+            Shortcuts
+          </Button>
         </div>
       </div>
+
+      {/* Keyboard Shortcuts Help */}
+      {showShortcutsHelp && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium text-sm">Keyboard Shortcuts</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowShortcutsHelp(false)}>×</Button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm" id={listId}>
+              {keyboardShortcuts.slice(0, -1).map((s, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                    {s.shift && "⇧"}{s.key === "Enter" ? "↵" : s.key.toUpperCase()}
+                  </kbd>
+                  <span className="text-muted-foreground">{s.description}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Flagged Cases Summary - Hidden in focus mode */}
       {!focusMode && flaggedCount > 0 && (
