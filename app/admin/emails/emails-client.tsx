@@ -392,27 +392,33 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
 
       {/* Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Email Preview</DialogTitle>
             <DialogDescription>{selectedTemplate?.name}</DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <div className="p-3 rounded-lg bg-muted mb-4">
-              <p className="text-sm">
-                <strong>Subject:</strong>{" "}
+          <div className="mt-4 flex-1 overflow-hidden flex flex-col">
+            <div className="p-3 rounded-lg bg-muted/50 border mb-4">
+              <p className="text-sm text-muted-foreground">Subject</p>
+              <p className="text-base font-medium">
                 {selectedTemplate && getPreviewHtml(selectedTemplate.subject, selectedTemplate.available_tags)}
               </p>
             </div>
-            <div className="rounded-lg border p-4 bg-white max-h-[400px] overflow-y-auto">
-              {selectedTemplate && (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags),
-                  }}
-                />
-              )}
+            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-slate-50 to-white">
+              <div className="max-w-[600px] mx-auto p-6">
+                {selectedTemplate && (
+                  <div
+                    className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
+                    dangerouslySetInnerHTML={{
+                      __html: getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags),
+                    }}
+                  />
+                )}
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Preview uses sample data. Actual emails will contain real patient information.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
