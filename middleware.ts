@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 // Admin route redirects: consolidate /doctor/admin/* into /admin/*
+// Note: /doctor/admin itself is NOT redirected - it's the "All Requests" page for doctors
 const adminRedirects: Record<string, string> = {
   '/doctor/admin/ops': '/admin/ops',
   '/doctor/admin/ops/intakes-stuck': '/admin/ops/intakes-stuck',
@@ -9,7 +10,6 @@ const adminRedirects: Record<string, string> = {
   '/doctor/admin/ops/doctors': '/admin/ops/doctors',
   '/doctor/admin/email-outbox': '/admin/ops/email-outbox',
   '/doctor/admin/emails': '/admin/emails',
-  '/doctor/admin': '/admin',
 }
 
 // Define protected routes that require authentication

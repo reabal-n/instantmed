@@ -291,6 +291,9 @@ export async function getDoctorQueue(
     .select(`
       id,
       patient_id,
+      service_id,
+      category,
+      subtype,
       status,
       payment_status,
       is_priority,
@@ -303,7 +306,8 @@ export async function getDoctorQueue(
       risk_score,
       requires_live_consult,
       ai_draft_status,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state)
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state),
+      service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", ["paid", "in_review", "pending_info"])
     .order("is_priority", { ascending: false })
@@ -350,6 +354,13 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         suburb,
         state,
         postcode
+      ),
+      service:services!service_id (
+        id,
+        name,
+        short_name,
+        type,
+        slug
       ),
       answers:intake_answers (
         id,

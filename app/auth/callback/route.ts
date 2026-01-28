@@ -116,38 +116,72 @@ export async function GET(request: NextRequest) {
   try {
     const serviceClient = createServiceRoleClient()
     
-    // Check if profile exists
+    // Check if profile exists by clerk_user_id
     let { data: profile } = await serviceClient
       .from("profiles")
       .select("id, role, onboarding_completed")
       .eq("clerk_user_id", userId)
       .single()
 
-    // If no profile, create one (fallback if webhook didn't fire)
+    // If no profile by clerk_user_id, check for existing guest profile by email
     if (!profile && primaryEmail) {
-      const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
-      
-      const { data: newProfile, error: insertError } = await serviceClient
+      const { data: guestProfile } = await serviceClient
         .from("profiles")
-        .insert({
-          clerk_user_id: userId,
-          email: primaryEmail,
-          full_name: fullName,
-          first_name: user.firstName || null,
-          last_name: user.lastName || null,
-          avatar_url: user.imageUrl || null,
-          role: 'patient',
-        })
-        .select("id, role, onboarding_completed")
+        .select("id, role, onboarding_completed, clerk_user_id")
+        .eq("email", primaryEmail.toLowerCase())
+        .is("clerk_user_id", null)
         .single()
 
-      if (insertError) {
-        log.error("Profile creation failed", { userId }, insertError)
-        return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
+      if (guestProfile) {
+        // Link existing guest profile to this Clerk user
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+        
+        const { data: updatedProfile, error: updateError } = await serviceClient
+          .from("profiles")
+          .update({
+            clerk_user_id: userId,
+            full_name: fullName,
+            first_name: user.firstName || null,
+            last_name: user.lastName || null,
+            avatar_url: user.imageUrl || null,
+          })
+          .eq("id", guestProfile.id)
+          .select("id, role, onboarding_completed")
+          .single()
+
+        if (updateError) {
+          log.error("Failed to link guest profile to Clerk user", { userId, guestProfileId: guestProfile.id }, updateError)
+          return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
+        }
+
+        profile = updatedProfile
+        log.info("Linked guest profile to Clerk user", { userId, profileId: profile?.id })
+      } else {
+        // No existing profile at all - create new one
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+        
+        const { data: newProfile, error: insertError } = await serviceClient
+          .from("profiles")
+          .insert({
+            clerk_user_id: userId,
+            email: primaryEmail,
+            full_name: fullName,
+            first_name: user.firstName || null,
+            last_name: user.lastName || null,
+            avatar_url: user.imageUrl || null,
+            role: 'patient',
+          })
+          .select("id, role, onboarding_completed")
+          .single()
+
+        if (insertError) {
+          log.error("Profile creation failed", { userId }, insertError)
+          return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
+        }
+        
+        profile = newProfile
+        log.info("Created profile for user", { userId, profileId: profile?.id })
       }
-      
-      profile = newProfile
-      log.info("Created profile for user", { userId, profileId: profile?.id })
     }
 
     // Log login (non-blocking)

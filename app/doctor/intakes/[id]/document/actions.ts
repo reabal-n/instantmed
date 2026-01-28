@@ -43,13 +43,27 @@ export async function generateMedCertPdfAndApproveAction(
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()
 
-    // Fetch draft data
-    const { data: draft } = await supabase
+    // Fetch draft data - try request_id first (used by getOrCreateMedCertDraftForIntake), fallback to intake_id
+    let draft = null
+    const { data: draftByRequestId } = await supabase
       .from("document_drafts")
       .select("data")
       .eq("request_id", intakeId)
       .eq("type", "med_cert")
-      .single()
+      .maybeSingle()
+    
+    if (draftByRequestId) {
+      draft = draftByRequestId
+    } else {
+      // Fallback to intake_id column (used by older getOrCreateMedCertDraftForRequest)
+      const { data: draftByIntakeId } = await supabase
+        .from("document_drafts")
+        .select("data")
+        .eq("intake_id", intakeId)
+        .eq("type", "med_cert")
+        .maybeSingle()
+      draft = draftByIntakeId
+    }
 
     const draftData = draft?.data as MedCertDraftData | null
 

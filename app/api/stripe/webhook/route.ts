@@ -286,9 +286,23 @@ export async function POST(request: Request) {
       log.error("CRITICAL: Missing intake_id in metadata", {
         eventId: event.id,
         sessionId: session.id,
+        allMetadata: JSON.stringify(session.metadata),
       })
       await recordEventError(supabase, event.id, "Missing intake_id in session metadata")
       return NextResponse.json({ error: "Missing intake_id", processed: true }, { status: 200 })
+    }
+
+    // Validate intake_id is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(intakeId)) {
+      log.error("CRITICAL: Invalid intake_id format in metadata", {
+        eventId: event.id,
+        sessionId: session.id,
+        intakeId,
+        intakeIdType: typeof intakeId,
+      })
+      await recordEventError(supabase, event.id, `Invalid intake_id format: ${intakeId}`)
+      return NextResponse.json({ error: "Invalid intake_id format", processed: true }, { status: 200 })
     }
 
     try {
@@ -301,7 +315,12 @@ export async function POST(request: Request) {
 
       if (fetchError || !currentIntake) {
         const errorMsg = `Intake not found: ${intakeId}`
-        log.error("CRITICAL: Intake not found - adding to dead letter queue", { intakeId }, fetchError)
+        log.error("CRITICAL: Intake not found - adding to dead letter queue", { 
+          intakeId,
+          fetchErrorCode: fetchError?.code,
+          fetchErrorMessage: fetchError?.message,
+          fetchErrorDetails: fetchError?.details,
+        }, fetchError)
         await recordEventError(supabase, event.id, errorMsg)
         
         // Check if we've already retried this event multiple times

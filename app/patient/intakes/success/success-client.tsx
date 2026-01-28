@@ -76,6 +76,23 @@ export function SuccessClient({
 
         attempts++
         if (attempts >= maxAttempts) {
+          // Fallback: Call verify-payment endpoint to force check with Stripe
+          try {
+            const sessionId = new URLSearchParams(window.location.search).get("session_id")
+            const verifyRes = await fetch("/api/stripe/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ intakeId, sessionId }),
+            })
+            const verifyData = await verifyRes.json()
+            if (verifyData.success && verifyData.status === "paid") {
+              setStatus("paid")
+              setIsVerifying(false)
+              return true
+            }
+          } catch {
+            // Verification fallback failed, continue to show error
+          }
           setVerificationFailed(true)
           setIsVerifying(false)
           return true
