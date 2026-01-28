@@ -55,6 +55,11 @@ export function MedicationSearch({
   const listRef = useRef<HTMLUListElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const valueRef = useRef(value)
+
+  useEffect(() => {
+    valueRef.current = value
+  }, [value])
 
   useEffect(() => {
     if (value) {
@@ -158,7 +163,8 @@ export function MedicationSearch({
   const handleBlur = () => {
     // Small delay to allow click on dropdown option to register first
     setTimeout(() => {
-      if (inputValue.trim() && !value) {
+      // Use ref to check CURRENT value, not stale closure value
+      if (inputValue.trim() && !valueRef.current) {
         // User typed something but didn't select - create manual entry
         const sanitizedName = sanitizeMedicationInput(inputValue)
         if (sanitizedName.length < 2) {

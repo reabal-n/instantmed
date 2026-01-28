@@ -96,7 +96,7 @@ export function Hero() {
           </motion.div>
 
           {/* Text content */}
-          <div className="text-center max-w-4xl mx-auto xl:max-w-2xl xl:mr-auto xl:ml-0 xl:text-left">
+          <div className="text-center max-w-4xl mx-auto xl:max-w-[calc(100%-320px)] xl:mr-auto xl:ml-0 xl:text-left">
           {/* Badge - Clear scope statement */}
           <motion.div 
             className="mb-5"

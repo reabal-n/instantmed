@@ -41,22 +41,6 @@ export const springPresets = {
     damping: 20,
     mass: 1,
   } as Transition,
-  
-  /** @deprecated Use gentle instead - kept for backwards compat */
-  snappy: {
-    type: "spring",
-    stiffness: 200,
-    damping: 30,
-    mass: 1,
-  } as Transition,
-  
-  /** @deprecated Use gentle instead - kept for backwards compat */
-  bouncy: {
-    type: "spring",
-    stiffness: 200,
-    damping: 30,
-    mass: 1,
-  } as Transition,
 }
 
 // Lumen easing functions (CSS-compatible)
