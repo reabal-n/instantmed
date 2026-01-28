@@ -148,7 +148,45 @@ export async function GET(request: NextRequest) {
         guestError: guestError?.message,
       })
 
-      if (guestProfile) {
+      // If no guest profile found, check if there's a profile with this email that has a DIFFERENT clerk_user_id
+      if (!guestProfile) {
+        const { data: existingEmailProfile } = await serviceClient
+          .from("profiles")
+          .select("id, clerk_user_id, email")
+          .eq("email", primaryEmail.toLowerCase())
+          .maybeSingle()
+
+        if (existingEmailProfile && existingEmailProfile.clerk_user_id && existingEmailProfile.clerk_user_id !== userId) {
+          log.error("Email already linked to different Clerk user", {
+            userId,
+            email: primaryEmail,
+            existingProfileId: existingEmailProfile.id,
+            existingClerkUserId: existingEmailProfile.clerk_user_id,
+          })
+          return NextResponse.redirect(`${origin}/sign-in?error=email_already_linked`)
+        }
+
+        // If profile exists with same clerk_user_id, use it (race condition recovery)
+        if (existingEmailProfile && existingEmailProfile.clerk_user_id === userId) {
+          log.info("Found profile by email with matching clerk_user_id (race condition recovery)", {
+            profileId: existingEmailProfile.id,
+          })
+          const { data: recoveredProfile } = await serviceClient
+            .from("profiles")
+            .select("id, role, onboarding_completed")
+            .eq("id", existingEmailProfile.id)
+            .single()
+          
+          if (recoveredProfile) {
+            profile = recoveredProfile
+          }
+        }
+      }
+
+      if (profile) {
+        // Profile was recovered from race condition check - skip to redirect
+        log.info("Using recovered profile", { profileId: profile.id })
+      } else if (guestProfile) {
         // Link existing guest profile to this Clerk user
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
         
