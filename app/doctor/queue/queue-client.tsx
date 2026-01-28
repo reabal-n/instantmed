@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard, Skeleton, Tooltip, Pagination } from "@/components/uix"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
@@ -79,8 +79,6 @@ export function QueueClient({
   // Calculate pagination info
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
-  const hasNextPage = currentPage < totalPages
-  const hasPrevPage = currentPage > 1
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isPending, startTransition] = useTransition()
@@ -265,13 +263,6 @@ export function QueueClient({
     return age
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
     startTransition(async () => {
@@ -761,15 +752,14 @@ export function QueueClient({
                           ) : (
                             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                           )}
-                          <Avatar className="h-10 w-10 shrink-0">
-                            <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                              {getInitials(intake.patient.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <UserCard
+                            name={intake.patient.full_name}
+                            description={`${patientAge}y`}
+                            size="sm"
+                            className="shrink-0"
+                          />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium truncate">{intake.patient.full_name}</span>
-                              <span className="text-sm text-muted-foreground">{patientAge}y</span>
                               <Badge variant="outline" className="text-xs">
                                 {service?.short_name || formatServiceType(service?.type || "")}
                               </Badge>
@@ -803,10 +793,17 @@ export function QueueClient({
                                     {answers.symptoms && (
                                       <>
                                         <span className="text-xs text-muted-foreground">•</span>
-                                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                          {String(answers.symptoms).substring(0, 50)}
-                                          {String(answers.symptoms).length > 50 ? "..." : ""}
-                                        </span>
+                                        {String(answers.symptoms).length > 50 ? (
+                                          <Tooltip content={String(answers.symptoms)}>
+                                            <span className="text-xs text-muted-foreground truncate max-w-[200px] cursor-help">
+                                              {String(answers.symptoms).substring(0, 50)}...
+                                            </span>
+                                          </Tooltip>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">
+                                            {String(answers.symptoms)}
+                                          </span>
+                                        )}
                                       </>
                                     )}
                                     {answers.duration && (
@@ -932,7 +929,10 @@ export function QueueClient({
                           Patient History
                         </h4>
                         {loadingHistory[intake.patient_id] ? (
-                          <p className="text-sm text-muted-foreground">Loading history...</p>
+                          <div className="space-y-2">
+                            <Skeleton className="h-8 w-full rounded" />
+                            <Skeleton className="h-8 w-3/4 rounded" />
+                          </div>
                         ) : patientHistory[intake.patient_id]?.intakes?.length > 0 ? (
                           <div className="space-y-2">
                             {patientHistory[intake.patient_id].intakes
@@ -1041,62 +1041,17 @@ export function QueueClient({
           <div className="text-sm text-muted-foreground">
             Showing {(currentPage - 1) * pagination.pageSize + 1} - {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total} requests
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!hasPrevPage}
-              onClick={() => {
-                const params = new URLSearchParams(window.location.search)
-                params.set("page", String(currentPage - 1))
-                router.push(`/doctor?${params.toString()}`)
-              }}
-            >
-              Previous
-            </Button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                // Show pages around current page
-                let pageNum: number
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = currentPage - 2 + i
-                }
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={pageNum === currentPage ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 p-0"
-                    onClick={() => {
-                      const params = new URLSearchParams(window.location.search)
-                      params.set("page", String(pageNum))
-                      router.push(`/doctor?${params.toString()}`)
-                    }}
-                  >
-                    {pageNum}
-                  </Button>
-                )
-              })}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!hasNextPage}
-              onClick={() => {
-                const params = new URLSearchParams(window.location.search)
-                params.set("page", String(currentPage + 1))
-                router.push(`/doctor?${params.toString()}`)
-              }}
-            >
-              Next
-            </Button>
-          </div>
+          <Pagination
+            total={totalPages}
+            page={currentPage}
+            onChange={(page) => {
+              const params = new URLSearchParams(window.location.search)
+              params.set("page", String(page))
+              router.push(`/doctor?${params.toString()}`)
+            }}
+            showControls
+            size="sm"
+          />
         </div>
       )}
 

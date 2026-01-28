@@ -95,8 +95,8 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
         })}
       </div>
 
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <p className="text-xs text-center text-gray-500">
+      <div className="mt-6 pt-6 border-t border-border">
+        <p className="text-xs text-center text-muted-foreground">
           All requests reviewed by AHPRA-registered Australian doctors
         </p>
       </div>

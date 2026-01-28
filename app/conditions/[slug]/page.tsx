@@ -17,6 +17,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PageBreadcrumbs } from "@/components/uix"
 
 // Comprehensive condition data for SEO landing pages
 const conditions: Record<string, {
@@ -651,8 +652,21 @@ export default async function ConditionPage({ params }: PageProps) {
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
+          {/* Breadcrumbs */}
+          <div className="px-4 pt-6">
+            <div className="mx-auto max-w-4xl">
+              <PageBreadcrumbs
+                links={[
+                  { label: "Conditions", href: "/conditions" },
+                  { label: condition.name }
+                ]}
+                showHome
+              />
+            </div>
+          </div>
+
           {/* Hero Section */}
-          <section className="relative px-4 py-16 sm:py-20 overflow-hidden">
+          <section className="relative px-4 py-12 sm:py-16 overflow-hidden">
             {/* Background decoration */}
             <div className="absolute inset-0 -z-10">
               <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />

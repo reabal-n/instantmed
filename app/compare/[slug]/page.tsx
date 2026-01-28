@@ -15,6 +15,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PageBreadcrumbs } from "@/components/uix"
 
 // Comparison pages for competitive SEO
 const comparisons: Record<string, {
@@ -272,8 +273,21 @@ export default async function ComparisonPage({ params }: PageProps) {
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
+          {/* Breadcrumbs */}
+          <div className="px-4 pt-6 bg-white dark:bg-slate-900">
+            <div className="mx-auto max-w-4xl">
+              <PageBreadcrumbs
+                links={[
+                  { label: "Compare", href: "/compare" },
+                  { label: comparison.title }
+                ]}
+                showHome
+              />
+            </div>
+          </div>
+
           {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-8 sm:py-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
                 {comparison.title}

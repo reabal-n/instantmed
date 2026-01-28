@@ -9,6 +9,7 @@ import {
   Input,
   Textarea,
 } from "@heroui/react"
+import { DatePickerField } from "@/components/uix"
 import { useConfetti as _useConfetti } from "@/components/effects/confetti"
 import { ShakeAnimation } from "@/components/effects/shake-animation"
 import {
@@ -122,7 +123,7 @@ function StepHeader({ title, subtitle, emoji }: { title: string; subtitle?: stri
 // Safety knockout component
 function SafetyKnockout() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-ivory-50 dark:bg-slate-950">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -131,7 +132,7 @@ function SafetyKnockout() {
         <p className="text-red-700">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl p-6 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-4">
+        <div className="bg-card/70 backdrop-blur-xl rounded-2xl p-6 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-4">
           <p className="font-medium">If this is a medical emergency:</p>
           <Button
             as="a"
@@ -481,13 +482,13 @@ export function ConsultFlowClient({
   }
 
   return (
-    <div className="min-h-screen bg-ivory-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button
             onClick={stepIndex > 0 ? goBack : () => router.push("/consult")}
-            className="p-2 -ml-2 hover:bg-white/70 dark:hover:bg-slate-800/60 backdrop-blur-lg rounded-full transition-all duration-200"
+            className="p-2 -ml-2 hover:bg-muted backdrop-blur-lg rounded-full transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -543,7 +544,7 @@ export function ConsultFlowClient({
                     className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
                       consultReason === reason.id
                         ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                        : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10 hover:border-primary/40 hover:bg-white/85 dark:hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                        : "bg-card/70 backdrop-blur-xl border-border/40 hover:border-primary/40 hover:bg-card/85 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
                     }`}
                   >
                     <span className="font-medium">{reason.label}</span>
@@ -595,7 +596,7 @@ export function ConsultFlowClient({
               <StepHeader emoji="🛡️" title="Safety screening" subtitle="Please answer honestly" />
               <div className="space-y-3">
                 {SAFETY_QUESTIONS.map((q) => (
-                  <div key={q.id} className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
+                  <div key={q.id} className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_4px_16px_rgb(0,0,0,0.04)] space-y-3">
                     <p className="text-sm font-medium mb-2">{q.question}</p>
                     <CinematicSwitch
                       value={safetyAnswers[q.id] ?? undefined}
@@ -650,13 +651,12 @@ export function ConsultFlowClient({
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Date of birth</label>
-                  <Input
-                    type="date"
+                  <DatePickerField
+                    label="Date of birth"
                     value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    className="h-12"
-                    max={new Date().toISOString().split("T")[0]}
+                    onChange={(date: string | null) => setDob(date || "")}
+                    disableFuture
+                    size="lg"
                   />
                 </div>
               </div>
@@ -729,7 +729,7 @@ export function ConsultFlowClient({
           {step === "review" && (
             <div className="space-y-4">
               <StepHeader title="Review your request" subtitle="Please confirm the details below" />
-              <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-3">
+              <div className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-muted-foreground">Reason for consultation</p>
@@ -737,7 +737,7 @@ export function ConsultFlowClient({
                       {CONSULT_REASONS.find((r) => r.id === consultReason)?.label}
                     </p>
                   </div>
-                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-white/70 dark:hover:bg-slate-800/60 backdrop-blur-lg rounded-xl transition-all duration-200">
+                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-muted rounded-xl transition-all duration-200">
                     <Pencil className="w-3 h-3 text-muted-foreground" />
                   </button>
                 </div>
@@ -768,7 +768,7 @@ export function ConsultFlowClient({
                   Requests for these will be declined: dexamphetamine, methylphenidate, lisdexamfetamine, oxycodone, morphine, fentanyl, buprenorphine, methadone, ketamine, alprazolam.
                 </p>
               </div>
-              <div className="p-4 rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
+              <div className="p-4 rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
                   <span className="text-2xl font-bold">$49.95</span>
@@ -805,7 +805,7 @@ export function ConsultFlowClient({
       </main>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 p-4">
+      <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border p-4">
         <div className="max-w-lg mx-auto">
           {step === "payment" ? (
             <Button

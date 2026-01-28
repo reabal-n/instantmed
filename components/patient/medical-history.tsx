@@ -46,12 +46,12 @@ const typeColors = {
   medical_certificate: "bg-blue-100 text-primary",
   referral: "bg-emerald-100 text-emerald-600",
   pathology: "bg-dawn-100 text-dawn-600",
-  consultation: "bg-gray-100 text-gray-600",
+  consultation: "bg-muted text-muted-foreground",
 }
 
 const statusColors = {
   active: "bg-green-100 text-green-700",
-  completed: "bg-gray-100 text-gray-600",
+  completed: "bg-muted text-muted-foreground",
   expired: "bg-red-100 text-red-600",
 }
 

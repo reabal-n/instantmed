@@ -25,6 +25,7 @@ import {
   Webhook,
 } from "lucide-react"
 import { toast } from "sonner"
+import { ScrollShadow } from "@/components/uix"
 
 interface WebhookEvent {
   id: string
@@ -393,16 +394,16 @@ export function WebhookMonitoringClient({
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-2">Payload</p>
-                <pre className="p-3 rounded-lg bg-muted text-xs overflow-auto max-h-[200px]">
-                  {JSON.stringify(selectedEvent.payload, null, 2)}
-                </pre>
+                <ScrollShadow className="p-3 rounded-lg bg-muted text-xs max-h-[200px]">
+                  <pre>{JSON.stringify(selectedEvent.payload, null, 2)}</pre>
+                </ScrollShadow>
               </div>
               {selectedEvent.response_body && (
                 <div>
                   <p className="text-muted-foreground text-sm mb-2">Response</p>
-                  <pre className="p-3 rounded-lg bg-muted text-xs overflow-auto max-h-[100px]">
-                    {selectedEvent.response_body}
-                  </pre>
+                  <ScrollShadow className="p-3 rounded-lg bg-muted text-xs max-h-[100px]">
+                    <pre>{selectedEvent.response_body}</pre>
+                  </ScrollShadow>
                 </div>
               )}
             </div>
@@ -427,9 +428,9 @@ export function WebhookMonitoringClient({
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-2">Payload</p>
-                <pre className="p-3 rounded-lg bg-muted text-xs overflow-auto max-h-[200px]">
-                  {JSON.stringify(selectedDLQ.payload, null, 2)}
-                </pre>
+                <ScrollShadow className="p-3 rounded-lg bg-muted text-xs max-h-[200px]">
+                  <pre>{JSON.stringify(selectedDLQ.payload, null, 2)}</pre>
+                </ScrollShadow>
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => handleRetryDLQ(selectedDLQ)} className="gap-2">

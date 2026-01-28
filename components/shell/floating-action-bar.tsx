@@ -69,13 +69,13 @@ export function FloatingActionBarContent({
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="font-medium text-gray-900">{label}</span>
+      <span className="font-medium text-foreground">{label}</span>
       <div className="flex items-center gap-2">
         {actions}
         {onCancel && (
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors"
           >
             Cancel
           </button>

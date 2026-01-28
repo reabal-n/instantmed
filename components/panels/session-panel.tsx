@@ -99,7 +99,7 @@ export function SessionPanel({
         animate="visible"
         exit="exit"
         className={cn(
-          'relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden',
+          'relative w-full bg-background rounded-2xl shadow-2xl overflow-hidden',
           maxWidthClasses[maxWidth],
           className
         )}
@@ -110,11 +110,11 @@ export function SessionPanel({
         {showCloseButton && (
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="Close panel"
             type="button"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         )}
 

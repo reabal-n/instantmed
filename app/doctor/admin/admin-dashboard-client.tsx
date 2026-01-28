@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard } from "@/components/uix"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
@@ -94,14 +94,6 @@ export function AdminDashboardClient({
     return variants[status] || "bg-gray-100 text-gray-800"
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
   return (
     <div className="space-y-6">
@@ -247,19 +239,11 @@ export function AdminDashboardClient({
                     return (
                       <TableRow key={intake.id}>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs bg-primary/10">
-                                {getInitials(patient?.full_name || "?")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{patient?.full_name || "Unknown"}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {patient?.suburb}{patient?.state ? `, ${patient.state}` : ""}
-                              </p>
-                            </div>
-                          </div>
+                          <UserCard
+                            name={patient?.full_name || "Unknown"}
+                            description={`${patient?.suburb || ""}${patient?.state ? `, ${patient.state}` : ""}`}
+                            size="sm"
+                          />
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">{service?.short_name || service?.name || "—"}</span>

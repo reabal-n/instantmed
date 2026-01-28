@@ -103,7 +103,7 @@ export function ProgressIndicator({
                   opacity: { duration: 0.2 }
                 }}
                 onClick={onBack}
-                className="px-4 py-3 text-black flex items-center justify-center bg-gray-100 font-semibold rounded-full hover:bg-gray-50 hover:border transition-colors flex-1 w-16 text-sm"
+                className="px-4 py-3 text-foreground flex items-center justify-center bg-muted font-semibold rounded-full hover:bg-muted/80 transition-colors flex-1 w-16 text-sm"
               >
                 {backLabel}
               </motion.button>
@@ -119,7 +119,7 @@ export function ProgressIndicator({
                 !isExpanded && 'w-44'
               )}
             >
-              <div className="flex items-center font-[600] justify-center gap-2 text-sm">
+              <div className="flex items-center font-semibold justify-center gap-2 text-sm">
                 {isLastStep && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}

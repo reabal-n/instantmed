@@ -4,11 +4,10 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard, Chip } from "@/components/uix"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -119,14 +118,6 @@ export function AdminClient({
       age--
     }
     return age
-  }
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
   }
 
   const getStatusBadge = (status: string) => {
@@ -559,18 +550,25 @@ export function AdminClient({
                     startContent={<Search className="h-4 w-4 text-muted-foreground" />}
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[160px] rounded-xl bg-white/50 border-white/40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="awaiting_prescribe">Awaiting eScript</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="declined">Declined</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: "all", label: "All", color: "default" as const },
+                    { value: "pending", label: "Pending", color: "secondary" as const },
+                    { value: "awaiting_prescribe", label: "Awaiting eScript", color: "secondary" as const },
+                    { value: "approved", label: "Approved", color: "success" as const },
+                    { value: "declined", label: "Declined", color: "danger" as const },
+                  ].map((status) => (
+                    <Chip
+                      key={status.value}
+                      color={statusFilter === status.value ? status.color : "default"}
+                      variant={statusFilter === status.value ? "solid" : "bordered"}
+                      className="cursor-pointer"
+                      onClick={() => setStatusFilter(status.value)}
+                    >
+                      {status.label}
+                    </Chip>
+                  ))}
+                </div>
               </div>
               <div className="mt-4 text-sm text-muted-foreground">
                 Showing {filteredRequests.length} of {localRequests.length} requests
@@ -582,7 +580,7 @@ export function AdminClient({
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-white/30 hover:bg-white/30">
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
                       <TableHead className="w-[50px]">Script</TableHead>
                       <TableHead>Patient</TableHead>
                       <TableHead>Category</TableHead>
@@ -598,7 +596,7 @@ export function AdminClient({
                         const showScriptCheckbox = request.status === "approved"
 
                         return (
-                          <TableRow key={request.id} className="hover:bg-white/40 transition-colors">
+                          <TableRow key={request.id} className="hover:bg-muted/40 transition-colors">
                             <TableCell>
                               {showScriptCheckbox && (
                                 <TooltipProvider>
@@ -615,17 +613,11 @@ export function AdminClient({
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-9 w-9 border-2 border-white/50 shadow-sm">
-                                  <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground text-xs">
-                                    {getInitials(request.patient.full_name)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-foreground">{request.patient.full_name}</p>
-                                  <p className="text-xs text-muted-foreground">{patientAge}y</p>
-                                </div>
-                              </div>
+                              <UserCard
+                                name={request.patient.full_name}
+                                description={`${patientAge}y`}
+                                size="sm"
+                              />
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className="text-xs bg-indigo-50 border-indigo-200 text-indigo-700">
@@ -693,7 +685,7 @@ export function AdminClient({
                                 )}
                                 <Link 
                                   href={`/doctor/intakes/${request.id}`}
-                                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium border bg-white/50 hover:bg-white/80 border-border/40 transition-all"
+                                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium border bg-card/50 hover:bg-card/80 border-border/40 transition-all"
                                 >
                                   <Eye className="h-3.5 w-3.5" />
                                   Review
@@ -740,19 +732,11 @@ export function AdminClient({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {uniquePatients.slice(0, 12).map((patient) => (
                 <div key={patient.id} className="glass-card rounded-2xl p-4 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12 border-2 border-white/50">
-                      <AvatarFallback className="bg-linear-to-br from-primary to-primary/80 text-primary-foreground">
-                        {getInitials(patient.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">{patient.full_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {patient.date_of_birth ? `${calculateAge(patient.date_of_birth)}y` : "Age unknown"} • {patient.suburb || "Location unknown"}
-                      </p>
-                    </div>
-                  </div>
+                  <UserCard
+                    name={patient.full_name}
+                    description={`${patient.date_of_birth ? `${calculateAge(patient.date_of_birth)}y` : "Age unknown"} • ${patient.suburb || "Location unknown"}`}
+                    size="md"
+                  />
                   <div className="mt-3 pt-3 border-t border-border/40 flex justify-between items-center">
                     <span className="text-xs text-muted-foreground">
                       {localRequests.filter((r) => r.patient.id === patient.id).length} requests
@@ -817,7 +801,7 @@ export function AdminClient({
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-medium text-foreground mb-4">Developer Tools</h3>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50">
                   <div>
                     <p className="font-medium">Test Mode</p>
                     <p className="text-sm text-muted-foreground">Enable test mode for development</p>
@@ -832,7 +816,7 @@ export function AdminClient({
                     {testMode ? "Enabled" : "Disabled"}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50">
                   <div>
                     <p className="font-medium">Bootstrap Tools</p>
                     <p className="text-sm text-muted-foreground">Access database bootstrap utilities</p>
@@ -847,17 +831,17 @@ export function AdminClient({
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-medium text-foreground mb-4">Platform Stats</h3>
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="p-4 rounded-xl bg-white/50">
+                <div className="p-4 rounded-xl bg-card/50">
                   <p className="text-sm text-muted-foreground">Total Requests</p>
                   <p className="text-2xl font-semibold">{stats.total}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50">
+                <div className="p-4 rounded-xl bg-card/50">
                   <p className="text-sm text-muted-foreground">Approval Rate</p>
                   <p className="text-2xl font-semibold">
                     {stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0}%
                   </p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50">
+                <div className="p-4 rounded-xl bg-card/50">
                   <p className="text-sm text-muted-foreground">Decline Rate</p>
                   <p className="text-2xl font-semibold">
                     {stats.total > 0 ? Math.round((stats.declined / stats.total) * 100) : 0}%

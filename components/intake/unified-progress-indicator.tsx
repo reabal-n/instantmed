@@ -70,7 +70,7 @@ export function UnifiedProgressIndicator({
               animate={{ opacity: 1, width: "64px" }}
               transition={{ duration: 0.15, ease: "easeOut" }}
               onClick={onBack}
-              className="px-4 py-3 text-black flex items-center justify-center bg-gray-100 font-semibold rounded-full hover:bg-gray-50 hover:border transition-colors flex-1 w-16 text-sm"
+              className="px-4 py-3 text-foreground flex items-center justify-center bg-muted font-semibold rounded-full hover:bg-muted/80 transition-colors flex-1 w-16 text-sm"
             >
               {backLabel}
             </motion.button>

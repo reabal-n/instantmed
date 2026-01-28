@@ -41,9 +41,12 @@ function Switch({
           "max-w-fit",
           // Smooth transition (removed active:scale-95 to avoid double-scale with HeroUI)
           "transition-transform duration-150",
-          // Remove any visible box/outline
-          "!outline-none !ring-0 !border-0",
-          "[&>span]:!outline-none [&>span]:!ring-0 [&>span]:!border-0",
+          // Remove any visible box/outline - aggressive reset for iOS
+          "!outline-none !ring-0 !border-0 !shadow-none",
+          "[&>span]:!outline-none [&>span]:!ring-0 [&>span]:!border-0 [&>span]:!shadow-none",
+          "[&_*]:!outline-none [&_*]:focus:!outline-none [&_*]:focus-visible:!outline-none",
+          "[&_*]:!ring-0 [&_*]:focus:!ring-0 [&_*]:focus-visible:!ring-0",
+          "focus:!outline-none focus-visible:!outline-none focus:!ring-0 focus-visible:!ring-0",
           className
         ),
         wrapper: cn(

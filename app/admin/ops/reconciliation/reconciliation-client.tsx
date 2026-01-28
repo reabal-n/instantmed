@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Snippet } from "@/components/uix"
 import { 
   RefreshCcw, 
   ExternalLink, 
@@ -336,8 +337,10 @@ export function ReconciliationClient({
                   const statusBadge = getDeliveryStatusBadge(record.delivery_status)
                   return (
                     <TableRow key={record.intake_id} className={record.is_mismatch ? "bg-destructive/5" : ""}>
-                      <TableCell className="font-mono text-sm">
-                        {record.reference_number}
+                      <TableCell>
+                        <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
+                          {record.reference_number}
+                        </Snippet>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">

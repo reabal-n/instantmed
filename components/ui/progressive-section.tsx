@@ -68,7 +68,7 @@ export function ProgressiveSection({
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />
+          <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
         </motion.div>
       </button>
       <AnimatePresence>

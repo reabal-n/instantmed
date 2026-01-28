@@ -11,8 +11,8 @@ import * as Sentry from "@sentry/nextjs"
 export const runtime = "edge"
 
 export async function GET(request: Request) {
-  // Only allow in PLAYWRIGHT mode
-  if (process.env.NEXT_PUBLIC_PLAYWRIGHT !== "1") {
+  // Only allow in PLAYWRIGHT mode or test environment
+  if (process.env.PLAYWRIGHT !== "1" && process.env.NODE_ENV !== "test") {
     return NextResponse.json({ error: "Not available" }, { status: 404 })
   }
 

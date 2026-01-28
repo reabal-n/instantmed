@@ -34,7 +34,7 @@ function getNotificationColor(type: Notification["type"]) {
     case "refill_reminder":
       return "bg-dawn-100 text-dawn-600"
     default:
-      return "bg-gray-100 text-gray-600"
+      return "bg-muted text-muted-foreground"
   }
 }
 

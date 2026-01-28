@@ -86,7 +86,7 @@ export function DrawerPanel({
         animate="visible"
         exit="exit"
         className={cn(
-          'absolute top-0 h-full bg-white shadow-2xl flex flex-col',
+          'absolute top-0 h-full bg-background shadow-2xl flex flex-col',
           side === 'right' ? 'right-0' : 'left-0',
           className
         )}
@@ -96,17 +96,17 @@ export function DrawerPanel({
         aria-label={title || 'Details panel'}
       >
         {/* Header - sticky */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
           {title && (
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           )}
           <button
             onClick={handleClose}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-auto"
+            className="p-2 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-auto"
             aria-label="Close drawer"
             type="button"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 

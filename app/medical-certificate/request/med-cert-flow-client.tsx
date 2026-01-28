@@ -10,6 +10,7 @@ import { useConfetti as _useConfetti } from "@/components/effects/confetti"
 import { ShakeAnimation } from "@/components/effects/shake-animation"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
 import { Input } from "@/components/ui/input"
+import { DatePickerField } from "@/components/uix"
 import {
   ArrowRight,
   ArrowLeft,
@@ -23,7 +24,7 @@ import {
   FileText,
   Shield,
   Pencil as _Pencil,
-  Calendar,
+  Calendar as _Calendar,
   CalendarDays,
   CalendarRange,
   CalendarClock,
@@ -1003,31 +1004,19 @@ export function MedCertFlowClient({
               <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <legend className="sr-only">Specific date range</legend>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="date-from" className="text-xs font-medium">
-                      {MICROCOPY.duration.dateFrom}
-                    </Label>
-                    <Input
-                      id="date-from"
-                      type="date"
-                      value={formData.specificDateFrom}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, specificDateFrom: e.target.value }))}
-                      className="h-11 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="date-to" className="text-xs font-medium">
-                      {MICROCOPY.duration.dateTo}
-                    </Label>
-                    <Input
-                      id="date-to"
-                      type="date"
-                      value={formData.specificDateTo}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, specificDateTo: e.target.value }))}
-                      className="h-11 rounded-xl"
-                      min={formData.specificDateFrom}
-                    />
-                  </div>
+                  <DatePickerField
+                    label={MICROCOPY.duration.dateFrom}
+                    value={formData.specificDateFrom}
+                    onChange={(date: string | null) => setFormData((prev) => ({ ...prev, specificDateFrom: date || "" }))}
+                    size="lg"
+                  />
+                  <DatePickerField
+                    label={MICROCOPY.duration.dateTo}
+                    value={formData.specificDateTo}
+                    onChange={(date: string | null) => setFormData((prev) => ({ ...prev, specificDateTo: date || "" }))}
+                    minDate={formData.specificDateFrom || undefined}
+                    size="lg"
+                  />
                 </div>
               </fieldset>
             )}
@@ -1047,21 +1036,14 @@ export function MedCertFlowClient({
             </header>
 
             <div className="space-y-2">
-              <Label htmlFor="start-date" className="text-sm font-medium">
-                Start date
-              </Label>
-              <Input
-                id="start-date"
-                type="date"
+              <DatePickerField
+                label="Start date"
                 value={formData.startDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                min={new Date().toISOString().split("T")[0]}
-                className="h-12"
-                startContent={<Calendar className="w-4 h-4 text-muted-foreground" />}
+                onChange={(date: string | null) => setFormData((prev) => ({ ...prev, startDate: date || "" }))}
+                disablePast
+                size="lg"
+                description="Medical certificates can only be issued from today onwards"
               />
-              <p className="text-xs text-muted-foreground">
-                Medical certificates can only be issued from today onwards
-              </p>
             </div>
           </section>
         )

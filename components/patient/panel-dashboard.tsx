@@ -202,7 +202,7 @@ export function PanelDashboard({
                 <Link 
                   key={intake.id}
                   href={`/patient/intakes/${intake.id}`}
-                  className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100 hover:border-blue-300 transition-colors"
+                  className="flex items-center justify-between bg-card rounded-lg p-3 border border-blue-100 hover:border-blue-300 transition-colors"
                 >
                   <div>
                     <p className="font-medium text-foreground">{serviceName}</p>
@@ -287,7 +287,7 @@ export function PanelDashboard({
               <h3 className="font-semibold">Renewal reminders</h3>
             </div>
             {prescriptionsNeedingRenewal.map((rx) => (
-              <div key={rx.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
+              <div key={rx.id} className="flex items-center justify-between bg-card rounded-lg p-3 border border-amber-100">
                 <div>
                   <p className="font-medium text-foreground">{rx.medication_name}</p>
                   <p className="text-sm text-amber-600">

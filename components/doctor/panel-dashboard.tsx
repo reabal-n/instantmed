@@ -231,14 +231,14 @@ export function PanelDoctorDashboard({
       </div>
 
       {/* Filters */}
-      <div className="card-premium-bg rounded-xl border border-gray-200 p-4 shadow-premium">
+      <div className="card-premium-bg rounded-xl border border-border p-4 shadow-premium">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
               placeholder="Search by patient name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              startContent={<Search className="w-4 h-4 text-gray-400" />}
+              startContent={<Search className="w-4 h-4 text-muted-foreground" />}
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -269,9 +269,9 @@ export function PanelDoctorDashboard({
 
       {/* Request Cards */}
       {filteredRequests.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-900 font-medium">{FEEDBACK_MESSAGES.noRequests}</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-foreground font-medium">{FEEDBACK_MESSAGES.noRequests}</p>
         </div>
       ) : (
         <div className="grid gap-3">
@@ -288,7 +288,7 @@ export function PanelDoctorDashboard({
       )}
 
       {/* Results count */}
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-sm text-muted-foreground text-center">
         Showing {filteredRequests.length} of {requests.length} requests
       </p>
 
@@ -333,11 +333,11 @@ function StatCard({
   }
 
   return (
-    <div className="card-premium-bg rounded-xl border border-gray-200 p-6 hover-lift card-shine shadow-premium">
+    <div className="card-premium-bg rounded-xl border border-border p-6 hover-lift card-shine shadow-premium">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 mb-1">{label}</p>
-          <p className="text-3xl font-semibold text-gray-900">{value}</p>
+          <p className="text-sm text-muted-foreground mb-1">{label}</p>
+          <p className="text-3xl font-semibold text-foreground">{value}</p>
         </div>
         <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center icon-spin-hover", colors[color])}>
           <Icon className="w-6 h-6" />
@@ -364,7 +364,7 @@ function RequestCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-gray-200 p-5 transition-all group",
+        "bg-card rounded-xl border border-border p-5 transition-all group",
         "hover:border-primary hover:shadow-md cursor-pointer hover-lift card-shine",
         isSelected && "border-primary bg-blue-50"
       )}
@@ -384,12 +384,12 @@ function RequestCard({
         <div className="flex-1" onClick={onClick}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                <TypeIcon className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                <TypeIcon className="w-5 h-5 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900">{request.patient.full_name}</h3>
-                <p className="text-sm text-gray-600">{TYPE_CONFIG[request.type].label}</p>
+                <h3 className="font-semibold text-foreground">{request.patient.full_name}</h3>
+                <p className="text-sm text-muted-foreground">{TYPE_CONFIG[request.type].label}</p>
               </div>
             </div>
 
@@ -399,12 +399,12 @@ function RequestCard({
                   <StatusIcon className="w-4 h-4" />
                   {STATUS_CONFIG[request.status].label}
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1 justify-end">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 justify-end">
                   <Calendar className="w-3 h-3" />
                   {new Date(request.created_at).toLocaleDateString()}
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
           </div>
         </div>
@@ -490,7 +490,7 @@ function RequestDetailDrawer({
     <div className="p-6 space-y-6">
       {/* Status */}
       <div>
-        <p className="text-sm text-gray-600 mb-2">Status</p>
+        <p className="text-sm text-muted-foreground mb-2">Status</p>
         <div className={cn("inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium", STATUS_CONFIG[request.status].color)}>
           <StatusIcon className="w-4 h-4" />
           {STATUS_CONFIG[request.status].label}
@@ -499,8 +499,8 @@ function RequestDetailDrawer({
 
       {/* Patient Info */}
       <div>
-        <p className="text-sm text-gray-600 mb-2">Patient Information</p>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+        <p className="text-sm text-muted-foreground mb-2">Patient Information</p>
+        <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
           <p><strong>Name:</strong> {request.patient.full_name}</p>
           <p><strong>Email:</strong> {request.patient.email}</p>
           {request.patient.phone && <p><strong>Phone:</strong> {request.patient.phone}</p>}
@@ -509,8 +509,8 @@ function RequestDetailDrawer({
 
       {/* Request Details */}
       <div>
-        <p className="text-sm text-gray-600 mb-2">Request Details</p>
-        <div className="bg-gray-50 rounded-lg p-4 text-sm">
+        <p className="text-sm text-muted-foreground mb-2">Request Details</p>
+        <div className="bg-muted/50 rounded-lg p-4 text-sm">
           <pre className="whitespace-pre-wrap font-mono text-xs">
             {JSON.stringify(request.answers, null, 2)}
           </pre>
@@ -519,7 +519,7 @@ function RequestDetailDrawer({
 
       {/* Notes */}
       <div>
-        <label className="text-sm text-gray-600 mb-2 block">Doctor Notes</label>
+        <label className="text-sm text-muted-foreground mb-2 block">Doctor Notes</label>
         <Textarea
           value={notes}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
@@ -530,7 +530,7 @@ function RequestDetailDrawer({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 pt-4 border-t border-gray-200">
+      <div className="flex gap-2 pt-4 border-t border-border">
         <Button
           variant="destructive"
           onClick={() => handleAction("reject")}

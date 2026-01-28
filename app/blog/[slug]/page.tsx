@@ -9,6 +9,7 @@ import type { Metadata } from "next"
 import { ArticleTemplate } from "@/components/blog/article-template"
 import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles, allArticles } from "@/lib/blog/articles"
 import { BreadcrumbSchema, FAQSchema, HowToSchema } from "@/components/seo/healthcare-schema"
+import { PageBreadcrumbs } from "@/components/uix"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 
 // Legacy posts for backward compatibility
@@ -286,6 +287,15 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           <main className="flex-1 pt-24 pb-16">
             <div className="px-4">
+              <div className="max-w-4xl mx-auto mb-6">
+                <PageBreadcrumbs
+                  links={[
+                    { label: "Health Guides", href: "/blog" },
+                    { label: article.title }
+                  ]}
+                  showHome
+                />
+              </div>
               <ArticleTemplate article={article} relatedArticles={getRelatedArticles(slug, 3)} allArticles={allArticles} />
             </div>
           </main>

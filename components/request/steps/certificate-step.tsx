@@ -59,7 +59,11 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
     if (defaults.certType && !certType) {
       setAnswer('certType', defaults.certType as string)
     }
-  }, [certType, setAnswer])
+    // Ensure startDate is set in store (defaults to today if not set)
+    if (!answers.startDate) {
+      setAnswer('startDate', new Date().toISOString().split("T")[0])
+    }
+  }, [certType, answers.startDate, setAnswer])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -161,15 +165,9 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
             </EnhancedSelectionButton>
           </div>
           
-          {/* GP comparison - subtle value anchor */}
+          {/* Soft value hint - not salesy */}
           <p className="text-xs text-muted-foreground text-center">
-            <span className="line-through opacity-60">~$60 GP visit</span>
-            <span className="mx-1.5">→</span>
-            <span className="text-primary font-medium">
-              Save ${duration === "2" 
-                ? (60 - PRICING.MED_CERT_2DAY).toFixed(0)
-                : (60 - PRICING.MED_CERT).toFixed(0)}+
-            </span>
+            No waiting rooms. Reviewed by a doctor within ~1 hour.
           </p>
         </div>
       </FormField>
@@ -196,7 +194,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       {/* Continue button */}
       <Button 
         onClick={handleNext} 
-        className="w-full h-12 mt-4"
+        className="w-full h-12"
         disabled={!canContinue}
       >
         Continue

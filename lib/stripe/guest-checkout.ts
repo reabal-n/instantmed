@@ -4,6 +4,7 @@ import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
@@ -100,6 +101,17 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return {
         success: false,
         error: "Phone number is required for prescription requests to receive your eScript via SMS.",
+      }
+    }
+
+    // Server-side validation for medical certificates
+    if (input.category === "medical_certificate") {
+      const validation = validateMedCertPayload(input.answers)
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid medical certificate request.",
+        }
       }
     }
 

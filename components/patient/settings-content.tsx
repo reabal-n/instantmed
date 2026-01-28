@@ -79,7 +79,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {/* Sidebar Navigation */}
       <div className="md:col-span-1">
-        <div className="bg-white rounded-lg border sticky top-20">
+        <div className="bg-card rounded-lg border sticky top-20">
           {sections.map((section) => {
             const Icon = section.icon
             return (
@@ -110,7 +110,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="bg-white rounded-lg border p-6 space-y-6"
+              className="bg-card rounded-lg border p-6 space-y-6"
             >
               <div>
                 <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
@@ -199,7 +199,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               className="space-y-4"
             >
               {/* Change Password */}
-              <div className="bg-white rounded-lg border p-6">
+              <div className="bg-card rounded-lg border p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Lock className="w-5 h-5" />
                   Password
@@ -216,7 +216,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               </div>
 
               {/* Two-Factor Authentication */}
-              <div className="bg-white rounded-lg border p-6">
+              <div className="bg-card rounded-lg border p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Shield className="w-5 h-5" />
                   Two-Factor Authentication
@@ -231,7 +231,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               </div>
 
               {/* Active Sessions */}
-              <div className="bg-white rounded-lg border p-6">
+              <div className="bg-card rounded-lg border p-6">
                 <h2 className="text-xl font-semibold mb-4">Active Sessions</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   Manage devices where you&apos;re signed in.
@@ -243,7 +243,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               </div>
 
               {/* Sign Out */}
-              <div className="bg-white rounded-lg border p-6">
+              <div className="bg-card rounded-lg border p-6">
                 <h2 className="text-xl font-semibold mb-4">Sign Out</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                   Sign out from all devices or just this one.
@@ -269,7 +269,7 @@ export function PatientSettingsContent({ user }: SettingsContentProps) {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="bg-white rounded-lg border p-6 space-y-6"
+              className="bg-card rounded-lg border p-6 space-y-6"
             >
               <div>
                 <h2 className="text-xl font-semibold mb-6">Notification Preferences</h2>

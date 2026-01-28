@@ -138,17 +138,43 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
 }
 
 /**
+ * Get display price for consult subtype from env vars
+ * Falls back to default consult price if not configured
+ */
+export function getConsultSubtypePrice(subtype?: string): number {
+  if (!subtype) return 49.95
+  
+  const subtypePrices: Record<string, string | undefined> = {
+    'ed': process.env.NEXT_PUBLIC_PRICE_CONSULT_ED,
+    'hair_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_HAIR_LOSS,
+    'womens_health': process.env.NEXT_PUBLIC_PRICE_CONSULT_WOMENS_HEALTH,
+    'weight_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_WEIGHT_LOSS,
+    'general': process.env.NEXT_PUBLIC_PRICE_CONSULT,
+    'new_medication': process.env.NEXT_PUBLIC_PRICE_CONSULT,
+  }
+  
+  const priceStr = subtypePrices[subtype] || process.env.NEXT_PUBLIC_PRICE_CONSULT
+  return priceStr ? parseFloat(priceStr) : 49.95
+}
+
+/**
  * Get display price for a service category (for UI)
  * For medical certificates, pass absenceDays to get tiered pricing
+ * For consults, pass consultSubtype to get subtype-specific pricing
  */
-export function getDisplayPriceForCategory(category: ServiceCategory, absenceDays?: number): string {
+export function getDisplayPriceForCategory(
+  category: ServiceCategory, 
+  options?: { absenceDays?: number; consultSubtype?: string }
+): string {
+  const { absenceDays, consultSubtype } = options || {}
+  
   switch (category) {
     case "medical_certificate":
       return absenceDays === 2 ? "$29.95" : "$19.95"
     case "prescription":
       return "$29.95"
     case "consult":
-      return "$49.95"
+      return `$${getConsultSubtypePrice(consultSubtype).toFixed(2)}`
     default:
       return "$19.95"
   }

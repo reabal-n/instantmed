@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button, Input, Textarea } from "@heroui/react"
+import { DatePickerField } from "@/components/uix"
 import {
   ArrowLeft,
   CheckCircle,
@@ -774,7 +775,7 @@ export function PrescriptionFlowClient({
         {/* Draft Recovery Modal */}
         {showRecoveryPrompt && (
           <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="bg-background rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <RefreshCw className="w-6 h-6 text-primary" />
@@ -1211,13 +1212,12 @@ export function PrescriptionFlowClient({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium">Date of birth</label>
-                  <Input
-                    type="date"
+                  <DatePickerField
+                    label="Date of birth"
                     value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    className="h-11"
-                    max={new Date().toISOString().split("T")[0]}
+                    onChange={(date: string | null) => setDob(date || "")}
+                    disableFuture
+                    size="md"
                   />
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DatePickerField } from "@/components/uix"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -183,8 +184,12 @@ export function DocumentBuilderClient({
             />
           </div>
           <div>
-            <Label>Date of Birth</Label>
-            <Input type="date" value={formData.dob} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
+            <DatePickerField
+              label="Date of Birth"
+              value={formData.dob}
+              onChange={(date: string | null) => setFormData({ ...formData, dob: date || "" })}
+              disableFuture
+            />
           </div>
           <div>
             <Label>Age</Label>
@@ -203,22 +208,17 @@ export function DocumentBuilderClient({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Date From</Label>
-              <Input
-                type="date"
-                value={formData.dateFrom}
-                onChange={(e) => setFormData({ ...formData, dateFrom: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>Date To</Label>
-              <Input
-                type="date"
-                value={formData.dateTo}
-                onChange={(e) => setFormData({ ...formData, dateTo: e.target.value })}
-              />
-            </div>
+            <DatePickerField
+              label="Date From"
+              value={formData.dateFrom}
+              onChange={(date: string | null) => setFormData({ ...formData, dateFrom: date || "" })}
+            />
+            <DatePickerField
+              label="Date To"
+              value={formData.dateTo}
+              onChange={(date: string | null) => setFormData({ ...formData, dateTo: date || "" })}
+              minDate={formData.dateFrom || undefined}
+            />
           </div>
 
           <div>

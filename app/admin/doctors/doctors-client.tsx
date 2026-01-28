@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard, Snippet } from "@/components/uix"
 import {
   Dialog,
   DialogContent,
@@ -242,14 +242,6 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
     }
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
   return (
     <div className="space-y-6">
@@ -348,29 +340,25 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                   filteredDoctors.map((doctor) => (
                     <TableRow key={doctor.id}>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs bg-primary/10">
-                              {getInitials(doctor.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{doctor.full_name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {doctor.nominals || doctor.email}
-                            </p>
-                          </div>
-                        </div>
+                        <UserCard
+                          name={doctor.full_name}
+                          description={doctor.nominals || doctor.email}
+                          size="sm"
+                        />
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono text-sm">
-                          {doctor.provider_number || "—"}
-                        </span>
+                        {doctor.provider_number ? (
+                          <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
+                            {doctor.provider_number}
+                          </Snippet>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono text-sm">
-                          {doctor.ahpra_number || "—"}
-                        </span>
+                        {doctor.ahpra_number ? (
+                          <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
+                            {doctor.ahpra_number}
+                          </Snippet>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
                         {doctor.certificate_identity_complete ? (

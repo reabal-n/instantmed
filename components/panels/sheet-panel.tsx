@@ -90,7 +90,7 @@ export function SheetPanel({
         animate="visible"
         exit="exit"
         className={cn(
-          'absolute top-0 h-full bg-white shadow-2xl flex flex-col',
+          'absolute top-0 h-full bg-background shadow-2xl flex flex-col',
           side === 'right' ? 'right-0' : 'left-0',
           className
         )}
@@ -101,27 +101,27 @@ export function SheetPanel({
         aria-describedby={description ? 'sheet-description' : undefined}
       >
         {/* Header - sticky with more prominence */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-8 py-6">
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-6">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               {title && (
-                <h2 id="sheet-title" className="text-xl font-semibold text-gray-900 mb-1">
+                <h2 id="sheet-title" className="text-xl font-semibold text-foreground mb-1">
                   {title}
                 </h2>
               )}
               {description && (
-                <p id="sheet-description" className="text-sm text-gray-600">
+                <p id="sheet-description" className="text-sm text-muted-foreground">
                   {description}
                 </p>
               )}
             </div>
             <button
               onClick={handleClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-4"
+              className="p-2 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-4"
               aria-label="Close sheet"
               type="button"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>

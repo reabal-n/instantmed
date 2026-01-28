@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard } from "@/components/uix"
 import {
   Table,
   TableBody,
@@ -58,14 +58,6 @@ function formatResponseTime(minutes: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
 
 export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProps) {
   // Calculate team averages
@@ -203,15 +195,12 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                     )}>
                       {index + 1}
                     </div>
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {getInitials(doctor.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{doctor.name}</p>
-                      <p className="text-xs text-muted-foreground">{doctor.totalReviewed} reviews</p>
-                    </div>
+                    <UserCard
+                      name={doctor.name}
+                      description={`${doctor.totalReviewed} reviews`}
+                      size="sm"
+                      className="flex-1 min-w-0"
+                    />
                     {index === 0 && <Award className="w-5 h-5 text-amber-500" />}
                   </div>
                 ))}
@@ -243,16 +232,12 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
                 {doctors.map((doctor) => (
                   <TableRow key={doctor.id}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {getInitials(doctor.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{doctor.name}</p>
-                          <p className="text-xs text-muted-foreground">{doctor.email}</p>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <UserCard
+                          name={doctor.name}
+                          description={doctor.email}
+                          size="sm"
+                        />
                         {doctor.role === "admin" && (
                           <Badge variant="outline" className="text-xs">Admin</Badge>
                         )}

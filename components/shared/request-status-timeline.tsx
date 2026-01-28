@@ -109,14 +109,14 @@ export function RequestStatusTimeline({
                   "w-10 h-10 rounded-full flex items-center justify-center",
                   step.status === "complete" && "bg-emerald-100 text-emerald-600",
                   step.status === "current" && "bg-dawn-100 text-dawn-600",
-                  step.status === "upcoming" && "bg-gray-100 text-gray-400",
+                  step.status === "upcoming" && "bg-muted text-muted-foreground",
                   step.status === "error" && "bg-red-100 text-red-600",
                 )}
               >
                 <Icon className="w-5 h-5" />
               </div>
               {!isLast && (
-                <div className={cn("w-0.5 h-12 mt-2", step.status === "complete" ? "bg-emerald-200" : "bg-gray-200")} />
+                <div className={cn("w-0.5 h-12 mt-2", step.status === "complete" ? "bg-emerald-200" : "bg-border")} />
               )}
             </div>
             <div className="flex-1 pb-8">

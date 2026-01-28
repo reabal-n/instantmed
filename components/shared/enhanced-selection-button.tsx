@@ -34,7 +34,7 @@ export function EnhancedSelectionButton({
     chip: cn(
       "px-4 py-2.5 min-h-[44px] min-w-[44px] rounded-xl text-sm font-medium",
       // Add right padding to prevent text overlapping with absolute checkmark
-      selected ? "pr-8" : "",
+      "pr-7",
       selected
         ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
         : "bg-white/90 dark:bg-slate-900/60 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"

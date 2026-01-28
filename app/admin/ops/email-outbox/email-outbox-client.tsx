@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { EmailOutboxRow } from "@/lib/data/email-outbox"
+import { ScrollShadow } from "@/components/uix"
 
 // ============================================================================
 // TYPES
@@ -530,7 +531,7 @@ export function EmailOutboxClient({
 
       {/* Table */}
       <Card>
-        <div className="overflow-x-auto">
+        <ScrollShadow orientation="horizontal">
           <table className="w-full text-sm" data-testid="email-outbox-table">
             <thead>
               <tr className="border-b bg-muted/50">
@@ -587,7 +588,7 @@ export function EmailOutboxClient({
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollShadow>
 
         {/* Pagination */}
         {totalPages > 1 && (

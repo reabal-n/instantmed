@@ -110,7 +110,7 @@ export function PatientDashboard({
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
+      <header className="bg-background border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -159,7 +159,7 @@ export function PatientDashboard({
         )}
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl border mb-6">
+        <div className="bg-card rounded-xl border mb-6">
           <div className="flex gap-0 border-b">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -450,7 +450,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-lg border p-4">
+    <div className="bg-card rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>

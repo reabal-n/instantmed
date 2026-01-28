@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton, Pagination } from "@/components/uix"
 import {
   CreditCard,
   ArrowLeft,
@@ -42,8 +43,6 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -308,11 +307,19 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32 mb-1" />
+                        <Skeleton className="h-3 w-24" />
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : payments.length > 0 ? (
                   payments.map((payment) => (
                     <TableRow key={payment.id}>
@@ -388,27 +395,14 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
               <p className="text-sm text-muted-foreground">
                 Showing {((page - 1) * pageSize) + 1} - {Math.min(page * pageSize, total)} of {total}
               </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchPayments(filters, page - 1)}
-                  disabled={page === 1 || isLoading}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm">
-                  Page {page} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchPayments(filters, page + 1)}
-                  disabled={page === totalPages || isLoading}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              <Pagination
+                total={totalPages}
+                page={page}
+                onChange={(newPage) => fetchPayments(filters, newPage)}
+                showControls
+                size="sm"
+                isDisabled={isLoading}
+              />
             </div>
           )}
         </CardContent>

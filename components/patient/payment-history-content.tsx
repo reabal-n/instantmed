@@ -165,7 +165,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
       </motion.div>
 
       {/* Controls */}
-      <div className="bg-white rounded-lg border p-4 space-y-4">
+      <div className="bg-card rounded-lg border p-4 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -183,7 +183,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
             onChange={(e) =>
               setFilterStatus(e.target.value as typeof filterStatus)
             }
-            className="px-4 py-2 border rounded-lg bg-white hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 border rounded-lg bg-card hover:bg-muted transition-colors"
           >
             <option value="all">All Statuses</option>
             <option value="paid">Paid</option>
@@ -197,7 +197,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white rounded-lg border overflow-hidden"
+        className="bg-card rounded-lg border overflow-hidden"
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -358,7 +358,7 @@ function StatCard({
   }
 
   return (
-    <div className="bg-white rounded-lg border p-4">
+    <div className="bg-card rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>

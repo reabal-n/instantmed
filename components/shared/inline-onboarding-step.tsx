@@ -215,7 +215,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               placeholder="0400 000 000"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`h-11 rounded-xl bg-white/50 border-white/40 ${errors.phone ? "border-red-400" : ""}`}
+              className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.phone ? "border-red-400" : ""}`}
             />
             {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
           </div>
@@ -232,7 +232,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 setPostcode(address.postcode)
               }}
               placeholder="Start typing your address..."
-              className="h-11 rounded-xl bg-white/50 border-white/40"
+              className="h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40"
               error={errors.addressLine1}
               requireVerified={true}
             />
@@ -240,7 +240,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
               placeholder="Apartment, unit, etc. (optional)"
               value={addressLine2}
               onChange={(e) => setAddressLine2(e.target.value)}
-              className="h-11 rounded-xl bg-white/50 border-white/40"
+              className="h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40"
             />
           </div>
 
@@ -251,7 +251,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 placeholder="Suburb"
                 value={suburb}
                 onChange={(e) => setSuburb(e.target.value)}
-                className={`h-11 rounded-xl bg-white/50 border-white/40 ${errors.suburb ? "border-red-400" : ""}`}
+                className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.suburb ? "border-red-400" : ""}`}
               />
               {errors.suburb && <p className="text-xs text-red-500">{errors.suburb}</p>}
             </div>
@@ -262,7 +262,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 maxLength={4}
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value)}
-                className={`h-11 rounded-xl bg-white/50 border-white/40 ${errors.postcode ? "border-red-400" : ""}`}
+                className={`h-11 rounded-xl bg-card/50 dark:bg-card/30 border-border/40 ${errors.postcode ? "border-red-400" : ""}`}
               />
               {errors.postcode && <p className="text-xs text-red-500">{errors.postcode}</p>}
             </div>
@@ -336,7 +336,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
             placeholder="1234 56789 0"
             value={medicareNumber}
             onChange={handleMedicareChange}
-            className={`h-12 text-lg font-mono tracking-wider rounded-xl bg-white/50 border-white/40 text-center ${
+            className={`h-12 text-lg font-mono tracking-wider rounded-xl bg-card/50 dark:bg-card/30 border-border/40 text-center ${
               errors.medicare ? "border-red-400" : ""
             }`}
             aria-describedby="medicare-help"

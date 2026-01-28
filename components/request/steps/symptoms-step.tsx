@@ -211,7 +211,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
       {/* Continue button */}
       <Button 
         onClick={handleNext} 
-        className="w-full h-12 mt-4"
+        className="w-full h-12"
         disabled={!canContinue}
       >
         Continue

@@ -1,3 +1,14 @@
+/**
+ * @deprecated This route uses the legacy med_cert_requests table.
+ * 
+ * New submissions should go through the unified intake flow:
+ * - @/app/request/unified-flow-client.tsx (client)
+ * - @/app/actions/create-request.ts (server action)
+ * - Uses the intakes table instead of med_cert_requests
+ * 
+ * This route is kept for backward compatibility but logs deprecation warnings.
+ */
+
 import { NextRequest, NextResponse } from "next/server"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -98,6 +109,13 @@ function validateSubmission(body: Partial<SubmitRequestBody>): { valid: boolean;
 // ============================================================================
 
 export async function POST(request: NextRequest): Promise<NextResponse<SubmitResponse>> {
+  // DEPRECATION WARNING: Log usage of legacy route
+  log.warn("[DEPRECATED] Legacy /api/med-cert/submit route called. Use unified intake flow instead.", {
+    route: "/api/med-cert/submit",
+    deprecatedSince: "2025-01",
+    replacement: "@/app/actions/create-request.ts",
+  })
+
   try {
     // Rate limiting
     const rateLimitResponse = await applyRateLimit(request, "sensitive", `med-cert-submit`)

@@ -88,7 +88,7 @@ export function IntakeModal({
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className={cn(
-                    "relative w-full bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]",
+                    "relative w-full bg-white dark:bg-slate-900 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
                     "sm:max-w-2xl sm:rounded-2xl",
                     "h-full sm:h-auto sm:max-h-[90vh]",
                     "flex flex-col"
@@ -97,7 +97,7 @@ export function IntakeModal({
                 >
                 {/* Header */}
                 {title && (
-                  <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-4 sm:rounded-t-2xl">
+                  <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-white dark:bg-slate-900 px-6 py-4 sm:rounded-t-2xl">
                     <h2 className="text-lg font-semibold">{title}</h2>
                     <motion.button
                       onClick={handleClose}
@@ -136,7 +136,7 @@ export function IntakeModal({
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
                   >
                     <h3 className="text-lg font-semibold mb-2">
                       Close without saving?

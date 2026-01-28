@@ -164,7 +164,7 @@ export function MedicalHistorySummary({
       {/* Expandable section */}
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <button className="w-full px-4 py-2 border-t bg-gray-50/50 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:bg-gray-100/50 transition-colors">
+          <button className="w-full px-4 py-2 border-t bg-muted/50 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:bg-muted/70 transition-colors">
             {isExpanded ? (
               <>
                 <ChevronUp className="h-4 w-4" />

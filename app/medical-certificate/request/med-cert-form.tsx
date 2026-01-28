@@ -19,7 +19,7 @@ import {
   FileText,
   Shield,
   Pencil,
-  Calendar,
+  Calendar as _Calendar,
   User,
   Mail,
   RefreshCw,
@@ -28,6 +28,7 @@ import {
 import { ButtonSpinner } from "@/components/ui/unified-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DatePickerField } from "@/components/uix"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { Textarea } from "@/components/ui/textarea"
@@ -1059,17 +1060,14 @@ export function MedCertForm({
           <div className="space-y-4">
             <StepHeader title="When does your leave start?" subtitle="We cannot backdate medical certificates" />
             <div className="space-y-2">
-              <Label htmlFor="start-date" className="text-sm font-medium">Start date</Label>
-              <Input
-                id="start-date"
-                type="date"
+              <DatePickerField
+                label="Start date"
                 value={formData.startDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                min={new Date().toISOString().split("T")[0]}
-                className="h-12"
-                startContent={<Calendar className="w-4 h-4 text-muted-foreground" />}
+                onChange={(date: string | null) => setFormData((prev) => ({ ...prev, startDate: date || "" }))}
+                disablePast
+                size="lg"
+                description="Certificates can only be issued from today onwards"
               />
-              <p className="text-xs text-muted-foreground">Certificates can only be issued from today onwards</p>
             </div>
           </div>
         )
@@ -1338,22 +1336,15 @@ export function MedCertForm({
 
               {/* Date of Birth */}
               <div className="space-y-2">
-                <FieldLabelWithHelp
+                <DatePickerField
                   label="Date of birth"
-                  helpText="Required for your medical certificate. Format: DD/MM/YYYY"
-                  required
-                />
-                <Input
-                  id="dob"
-                  type="date"
                   value={formData.dateOfBirth}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="h-11 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                  onChange={(date: string | null) => setFormData((prev) => ({ ...prev, dateOfBirth: date || "" }))}
+                  disableFuture
+                  size="lg"
+                  isRequired
+                  description={!formData.dateOfBirth ? "We need this to verify your identity" : undefined}
                 />
-                {!formData.dateOfBirth && (
-                  <p className="text-xs text-muted-foreground">We need this to verify your identity</p>
-                )}
               </div>
 
               {/* Address */}
@@ -1650,7 +1641,7 @@ export function MedCertForm({
     <main
       ref={mainRef}
       tabIndex={-1}
-      className="h-screen bg-ivory-50 dark:bg-slate-950 flex flex-col overflow-hidden"
+      className="h-screen bg-background flex flex-col overflow-hidden"
       aria-label="Medical certificate request"
     >
       {/* Header */}

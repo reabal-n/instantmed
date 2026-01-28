@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton, Snippet } from "@/components/uix"
 import {
   AlertCircle,
   RefreshCw,
@@ -137,9 +138,40 @@ export function EmailQueueClient() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Failed Deliveries
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Certificate</TableHead>
+                <TableHead>Patient</TableHead>
+                <TableHead>Failed At</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Retries</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -192,8 +224,10 @@ export function EmailQueueClient() {
               <TableBody>
                 {failures.map((failure) => (
                   <TableRow key={failure.id}>
-                    <TableCell className="font-mono text-sm">
-                      {failure.certificateNumber}
+                    <TableCell>
+                      <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
+                        {failure.certificateNumber}
+                      </Snippet>
                     </TableCell>
                     <TableCell>{failure.patientName}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">

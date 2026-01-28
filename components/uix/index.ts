@@ -68,11 +68,21 @@ export {
 
 // Re-export commonly used HeroUI components directly for convenience
 export {
+  // Feedback & Loading
   Spinner,
   Progress,
+  Skeleton,
+  
+  // Data Display
   Chip,
   Badge,
   Avatar,
+  AvatarGroup,
+  User,
+  Snippet,
+  Code,
+  
+  // Overlays
   Tooltip,
   Popover,
   PopoverTrigger,
@@ -81,26 +91,37 @@ export {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  DropdownSection,
+  
+  // Forms
   Switch,
   Checkbox,
+  CheckboxGroup,
   Radio,
   RadioGroup,
   Select,
   SelectItem,
+  SelectSection,
   Textarea,
   Autocomplete,
   AutocompleteItem,
-  Skeleton,
-  Divider,
+  AutocompleteSection,
+  Slider,
+  
+  // Date & Time
+  DatePicker,
+  DateRangePicker,
+  Calendar,
+  RangeCalendar,
+  DateInput,
+  TimeInput,
+  
+  // Navigation
+  Breadcrumbs,
+  BreadcrumbItem,
+  Tabs,
+  Tab,
   Link,
-  User,
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-  Pagination,
   Navbar,
   NavbarBrand,
   NavbarContent,
@@ -108,4 +129,30 @@ export {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
+  
+  // Layout
+  Divider,
+  Spacer,
+  
+  // Data Tables
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Pagination,
+  
+  // Misc
+  Image,
+  ScrollShadow,
+  Listbox,
+  ListboxItem,
+  ListboxSection,
 } from "@heroui/react"
+
+// Re-export custom wrappers
+export { DataTable, type DataTableProps, type DataTableColumn } from "./data-table"
+export { UserCard, type UserCardProps } from "./user-card"
+export { PageBreadcrumbs, type PageBreadcrumbsProps, type BreadcrumbLink } from "./breadcrumbs"
+export { DatePickerField, type DatePickerFieldProps } from "./date-picker"

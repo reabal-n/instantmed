@@ -60,6 +60,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<DecisionResponse>> {
+  // DEPRECATION WARNING: Log usage of legacy route
+  log.warn("[DEPRECATED] Legacy /api/med-cert/[id]/decision route called. Use approve-cert.ts server action instead.", {
+    route: "/api/med-cert/[id]/decision",
+    deprecatedSince: "2025-01",
+    replacement: "@/app/actions/approve-cert.ts",
+  })
+
   try {
     const { id: requestId } = await params
     const headersList = await headers()

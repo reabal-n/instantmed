@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Snippet } from "@/components/uix"
 import { RefreshCcw, ExternalLink, AlertTriangle, Clock, Mail, CheckCircle2, ArrowLeft } from "lucide-react"
 import type { StuckIntake, StuckCounts, StuckReason } from "@/lib/data/intake-ops"
 
@@ -365,8 +366,10 @@ export function IntakesStuckClient({
               ) : (
                 initialData.map((intake) => (
                   <TableRow key={intake.id}>
-                    <TableCell className="font-mono text-sm">
-                      {intake.reference_number}
+                    <TableCell>
+                      <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
+                        {intake.reference_number}
+                      </Snippet>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{intake.status}</Badge>

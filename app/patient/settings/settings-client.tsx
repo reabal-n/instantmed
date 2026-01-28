@@ -230,23 +230,23 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
       >
         <TabsList className="glass-card rounded-xl p-1 h-auto flex-wrap">
-          <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white/60">
+          <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
             <User className="w-4 h-4 mr-2" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="address" className="rounded-lg data-[state=active]:bg-white/60">
+          <TabsTrigger value="address" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
             <MapPin className="w-4 h-4 mr-2" />
             Address
           </TabsTrigger>
-          <TabsTrigger value="medicare" className="rounded-lg data-[state=active]:bg-white/60">
+          <TabsTrigger value="medicare" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
             <CreditCard className="w-4 h-4 mr-2" />
             Medicare
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-white/60">
+          <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-white/60">
+          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-card/60 dark:data-[state=active]:bg-card/40">
             <Shield className="w-4 h-4 mr-2" />
             Security
           </TabsTrigger>
@@ -274,7 +274,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="full_name"
                       value={formData.full_name}
                       onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -289,7 +289,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.phone}
                       onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                       placeholder="04XX XXX XXX"
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -299,7 +299,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       type="date"
                       value={formData.date_of_birth ? formData.date_of_birth.split("T")[0] : ""}
                       onChange={(e) => setFormData((prev) => ({ ...prev, date_of_birth: e.target.value }))}
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                 </div>
@@ -319,7 +319,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.emergency_contact_name}
                       onChange={(e) => setFormData((prev) => ({ ...prev, emergency_contact_name: e.target.value }))}
                       placeholder="e.g., Jane Doe"
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -329,7 +329,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.emergency_contact_phone}
                       onChange={(e) => setFormData((prev) => ({ ...prev, emergency_contact_phone: e.target.value }))}
                       placeholder="04XX XXX XXX"
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.preferred_pharmacy_name}
                       onChange={(e) => setFormData((prev) => ({ ...prev, preferred_pharmacy_name: e.target.value }))}
                       placeholder="e.g., Chemist Warehouse"
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -359,7 +359,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       value={formData.preferred_pharmacy_address}
                       onChange={(e) => setFormData((prev) => ({ ...prev, preferred_pharmacy_address: e.target.value }))}
                       placeholder="e.g., 123 Main St, Sydney NSW 2000"
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                 </div>
@@ -398,7 +398,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                     id="street"
                     value={formData.street_address}
                     onChange={(e) => setFormData((prev) => ({ ...prev, street_address: e.target.value }))}
-                    className="rounded-xl bg-white/50"
+                    className="rounded-xl bg-card/50 dark:bg-card/30"
                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -408,7 +408,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="suburb"
                       value={formData.suburb}
                       onChange={(e) => setFormData((prev) => ({ ...prev, suburb: e.target.value }))}
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -417,7 +417,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="state"
                       value={formData.state}
                       onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                   <div className="space-y-2">
@@ -426,7 +426,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       id="postcode"
                       value={formData.postcode}
                       onChange={(e) => setFormData((prev) => ({ ...prev, postcode: e.target.value }))}
-                      className="rounded-xl bg-white/50"
+                      className="rounded-xl bg-card/50 dark:bg-card/30"
                     />
                   </div>
                 </div>
@@ -460,15 +460,15 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <Label className="text-xs text-muted-foreground">Medicare Number</Label>
                   <p className="font-mono text-foreground mt-1">{maskMedicare(profile.medicare_number)}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <Label className="text-xs text-muted-foreground">IRN</Label>
                   <p className="font-mono text-foreground mt-1">{profile.medicare_irn || "Not provided"}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <Label className="text-xs text-muted-foreground">Expiry</Label>
                   <p className="font-mono text-foreground mt-1">
                     {profile.medicare_expiry_month && profile.medicare_expiry_year
@@ -476,7 +476,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       : "Not provided"}
                   </p>
                 </div>
-                <div className="p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <Label className="text-xs text-muted-foreground">My Health Record</Label>
                   <div className="flex items-center gap-2 mt-1">
                     {profile.my_health_record_consent ? (
@@ -517,7 +517,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Email notifications</p>
                     <p className="text-sm text-muted-foreground">Receive updates about your requests via email</p>
@@ -529,7 +529,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">SMS notifications</p>
                     <p className="text-sm text-muted-foreground">Receive text messages about urgent updates</p>
@@ -570,7 +570,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Marketing emails</p>
                     <p className="text-sm text-muted-foreground">Occasional updates about new services and features</p>
@@ -582,7 +582,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 border border-white/40">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card/50 dark:bg-card/30 border border-border/40">
                   <div>
                     <p className="font-medium text-foreground">Checkout reminders</p>
                     <p className="text-sm text-muted-foreground">Reminders if you have an incomplete request</p>

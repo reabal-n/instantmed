@@ -16,6 +16,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PageBreadcrumbs } from "@/components/uix"
 
 // Symptom checker SEO pages - what could be causing your symptom
 const symptoms: Record<string, {
@@ -535,18 +536,22 @@ export default async function SymptomPage({ params }: PageProps) {
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
-          {/* Hero Section */}
-          <section className="relative px-4 py-16 sm:py-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          {/* Breadcrumbs */}
+          <div className="px-4 pt-6 bg-white dark:bg-slate-900">
             <div className="mx-auto max-w-4xl">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-                <Link href="/" className="hover:text-primary">Home</Link>
-                <span>/</span>
-                <Link href="/symptoms" className="hover:text-primary">Symptoms</Link>
-                <span>/</span>
-                <span className="text-foreground">{symptom.name}</span>
-              </div>
+              <PageBreadcrumbs
+                links={[
+                  { label: "Symptoms", href: "/symptoms" },
+                  { label: symptom.name }
+                ]}
+                showHome
+              />
+            </div>
+          </div>
 
+          {/* Hero Section */}
+          <section className="relative px-4 py-8 sm:py-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+            <div className="mx-auto max-w-4xl">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                   <ThermometerSun className="w-7 h-7 text-primary" />

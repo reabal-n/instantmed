@@ -16,6 +16,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { PageBreadcrumbs } from "@/components/uix"
 
 // How-to guides for high-intent SEO traffic
 const guides: Record<string, {
@@ -342,15 +343,22 @@ export default async function GuidePage({ params }: PageProps) {
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
-          {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 border-b border-slate-200 dark:border-slate-800">
+          {/* Breadcrumbs */}
+          <div className="px-4 pt-6">
             <div className="mx-auto max-w-3xl">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <Link href="/" className="hover:text-primary">Home</Link>
-                <span>/</span>
-                <Link href="/guides" className="hover:text-primary">Guides</Link>
-              </div>
+              <PageBreadcrumbs
+                links={[
+                  { label: "Guides", href: "/guides" },
+                  { label: guide.title }
+                ]}
+                showHome
+              />
+            </div>
+          </div>
 
+          {/* Hero */}
+          <section className="px-4 py-8 sm:py-12 border-b border-slate-200 dark:border-slate-800">
+            <div className="mx-auto max-w-3xl">
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 leading-tight">
                 {guide.title}
               </h1>

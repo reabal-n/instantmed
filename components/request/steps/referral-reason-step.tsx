@@ -69,7 +69,7 @@ export default function ReferralReasonStep({ onBack }: ReferralReasonStepProps) 
       <Button 
         variant="outline" 
         onClick={onBack} 
-        className="w-full h-12 mt-4 gap-2"
+        className="w-full h-12 gap-2"
       >
         <ArrowLeft className="w-4 h-4" />
         Go back

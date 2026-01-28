@@ -74,17 +74,26 @@ function transformAnswers(
   // Map prescription specific fields
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
     transformed.medication_name = answers.medicationName
+    transformed.medication_display = answers.medicationName // Alias for validation
     transformed.medication_strength = answers.medicationStrength
     transformed.medication_form = answers.medicationForm
     transformed.pbs_code = answers.pbsCode
+    transformed.amt_code = answers.pbsCode // Alias for validation compatibility
+    // Map prescriptionHistory to last_prescribed for server-side validation
+    transformed.last_prescribed = answers.prescriptionHistory
     transformed.prescription_history = answers.prescriptionHistory
     transformed.last_prescription_date = answers.lastPrescriptionDate
     transformed.side_effects = answers.sideEffects
+    // Gating fields required by validation (inferred from flow logic)
+    // If user reached checkout via repeat-script flow, they confirmed it's a repeat
+    transformed.prescribed_before = answers.prescribedBefore ?? true
+    transformed.dose_changed = answers.doseChanged ?? false
   }
   
   // Map consult specific fields
   if (serviceType === 'consult') {
     transformed.consult_category = answers.consultCategory
+    transformed.consult_subtype = answers.consultSubtype
     transformed.consult_details = answers.consultDetails
     transformed.consult_urgency = answers.consultUrgency
   }
@@ -95,6 +104,11 @@ function transformAnswers(
   transformed.has_conditions = answers.hasConditions
   transformed.conditions = answers.conditions
   transformed.other_medications = answers.otherMedications
+  
+  // Map consent fields for server-side validation
+  transformed.telehealth_consent_given = answers.telehealthConsentGiven
+  transformed.accuracy_confirmed = answers.confirmedAccuracy
+  transformed.terms_agreed = answers.agreedToTerms
   
   return transformed
 }

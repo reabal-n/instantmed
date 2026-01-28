@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { CheckoutButton, CheckoutSection } from "@/components/shared/checkout-button"
 import { RefundGuaranteeBadge } from "@/components/checkout/refund-guarantee-badge"
-import { PaymentMethodIcons } from "@/components/checkout/trust-badges"
+import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -41,7 +41,7 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
     label: 'Repeat Prescription' 
   },
   'consult': { 
-    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_CONSULT || '39.95'), 
+    base: parseFloat(process.env.NEXT_PUBLIC_PRICE_CONSULT || '49.95'), 
     label: 'Doctor Consultation' 
   },
 }
@@ -62,9 +62,17 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
 
   const pricing = PRICING[serviceType] || PRICING['med-cert']
   
-  // Get dynamic price for med-cert based on duration
+  // Get dynamic price based on service type and subtype
   const duration = answers.duration as string | undefined
-  const price = serviceType === 'med-cert' && duration === '2' ? 29.95 : pricing.base
+  const consultSubtype = answers.consultSubtype as string | undefined
+  
+  // Calculate price: med-cert uses duration, consult uses subtype (from env vars), others use base
+  let price = pricing.base
+  if (serviceType === 'med-cert' && duration === '2') {
+    price = 29.95
+  } else if (serviceType === 'consult') {
+    price = getConsultSubtypePrice(consultSubtype)
+  }
 
   const canCheckout = agreedToTerms && confirmedAccuracy
 
@@ -76,9 +84,16 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     
     try {
       const identity = getIdentity()
+      // Merge consent fields into answers for server-side validation
+      const answersWithConsents = {
+        ...answers,
+        agreedToTerms,
+        confirmedAccuracy,
+        telehealthConsentGiven: true, // Implicitly consented by reaching checkout
+      }
       const result = await createCheckoutFromUnifiedFlow({
         serviceType,
-        answers,
+        answers: answersWithConsents,
         identity,
         chatSessionId: chatSessionId || undefined, // Pass chat session ID for transcript linking
       })
@@ -106,7 +121,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
     <div className="space-y-5 animate-in fade-in">
       {/* Summary card */}
       <div className="p-4 rounded-xl border bg-card space-y-3">
-        <h3 className="font-semibold flex items-center gap-2">
+        <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-green-600" />
           Request Summary
         </h3>
@@ -226,9 +241,8 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         />
       </CheckoutSection>
 
-      {/* Payment methods and guarantee */}
-      <div className="space-y-3 pt-2">
-        <PaymentMethodIcons />
+      {/* Refund guarantee */}
+      <div className="pt-2">
         <RefundGuaranteeBadge />
       </div>
     </div>

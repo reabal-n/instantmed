@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DatePickerField } from "@/components/uix"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
@@ -877,23 +878,26 @@ export function UnifiedFlowClient({
               </div>
               {duration === "Custom" && (
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Input
-                    type="date"
+                  <DatePickerField
+                    label="From"
                     value={customDates.from}
-                    onChange={(e) => {
-                      setCustomDates({ ...customDates, from: e.target.value })
-                      setForm({ ...form, startDate: e.target.value })
+                    onChange={(date: string | null) => {
+                      setCustomDates({ ...customDates, from: date || "" })
+                      setForm({ ...form, startDate: date || "" })
                     }}
-                    min={new Date().toISOString().split("T")[0]}
+                    disablePast
+                    size="sm"
                   />
-                  <Input
-                    type="date"
+                  <DatePickerField
+                    label="To"
                     value={customDates.to}
-                    onChange={(e) => {
-                      setCustomDates({ ...customDates, to: e.target.value })
-                      setForm({ ...form, endDate: e.target.value })
+                    onChange={(date: string | null) => {
+                      setCustomDates({ ...customDates, to: date || "" })
+                      setForm({ ...form, endDate: date || "" })
                     }}
-                    min={customDates.from || new Date().toISOString().split("T")[0]}
+                    minDate={customDates.from || undefined}
+                    disablePast={!customDates.from}
+                    size="sm"
                   />
                 </div>
               )}

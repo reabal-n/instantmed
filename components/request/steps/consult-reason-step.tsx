@@ -245,7 +245,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
       {/* Continue button */}
       <Button 
         onClick={handleNext} 
-        className="w-full h-12 mt-4"
+        className="w-full h-12"
         disabled={!isComplete}
       >
         Continue

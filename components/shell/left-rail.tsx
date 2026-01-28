@@ -60,31 +60,31 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-40 flex flex-col",
+        "fixed left-0 top-0 h-screen bg-background border-r border-border transition-all duration-300 z-40 flex flex-col",
         isExpanded ? "w-60" : "w-16",
         isPanelOpen && "opacity-60 pointer-events-none"
       )}
     >
       {/* Header */}
-      <div className="h-16 border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
+      <div className="h-16 border-b border-border flex items-center justify-between px-4 shrink-0">
         {isExpanded && (
           <span className="font-semibold text-primary">InstantMed</span>
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-muted transition-colors"
           aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
           {isExpanded ? (
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-b border-gray-200 shrink-0">
+      <div className="p-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             {userAvatar ? (
@@ -103,8 +103,8 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
           </div>
           {isExpanded && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-gray-900">{userName}</p>
-              <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+              <p className="text-sm font-medium truncate text-foreground">{userName}</p>
+              <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
             </div>
           )}
         </div>
@@ -147,7 +147,7 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                 isActive 
                   ? "bg-primary/10 text-primary font-medium" 
-                  : "text-gray-600 hover:bg-gray-100"
+                  : "text-muted-foreground hover:bg-muted"
               )}
               title={!isExpanded ? item.label : undefined}
             >
@@ -160,8 +160,8 @@ export function LeftRail({ userName, userAvatar, userRole, onNewRequest }: LeftR
 
       {/* Footer - Optional branding */}
       {isExpanded && (
-        <div className="p-4 border-t border-gray-200 shrink-0">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="p-4 border-t border-border shrink-0">
+          <p className="text-xs text-muted-foreground text-center">
             InstantMed © {new Date().getFullYear()}
           </p>
         </div>
