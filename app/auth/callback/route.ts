@@ -117,20 +117,36 @@ export async function GET(request: NextRequest) {
     const serviceClient = createServiceRoleClient()
     
     // Check if profile exists by clerk_user_id
-    let { data: profile } = await serviceClient
+    const { data: existingProfile, error: profileError } = await serviceClient
       .from("profiles")
       .select("id, role, onboarding_completed")
       .eq("clerk_user_id", userId)
-      .single()
+      .maybeSingle()
+
+    let profile = existingProfile
+
+    log.info("Profile lookup result", { 
+      userId, 
+      email: primaryEmail,
+      foundByClerkId: !!profile,
+      profileError: profileError?.message,
+    })
 
     // If no profile by clerk_user_id, check for existing guest profile by email
     if (!profile && primaryEmail) {
-      const { data: guestProfile } = await serviceClient
+      const { data: guestProfile, error: guestError } = await serviceClient
         .from("profiles")
         .select("id, role, onboarding_completed, clerk_user_id")
         .eq("email", primaryEmail.toLowerCase())
         .is("clerk_user_id", null)
-        .single()
+        .maybeSingle()
+
+      log.info("Guest profile lookup", { 
+        userId, 
+        email: primaryEmail,
+        foundGuestProfile: !!guestProfile,
+        guestError: guestError?.message,
+      })
 
       if (guestProfile) {
         // Link existing guest profile to this Clerk user
@@ -150,8 +166,15 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (updateError) {
-          log.error("Failed to link guest profile to Clerk user", { userId, guestProfileId: guestProfile.id }, updateError)
-          return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
+          log.error("Failed to link guest profile to Clerk user", { 
+            userId, 
+            guestProfileId: guestProfile.id,
+            errorCode: updateError.code,
+            errorMessage: updateError.message,
+            errorDetails: updateError.details,
+            errorHint: updateError.hint,
+          }, updateError)
+          return NextResponse.redirect(`${origin}/sign-in?error=profile_link_failed`)
         }
 
         profile = updatedProfile
@@ -175,8 +198,15 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (insertError) {
-          log.error("Profile creation failed", { userId }, insertError)
-          return NextResponse.redirect(`${origin}/sign-in?error=profile_failed`)
+          log.error("Profile creation failed", { 
+            userId,
+            email: primaryEmail,
+            errorCode: insertError.code,
+            errorMessage: insertError.message,
+            errorDetails: insertError.details,
+            errorHint: insertError.hint,
+          }, insertError)
+          return NextResponse.redirect(`${origin}/sign-in?error=profile_create_failed`)
         }
         
         profile = newProfile
