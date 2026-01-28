@@ -403,35 +403,88 @@ export async function POST(request: Request) {
         .single()
 
       if (intakeError) {
-        // Check if already paid (concurrent webhook)
-        const { data: recheckIntake } = await supabase
+        // Check current intake state for diagnosis
+        const { data: recheckIntake, error: recheckError } = await supabase
           .from("intakes")
-          .select("payment_status")
+          .select("id, status, payment_status, paid_at, stripe_payment_intent_id")
           .eq("id", intakeId)
           .single()
+
+        log.error("Intake update FAILED - diagnosing", {
+          intakeId,
+          sessionId: session.id,
+          updateErrorCode: intakeError.code,
+          updateErrorMessage: intakeError.message,
+          updateErrorDetails: intakeError.details,
+          updateErrorHint: intakeError.hint,
+          currentIntakeState: recheckIntake,
+          recheckError: recheckError?.message,
+        }, intakeError)
 
         if (recheckIntake?.payment_status === "paid") {
           log.info("Intake was updated by concurrent webhook", { intakeId })
           return NextResponse.json({ received: true, concurrent_update: true })
         }
 
-        log.error("Intake update FAILED", {
-          intakeId,
-          sessionId: session.id,
-        }, intakeError)
-        await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
-        // Add to dead letter queue for critical failures
-        await addToDeadLetterQueue(
-          supabase,
-          event.id,
-          event.type,
-          session.id,
-          intakeId,
-          `Intake update failed: ${intakeError.message}`,
-          "UPDATE_FAILED",
-          { amount: session.amount_total, payment_intent: session.payment_intent }
-        )
-        return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
+        // If the update failed but intake exists with wrong status, try force update without the IN clause
+        if (recheckIntake && recheckIntake.payment_status !== "paid") {
+          log.warn("Attempting force update without payment_status filter", { 
+            intakeId, 
+            currentPaymentStatus: recheckIntake.payment_status 
+          })
+          
+          const { error: forceError, data: forceData } = await supabase
+            .from("intakes")
+            .update({
+              payment_status: "paid",
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              stripe_payment_intent_id: paymentIntentId,
+              stripe_customer_id: stripeCustomerId,
+            })
+            .eq("id", intakeId)
+            .select()
+            .single()
+          
+          if (!forceError && forceData) {
+            log.info("Force update succeeded", { intakeId, newStatus: forceData.status })
+            // Don't return early - fall through to continue webhook flow
+          } else {
+            log.error("Force update also failed", { 
+              intakeId, 
+              forceErrorCode: forceError?.code,
+              forceErrorMessage: forceError?.message,
+            }, forceError)
+            await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
+            // Add to dead letter queue for critical failures
+            await addToDeadLetterQueue(
+              supabase,
+              event.id,
+              event.type,
+              session.id,
+              intakeId,
+              `Intake update failed: ${intakeError.message}`,
+              "UPDATE_FAILED",
+              { amount: session.amount_total, payment_intent: session.payment_intent }
+            )
+            return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
+          }
+        } else {
+          // Intake doesn't exist or couldn't be recovered - add to DLQ
+          await recordEventError(supabase, event.id, `Intake update failed: ${intakeError.message}`)
+          await addToDeadLetterQueue(
+            supabase,
+            event.id,
+            event.type,
+            session.id,
+            intakeId,
+            `Intake update failed: ${intakeError.message}`,
+            "UPDATE_FAILED",
+            { amount: session.amount_total, payment_intent: session.payment_intent }
+          )
+          return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
+        }
       }
 
       log.info("Intake updated to paid", {
