@@ -128,6 +128,97 @@ function mapEventToEmailStatus(eventType: ResendEventType): string | null {
   }
 }
 
+/**
+ * Flag a patient's profile when their email bounces
+ */
+async function flagPatientEmailBounce(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  email: string | undefined,
+  bounceReason: string,
+  bounceType: string
+): Promise<void> {
+  if (!email) return
+
+  try {
+    // Find patient by email
+    const { data: patient } = await supabase
+      .from("profiles")
+      .select("id, email_delivery_failures")
+      .eq("email", email)
+      .eq("role", "patient")
+      .maybeSingle()
+
+    if (!patient) return
+
+    const failures = (patient.email_delivery_failures || 0) + 1
+
+    // Update patient profile with bounce info
+    await supabase
+      .from("profiles")
+      .update({
+        email_bounced: true,
+        email_bounce_reason: `${bounceType}: ${bounceReason}`,
+        email_bounced_at: new Date().toISOString(),
+        email_delivery_failures: failures,
+      })
+      .eq("id", patient.id)
+
+    logger.info("[Resend Webhook] Flagged patient email bounce", {
+      patientId: patient.id,
+      email,
+      bounceType,
+      failures,
+    })
+  } catch (error) {
+    logger.error("[Resend Webhook] Error flagging patient bounce", {
+      email,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
+/**
+ * Reset patient bounce flag when email is delivered successfully
+ */
+async function resetPatientEmailBounce(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  email: string | undefined
+): Promise<void> {
+  if (!email) return
+
+  try {
+    // Only reset if currently marked as bounced
+    const { data: patient } = await supabase
+      .from("profiles")
+      .select("id, email_bounced")
+      .eq("email", email)
+      .eq("role", "patient")
+      .eq("email_bounced", true)
+      .maybeSingle()
+
+    if (!patient) return
+
+    await supabase
+      .from("profiles")
+      .update({
+        email_bounced: false,
+        email_bounce_reason: null,
+        email_delivery_failures: 0,
+      })
+      .eq("id", patient.id)
+
+    logger.info("[Resend Webhook] Reset patient email bounce flag", {
+      patientId: patient.id,
+      email,
+    })
+  } catch (error) {
+    logger.error("[Resend Webhook] Error resetting patient bounce", {
+      email,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
@@ -220,6 +311,14 @@ export async function POST(request: NextRequest) {
     if (eventType === "email.bounced" && data.bounce) {
       (updates.metadata as Record<string, unknown>).bounce = data.bounce
       updates.last_error = data.bounce.message
+
+      // P1: Flag patient profile with delivery failure
+      await flagPatientEmailBounce(supabase, data.to?.[0], data.bounce.message, data.bounce.type)
+    }
+
+    // Reset bounce flag if email delivered successfully
+    if (eventType === "email.delivered") {
+      await resetPatientEmailBounce(supabase, data.to?.[0])
     }
 
     // Update email log

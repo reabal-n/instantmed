@@ -30,6 +30,7 @@ import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
 import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
 import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
+import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
 import type { IntakeWithPatient, GeneratedDocument, IntakeDocument } from "@/types/db"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
@@ -267,6 +268,13 @@ export function IntakeDetailClient({
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Real-time status listener */}
+      <IntakeStatusListener 
+        intakeId={intake.id} 
+        patientId={intake.patient_id} 
+        currentStatus={intake.status} 
+      />
+
       {/* Back Button */}
       <Button variant="ghost" asChild className="mb-6">
         <Link href="/patient">

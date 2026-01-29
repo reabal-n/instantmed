@@ -54,6 +54,8 @@ import {
   VolumeX,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
+import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
+import { MessageSquare } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -86,6 +88,10 @@ export function QueueClient({
   const [declineReasonCode, setDeclineReasonCode] = useState("")
   const [declineReasonNote, setDeclineReasonNote] = useState("")
   const [declineTemplates, setDeclineTemplates] = useState<Array<{ code: string; label: string; description: string | null; requires_note: boolean }>>([])
+  const [infoDialog, setInfoDialog] = useState<string | null>(null)
+  const [infoTemplateCode, setInfoTemplateCode] = useState("")
+  const [infoMessage, setInfoMessage] = useState("")
+  const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
@@ -281,17 +287,23 @@ export function QueueClient({
     })
   }
 
-  // Fetch decline templates on mount
+  // Fetch decline and info templates on mount
   useEffect(() => {
     getDeclineReasonTemplatesAction().then((result) => {
       if (result.success && result.templates) {
         setDeclineTemplates(result.templates)
       }
     })
+    getInfoRequestTemplatesAction().then((result) => {
+      if (result.success && result.templates) {
+        setInfoTemplates(result.templates)
+      }
+    })
   }, [])
 
   const selectedTemplate = declineTemplates.find(t => t.code === declineReasonCode)
   const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
+  const selectedInfoTemplate = infoTemplates.find(t => t.code === infoTemplateCode)
 
   // Pre-populate decline note when template is selected
   const handleDeclineTemplateChange = (code: string) => {
@@ -300,6 +312,32 @@ export function QueueClient({
     if (template?.description && !declineReasonNote) {
       setDeclineReasonNote(template.description)
     }
+  }
+
+  // Pre-populate info message when template is selected
+  const handleInfoTemplateChange = (code: string) => {
+    setInfoTemplateCode(code)
+    const template = infoTemplates.find(t => t.code === code)
+    if (template?.message_template) {
+      setInfoMessage(template.message_template)
+    }
+  }
+
+  // Handle request more info
+  const handleRequestInfo = async () => {
+    if (!infoDialog || !infoTemplateCode) return
+    startTransition(async () => {
+      const result = await requestMoreInfoAction(infoDialog, infoTemplateCode, infoMessage)
+      if (result.success) {
+        toast.success("Information request sent to patient")
+        setInfoDialog(null)
+        setInfoTemplateCode("")
+        setInfoMessage("")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to send request")
+      }
+    })
   }
 
   // Check if intake has clinical red flags using built-in risk assessment
@@ -1019,6 +1057,10 @@ export function QueueClient({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setInfoDialog(intake.id)}>
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Request more info
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setFlagDialog(intake.id)}>
                               <Flag className="h-4 w-4 mr-2" />
                               Flag for follow-up
@@ -1116,6 +1158,66 @@ export function QueueClient({
               disabled={!declineReasonCode || (requiresNote && !declineReasonNote.trim()) || isPending}
             >
               Decline & Notify Patient
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Info Request Dialog */}
+      <Dialog open={!!infoDialog} onOpenChange={() => {
+        setInfoDialog(null)
+        setInfoTemplateCode("")
+        setInfoMessage("")
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request More Information</DialogTitle>
+            <DialogDescription>
+              Select what information you need. The patient will be notified by email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Information needed</label>
+              <Select value={infoTemplateCode} onValueChange={handleInfoTemplateChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select what you need..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {infoTemplates.map((template) => (
+                    <SelectItem key={template.code} value={template.code}>
+                      {template.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedInfoTemplate?.description && (
+                <p className="text-xs text-muted-foreground mt-1">{selectedInfoTemplate.description}</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Message to patient</label>
+              <Textarea
+                placeholder="Explain what information you need..."
+                value={infoMessage}
+                onChange={(e) => setInfoMessage(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setInfoDialog(null)
+              setInfoTemplateCode("")
+              setInfoMessage("")
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleRequestInfo} 
+              disabled={!infoTemplateCode || !infoMessage.trim() || isPending}
+            >
+              Send Request
             </Button>
           </DialogFooter>
         </DialogContent>

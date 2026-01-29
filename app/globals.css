@@ -1,6 +1,6 @@
+@import url("./print.css") print;
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url("./print.css") print;
 
 @custom-variant dark (&:is(.dark *));
 
