@@ -88,7 +88,7 @@ export function PatientMedicationDisplay({
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 flex items-start gap-2">
+      <div className="mt-3 pt-3 border-t border-slate-200/50 dark:border-white/10 flex items-start gap-2">
         <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
           This is what the patient entered for reference. All prescribing

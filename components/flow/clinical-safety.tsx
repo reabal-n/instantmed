@@ -172,7 +172,7 @@ export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclai
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
+          className="mt-0.5 h-5 w-5 rounded border-slate-300 dark:border-white/10 text-primary focus:ring-primary"
         />
         <div className="space-y-0.5">
           <span className="text-sm font-medium text-foreground">

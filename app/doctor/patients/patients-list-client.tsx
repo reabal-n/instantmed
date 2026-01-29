@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { UserCard } from "@/components/uix"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle } from "lucide-react"
+import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight } from "lucide-react"
 import type { Profile } from "@/types/db"
 
 interface PatientsListClientProps {
@@ -162,6 +163,7 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
                 <TableHead>Medicare</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,23 +174,27 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
                   return (
                     <TableRow
                       key={patient.id}
-                      className="animate-fade-in opacity-0 hover:bg-white/40 transition-colors"
+                      className="animate-fade-in opacity-0 hover:bg-white/40 transition-colors cursor-pointer group"
                       style={{ animationDelay: `${0.05 * index}s`, animationFillMode: "forwards" }}
                     >
                       <TableCell>
-                        <UserCard
-                          name={patient.full_name}
-                          description={age !== null ? `${age} years old` : "Age N/A"}
-                          size="sm"
-                        />
+                        <Link href={`/doctor/patients/${patient.id}`} className="block">
+                          <UserCard
+                            name={patient.full_name}
+                            description={age !== null ? `${age} years old` : "Age N/A"}
+                            size="sm"
+                          />
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-0.5">
-                          {patient.phone && (
+                          {patient.phone ? (
                             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                               <Phone className="h-3 w-3" />
                               {patient.phone}
                             </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/50">Not provided</span>
                           )}
                         </div>
                       </TableCell>
@@ -233,6 +239,11 @@ export function PatientsListClient({ patients }: PatientsListClientProps) {
                             year: "numeric",
                           })}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/doctor/patients/${patient.id}`}>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )

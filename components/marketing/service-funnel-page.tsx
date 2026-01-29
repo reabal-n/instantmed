@@ -373,7 +373,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
             >
               <div className="relative">
                 {/* Main image */}
-                <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
+                <div className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-white/10">
                   <Image
                     src={config.hero.images!.primary}
                     alt="Australian healthcare professional"
@@ -386,7 +386,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                 
                 {/* Floating trust badge */}
                 <motion.div
-                  className="absolute -bottom-4 -left-6 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50"
+                  className="absolute -bottom-4 -left-6 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-white/50 dark:border-white/10"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.9 }}
@@ -405,7 +405,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                 {/* Secondary floating image */}
                 {config.hero.images?.secondary && (
                   <motion.div
-                    className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
+                    className="absolute -top-4 -left-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 rotate-6"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 1.1 }}

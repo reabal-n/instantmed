@@ -48,7 +48,7 @@ export function Hero() {
           >
             <div className="relative">
               {/* Main doctor image */}
-              <div className="relative w-64 h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-slate-800/80">
+              <div className="relative w-64 h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/80 dark:border-white/10">
                 <Image
                   src={doctorImages.primary}
                   alt="Australian GP ready to help"
@@ -79,7 +79,7 @@ export function Hero() {
               
               {/* Small secondary image */}
               <motion.div
-                className="absolute -top-4 -left-8 w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 rotate-6"
+                className="absolute -top-4 -left-8 w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-white/10 rotate-6"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 1.1 }}

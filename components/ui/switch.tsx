@@ -54,7 +54,7 @@ function Switch({
           "w-[52px] h-[32px]",
           // Neutral off state - calm, muted
           "bg-slate-200/80 dark:bg-white/10",
-          "border border-slate-300/30 dark:border-slate-600/30",
+          "border border-slate-300/30 dark:border-white/20",
           // Selected state - soft sage green confirmation, no glow
           "group-data-[selected=true]:bg-[#6BBF8A]",
           "group-data-[selected=true]:border-[#6BBF8A]/40",

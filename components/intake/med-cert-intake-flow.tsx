@@ -279,7 +279,7 @@ export function MedCertIntakeFlow({
               "absolute top-4 right-4 z-10",
               "w-10 h-10 rounded-full",
               "bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700",
-              "border border-slate-200/60 dark:border-slate-600/60",
+              "border border-slate-200/60 dark:border-white/10",
               "flex items-center justify-center",
               "text-slate-500 dark:text-slate-400",
               "hover:text-slate-700 dark:hover:text-slate-200",

@@ -11,6 +11,7 @@ import { logTriageApproved } from "@/lib/audit/compliance-audit"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 import { timingSafeEqual } from "crypto"
 import { captureApiError } from "@/lib/observability/sentry"
+import { generateMedCertPdfAndApproveAction } from "@/app/doctor/intakes/[id]/document/actions"
 
 const log = createLogger("admin-approve")
 
@@ -137,9 +138,27 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
+    // STEP 2.5: For medical certificates, delegate to the proper PDF generation flow
+    // This ensures PDFs are generated and emails are sent (not just status update)
+    if (currentIntake.category === 'medical_certificate' || currentIntake.category === 'med_certs') {
+      log.info('Delegating med cert approval to generateMedCertPdfAndApproveAction', { intakeId })
+      
+      const certResult = await generateMedCertPdfAndApproveAction(intakeId, '')
+      
+      if (!certResult.success) {
+        log.error('Med cert approval failed', { intakeId, error: certResult.error })
+        return NextResponse.json({ 
+          error: certResult.error || 'Failed to generate medical certificate' 
+        }, { status: 500 })
+      }
+      
+      log.info('Med cert approved and sent successfully', { intakeId })
+      return NextResponse.json({ success: true })
+    }
+
     const timestamp = new Date().toISOString()
 
-    // STEP 3: Atomic update with status check
+    // STEP 3: Atomic update with status check (for non-med-cert intakes)
     const { data: updated, error: updateError } = await supabase
       .from('intakes')
       .update({

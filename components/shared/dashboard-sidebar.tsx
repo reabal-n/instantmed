@@ -180,7 +180,7 @@ export function DashboardSidebar({
 
         {/* Ops Navigation - Doctor/Admin only */}
         {variant === "doctor" && (
-          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-white/5 dark:border-slate-500/20" data-testid="ops-nav-section">
+          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-white/5 dark:border-white/10" data-testid="ops-nav-section">
             <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-4 py-1">Ops</h4>
             {/* Base ops items - visible to all doctors */}
             {opsNavItemsBase.map((item) => {

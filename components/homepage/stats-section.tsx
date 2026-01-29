@@ -97,7 +97,7 @@ export function StatsSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="absolute -top-6 -right-6 w-32 h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 rotate-6 hidden md:block"
+                className="absolute -top-6 -right-6 w-32 h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-white/10 rotate-6 hidden md:block"
               >
                 <Image
                   src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop"
@@ -113,7 +113,7 @@ export function StatsSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5 }}
-                className="absolute -bottom-6 -left-6 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 -rotate-6 hidden md:block"
+                className="absolute -bottom-6 -left-6 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white dark:border-white/10 -rotate-6 hidden md:block"
               >
                 <Image
                   src="https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=200&h=200&fit=crop"
@@ -178,10 +178,10 @@ export function StatsSection() {
                       alt="Patient"
                       width={40}
                       height={40}
-                      className="rounded-full border-2 border-white dark:border-slate-800 shadow-sm"
+                      className="rounded-full border-2 border-white dark:border-white/10 shadow-sm"
                     />
                   ))}
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-white dark:border-slate-800 text-white text-xs font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-white dark:border-white/10 text-white text-xs font-bold">
                     +2.8k
                   </div>
                 </div>

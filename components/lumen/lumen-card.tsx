@@ -22,19 +22,19 @@ const glassStyles = {
   subtle: cn(
     "bg-white/60 dark:bg-white/5",
     "backdrop-blur-lg",
-    "border border-sky-300/25 dark:border-slate-400/10",
+    "border border-sky-300/25 dark:border-white/10",
     "shadow-[0_4px_20px_rgba(197,221,240,0.10)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]",
   ),
   normal: cn(
     "bg-white/75 dark:bg-white/5",
     "backdrop-blur-xl",
-    "border border-sky-300/35 dark:border-slate-400/12",
+    "border border-sky-300/35 dark:border-white/10",
     "shadow-[0_4px_20px_rgba(197,221,240,0.15)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.30)]",
   ),
   elevated: cn(
     "bg-white/90 dark:bg-white/10",
     "backdrop-blur-2xl",
-    "border border-sky-300/45 dark:border-slate-400/15",
+    "border border-sky-300/45 dark:border-white/15",
     "shadow-[0_8px_30px_rgba(197,221,240,0.20)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]",
   ),
 }

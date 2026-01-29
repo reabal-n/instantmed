@@ -324,7 +324,7 @@ export function CookieBanner() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-white/10">
               <Button 
                 variant="ghost"
                 size="sm" 

@@ -40,8 +40,10 @@ import {
   Clock,
   Loader2,
   Send,
+  Mail,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
+import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
@@ -347,6 +349,17 @@ export function IntakeDetailClient({
     })
   }
 
+  const handleResendCertificate = () => {
+    startTransition(async () => {
+      const result = await resendCertificateAdmin(intake.id)
+      if (result.success) {
+        setActionMessage({ type: "success", text: "Certificate email resent to patient" })
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to resend certificate" })
+      }
+    })
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-AU", {
       day: "numeric",
@@ -437,7 +450,14 @@ export function IntakeDetailClient({
                 <p className="font-medium">{intake.patient.phone || "Not provided"}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 col-span-2">
+            <div className="flex items-start gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium text-sm truncate">{intake.patient.email || "Not provided"}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-xs text-muted-foreground">Location</p>
@@ -707,6 +727,15 @@ export function IntakeDetailClient({
               <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-dawn-600 border-amber-300 hover:bg-amber-50">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Mark Refunded
+              </Button>
+            )}
+
+            {/* Resend Certificate - show for approved med certs */}
+            {["approved", "completed"].includes(intake.status) && 
+             (intake.category === "medical_certificate" || intake.category === "med_certs") && (
+              <Button variant="outline" onClick={handleResendCertificate} disabled={isPending}>
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
+                Resend Certificate
               </Button>
             )}
           </div>

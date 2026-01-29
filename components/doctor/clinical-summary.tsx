@@ -205,11 +205,42 @@ export function ClinicalSummary({ answers, serviceType: _serviceType, consultSub
     return aIndex - bIndex
   })
   
+  // Fields to skip entirely - redundant/implied by payment completion
+  const SKIP_FIELDS = new Set([
+    // Consent fields - if they paid, they agreed
+    "agreedToTerms",
+    "agreed_to_terms",
+    "terms_agreed",
+    "termsAgreed",
+    "confirmedAccuracy",
+    "confirmed_accuracy",
+    "accuracyConfirmed",
+    "consent_given",
+    "consentGiven",
+    "telehealth_consent",
+    "telehealthConsent",
+    "privacy_acknowledged",
+    "privacyAcknowledged",
+    // Attribution/meta
+    "attribution",
+    "consent_timestamp",
+    "submittedAt",
+    "submitted_at",
+    // Duplicate display fields (already shown in primary section)
+    "certType",
+    "cert_type",
+    "startDate", // shown in formatted primary fields
+    "addressLine1", // patient info shown separately
+    "address_line1",
+  ])
+  
   for (const [key, value] of sortedEntries) {
     // Skip internal/meta fields
-    if (key.startsWith("_") || key === "attribution" || key === "consent_timestamp") continue
+    if (key.startsWith("_")) continue
     // Skip patient details (shown separately)
     if (key.startsWith("patient_")) continue
+    // Skip redundant/implied fields
+    if (SKIP_FIELDS.has(key)) continue
     
     if (RED_FLAG_FIELDS.includes(key) && value) {
       redFlagFields.push([key, value])

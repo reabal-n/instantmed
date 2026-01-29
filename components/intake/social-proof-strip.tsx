@@ -112,7 +112,7 @@ export function SocialProofStrip({
         </div>
 
         {/* Recent completion ticker */}
-        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-white/10">
           <div className="flex items-center gap-2 text-sm">
             <Zap className="w-4 h-4 text-amber-500" />
             <span className="text-muted-foreground">

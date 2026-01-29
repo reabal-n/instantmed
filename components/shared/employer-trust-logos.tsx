@@ -64,7 +64,7 @@ export function EmployerTrustLogos({
   }
 
   return (
-    <section className={cn("py-12 border-y border-slate-200 dark:border-slate-800", className)}>
+    <section className={cn("py-12 border-y border-slate-200 dark:border-white/10", className)}>
       <div className="mx-auto max-w-5xl px-4">
         <p className="text-center text-sm text-muted-foreground mb-8">
           Our medical certificates are accepted by all Australian employers and universities, including:

@@ -88,7 +88,7 @@ export function ComplianceFooterSection({ className }: { className?: string }) {
   ]
 
   return (
-    <div className={cn("border-t border-slate-200 dark:border-slate-800 py-8", className)}>
+    <div className={cn("border-t border-slate-200 dark:border-white/10 py-8", className)}>
       <div className="mx-auto max-w-5xl px-4">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-center mb-6">
           Regulatory Compliance

@@ -182,7 +182,7 @@ function generateFaqId(question: string, index: number): string {
 
 function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   return (
-    <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+    <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
       <h2 className="text-xl font-bold text-foreground mb-6" id="faq">
         Frequently Asked Questions
       </h2>
@@ -193,7 +193,7 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
             <details 
               key={i}
               id={faqId}
-              className="group border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden scroll-mt-24"
+              className="group border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden scroll-mt-24"
               itemScope
               itemProp="mainEntity"
               itemType="https://schema.org/Question"
@@ -352,7 +352,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       )}
 
       {/* Related services CTA */}
-      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
         <h2 className="text-xl font-bold text-foreground mb-2">
           How InstantMed Can Help
         </h2>
@@ -405,13 +405,13 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Tags */}
       {article.tags && article.tags.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
           <ArticleTags tags={article.tags} />
         </div>
       )}
 
       {/* Author card - at end of article */}
-      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
         <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/50 dark:border-white/10">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-foreground">{article.author.name}</p>
@@ -424,7 +424,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </div>
 
       {/* Social sharing */}
-      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Last medically reviewed:</span>{' '}
