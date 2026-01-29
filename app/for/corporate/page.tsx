@@ -108,7 +108,7 @@ export default function CorporatePage() {
           {/* Speed Stats */}
           <section className="px-4 py-8 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-slate-950/10">
+              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-white/5">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
@@ -305,7 +305,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
-                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-slate-950/10">
+                <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-slate-500/20 bg-slate-50/30 dark:bg-white/5">
                   <h2 className="text-2xl font-bold mb-3">Certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.

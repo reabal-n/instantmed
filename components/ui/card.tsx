@@ -25,11 +25,11 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   pressable = false,
   ...props 
 }, ref) => {
-  // Craft Design System card styles - clean surfaces, no glass
+  // Unified glass card styles - consistent dark mode support
   const craftCardStyles = {
-    subtle: "bg-white dark:bg-slate-900 border border-border/60",
-    normal: "bg-white dark:bg-slate-900 border border-border shadow-sm",
-    elevated: "bg-white dark:bg-slate-900 border border-border shadow-md",
+    subtle: "bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10",
+    normal: "bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none",
+    elevated: "bg-white/90 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-md dark:shadow-none",
   }
 
   return (

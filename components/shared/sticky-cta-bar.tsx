@@ -63,23 +63,23 @@ export function StickyCTABar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden animate-slide-in-up">
-      <div className="bg-foreground/95 backdrop-blur-lg border-t border-white/10 px-4 py-3 safe-area-inset-bottom">
+      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl border-t border-white/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white flex items-center gap-1.5 truncate">
+            <p className="text-sm font-medium text-foreground flex items-center gap-1.5 truncate">
               {config.name}
             </p>
-            <p className="text-xs text-white/60 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              From {config.price} · Usually under an hour
+              {config.price} · Usually under an hour
             </p>
           </div>
           <Button
             asChild
             size="sm"
-            className="rounded-full btn-premium text-foreground font-semibold px-5 shrink-0"
+            className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
           >
-            <Link href={config.href}>Get Started</Link>
+            <Link href={config.href}>Get started</Link>
           </Button>
           <button
             onClick={() => {
@@ -89,7 +89,7 @@ export function StickyCTABar() {
                 sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
               }
             }}
-            className="p-1.5 text-white/40 hover:text-white/70 transition-colors shrink-0"
+            className="p-1.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors shrink-0"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

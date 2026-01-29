@@ -15,7 +15,7 @@ const glassInputVariants = cva(
   [
     // Base glass styles
     "w-full rounded-xl transition-all duration-200",
-    "bg-white/60 dark:bg-slate-900/40",
+    "bg-white/60 dark:bg-white/5",
     "backdrop-blur-lg",
     "border border-white/30 dark:border-white/10",
     "placeholder:text-muted-foreground/50",

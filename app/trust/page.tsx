@@ -347,7 +347,7 @@ function AnimatedStat({ value, suffix = "", label, icon: Icon }: { value: number
   
   return (
     <motion.div
-      className="text-center p-4 rounded-xl bg-card/50 border border-border/40 backdrop-blur-sm"
+      className="text-center p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none"
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4 }}
@@ -700,14 +700,14 @@ export default function TrustPage() {
             </motion.div>
 
             <motion.div
-              className="rounded-2xl border border-border/50 overflow-hidden bg-card"
+              className="rounded-2xl border border-white/50 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-white/5 backdrop-blur-xl"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               {/* Header */}
-              <div className="grid grid-cols-3 bg-muted/50 border-b border-border/50">
+              <div className="grid grid-cols-3 bg-muted/30 dark:bg-white/5 border-b border-border/30 dark:border-white/10">
                 <div className="p-4 font-medium text-sm text-foreground">Feature</div>
                 <div className="p-4 font-medium text-sm text-foreground text-center border-x border-border/30">InstantMed</div>
                 <div className="p-4 font-medium text-sm text-foreground text-center">Traditional GP</div>
@@ -778,7 +778,7 @@ export default function TrustPage() {
               {trustTestimonials.map((testimonial) => (
                 <div
                   key={testimonial.name}
-                  className="relative p-6 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300"
+                  className="relative p-6 rounded-2xl bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-300"
                 >
                   {/* Source badge */}
                   <div className="absolute top-4 right-4 flex items-center gap-1">
@@ -915,7 +915,7 @@ export default function TrustPage() {
                     </div>
                     {/* Verification badge */}
                     <motion.div
-                      className="absolute -bottom-3 -right-3 bg-white dark:bg-slate-800 rounded-xl p-2.5 shadow-lg border border-border/50"
+                      className="absolute -bottom-3 -right-3 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-xl p-2.5 shadow-lg border border-border/50"
                       initial={{ scale: 0 }}
                       whileInView={{ scale: 1 }}
                       viewport={{ once: true }}

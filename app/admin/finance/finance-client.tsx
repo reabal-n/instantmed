@@ -1,10 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { GlassStatCard, DashboardGrid, DashboardHeader } from "@/components/dashboard"
 import {
-  ArrowLeft,
   DollarSign,
   TrendingUp,
   TrendingDown,
@@ -118,343 +116,276 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
   const weekChange = lastWeekTotal > 0 ? ((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100 : 0
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-sky-50/50 to-white">
+    <div className="min-h-screen dashboard-bg">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
+        <DashboardHeader
+          title="Finance Dashboard"
+          description="Revenue, refunds, and financial metrics"
+          backHref="/admin"
+          backLabel="Admin"
+          actions={
+            <Button variant="outline" asChild>
+              <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open Stripe
+              </a>
             </Button>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Finance Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Revenue, refunds, and financial metrics</p>
-            </div>
-          </div>
-          <Button variant="outline" asChild>
-            <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open Stripe
-            </a>
-          </Button>
-        </div>
+          }
+        />
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-50">
-                  <DollarSign className="h-5 w-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Today</p>
-                  <p className="text-2xl font-semibold">{formatCurrency(summary.todayRevenue)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">This Week</p>
-                  <p className="text-2xl font-semibold">{formatCurrency(summary.weekRevenue)}</p>
-                  {weekChange !== 0 && (
-                    <p className={cn("text-xs", weekChange > 0 ? "text-emerald-600" : "text-red-600")}>
-                      {weekChange > 0 ? "+" : ""}{weekChange.toFixed(1)}% vs last week
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-violet-50">
-                  <Receipt className="h-5 w-5 text-violet-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-semibold">{formatCurrency(summary.monthRevenue)}</p>
-                  <p className="text-xs text-muted-foreground">{summary.transactionCount} transactions</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-50">
-                  <CreditCard className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Avg Transaction</p>
-                  <p className="text-2xl font-semibold">{formatCurrency(summary.avgTransaction)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardGrid columns={4} gap="md">
+          <GlassStatCard
+            label="Today"
+            value={formatCurrency(summary.todayRevenue)}
+            icon={<DollarSign className="h-5 w-5" />}
+            status="success"
+          />
+          <GlassStatCard
+            label="This Week"
+            value={formatCurrency(summary.weekRevenue)}
+            icon={<TrendingUp className="h-5 w-5" />}
+            status="info"
+            trend={weekChange !== 0 ? { value: Number(weekChange.toFixed(1)), label: "vs last week" } : undefined}
+          />
+          <GlassStatCard
+            label="This Month"
+            value={formatCurrency(summary.monthRevenue)}
+            icon={<Receipt className="h-5 w-5" />}
+            status="info"
+          />
+          <GlassStatCard
+            label="Avg Transaction"
+            value={formatCurrency(summary.avgTransaction)}
+            icon={<CreditCard className="h-5 w-5" />}
+            status="neutral"
+          />
+        </DashboardGrid>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Refunds</p>
-                  <p className="text-xl font-semibold text-red-600">{formatCurrency(summary.totalRefunds)}</p>
-                </div>
-                <RotateCcw className="h-5 w-5 text-red-400" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Refund Rate</p>
-                  <p className={cn("text-xl font-semibold", summary.refundRate > 5 ? "text-red-600" : "text-foreground")}>
-                    {summary.refundRate.toFixed(1)}%
-                  </p>
-                </div>
-                <TrendingDown className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Pending Payments</p>
-                  <p className="text-xl font-semibold">{summary.pendingPayments}</p>
-                </div>
-                <Clock className="h-5 w-5 text-amber-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardGrid columns={3} gap="md">
+          <GlassStatCard
+            label="Total Refunds"
+            value={formatCurrency(summary.totalRefunds)}
+            icon={<RotateCcw className="h-5 w-5" />}
+            status="error"
+          />
+          <GlassStatCard
+            label="Refund Rate"
+            value={`${summary.refundRate.toFixed(1)}%`}
+            icon={<TrendingDown className="h-5 w-5" />}
+            status={summary.refundRate > 5 ? "error" : "neutral"}
+          />
+          <GlassStatCard
+            label="Pending Payments"
+            value={summary.pendingPayments}
+            icon={<Clock className="h-5 w-5" />}
+            status={summary.pendingPayments > 0 ? "warning" : "neutral"}
+          />
+        </DashboardGrid>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Revenue Trend */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">Revenue Trend</CardTitle>
-              <CardDescription>Daily revenue over the last 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis yAxisId="left" tick={{ fontSize: 10 }} tickFormatter={(v) => `$${v}`} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                    <Tooltip
-                      formatter={(value, name) =>
-                        name === "Revenue" && typeof value === "number" ? `$${value.toFixed(0)}` : value
-                      }
-                    />
-                    <Legend />
-                    <Area
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="Revenue"
-                      fill="#10b98133"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="Transactions"
-                      stroke="#8b5cf6"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="dashboard-card rounded-xl p-6 lg:col-span-2">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">Revenue Trend</h3>
+              <p className="text-sm text-muted-foreground">Daily revenue over the last 30 days</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis yAxisId="left" tick={{ fontSize: 10 }} tickFormatter={(v) => `$${v}`} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
+                  <Tooltip
+                    formatter={(value, name) =>
+                      name === "Revenue" && typeof value === "number" ? `$${value.toFixed(0)}` : value
+                    }
+                  />
+                  <Legend />
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="Revenue"
+                    fill="#10b98133"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="Transactions"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
           {/* Revenue by Service */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">By Service</CardTitle>
-              <CardDescription>Revenue breakdown</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={serviceRevenue.map((s) => ({
-                        name: formatServiceType(s.type),
-                        value: s.revenue / 100,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {serviceRevenue.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => typeof value === "number" ? `$${value.toFixed(0)}` : value} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 space-y-2">
-                {serviceRevenue.map((s, i) => (
-                  <div key={s.type} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                      />
-                      <span>{formatServiceType(s.type)}</span>
-                    </div>
-                    <span className="font-medium">{formatCurrency(s.revenue)}</span>
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">By Service</h3>
+              <p className="text-sm text-muted-foreground">Revenue breakdown</p>
+            </div>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={serviceRevenue.map((s) => ({
+                      name: formatServiceType(s.type),
+                      value: s.revenue / 100,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {serviceRevenue.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => typeof value === "number" ? `$${value.toFixed(0)}` : value} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 space-y-2">
+              {serviceRevenue.map((s, i) => (
+                <div key={s.type} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                    />
+                    <span>{formatServiceType(s.type)}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <span className="font-medium">{formatCurrency(s.revenue)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Risk Management Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Disputes */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    Stripe Disputes
-                  </CardTitle>
-                  <CardDescription>Active payment disputes requiring attention</CardDescription>
-                </div>
-                {summary.activeDisputes > 0 && (
-                  <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">
-                    {summary.activeDisputes} active
-                  </span>
-                )}
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  Stripe Disputes
+                </h3>
+                <p className="text-sm text-muted-foreground">Active payment disputes requiring attention</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              {disputes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No disputes recorded</p>
-              ) : (
-                <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                  {disputes.map((d) => (
-                    <div key={d.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "px-2 py-0.5 text-xs font-medium rounded",
-                            d.status === "won" ? "bg-emerald-100 text-emerald-800" :
-                            d.status === "lost" ? "bg-red-100 text-red-800" :
-                            "bg-amber-100 text-amber-800"
-                          )}>
-                            {d.status}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {formatCurrency(d.amount)} {d.currency.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Reason: {d.reason.replace(/_/g, " ")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(d.createdAt).toLocaleDateString("en-AU")}
-                          {d.intakeId && ` • Intake: ${d.intakeId.slice(0, 8)}...`}
-                        </p>
-                      </div>
-                      <a
-                        href={`https://dashboard.stripe.com/disputes/${d.disputeId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        View
-                      </a>
-                    </div>
-                  ))}
-                </div>
+              {summary.activeDisputes > 0 && (
+                <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full dark:bg-amber-900/30 dark:text-amber-400">
+                  {summary.activeDisputes} active
+                </span>
               )}
-            </CardContent>
-          </Card>
+            </div>
+            {disputes.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No disputes recorded</p>
+            ) : (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {disputes.map((d) => (
+                  <div key={d.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-2 py-0.5 text-xs font-medium rounded",
+                          d.status === "won" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                          d.status === "lost" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                          "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                        )}>
+                          {d.status}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {formatCurrency(d.amount)} {d.currency.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Reason: {d.reason.replace(/_/g, " ")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(d.createdAt).toLocaleDateString("en-AU")}
+                        {d.intakeId && ` • Intake: ${d.intakeId.slice(0, 8)}...`}
+                      </p>
+                    </div>
+                    <a
+                      href={`https://dashboard.stripe.com/disputes/${d.disputeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                      View
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Fraud Flags */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-red-500" />
-                    Fraud Flags
-                  </CardTitle>
-                  <CardDescription>Suspicious activity detected by fraud detection</CardDescription>
-                </div>
-                {summary.recentFraudFlags > 0 && (
-                  <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                    {summary.recentFraudFlags} high/critical
-                  </span>
-                )}
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-red-500" />
+                  Fraud Flags
+                </h3>
+                <p className="text-sm text-muted-foreground">Suspicious activity detected by fraud detection</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              {fraudFlags.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No fraud flags recorded</p>
-              ) : (
-                <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                  {fraudFlags.map((f) => (
-                    <div key={f.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "px-2 py-0.5 text-xs font-medium rounded",
-                            f.severity === "critical" ? "bg-red-100 text-red-800" :
-                            f.severity === "high" ? "bg-orange-100 text-orange-800" :
-                            f.severity === "medium" ? "bg-amber-100 text-amber-800" :
-                            "bg-gray-100 text-gray-800"
-                          )}>
-                            {f.severity}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {f.flagType.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(f.createdAt).toLocaleDateString("en-AU")}
-                          {f.intakeId && ` • Intake: ${f.intakeId.slice(0, 8)}...`}
-                        </p>
-                        {f.details && Object.keys(f.details).length > 0 && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[250px]">
-                            {JSON.stringify(f.details).slice(0, 50)}...
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {summary.recentFraudFlags > 0 && (
+                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full dark:bg-red-900/30 dark:text-red-400">
+                  {summary.recentFraudFlags} high/critical
+                </span>
               )}
-            </CardContent>
-          </Card>
+            </div>
+            {fraudFlags.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No fraud flags recorded</p>
+            ) : (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {fraudFlags.map((f) => (
+                  <div key={f.id} className="flex items-start justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-2 py-0.5 text-xs font-medium rounded",
+                          f.severity === "critical" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" :
+                          f.severity === "high" ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" :
+                          f.severity === "medium" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" :
+                          "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+                        )}>
+                          {f.severity}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {f.flagType.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(f.createdAt).toLocaleDateString("en-AU")}
+                        {f.intakeId && ` • Intake: ${f.intakeId.slice(0, 8)}...`}
+                      </p>
+                      {f.details && Object.keys(f.details).length > 0 && (
+                        <p className="text-xs text-muted-foreground truncate max-w-[250px]">
+                          {JSON.stringify(f.details).slice(0, 50)}...
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

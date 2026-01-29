@@ -34,7 +34,7 @@ function AlertDialog({
         backdrop: "bg-black/60 backdrop-blur-lg",
         base: cn(
           // Elevated glass surface
-          "bg-white/85 dark:bg-slate-900/80 backdrop-blur-2xl",
+          "bg-white/85 dark:bg-white/10 backdrop-blur-2xl",
           // Border
           "border border-white/60 dark:border-white/20",
           // Shape
@@ -84,7 +84,7 @@ function AlertDialogContent({
     <ModalContent
       className={cn(
         // Glass surface
-        "bg-white/85 dark:bg-slate-900/80 backdrop-blur-2xl",
+        "bg-white/85 dark:bg-white/10 backdrop-blur-2xl",
         // Border
         "border border-white/60 dark:border-white/20",
         // Shape

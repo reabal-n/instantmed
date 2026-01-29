@@ -204,7 +204,7 @@ export function ExitIntentPopup({
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-4 ${
             availability.isActive 
               ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+              : "bg-white/60 text-slate-600 dark:bg-white/10 dark:text-slate-400"
           }`}>
             {availability.isActive && (
               <span className="relative flex h-2 w-2">

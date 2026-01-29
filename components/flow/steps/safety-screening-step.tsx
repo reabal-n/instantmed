@@ -64,7 +64,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border-2 border-slate-200 bg-white dark:bg-slate-900 p-5"
+          className="rounded-xl border-2 border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5"
         >
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
@@ -105,7 +105,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
             'rounded-xl border-2 p-5 transition-all duration-200',
             safetyConfirmed
               ? 'border-emerald-500 bg-emerald-50/50'
-              : 'border-slate-200 bg-white dark:bg-slate-900'
+              : 'border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5'
           )}
         >
           <IOSToggle
@@ -182,7 +182,7 @@ export function SafetyScreeningStep({ symptoms: initialSymptoms }: SafetyScreeni
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-xl"
+              className="w-full max-w-md bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">

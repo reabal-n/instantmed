@@ -20,19 +20,19 @@ interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
 // Lumen Glass styles - Night sky compatible in dark mode
 const glassStyles = {
   subtle: cn(
-    "bg-white/60 dark:bg-slate-900/50",
+    "bg-white/60 dark:bg-white/5",
     "backdrop-blur-lg",
-    "border border-sky-300/25 dark:border-slate-400/10",
+    "border border-white/40 dark:border-white/10",
   ),
   normal: cn(
-    "bg-white/75 dark:bg-slate-900/60",
+    "bg-white/75 dark:bg-white/5",
     "backdrop-blur-xl",
-    "border border-sky-300/35 dark:border-slate-400/12",
+    "border border-white/50 dark:border-white/10",
   ),
   elevated: cn(
-    "bg-white/90 dark:bg-slate-900/75",
+    "bg-white/90 dark:bg-white/10",
     "backdrop-blur-2xl",
-    "border border-sky-300/45 dark:border-slate-400/15",
+    "border border-white/50 dark:border-white/15",
   ),
 }
 

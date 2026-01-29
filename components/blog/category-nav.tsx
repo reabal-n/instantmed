@@ -29,7 +29,7 @@ export function CategoryNav({ currentCategory = 'all' }: CategoryNavProps) {
             'px-4 py-2 rounded-full text-sm font-medium transition-all',
             currentCategory === category.value
               ? 'bg-primary text-primary-foreground'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              : 'bg-white/60 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-white/10'
           )}
         >
           {category.label}

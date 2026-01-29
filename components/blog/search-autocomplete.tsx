@@ -136,7 +136,7 @@ export function SearchAutocomplete({
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-lg border border-white/50 dark:border-white/10 shadow-lg overflow-hidden">
           <ul className="py-1">
             {suggestions.map((suggestion, index) => (
               <li key={`${suggestion.type}-${suggestion.text}`}>
@@ -146,8 +146,8 @@ export function SearchAutocomplete({
                   className={cn(
                     "w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors",
                     selectedIndex === index 
-                      ? "bg-slate-100 dark:bg-slate-800" 
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      ? "bg-white/80 dark:bg-white/10" 
+                      : "hover:bg-white/60 dark:hover:bg-white/5"
                   )}
                 >
                   {suggestion.type === 'article' ? (

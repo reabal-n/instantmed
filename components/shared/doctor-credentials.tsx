@@ -92,7 +92,7 @@ export function DoctorCredentialsCard({
     return (
       <div
         className={cn(
-          "rounded-xl border bg-white dark:bg-slate-900 p-4 flex items-start gap-4",
+          "rounded-xl border border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-4 flex items-start gap-4",
           className
         )}
       >
@@ -164,7 +164,7 @@ export function DoctorCredentialsCard({
       <DialogTrigger asChild>
         <button
           className={cn(
-            "rounded-2xl border bg-white dark:bg-slate-900 p-5 text-left hover:border-primary/50 transition-colors w-full",
+            "rounded-2xl border border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 text-left hover:border-primary/50 transition-colors w-full",
             className
           )}
         >
@@ -271,20 +271,20 @@ export function DoctorCredentialsCard({
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
+            <div className="text-center p-3 rounded-lg bg-white/60 dark:bg-white/5">
               <Clock className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
               <p className="text-lg font-bold">{doctor.yearsExperience}+</p>
               <p className="text-xs text-muted-foreground">Years exp.</p>
             </div>
             {doctor.rating && (
-              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
+              <div className="text-center p-3 rounded-lg bg-white/60 dark:bg-white/5">
                 <Star className="h-5 w-5 mx-auto text-dawn-500 mb-1" />
                 <p className="text-lg font-bold">{doctor.rating}</p>
                 <p className="text-xs text-muted-foreground">Rating</p>
               </div>
             )}
             {doctor.reviewCount && (
-              <div className="text-center p-3 rounded-lg bg-gray-50 dark:bg-slate-800">
+              <div className="text-center p-3 rounded-lg bg-white/60 dark:bg-white/5">
                 <Award className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                 <p className="text-lg font-bold">{doctor.reviewCount}</p>
                 <p className="text-xs text-muted-foreground">Reviews</p>

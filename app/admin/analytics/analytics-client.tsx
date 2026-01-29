@@ -1,10 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { GlassStatCard, DashboardGrid, DashboardHeader } from "@/components/dashboard"
 import {
-  ArrowLeft,
   TrendingUp,
   TrendingDown,
   CreditCard,
@@ -117,227 +115,184 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
   }))
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-sky-50/50 to-white">
+    <div className="min-h-screen dashboard-bg">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/admin">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
+        <DashboardHeader
+          title="Analytics Dashboard"
+          description="Conversion funnel and traffic analysis"
+          backHref="/admin"
+          backLabel="Admin"
+          actions={
+            <Button variant="outline" asChild>
+              <a href="https://app.posthog.com" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open PostHog
+              </a>
             </Button>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Analytics Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Conversion funnel and traffic analysis</p>
-            </div>
-          </div>
-          <Button variant="outline" asChild>
-            <a href="https://app.posthog.com" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open PostHog
-            </a>
-          </Button>
-        </div>
+          }
+        />
 
         {/* Funnel Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <Eye className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Page Visits</p>
-                  <p className="text-2xl font-semibold">{funnel.visits.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-violet-50">
-                  <MousePointer className="h-5 w-5 text-violet-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Started Intake</p>
-                  <p className="text-2xl font-semibold">{funnel.started.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{startRate}% of visits</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-50">
-                  <CreditCard className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="text-2xl font-semibold">{funnel.paid.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{payRate}% of started</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-50">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-semibold">{funnel.completed.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{overallRate}% overall</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardGrid columns={4} gap="md">
+          <GlassStatCard
+            label="Page Visits"
+            value={funnel.visits}
+            icon={<Eye className="h-5 w-5" />}
+            status="info"
+          />
+          <GlassStatCard
+            label="Started Intake"
+            value={funnel.started}
+            icon={<MousePointer className="h-5 w-5" />}
+            status="info"
+            trend={{ value: Number(startRate), label: "of visits" }}
+          />
+          <GlassStatCard
+            label="Paid"
+            value={funnel.paid}
+            icon={<CreditCard className="h-5 w-5" />}
+            status="warning"
+            trend={{ value: Number(payRate), label: "of started" }}
+          />
+          <GlassStatCard
+            label="Completed"
+            value={funnel.completed}
+            icon={<CheckCircle className="h-5 w-5" />}
+            status="success"
+            trend={{ value: Number(overallRate), label: "overall" }}
+          />
+        </DashboardGrid>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Conversion Funnel */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Conversion Funnel</CardTitle>
-              <CardDescription>Last 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={funnelData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={80} />
-                    <Tooltip />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                      {funnelData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">Conversion Funnel</h3>
+              <p className="text-sm text-muted-foreground">Last 30 days</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={funnelData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={80} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                    {funnelData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
           {/* Daily Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Daily Intake Trend</CardTitle>
-              <CardDescription>Last 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="Started" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Paid" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Completed" stroke="#10b981" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">Daily Intake Trend</h3>
+              <p className="text-sm text-muted-foreground">Last 30 days</p>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="Started" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Paid" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Completed" stroke="#10b981" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* By Service Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">By Service Type</CardTitle>
-              <CardDescription>Distribution of intakes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={serviceTypes.map((s) => ({
-                        name: formatServiceType(s.type),
-                        value: s.count,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {serviceTypes.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">By Service Type</h3>
+              <p className="text-sm text-muted-foreground">Distribution of intakes</p>
+            </div>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={serviceTypes.map((s) => ({
+                      name: formatServiceType(s.type),
+                      value: s.count,
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {serviceTypes.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
           {/* Traffic Sources */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">Traffic Sources</CardTitle>
-                  <CardDescription>Where patients come from</CardDescription>
-                </div>
-                <Globe className="h-5 w-5 text-muted-foreground" />
+          <div className="dashboard-card rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Traffic Sources</h3>
+                <p className="text-sm text-muted-foreground">Where patients come from</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {sources.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No UTM data available. Add UTM parameters to track traffic sources.
-                  </p>
-                ) : (
-                  sources
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 8)
-                    .map((source, index) => {
-                      const percentage = funnel.started > 0 ? (source.count / funnel.started) * 100 : 0
-                      return (
-                        <div key={source.source} className="flex items-center gap-3">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium truncate">{source.source}</span>
-                              <span className="text-sm text-muted-foreground">{source.count}</span>
-                            </div>
-                            <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${percentage}%`,
-                                  backgroundColor: COLORS[index % COLORS.length],
-                                }}
-                              />
-                            </div>
+              <Globe className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="space-y-3">
+              {sources.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No UTM data available. Add UTM parameters to track traffic sources.
+                </p>
+              ) : (
+                sources
+                  .sort((a, b) => b.count - a.count)
+                  .slice(0, 8)
+                  .map((source, index) => {
+                    const percentage = funnel.started > 0 ? (source.count / funnel.started) * 100 : 0
+                    return (
+                      <div key={source.source} className="flex items-center gap-3">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium truncate">{source.source}</span>
+                            <span className="text-sm text-muted-foreground">{source.count}</span>
+                          </div>
+                          <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: COLORS[index % COLORS.length],
+                              }}
+                            />
                           </div>
                         </div>
-                      )
-                    })
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                      </div>
+                    )
+                  })
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

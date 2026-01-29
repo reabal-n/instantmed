@@ -79,7 +79,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         </section>
 
         {/* Content Section */}
-        <section className="py-20 bg-white dark:bg-slate-950">
+        <section className="py-20 bg-white dark:bg-black">
           <div className="container mx-auto px-4 max-w-3xl">
             {/* Condition Page: Symptoms & Red Flags */}
             {condPage && (
@@ -283,7 +283,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-20 bg-slate-50 dark:bg-slate-900">
+        <section className="py-20 bg-white/50 dark:bg-white/5">
           <div className="container mx-auto px-4 max-w-3xl">
             <h2 className="text-3xl font-bold mb-12 text-center text-slate-900 dark:text-white">
               Frequently asked questions

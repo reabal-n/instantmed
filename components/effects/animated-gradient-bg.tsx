@@ -32,7 +32,7 @@ export function AnimatedGradientBackground() {
 
   if (!mounted) {
     return (
-      <div className="fixed inset-0 -z-20 bg-white dark:bg-slate-950" aria-hidden="true" />
+      <div className="fixed inset-0 -z-20 bg-white dark:bg-black" aria-hidden="true" />
     )
   }
 

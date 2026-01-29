@@ -68,7 +68,7 @@ export function StatsSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.3 }}
-                  className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl"
+                  className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-4 shadow-xl dark:shadow-none"
                 >
                   <div className="flex items-start gap-3">
                     <Image
@@ -151,7 +151,7 @@ export function StatsSection() {
                   <BlurFade key={stat.label} delay={0.3 + i * 0.1}>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${stat.color}10, transparent)` }} />
-                      <div className="relative bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-slate-700/40">
+                      <div className="relative bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/40 dark:border-white/10">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                           style={{ background: `linear-gradient(135deg, ${stat.color}20, ${stat.color}10)` }}

@@ -37,7 +37,7 @@ export function AnalyticsCharts({ analytics }: AnalyticsChartsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Requests Over Time */}
-      <Card className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10">
+      <Card className="bg-white/70 dark:bg-white/5 backdrop-blur-xl border-white/40 dark:border-white/10">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-medium">Requests Over Time</CardTitle>
         </CardHeader>
@@ -60,7 +60,7 @@ export function AnalyticsCharts({ analytics }: AnalyticsChartsProps) {
       </Card>
 
       {/* Requests by Type */}
-      <Card className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-white/40 dark:border-white/10">
+      <Card className="bg-white/70 dark:bg-white/5 backdrop-blur-xl border-white/40 dark:border-white/10">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-medium">Requests by Type</CardTitle>
         </CardHeader>

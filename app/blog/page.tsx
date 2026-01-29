@@ -37,7 +37,7 @@ export default function BlogPage() {
         ]} 
       />
       
-      <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-24">
@@ -78,7 +78,7 @@ export default function BlogPage() {
           </section>
 
           {/* CTA Section */}
-          <section className="px-4 py-16 bg-white dark:bg-slate-900">
+          <section className="px-4 py-16 bg-white/80 dark:bg-white/5">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold mb-4">Need a Medical Certificate?</h2>
               <p className="text-muted-foreground mb-8">

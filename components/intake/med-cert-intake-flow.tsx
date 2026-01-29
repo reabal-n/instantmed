@@ -100,7 +100,7 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
       {/* Progress bar container */}
       <div className="relative">
         {/* Background track */}
-        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-white/40 dark:bg-white/10 rounded-full overflow-hidden">
           {/* Animated progress fill */}
           <motion.div
             className="h-full bg-gradient-to-r from-primary via-primary to-blue-500 rounded-full"
@@ -124,8 +124,8 @@ function ProgressIndicator({ currentStep, totalSteps, steps }: ProgressIndicator
                 className={cn(
                   "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                   isCompleted && "bg-primary border-primary",
-                  isCurrent && "bg-white dark:bg-slate-900 border-primary ring-4 ring-primary/20",
-                  isPending && "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                  isCurrent && "bg-white dark:bg-white/10 border-primary ring-4 ring-primary/20",
+                  isPending && "bg-white/60 dark:bg-white/5 border-white/50 dark:border-white/10"
                 )}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: isCurrent ? 1.1 : 1 }}
@@ -260,10 +260,10 @@ export function MedCertIntakeFlow({
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(
           "w-full max-w-2xl relative",
-          "bg-white dark:bg-slate-900",
+          "bg-white/95 dark:bg-white/5 backdrop-blur-xl",
           "rounded-2xl",
-          "shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)]",
-          "border border-slate-100 dark:border-slate-800",
+          "shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none",
+          "border border-white/50 dark:border-white/10",
           "overflow-hidden"
         )}
       >
@@ -341,7 +341,7 @@ export function MedCertIntakeFlow({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="px-6 py-4 sm:px-8 sm:py-5 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800"
+              className="px-6 py-4 sm:px-8 sm:py-5 bg-white/60 dark:bg-white/5 border-t border-white/50 dark:border-white/10"
             >
               <div className="flex items-center justify-between gap-4">
                 {/* Back button */}

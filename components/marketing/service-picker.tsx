@@ -189,18 +189,19 @@ export function ServicePicker() {
                       </div>
                     )}
                     
-                    {/* Clean card - Craft style */}
+                    {/* Clean card - Glass style */}
                     <div className={cn(
                       "relative h-full rounded-xl overflow-hidden flex flex-col",
-                      "bg-white dark:bg-slate-900",
-                      "border border-border",
-                      "shadow-sm",
-                      "hover:shadow-md hover:border-border/80",
-                      "transition-all duration-200",
+                      "bg-white/80 dark:bg-white/5",
+                      "border border-white/50 dark:border-white/10",
+                      "backdrop-blur-xl",
+                      "shadow-sm dark:shadow-none",
+                      "hover:shadow-lg hover:border-primary/20 dark:hover:border-primary/30",
+                      "transition-all duration-300",
                       // Elevate popular card
                       service.popular && [
-                        "ring-1 ring-primary/20",
-                        "shadow-md",
+                        "ring-1 ring-primary/20 dark:ring-primary/30",
+                        "shadow-md dark:shadow-primary/5",
                       ]
                     )}>
                       

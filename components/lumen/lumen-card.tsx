@@ -20,19 +20,19 @@ export interface LumenCardProps extends Omit<HTMLMotionProps<"div">, "children">
 // Night sky compatible glass styles
 const glassStyles = {
   subtle: cn(
-    "bg-white/60 dark:bg-slate-900/50",
+    "bg-white/60 dark:bg-white/5",
     "backdrop-blur-lg",
     "border border-sky-300/25 dark:border-slate-400/10",
     "shadow-[0_4px_20px_rgba(197,221,240,0.10)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]",
   ),
   normal: cn(
-    "bg-white/75 dark:bg-slate-900/60",
+    "bg-white/75 dark:bg-white/5",
     "backdrop-blur-xl",
     "border border-sky-300/35 dark:border-slate-400/12",
     "shadow-[0_4px_20px_rgba(197,221,240,0.15)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.30)]",
   ),
   elevated: cn(
-    "bg-white/90 dark:bg-slate-900/75",
+    "bg-white/90 dark:bg-white/10",
     "backdrop-blur-2xl",
     "border border-sky-300/45 dark:border-slate-400/15",
     "shadow-[0_8px_30px_rgba(197,221,240,0.20)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]",

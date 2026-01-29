@@ -20,7 +20,7 @@ import { Button } from "@/components/uix"
 import { usePanel, DrawerPanel } from "@/components/panels"
 import { FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
-import { TiltCard } from "@/components/shared/tilt-card"
+import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { motion } from "framer-motion"
@@ -220,33 +220,27 @@ export function PanelDashboard({
         </section>
       )}
 
-      {/* Quick Stats - Enhanced with TiltCard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TiltCard tiltAmount={5}>
-          <StatCard
-            label="Total Requests"
-            value={intakes.length}
-            icon={FileText}
-            color="blue"
-          />
-        </TiltCard>
-        <TiltCard tiltAmount={5}>
-          <StatCard
-            label="Pending Review"
-            value={pendingIntakes.length}
-            icon={Clock}
-            color="yellow"
-          />
-        </TiltCard>
-        <TiltCard tiltAmount={5}>
-          <StatCard
-            label="Active Prescriptions"
-            value={activeRxCount}
-            icon={Pill}
-            color="green"
-          />
-        </TiltCard>
-      </div>
+      {/* Quick Stats - Glass cards with glow effects */}
+      <DashboardGrid columns={3} gap="md">
+        <GlassStatCard
+          label="Total Requests"
+          value={intakes.length}
+          icon={<FileText className="h-5 w-5" />}
+          status="info"
+        />
+        <GlassStatCard
+          label="Pending Review"
+          value={pendingIntakes.length}
+          icon={<Clock className="h-5 w-5" />}
+          status={pendingIntakes.length > 0 ? "warning" : "neutral"}
+        />
+        <GlassStatCard
+          label="Active Prescriptions"
+          value={activeRxCount}
+          icon={<Pill className="h-5 w-5" />}
+          status="success"
+        />
+      </DashboardGrid>
 
       {/* Recent Requests */}
       <section>
@@ -320,7 +314,7 @@ export function PanelDashboard({
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="card-premium-bg rounded-xl border border-border p-4 hover:border-primary hover:shadow-premium transition-all hover-lift card-shine"
+                  className="dashboard-card rounded-xl p-4 hover:border-primary/50 transition-all"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -387,38 +381,6 @@ export function PanelDashboard({
           </Button>
         </Link>
       </motion.div>
-    </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string
-  value: number
-  icon: React.ElementType
-  color: "blue" | "yellow" | "green"
-}) {
-  const colors = {
-    blue: "bg-blue-50 text-primary",
-    yellow: "bg-yellow-50 text-yellow-600",
-    green: "bg-green-50 text-green-600",
-  }
-
-  return (
-    <div className="card-premium-bg rounded-xl border border-border p-6 hover-lift card-shine shadow-premium">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">{label}</p>
-          <p className="text-3xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center icon-spin-hover", colors[color])}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
     </div>
   )
 }

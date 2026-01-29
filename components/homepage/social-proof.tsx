@@ -210,7 +210,7 @@ const testimonials: Testimonial[] = [
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <div className="shrink-0 w-[300px] sm:w-[340px] mx-3">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-slate-700">
+      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-5 h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-white/50 dark:border-white/10">
         {/* Header with service badge and rating */}
         <div className="flex items-center justify-between mb-4">
           <span

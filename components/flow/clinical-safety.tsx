@@ -53,7 +53,7 @@ export function EmergencyModal({ isOpen, onClose, symptoms }: EmergencyModalProp
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
+      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-6 max-w-md w-full shadow-2xl dark:shadow-none animate-in fade-in zoom-in-95">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 hover:bg-muted rounded-full transition-colors"
@@ -154,9 +154,9 @@ interface SafetyDisclaimerProps {
 
 export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclaimerProps) {
   return (
-    <div className={cn("p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 space-y-3", className)}>
+    <div className={cn("p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 space-y-3", className)}>
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
           <Phone className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </div>
         <div className="space-y-1">
@@ -167,7 +167,7 @@ export function SafetyDisclaimer({ checked, onChange, className }: SafetyDisclai
         </div>
       </div>
       
-      <label className="flex items-start gap-3 p-3 rounded-lg bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+      <label className="flex items-start gap-3 p-3 rounded-lg bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 cursor-pointer hover:bg-white/90 dark:hover:bg-white/10 transition-colors">
         <input
           type="checkbox"
           checked={checked}

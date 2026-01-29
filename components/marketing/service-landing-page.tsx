@@ -294,7 +294,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
                   )}
 
                   <SpotlightReveal color={colors.text.replace('text-', '#').replace('-600', '')} size={350} borderRadius="1rem">
-                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-6 text-center border border-slate-200 dark:border-slate-800 hover:border-transparent hover:shadow-xl transition-all duration-300">
+                    <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/50 dark:border-white/10 hover:border-primary/20 dark:hover:border-primary/30 hover:shadow-xl dark:hover:shadow-none transition-all duration-300">
                       {/* Step number */}
                       <div className={cn('w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-lg', colors.button)}>
                         {step.step}
@@ -347,7 +347,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Eligible */}
-            <motion.div {...fadeIn} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <motion.div {...fadeIn} className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-sm dark:shadow-none border border-white/50 dark:border-white/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className={cn('w-10 h-10 rounded-full flex items-center justify-center', colors.iconBg)}>
                   <Check className={cn('h-5 w-5', colors.text)} />
@@ -365,7 +365,7 @@ export function ServiceLandingPage({ config }: ServiceLandingPageProps) {
             </motion.div>
 
             {/* Not eligible */}
-            <motion.div {...fadeIn} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <motion.div {...fadeIn} transition={{ delay: 0.1 }} className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-sm dark:shadow-none border border-white/50 dark:border-white/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
                   <X className="h-5 w-5 text-slate-500" />
@@ -496,10 +496,10 @@ function FAQItem({
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-50 transition-colors"
+        className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/50 transition-colors"
       >
         <span className="font-semibold text-slate-900 pr-4">{question}</span>
         <ChevronDown

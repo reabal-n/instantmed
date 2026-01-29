@@ -75,7 +75,7 @@ export function HowItWorks() {
               whileHover={{ y: -4 }}
               className="group"
             >
-              <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5`}>
+              <div className={`relative h-full rounded-2xl border ${step.borderColor} ${step.bgColor} backdrop-blur-xl p-6 lg:p-8 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-none`}>
                 {/* Step number */}
                 <div className={`absolute -top-3 -right-3 w-10 h-10 rounded-full bg-linear-to-br ${step.color} flex items-center justify-center text-white text-sm font-bold shadow-lg`}>
                   {step.number}

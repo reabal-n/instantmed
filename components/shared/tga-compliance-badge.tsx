@@ -27,7 +27,7 @@ export function TGAComplianceBadge({
   if (variant === 'compact') {
     return (
       <div className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800",
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 dark:bg-white/10",
         className
       )}>
         <Shield className="w-4 h-4 text-emerald-600" />
@@ -38,7 +38,7 @@ export function TGAComplianceBadge({
 
   return (
     <div className={cn(
-      "bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4",
+      "bg-white/50 dark:bg-white/5 rounded-xl border border-white/50 dark:border-white/10 p-4",
       className
     )}>
       <div className="flex items-start gap-3">

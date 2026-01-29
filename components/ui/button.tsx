@@ -45,7 +45,7 @@ const sizeMap: Record<string, HeroButtonProps["size"]> = {
 const craftVariantStyles: Record<string, string> = {
   default: "shadow-sm hover:shadow-md transition-all duration-200",
   destructive: "shadow-sm hover:shadow-md transition-all duration-200",
-  outline: "bg-white dark:bg-slate-900 border-border hover:bg-muted/50 transition-all duration-200",
+  outline: "bg-white/80 dark:bg-white/5 border-border hover:bg-muted/50 transition-all duration-200",
   secondary: "hover:bg-secondary/80 transition-all duration-200",
   ghost: "hover:bg-muted/50 transition-all duration-200",
   link: "bg-transparent underline-offset-4 hover:underline text-primary hover:text-primary/80",

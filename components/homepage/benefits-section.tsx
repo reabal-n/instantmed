@@ -80,7 +80,7 @@ export function BenefitsSection() {
                 const Icon = benefit.icon
                 return (
                   <BlurFade key={benefit.title} delay={0.2 + i * 0.05}>
-                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/40 dark:border-slate-700/40 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors">
+                    <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
                       <div
                         className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
                         style={{ background: `linear-gradient(135deg, ${benefit.color}20, ${benefit.color}10)` }}
@@ -105,7 +105,7 @@ export function BenefitsSection() {
               <div className="relative">
                 <div className="relative w-[280px] h-[580px] bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
                   {/* Screen */}
-                  <div className="relative w-full h-full bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden">
+                  <div className="relative w-full h-full bg-white dark:bg-white/10 rounded-[2.5rem] overflow-hidden">
                     {/* Status bar */}
                     <div className="absolute top-0 left-0 right-0 h-12 bg-linear-to-b from-black/10 to-transparent z-10 flex items-center justify-center">
                       <div className="w-20 h-5 bg-black rounded-full" />
@@ -151,7 +151,7 @@ export function BenefitsSection() {
 
                       {/* Mock service cards */}
                       <div className="space-y-3">
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/10 rounded-xl">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <Smartphone className="h-4 w-4 text-primary" />
                           </div>
@@ -161,7 +161,7 @@ export function BenefitsSection() {
                           </div>
                           <CheckCircle2 className="h-5 w-5 text-green-500" />
                         </div>
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/10 rounded-xl">
                           <div className="w-8 h-8 rounded-lg bg-[#4f46e5]/10 flex items-center justify-center">
                             <Shield className="h-4 w-4 text-[#4f46e5]" />
                           </div>
@@ -179,7 +179,7 @@ export function BenefitsSection() {
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-4 -right-8 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl"
+                  className="absolute -top-4 -right-8 bg-white dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl dark:shadow-none"
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="h-5 w-5 text-primary" />
@@ -190,7 +190,7 @@ export function BenefitsSection() {
                 <motion.div
                   animate={{ y: [0, 8, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute -bottom-4 -left-8 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl"
+                  className="absolute -bottom-4 -left-8 bg-white dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl dark:shadow-none"
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex">

@@ -982,31 +982,8 @@ main > div {
     inset 0 -1px 0 rgba(0, 0, 0, 0.6);
 }
 
-/* Glass Card - Premium glassmorphism with theme support */
-.glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.04);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card:hover {
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1), 0 2px 8px rgba(15, 23, 42, 0.06);
-  transform: translateY(-1px);
-}
-
-.dark .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0
-    rgba(255, 255, 255, 0.1);
-}
-
-.dark .glass-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
-}
+/* Glass Card - Unified with dashboard-card for consistency */
+/* NOTE: .glass-card now aliases .dashboard-card styling - see dashboard section below */
 
 /* 3D Tilt Card - Cursor-tracking light effect */
 .tilt-card {
@@ -3075,4 +3052,464 @@ button:not(.no-micro):active:not(:disabled),
 .badge-micro:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* ================================
+   21ST.DEV DASHBOARD DESIGN SYSTEM
+   Sleek, dark, glass-forward aesthetic
+   ================================ */
+
+:root {
+  /* Dashboard-specific tokens */
+  --dashboard-bg: #FAFBFC;
+  --dashboard-surface: rgba(255, 255, 255, 0.8);
+  --dashboard-surface-elevated: rgba(255, 255, 255, 0.95);
+  --dashboard-border: rgba(0, 0, 0, 0.06);
+  --dashboard-border-subtle: rgba(0, 0, 0, 0.03);
+  
+  /* Status glow colors (light mode) */
+  --glow-success: rgba(34, 197, 94, 0.12);
+  --glow-warning: rgba(245, 158, 11, 0.12);
+  --glow-error: rgba(239, 68, 68, 0.12);
+  --glow-info: rgba(59, 130, 246, 0.12);
+  --glow-neutral: rgba(100, 116, 139, 0.08);
+  
+  /* Spotlight effect */
+  --spotlight-color: rgba(59, 130, 246, 0.08);
+  --spotlight-size: 400px;
+}
+
+.dark {
+  /* 21st.dev-inspired dark dashboard tokens */
+  --dashboard-bg: #09090B;
+  --dashboard-surface: rgba(255, 255, 255, 0.03);
+  --dashboard-surface-elevated: rgba(255, 255, 255, 0.06);
+  --dashboard-border: rgba(255, 255, 255, 0.06);
+  --dashboard-border-subtle: rgba(255, 255, 255, 0.03);
+  
+  /* Status glow colors (dark mode - more vibrant) */
+  --glow-success: rgba(34, 197, 94, 0.2);
+  --glow-warning: rgba(245, 158, 11, 0.2);
+  --glow-error: rgba(239, 68, 68, 0.2);
+  --glow-info: rgba(59, 130, 246, 0.25);
+  --glow-neutral: rgba(148, 163, 184, 0.1);
+  
+  /* Spotlight effect - brighter in dark mode */
+  --spotlight-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Dashboard page background */
+.dashboard-bg {
+  background: var(--dashboard-bg);
+  min-height: 100vh;
+}
+
+.dark .dashboard-bg {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+    #09090B;
+}
+
+/* ================================
+   UNIFIED GLASS CARD SYSTEM
+   .glass-card and .dashboard-card are now unified
+   ================================ */
+.dashboard-card,
+.glass-card {
+  background: rgba(255, 255, 255, 0.80);
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-card:hover,
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.60);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.dark .dashboard-card,
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.dark .dashboard-card:hover,
+.dark .glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Elevated dashboard card - for modals, dropdowns */
+.dashboard-card-elevated {
+  background: var(--dashboard-surface-elevated);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.dark .dashboard-card-elevated {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* Dashboard stat card with glow */
+.dashboard-stat {
+  position: relative;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-stat::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-stat:hover::before {
+  opacity: 1;
+}
+
+.dark .dashboard-stat {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dark .dashboard-stat:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Stat card status variants */
+.dashboard-stat-success {
+  box-shadow: 0 0 0 1px var(--glow-success) inset;
+}
+
+.dashboard-stat-success:hover {
+  box-shadow: 
+    0 0 0 1px rgba(34, 197, 94, 0.3) inset,
+    0 8px 32px var(--glow-success);
+}
+
+.dashboard-stat-warning {
+  box-shadow: 0 0 0 1px var(--glow-warning) inset;
+}
+
+.dashboard-stat-warning:hover {
+  box-shadow: 
+    0 0 0 1px rgba(245, 158, 11, 0.3) inset,
+    0 8px 32px var(--glow-warning);
+}
+
+.dashboard-stat-error {
+  box-shadow: 0 0 0 1px var(--glow-error) inset;
+}
+
+.dashboard-stat-error:hover {
+  box-shadow: 
+    0 0 0 1px rgba(239, 68, 68, 0.3) inset,
+    0 8px 32px var(--glow-error);
+}
+
+.dashboard-stat-info {
+  box-shadow: 0 0 0 1px var(--glow-info) inset;
+}
+
+.dashboard-stat-info:hover {
+  box-shadow: 
+    0 0 0 1px rgba(59, 130, 246, 0.3) inset,
+    0 8px 32px var(--glow-info);
+}
+
+/* Dashboard sidebar */
+.dashboard-sidebar {
+  background: var(--dashboard-surface);
+  border-right: 1px solid var(--dashboard-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .dashboard-sidebar {
+  background: rgba(0, 0, 0, 0.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Dashboard sidebar nav item */
+.dashboard-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.dashboard-nav-item:hover {
+  background: var(--dashboard-surface-elevated);
+  color: var(--foreground);
+}
+
+.dashboard-nav-item.active {
+  background: var(--glow-info);
+  color: var(--primary);
+}
+
+.dark .dashboard-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark .dashboard-nav-item.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60A5FA;
+}
+
+/* Dashboard row/list item */
+.dashboard-row {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dashboard-row:hover {
+  background: var(--dashboard-surface);
+}
+
+.dark .dashboard-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Glow badge - status indicator with subtle glow */
+.glow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.glow-badge-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+  box-shadow: 0 0 12px var(--glow-success);
+}
+
+.dark .glow-badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ADE80;
+}
+
+.glow-badge-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  box-shadow: 0 0 12px var(--glow-warning);
+}
+
+.dark .glow-badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+}
+
+.glow-badge-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  box-shadow: 0 0 12px var(--glow-error);
+}
+
+.dark .glow-badge-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+}
+
+.glow-badge-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563EB;
+  box-shadow: 0 0 12px var(--glow-info);
+}
+
+.dark .glow-badge-info {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60A5FA;
+}
+
+.glow-badge-neutral {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+
+.dark .glow-badge-neutral {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94A3B8;
+}
+
+/* Dashboard grid with stagger animation */
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-grid > * {
+  opacity: 0;
+  animation: dashboard-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dashboard-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-grid > *:nth-child(2) { animation-delay: 0.1s; }
+.dashboard-grid > *:nth-child(3) { animation-delay: 0.15s; }
+.dashboard-grid > *:nth-child(4) { animation-delay: 0.2s; }
+.dashboard-grid > *:nth-child(5) { animation-delay: 0.25s; }
+.dashboard-grid > *:nth-child(6) { animation-delay: 0.3s; }
+.dashboard-grid > *:nth-child(7) { animation-delay: 0.35s; }
+.dashboard-grid > *:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes dashboard-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard spotlight effect - follows cursor */
+.dashboard-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    var(--spotlight-size) circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    var(--spotlight-color),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dashboard-spotlight:hover::after {
+  opacity: 1;
+}
+
+/* Dashboard divider */
+.dashboard-divider {
+  height: 1px;
+  background: var(--dashboard-border);
+  margin: 1rem 0;
+}
+
+.dark .dashboard-divider {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* Dashboard header */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--dashboard-border);
+  margin-bottom: 1.5rem;
+}
+
+/* Dashboard section title */
+.dashboard-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+/* Dashboard empty state */
+.dashboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--dashboard-surface);
+  border: 1px dashed var(--dashboard-border);
+  border-radius: var(--radius-lg);
+}
+
+.dark .dashboard-empty {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-grid > * {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .dashboard-spotlight::after {
+    display: none;
+  }
 }

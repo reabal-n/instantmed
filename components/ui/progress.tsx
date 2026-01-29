@@ -28,7 +28,7 @@ function Progress({
         base: "max-w-full",
         track: cn(
           // Glass track
-          "bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm",
+          "bg-white/50 dark:bg-white/10 backdrop-blur-sm",
           "border border-white/30 dark:border-white/10"
         ),
         indicator: cn(

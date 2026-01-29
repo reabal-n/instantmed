@@ -271,7 +271,7 @@ function OptionTile({
       className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
         selected
           ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-          : "border-slate-200/60 dark:border-slate-700/40 bg-white/90 dark:bg-slate-900/60 hover:border-slate-300 hover:bg-white"
+          : "border-slate-200/60 dark:border-slate-700/40 bg-white/90 dark:bg-white/5 hover:border-slate-300 hover:bg-white"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -283,7 +283,7 @@ function OptionTile({
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
               selected 
                 ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400" 
-                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400"
             }`}
           >
             <Icon className="w-5 h-5" />
@@ -317,7 +317,7 @@ function PillButton({
       className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
         selected 
           ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]" 
-          : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+          : "bg-white/90 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
       }`}
     >
       {emoji && <span className="mr-1.5">{emoji}</span>}

@@ -58,12 +58,12 @@ export default function SymptomsIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-16 bg-white/80 dark:bg-white/5 border-b border-white/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-4xl font-bold text-foreground mb-4">
                 What&apos;s Causing Your Symptoms?
@@ -111,7 +111,7 @@ export default function SymptomsIndexPage() {
                   <Link
                     key={symptom.slug}
                     href={`/symptoms/${symptom.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
                   >
                     <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {symptom.name}
@@ -125,7 +125,7 @@ export default function SymptomsIndexPage() {
                         {symptom.commonCauses.map((cause) => (
                           <span 
                             key={cause}
-                            className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-muted-foreground"
+                            className="text-xs px-2 py-1 bg-white/60 dark:bg-white/10 rounded-full text-muted-foreground"
                           >
                             {cause}
                           </span>

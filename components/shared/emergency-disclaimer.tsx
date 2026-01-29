@@ -95,11 +95,11 @@ export function EmergencyDisclaimer({
   if (variant === "inline") {
     return (
       <div className={cn(
-        "rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4",
+        "rounded-xl border border-white/50 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-4",
         className
       )}>
         <div className="flex gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
             <Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
           </div>
           <div>
@@ -118,11 +118,11 @@ export function EmergencyDisclaimer({
   // Default variant - full safety block
   return (
     <div className={cn(
-      "rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-5",
+      "rounded-xl border border-white/50 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-5",
       className
     )}>
       <div className="flex gap-3">
-        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
           <Heart className="h-5 w-5 text-slate-600 dark:text-slate-400" />
         </div>
         <div className="space-y-3">

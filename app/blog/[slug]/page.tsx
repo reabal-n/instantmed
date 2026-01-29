@@ -282,7 +282,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} 
         />
 
-        <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+        <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
           <Navbar variant="marketing" />
 
           <main className="flex-1 pt-24 pb-16">

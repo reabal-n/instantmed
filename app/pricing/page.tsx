@@ -110,7 +110,7 @@ export default function PricingPage() {
         <ParallaxSection speed={0.25}>
           <section className="px-4 py-12 sm:px-6">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+            <div className="dashboard-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
               <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {services.map((service, idx) => (
                 <GlowCard
@@ -208,7 +208,7 @@ export default function PricingPage() {
         <ParallaxSection speed={0.2}>
           <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
+            <div className="dashboard-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
               <h2 className="text-2xl font-semibold text-center mb-6" style={{ fontFamily: "var(--font-display)" }}>
                 Common questions
               </h2>
@@ -220,7 +220,7 @@ export default function PricingPage() {
                 {faqs.map((faq, index) => (
                   <div
                     key={index}
-                    className="bg-content1/50 backdrop-blur-sm border border-divider/50 rounded-xl p-4"
+                    className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl p-4"
                   >
                     <h3 className="text-sm font-medium mb-1">{faq.q}</h3>
                     <p className="text-xs text-muted-foreground">{faq.a}</p>
@@ -247,7 +247,7 @@ export default function PricingPage() {
           <section className="px-4 py-12 sm:px-6 lg:py-16">
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden">
+              <div className="dashboard-card rounded-3xl p-6 lg:p-8 relative overflow-hidden">
                 <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
                 <h2 className="text-2xl font-semibold mb-3" style={{ fontFamily: "var(--font-display)" }}>
                   Ready to get started?

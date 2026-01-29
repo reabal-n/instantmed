@@ -222,7 +222,7 @@ export function AddressAutocomplete({
       {isOpen && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-border rounded-xl shadow-lg max-h-60 overflow-auto"
+          className="absolute z-50 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto"
         >
           {suggestions.map((suggestion, index) => (
             <li

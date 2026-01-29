@@ -25,7 +25,7 @@ function Skeleton({
         className
       )}
       classNames={{
-        base: "bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl overflow-hidden",
+        base: "bg-white/30 dark:bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden",
         content: "bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10",
       }}
       {...props}
@@ -114,7 +114,7 @@ function ButtonSpinner({ className }: { className?: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-white/10 p-5 space-y-3 shadow-[0_4px_20px_rgb(59,130,246,0.1)]">
+    <div className="rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 p-5 space-y-3 shadow-[0_4px_20px_rgb(59,130,246,0.1)]">
       <Skeleton className="h-4 w-3/4" />
       <Skeleton className="h-3 w-1/2" />
       <Skeleton className="h-3 w-2/3" />

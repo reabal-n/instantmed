@@ -84,7 +84,7 @@ const errorConfig: Record<
       "Contact support if this persists",
     ],
     iconColor: "text-slate-500",
-    bgColor: "bg-slate-50 dark:bg-slate-950/20",
+    bgColor: "bg-white/60 dark:bg-white/5",
   },
   payment: {
     icon: CreditCard,
@@ -108,7 +108,7 @@ const errorConfig: Record<
       "Use the search function",
     ],
     iconColor: "text-slate-500",
-    bgColor: "bg-slate-50 dark:bg-slate-950/20",
+    bgColor: "bg-white/60 dark:bg-white/5",
   },
   timeout: {
     icon: Clock,

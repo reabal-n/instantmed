@@ -63,7 +63,7 @@ export function StripeBadge({
     return (
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40",
+        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
         className
       )}>
         <Lock className="w-4 h-4 text-[#635BFF]" />
@@ -214,7 +214,7 @@ export function ConfidentialBadge({
     return (
       <div className={cn(
         "inline-flex items-center gap-2 px-3 py-2 rounded-lg",
-        "bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700",
+        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
         className
       )}>
         <EyeOff className="w-4 h-4 text-slate-600 dark:text-slate-400" />
@@ -360,10 +360,10 @@ export function PrivacyActBadge({
     return (
       <div className={cn(
         "flex items-start gap-3 p-4 rounded-xl",
-        "bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40",
+        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
         className
       )}>
-        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
           <Eye className="w-5 h-5 text-slate-600 dark:text-slate-400" />
         </div>
         <div>

@@ -37,7 +37,7 @@ export function ComplianceMarquee({
 
   return (
     <div className={cn(
-      "relative overflow-hidden bg-slate-100 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800 py-3",
+      "relative overflow-hidden bg-white/60 dark:bg-white/5 border-y border-white/50 dark:border-white/10 py-3",
       className
     )}>
       {/* Gradient fade edges */}
@@ -78,7 +78,7 @@ export function ComplianceBar({ className }: { className?: string }) {
 
   return (
     <div className={cn(
-      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800",
+      "flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 px-4 bg-white/50 dark:bg-white/5 border-y border-white/50 dark:border-white/10",
       className
     )}>
       {keyItems.map((item, i) => (

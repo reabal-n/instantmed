@@ -314,7 +314,7 @@ function TileButton({
         ${
           selected
             ? "border-sky-300/60 dark:border-sky-600/40 bg-sky-50/80 dark:bg-sky-900/20 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-            : "bg-white/90 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+            : "bg-white/90 dark:bg-white/5 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
         }
         ${className}
       `}
@@ -327,7 +327,7 @@ function TileButton({
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
             selected 
               ? "bg-sky-100 dark:bg-sky-800/40 text-sky-600 dark:text-sky-400" 
-              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+              : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400"
           }`}
           aria-hidden="true"
         >
@@ -372,7 +372,7 @@ function ChipButton({
         ${
           selected
             ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-            : "bg-white/90 dark:bg-slate-900/60 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
+            : "bg-white/90 dark:bg-white/5 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white text-slate-700 dark:text-slate-300"
         }
       `}
     >
@@ -1001,7 +1001,7 @@ export function MedCertFlowClient({
             </p>
 
             {formData.duration === "specific" && (
-              <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <fieldset className="space-y-3 p-3 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <legend className="sr-only">Specific date range</legend>
                 <div className="grid grid-cols-2 gap-3">
                   <DatePickerField
@@ -1059,7 +1059,7 @@ export function MedCertFlowClient({
 
             {/* Carer details */}
             {isCarer && (
-              <fieldset className="space-y-3 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <fieldset className="space-y-3 p-4 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <legend className="sr-only">Person being cared for</legend>
                 <div className="space-y-1">
                   <Label htmlFor="carer-name" className="text-sm font-medium">
@@ -1116,7 +1116,7 @@ export function MedCertFlowClient({
             />
 
             {/* Safety confirmation - calm, serious tone */}
-            <div className="p-4 rounded-2xl bg-ivory-100 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/40 space-y-3">
+            <div className="p-4 rounded-2xl bg-ivory-100 dark:bg-white/5 border border-slate-200/60 dark:border-slate-700/40 space-y-3">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
@@ -1128,7 +1128,7 @@ export function MedCertFlowClient({
               </div>
               
               {/* iOS-style toggle for safety confirmation */}
-              <label className="flex items-center justify-between gap-4 p-3 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-700/30 cursor-pointer">
+              <label className="flex items-center justify-between gap-4 p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-slate-200/50 dark:border-slate-700/30 cursor-pointer">
                 <div className="space-y-0.5">
                   <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                     This is not a medical emergency
@@ -1152,7 +1152,7 @@ export function MedCertFlowClient({
                   className={`relative inline-flex h-8 w-[52px] shrink-0 cursor-pointer rounded-full border transition-all duration-300 ${
                     formData.safetyAnswers.notEmergency 
                       ? "bg-[#6BBF8A] border-[#6BBF8A]/40" 
-                      : "bg-slate-200/80 dark:bg-slate-700/60 border-slate-300/30 dark:border-slate-600/30"
+                      : "bg-slate-200/80 dark:bg-white/10 border-slate-300/30 dark:border-slate-600/30"
                   }`}
                 >
                   <span 

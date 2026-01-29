@@ -29,8 +29,8 @@ const RadioCard = React.forwardRef<
     className={cn(
       "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-300",
       // Calm glass surface
-      "bg-white/90 dark:bg-slate-900/60 backdrop-blur-sm",
-      "border-slate-200/60 dark:border-slate-700/40",
+      "bg-white/90 dark:bg-white/5 backdrop-blur-sm",
+      "border-white/50 dark:border-white/10",
       "shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
       // Subtle hover - light settling effect
       "hover:bg-white hover:border-slate-300/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",

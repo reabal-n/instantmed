@@ -286,9 +286,9 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-white/50 dark:bg-black">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-white/10 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
@@ -366,7 +366,7 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
                       "w-10 h-10 rounded-lg flex items-center justify-center",
                       selectedType === type
                         ? "bg-primary text-white"
-                        : "bg-slate-100 dark:bg-slate-800"
+                        : "bg-slate-100 dark:bg-white/10"
                     )}>
                       <Icon className="w-5 h-5" />
                     </div>

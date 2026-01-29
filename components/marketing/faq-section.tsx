@@ -76,7 +76,7 @@ export function FAQSection() {
                 aria-label={item.question}
                 title={<span className="font-medium text-foreground">{item.question}</span>}
                 classNames={{
-                  base: "bg-content1 border border-divider shadow-sm hover:border-primary/20 transition-colors",
+                  base: "bg-white/80 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-colors",
                   title: "text-foreground",
                   content: "text-muted-foreground leading-relaxed pb-4",
                 }}

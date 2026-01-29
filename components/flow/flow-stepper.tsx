@@ -47,7 +47,7 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
                     'transition-colors duration-200',
                     isCompleted && 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_16px_rgb(59,130,246,0.25)]',
                     isCurrent && 'bg-gradient-to-r from-primary-500 to-primary-600 text-white ring-[3px] ring-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.3)]',
-                    isPending && 'bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 text-slate-400'
+                    isPending && 'bg-white/70 dark:bg-white/5 backdrop-blur-xl border-2 border-white/40 dark:border-white/10 text-slate-400'
                   )}
                   initial={false}
                   animate={{
@@ -90,7 +90,7 @@ export function FlowStepper({ steps, currentStepId, className }: FlowStepperProp
       <div className="sm:hidden">
         <div className="flex items-center gap-3">
           {/* Step indicator pill */}
-          <div className="flex items-center gap-1.5 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
+          <div className="flex items-center gap-1.5 bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-full px-3 py-1.5 shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
             <div className="w-5 h-5 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_2px_8px_rgb(59,130,246,0.25)]">
               {currentIndex + 1}
             </div>

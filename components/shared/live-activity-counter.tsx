@@ -94,7 +94,7 @@ export function LiveActivityCounter({
   // Detailed variant
   return (
     <div className={cn(
-      "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6",
+      "bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6",
       className
     )}>
       <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -103,7 +103,7 @@ export function LiveActivityCounter({
       </h3>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+        <div className="p-4 bg-emerald-50/80 dark:bg-emerald-900/20 backdrop-blur-sm rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
@@ -114,7 +114,7 @@ export function LiveActivityCounter({
           <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{stats.activeNow}</p>
         </div>
 
-        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+        <div className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs text-muted-foreground font-medium">Completed Today</span>
@@ -122,7 +122,7 @@ export function LiveActivityCounter({
           <p className="text-2xl font-bold text-foreground">{stats.completedToday}</p>
         </div>
 
-        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+        <div className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs text-muted-foreground font-medium">Avg Response</span>
@@ -130,7 +130,7 @@ export function LiveActivityCounter({
           <p className="text-2xl font-bold text-foreground">{stats.averageResponseMinutes}m</p>
         </div>
 
-        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+        <div className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <Users className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs text-muted-foreground font-medium">Last Completed</span>
@@ -158,7 +158,7 @@ export function ViewingNowIndicator({ count = 8, className }: { count?: number; 
           </div>
         ))}
         {count > 4 && (
-          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+          <div className="w-6 h-6 rounded-full bg-white/60 dark:bg-white/10 border-2 border-white dark:border-white/20 flex items-center justify-center text-[10px] font-medium text-muted-foreground">
             +{count - 4}
           </div>
         )}

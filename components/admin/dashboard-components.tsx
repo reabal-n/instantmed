@@ -50,8 +50,8 @@ export function StatCard({
   const content = (
     <div
       className={cn(
-        "relative p-5 rounded-xl bg-white dark:bg-slate-900",
-        "border border-slate-100 dark:border-slate-800",
+        "relative p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl",
+        "border border-white/50 dark:border-white/10",
         href && "hover:border-slate-200 dark:hover:border-slate-700 transition-colors cursor-pointer",
         className
       )}
@@ -90,7 +90,7 @@ export function StatCard({
             status === "success" && "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600",
             status === "warning" && "bg-amber-50 dark:bg-amber-950/30 text-amber-600",
             status === "error" && "bg-red-50 dark:bg-red-950/30 text-red-600",
-            status === "neutral" && "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
+            status === "neutral" && "bg-white/60 dark:bg-white/10 text-slate-600 dark:text-slate-400",
           )}>
             {icon}
           </div>
@@ -136,7 +136,7 @@ export function SectionHeader({
     <div className={cn("flex items-center justify-between", className)}>
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-muted-foreground">
+          <div className="p-2 rounded-lg bg-white/60 dark:bg-white/10 text-muted-foreground">
             {icon}
           </div>
         )}
@@ -201,7 +201,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   return (
     <div className={cn("text-center py-12", className)}>
       {icon && (
-        <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+        <div className="mx-auto w-12 h-12 rounded-full bg-white/60 dark:bg-white/10 flex items-center justify-center mb-4">
           {icon}
         </div>
       )}
@@ -240,8 +240,8 @@ export function DataRow({
       onClick={onClick}
       className={cn(
         "flex items-center justify-between p-3 rounded-lg",
-        "bg-slate-50 dark:bg-slate-800/50",
-        onClick && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+        "bg-white/60 dark:bg-white/5",
+        onClick && "cursor-pointer hover:bg-white/80 dark:hover:bg-white/10 transition-colors",
         className
       )}
     >

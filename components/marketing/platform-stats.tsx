@@ -72,7 +72,7 @@ export function PlatformStats() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group"
             >
-              <div className="relative bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all duration-300 card-3d card-shine">
+              <div className="relative bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl rounded-2xl p-6 hover:border-primary/30 dark:hover:border-primary/40 transition-all duration-300 card-3d card-shine">
                 {/* Icon */}
                 <div className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center mb-4",

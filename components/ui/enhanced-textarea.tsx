@@ -76,7 +76,7 @@ export function EnhancedTextarea({
             mainWrapper: "bg-transparent overflow-visible",
             inputWrapper: cn(
               // Single border layer - no duplicate with variant="bordered"
-              "bg-white dark:bg-slate-900 rounded-lg shadow-none",
+              "bg-white/90 dark:bg-white/5 rounded-lg shadow-none",
               // Stable min-height to prevent clipping
               "min-h-[120px]",
               "transition-all duration-200",

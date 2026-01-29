@@ -154,7 +154,7 @@ export function WalletPassOptions({
 
         {/* Google Wallet */}
         <button
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/80 border border-white/50 dark:border-white/10 dark:bg-white/5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
           onClick={() => {
             // In production, this would trigger the Google Wallet flow
             window.open(`/api/wallet/google?id=${certificateId}`, '_blank')

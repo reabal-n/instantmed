@@ -28,8 +28,8 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
             href={`/blog/${article.slug}`}
             className="group"
           >
-            <article className="bg-slate-50 dark:bg-slate-800/50 rounded-xl overflow-hidden h-full border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all hover:shadow-lg">
-              <div className="relative h-32 bg-slate-200 dark:bg-slate-700">
+            <article className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden h-full border border-white/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
+              <div className="relative h-32 bg-white/40 dark:bg-white/10">
                 <Image
                   src={article.heroImage}
                   alt={article.heroImageAlt}
@@ -37,7 +37,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
                   className="object-cover"
                 />
                 <div className="absolute top-2 left-2">
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-slate-900/90 text-primary">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-sm text-primary">
                     {article.readingTime} min read
                   </span>
                 </div>

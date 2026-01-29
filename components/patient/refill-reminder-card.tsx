@@ -77,7 +77,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn("rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden", className)}
+      className={cn("rounded-2xl border bg-white/80 dark:bg-white/5 backdrop-blur-xl overflow-hidden", className)}
     >
       {/* Header */}
       <div className="px-4 py-3 border-b bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
@@ -171,7 +171,7 @@ export function RefillReminderCard({ patientId, className }: RefillReminderCardP
 
       {/* Show more link if there are more than 3 */}
       {visibleRefills.length > 3 && (
-        <div className="px-4 py-2 border-t bg-gray-50 dark:bg-slate-800/50">
+        <div className="px-4 py-2 border-t bg-white/60 dark:bg-white/5">
           <Link
             href="/patient/prescriptions"
             className="text-xs text-primary hover:underline flex items-center gap-1"

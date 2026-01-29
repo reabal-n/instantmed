@@ -252,16 +252,18 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
                     </span>
                     <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div className="w-64 rounded-2xl border border-white/50 dark:border-white/15 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg p-2">
+                      <div className="w-64 rounded-2xl border border-white/50 dark:border-white/10 bg-white/95 dark:bg-white/10 backdrop-blur-xl shadow-xl dark:shadow-none p-2">
                         {services.map((service) => (
                           <Link
                             key={service.href}
                             href={service.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/5 transition-colors"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group/item"
                           >
-                            <service.icon className="h-4 w-4 text-primary" />
+                            <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20 group-hover/item:bg-primary/20 dark:group-hover/item:bg-primary/30 transition-colors">
+                              <service.icon className="h-4 w-4 text-primary" />
+                            </div>
                             <div>
-                              <p className="text-sm font-medium">{service.title}</p>
+                              <p className="text-sm font-medium text-foreground">{service.title}</p>
                               <p className="text-xs text-muted-foreground">{service.description}</p>
                             </div>
                           </Link>

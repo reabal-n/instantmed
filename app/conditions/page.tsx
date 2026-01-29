@@ -76,12 +76,12 @@ export default function ConditionsIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Hero */}
-          <section className="px-4 py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-16 bg-white/80 dark:bg-white/5 border-b border-white/50 dark:border-white/10">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-4xl font-bold text-foreground mb-4">
                 Health Conditions We Can Help With
@@ -115,7 +115,7 @@ export default function ConditionsIndexPage() {
                   <Link
                     key={condition.slug}
                     href={`/conditions/${condition.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
                   >
                     <h2 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {condition.name}

@@ -49,7 +49,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
 
   // Shared input styles with focus glow
   const inputBaseClass = cn(
-    'w-full rounded-xl border-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base',
+    'w-full rounded-xl border-2 bg-white/80 dark:bg-white/5 backdrop-blur-xl text-slate-900 dark:text-slate-100 text-base',
     'placeholder:text-slate-400',
     'transition-all duration-200 ease-out',
     'focus:outline-none focus:ring-0',
@@ -181,7 +181,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                           </a>
                           <a
                             href="tel:131114"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-red-700 dark:text-red-400 text-xs font-medium rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 dark:bg-white/10 text-red-700 dark:text-red-400 text-xs font-medium rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                           >
                             Lifeline: 13 11 14
                           </a>
@@ -338,7 +338,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
                       'transition-colors duration-150',
                       isSelected
                         ? 'border-emerald-500 bg-emerald-500'
-                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        : 'border-white/50 dark:border-white/10 bg-white dark:bg-white/10'
                     )}
                     animate={{ scale: isSelected ? [1, 1.1, 1] : 1 }}
                     transition={{ duration: 0.2 }}

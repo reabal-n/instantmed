@@ -407,7 +407,7 @@ export default function MedicalCertificatePage() {
                     
                     {/* Floating AHPRA badge */}
                     <motion.div
-                      className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                      className="absolute -bottom-4 -left-6 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50"
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 0.9 }}

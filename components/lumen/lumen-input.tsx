@@ -62,7 +62,7 @@ export const LumenInput = React.forwardRef<HTMLInputElement, LumenInputProps>(
               "rounded-xl",
               "px-4 py-3",
               // Lumen Glass surface
-              "bg-white/65 dark:bg-slate-900/40",
+              "bg-white/65 dark:bg-white/5",
               "backdrop-blur-lg",
               "border border-sky-300/30 dark:border-white/10",
               // Placeholder
@@ -71,11 +71,11 @@ export const LumenInput = React.forwardRef<HTMLInputElement, LumenInputProps>(
               "transition-all duration-300",
               // Hover
               "hover:border-sky-300/50",
-              "hover:bg-white/75 dark:hover:bg-slate-900/50",
+              "hover:bg-white/75 dark:hover:bg-white/10",
               // Focus - dawn glow
               "focus:outline-none",
               "focus:border-dawn-300/60",
-              "focus:bg-white/85 dark:focus:bg-slate-900/60",
+              "focus:bg-white/85 dark:focus:bg-white/10",
               "focus:shadow-[0_0_20px_rgba(245,169,98,0.15)]",
               // Error state
               hasError && [

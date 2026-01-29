@@ -23,7 +23,7 @@ import { FloatingActionBar, FloatingActionBarContent } from "@/components/shell"
 import { BUTTON_COPY, FEEDBACK_MESSAGES } from "@/lib/microcopy"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { TiltCard } from "@/components/shared/tilt-card"
+import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 
 type RequestStatus = "submitted" | "in_review" | "approved" | "rejected" | "requires_info"
 type RequestType = "medical_certificate" | "prescription" | "consult"
@@ -217,21 +217,30 @@ export function PanelDoctorDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Stats - Enhanced with TiltCard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TiltCard tiltAmount={5}>
-          <StatCard label="Total Requests" value={stats.total} icon={FileText} color="blue" />
-        </TiltCard>
-        <TiltCard tiltAmount={5}>
-          <StatCard label="Pending Review" value={stats.pending} icon={Clock} color="yellow" />
-        </TiltCard>
-        <TiltCard tiltAmount={5}>
-          <StatCard label="Approved Today" value={stats.approvedToday} icon={TrendingUp} color="green" />
-        </TiltCard>
-      </div>
+      {/* Stats - Glass cards with glow effects */}
+      <DashboardGrid columns={3} gap="md">
+        <GlassStatCard
+          label="Total Requests"
+          value={stats.total}
+          icon={<FileText className="h-5 w-5" />}
+          status="info"
+        />
+        <GlassStatCard
+          label="Pending Review"
+          value={stats.pending}
+          icon={<Clock className="h-5 w-5" />}
+          status={stats.pending > 0 ? "warning" : "neutral"}
+        />
+        <GlassStatCard
+          label="Approved Today"
+          value={stats.approvedToday}
+          icon={<TrendingUp className="h-5 w-5" />}
+          status="success"
+        />
+      </DashboardGrid>
 
       {/* Filters */}
-      <div className="card-premium-bg rounded-xl border border-border p-4 shadow-premium">
+      <div className="dashboard-card rounded-xl p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -269,7 +278,7 @@ export function PanelDoctorDashboard({
 
       {/* Request Cards */}
       {filteredRequests.length === 0 ? (
-        <div className="bg-card rounded-xl border border-border p-12 text-center">
+        <div className="dashboard-empty">
           <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
           <p className="text-foreground font-medium">{FEEDBACK_MESSAGES.noRequests}</p>
         </div>
@@ -311,38 +320,6 @@ export function PanelDoctorDashboard({
           onCancel={() => setSelectedRequests(new Set())}
         />
       </FloatingActionBar>
-    </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string
-  value: number
-  icon: React.ElementType
-  color: "blue" | "yellow" | "green"
-}) {
-  const colors = {
-    blue: "bg-blue-50 text-primary",
-    yellow: "bg-yellow-50 text-yellow-600",
-    green: "bg-green-50 text-green-600",
-  }
-
-  return (
-    <div className="card-premium-bg rounded-xl border border-border p-6 hover-lift card-shine shadow-premium">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">{label}</p>
-          <p className="text-3xl font-semibold text-foreground">{value}</p>
-        </div>
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center icon-spin-hover", colors[color])}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
     </div>
   )
 }

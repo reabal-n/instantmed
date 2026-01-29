@@ -149,7 +149,7 @@ export function QueueStatus({
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3">
         {/* Position */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -168,7 +168,7 @@ export function QueueStatus({
         </div>
 
         {/* ETA */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -177,7 +177,7 @@ export function QueueStatus({
         </div>
 
         {/* Total in queue */}
-        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-slate-900/40">
+        <div className="text-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Users className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
@@ -193,7 +193,7 @@ export function QueueStatus({
           <span>Review</span>
           <span>Complete</span>
         </div>
-        <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full bg-linear-to-r from-blue-500 to-cyan-500"
             initial={{ width: "10%" }}

@@ -92,7 +92,7 @@ export class FlowErrorBoundary extends Component<FlowErrorBoundaryProps, FlowErr
             </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="text-left mt-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <details className="text-left mt-6 p-4 bg-white/60 dark:bg-white/10 rounded-lg">
                 <summary className="text-xs font-medium text-slate-500 cursor-pointer">
                   Error details (dev only)
                 </summary>

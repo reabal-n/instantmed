@@ -339,7 +339,7 @@ export default async function GuidePage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
@@ -408,7 +408,7 @@ export default async function GuidePage({ params }: PageProps) {
                           {step.content}
                         </p>
                         {step.tips && (
-                          <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                          <div className="bg-white/60 dark:bg-white/5 rounded-xl p-4 border border-white/40 dark:border-white/10">
                             <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                               <Info className="w-4 h-4 text-primary" />
                               Tips
@@ -452,14 +452,14 @@ export default async function GuidePage({ params }: PageProps) {
           </section>
 
           {/* FAQ */}
-          <section className="px-4 py-12 bg-slate-50 dark:bg-slate-900">
+          <section className="px-4 py-12 bg-white/60 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
                 {guide.faqs.map((faq, i) => (
-                  <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+                  <div key={i} className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/50 dark:border-white/10">
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>

@@ -279,7 +279,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     state === s
                       ? "bg-primary text-primary-foreground shadow-[0_8px_30px_rgb(59,130,246,0.3)]"
-                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
+                      : "bg-white/70 dark:bg-white/5 backdrop-blur-xl text-foreground hover:bg-white/85 dark:hover:bg-white/10 border border-white/40 dark:border-white/10 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)] hover:-translate-y-0.5"
                   }`}
                 >
                   {s}
@@ -396,7 +396,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`py-1.5 rounded-lg text-xs font-medium transition-all duration-300 ${
                     expiryMonth === m.value
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
+                      : "bg-white/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-white/10 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {m.label}
@@ -412,7 +412,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 whitespace-nowrap ${
                     expiryYear === y
                       ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.25)]"
-                      : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-slate-900/80 border border-white/40 dark:border-white/10"
+                      : "bg-white/70 dark:bg-white/5 backdrop-blur-lg text-foreground hover:bg-white/85 dark:hover:bg-white/10 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {y}

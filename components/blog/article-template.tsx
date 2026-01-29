@@ -198,7 +198,7 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
               itemProp="mainEntity"
               itemType="https://schema.org/Question"
             >
-              <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-slate-50 dark:hover:bg-slate-900/50 list-none">
+              <summary className="flex items-center justify-between cursor-pointer px-4 py-4 font-medium text-foreground hover:bg-slate-50 dark:hover:bg-white/10 list-none">
                 <span itemProp="name">{faq.question}</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
@@ -313,7 +313,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       </div>
 
       {/* Hero image */}
-      <div className="relative aspect-video rounded-2xl overflow-hidden mb-10 bg-slate-100 dark:bg-slate-800">
+      <div className="relative aspect-video rounded-2xl overflow-hidden mb-10 bg-white/40 dark:bg-white/10">
         <Image
           src={article.heroImage}
           alt={article.heroImageAlt}
@@ -365,7 +365,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <Link 
               key={i}
               href={service.href}
-              className="group flex items-start gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all"
+              className="group flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
             >
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <ServiceIcon icon={service.icon} />
@@ -412,7 +412,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Author card - at end of article */}
       <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/50 dark:border-white/10">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-foreground">{article.author.name}</p>
             <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
@@ -471,7 +471,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             
             {/* Popular Articles */}
             {allArticles.length > 0 && (
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5">
+              <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/50 dark:border-white/10">
                 <PopularArticlesCompact articles={allArticles} limit={3} />
               </div>
             )}

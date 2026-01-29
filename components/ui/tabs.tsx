@@ -25,7 +25,7 @@ const TabsList = React.forwardRef<
     className={cn(
       // Soft Pop Glass tab list
       "inline-flex items-center justify-center gap-1 p-1",
-      "bg-white/60 dark:bg-slate-900/40",
+      "bg-white/60 dark:bg-white/5",
       "backdrop-blur-xl",
       "border border-white/40 dark:border-white/10",
       "rounded-full",

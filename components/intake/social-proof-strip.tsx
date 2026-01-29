@@ -78,7 +78,7 @@ export function SocialProofStrip({
   if (variant === 'detailed') {
     return (
       <div className={cn(
-        "bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4",
+        "bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 p-4",
         className
       )}>
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -192,7 +192,7 @@ export function SocialProofToast({ className }: { className?: string }) {
       "fixed bottom-4 left-4 z-50 animate-in slide-in-from-left-full duration-300",
       className
     )}>
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4 max-w-xs">
+      <div className="bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 dark:border-white/10 p-4 max-w-xs">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -227,7 +227,7 @@ export function UrgencyIndicator({
 }) {
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg",
+      "flex items-center gap-3 p-3 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-lg",
       className
     )}>
       <Clock className="w-5 h-5 text-primary shrink-0" />

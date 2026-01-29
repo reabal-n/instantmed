@@ -61,7 +61,7 @@ export function Hero() {
               
               {/* Floating badge */}
               <motion.div
-                className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                className="absolute -bottom-4 -left-6 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.9 }}
@@ -227,7 +227,7 @@ export function Hero() {
             <motion.div
               key={stat.label}
               whileHover={{ y: -2 }}
-              className="text-center p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm"
+              className="text-center p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-sm dark:shadow-none"
             >
               <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
               {stat.showStars && (

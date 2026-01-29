@@ -49,7 +49,7 @@ export default function GuidesIndexPage() {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-white dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
@@ -78,7 +78,7 @@ export default function GuidesIndexPage() {
                   <Link
                     key={guide.slug}
                     href={`/guides/${guide.slug}`}
-                    className="group block bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
+                    className="group block bg-white/60 dark:bg-white/5 rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/50 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">

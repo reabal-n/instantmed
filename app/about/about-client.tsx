@@ -187,7 +187,7 @@ export function AboutClient() {
 
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {/* Doctor credentials */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
+              <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
                   <GraduationCap className="w-7 h-7 text-emerald-600" />
                 </div>
@@ -197,7 +197,7 @@ export function AboutClient() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
+              <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-7 h-7 text-primary" />
                 </div>
@@ -207,7 +207,7 @@ export function AboutClient() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center hover-lift">
+              <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 text-center hover-lift">
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-7 h-7 text-primary" />
                 </div>
@@ -220,7 +220,7 @@ export function AboutClient() {
 
             {/* Doctor quote */}
             <div className="mt-10 max-w-2xl mx-auto">
-              <blockquote className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover-lift">
+              <blockquote className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 hover-lift">
                 <p className="text-muted-foreground italic mb-4">
                   &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
                 </p>

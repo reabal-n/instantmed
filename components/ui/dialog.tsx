@@ -107,7 +107,7 @@ function DialogContent({
     <ModalContent
       className={cn(
         // Clean surface
-        "bg-white dark:bg-slate-900",
+        "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
         "border border-border",
         // Restrained radius
         "rounded-xl",

@@ -38,18 +38,18 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
       </div>
 
       {/* Skeleton order summary */}
-      <div className="bg-linear-to-br from-white to-slate-50/80 dark:from-slate-900 dark:to-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 overflow-hidden shadow-sm">
         <div className="p-5 space-y-4">
           {/* Skeleton lines */}
           <div className="flex items-center justify-between">
-            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-            <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-16 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
           </div>
-          <div className="h-3 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+          <div className="h-3 w-48 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
+          <div className="border-t border-white/40 dark:border-white/10 pt-4">
             <div className="flex items-center justify-between">
-              <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-              <div className="h-8 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+              <div className="h-5 w-12 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
+              <div className="h-8 w-20 bg-white/40 dark:bg-white/10 rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -57,7 +57,7 @@ export function PaymentSkeleton({ className }: PaymentSkeletonProps) {
 
       {/* Skeleton button */}
       <div className="space-y-3">
-        <div className="h-14 w-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 rounded-xl animate-pulse" />
+        <div className="h-14 w-full bg-linear-to-r from-white/40 via-white/60 to-white/40 dark:from-white/10 dark:via-white/15 dark:to-white/10 rounded-xl animate-pulse" />
         
         {/* Trust badges */}
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -99,7 +99,7 @@ export function PaymentRedirectOverlay() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/95 dark:bg-white/10 backdrop-blur-sm"
     >
       <div className="text-center px-4">
         <motion.div
@@ -123,7 +123,7 @@ export function PaymentRedirectOverlay() {
         </p>
         
         {/* Animated progress bar */}
-        <div className="w-64 h-1.5 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="w-64 h-1.5 mx-auto bg-white/40 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}

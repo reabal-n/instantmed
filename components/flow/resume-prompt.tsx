@@ -80,7 +80,7 @@ export function ResumePrompt({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className={cn(
-        'bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden',
+        'bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-none border border-white/50 dark:border-white/10 overflow-hidden',
         className
       )}
     >
@@ -121,7 +121,7 @@ export function ResumePrompt({
                 className={cn(
                   'w-full text-left rounded-xl border-2 p-4 transition-all duration-200',
                   'hover:shadow-md hover:border-emerald-300',
-                  'border-slate-200 bg-white dark:bg-slate-900',
+                  'border-white/50 dark:border-white/10 bg-white/80 dark:bg-white/5',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >

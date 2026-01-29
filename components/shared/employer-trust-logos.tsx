@@ -44,7 +44,7 @@ export function EmployerTrustLogos({
   if (variant === 'compact') {
     return (
       <div className={cn(
-        "flex items-center gap-4 py-4 px-6 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800",
+        "flex items-center gap-4 py-4 px-6 bg-white/50 dark:bg-white/5 rounded-xl border border-white/50 dark:border-white/10",
         className
       )}>
         <span className="text-sm text-muted-foreground shrink-0">Accepted by:</span>
@@ -79,7 +79,7 @@ export function EmployerTrustLogos({
             {trustedBy.filter(o => o.category === 'employer').map((org) => (
               <div 
                 key={org.name}
-                className="h-8 flex items-center px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg"
+                className="h-8 flex items-center px-4 py-2 bg-white/60 dark:bg-white/10 rounded-lg"
               >
                 <span className="text-sm font-medium text-foreground/70">{org.name}</span>
               </div>
@@ -96,7 +96,7 @@ export function EmployerTrustLogos({
             {trustedBy.filter(o => o.category === 'university').map((org) => (
               <div 
                 key={org.name}
-                className="h-8 flex items-center px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg"
+                className="h-8 flex items-center px-4 py-2 bg-white/60 dark:bg-white/10 rounded-lg"
               >
                 <span className="text-sm font-medium text-foreground/70">{org.name}</span>
               </div>

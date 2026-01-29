@@ -86,7 +86,7 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* What Makes It Valid */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">What makes a certificate legitimate</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -94,7 +94,7 @@ export default function EmployerAcceptancePage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <BadgeCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -106,7 +106,7 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <FileCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -118,7 +118,7 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Building2 className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -130,7 +130,7 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Shield className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -153,7 +153,7 @@ export default function EmployerAcceptancePage() {
                 Australian workplace law supports the use of medical certificates from registered practitioners.
               </p>
 
-              <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
                 <div className="flex items-start gap-4">
                   <Scale className="h-6 w-6 text-emerald-600 shrink-0 mt-1" />
                   <div className="space-y-4">
@@ -177,14 +177,14 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* Certificate Preview */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every certificate contains the information employers need.
               </p>
 
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+              <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <Check className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm">Patient&apos;s full name</span>
@@ -226,7 +226,7 @@ export default function EmployerAcceptancePage() {
               </p>
 
               <div className="space-y-4">
-                <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Point to the doctor&apos;s credentials</h3>
                   <p className="text-sm text-muted-foreground">
                     The certificate includes the doctor&apos;s AHPRA registration number. Anyone can verify this is a real, 
@@ -234,7 +234,7 @@ export default function EmployerAcceptancePage() {
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Telehealth is recognised healthcare</h3>
                   <p className="text-sm text-muted-foreground">
                     The Medical Board of Australia and Medicare both recognise telehealth consultations. 
@@ -242,7 +242,7 @@ export default function EmployerAcceptancePage() {
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
                   <h3 className="font-semibold mb-2">Check workplace policy timing</h3>
                   <p className="text-sm text-muted-foreground">
                     If an employer has specific requirements about medical certificates, they must communicate 
@@ -254,13 +254,13 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <div key={i} className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
                   </div>

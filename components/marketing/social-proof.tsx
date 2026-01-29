@@ -125,7 +125,7 @@ interface ReviewCardProps {
 export function ReviewCard({ review, variant = "default", className }: ReviewCardProps) {
   if (variant === "compact") {
     return (
-      <div className={cn("p-4 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-white/20 dark:border-white/5", className)}>
+      <div className={cn("p-4 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/40 dark:border-white/10", className)}>
         <div className="flex items-center gap-2 mb-2">
           <StarRating rating={review.rating} size="sm" />
           {review.verified && (
@@ -141,7 +141,7 @@ export function ReviewCard({ review, variant = "default", className }: ReviewCar
   if (variant === "featured") {
     return (
       <div className={cn(
-        "relative p-6 md:p-8 rounded-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm border border-white/30 dark:border-white/10 shadow-lg",
+        "relative p-6 md:p-8 rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg dark:shadow-none",
         className
       )}>
         <Quote className="absolute top-4 right-4 w-8 h-8 text-primary/20" />
@@ -176,7 +176,7 @@ export function ReviewCard({ review, variant = "default", className }: ReviewCar
   // Default variant
   return (
     <div className={cn(
-      "p-5 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/20 dark:border-white/5",
+      "p-5 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/40 dark:border-white/10",
       className
     )}>
       <div className="flex items-start justify-between mb-3">
@@ -287,7 +287,7 @@ export function ReviewsCarousel({
       <div className="flex items-center justify-center gap-4 mt-6">
         <button
           onClick={prev}
-          className="p-2 rounded-full bg-white/60 dark:bg-slate-900/40 border border-white/20 dark:border-white/5 hover:bg-white/80 dark:hover:bg-slate-900/60 transition-colors"
+          className="p-2 rounded-full bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors"
           aria-label="Previous review"
         >
           <ChevronLeft className="w-5 h-5 text-foreground" />
@@ -311,7 +311,7 @@ export function ReviewsCarousel({
 
         <button
           onClick={next}
-          className="p-2 rounded-full bg-white/60 dark:bg-slate-900/40 border border-white/20 dark:border-white/5 hover:bg-white/80 dark:hover:bg-slate-900/60 transition-colors"
+          className="p-2 rounded-full bg-white/60 dark:bg-white/5 border border-white/20 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors"
           aria-label="Next review"
         >
           <ChevronRight className="w-5 h-5 text-foreground" />

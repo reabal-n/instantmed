@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { UserCard, Chip } from "@/components/uix"
+import { GlassStatCard, GlowBadge, DashboardGrid } from "@/components/dashboard"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -123,30 +124,30 @@ export function AdminClient({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">Pending</Badge>
+        return <GlowBadge status="info">Pending</GlowBadge>
       case "awaiting_prescribe":
-        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Awaiting eScript</Badge>
+        return <GlowBadge status="warning">Awaiting eScript</GlowBadge>
       case "approved":
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Approved</Badge>
+        return <GlowBadge status="success">Approved</GlowBadge>
       case "declined":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Declined</Badge>
+        return <GlowBadge status="error">Declined</GlowBadge>
       case "needs_follow_up":
-        return <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">Follow-up</Badge>
+        return <GlowBadge status="info">Follow-up</GlowBadge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <GlowBadge status="neutral">{status}</GlowBadge>
     }
   }
 
   const getPaymentBadge = (paymentStatus: string) => {
     switch (paymentStatus) {
       case "paid":
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] px-1.5">Paid</Badge>
+        return <GlowBadge status="success" size="sm">Paid</GlowBadge>
       case "pending_payment":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] px-1.5">Unpaid</Badge>
+        return <GlowBadge status="warning" size="sm">Unpaid</GlowBadge>
       case "failed":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[10px] px-1.5">Failed</Badge>
+        return <GlowBadge status="error" size="sm">Failed</GlowBadge>
       case "refunded":
-        return <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-[10px] px-1.5">Refunded</Badge>
+        return <GlowBadge status="neutral" size="sm">Refunded</GlowBadge>
       default:
         return null
     }
@@ -303,9 +304,9 @@ export function AdminClient({
   )
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)]">
+    <div className="flex min-h-[calc(100vh-6rem)] dashboard-bg">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-border/40 bg-background/50 backdrop-blur-sm">
+      <aside className="w-64 shrink-0 dashboard-sidebar">
         <div className="p-4 border-b border-border/40">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
@@ -508,39 +509,35 @@ export function AdminClient({
             </div>
 
             {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="glass-card rounded-2xl p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Total</span>
-                  <FileText className="h-4 w-4 text-muted-foreground/60" />
-                </div>
-                <div className="mt-2 text-3xl font-semibold text-foreground">{stats.total}</div>
-              </div>
-              <div className="glass-card rounded-2xl p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Pending</span>
-                  <Clock className="h-4 w-4 text-violet-500" />
-                </div>
-                <div className="mt-2 text-3xl font-semibold text-foreground">{stats.pending}</div>
-              </div>
-              <div className="glass-card rounded-2xl p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Scripts to Send</span>
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                </div>
-                <div className="mt-2 text-3xl font-semibold text-orange-600">{pendingScripts}</div>
-              </div>
-              <div className="glass-card rounded-2xl p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Completed</span>
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                </div>
-                <div className="mt-2 text-3xl font-semibold text-foreground">{stats.approved}</div>
-              </div>
-            </div>
+            <DashboardGrid columns={4} gap="md">
+              <GlassStatCard
+                label="Total Requests"
+                value={stats.total}
+                icon={<FileText className="h-5 w-5" />}
+                status="neutral"
+              />
+              <GlassStatCard
+                label="Pending Review"
+                value={stats.pending}
+                icon={<Clock className="h-5 w-5" />}
+                status="info"
+              />
+              <GlassStatCard
+                label="Scripts to Send"
+                value={pendingScripts}
+                icon={<AlertTriangle className="h-5 w-5" />}
+                status={pendingScripts > 0 ? "warning" : "neutral"}
+              />
+              <GlassStatCard
+                label="Completed"
+                value={stats.approved}
+                icon={<CheckCircle className="h-5 w-5" />}
+                status="success"
+              />
+            </DashboardGrid>
 
             {/* Filters */}
-            <div className="glass-card rounded-2xl p-6">
+            <div className="dashboard-card rounded-2xl p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex-1 max-w-md">
                   <Input
@@ -576,7 +573,7 @@ export function AdminClient({
             </div>
 
             {/* Table */}
-            <div className="glass-card rounded-2xl overflow-hidden">
+            <div className="dashboard-card rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -720,7 +717,7 @@ export function AdminClient({
               <p className="text-sm text-muted-foreground mt-1">View and manage patient profiles</p>
             </div>
 
-            <div className="glass-card rounded-2xl p-6">
+            <div className="dashboard-card rounded-2xl p-6">
               <div className="max-w-md">
                 <Input
                   placeholder="Search patients..."
@@ -731,7 +728,7 @@ export function AdminClient({
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {uniquePatients.slice(0, 12).map((patient) => (
-                <div key={patient.id} className="glass-card rounded-2xl p-4 hover:shadow-lg transition-shadow">
+                <div key={patient.id} className="dashboard-card rounded-2xl p-4 hover:shadow-lg transition-shadow">
                   <UserCard
                     name={patient.full_name}
                     description={`${patient.date_of_birth ? `${calculateAge(patient.date_of_birth)}y` : "Age unknown"} • ${patient.suburb || "Location unknown"}`}
@@ -798,7 +795,7 @@ export function AdminClient({
               <p className="text-sm text-muted-foreground mt-1">Configure platform settings</p>
             </div>
 
-            <div className="glass-card rounded-2xl p-6">
+            <div className="dashboard-card rounded-2xl p-6">
               <h3 className="font-medium text-foreground mb-4">Developer Tools</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-xl bg-card/50">
@@ -828,7 +825,7 @@ export function AdminClient({
               </div>
             </div>
 
-            <div className="glass-card rounded-2xl p-6">
+            <div className="dashboard-card rounded-2xl p-6">
               <h3 className="font-medium text-foreground mb-4">Platform Stats</h3>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="p-4 rounded-xl bg-card/50">

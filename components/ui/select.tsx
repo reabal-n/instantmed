@@ -63,7 +63,7 @@ const SelectTrigger = React.forwardRef<
       "rounded-md px-3 py-2",
       "text-sm",
       // Clean surface
-      "bg-white dark:bg-slate-900",
+      "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
       "border border-border",
       "ring-offset-background",
       "transition-all duration-200",
@@ -133,7 +133,7 @@ const SelectContent = React.forwardRef<
       className={cn(
         "relative z-50 max-h-96 min-w-[8rem] overflow-hidden",
         // Clean surface
-        "bg-white dark:bg-slate-900",
+        "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
         "border border-border",
         "rounded-md",
         "shadow-lg",

@@ -35,7 +35,7 @@ export function PopularArticles({
 
   return (
     <aside className={className}>
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm">{title}</h3>
@@ -46,10 +46,10 @@ export function PopularArticles({
             <Link
               key={article.slug}
               href={`/blog/${article.slug}`}
-              className="flex gap-3 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+              className="flex gap-3 p-4 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors group"
             >
               {/* Rank number */}
-              <div className="shrink-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+              <div className="shrink-0 w-6 h-6 rounded-full bg-white/60 dark:bg-white/5 flex items-center justify-center">
                 <span className="text-xs font-bold text-muted-foreground">
                   {index + 1}
                 </span>

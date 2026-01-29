@@ -104,7 +104,7 @@ export function QueuePositionIndicator({
 
   return (
     <div className={cn(
-      "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6",
+      "bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6",
       className
     )}>
       <h3 className="font-semibold text-foreground mb-4">Your Request Status</h3>
@@ -160,7 +160,7 @@ export function QueuePositionIndicator({
 
       {/* Estimated wait time */}
       {queueStatus.status === 'queued' && (
-        <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+        <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-white/5 rounded-xl">
           <Clock className="w-5 h-5 text-primary" />
           <div>
             <p className="font-medium text-foreground">
@@ -192,7 +192,7 @@ export function QueuePositionIndicator({
                   "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors",
                   isActive 
                     ? "bg-primary text-white" 
-                    : "bg-slate-200 dark:bg-slate-700 text-muted-foreground",
+                    : "bg-white/40 dark:bg-white/10 text-muted-foreground",
                   isCurrent && "ring-4 ring-primary/20"
                 )}>
                   {i + 1}
@@ -208,7 +208,7 @@ export function QueuePositionIndicator({
           })}
         </div>
         {/* Progress line */}
-        <div className="relative mt-[-52px] mx-4 h-0.5 bg-slate-200 dark:bg-slate-700 -z-10">
+        <div className="relative mt-[-52px] mx-4 h-0.5 bg-white/40 dark:bg-white/10 -z-10">
           <div 
             className="absolute h-full bg-primary transition-all duration-500"
             style={{ 

@@ -210,7 +210,7 @@ export function UnifiedBackground({
   if (!mounted) {
     return (
       <div className={cn("fixed inset-0 -z-20", className)} aria-hidden="true">
-        <div className="absolute inset-0 bg-white dark:bg-slate-950" />
+        <div className="absolute inset-0 bg-white dark:bg-black" />
       </div>
     )
   }

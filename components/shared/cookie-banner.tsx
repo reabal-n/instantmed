@@ -112,7 +112,7 @@ function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checke
         relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full 
         transition-colors duration-200 ease-in-out
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2
-        ${checked ? 'bg-sky-500' : 'bg-slate-200 dark:bg-slate-700'}
+        ${checked ? 'bg-sky-500' : 'bg-white/60 dark:bg-white/10'}
       `}
     >
       <span
@@ -218,7 +218,7 @@ export function CookieBanner() {
       role="dialog"
       aria-label="Cookie consent"
     >
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 dark:border-white/10 overflow-hidden">
         {!showDetails ? (
           // Simple view - compact floating card
           <div className="p-4">
@@ -249,7 +249,7 @@ export function CookieBanner() {
                 variant="ghost"
                 size="sm" 
                 onClick={handleRejectNonEssential}
-                className="text-xs h-8 px-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="text-xs h-8 px-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
               >
                 Essential only
               </Button>
@@ -283,7 +283,7 @@ export function CookieBanner() {
 
             <div className="space-y-2">
               {/* Essential - always on */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
                 <div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Essential</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -294,7 +294,7 @@ export function CookieBanner() {
               </div>
 
               {/* Analytics */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
                 <label htmlFor="analytics-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Analytics</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -309,7 +309,7 @@ export function CookieBanner() {
               </div>
 
               {/* Marketing */}
-              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/60 dark:bg-white/5 backdrop-blur-sm">
                 <label htmlFor="marketing-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Marketing</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">

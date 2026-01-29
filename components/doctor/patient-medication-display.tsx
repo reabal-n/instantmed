@@ -44,12 +44,12 @@ export function PatientMedicationDisplay({
   return (
     <div
       className={cn(
-        "rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4",
+        "rounded-lg border border-white/50 dark:border-white/10 bg-white/60 dark:bg-white/5 p-4",
         className
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-white/60 dark:bg-white/10 flex items-center justify-center shrink-0">
           <Pill className="w-4 h-4 text-slate-500" />
         </div>
 

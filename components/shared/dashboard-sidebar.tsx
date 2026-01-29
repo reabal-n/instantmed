@@ -94,7 +94,7 @@ export function DashboardSidebar({
     <aside className="hidden lg:flex w-64 shrink-0 flex-col">
       <div className="sticky top-24 space-y-4">
         {/* Logo/Brand Header */}
-        <div className="glass-card rounded-2xl p-4 border border-white/20">
+        <div className="dashboard-card rounded-2xl p-4 border border-white/20">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
               <Zap className="h-5 w-5 text-white" />
@@ -109,7 +109,7 @@ export function DashboardSidebar({
         </div>
 
         {/* Main Navigation */}
-        <nav className="glass-card rounded-2xl p-3 space-y-1 border border-white/20">
+        <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-white/20">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
             const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
@@ -152,7 +152,7 @@ export function DashboardSidebar({
 
         {/* Admin Navigation - Admin only */}
         {variant === "doctor" && isAdmin && (
-          <nav className="glass-card rounded-2xl p-3 space-y-1 border border-amber-200/50 bg-amber-50/30 dark:bg-amber-500/5 dark:border-amber-500/20">
+          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-amber-200/50 bg-amber-50/30 dark:bg-amber-500/5 dark:border-amber-500/20">
             <h4 className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider px-4 py-1">Admin Tools</h4>
             {adminNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
@@ -180,7 +180,7 @@ export function DashboardSidebar({
 
         {/* Ops Navigation - Doctor/Admin only */}
         {variant === "doctor" && (
-          <nav className="glass-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-slate-500/5 dark:border-slate-500/20" data-testid="ops-nav-section">
+          <nav className="dashboard-card rounded-2xl p-3 space-y-1 border border-slate-200/50 bg-slate-50/30 dark:bg-white/5 dark:border-slate-500/20" data-testid="ops-nav-section">
             <h4 className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider px-4 py-1">Ops</h4>
             {/* Base ops items - visible to all doctors */}
             {opsNavItemsBase.map((item) => {
@@ -194,7 +194,7 @@ export function DashboardSidebar({
                     "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
                     isActive
                       ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-500/10 hover:-translate-y-0.5 hover:shadow-sm",
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-sm",
                   )}
                 >
                   <item.icon className={cn(
@@ -217,7 +217,7 @@ export function DashboardSidebar({
                     "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300",
                     isActive
                       ? "bg-linear-to-r from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-500/25"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-500/10 hover:-translate-y-0.5 hover:shadow-sm",
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-sm",
                   )}
                 >
                   <item.icon className={cn(
@@ -233,7 +233,7 @@ export function DashboardSidebar({
 
         {/* Stats Card - Doctor only */}
         {variant === "doctor" && (
-          <div className="glass-card rounded-2xl p-4 space-y-3 border border-white/20">
+          <div className="dashboard-card rounded-2xl p-4 space-y-3 border border-white/20">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Stats</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20">
@@ -250,7 +250,7 @@ export function DashboardSidebar({
 
         {/* Patient Quick Actions */}
         {variant === "patient" && (
-          <div className="glass-card rounded-2xl p-4 space-y-3 border border-white/20">
+          <div className="dashboard-card rounded-2xl p-4 space-y-3 border border-white/20">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</h4>
             <Button 
               asChild 
@@ -265,7 +265,7 @@ export function DashboardSidebar({
 
         {/* Export & Shortcuts - Doctor only */}
         {variant === "doctor" && (
-          <div className="glass-card rounded-2xl p-4 border border-white/20 space-y-3">
+          <div className="dashboard-card rounded-2xl p-4 border border-white/20 space-y-3">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tools</h4>
             <KeyboardShortcutsModal 
               trigger={
@@ -295,7 +295,7 @@ export function DashboardSidebar({
         )}
 
         {/* User Profile Card */}
-        <div className="glass-card rounded-2xl p-4 border border-white/20">
+        <div className="dashboard-card rounded-2xl p-4 border border-white/20">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white font-semibold">
               {userName.charAt(0).toUpperCase()}

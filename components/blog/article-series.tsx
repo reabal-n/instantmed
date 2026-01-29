@@ -54,8 +54,8 @@ export function ArticleSeriesNav({
               className={cn(
                 "flex items-center gap-3 p-2.5 rounded-lg transition-colors",
                 isCurrent 
-                  ? "bg-white dark:bg-slate-800 shadow-sm" 
-                  : "hover:bg-white/50 dark:hover:bg-slate-800/50"
+                  ? "bg-white/80 dark:bg-white/10 shadow-sm" 
+                  : "hover:bg-white/60 dark:hover:bg-white/5"
               )}
             >
               <div className={cn(
@@ -64,7 +64,7 @@ export function ArticleSeriesNav({
                   ? "bg-primary text-primary-foreground" 
                   : isCompleted
                     ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400"
-                    : "bg-slate-200 dark:bg-slate-700 text-muted-foreground"
+                    : "bg-white/60 dark:bg-white/10 text-muted-foreground"
               )}>
                 {isCompleted ? <Check className="w-3.5 h-3.5" /> : index + 1}
               </div>

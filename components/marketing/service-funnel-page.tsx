@@ -386,7 +386,7 @@ function HeroSection({ config, colors }: { config: ServiceFunnelConfig; colors: 
                 
                 {/* Floating trust badge */}
                 <motion.div
-                  className="absolute -bottom-4 -left-6 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-xl border border-border/50"
+                  className="absolute -bottom-4 -left-6 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-xl border border-border/50"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.9 }}
@@ -524,7 +524,7 @@ function HowItWorksSection({ config, colors }: { config: ServiceFunnelConfig; co
                   <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-border" />
                 )}
                 
-                <div className="relative bg-card rounded-2xl p-6 border border-border hover:shadow-lg transition-all text-center">
+                <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/50 dark:border-white/10 hover:shadow-lg dark:hover:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-all text-center">
                   {/* Step number */}
                   <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold', colors.button)}>
                     {step.number}
@@ -599,7 +599,7 @@ function AfterSubmitSection({ config, colors }: { config: ServiceFunnelConfig; c
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="flex gap-4 p-5 bg-card rounded-xl border border-border"
+                className="flex gap-4 p-5 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10"
               >
                 <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', colors.light)}>
                   <Icon className={cn('w-5 h-5', colors.text)} />
@@ -719,7 +719,7 @@ function TrustSection({ config, colors }: { config: ServiceFunnelConfig; colors:
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="text-center p-6 bg-card rounded-xl border border-border"
+                className="text-center p-6 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10"
               >
                 <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
                   <Icon className={cn('w-6 h-6', colors.text)} />
@@ -761,7 +761,7 @@ function TestimonialsSection({ config, colors: _colors }: { config: ServiceFunne
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="bg-card rounded-2xl p-6 border border-border"
+              className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/50 dark:border-white/10"
             >
               {/* Stars */}
               <div className="flex gap-1 mb-4">

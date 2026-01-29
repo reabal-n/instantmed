@@ -56,15 +56,15 @@ export function HeroValueProp({ className }: { className?: string }) {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-8 flex flex-wrap justify-center gap-3"
       >
-        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border">
+        <div className="flex items-center gap-2 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 shadow-sm border">
           <PhoneOff className="h-4 w-4 text-green-600" />
           <span className="text-sm font-medium">No phone calls</span>
         </div>
-        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border">
+        <div className="flex items-center gap-2 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 shadow-sm border">
           <Clock className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">15 mins or less</span>
         </div>
-        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border">
+        <div className="flex items-center gap-2 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-full px-4 py-2 shadow-sm border">
           <Shield className="h-4 w-4 text-purple-600" />
           <span className="text-sm font-medium">AHPRA verified doctors</span>
         </div>

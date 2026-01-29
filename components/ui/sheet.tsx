@@ -136,7 +136,7 @@ function SheetContent({
       className={cn(
         "flex flex-col gap-4",
         // Clean surface
-        "bg-white dark:bg-slate-900",
+        "bg-white/95 dark:bg-white/10 backdrop-blur-xl",
         // Border based on side
         side === "right" && "inset-y-0 right-0 h-full w-3/4 border-l border-border sm:max-w-sm rounded-l-xl",
         side === "left" && "inset-y-0 left-0 h-full w-3/4 border-r border-border sm:max-w-sm rounded-r-xl",

@@ -136,7 +136,7 @@ export function LumenModal({
               "relative w-full",
               sizeStyles[size],
               // Lumen Glass elevated surface
-              "bg-white/90 dark:bg-slate-900/85",
+              "bg-white/90 dark:bg-white/10",
               "backdrop-blur-2xl",
               "border border-sky-300/45 dark:border-white/15",
               "rounded-3xl",

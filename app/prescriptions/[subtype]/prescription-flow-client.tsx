@@ -144,7 +144,7 @@ const PillButton = ({
     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
         ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-        : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+        : "bg-white/90 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
     }`}
   >
     {children}
@@ -167,7 +167,7 @@ const MultiPillButton = ({
     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
       selected
         ? "bg-sky-50 dark:bg-sky-900/30 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
-        : "bg-white/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
+        : "bg-white/90 dark:bg-white/5 text-slate-700 dark:text-slate-300 border-2 border-slate-200/60 dark:border-slate-700/40 hover:border-slate-300 hover:bg-white"
     }`}
   >
     {children}

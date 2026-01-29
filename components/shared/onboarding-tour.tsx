@@ -154,7 +154,7 @@ export function OnboardingTour({ steps, tourId, onComplete, onSkip }: Onboarding
       
       {/* Tooltip */}
       <div
-        className="fixed z-[102] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-5 animate-fade-in-up"
+        className="fixed z-[102] bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-5 animate-fade-in-up"
         style={tooltipStyle}
       >
         {/* Header */}

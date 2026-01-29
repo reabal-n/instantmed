@@ -193,7 +193,7 @@ function OptionCard({
       className={cn(
         // Glass surface
         "w-full min-h-[56px] p-4 rounded-2xl border-2",
-        "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
+        "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
         "border-white/40 dark:border-white/10",
         "flex items-center gap-4 text-left",
         "transition-all duration-300 ease-out",
@@ -213,7 +213,7 @@ function OptionCard({
             "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
             selected 
               ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgb(59,130,246,0.3)]" 
-              : "bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg text-muted-foreground"
+              : "bg-white/60 dark:bg-white/10 backdrop-blur-lg text-muted-foreground"
           )}
         >
           <Icon className="w-5 h-5" />
@@ -254,7 +254,7 @@ function DurationChip({
       className={cn(
         // Glass surface
         "flex-1 min-h-[52px] px-4 py-3 rounded-xl border-2 font-medium text-sm",
-        "bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl",
+        "bg-white/70 dark:bg-white/5 backdrop-blur-xl",
         "border-white/40 dark:border-white/10",
         "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
@@ -287,7 +287,7 @@ function SymptomChip({
       className={cn(
         // Calm glass surface per brand guidelines
         "min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium",
-        "bg-white/90 dark:bg-slate-900/60",
+        "bg-white/90 dark:bg-white/5",
         "border-2 border-slate-200/60 dark:border-slate-700/40",
         "transition-all duration-300 ease-out",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2",
@@ -354,7 +354,7 @@ function SafetyQuestion({
   onChange: (val: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:bg-white/85 dark:hover:bg-slate-900/80 transition-all duration-300">
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)] hover:bg-white/85 dark:hover:bg-slate-900/80 transition-all duration-300">
       <span className="text-sm font-medium pr-4 flex-1">{question}</span>
       <CinematicSwitch
         value={value}
@@ -1081,7 +1081,7 @@ export function MedCertForm({
             />
 
             {isCarer && (
-              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
+              <div className="space-y-4 p-4 rounded-2xl bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_16px_rgb(0,0,0,0.04)]">
                 <div className="space-y-2">
                   <Label htmlFor="carer-name" className="text-sm font-medium">Person you&apos;re caring for</Label>
                   <Input
@@ -1089,7 +1089,7 @@ export function MedCertForm({
                     placeholder="Their full name"
                     value={formData.carerPatientName}
                     onChange={(e) => setFormData((prev) => ({ ...prev, carerPatientName: e.target.value }))}
-                    className="h-11 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-11 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1103,7 +1103,7 @@ export function MedCertForm({
                         aria-pressed={formData.carerRelationship === rel}
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-300",
-                          "bg-white/90 dark:bg-slate-900/60",
+                          "bg-white/90 dark:bg-white/5",
                           "border-2 border-slate-200/60 dark:border-slate-700/40",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2",
                           formData.carerRelationship === rel
@@ -1143,7 +1143,7 @@ export function MedCertForm({
                   placeholder="Brief description"
                   value={formData.otherSymptom}
                   onChange={(e) => setFormData((prev) => ({ ...prev, otherSymptom: e.target.value }))}
-                  className="h-11 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                  className="h-11 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
               </motion.div>
             )}
@@ -1164,7 +1164,7 @@ export function MedCertForm({
                 value={formData.additionalNotes}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, additionalNotes: e.target.value.slice(0, 500) }))}
                 placeholder="e.g. symptoms started yesterday evening..."
-                className="min-h-[120px] resize-none rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                className="min-h-[120px] resize-none rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 maxLength={500}
               />
                 <p className="text-xs text-right text-muted-foreground">{formData.additionalNotes.length}/500</p>
@@ -1245,7 +1245,7 @@ export function MedCertForm({
 
             {/* Sign-in panel for guests */}
             {!isAuthenticated && (
-              <Card className="border-primary/30 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(59,130,246,0.15)]">
+              <Card className="border-primary/30 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgb(59,130,246,0.15)]">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1360,7 +1360,7 @@ export function MedCertForm({
                   value={formData.addressLine1}
                   onChange={(e) => setFormData((prev) => ({ ...prev, addressLine1: e.target.value }))}
                   placeholder="123 Main St"
-                  className="h-11 rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                  className="h-11 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border-white/30 dark:border-white/10 focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                 />
               </div>
 
@@ -1382,7 +1382,7 @@ export function MedCertForm({
                     id="state"
                     value={formData.state}
                     onChange={(e) => setFormData((prev) => ({ ...prev, state: e.target.value }))}
-                    className="h-11 w-full rounded-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg border border-white/30 dark:border-white/10 px-3 text-sm focus:outline-none focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
+                    className="h-11 w-full rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-lg border border-white/30 dark:border-white/10 px-3 text-sm focus:outline-none focus:border-primary/50 focus:shadow-[0_0_20px_rgb(59,130,246,0.15)] transition-all duration-200"
                   >
                     <option value="">Select</option>
                     <option value="NSW">NSW</option>
@@ -1446,7 +1446,7 @@ export function MedCertForm({
           <div className="space-y-4">
             <StepHeader title="Review your request" subtitle="Please confirm these details are correct" />
 
-            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] divide-y divide-white/20 dark:divide-white/5">
+            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] divide-y divide-white/20 dark:divide-white/5">
               {/* Certificate type */}
               <div className="flex items-center justify-between p-4">
                 <div className="space-y-0.5">
@@ -1579,7 +1579,7 @@ export function MedCertForm({
             )}
 
             {/* Pricing card */}
-            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-4 space-y-4">
+            <div className="rounded-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -1645,7 +1645,7 @@ export function MedCertForm({
       aria-label="Medical certificate request"
     >
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10 px-4 py-3">
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-white/10 backdrop-blur-xl border-b border-white/40 dark:border-white/10 px-4 py-3">
         <div className="max-w-md mx-auto space-y-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-sm font-semibold text-primary">
@@ -1704,7 +1704,7 @@ export function MedCertForm({
       </div>
 
       {/* Footer - fixed at bottom of flex container */}
-      <footer className="shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3">
+      <footer className="shrink-0 bg-white/80 dark:bg-white/10 backdrop-blur-xl border-t border-white/40 dark:border-white/10 px-4 py-3">
         <div className="max-w-md mx-auto flex gap-3">
           {step !== "type" && (
             <Button

@@ -42,7 +42,7 @@ export function SocialProofCheckout({
       <div
         className={cn(
           "flex items-start gap-3 p-3 rounded-xl",
-          "bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/30",
+          "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
           className
         )}
       >
@@ -102,7 +102,7 @@ export function SocialProofCheckout({
     <div
       className={cn(
         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full",
-        "bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/30",
+        "bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10",
         "text-xs text-muted-foreground",
         className
       )}

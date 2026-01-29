@@ -226,7 +226,7 @@ export function SmartSymptomInput({
           placeholder={getContextPlaceholder()}
           className={cn(
             "min-h-[120px] resize-none transition-all duration-200",
-            "bg-white dark:bg-slate-900",
+            "bg-white/80 dark:bg-white/5 backdrop-blur-sm",
             "border border-input",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             !isValid && value.length > 0 && "border-amber-400",
@@ -243,7 +243,7 @@ export function SmartSymptomInput({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden"
+              className="absolute z-10 w-full mt-1 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 shadow-lg overflow-hidden"
             >
               <div className="p-2 text-xs text-muted-foreground border-b">
                 Quick suggestions
@@ -253,7 +253,7 @@ export function SmartSymptomInput({
                   key={i}
                   type="button"
                   onClick={() => handleSuggestionClick(s.text)}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-colors flex items-center justify-between"
                 >
                   <span>{s.text}</span>
                   <Badge variant="secondary" className="text-xs">

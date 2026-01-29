@@ -319,7 +319,7 @@ export function AnimatedMobileMenu({
         className={cn(
           "fixed top-0 right-0 bottom-0 z-40 w-[300px]",
           // Glass surface
-          "bg-white/85 dark:bg-slate-900/80",
+          "bg-white/85 dark:bg-white/10",
           "backdrop-blur-2xl",
           // Border
           "border-l border-white/50 dark:border-white/15",

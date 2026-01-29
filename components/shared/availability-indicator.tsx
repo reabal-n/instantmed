@@ -36,7 +36,7 @@ export function AvailabilityIndicator({
         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
         isActive 
           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+          : "bg-white/60 text-slate-600 dark:bg-white/5 dark:text-slate-400",
         className
       )}>
         {isActive && (
@@ -56,14 +56,14 @@ export function AvailabilityIndicator({
         "flex items-center gap-3 p-3 rounded-lg border",
         isActive 
           ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800"
-          : "bg-slate-50 border-slate-200 dark:bg-slate-900/50 dark:border-slate-700",
+          : "bg-white/60 border-white/50 dark:bg-white/5 dark:border-white/10",
         className
       )}>
         <div className={cn(
           "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
           isActive 
             ? "bg-emerald-100 dark:bg-emerald-900/50"
-            : "bg-slate-100 dark:bg-slate-800"
+            : "bg-white/60 dark:bg-white/10"
         )}>
           {isActive ? (
             <span className="relative flex h-3 w-3">

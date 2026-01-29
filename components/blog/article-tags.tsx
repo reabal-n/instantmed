@@ -29,8 +29,8 @@ export function ArticleTags({
   const tagClass = cn(
     "inline-flex items-center text-xs font-medium rounded-full transition-colors",
     variant === 'default' 
-      ? "px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary"
-      : "px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary"
+      ? "px-3 py-1 bg-white/60 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary"
+      : "px-2 py-0.5 bg-white/60 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary"
   )
 
   return (
@@ -78,7 +78,7 @@ export function AllTags({ tags, currentTag, className }: AllTagsProps) {
   const uniqueTags = Array.from(new Set(tags)).slice(0, 20)
 
   return (
-    <div className={cn("bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5", className)}>
+    <div className={cn("bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 p-5", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Tag className="w-4 h-4 text-primary" />
         <h3 className="font-semibold text-sm">Browse by Topic</h3>
@@ -93,7 +93,7 @@ export function AllTags({ tags, currentTag, className }: AllTagsProps) {
               "inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
               currentTag === tag
                 ? "bg-primary text-primary-foreground"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary"
+                : "bg-white/60 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary"
             )}
           >
             {formatTag(tag)}

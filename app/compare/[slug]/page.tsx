@@ -269,12 +269,12 @@ export default async function ComparisonPage({ params }: PageProps) {
         ]} 
       />
 
-      <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="flex min-h-screen flex-col bg-white/50 dark:bg-black">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
           {/* Breadcrumbs */}
-          <div className="px-4 pt-6 bg-white dark:bg-slate-900">
+          <div className="px-4 pt-6 bg-white/80 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <PageBreadcrumbs
                 links={[
@@ -287,7 +287,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           </div>
 
           {/* Hero */}
-          <section className="px-4 py-8 sm:py-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+          <section className="px-4 py-8 sm:py-12 bg-white/80 dark:bg-white/5 border-b border-slate-200 dark:border-slate-800">
             <div className="mx-auto max-w-4xl text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
                 {comparison.title}
@@ -305,9 +305,9 @@ export default async function ComparisonPage({ params }: PageProps) {
                 Head-to-Head Comparison
               </h2>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="bg-white/80 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 {/* Header */}
-                <div className="grid grid-cols-3 bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700">
+                <div className="grid grid-cols-3 bg-white/60 dark:bg-white/5 p-4 border-b border-slate-200 dark:border-slate-700">
                   <div className="font-medium text-muted-foreground">Feature</div>
                   <div className="font-semibold text-primary text-center">InstantMed</div>
                   <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
@@ -353,7 +353,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* When to Choose Each */}
-          <section className="px-4 py-12 bg-white dark:bg-slate-900">
+          <section className="px-4 py-12 bg-white/80 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Choose InstantMed */}
@@ -379,7 +379,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 </div>
 
                 {/* Choose Competitor */}
-                <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+                <div className="bg-white/60 dark:bg-white/10 border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-slate-600" />
                     Choose {comparison.competitor.name} When
@@ -412,14 +412,14 @@ export default async function ComparisonPage({ params }: PageProps) {
           </section>
 
           {/* FAQ */}
-          <section className="px-4 py-12 bg-white dark:bg-slate-900">
+          <section className="px-4 py-12 bg-white/80 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
                 {comparison.faqs.map((faq, i) => (
-                  <div key={i} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6">
+                  <div key={i} className="bg-white/60 dark:bg-white/5 rounded-xl p-6">
                     <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
                     <p className="text-muted-foreground">{faq.a}</p>
                   </div>

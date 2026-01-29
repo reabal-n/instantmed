@@ -81,7 +81,7 @@ function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
         {filteredReviews.map((review) => (
           <TiltCard
             key={review.id}
-            className="glass-card rounded-2xl p-6 hover-lift"
+            className="dashboard-card rounded-2xl p-6 hover-lift"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-0.5">
@@ -190,7 +190,7 @@ export function ReviewsClientPageComponent() {
                 </div>
 
                 {/* Rating summary card */}
-                <TiltCard className="glass-card rounded-2xl p-6 lg:min-w-[300px]">
+                <TiltCard className="dashboard-card rounded-2xl p-6 lg:min-w-[300px]">
                   <div className="flex items-center gap-6">
                     <div className="text-center">
                       <p className="text-4xl font-bold text-primary" style={{ fontFamily: "var(--font-mono)" }}>
@@ -252,7 +252,7 @@ export function ReviewsClientPageComponent() {
                 {featuredReviews.slice(0, 6).map((review) => (
                   <div
                     key={review.id}
-                    className="glass-card rounded-xl p-5 border border-primary/20 shadow-premium-lg"
+                    className="dashboard-card rounded-xl p-5 border border-primary/20 dark:border-primary/30"
                   >
                     <div className="flex gap-0.5 mb-3">
                       {Array.from({ length: 5 }).map((_, j) => (
@@ -313,7 +313,7 @@ export function ReviewsClientPageComponent() {
         <ParallaxSection speed={0.15}>
           <section className="px-4 py-16 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="glass-card rounded-3xl p-8 lg:p-10">
+              <div className="dashboard-card rounded-3xl p-8 lg:p-10">
                 <BadgeCheck className="h-10 w-10 text-primary mx-auto mb-4" />
                 <h2
                   className="text-2xl font-bold tracking-tight sm:text-3xl mb-4"

@@ -76,7 +76,7 @@ export function DoctorProfiles({
   if (variant === 'featured') {
     const featuredDoctor = displayDoctors[0]
     return (
-      <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6", className)}>
+      <div className={cn("bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6", className)}>
         <div className="flex items-start gap-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden shrink-0">
             <Image 
@@ -129,7 +129,7 @@ export function DoctorProfiles({
           {displayDoctors.map((doctor) => (
             <div 
               key={doctor.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-primary/30 hover:shadow-lg transition-all"
+              className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/10 p-6 hover:border-primary/30 hover:shadow-lg transition-all"
             >
               {/* Photo and name */}
               <div className="flex items-center gap-4 mb-4">
@@ -152,7 +152,7 @@ export function DoctorProfiles({
                 {doctor.qualifications.map((qual) => (
                   <span 
                     key={qual}
-                    className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-muted-foreground"
+                    className="text-xs px-2 py-1 bg-white/60 dark:bg-white/10 rounded-full text-muted-foreground"
                   >
                     {qual}
                   </span>
@@ -195,7 +195,7 @@ export function DoctorProfiles({
  */
 export function DoctorCard({ doctor }: { doctor: Doctor }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+    <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-white/5 rounded-xl">
       <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
         <Image 
           src={doctor.imageUrl} 

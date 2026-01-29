@@ -128,7 +128,7 @@ export function FlowCTA({
     <div
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40',
-        'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/40 dark:border-white/10',
+        'bg-white/80 dark:bg-white/5 backdrop-blur-xl border-t border-white/40 dark:border-white/10',
         'px-4 py-4 sm:py-5',
         'safe-area-pb', // Support for notch devices
         className
@@ -190,7 +190,7 @@ export function FlowCTA({
                   'hover:-translate-y-0.5 active:scale-[0.98]',
                 ],
                 state === 'disabled' && [
-                  'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed',
+                  'bg-white/40 dark:bg-white/10 text-slate-400 cursor-not-allowed',
                   'shadow-none',
                 ],
                 state === 'loading' && [
@@ -199,8 +199,8 @@ export function FlowCTA({
                 ],
               ],
               variant === 'secondary' && [
-                'bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10',
-                'hover:bg-white/85 dark:hover:bg-slate-900/80',
+                'bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10',
+                'hover:bg-white/85 dark:hover:bg-white/10',
                 'shadow-[0_4px_16px_rgb(0,0,0,0.04)]',
               ]
             )}
@@ -307,7 +307,7 @@ export function InlineFlowCTA({
             'hover:-translate-y-0.5 active:scale-[0.98]',
           ],
           disabled && [
-            'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed shadow-none',
+            'bg-white/40 dark:bg-white/10 text-slate-400 cursor-not-allowed shadow-none',
           ]
         )}
       >

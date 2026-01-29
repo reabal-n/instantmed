@@ -109,7 +109,7 @@ export function TrustBadges({
       {badges.map((badge, i) => (
         <div 
           key={i} 
-          className="flex flex-col items-center text-center p-4 rounded-2xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-sm border border-white/20 dark:border-white/5"
+          className="flex flex-col items-center text-center p-4 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-sm dark:shadow-none"
         >
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
             {badge.icon}
@@ -215,7 +215,7 @@ export function AHPRABadge({ className }: { className?: string }) {
 export function TrustLogos({ className }: { className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-6", className)}>
-      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-border/50">
+      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-white/5 border border-border/50">
         <Image
           src="/branding/erx-logo.svg"
           alt="eRx Script Exchange"

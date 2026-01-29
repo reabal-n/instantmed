@@ -102,8 +102,8 @@ export const FORM_TOKENS = {
   },
   // Background colors
   bg: {
-    default: "bg-white dark:bg-slate-900",
-    glass: "bg-white/60 dark:bg-slate-900/40 backdrop-blur-lg",
+    default: "bg-white dark:bg-white/5",
+    glass: "bg-white/60 dark:bg-white/5 backdrop-blur-lg",
   },
   // Border radius
   radius: "rounded-xl",

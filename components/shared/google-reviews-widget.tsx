@@ -99,7 +99,7 @@ export function GoogleReviewsWidget({
   if (variant === 'compact') {
     return (
       <div className={cn(
-        "flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800",
+        "flex items-center gap-4 p-4 bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10",
         className
       )}>
         <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export function GoogleReviewsWidget({
   }
 
   return (
-    <section className={cn("py-16 bg-slate-50 dark:bg-slate-900/50", className)}>
+    <section className={cn("py-16 bg-white/50 dark:bg-white/5", className)}>
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="text-center mb-10">
@@ -164,7 +164,7 @@ export function GoogleReviewsWidget({
           {displayReviews.map((review) => (
             <div 
               key={review.id}
-              className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700"
+              className="bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/50 dark:border-white/10"
             >
               {/* Header */}
               <div className="flex items-start gap-3 mb-3">

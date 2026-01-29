@@ -143,7 +143,7 @@ export function FlowShell({
       />
 
       {/* Progress stepper - sticky, minimal height */}
-      <div className="sticky top-14 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
+      <div className="sticky top-14 z-30 bg-white/80 dark:bg-white/5 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <FlowStepper
             steps={config.steps}
@@ -167,7 +167,7 @@ export function FlowShell({
               animate="animate"
               exit="exit"
               className={cn(
-                'bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl',
+                'bg-white/70 dark:bg-white/5 backdrop-blur-xl rounded-2xl',
                 'border border-white/40 dark:border-white/10',
                 'shadow-[0_8px_30px_rgb(0,0,0,0.06)]',
                 'overflow-hidden'

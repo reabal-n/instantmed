@@ -108,7 +108,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                 <Link href={service.href} className="group block h-full">
                   <GlowingBorder>
                     <div className={`relative h-full rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-                      <div className="h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[22px] overflow-hidden">
+                      <div className="h-full bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-[22px] overflow-hidden">
                         {/* Image section */}
                         <div className="relative h-40 overflow-hidden">
                           <Image
@@ -128,7 +128,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           )}
 
                           {/* Price tag */}
-                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
+                          <div className="absolute top-4 right-4 bg-white/95 dark:bg-white/10 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg">
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
                           </div>
 
@@ -143,7 +143,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                           </div>
                           
                           {/* Time badge */}
-                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
+                          <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-full px-2 py-1 text-xs">
                             <Clock className="h-3 w-3" style={{ color: service.color }} />
                             <span className="font-medium">{service.estimatedTime}</span>
                           </div>
@@ -165,7 +165,7 @@ export function ServiceSelector({ isAuthenticated: _isAuthenticated }: { isAuthe
                             {service.features.map((feature) => (
                               <span 
                                 key={feature} 
-                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-muted-foreground"
+                                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-muted-foreground"
                               >
                                 <Check className="h-3 w-3" style={{ color: service.color }} />
                                 {feature}

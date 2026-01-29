@@ -74,6 +74,18 @@ const config = {
         "soft": "0 4px 20px rgba(197, 221, 240, 0.15)",
         "soft-md": "0 8px 30px rgba(197, 221, 240, 0.20)",
         "soft-lg": "0 12px 40px rgba(197, 221, 240, 0.25)",
+        // Dashboard glass shadows
+        "dashboard": "0 4px 24px rgba(0, 0, 0, 0.06)",
+        "dashboard-hover": "0 8px 40px rgba(0, 0, 0, 0.1)",
+        "dashboard-elevated": "0 20px 60px rgba(0, 0, 0, 0.15)",
+        // Dark mode dashboard shadows
+        "dashboard-dark": "0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03) inset",
+        "dashboard-dark-hover": "0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(59, 130, 246, 0.08)",
+        // Status glow shadows
+        "glow-success": "0 0 20px rgba(34, 197, 94, 0.2)",
+        "glow-warning": "0 0 20px rgba(245, 158, 11, 0.2)",
+        "glow-error": "0 0 20px rgba(239, 68, 68, 0.2)",
+        "glow-info": "0 0 20px rgba(59, 130, 246, 0.25)",
         // Dawn glow shadows (warm)
         "glow-dawn": "0 4px 20px rgba(245, 169, 98, 0.25)",
         "glow-dawn-hover": "0 8px 30px rgba(245, 169, 98, 0.30)",

@@ -119,7 +119,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* Who This Is For */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-bold text-center mb-4">Is this right for you?</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
@@ -127,7 +127,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -139,7 +139,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <Check className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
@@ -151,7 +151,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
@@ -163,7 +163,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
                     <div>
@@ -221,7 +221,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* What Doctors Review */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">What the doctor reviews</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -229,7 +229,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <Stethoscope className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Your symptoms</h3>
@@ -239,7 +239,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <Clock className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Duration requested</h3>
@@ -249,7 +249,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                   <MessageCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">Telehealth appropriateness</h3>
@@ -326,7 +326,7 @@ export default function WorkMedCertPage() {
           </section>
 
           {/* Employer Acceptance */}
-          <section className="px-4 py-16 bg-slate-50 dark:bg-slate-900/50">
+          <section className="px-4 py-16 bg-white/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-4">Your employer will accept this</h2>
               <p className="text-center text-muted-foreground mb-10">
@@ -334,7 +334,7 @@ export default function WorkMedCertPage() {
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-slate-800">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/80 dark:bg-white/5">
                   <BadgeCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">AHPRA Registered</h3>
@@ -342,7 +342,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-slate-800">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/80 dark:bg-white/5">
                   <FileCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Provider Number Included</h3>
@@ -350,7 +350,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-slate-800">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/80 dark:bg-white/5">
                   <Building2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Australian-Based</h3>
@@ -358,7 +358,7 @@ export default function WorkMedCertPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-white dark:bg-slate-800">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/80 dark:bg-white/5">
                   <Shield className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-sm">Legally Valid</h3>
@@ -376,7 +376,7 @@ export default function WorkMedCertPage() {
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  <div key={i} className="p-5 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
                   </div>

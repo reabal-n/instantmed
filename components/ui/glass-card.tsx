@@ -32,31 +32,31 @@ const glassCardVariants = cva(
       variant: {
         /** Subtle glass - lightest, for nested elements */
         subtle: [
-          'bg-white/50 dark:bg-slate-900/40',
+          'bg-white/50 dark:bg-white/5',
           'backdrop-blur-lg',
           'border-white/30 dark:border-white/8',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.04)]',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none',
         ],
         /** Default glass - standard cards */
         default: [
-          'bg-white/70 dark:bg-slate-900/60',
+          'bg-white/70 dark:bg-white/5',
           'backdrop-blur-xl',
           'border-white/40 dark:border-white/10',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.06)]',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-none',
         ],
         /** Elevated glass - modals, popovers */
         elevated: [
-          'bg-white/85 dark:bg-slate-900/80',
+          'bg-white/85 dark:bg-white/10',
           'backdrop-blur-2xl',
           'border-white/50 dark:border-white/15',
-          'shadow-[0_25px_60px_rgba(0,0,0,0.15)]',
+          'shadow-[0_25px_60px_rgba(0,0,0,0.15)] dark:shadow-none',
         ],
         /** Solid glass - high contrast needs */
         solid: [
-          'bg-white/95 dark:bg-slate-900/95',
+          'bg-white/95 dark:bg-white/10',
           'backdrop-blur-xl',
           'border-white/60 dark:border-white/20',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:shadow-none',
         ],
       },
       size: {
@@ -69,15 +69,15 @@ const glassCardVariants = cva(
         none: '',
         /** Lift - simple opacity change */
         lift: [
-          'hover:bg-white/90 dark:hover:bg-slate-900/85',
+          'hover:bg-white/90 dark:hover:bg-white/10',
         ],
         /** Glow - simple border change */
         glow: [
-          'hover:border-slate-300 dark:hover:border-slate-600',
+          'hover:border-white/60 dark:hover:border-white/20',
         ],
         /** Scale - simple opacity */
         scale: [
-          'hover:bg-white/90 dark:hover:bg-slate-900/85',
+          'hover:bg-white/90 dark:hover:bg-white/10',
         ],
       },
       clickable: {

@@ -106,7 +106,7 @@ export function FeaturesSection() {
                 <MagneticGlow glowColor={`${service.color}40`}>
                   <SpotlightCard spotlightColor={`${service.color}30`} className="h-full">
                     <div className={`relative rounded-3xl overflow-hidden bg-linear-to-br ${service.gradient} p-1`}>
-                      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[22px] overflow-hidden h-full">
+                      <div className="bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-[22px] overflow-hidden h-full">
                         {/* Image section */}
                         <div className="relative h-48 overflow-hidden">
                           <Image
@@ -119,7 +119,7 @@ export function FeaturesSection() {
                           
                           {/* Price tag */}
                           <motion.div
-                            className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg"
+                            className="absolute top-4 right-4 bg-white/90 dark:bg-white/10 backdrop-blur-xl rounded-full px-3 py-1 shadow-lg dark:shadow-none"
                             whileHover={{ scale: 1.05 }}
                           >
                             <span className="text-sm font-bold" style={{ color: service.color }}>From {service.price}</span>
