@@ -3,6 +3,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeForPatient } from "@/lib/data/intakes"
 import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { getIntakeDocument } from "@/lib/data/intake-documents"
+import { getCertificateWithPdfUrl } from "@/lib/data/issued-certificates"
 import { checkEmailVerified } from "@/app/actions/resend-verification"
 import { IntakeDetailClient } from "./client"
 import type { Metadata } from "next"
@@ -44,8 +45,13 @@ export default async function PatientIntakeDetailPage({
   let document = null
   let intakeDocument = null
   if (intake.status === "approved" || intake.status === "completed") {
-    // Try med_cert_certificates table first, then fall back to documents table
-    document = await getMedCertCertificateForIntake(id) || await getLatestDocumentForIntake(id)
+    // Priority order for certificate lookup:
+    // 1. issued_certificates (new canonical table)
+    // 2. med_cert_certificates (legacy)
+    // 3. documents table (older legacy)
+    document = await getCertificateWithPdfUrl(id) 
+      || await getMedCertCertificateForIntake(id) 
+      || await getLatestDocumentForIntake(id)
     // Also fetch from intake_documents for resend functionality
     intakeDocument = await getIntakeDocument(id, "med_cert")
   }

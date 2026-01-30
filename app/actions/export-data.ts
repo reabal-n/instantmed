@@ -86,15 +86,15 @@ export async function exportPatientData(): Promise<ExportDataResult> {
       logger.error("Failed to fetch intakes for export", { error: intakesError.message })
     }
 
-    // Fetch all documents for this patient
+    // Fetch all certificates for this patient from issued_certificates
     const { data: documents, error: documentsError } = await supabase
-      .from("generated_documents")
-      .select("id, document_type, created_at, intake_id")
+      .from("issued_certificates")
+      .select("id, certificate_type, created_at, intake_id")
       .eq("patient_id", profile.id)
       .order("created_at", { ascending: false })
 
     if (documentsError) {
-      logger.error("Failed to fetch documents for export", { error: documentsError.message })
+      logger.error("Failed to fetch certificates for export", { error: documentsError.message })
     }
 
     // Fetch all notifications for this patient
@@ -145,7 +145,7 @@ export async function exportPatientData(): Promise<ExportDataResult> {
       })),
       documents: (documents || []).map(doc => ({
         id: doc.id,
-        type: doc.document_type,
+        type: doc.certificate_type,
         createdAt: doc.created_at,
         intakeId: doc.intake_id,
       })),

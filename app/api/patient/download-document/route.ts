@@ -1,6 +1,7 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { NextResponse } from "next/server"
 
 export async function GET(_request: Request) {
@@ -23,13 +24,10 @@ export async function GET(_request: Request) {
 
     const supabase = createServiceRoleClient()
 
+    // Verify patient owns this intake
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select(`
-        id,
-        status,
-        category
-      `)
+      .select("id, status, category, patient_id")
       .eq("id", intakeId)
       .eq("patient_id", authUser.profile.id)
       .single()
@@ -48,9 +46,28 @@ export async function GET(_request: Request) {
       )
     }
 
+    // Get certificate from issued_certificates (canonical source)
+    const certificate = await getCertificateForIntake(intakeId)
+    
+    if (!certificate || certificate.status !== "valid") {
+      return NextResponse.json(
+        { error: "Certificate not found" },
+        { status: 404 }
+      )
+    }
+
+    // Verify ownership
+    if (certificate.patient_id !== authUser.profile.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403 }
+      )
+    }
+
+    // Download from storage using the certificate's storage path
     const { data: document, error: storageError } = await supabase.storage
       .from("documents")
-      .download(`intakes/${intakeId}/document.pdf`)
+      .download(certificate.storage_path)
 
     if (storageError || !document) {
       return NextResponse.json(
@@ -59,7 +76,10 @@ export async function GET(_request: Request) {
       )
     }
 
-    const filename = `${intake.category || "document"}-${intake.id}.pdf`
+    // Log download event for audit trail
+    void logCertificateEvent(certificate.id, "downloaded", authUser.profile.id, "patient")
+
+    const filename = `Medical_Certificate_${certificate.certificate_number}.pdf`
     return new NextResponse(document, {
       headers: {
         "Content-Type": "application/pdf",

@@ -14,6 +14,7 @@ import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
+import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 const log = createLogger("route")
 import { NextResponse } from "next/server"
 
@@ -70,34 +71,40 @@ export async function GET(
       )
     }
 
-    // Fetch the generated document
-    const supabase = createServiceRoleClient()
-    const { data: doc, error: docError } = await supabase
-      .from("generated_documents")
-      .select("id, pdf_url, type")
-      .eq("request_id", requestId)
-      .eq("type", "med_cert")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single()
-
-    if (docError || !doc?.pdf_url) {
-      log.error(`[document-download] Document not found for ${requestId}`, { error: docError })
+    // Fetch certificate from issued_certificates (new canonical table)
+    const certificate = await getCertificateForIntake(requestId)
+    
+    if (!certificate || certificate.status !== "valid") {
+      log.error(`[document-download] Certificate not found for ${requestId}`)
       return NextResponse.json(
         { error: "Document not available" },
         { status: 404 }
       )
     }
 
-    log.debug(`[document-download] Fetching PDF from ${doc.pdf_url}`)
+    // Generate signed URL for the PDF
+    const supabase = createServiceRoleClient()
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(certificate.storage_path, 300) // 5 minute expiry
+
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      log.error(`[document-download] Failed to generate signed URL for ${requestId}`, { error: signedUrlError })
+      return NextResponse.json(
+        { error: "Failed to generate download link" },
+        { status: 500 }
+      )
+    }
+
+    log.debug(`[document-download] Fetching PDF from storage`)
 
     // Stream the PDF from Supabase Storage
-    const pdfResponse = await fetch(doc.pdf_url)
+    const pdfResponse = await fetch(signedUrlData.signedUrl)
 
     if (!pdfResponse.ok) {
       log.error(`[document-download] Failed to fetch PDF from storage`, {
         status: pdfResponse.status,
-        url: doc.pdf_url,
+        storagePath: certificate.storage_path,
       })
       return NextResponse.json(
         { error: "Failed to retrieve document" },
@@ -123,6 +130,11 @@ export async function GET(
         },
       })
     } catch { /* non-blocking */ }
+
+    // Log certificate download event for audit trail
+    void logCertificateEvent(certificate.id, "downloaded", userId, "patient", {
+      file_size_bytes: pdfBuffer.byteLength,
+    })
 
     // Return as downloadable PDF
     return new NextResponse(pdfBuffer, {

@@ -622,6 +622,55 @@ export async function getCertificateForIntake(
 }
 
 /**
+ * Get certificate for intake with PDF URL for patient display
+ * Returns a format compatible with GeneratedDocument interface
+ */
+export async function getCertificateWithPdfUrl(
+  intakeId: string
+): Promise<{
+  id: string
+  request_id: string
+  type: string
+  subtype: string
+  pdf_url: string
+  verification_code: string
+  created_at: string
+  updated_at: string
+} | null> {
+  const certificate = await getCertificateForIntake(intakeId)
+  
+  if (!certificate || certificate.status !== "valid") {
+    return null
+  }
+  
+  // Generate signed URL for the PDF
+  const supabase = createServiceRoleClient()
+  const { data: signedUrlData } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(certificate.storage_path, 3600) // 1 hour expiry
+  
+  if (!signedUrlData?.signedUrl) {
+    log.error("Failed to generate signed URL for certificate", { 
+      intakeId, 
+      certificateId: certificate.id,
+      storagePath: certificate.storage_path 
+    })
+    return null
+  }
+  
+  return {
+    id: certificate.id,
+    request_id: intakeId,
+    type: "med_cert",
+    subtype: certificate.certificate_type,
+    pdf_url: signedUrlData.signedUrl,
+    verification_code: certificate.verification_code,
+    created_at: certificate.created_at,
+    updated_at: certificate.updated_at,
+  }
+}
+
+/**
  * Get failed email deliveries for admin queue
  */
 export async function getFailedEmailDeliveries(
