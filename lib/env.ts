@@ -264,67 +264,6 @@ export function getSupabaseAnonKey(): string {
 }
 
 // ============================================
-// VALIDATION (Legacy API - kept for compatibility)
-// ============================================
-
-interface EnvValidationResult {
-  valid: boolean
-  missing: string[]
-  warnings: string[]
-}
-
-/**
- * Validate all required environment variables
- * @deprecated Use Zod validation at module load instead. This is kept for compatibility.
- */
-export function validateEnv(): EnvValidationResult {
-  const missing: string[] = []
-  const warnings: string[] = []
-
-  // Required variables
-  const required = [
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-  ]
-  
-  // Required in production only
-  if (process.env.NODE_ENV === "production") {
-    required.push(
-      "NEXT_PUBLIC_APP_URL",
-      "STRIPE_SECRET_KEY",
-      "STRIPE_WEBHOOK_SECRET"
-    )
-  }
-
-  for (const key of required) {
-    if (!process.env[key]) {
-      missing.push(key)
-    }
-  }
-
-  // Optional but recommended
-  const optional = [
-    { key: "RESEND_API_KEY", message: "Email sending disabled" },
-    { key: "RESEND_FROM_EMAIL", message: "Using default from address" },
-    { key: "STRIPE_SECRET_KEY", message: "Payment processing disabled" },
-    { key: "UPSTASH_REDIS_REST_URL", message: "Rate limiting will use in-memory fallback" },
-  ]
-
-  for (const { key, message } of optional) {
-    if (!process.env[key]) {
-      warnings.push(`${key}: ${message}`)
-    }
-  }
-
-  return {
-    valid: missing.length === 0,
-    missing,
-    warnings,
-  }
-}
-
-// ============================================
 // ENV OBJECT (for convenience)
 // ============================================
 

@@ -267,42 +267,6 @@ export async function requireRole(
   return authUser
 }
 
-/**
- * Require authentication with a specific role.
- * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
- * @deprecated Use requireRole() for more flexible role checking
- */
-export async function requireAuth(
-  requiredRole: "patient" | "doctor",
-  options?: { allowIncompleteOnboarding?: boolean },
-): Promise<AuthenticatedUser> {
-  const authUser = await getAuthenticatedUserWithProfile()
-
-  if (!authUser) {
-    redirect("/sign-in")
-  }
-
-  // Admin role has access to doctor pages
-  const effectiveRole = authUser.profile.role === "admin" ? "doctor" : authUser.profile.role
-  
-  if (effectiveRole !== requiredRole) {
-    // Redirect to the correct dashboard based on role
-    if (authUser.profile.role === "patient") {
-      redirect("/patient")
-    } else if (authUser.profile.role === "doctor" || authUser.profile.role === "admin") {
-      redirect("/doctor")
-    } else {
-      redirect("/sign-in")
-    }
-  }
-
-  // Check onboarding for patients (unless explicitly allowed)
-  if (requiredRole === "patient" && !options?.allowIncompleteOnboarding && !authUser.profile.onboarding_completed) {
-    redirect("/patient/onboarding")
-  }
-
-  return authUser
-}
 
 /**
  * Get optional auth - returns user if logged in, null otherwise
@@ -366,7 +330,7 @@ export async function checkOnboardingRequired(authUser: AuthenticatedUser): Prom
 export async function requirePatientAuth(options?: {
   allowIncompleteOnboarding?: boolean
 }): Promise<AuthenticatedUser> {
-  return requireAuth("patient", options)
+  return requireRole(["patient"], options)
 }
 
 /**

@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getFailedEmails, retryEmail, markEmailResolved } from "@/app/actions/email-retry"
+import { getFailedEmails, retryEmail, markEmailResolved, getRecentEmailAttempts } from "@/app/actions/email-retry"
 
 interface FailedEmail {
   id: string
@@ -50,8 +50,21 @@ interface FailedEmail {
   createdAt: string
 }
 
+interface RecentEmail {
+  id: string
+  emailType: string
+  toEmail: string
+  subject: string
+  status: "pending" | "sent" | "failed" | "skipped_e2e"
+  errorMessage: string | null
+  intakeId: string | null
+  createdAt: string
+  sentAt: string | null
+}
+
 export function EmailQueueClient() {
   const [failures, setFailures] = useState<FailedEmail[]>([])
+  const [recentEmails, setRecentEmails] = useState<RecentEmail[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -66,14 +79,22 @@ export function EmailQueueClient() {
     let mounted = true
     
     async function loadData() {
-      const result = await getFailedEmails()
+      const [failuresResult, recentResult] = await Promise.all([
+        getFailedEmails(),
+        getRecentEmailAttempts(20),
+      ])
       if (!mounted) return
       
-      if (result.success) {
-        setFailures(result.failures || [])
+      if (failuresResult.success) {
+        setFailures(failuresResult.failures || [])
       } else {
-        setError(result.error || "Failed to load")
+        setError(failuresResult.error || "Failed to load")
       }
+      
+      if (recentResult.success) {
+        setRecentEmails(recentResult.emails || [])
+      }
+      
       setIsLoading(false)
     }
     
@@ -87,11 +108,17 @@ export function EmailQueueClient() {
   const loadFailures = async () => {
     setIsLoading(true)
     setError(null)
-    const result = await getFailedEmails()
-    if (result.success) {
-      setFailures(result.failures || [])
+    const [failuresResult, recentResult] = await Promise.all([
+      getFailedEmails(),
+      getRecentEmailAttempts(20),
+    ])
+    if (failuresResult.success) {
+      setFailures(failuresResult.failures || [])
     } else {
-      setError(result.error || "Failed to load")
+      setError(failuresResult.error || "Failed to load")
+    }
+    if (recentResult.success) {
+      setRecentEmails(recentResult.emails || [])
     }
     setIsLoading(false)
   }
@@ -264,6 +291,57 @@ export function EmailQueueClient() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Email Attempts (from email_outbox) */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Mail className="h-5 w-5" />
+            Recent Email Attempts (Last 20)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recentEmails.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No recent email attempts found</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>To</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Sent At</TableHead>
+                  <TableHead>Error</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentEmails.map((email) => (
+                  <TableRow key={email.id}>
+                    <TableCell className="text-xs font-mono">{email.emailType}</TableCell>
+                    <TableCell className="text-sm max-w-[200px] truncate">{email.toEmail}</TableCell>
+                    <TableCell>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        email.status === "sent" ? "bg-emerald-100 text-emerald-700" :
+                        email.status === "failed" ? "bg-red-100 text-red-700" :
+                        email.status === "skipped_e2e" ? "bg-gray-100 text-gray-600" :
+                        "bg-amber-100 text-amber-700"
+                      }`}>
+                        {email.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {formatDate(email.sentAt || email.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-xs text-red-600 max-w-[200px] truncate">
+                      {email.errorMessage || "—"}
                     </TableCell>
                   </TableRow>
                 ))}

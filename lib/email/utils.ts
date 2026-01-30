@@ -15,9 +15,9 @@ export async function isEmailSuppressed(email: string): Promise<boolean> {
   const supabase = createServiceRoleClient()
   
   const { data, error } = await supabase
-    .from("email_logs")
+    .from("email_outbox")
     .select("id, delivery_status")
-    .eq("recipient_email", email)
+    .eq("to_email", email)
     .in("delivery_status", ["bounced", "complained"])
     .limit(1)
     .maybeSingle()
@@ -84,10 +84,10 @@ export async function isDuplicateEmail(
   today.setHours(0, 0, 0, 0)
   
   const { data, error } = await supabase
-    .from("email_logs")
+    .from("email_outbox")
     .select("id")
-    .eq("request_id", requestId)
-    .eq("template_type", templateType)
+    .eq("intake_id", requestId)
+    .eq("email_type", templateType)
     .gte("created_at", today.toISOString())
     .limit(1)
     .maybeSingle()

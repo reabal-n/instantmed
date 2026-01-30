@@ -60,30 +60,85 @@ export async function POST(req: Request) {
     }
 
     const fullName = [first_name, last_name].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
-
-    // Upsert profile in Supabase
     const supabase = createServiceRoleClient()
-    const { error } = await supabase
+
+    // First check if profile already exists by clerk_user_id
+    const { data: existingByClerkId } = await supabase
       .from('profiles')
-      .upsert(
-        {
-          clerk_user_id: id,
+      .select('id')
+      .eq('clerk_user_id', id)
+      .maybeSingle()
+
+    if (existingByClerkId) {
+      // Profile already linked - just update it
+      const { error } = await supabase
+        .from('profiles')
+        .update({
           email: primaryEmail,
           full_name: fullName,
           first_name: first_name || null,
           last_name: last_name || null,
           avatar_url: image_url || null,
           updated_at: new Date().toISOString(),
-        },
-        { 
-          onConflict: 'clerk_user_id',
-          ignoreDuplicates: false 
-        }
-      )
+        })
+        .eq('clerk_user_id', id)
 
-    if (error) {
-      console.error('Failed to upsert profile:', error)
-      return new Response('Database error', { status: 500 })
+      if (error) {
+        console.error('Failed to update profile:', error)
+        return new Response('Database error', { status: 500 })
+      }
+    } else {
+      // No profile by clerk_user_id - check for guest profile by email
+      const { data: guestProfile } = await supabase
+        .from('profiles')
+        .select('id, clerk_user_id')
+        .eq('email', primaryEmail.toLowerCase())
+        .is('clerk_user_id', null)
+        .maybeSingle()
+
+      if (guestProfile) {
+        // Link existing guest profile to Clerk user
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            clerk_user_id: id,
+            full_name: fullName,
+            first_name: first_name || null,
+            last_name: last_name || null,
+            avatar_url: image_url || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', guestProfile.id)
+
+        if (error) {
+          console.error('Failed to link guest profile:', error)
+          return new Response('Database error', { status: 500 })
+        }
+        console.log('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id })
+      } else {
+        // No existing profile - create new one
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            clerk_user_id: id,
+            email: primaryEmail,
+            full_name: fullName,
+            first_name: first_name || null,
+            last_name: last_name || null,
+            avatar_url: image_url || null,
+            role: 'patient',
+          })
+
+        if (error) {
+          // Handle race condition - profile might have been created by auth callback
+          if (error.code === '23505') { // Unique constraint violation
+            console.log('Profile already exists (race condition), skipping insert')
+          } else {
+            console.error('Failed to create profile:', error)
+            return new Response('Database error', { status: 500 })
+          }
+        }
+      }
     }
 
     // Profile synced successfully

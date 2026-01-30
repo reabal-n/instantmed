@@ -164,6 +164,49 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
 }
 
 /**
+ * Get recent email attempts from email_outbox for debugging
+ */
+export async function getRecentEmailAttempts(limit: number = 20) {
+  try {
+    await requireAdminRole()
+
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .select("id, email_type, to_email, subject, status, error_message, intake_id, created_at, sent_at")
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      log.error("Failed to get email outbox", {}, error)
+      return { success: false, error: error.message, emails: [] }
+    }
+
+    return {
+      success: true,
+      emails: (data || []).map((e) => ({
+        id: e.id,
+        emailType: e.email_type,
+        toEmail: e.to_email,
+        subject: e.subject,
+        status: e.status,
+        errorMessage: e.error_message,
+        intakeId: e.intake_id,
+        createdAt: e.created_at,
+        sentAt: e.sent_at,
+      })),
+    }
+  } catch (error) {
+    log.error("Failed to get recent emails", {}, error instanceof Error ? error : undefined)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load",
+      emails: [],
+    }
+  }
+}
+
+/**
  * Mark email as manually resolved (e.g., sent via alternative method)
  */
 export async function markEmailResolved(

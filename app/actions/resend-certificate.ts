@@ -2,10 +2,11 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { sendViaResend } from "@/lib/email/resend"
-import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
+import { sendEmail } from "@/lib/email/send-email"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
+import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 
 interface ResendCertificateResult {
   success: boolean
@@ -66,69 +67,51 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       return { success: false, error: "Patient email not found" }
     }
 
-    // Fetch the document from intake_documents
-    const serviceClient = createServiceRoleClient()
-    const { data: document, error: docError } = await serviceClient
-      .from("intake_documents")
-      .select("storage_path, certificate_number, filename")
-      .eq("intake_id", intakeId)
-      .eq("document_type", "med_cert")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single()
-
-    if (docError || !document) {
-      logger.warn("Resend certificate: document not found", { intakeId })
-      return { success: false, error: "Certificate document not found. Please contact support." }
-    }
-
-    // Download the PDF from storage
-    const { data: pdfData, error: downloadError } = await serviceClient.storage
-      .from("documents")
-      .download(document.storage_path)
-
-    if (downloadError || !pdfData) {
-      logger.error("Resend certificate: download failed", { intakeId, error: downloadError })
-      return { success: false, error: "Failed to retrieve certificate. Please contact support." }
-    }
-
-    // Convert to base64
-    const pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
-    const pdfBase64 = pdfBuffer.toString("base64")
-
-    // Generate email HTML
-    const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
-    const emailHtml = renderMedCertEmailToHtml({
-      patientName: patient.full_name,
-      dashboardUrl,
-    })
-
-    // Send email
-    const emailResult = await sendViaResend({
-      to: patient.email,
-      subject: "Your Medical Certificate from InstantMed (Resent)",
-      html: emailHtml,
-      attachments: [
-        {
-          filename: document.filename,
-          content: pdfBase64,
-          type: "application/pdf",
-          disposition: "attachment",
+    // First check issued_certificates table (new flow)
+    const certificate = await getCertificateForIntake(intakeId)
+    
+    if (certificate) {
+      // Use centralized email system
+      const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
+      
+      const emailResult = await sendEmail({
+        to: patient.email,
+        toName: patient.full_name,
+        subject: `${medCertPatientEmailSubject} (Resent)`,
+        template: MedCertPatientEmail({
+          patientName: patient.full_name,
+          dashboardUrl,
+          verificationCode: certificate.verification_code,
+          certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
+          appUrl: env.appUrl,
+        }),
+        emailType: "med_cert_patient",
+        intakeId,
+        patientId: patient.id,
+        certificateId: certificate.id,
+        metadata: {
+          cert_type: certificate.certificate_type,
+          verification_code: certificate.verification_code,
+          resent_by_patient: true,
         },
-      ],
-      tags: [
-        { name: "category", value: "med_cert_resend" },
-        { name: "intake_id", value: intakeId },
-      ],
-    })
+        tags: [
+          { name: "category", value: "med_cert_resend" },
+          { name: "intake_id", value: intakeId },
+        ],
+      })
 
-    if (!emailResult.success) {
-      logger.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
-      return { success: false, error: "Failed to send email. Please try again." }
+      if (!emailResult.success) {
+        logger.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
+        return { success: false, error: "Failed to send email. Please try again." }
+      }
+
+      logger.info("Certificate resent successfully", { intakeId, to: patient.email })
+      return { success: true }
     }
 
-    logger.info("Certificate resent successfully", { intakeId, to: patient.email })
-    return { success: true }
+    // Fallback: No certificate found in issued_certificates
+    logger.warn("Resend certificate: certificate not found in issued_certificates", { intakeId })
+    return { success: false, error: "Certificate not found. Please contact support." }
   } catch (error) {
     logger.error("Resend certificate: unexpected error", {
       intakeId,

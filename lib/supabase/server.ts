@@ -22,7 +22,3 @@ export async function createClient() {
     },
   })
 }
-
-// Service role client - DEPRECATED: Use createServiceRoleClient from @/lib/supabase/service-role instead
-// Keeping re-export for backward compatibility during migration
-export { createServiceRoleClient as createServiceClient } from "./service-role"

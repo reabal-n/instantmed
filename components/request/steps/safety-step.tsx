@@ -6,7 +6,8 @@
  */
 
 import { EmergencyGate } from "@/components/shared/emergency-gate"
-import { CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CheckCircle, ArrowRight } from "lucide-react"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -29,16 +30,25 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
 
   if (safetyConfirmed) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 animate-in fade-in">
-        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
-          <CheckCircle className="w-5 h-5 text-green-600" />
+      <div className="space-y-6 animate-in fade-in">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+          <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-green-800 dark:text-green-200">Safety confirmed</p>
+            <p className="text-xs text-green-600 dark:text-green-400">
+              Not a medical emergency
+            </p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-green-800 dark:text-green-200">Safety confirmed</p>
-          <p className="text-xs text-green-600 dark:text-green-400">
-            Not a medical emergency
-          </p>
-        </div>
+        <Button
+          onClick={onNext}
+          className="w-full h-12 rounded-xl text-base font-medium"
+        >
+          Continue
+          <ArrowRight className="w-5 h-5 ml-2" />
+        </Button>
       </div>
     )
   }

@@ -242,11 +242,12 @@ export async function sendStatusEmail(params: SendStatusEmailParams): Promise<{ 
 
     // Log to database first
     const supabase = getServiceClient()
-    const { data: logEntry } = await supabase.from("email_logs").insert({
-      request_id: requestId,
-      recipient_email: to,
-      template_type: template,
+    const { data: logEntry } = await supabase.from("email_outbox").insert({
+      intake_id: requestId,
+      to_email: to,
+      email_type: template,
       subject,
+      status: 'pending',
       metadata: { data },
     }).select().single()
 
@@ -263,12 +264,14 @@ export async function sendStatusEmail(params: SendStatusEmailParams): Promise<{ 
 
     // Update log with send status
     if (logEntry) {
-      await supabase.from("email_logs").update({
+      await supabase.from("email_outbox").update({
+        status: result.success ? 'sent' : 'failed',
+        provider_message_id: result.id,
+        sent_at: result.success ? new Date().toISOString() : null,
+        error_message: result.error,
         metadata: { 
           ...data, 
-          resend_id: result.id,
           sent: result.success,
-          error: result.error,
         },
       }).eq("id", logEntry.id)
     }

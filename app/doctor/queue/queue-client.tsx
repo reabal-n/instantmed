@@ -602,64 +602,102 @@ export function QueueClient({
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-testid="queue-header">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight" data-testid="queue-heading">Review Queue</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting • Priority first
-          </p>
+      {/* Header - Mobile optimized */}
+      <div className="flex flex-col gap-4" data-testid="queue-header">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight" data-testid="queue-heading">Review Queue</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {filteredIntakes.length} case{filteredIntakes.length !== 1 ? "s" : ""} waiting • Priority first
+            </p>
+          </div>
+          {/* Desktop controls */}
+          <div className="hidden md:flex items-center gap-3">
+            {!focusMode && (
+              <Input
+                placeholder="Search patients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-64"
+                startContent={<Search className="h-4 w-4 text-muted-foreground" />}
+              />
+            )}
+            <Button
+              variant={focusMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFocusMode(!focusMode)}
+              className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white" : ""}
+              aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
+            >
+              {focusMode ? (
+                <>
+                  <Maximize2 className="h-4 w-4 mr-1.5" />
+                  Exit Focus
+                </>
+              ) : (
+                <>
+                  <Focus className="h-4 w-4 mr-1.5" />
+                  Focus Mode
+                </>
+              )}
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => router.refresh()}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={audioEnabled ? "default" : "outline"}
+              size="icon"
+              onClick={toggleAudio}
+              title={audioEnabled ? "Disable sound notifications" : "Enable sound notifications"}
+              className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
+            >
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowShortcutsHelp(prev => !prev)}
+              className="text-muted-foreground"
+            >
+              <kbd className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
+              Shortcuts
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        {/* Mobile/Tablet controls */}
+        <div className="flex md:hidden flex-col gap-3">
           {!focusMode && (
             <Input
               placeholder="Search patients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64"
+              className="w-full"
               startContent={<Search className="h-4 w-4 text-muted-foreground" />}
             />
           )}
-          <Button
-            variant={focusMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFocusMode(!focusMode)}
-            className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white" : ""}
-            aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
-          >
-            {focusMode ? (
-              <>
-                <Maximize2 className="h-4 w-4 mr-1.5" />
-                Exit Focus
-              </>
-            ) : (
-              <>
-                <Focus className="h-4 w-4 mr-1.5" />
-                Focus Mode
-              </>
-            )}
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => router.refresh()}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant={audioEnabled ? "default" : "outline"}
-            size="icon"
-            onClick={toggleAudio}
-            title={audioEnabled ? "Disable sound notifications" : "Enable sound notifications"}
-            className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
-          >
-            {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setShowShortcutsHelp(prev => !prev)}
-            className="text-muted-foreground"
-          >
-            <kbd className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono mr-1">?</kbd>
-            Shortcuts
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant={focusMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFocusMode(!focusMode)}
+              className={focusMode ? "bg-violet-600 hover:bg-violet-700 text-white flex-1 sm:flex-none" : "flex-1 sm:flex-none"}
+              aria-label={focusMode ? "Exit focus mode" : "Enter focus mode"}
+            >
+              {focusMode ? <Maximize2 className="h-4 w-4 mr-1.5" /> : <Focus className="h-4 w-4 mr-1.5" />}
+              {focusMode ? "Exit" : "Focus"}
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => router.refresh()}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={audioEnabled ? "default" : "outline"}
+              size="icon"
+              onClick={toggleAudio}
+              className={audioEnabled ? "bg-green-600 hover:bg-green-700" : ""}
+            >
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -709,13 +747,13 @@ export function QueueClient({
         </Card>
       )}
 
-      {/* Sort & Filter Controls - Hidden in focus mode */}
+      {/* Sort & Filter Controls - Hidden in focus mode, responsive grid */}
       {!focusMode && (
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-2 lg:gap-3">
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full lg:w-[160px]">
                 <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent>
@@ -726,9 +764,9 @@ export function QueueClient({
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Filter className="h-4 w-4 text-muted-foreground hidden sm:block" />
             <Select value={filterService} onValueChange={setFilterService}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full lg:w-[160px]">
                 <SelectValue placeholder="Filter service..." />
               </SelectTrigger>
               <SelectContent>
@@ -741,9 +779,9 @@ export function QueueClient({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full lg:w-[140px]">
                 <SelectValue placeholder="Filter status..." />
               </SelectTrigger>
               <SelectContent>
@@ -802,19 +840,19 @@ export function QueueClient({
                                 {service?.short_name || formatServiceType(service?.type || "")}
                               </Badge>
                               {intake.is_priority && (
-                                <Badge className="bg-amber-100 text-amber-700 border-amber-200 ml-2">
+                                <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700 ml-2">
                                   <Zap className="w-3 h-3 mr-1" />
                                   Priority
                                 </Badge>
                               )}
                               {hasRedFlags(intake) && (
-                                <Badge className="bg-destructive/10 text-destructive border-destructive/20">
+                                <Badge className="bg-destructive/10 text-destructive border-destructive/20 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800">
                                   <ShieldAlert className="w-3 h-3 mr-1" />
                                   Clinical flag
                                 </Badge>
                               )}
                               {(intake as unknown as { ai_draft_status?: string }).ai_draft_status === "completed" && (
-                                <Badge className="bg-violet-100 text-violet-700 border-violet-200">
+                                <Badge className="bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700">
                                   <Sparkles className="w-3 h-3 mr-1" />
                                   AI draft ready
                                 </Badge>
@@ -1039,7 +1077,7 @@ export function QueueClient({
                         <Button
                           onClick={() => handleApprove(intake.id, service?.type)}
                           disabled={isPending || !identityComplete}
-                          className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                          className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50"
                           title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                         >
                           <CheckCircle className="h-4 w-4 mr-1.5" />

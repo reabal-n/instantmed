@@ -18,8 +18,6 @@ import {
   Clock,
   ChevronRight,
   Activity,
-  Send,
-  AlertCircle,
   MessageSquare,
   StickyNote,
   Plus,
@@ -29,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useState, useTransition } from "react"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { formatIntakeStatus } from "@/lib/format-intake"
+import { PatientCommunicationHistory } from "@/components/doctor/patient-communication-history"
 import type { Profile } from "@/types/db"
 
 interface IntakeWithService {
@@ -95,25 +94,6 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
     })
   }
 
-  const getEmailStatusColor = (status: string, deliveryStatus: string | null) => {
-    if (deliveryStatus === "delivered") return "bg-emerald-100 text-emerald-700"
-    if (deliveryStatus === "bounced" || deliveryStatus === "failed") return "bg-destructive/10 text-destructive"
-    if (status === "sent") return "bg-blue-100 text-blue-700"
-    if (status === "pending") return "bg-amber-100 text-amber-700"
-    return "bg-muted text-muted-foreground"
-  }
-
-  const formatEmailType = (type: string) => {
-    const typeMap: Record<string, string> = {
-      med_cert_patient: "Certificate",
-      welcome: "Welcome",
-      request_declined: "Declined",
-      script_sent: "Script Sent",
-      needs_more_info: "Info Request",
-      generic: "Notification",
-    }
-    return typeMap[type] || type.replace(/_/g, " ")
-  }
   const calculateAge = (dob: string | null | undefined): number | null => {
     if (!dob) return null
     const birthDate = new Date(dob)
@@ -417,54 +397,24 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
         </CardContent>
       </Card>
 
-      {/* Communication History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Communication History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {emailLogs.length > 0 ? (
-            <div className="space-y-3">
-              {emailLogs.map((email) => (
-                <div
-                  key={email.id}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Mail className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{email.subject}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTime(email.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {formatEmailType(email.email_type)}
-                    </Badge>
-                    <Badge className={`text-xs ${getEmailStatusColor(email.status, email.delivery_status)}`}>
-                      {email.delivery_status === "delivered" && <CheckCircle className="h-3 w-3 mr-1" />}
-                      {email.delivery_status === "bounced" && <AlertCircle className="h-3 w-3 mr-1" />}
-                      {email.delivery_status || email.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No emails sent yet</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Communication History - Enhanced Component */}
+      <PatientCommunicationHistory 
+        emails={emailLogs.map(log => ({
+          id: log.id,
+          email_type: log.email_type,
+          recipient_email: log.to_email,
+          subject: log.subject,
+          status: log.status,
+          sent_at: log.sent_at,
+          delivered_at: log.delivery_status === "delivered" ? log.sent_at : null,
+          opened_at: null,
+          clicked_at: null,
+          bounced_at: log.delivery_status === "bounced" ? log.sent_at : null,
+          error_message: null,
+          metadata: null,
+        }))}
+        patientName={patient.full_name}
+      />
     </div>
   )
 }

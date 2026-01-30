@@ -5,6 +5,8 @@ import { requireRole } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
+import { approveAndSendCert } from "@/app/actions/approve-cert"
+import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 const log = createLogger("med-cert")
 import type { MedCertDraft } from "@/types/db"
 
@@ -152,6 +154,7 @@ export async function saveMedCertDraft(
 }
 
 // Issue (finalize) the certificate
+// Uses the canonical approveAndSendCert flow which handles PDF generation, storage, and email
 export async function issueMedCertificate(
   requestId: string,
   draftId: string
@@ -195,60 +198,37 @@ export async function issueMedCertificate(
       return { success: false, error: `Missing required fields: ${missingFields.join(", ")}` }
     }
 
-    // Call the render function to generate PDF
-    try {
-      const { getAppUrl } = await import("@/lib/env")
-      const baseUrl = getAppUrl()
-      const response = await fetch(`${baseUrl}/api/med-cert/render`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestId,
-          draftId,
-          draftData: draft,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json() as { error?: string }
-        return { success: false, error: errorData.error || "Failed to generate PDF" }
-      }
-
-      const result = await response.json() as { success: boolean; error?: string; pdfUrl?: string }
-
-      if (!result.success) {
-        return { success: false, error: result.error || "Failed to generate PDF" }
-      }
-
-      // Mark draft as issued
-      await supabase
-        .from("med_cert_drafts")
-        .update({
-          status: "issued",
-          issued_at: new Date().toISOString(),
-          issued_by: profile.id,
-        })
-        .eq("id", draftId)
-
-      // Also update intake status to approved
-      await supabase
-        .from("intakes")
-        .update({
-          status: "approved",
-          reviewed_by: profile.id,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", requestId)
-
-      // Revalidate paths
-      revalidatePath(`/doctor/intakes/${requestId}`)
-      revalidatePath(`/patient/intakes/${requestId}`)
-
-      return { success: true, pdfUrl: result.pdfUrl }
-    } catch (_error) {
-      log.error("Failed to generate PDF", { error: _error })
-      return { success: false, error: "Failed to generate PDF" }
+    // Convert draft to CertReviewData format for canonical flow
+    const reviewData: CertReviewData = {
+      doctorName: draft.doctor_typed_name || profile.full_name || "",
+      consultDate: new Date().toISOString().split("T")[0],
+      startDate: draft.date_from || new Date().toISOString().split("T")[0],
+      endDate: draft.date_to || new Date().toISOString().split("T")[0],
+      medicalReason: draft.reason_summary || "Medical Illness",
     }
+
+    // Use canonical approveAndSendCert flow (handles PDF, storage, email)
+    const result = await approveAndSendCert(requestId, reviewData)
+
+    if (!result.success) {
+      return { success: false, error: result.error || "Failed to issue certificate" }
+    }
+
+    // Mark legacy draft as issued (for backwards compatibility)
+    await supabase
+      .from("med_cert_drafts")
+      .update({
+        status: "issued",
+        issued_at: new Date().toISOString(),
+        issued_by: profile.id,
+      })
+      .eq("id", draftId)
+
+    // Revalidate paths
+    revalidatePath(`/doctor/intakes/${requestId}`)
+    revalidatePath(`/patient/intakes/${requestId}`)
+
+    return { success: true }
   } catch (error) {
     log.error("Error in issueMedCertificate", { error })
     return { success: false, error: "We couldn't issue the certificate. Please try again." }

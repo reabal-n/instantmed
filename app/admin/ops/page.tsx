@@ -36,9 +36,9 @@ export default async function OpsDashboardPage() {
       .limit(10)
       .then(r => r.error ? { data: [], count: 0 } : r),
     
-    // Email queue status - table may not exist
+    // Email queue status
     supabase
-      .from("email_logs")
+      .from("email_outbox")
       .select("id, status, created_at")
       .gte("created_at", dayAgo.toISOString())
       .then(r => r.error ? { data: [] } : r),

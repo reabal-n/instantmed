@@ -65,81 +65,83 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       return { success: false, error: "Patient email not found" }
     }
 
-    // Get the certificate for this intake
+    // Get the certificate for this intake (new issued_certificates table)
     const certificate = await getCertificateForIntake(intakeId)
     
-    if (!certificate) {
-      logger.warn("Resend certificate admin: certificate not found", { intakeId })
-      return { success: false, error: "Certificate not found for this intake" }
-    }
+    // If found in issued_certificates, use the new flow
+    if (certificate) {
+      // Increment retry count
+      await incrementEmailRetry(certificate.id)
 
-    // Increment retry count
-    await incrementEmailRetry(certificate.id)
-
-    // Send email using the same approach as initial approval
-    const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
-    
-    const emailResult = await sendEmail({
-      to: patient.email,
-      toName: patient.full_name,
-      subject: `${medCertPatientEmailSubject} (Resent)`,
-      template: MedCertPatientEmail({
-        patientName: patient.full_name,
-        dashboardUrl,
-        verificationCode: certificate.verification_code,
-        certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
-        appUrl: env.appUrl,
-      }),
-      emailType: "med_cert_patient",
-      intakeId,
-      patientId: patient.id,
-      certificateId: certificate.id,
-      metadata: {
-        cert_type: certificate.certificate_type,
-        verification_code: certificate.verification_code,
-        resent_by: profile.id,
-        retry_count: certificate.email_retry_count + 1,
-      },
-      tags: [
-        { name: "category", value: "med_cert_resend" },
-        { name: "intake_id", value: intakeId },
-        { name: "cert_type", value: certificate.certificate_type },
-      ],
-    })
-
-    // Update certificate email status
-    if (emailResult.success) {
-      await updateEmailStatus(certificate.id, "sent", {
-        deliveryId: emailResult.messageId,
-      })
-      await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
-        resend_reason: "manual_admin_resend",
-        resend_by_name: profile.full_name,
-      })
+      // Send email using the same approach as initial approval
+      const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
       
-      logger.info("Certificate resent by admin", { 
-        intakeId, 
-        certificateId: certificate.id,
+      const emailResult = await sendEmail({
         to: patient.email,
-        resentBy: profile.id,
-      })
-      return { success: true }
-    } else {
-      await updateEmailStatus(certificate.id, "failed", {
-        failureReason: emailResult.error,
-      })
-      await logCertificateEvent(certificate.id, "email_failed", profile.id, "doctor", {
-        error: emailResult.error,
-        resend_attempt: true,
-      })
-      
-      logger.error("Certificate resend failed", { 
-        intakeId, 
+        toName: patient.full_name,
+        subject: `${medCertPatientEmailSubject} (Resent)`,
+        template: MedCertPatientEmail({
+          patientName: patient.full_name,
+          dashboardUrl,
+          verificationCode: certificate.verification_code,
+          certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
+          appUrl: env.appUrl,
+        }),
+        emailType: "med_cert_patient",
+        intakeId,
+        patientId: patient.id,
         certificateId: certificate.id,
-        error: emailResult.error,
+        metadata: {
+          cert_type: certificate.certificate_type,
+          verification_code: certificate.verification_code,
+          resent_by: profile.id,
+          retry_count: certificate.email_retry_count + 1,
+        },
+        tags: [
+          { name: "category", value: "med_cert_resend" },
+          { name: "intake_id", value: intakeId },
+          { name: "cert_type", value: certificate.certificate_type },
+        ],
       })
-      return { success: false, error: emailResult.error || "Failed to send email" }
+
+      // Update certificate email status
+      if (emailResult.success) {
+        await updateEmailStatus(certificate.id, "sent", {
+          deliveryId: emailResult.messageId,
+        })
+        await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
+          resend_reason: "manual_admin_resend",
+          resend_by_name: profile.full_name,
+        })
+        
+        logger.info("Certificate resent by admin", { 
+          intakeId, 
+          certificateId: certificate.id,
+          to: patient.email,
+          resentBy: profile.id,
+        })
+        return { success: true }
+      } else {
+        await updateEmailStatus(certificate.id, "failed", {
+          failureReason: emailResult.error,
+        })
+        await logCertificateEvent(certificate.id, "email_failed", profile.id, "doctor", {
+          error: emailResult.error,
+          resend_attempt: true,
+        })
+        
+        logger.error("Certificate resend failed", { 
+          intakeId, 
+          certificateId: certificate.id,
+          error: emailResult.error,
+        })
+        return { success: false, error: emailResult.error || "Failed to send email" }
+      }
     }
+
+    // No certificate found in issued_certificates
+    logger.warn("Resend certificate admin: certificate not found", { intakeId })
+    return { success: false, error: "Certificate not found for this intake. Please contact support." }
   } catch (error) {
     logger.error("Resend certificate admin: unexpected error", {
       intakeId,

@@ -4,7 +4,7 @@ import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/pr
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { REVIEW_SUMMARY_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Require doctor authentication
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { streamText } from "ai"
 import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
-import { requireAuth } from "@/lib/auth"
+import { requireRole } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { auth } from "@clerk/nextjs/server"
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Require doctor authentication
-    const { profile } = await requireAuth("doctor")
+    const { profile } = await requireRole(["doctor", "admin"])
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

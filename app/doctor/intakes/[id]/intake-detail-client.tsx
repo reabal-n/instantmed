@@ -44,6 +44,7 @@ import {
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
@@ -356,6 +357,21 @@ export function IntakeDetailClient({
         setActionMessage({ type: "success", text: "Certificate email resent to patient" })
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to resend certificate" })
+      }
+    })
+  }
+
+  const handleRegenerateCertificate = () => {
+    startTransition(async () => {
+      const result = await regenerateCertificateAction({ 
+        intakeId: intake.id,
+        reason: "Doctor requested regeneration"
+      })
+      if (result.success) {
+        setActionMessage({ type: "success", text: "Certificate regeneration initiated" })
+        router.refresh()
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to regenerate certificate" })
       }
     })
   }
@@ -685,8 +701,8 @@ export function IntakeDetailClient({
             {/* For repeat scripts - approve then mark sent externally */}
             {(service?.type === "repeat_rx" || service?.type === "common_scripts") && intake.status === "paid" && (
               <Button onClick={() => handleStatusChange("awaiting_script")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approve Script
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {isPending ? "Approving..." : "Approve Script"}
               </Button>
             )}
 
@@ -701,16 +717,16 @@ export function IntakeDetailClient({
             {/* For consults - approve after call with notes */}
             {service?.type === "consults" && intake.status === "paid" && (
               <Button onClick={() => handleStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete Consultation
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {isPending ? "Completing..." : "Complete Consultation"}
               </Button>
             )}
 
             {/* Generic approve for other services */}
             {!["med_certs", "repeat_rx", "common_scripts", "consults"].includes(service?.type || "") && intake.status === "paid" && (
               <Button onClick={() => handleStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approve
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {isPending ? "Approving..." : "Approve"}
               </Button>
             )}
 
@@ -733,10 +749,21 @@ export function IntakeDetailClient({
             {/* Resend Certificate - show for approved med certs */}
             {["approved", "completed"].includes(intake.status) && 
              (intake.category === "medical_certificate" || intake.category === "med_certs") && (
-              <Button variant="outline" onClick={handleResendCertificate} disabled={isPending}>
-                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
-                Resend Certificate
-              </Button>
+              <>
+                <Button variant="outline" onClick={handleResendCertificate} disabled={isPending}>
+                  {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
+                  Resend Certificate
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleRegenerateCertificate} 
+                  disabled={isPending}
+                  className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/20"
+                >
+                  {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
+                  Regenerate Certificate
+                </Button>
+              </>
             )}
           </div>
         </CardContent>
@@ -776,7 +803,14 @@ export function IntakeDetailClient({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDecline} disabled={!declineReason.trim() || isPending} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault()
+                handleDecline()
+              }} 
+              disabled={!declineReason.trim() || isPending} 
+              className="bg-destructive hover:bg-destructive/90"
+            >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Decline Request
             </AlertDialogAction>

@@ -204,19 +204,39 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (updateError) {
-          log.error("Failed to link guest profile to Clerk user", { 
-            userId, 
-            guestProfileId: guestProfile.id,
-            errorCode: updateError.code,
-            errorMessage: updateError.message,
-            errorDetails: updateError.details,
-            errorHint: updateError.hint,
-          }, updateError)
-          return NextResponse.redirect(`${origin}/sign-in?error=profile_link_failed`)
+          // Check if this is a unique constraint violation (webhook might have won the race)
+          if (updateError.code === '23505') {
+            log.info("Profile link failed due to unique constraint - checking if webhook linked it", { userId })
+            
+            // Try to fetch the profile that was linked by the webhook
+            const { data: webhookLinkedProfile } = await serviceClient
+              .from("profiles")
+              .select("id, role, onboarding_completed")
+              .eq("clerk_user_id", userId)
+              .maybeSingle()
+            
+            if (webhookLinkedProfile) {
+              profile = webhookLinkedProfile
+              log.info("Using webhook-linked profile", { profileId: profile.id })
+            } else {
+              log.error("Unique constraint violation but no profile found", { userId })
+              return NextResponse.redirect(`${origin}/sign-in?error=profile_link_failed`)
+            }
+          } else {
+            log.error("Failed to link guest profile to Clerk user", { 
+              userId, 
+              guestProfileId: guestProfile.id,
+              errorCode: updateError.code,
+              errorMessage: updateError.message,
+              errorDetails: updateError.details,
+              errorHint: updateError.hint,
+            }, updateError)
+            return NextResponse.redirect(`${origin}/sign-in?error=profile_link_failed`)
+          }
+        } else {
+          profile = updatedProfile
+          log.info("Linked guest profile to Clerk user", { userId, profileId: profile?.id })
         }
-
-        profile = updatedProfile
-        log.info("Linked guest profile to Clerk user", { userId, profileId: profile?.id })
       } else {
         // No existing profile at all - create new one
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]

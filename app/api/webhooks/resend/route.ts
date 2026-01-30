@@ -247,9 +247,9 @@ export async function POST(request: NextRequest) {
     // Idempotency check: prevent processing same event twice
     const eventKey = `${data.email_id}:${eventType}`
     const { data: existingEvent } = await supabase
-      .from("email_logs")
+      .from("email_outbox")
       .select("metadata")
-      .eq("resend_id", data.email_id)
+      .eq("provider_message_id", data.email_id)
       .maybeSingle()
 
     if (existingEvent?.metadata?.processed_events?.includes(eventKey)) {
@@ -257,11 +257,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true })
     }
 
-    // Find email log by resend_id
+    // Find email log by provider_message_id
     const { data: emailLog, error: findError } = await supabase
-      .from("email_logs")
+      .from("email_outbox")
       .select("id, status, delivery_status")
-      .eq("resend_id", data.email_id)
+      .eq("provider_message_id", data.email_id)
       .maybeSingle()
 
     if (findError) {
@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
 
     // Get current metadata to merge with updates
     const { data: currentLog } = await supabase
-      .from("email_logs")
+      .from("email_outbox")
       .select("metadata")
       .eq("id", emailLog.id)
       .single()
@@ -310,7 +310,7 @@ export async function POST(request: NextRequest) {
     // Add bounce info to metadata if bounced
     if (eventType === "email.bounced" && data.bounce) {
       (updates.metadata as Record<string, unknown>).bounce = data.bounce
-      updates.last_error = data.bounce.message
+      updates.error_message = data.bounce.message
 
       // P1: Flag patient profile with delivery failure
       await flagPatientEmailBounce(supabase, data.to?.[0], data.bounce.message, data.bounce.type)
@@ -321,9 +321,9 @@ export async function POST(request: NextRequest) {
       await resetPatientEmailBounce(supabase, data.to?.[0])
     }
 
-    // Update email log
+    // Update email outbox
     const { error: updateError } = await supabase
-      .from("email_logs")
+      .from("email_outbox")
       .update(updates)
       .eq("id", emailLog.id)
 

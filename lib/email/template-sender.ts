@@ -124,16 +124,18 @@ async function logEmailSend(params: {
   const supabase = getServiceClient()
 
   try {
-    await supabase.from("email_logs").insert({
-      template_type: params.templateSlug,
-      recipient_email: params.recipient,
-      request_id: params.intakeId,
+    await supabase.from("email_outbox").insert({
+      email_type: params.templateSlug,
+      to_email: params.recipient,
+      intake_id: params.intakeId,
+      patient_id: params.patientId,
       subject: params.subject,
+      status: params.success ? 'sent' : 'failed',
+      provider_message_id: params.resendId,
+      sent_at: params.success ? new Date().toISOString() : null,
+      error_message: params.error,
       metadata: {
-        patient_id: params.patientId,
-        resend_id: params.resendId,
         sent: params.success,
-        error: params.error,
       },
     })
   } catch (error) {
