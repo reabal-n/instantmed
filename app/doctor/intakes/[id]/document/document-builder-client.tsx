@@ -21,7 +21,7 @@ import {
   Heart,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
+import { saveMedCertDraftAction } from "./actions"
 
 interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
@@ -63,7 +63,7 @@ export function DocumentBuilderClient({
   hasCredentials,
 }: DocumentBuilderClientProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -113,39 +113,47 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
-    // DEBUG: Verify click handler is called
-    console.log("APPROVE_CLICK", { intakeId: intake.id, draftId: draft.id })
-    
     setIsGenerating(true)
-    startTransition(async () => {
-      try {
-        const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
-        if (result.success) {
-          // Show different message based on email status
-          if (result.emailStatus === "failed") {
-            setActionMessage({ 
-              type: "success", 
-              text: "Certificate issued. Email failed (will retry automatically)." 
-            })
-          } else if (result.emailStatus === "pending") {
-            setActionMessage({ 
-              type: "success", 
-              text: "Certificate issued. Email sending..." 
-            })
-          } else {
-            setActionMessage({ 
-              type: "success", 
-              text: "Certificate issued and sent to patient." 
-            })
-          }
-          setTimeout(() => router.push("/doctor/queue"), 2500)
+    setActionMessage(null)
+    
+    try {
+      // Use stable API route instead of Server Action to avoid action ID mismatch after deployments
+      const response = await fetch(`/api/intakes/${intake.id}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftId: draft.id }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Show different message based on email status
+        if (result.emailStatus === "failed") {
+          setActionMessage({ 
+            type: "success", 
+            text: "Certificate issued. Email failed (will retry automatically)." 
+          })
+        } else if (result.emailStatus === "pending") {
+          setActionMessage({ 
+            type: "success", 
+            text: "Certificate issued. Email sending..." 
+          })
         } else {
-          setActionMessage({ type: "error", text: result.error || "Failed to generate certificate" })
+          setActionMessage({ 
+            type: "success", 
+            text: "Certificate issued and sent to patient." 
+          })
         }
-      } finally {
-        setIsGenerating(false)
+        setTimeout(() => router.push("/doctor/queue"), 2500)
+      } else {
+        setActionMessage({ type: "error", text: result.error || "Failed to generate certificate" })
       }
-    })
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Network error. Please try again."
+      setActionMessage({ type: "error", text: errorMsg })
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
