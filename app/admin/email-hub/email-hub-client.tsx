@@ -13,80 +13,61 @@ import {
   Send,
   BarChart3,
   Settings,
-  FileText,
-  Users,
   AlertTriangle,
   CheckCircle,
   Clock,
   TrendingUp,
-  Search,
-  Filter,
-  Download,
   RefreshCw,
   MailOpen,
   MailCheck,
-  Archive,
-  Trash2,
   Plus,
-  Zap,
   Database,
   Activity,
 } from "lucide-react"
-import { toast } from "sonner"
+import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 
-// Quick stats for email hub
-const emailStats = {
-  totalTemplates: 12,
-  activeTemplates: 8,
-  emailsSentToday: 342,
-  emailsSentWeek: 2156,
-  deliveryRate: 98.7,
-  pendingQueue: 23,
-  failedEmails: 5,
+// Email type display names
+const emailTypeLabels: Record<string, string> = {
+  med_cert_patient: "Medical Certificate - Patient",
+  med_cert_employer: "Medical Certificate - Employer",
+  welcome: "Welcome Email",
+  script_sent: "Script Sent",
+  request_declined: "Request Declined",
+  needs_more_info: "Needs More Info",
+  generic: "Generic Email",
 }
 
-// Recent email activity
-const recentActivity = [
-  {
-    id: "1",
-    type: "sent",
-    template: "Medical Certificate - Patient",
-    recipient: "john.smith@email.com",
-    status: "delivered",
-    time: "2 mins ago",
-    intakeId: "req_123456",
-  },
-  {
-    id: "2",
-    type: "failed",
-    template: "Welcome Email",
-    recipient: "sarah.jones@email.com",
-    status: "failed",
-    time: "5 mins ago",
-    error: "Invalid email address",
-  },
-  {
-    id: "3",
-    type: "sent",
-    template: "Medical Certificate - Employer",
-    recipient: "hr@company.com",
-    status: "pending",
-    time: "8 mins ago",
-    intakeId: "req_123457",
-  },
-  {
-    id: "4",
-    type: "sent",
-    template: "Script Sent",
-    recipient: "mike.wilson@email.com",
-    status: "delivered",
-    time: "15 mins ago",
-    intakeId: "req_123458",
-  },
-]
+// Format relative time
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
 
-export function EmailHubClient() {
+  if (diffMins < 1) return "just now"
+  if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`
+  return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`
+}
+
+// Sanitize email for display
+function sanitizeEmail(email: string): string {
+  const [local, domain] = email.split("@")
+  if (!domain) return email
+  return `${local.slice(0, 3)}***@${domain}`
+}
+
+interface EmailHubClientProps {
+  initialStats: EmailStats
+  initialActivity: RecentEmailActivity[]
+}
+
+export function EmailHubClient({ initialStats, initialActivity }: EmailHubClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [stats] = useState(initialStats)
+  const [activity] = useState(initialActivity)
 
   return (
     <div className="space-y-6">
@@ -132,7 +113,7 @@ export function EmailHubClient() {
                 <Send className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{emailStats.emailsSentToday.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{stats.emailsSentToday.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   +12% from yesterday
                 </p>
@@ -144,7 +125,7 @@ export function EmailHubClient() {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{emailStats.deliveryRate}%</div>
+                <div className="text-2xl font-bold">{stats.deliveryRate}%</div>
                 <p className="text-xs text-muted-foreground">
                   -0.3% from last week
                 </p>
@@ -156,7 +137,7 @@ export function EmailHubClient() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{emailStats.pendingQueue}</div>
+                <div className="text-2xl font-bold">{stats.pendingEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   8 critical
                 </p>
@@ -168,7 +149,7 @@ export function EmailHubClient() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{emailStats.failedEmails}</div>
+                <div className="text-2xl font-bold">{stats.failedEmails}</div>
                 <p className="text-xs text-muted-foreground">
                   Requires attention
                 </p>
@@ -192,7 +173,7 @@ export function EmailHubClient() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {emailStats.activeTemplates} of {emailStats.totalTemplates} active
+                      8 of 12 active
                     </span>
                     <Badge variant="secondary">Manage</Badge>
                   </div>
@@ -236,7 +217,7 @@ export function EmailHubClient() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {emailStats.pendingQueue} pending
+                      {stats.pendingEmails} pending
                     </span>
                     <Badge variant="secondary">Monitor</Badge>
                   </div>
@@ -258,7 +239,7 @@ export function EmailHubClient() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {emailStats.emailsSentWeek} sent this week
+                      {stats.emailsSentWeek.toLocaleString()} sent this week
                     </span>
                     <Badge variant="secondary">Analyze</Badge>
                   </div>
@@ -324,51 +305,55 @@ export function EmailHubClient() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${
-                        activity.status === 'delivered' ? 'bg-green-100' :
-                        activity.status === 'failed' ? 'bg-red-100' :
-                        'bg-yellow-100'
-                      }`}>
-                        {activity.status === 'delivered' ? (
-                          <MailCheck className="h-4 w-4 text-green-600" />
-                        ) : activity.status === 'failed' ? (
-                          <AlertTriangle className="h-4 w-4 text-red-600" />
-                        ) : (
-                          <Clock className="h-4 w-4 text-yellow-600" />
-                        )}
+                {activity.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No recent email activity</p>
+                ) : (
+                  activity.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${
+                          item.status === 'sent' ? 'bg-green-100' :
+                          item.status === 'failed' ? 'bg-red-100' :
+                          'bg-yellow-100'
+                        }`}>
+                          {item.status === 'sent' || item.status === 'skipped_e2e' ? (
+                            <MailCheck className="h-4 w-4 text-green-600" />
+                          ) : item.status === 'failed' ? (
+                            <AlertTriangle className="h-4 w-4 text-red-600" />
+                          ) : (
+                            <Clock className="h-4 w-4 text-yellow-600" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {sanitizeEmail(item.toEmail)} • {formatRelativeTime(item.createdAt)}
+                          </p>
+                          {item.errorMessage && (
+                            <p className="text-xs text-red-600 mt-1">{item.errorMessage}</p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{activity.template}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {activity.recipient} • {activity.time}
-                        </p>
-                        {activity.error && (
-                          <p className="text-xs text-red-600 mt-1">{activity.error}</p>
+                      <div className="flex items-center gap-2">
+                        {item.intakeId && (
+                          <Badge variant="outline" className="text-xs">
+                            {item.intakeId.slice(0, 8)}...
+                          </Badge>
                         )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {activity.intakeId && (
-                        <Badge variant="outline" className="text-xs">
-                          {activity.intakeId}
+                        <Badge 
+                          variant={
+                            item.status === 'sent' || item.status === 'skipped_e2e' ? 'default' :
+                            item.status === 'failed' ? 'destructive' :
+                            'secondary'
+                          }
+                          className="text-xs"
+                        >
+                          {item.status === 'skipped_e2e' ? 'sent (test)' : item.status}
                         </Badge>
-                      )}
-                      <Badge 
-                        variant={
-                          activity.status === 'delivered' ? 'default' :
-                          activity.status === 'failed' ? 'destructive' :
-                          'secondary'
-                        }
-                        className="text-xs"
-                      >
-                        {activity.status}
-                      </Badge>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <div className="mt-4 pt-4 border-t">
                 <Button variant="outline" size="sm" className="w-full">

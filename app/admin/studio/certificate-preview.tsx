@@ -2,7 +2,6 @@
 
 import { useMemo } from "react"
 import Image from "next/image"
-import { QRCodeSVG } from "qrcode.react"
 import { cn } from "@/lib/utils"
 import type { 
   TemplateConfig, 
@@ -227,28 +226,29 @@ export function CertificatePreview({
             </div>
           )}
 
-          {/* Doctor Signature */}
+          {/* Doctor Details & Signature */}
           <div className="mt-6 pt-4 border-t" style={{ borderColor: colors.border }}>
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="font-semibold" style={{ color: colors.primary }}>
-                  {SAMPLE_DATA.doctorName}
-                </p>
-                <p className="text-xs text-gray-500">MBBS, FRACGP</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Provider No: {SAMPLE_DATA.doctorProviderNumber}
-                </p>
-                <p className="text-xs text-gray-500">
-                  AHPRA: {SAMPLE_DATA.doctorAhpra}
-                </p>
-              </div>
-              
+            <div>
+              <p className="font-semibold" style={{ color: colors.primary }}>
+                {SAMPLE_DATA.doctorName}
+              </p>
+              <p className="text-xs text-gray-500">MBBS, FRACGP</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Provider No: {SAMPLE_DATA.doctorProviderNumber}
+              </p>
+              <p className="text-xs text-gray-500">
+                AHPRA: {SAMPLE_DATA.doctorAhpra}
+              </p>
+            </div>
+            
+            {/* Signature below doctor details */}
+            <div className="mt-3">
               {options.signatureStyle === "image" ? (
-                <div className="w-24 h-12 border-b-2 border-gray-400 flex items-end justify-center pb-1">
+                <div className="w-32 h-12 border-b-2 border-gray-400 flex items-end justify-start pb-1">
                   <span className="text-gray-400 italic text-xs">[Signature]</span>
                 </div>
               ) : (
-                <div className="text-right">
+                <div>
                   <p className="font-medium italic" style={{ color: colors.primary }}>
                     {SAMPLE_DATA.doctorName}
                   </p>
@@ -257,14 +257,21 @@ export function CertificatePreview({
               )}
             </div>
           </div>
+
+          {/* Verification Disclaimer */}
+          <div className="mt-4 pt-3 border-t border-dashed" style={{ borderColor: colors.border }}>
+            <p className="text-[9px] text-gray-400 text-center">
+              To verify this certificate, visit instantmed.com.au/verify and enter certificate number {SAMPLE_DATA.certificateNumber}
+            </p>
+          </div>
         </div>
 
-        {/* Seal */}
+        {/* Seal - bottom right */}
         {showSeal && (
           <div 
             className="absolute opacity-60"
             style={{ 
-              bottom: options.showVerificationBlock ? 80 : 16,
+              bottom: 16,
               right: 16,
               width: sealSize * 0.6,
               height: sealSize * 0.6,
@@ -277,28 +284,6 @@ export function CertificatePreview({
               height={sealSize}
               className="w-full h-full"
             />
-          </div>
-        )}
-
-        {/* Verification Block */}
-        {options.showVerificationBlock && (
-          <div 
-            className="absolute bottom-4 right-4 flex items-center gap-3 p-3 rounded-lg"
-            style={{ 
-              backgroundColor: `${colors.primary}08`,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <QRCodeSVG 
-              value={`https://instantmed.com.au/verify/${SAMPLE_DATA.certificateNumber}`}
-              size={48}
-              level="M"
-              fgColor={colors.primary}
-            />
-            <div className="text-xs">
-              <p className="font-medium" style={{ color: colors.primary }}>Verify Online</p>
-              <p className="text-gray-500">instantmed.com.au/verify</p>
-            </div>
           </div>
         )}
       </div>

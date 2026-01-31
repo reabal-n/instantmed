@@ -646,23 +646,6 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">
-                          Verification Block
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          Show certificate ID and QR code
-                        </p>
-                      </div>
-                      <Switch
-                        checked={templateConfig.options.showVerificationBlock}
-                        onCheckedChange={(checked) =>
-                          updateOptionsConfig("showVerificationBlock", checked)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">Show ABN</Label>
                       <Switch
                         checked={templateConfig.options.showAbn}

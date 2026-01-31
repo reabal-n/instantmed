@@ -119,7 +119,7 @@ function DialogContent({
       )}
       {...props}
     >
-      {children}
+      {(_onClose) => children as React.ReactNode}
     </ModalContent>
   )
 }

@@ -645,17 +645,7 @@ export function MedCertPdfDocumentV2({
         <View style={styles.doctorSection}>
           <View style={styles.doctorRow}>
             <View style={styles.doctorBlock}>
-              {/* Signature */}
-              <View style={styles.signatureContainer}>
-                {options.signatureStyle === "image" && data.doctorSignatureUrl ? (
-                   
-                  <Image src={data.doctorSignatureUrl} style={styles.signatureImage} />
-                ) : (
-                  <Text style={styles.signatureTyped}>Electronically signed</Text>
-                )}
-              </View>
-              
-              {/* Doctor details */}
+              {/* Doctor details first */}
               <Text style={styles.doctorName}>{doctorDisplayName}</Text>
               <Text style={styles.doctorDetail}>
                 Provider No: {data.doctorProviderNumber}
@@ -663,11 +653,20 @@ export function MedCertPdfDocumentV2({
               <Text style={styles.doctorDetail}>
                 AHPRA: {data.doctorAhpraNumber}
               </Text>
-              {options.signatureStyle !== "image" || !data.doctorSignatureUrl ? (
-                <Text style={[styles.doctorDetail, { marginTop: 4 }]}>
-                  Signed: {formatTimestamp(data.generatedAt)}
-                </Text>
-              ) : null}
+              
+              {/* Signature below doctor details */}
+              <View style={[styles.signatureContainer, { marginTop: 8 }]}>
+                {options.signatureStyle === "image" && data.doctorSignatureUrl ? (
+                  <Image src={data.doctorSignatureUrl} style={styles.signatureImage} />
+                ) : (
+                  <>
+                    <Text style={styles.signatureTyped}>Electronically signed</Text>
+                    <Text style={[styles.doctorDetail, { marginTop: 4 }]}>
+                      Signed: {formatTimestamp(data.generatedAt)}
+                    </Text>
+                  </>
+                )}
+              </View>
             </View>
             
             <View style={[styles.doctorBlock, styles.issueDateBlock]}>
@@ -690,21 +689,16 @@ export function MedCertPdfDocumentV2({
         {/* FOOTER */}
         {/* ================================================================ */}
         <View style={styles.footer} fixed>
-          {options.showVerificationBlock && (
-            <View style={styles.verificationBlock}>
-              <Text style={styles.verificationLabel}>Verification Code</Text>
-              <Text style={styles.verificationCode}>{data.verificationCode}</Text>
-              <Text style={styles.verificationUrl}>
-                Verify at: instantmed.com.au/verify
-              </Text>
-            </View>
-          )}
-          
           {clinicIdentity.footer_disclaimer && (
             <Text style={styles.disclaimer}>
               {clinicIdentity.footer_disclaimer}
             </Text>
           )}
+          
+          {/* Verification disclaimer */}
+          <Text style={[styles.disclaimer, { marginTop: 4, fontSize: 7, color: "#9ca3af" }]}>
+            To verify this certificate, visit instantmed.com.au/verify and enter certificate number {data.certificateNumber}
+          </Text>
         </View>
       </Page>
     </Document>

@@ -148,7 +148,7 @@ function SheetContent({
       )}
       {...props}
     >
-      {children}
+      {(_onClose) => children as React.ReactNode}
     </ModalContent>
   )
 }

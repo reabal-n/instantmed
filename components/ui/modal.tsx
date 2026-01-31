@@ -101,8 +101,12 @@ function ModalContent({
       className={cn("bg-background border border-default-100", className)}
       {...props}
     >
-      {children as React.ReactNode}
-      {showClose && <ModalClose />}
+      {(_onClose) => (
+        <>
+          {children}
+          {showClose && <ModalClose />}
+        </>
+      )}
     </HeroModalContent>
   )
 }

@@ -487,14 +487,6 @@ export function TemplateStudioClient({ initialTemplates, adminName: _adminName }
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Show Verification QR</Label>
-                  <Switch
-                    checked={config.options.showVerificationBlock}
-                    onCheckedChange={(checked) => updateOptions("showVerificationBlock", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
                   <Label className="text-sm">Signature Style</Label>
                   <div className="flex gap-1">
                     {(["image", "typed"] as SignatureStyle[]).map((style) => (

@@ -79,7 +79,7 @@ function AlertDialogContent({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof ModalContent>) {
+}: React.ComponentProps<typeof ModalContent> & { children?: React.ReactNode }) {
   return (
     <ModalContent
       className={cn(
@@ -93,7 +93,7 @@ function AlertDialogContent({
       )}
       {...props}
     >
-      {children}
+      {(_onClose) => children as React.ReactNode}
     </ModalContent>
   )
 }
