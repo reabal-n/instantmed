@@ -11,7 +11,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { renderEmailToHtml } from "./render-template"
+import { renderEmailToHtml } from "./react-renderer-server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"

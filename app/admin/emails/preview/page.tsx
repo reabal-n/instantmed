@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { EmailPreviewClient } from "./email-preview-client"
+import { EmailPreviewReactClient } from "./email-preview-react-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export const metadata = {
@@ -18,7 +18,7 @@ export default function EmailPreviewPage() {
       </div>
       
       <Suspense fallback={<Skeleton className="h-[600px] rounded-lg" />}>
-        <EmailPreviewClient />
+        <EmailPreviewReactClient />
       </Suspense>
     </div>
   )

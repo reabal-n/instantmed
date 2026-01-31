@@ -8,7 +8,7 @@
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import * as React from "react"
-import { renderEmailToHtml } from "@/lib/email/render-template"
+import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 
 import { WelcomeEmail } from "@/components/email/templates/welcome"
 import { MedCertPatientEmail } from "@/components/email/templates/med-cert-patient"

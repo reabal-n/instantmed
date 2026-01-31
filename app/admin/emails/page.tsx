@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { EmailTemplatesClient } from "./emails-client"
+import { EmailTemplateEditorClient } from "./edit/email-template-editor-client"
 import { getAllEmailTemplatesAction } from "@/app/actions/admin-config"
 
 export const dynamic = "force-dynamic"
@@ -18,5 +18,5 @@ export default async function EmailTemplatesPage() {
 
   const templates = await getAllEmailTemplatesAction().catch(() => [])
 
-  return <EmailTemplatesClient initialTemplates={templates} />
+  return <EmailTemplateEditorClient initialTemplates={templates} />
 }
