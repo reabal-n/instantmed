@@ -127,6 +127,7 @@ function Button({
 
   const buttonContent = (
     <HeroButton
+      type={type || "button"}
       variant={variantMap[variant]}
       color={colorMap[variant]}
       size={heroSize}
