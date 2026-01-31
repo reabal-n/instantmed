@@ -257,10 +257,10 @@ instantmed/
 #### 🔧 **Environment Variables Analysis**
 ```bash
 # Security - Properly Configured ✅
-INTERNAL_API_SECRET=fe5d035baae4d98d5dbb521347768178196f70cfeedbde7bcfca94dcc1162e3c
-POSTGRES_PASSWORD=Sabyleelo2314!
-RESEND_API_KEY=re_j4JefCbR_KkogtdnzeYbKo93GDbvb2MSY
-STRIPE_SECRET_KEY=sk_live_51SbzC5EQlW1XRiLn1dHhSycSS0yceW6SB8UqSWgIXWRtH5huzKczBbWdld4clxG8Zvi
+INTERNAL_API_SECRET=***REDACTED***
+POSTGRES_PASSWORD=***REDACTED***
+RESEND_API_KEY=***REDACTED***
+STRIPE_SECRET_KEY=***REDACTED***
 
 # Public Keys - Appropriately Exposed ✅  
 NEXT_PUBLIC_APP_URL=http://localhost:3000
