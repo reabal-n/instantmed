@@ -113,6 +113,9 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
+    // DIAGNOSTIC: Confirm handler is called
+    alert("DEBUG: handleGenerateAndApprove called - intake.id=" + intake.id)
+    
     setIsGenerating(true)
     setActionMessage(null)
     
