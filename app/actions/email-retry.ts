@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { sendViaResend } from "@/lib/email/resend"
+import { sendFromOutboxRow, claimOutboxRow, type OutboxRow } from "@/lib/email/send-email"
 import { renderMedCertEmailToHtml } from "@/components/email/med-cert-email"
 import { env } from "@/lib/env"
 import {
@@ -202,6 +203,100 @@ export async function getRecentEmailAttempts(limit: number = 20) {
       success: false,
       error: error instanceof Error ? error.message : "Failed to load",
       emails: [],
+    }
+  }
+}
+
+/**
+ * Retry sending an email from email_outbox (for dispatcher/admin use).
+ * Uses atomic claim to prevent duplicate sends if cron is running simultaneously.
+ * 
+ * CONCURRENCY SAFETY:
+ * - Uses claimOutboxRow() to atomically claim before sending
+ * - If cron already claimed this row, admin resend will fail gracefully
+ */
+export async function retryOutboxEmail(
+  outboxId: string,
+  sendImmediately: boolean = true
+): Promise<RetryResult> {
+  try {
+    await requireAdminRole()
+
+    const supabase = createServiceRoleClient()
+
+    // Fetch the outbox row to validate before claiming
+    const { data: row, error: fetchError } = await supabase
+      .from("email_outbox")
+      .select("*")
+      .eq("id", outboxId)
+      .single()
+
+    if (fetchError || !row) {
+      return { success: false, error: "Email not found in outbox" }
+    }
+
+    // Must be in failed or pending status to retry
+    if (!["failed", "pending"].includes(row.status)) {
+      return { success: false, error: `Cannot retry email with status '${row.status}'` }
+    }
+
+    // Check max retries
+    if (row.retry_count >= 10) {
+      return { success: false, error: "Maximum retry attempts reached (10)" }
+    }
+
+    // Validate med_cert_patient has certificate_id
+    if (row.email_type === "med_cert_patient" && !row.certificate_id) {
+      return { success: false, error: "Cannot retry: missing certificate_id for reconstruction" }
+    }
+
+    if (sendImmediately) {
+      // CONCURRENCY SAFETY: Atomically claim the row before sending
+      // This prevents duplicate sends if cron is running at the same time
+      const claim = await claimOutboxRow(outboxId)
+      if (!claim.claimed) {
+        return { success: false, error: "Email is already being processed by another job" }
+      }
+
+      log.info("Admin triggering immediate email retry", { outboxId, retryCount: row.retry_count })
+      
+      const result = await sendFromOutboxRow(claim.row as OutboxRow)
+      
+      revalidatePath("/doctor/admin/email-outbox")
+      revalidatePath("/admin/ops/email-outbox")
+      
+      if (result.success) {
+        return { success: true }
+      } else {
+        return { success: false, error: result.error || "Send failed" }
+      }
+    } else {
+      // Just reset to pending for the dispatcher to pick up
+      const { error: updateError } = await supabase
+        .from("email_outbox")
+        .update({
+          status: "pending",
+          last_attempt_at: new Date().toISOString(),
+          error_message: null,
+        })
+        .eq("id", outboxId)
+
+      if (updateError) {
+        return { success: false, error: updateError.message }
+      }
+
+      log.info("Email reset to pending for dispatcher", { outboxId })
+      
+      revalidatePath("/doctor/admin/email-outbox")
+      revalidatePath("/admin/ops/email-outbox")
+      
+      return { success: true }
+    }
+  } catch (error) {
+    log.error("Retry outbox email error", {}, error instanceof Error ? error : undefined)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Retry failed",
     }
   }
 }

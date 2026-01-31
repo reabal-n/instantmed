@@ -116,7 +116,23 @@ export function DocumentBuilderClient({
       try {
         const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
         if (result.success) {
-          setActionMessage({ type: "success", text: "Certificate generated and sent to patient!" })
+          // Show different message based on email status
+          if (result.emailStatus === "failed") {
+            setActionMessage({ 
+              type: "success", 
+              text: "Certificate issued. Email failed (will retry automatically)." 
+            })
+          } else if (result.emailStatus === "pending") {
+            setActionMessage({ 
+              type: "success", 
+              text: "Certificate issued. Email sending..." 
+            })
+          } else {
+            setActionMessage({ 
+              type: "success", 
+              text: "Certificate issued and sent to patient." 
+            })
+          }
           setTimeout(() => router.push("/doctor/queue"), 2500)
         } else {
           setActionMessage({ type: "error", text: result.error || "Failed to generate certificate" })

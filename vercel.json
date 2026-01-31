@@ -40,6 +40,10 @@
     {
       "path": "/api/cron/release-stale-claims",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/email-dispatcher",
+      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [

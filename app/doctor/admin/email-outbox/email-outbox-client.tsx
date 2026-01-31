@@ -18,7 +18,10 @@ import {
   Clock,
   TestTube,
   ArrowLeft,
+  RefreshCw,
+  Loader2,
 } from "lucide-react"
+import { retryOutboxEmail } from "@/app/actions/email-retry"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -263,11 +266,15 @@ function Filters({
 function DetailModal({
   row,
   onClose,
+  onRetrySuccess,
 }: {
   row: EmailOutboxRow | null
   onClose: () => void
+  onRetrySuccess?: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [retryResult, setRetryResult] = useState<{ success: boolean; error?: string } | null>(null)
 
   if (!row) return null
 
@@ -276,6 +283,23 @@ function DetailModal({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const handleRetry = async () => {
+    setIsRetrying(true)
+    setRetryResult(null)
+    try {
+      const result = await retryOutboxEmail(row.id, true)
+      setRetryResult(result)
+      if (result.success) {
+        onRetrySuccess?.()
+        setTimeout(() => onClose(), 1500)
+      }
+    } finally {
+      setIsRetrying(false)
+    }
+  }
+
+  const canRetry = row.status === "failed" && (row.retry_count ?? 0) < 10
 
   return (
     <Dialog open={!!row} onOpenChange={() => onClose()}>
@@ -299,7 +323,36 @@ function DetailModal({
                 Sent: {formatDate(row.sent_at)}
               </span>
             )}
+            {row.retry_count !== undefined && row.retry_count > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Attempts: {row.retry_count}
+              </span>
+            )}
           </div>
+
+          {/* Retry Button for Failed Emails */}
+          {canRetry && (
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleRetry}
+                disabled={isRetrying}
+                variant="outline"
+                className="gap-2"
+              >
+                {isRetrying ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                {isRetrying ? "Sending..." : "Resend Now"}
+              </Button>
+              {retryResult && (
+                <span className={retryResult.success ? "text-emerald-600 text-sm" : "text-red-600 text-sm"}>
+                  {retryResult.success ? "Sent successfully!" : retryResult.error}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Core Fields */}
           <Card>
@@ -620,7 +673,11 @@ export function EmailOutboxClient({
       </Card>
 
       {/* Detail Modal */}
-      <DetailModal row={selectedRow} onClose={() => setSelectedRow(null)} />
+      <DetailModal 
+        row={selectedRow} 
+        onClose={() => setSelectedRow(null)}
+        onRetrySuccess={() => router.refresh()}
+      />
     </div>
   )
 }

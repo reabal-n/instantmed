@@ -110,7 +110,7 @@ function sanitizeEmailForLog(email: string): string {
 }
 
 // ============================================
-// OUTBOX LOGGING
+// OUTBOX LOGGING (Two-Phase Write)
 // ============================================
 
 interface OutboxEntry {
@@ -127,8 +127,138 @@ interface OutboxEntry {
   certificate_id?: string
   metadata?: Record<string, unknown>
   sent_at?: string
+  last_attempt_at?: string
+  retry_count?: number
 }
 
+/**
+ * Create a pending outbox row BEFORE attempting to send.
+ * This ensures we have a record even if the process crashes mid-send.
+ * Does NOT store email body - dispatcher will reconstruct from intake/certificate data.
+ */
+async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<string | null> {
+  try {
+    const supabase = createServiceRoleClient()
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .insert({
+        email_type: entry.email_type,
+        to_email: entry.to_email,
+        to_name: entry.to_name,
+        subject: entry.subject,
+        status: "pending",
+        provider: entry.provider,
+        intake_id: entry.intake_id,
+        patient_id: entry.patient_id,
+        certificate_id: entry.certificate_id,
+        metadata: entry.metadata || {},
+        last_attempt_at: new Date().toISOString(),
+        retry_count: 0,
+      })
+      .select("id")
+      .single()
+
+    if (error) {
+      logger.error("[Email] Failed to create pending outbox", { error: error.message })
+      return null
+    }
+    return data?.id || null
+  } catch (err) {
+    logger.error("[Email] Pending outbox error", { error: err })
+    return null
+  }
+}
+
+/**
+ * Atomically claim an outbox row for processing.
+ * Uses UPDATE with WHERE to prevent duplicate processing by concurrent dispatchers.
+ * 
+ * CONCURRENCY SAFETY:
+ * - Only one process can successfully claim a row (atomic UPDATE)
+ * - If another cron/admin already claimed it, this returns false
+ * - Row is set to 'sending' status during processing
+ * 
+ * Returns: { claimed: true, row } if successfully claimed, { claimed: false } otherwise
+ */
+export async function claimOutboxRow(outboxId: string): Promise<{
+  claimed: boolean
+  row?: OutboxRow
+  error?: string
+}> {
+  const supabase = createServiceRoleClient()
+  
+  // Atomic claim: UPDATE only if status is still pending/failed
+  // This prevents race conditions between concurrent dispatchers
+  const { data, error } = await supabase
+    .from("email_outbox")
+    .update({
+      status: "sending",
+      last_attempt_at: new Date().toISOString(),
+    })
+    .in("status", ["pending", "failed"])
+    .eq("id", outboxId)
+    .select("*")
+    .single()
+
+  if (error) {
+    // Row was already claimed by another process or doesn't exist
+    if (error.code === "PGRST116") {
+      return { claimed: false, error: "Already claimed or not found" }
+    }
+    logger.warn("[Email] Failed to claim outbox row", { outboxId, error: error.message })
+    return { claimed: false, error: error.message }
+  }
+
+  return { claimed: true, row: data as OutboxRow }
+}
+
+/**
+ * Update an existing outbox row after send attempt.
+ */
+async function updateOutboxStatus(
+  outboxId: string,
+  status: "sent" | "failed" | "skipped_e2e",
+  details: {
+    provider_message_id?: string
+    error_message?: string
+    attempts?: number
+  }
+): Promise<void> {
+  try {
+    const supabase = createServiceRoleClient()
+    const updateData: Record<string, unknown> = {
+      status,
+      last_attempt_at: new Date().toISOString(),
+    }
+    
+    if (status === "sent") {
+      updateData.sent_at = new Date().toISOString()
+      updateData.provider_message_id = details.provider_message_id
+      updateData.error_message = null
+    } else if (status === "failed") {
+      updateData.error_message = details.error_message
+    }
+    
+    if (details.attempts !== undefined) {
+      updateData.retry_count = details.attempts
+    }
+
+    const { error } = await supabase
+      .from("email_outbox")
+      .update(updateData)
+      .eq("id", outboxId)
+
+    if (error) {
+      logger.error("[Email] Failed to update outbox status", { outboxId, error: error.message })
+    }
+  } catch (err) {
+    logger.error("[Email] Outbox update error", { outboxId, error: err })
+  }
+}
+
+/**
+ * Legacy function for immediate status logging (validation failures, E2E mode, dev mode).
+ */
 async function logToOutbox(entry: OutboxEntry): Promise<string | null> {
   try {
     const supabase = createServiceRoleClient()
@@ -148,6 +278,8 @@ async function logToOutbox(entry: OutboxEntry): Promise<string | null> {
         certificate_id: entry.certificate_id,
         metadata: entry.metadata || {},
         sent_at: entry.sent_at,
+        last_attempt_at: entry.last_attempt_at || new Date().toISOString(),
+        retry_count: entry.retry_count || 0,
       })
       .select("id")
       .single()
@@ -314,18 +446,34 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   }
 
   // Build request body
+  const textBody = htmlToPlainText(html)
   const body: Record<string, unknown> = {
     from,
     to: [to],
     subject,
     html,
-    text: htmlToPlainText(html),
+    text: textBody,
     reply_to: replyTo,
     tags: [
       { name: "email_type", value: emailType },
       ...tags,
     ],
   }
+
+  // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
+  // This ensures we have a record for the dispatcher to retry if process crashes
+  // Body is NOT stored - dispatcher reconstructs from intake/certificate data
+  const outboxId = await createPendingOutbox({
+    email_type: emailType,
+    to_email: to,
+    to_name: toName,
+    subject,
+    provider: "resend",
+    intake_id: intakeId,
+    patient_id: patientId,
+    certificate_id: certificateId,
+    metadata,
+  })
 
   // Send with retries
   let lastError: string | undefined
@@ -364,21 +512,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           extra: { error: lastError, statusCode: response.status },
         })
 
-        await logToOutbox({
-          email_type: emailType,
-          to_email: to,
-          to_name: toName,
-          subject,
-          status: "failed",
-          provider: "resend",
-          error_message: lastError,
-          intake_id: intakeId,
-          patient_id: patientId,
-          certificate_id: certificateId,
-          metadata: { ...metadata, attempts: attempt + 1 },
-        })
+        // TWO-PHASE WRITE: Update existing row to failed
+        if (outboxId) {
+          await updateOutboxStatus(outboxId, "failed", {
+            error_message: lastError,
+            attempts: attempt + 1,
+          })
+        }
 
-        return { success: false, error: lastError }
+        return { success: false, error: lastError, outboxId: outboxId || undefined }
       }
 
       // Success!
@@ -389,20 +531,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         attempts: attempt + 1,
       })
 
-      const outboxId = await logToOutbox({
-        email_type: emailType,
-        to_email: to,
-        to_name: toName,
-        subject,
-        status: "sent",
-        provider: "resend",
-        provider_message_id: data.id,
-        intake_id: intakeId,
-        patient_id: patientId,
-        certificate_id: certificateId,
-        metadata: { ...metadata, attempts: attempt + 1 },
-        sent_at: new Date().toISOString(),
-      })
+      // TWO-PHASE WRITE: Update existing row to sent
+      if (outboxId) {
+        await updateOutboxStatus(outboxId, "sent", {
+          provider_message_id: data.id,
+          attempts: attempt + 1,
+        })
+      }
 
       return { success: true, messageId: data.id, outboxId: outboxId || undefined }
 
@@ -417,25 +552,199 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       logger.error("[Email] Network error", { error: lastError, emailType })
       Sentry.captureException(err, { tags: { action: "send_email", email_type: emailType } })
 
-      await logToOutbox({
-        email_type: emailType,
-        to_email: to,
-        to_name: toName,
-        subject,
-        status: "failed",
-        provider: "resend",
-        error_message: lastError,
-        intake_id: intakeId,
-        patient_id: patientId,
-        certificate_id: certificateId,
-        metadata: { ...metadata, attempts: attempt + 1 },
-      })
+      // TWO-PHASE WRITE: Update existing row to failed
+      if (outboxId) {
+        await updateOutboxStatus(outboxId, "failed", {
+          error_message: lastError,
+          attempts: attempt + 1,
+        })
+      }
 
-      return { success: false, error: lastError }
+      return { success: false, error: lastError, outboxId: outboxId || undefined }
     }
   }
 
-  return { success: false, error: lastError || "Max retries exceeded" }
+  // Max retries exceeded - update outbox to failed
+  if (outboxId) {
+    await updateOutboxStatus(outboxId, "failed", {
+      error_message: lastError || "Max retries exceeded",
+      attempts: RETRY_CONFIG.maxRetries + 1,
+    })
+  }
+
+  return { success: false, error: lastError || "Max retries exceeded", outboxId: outboxId || undefined }
+}
+
+// ============================================
+// DISPATCHER: SEND FROM OUTBOX ROW
+// ============================================
+
+export interface OutboxRow {
+  id: string
+  email_type: EmailType
+  to_email: string
+  to_name: string | null
+  subject: string
+  status: string
+  retry_count: number
+  last_attempt_at: string | null
+  intake_id: string | null
+  patient_id: string | null
+  certificate_id: string | null
+  metadata: Record<string, unknown> | null
+}
+
+/**
+ * Reconstruct and send an email from an outbox row (used by dispatcher).
+ * Fetches intake/certificate data to re-render the template.
+ * Updates the row with new status after attempt.
+ */
+export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: boolean; error?: string }> {
+  const apiKey = env.resendApiKey
+  if (!apiKey) {
+    logger.warn("[Email Dispatcher] No API key, skipping", { outboxId: row.id })
+    return { success: false, error: "No API key configured" }
+  }
+
+  // Check suppression
+  const suppressed = await isEmailSuppressed(row.to_email)
+  if (suppressed) {
+    await updateOutboxStatus(row.id, "failed", {
+      error_message: "Email address previously bounced or complained",
+      attempts: row.retry_count + 1,
+    })
+    return { success: false, error: "Email suppressed" }
+  }
+
+  // Reconstruct email content based on email_type
+  let html: string
+  let textBody: string
+  
+  try {
+    const reconstructed = await reconstructEmailContent(row)
+    if (!reconstructed.success) {
+      await updateOutboxStatus(row.id, "failed", {
+        error_message: reconstructed.error || "Failed to reconstruct email",
+        attempts: row.retry_count + 1,
+      })
+      return { success: false, error: reconstructed.error }
+    }
+    html = reconstructed.html!
+    textBody = reconstructed.text || htmlToPlainText(html)
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "Reconstruction failed"
+    logger.error("[Email Dispatcher] Failed to reconstruct email", { outboxId: row.id, error })
+    await updateOutboxStatus(row.id, "failed", {
+      error_message: error,
+      attempts: row.retry_count + 1,
+    })
+    return { success: false, error }
+  }
+
+  // Build request body
+  const body: Record<string, unknown> = {
+    from: env.resendFromEmail,
+    to: [row.to_email],
+    subject: row.subject,
+    html,
+    text: textBody,
+    reply_to: "support@instantmed.com.au",
+    tags: [{ name: "email_type", value: row.email_type }],
+  }
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      const error = data.error?.message || "Failed to send email"
+      logger.error("[Email Dispatcher] Send failed", { outboxId: row.id, error })
+      
+      await updateOutboxStatus(row.id, "failed", {
+        error_message: error,
+        attempts: row.retry_count + 1,
+      })
+      
+      return { success: false, error }
+    }
+
+    logger.info("[Email Dispatcher] Sent successfully", {
+      outboxId: row.id,
+      messageId: data.id,
+    })
+
+    await updateOutboxStatus(row.id, "sent", {
+      provider_message_id: data.id,
+      attempts: row.retry_count + 1,
+    })
+
+    return { success: true }
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "Unknown error"
+    logger.error("[Email Dispatcher] Network error", { outboxId: row.id, error })
+    
+    await updateOutboxStatus(row.id, "failed", {
+      error_message: error,
+      attempts: row.retry_count + 1,
+    })
+    
+    return { success: false, error }
+  }
+}
+
+/**
+ * Reconstruct email HTML from intake/certificate data based on email_type.
+ */
+async function reconstructEmailContent(row: OutboxRow): Promise<{
+  success: boolean
+  html?: string
+  text?: string
+  error?: string
+}> {
+  const supabase = createServiceRoleClient()
+
+  // Handle med_cert_patient emails
+  if (row.email_type === "med_cert_patient" && row.certificate_id) {
+    // Fetch certificate and patient data
+    const { data: cert, error: certError } = await supabase
+      .from("issued_certificates")
+      .select("intake_id, patient_name, verification_code, certificate_type")
+      .eq("id", row.certificate_id)
+      .single()
+
+    if (certError || !cert) {
+      return { success: false, error: "Certificate not found for retry" }
+    }
+
+    // Render the template
+    const { MedCertPatientEmail } = await import("@/components/email/templates")
+    const dashboardUrl = `${env.appUrl}/patient/intakes/${cert.intake_id}`
+    
+    const template = MedCertPatientEmail({
+      patientName: cert.patient_name,
+      dashboardUrl,
+      verificationCode: cert.verification_code,
+      certType: cert.certificate_type as "work" | "study" | "carer",
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // For other email types, we cannot reconstruct without stored template props
+  // Mark as failed with clear reason
+  return { 
+    success: false, 
+    error: `Cannot reconstruct email type '${row.email_type}' - no certificate_id or unsupported type` 
+  }
 }
 
 // ============================================

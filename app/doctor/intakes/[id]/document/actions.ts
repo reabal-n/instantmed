@@ -32,10 +32,17 @@ export async function saveMedCertDraftAction(
   }
 }
 
+export interface ApproveActionResult {
+  success: boolean
+  error?: string
+  emailStatus?: "sent" | "failed" | "pending"
+  certificateId?: string
+}
+
 export async function generateMedCertPdfAndApproveAction(
   intakeId: string,
   _draftId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<ApproveActionResult> {
   try {
     // Require doctor or admin role
     await requireRole(["doctor", "admin"])
@@ -83,7 +90,29 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: result.error || "Failed to generate certificate" }
     }
 
-    return { success: true }
+    // Check email status from email_outbox if we have a certificate ID
+    let emailStatus: "sent" | "failed" | "pending" = "pending"
+    if (result.certificateId) {
+      const { data: outboxRow } = await supabase
+        .from("email_outbox")
+        .select("status")
+        .eq("certificate_id", result.certificateId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      
+      if (outboxRow?.status === "sent" || outboxRow?.status === "skipped_e2e") {
+        emailStatus = "sent"
+      } else if (outboxRow?.status === "failed") {
+        emailStatus = "failed"
+      }
+    }
+
+    return { 
+      success: true, 
+      certificateId: result.certificateId,
+      emailStatus,
+    }
   } catch {
     return { success: false, error: "An unexpected error occurred" }
   }
