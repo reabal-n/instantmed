@@ -139,9 +139,34 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       }
     }
 
-    // No certificate found in issued_certificates
-    logger.warn("Resend certificate admin: certificate not found", { intakeId })
-    return { success: false, error: "Certificate not found for this intake. Please contact support." }
+    // No certificate found in issued_certificates - this is a legacy intake or approval failed mid-way
+    // Check if there's any certificate (including superseded) to provide better context
+    const { data: anyCert } = await supabase
+      .from("issued_certificates")
+      .select("id, status")
+      .eq("intake_id", intakeId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (anyCert) {
+      logger.warn("Resend certificate admin: certificate exists but not valid", { 
+        intakeId, 
+        certificateId: anyCert.id,
+        status: anyCert.status 
+      })
+      return { 
+        success: false, 
+        error: `Certificate exists but has status "${anyCert.status}". Use "Regenerate Certificate" to create a new one.` 
+      }
+    }
+
+    // No certificate at all - likely a legacy intake or approval that failed before certificate creation
+    logger.warn("Resend certificate admin: no certificate record found", { intakeId })
+    return { 
+      success: false, 
+      error: "No certificate exists for this intake. Use \"Regenerate Certificate\" to create one." 
+    }
   } catch (error) {
     logger.error("Resend certificate admin: unexpected error", {
       intakeId,

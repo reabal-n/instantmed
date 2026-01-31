@@ -123,6 +123,7 @@ export async function approveAndSendCert(
     }
 
     // IDEMPOTENCY CHECK: If already approved, return existing certificate
+    // Unless no valid certificate exists (regeneration case where old cert was superseded)
     if (intake.status === "approved") {
       const existingCert = await findExistingCertificate(intakeId)
       if (existingCert) {
@@ -137,26 +138,29 @@ export async function approveAndSendCert(
           isExisting: true,
         }
       }
-    }
-
-    // P0 FIX: Use atomic claim RPC with row locking to prevent race condition
-    // This prevents two doctors from claiming the same intake simultaneously
-    const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
-      p_intake_id: intakeId,
-      p_doctor_id: doctorProfile.id,
-      p_force: false,
-    })
-
-    const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
-    
-    if (claimError || !claim?.success) {
-      const errorMsg = claim?.error_message || claimError?.message || "Failed to claim intake"
-      logger.warn("Failed to claim intake for review", { 
-        intakeId, 
-        claimError: errorMsg,
-        currentClaimant: claim?.current_claimant 
+      // No valid certificate found for approved intake - this is a regeneration case
+      // Skip claim check since intake is already approved and we're regenerating
+      logger.info("Regenerating certificate for approved intake (no valid cert found)", { intakeId })
+    } else {
+      // P0 FIX: Use atomic claim RPC with row locking to prevent race condition
+      // This prevents two doctors from claiming the same intake simultaneously
+      const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
+        p_intake_id: intakeId,
+        p_doctor_id: doctorProfile.id,
+        p_force: false,
       })
-      return { success: false, error: errorMsg }
+
+      const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
+      
+      if (claimError || !claim?.success) {
+        const errorMsg = claim?.error_message || claimError?.message || "Failed to claim intake"
+        logger.warn("Failed to claim intake for review", { 
+          intakeId, 
+          claimError: errorMsg,
+          currentClaimant: claim?.current_claimant 
+        })
+        return { success: false, error: errorMsg }
+      }
     }
 
     // NOTE: We no longer set a transient "processing" status here.

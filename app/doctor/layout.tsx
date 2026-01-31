@@ -35,7 +35,7 @@ export default async function DoctorLayout({
           pendingCount={stats.in_queue}
         />
         <main className="flex-1 min-w-0 lg:ml-0 py-6 px-4 sm:px-6 lg:px-8" data-testid="doctor-main">
-          <div className="mx-auto max-w-7xl" data-testid="dashboard-container">
+          <div className="mx-auto max-w-6xl" data-testid="dashboard-container">
             {children}
           </div>
         </main>

@@ -271,18 +271,30 @@ export function QueueClient({
 
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
+    // For med certs - DO NOT set status here, navigate to document builder
+    // The document builder handles PDF generation + approval atomically
+    if (serviceType === "med_certs") {
+      router.push(`/doctor/intakes/${intakeId}/document`)
+      return
+    }
+
     startTransition(async () => {
       // For prescriptions, set status to awaiting_script (external Parchment entry needed)
-      const newStatus: IntakeStatus = serviceType === "common_scripts" ? "awaiting_script" : "approved"
+      // For other services, set to approved directly
+      const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx" 
+        ? "awaiting_script" 
+        : "approved"
       const result = await updateStatusAction(intakeId, newStatus, doctorId)
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
-        // For med certs, go to document builder; for scripts, go to intake detail
-        if (serviceType === "common_scripts") {
+        // Navigate to intake detail for scripts to mark as sent
+        if (serviceType === "common_scripts" || serviceType === "repeat_rx") {
           router.push(`/doctor/intakes/${intakeId}`)
         } else {
-          router.push(`/doctor/intakes/${intakeId}/document`)
+          toast.success("Request approved")
         }
+      } else {
+        toast.error(result.error || "Failed to approve")
       }
     })
   }
