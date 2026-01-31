@@ -111,6 +111,9 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
+    // DEBUG: Verify click handler is called
+    console.log("APPROVE_CLICK", { intakeId: intake.id, draftId: draft.id })
+    
     setIsGenerating(true)
     startTransition(async () => {
       try {
@@ -281,6 +284,7 @@ export function DocumentBuilderClient({
         </Button>
 
         <Button
+          type="button"
           onClick={handleGenerateAndApprove}
           disabled={isGenerating || isPending || !formData.reason.trim()}
           className="bg-emerald-600 hover:bg-emerald-700"

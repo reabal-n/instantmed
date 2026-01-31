@@ -6,6 +6,7 @@ import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 import { getCurrentProfile } from "@/lib/data/profiles"
+import { logger } from "@/lib/observability/logger"
 
 export async function saveMedCertDraftAction(
   draftId: string,
@@ -41,8 +42,11 @@ export interface ApproveActionResult {
 
 export async function generateMedCertPdfAndApproveAction(
   intakeId: string,
-  _draftId: string
+  draftId: string
 ): Promise<ApproveActionResult> {
+  // DEBUG: Log at entry to prove server action is called
+  logger.info("APPROVE_ACTION_START", { intakeId, draftId })
+  
   try {
     // Require doctor or admin role
     await requireRole(["doctor", "admin"])
@@ -113,7 +117,16 @@ export async function generateMedCertPdfAndApproveAction(
       certificateId: result.certificateId,
       emailStatus,
     }
-  } catch {
-    return { success: false, error: "An unexpected error occurred" }
+  } catch (err) {
+    // DEBUG: Log full error details to identify where flow stops
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    const errorStack = err instanceof Error ? err.stack : undefined
+    logger.error("APPROVE_ACTION_ERROR", { 
+      intakeId, 
+      draftId,
+      error: errorMessage, 
+      stack: errorStack 
+    })
+    return { success: false, error: errorMessage || "An unexpected error occurred" }
   }
 }

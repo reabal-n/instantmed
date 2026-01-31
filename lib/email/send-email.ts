@@ -475,6 +475,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     metadata,
   })
 
+  // DEBUG: Log outbox write result - critical for diagnosing missing outbox rows
+  if (outboxId) {
+    logger.info("OUTBOX_ROW_CREATED", { outboxId, emailType, certificateId, intakeId })
+  } else {
+    logger.error("OUTBOX_ROW_FAILED", { emailType, certificateId, intakeId, to: sanitizeEmailForLog(to) })
+  }
+
   // Send with retries
   let lastError: string | undefined
   

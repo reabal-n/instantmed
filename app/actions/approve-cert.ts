@@ -41,6 +41,9 @@ export async function approveAndSendCert(
   intakeId: string,
   reviewData: CertReviewData
 ): Promise<ApproveCertResult> {
+  // DEBUG: Log at entry to prove core approval is called
+  logger.info("APPROVE_CORE_START", { intakeId })
+  
   try {
     // 1. Authenticate doctor or admin
     const { profile: doctorProfile } = await requireRole(["doctor", "admin"])
@@ -251,7 +254,8 @@ export async function approveAndSendCert(
 
     const pdfBuffer = pdfResult.buffer
     
-    logger.info("PDF generated successfully", { 
+    // DEBUG: Log after PDF render
+    logger.info("APPROVE_CORE_AFTER_PDF", { 
       intakeId, 
       certificateNumber,
       size: pdfBuffer.length 
@@ -293,7 +297,8 @@ export async function approveAndSendCert(
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
 
-    logger.info("PDF stored successfully", { intakeId, certificateNumber, storagePath })
+    // DEBUG: Log after storage upload
+    logger.info("APPROVE_CORE_AFTER_STORAGE", { intakeId, certificateNumber, storagePath })
 
     // 5.6 Get doctor identity for snapshot
     const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
@@ -353,7 +358,8 @@ export async function approveAndSendCert(
       }
     }
 
-    logger.info("Atomic approval completed", {
+    // DEBUG: Log after RPC
+    logger.info("APPROVE_CORE_AFTER_RPC", {
       intakeId,
       certificateId,
       isExisting: atomicResult.isExisting,
@@ -398,7 +404,9 @@ export async function approveAndSendCert(
 
     // 6. Send email notification via centralized sendEmail (NO attachment - patient downloads from dashboard)
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
-    logger.info("Sending certificate ready notification", { intakeId, to: patient.email })
+    
+    // DEBUG: Log before email
+    logger.info("APPROVE_CORE_BEFORE_EMAIL", { intakeId, to: patient.email, certificateId })
     
     const emailResult = await sendEmail({
       to: patient.email,
@@ -424,6 +432,15 @@ export async function approveAndSendCert(
         { name: "intake_id", value: intakeId },
         { name: "cert_type", value: certificateType },
       ],
+    })
+
+    // DEBUG: Log after email
+    logger.info("APPROVE_CORE_AFTER_EMAIL", { 
+      intakeId, 
+      certificateId,
+      ok: emailResult.success, 
+      messageId: emailResult.messageId,
+      error: emailResult.error,
     })
 
     // Track email status
