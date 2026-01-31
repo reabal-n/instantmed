@@ -16,6 +16,7 @@ import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
 // SupabaseAuthProvider removed - using Clerk for auth
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
+import { PostHogProvider } from "@/components/providers/posthog-provider"
 import { ChatIntakeButton } from "@/components/chat/chat-intake"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
@@ -205,6 +206,7 @@ export default function RootLayout({
           <ReviewAggregateSchema ratingValue={4.9} reviewCount={200} />
         </head>
         <body className="font-sans antialiased text-foreground" style={{ background: 'transparent' }}>
+          <PostHogProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
               <HeroUIProviderWrapper>
                 <NetworkStatus />
@@ -226,6 +228,7 @@ export default function RootLayout({
                 <CookieBanner />
               </HeroUIProviderWrapper>
           </ThemeProvider>
+          </PostHogProvider>
         </body>
       </html>
     </ClerkProvider>

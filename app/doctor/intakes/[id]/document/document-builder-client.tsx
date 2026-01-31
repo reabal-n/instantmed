@@ -28,6 +28,7 @@ interface DocumentBuilderClientProps {
   draft: DocumentDraft
   existingDocument: GeneratedDocument | null
   patientAge: number
+  hasCredentials: boolean
 }
 
 function getSubtypeIcon(subtype: string | null) {
@@ -59,6 +60,7 @@ export function DocumentBuilderClient({
   draft,
   existingDocument,
   patientAge,
+  hasCredentials,
 }: DocumentBuilderClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -174,6 +176,25 @@ export function DocumentBuilderClient({
         </div>
       )}
 
+      {/* Missing Credentials Warning */}
+      {!hasCredentials && (
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-red-800 font-medium">
+                <span>⚠️ Certificate credentials not configured</span>
+              </div>
+              <p className="text-sm text-red-700">
+                You need to set up your Provider Number and AHPRA Registration before issuing certificates.
+              </p>
+              <Button asChild variant="outline" size="sm" className="mt-2">
+                <Link href="/doctor/settings/identity">Configure Certificate Identity →</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Existing Document Notice */}
       {existingDocument && (
         <Card className="bg-emerald-50 border-emerald-200">
@@ -286,7 +307,7 @@ export function DocumentBuilderClient({
         <Button
           type="button"
           onClick={handleGenerateAndApprove}
-          disabled={isGenerating || isPending || !formData.reason.trim()}
+          disabled={isGenerating || isPending || !formData.reason.trim() || !hasCredentials}
           className="bg-emerald-600 hover:bg-emerald-700"
           data-testid="approve-button"
         >

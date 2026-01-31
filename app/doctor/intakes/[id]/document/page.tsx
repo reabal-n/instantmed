@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation"
 import { requireRole } from "@/lib/auth"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake } from "@/lib/data/documents"
+import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { DocumentBuilderClient } from "./document-builder-client"
 
 export const dynamic = "force-dynamic"
@@ -14,7 +15,11 @@ export default async function IntakeDocumentBuilderPage({
   const { id } = await params
 
   // Layout enforces doctor/admin role
-  await requireRole(["doctor", "admin"])
+  const { profile } = await requireRole(["doctor", "admin"])
+
+  // Check doctor credentials
+  const doctorIdentity = await getDoctorIdentity(profile.id)
+  const hasCredentials = isDoctorIdentityComplete(doctorIdentity)
 
   const intake = await getIntakeWithDetails(id)
 
@@ -59,6 +64,7 @@ export default async function IntakeDocumentBuilderPage({
       draft={draft}
       existingDocument={existingDocument}
       patientAge={patientAge}
+      hasCredentials={hasCredentials}
     />
   )
 }
