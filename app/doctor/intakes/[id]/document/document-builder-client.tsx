@@ -21,7 +21,7 @@ import {
   Heart,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
+import { saveMedCertDraftAction } from "./actions"
 
 interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
@@ -113,46 +113,32 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
+    console.log("APPROVE CLICK HANDLER FIRED")
     setIsGenerating(true)
     setActionMessage(null)
     
     try {
-      // First, save the draft with current form data to ensure it's up to date
-      const updatedData: MedCertDraftData = {
-        patient_name: formData.patientName,
-        dob: formData.dob,
-        date_from: formData.dateFrom,
-        date_to: formData.dateTo,
-        reason: formData.reason,
-        work_capacity: formData.workCapacity,
-        notes: formData.notes,
-        doctor_name: "",
-        provider_number: "",
-        created_date: new Date().toISOString().split("T")[0],
-        certificate_type: certType as "work" | "uni" | "carer",
-      }
-      
-      const saveResult = await saveMedCertDraftAction(draft.id, updatedData)
-      if (!saveResult.success) {
-        setActionMessage({ type: "error", text: saveResult.error || "Failed to save draft before approval" })
-        return
-      }
+      console.log("BEFORE FETCH")
+      // Use stable API route - approval is instant, delivery happens via cron
+      const response = await fetch(`/api/intakes/${intake.id}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+      console.log("AFTER FETCH", response.status)
 
-      // Now approve using the proper action that generates PDF and sends email immediately
-      const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
+      const result = await response.json()
 
-      if (result.success) {
+      if (result.ok) {
+        // Approval succeeded - DB write is complete, delivery is queued
         setActionMessage({ 
           type: "success", 
-          text: result.emailStatus === "sent" 
-            ? "Certificate generated and email sent successfully!" 
-            : result.emailStatus === "failed"
-            ? "Certificate generated but email failed. Patient can download from dashboard."
-            : "Certificate generated. Email is being processed."
+          text: result.alreadyApproved 
+            ? "Certificate already issued." 
+            : "Certificate issued. Patient will receive email shortly."
         })
-        setTimeout(() => router.push("/doctor/queue"), 2000)
+        setTimeout(() => router.push("/doctor/queue"), 1500)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to approve certificate" })
+        setActionMessage({ type: "error", text: result.error || "Failed to approve" })
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Network error. Please try again."
@@ -307,7 +293,17 @@ export function DocumentBuilderClient({
       </Card>
 
       {/* Actions */}
-      <div className="flex items-center gap-3" data-testid="document-actions">
+      <div 
+        className="flex items-center gap-3" 
+        data-testid="document-actions"
+        onClick={(e) => {
+          // #region agent log
+          if ((e.target as HTMLElement)?.closest('[data-testid="approve-button"]')) {
+            fetch('http://127.0.0.1:7242/ingest/2df417d3-2273-4a41-8cdb-6cc4fd71b947',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'document-builder-client.tsx:313',message:'ACTIONS DIV CLICK CAPTURED',data:{target:(e.target as HTMLElement)?.tagName},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+          }
+          // #endregion
+        }}
+      >
         <Button 
           variant="outline" 
           onClick={handleSaveDraft} 
@@ -318,25 +314,20 @@ export function DocumentBuilderClient({
           Save Draft
         </Button>
 
-        <button
+        <Button
           type="button"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            alert("NATIVE BUTTON CLICKED - intake.id=" + intake.id)
-            handleGenerateAndApprove()
-          }}
+          onClick={handleGenerateAndApprove}
           disabled={isGenerating || isPending || !formData.reason.trim() || !hasCredentials}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50 disabled:pointer-events-none"
+          className="bg-emerald-600 hover:bg-emerald-700"
           data-testid="approve-button"
         >
           {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-4 w-4 mr-2" />
           )}
           Generate Certificate & Approve
-        </button>
+        </Button>
       </div>
     </div>
   )
