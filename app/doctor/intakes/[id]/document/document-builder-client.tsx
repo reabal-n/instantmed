@@ -21,7 +21,7 @@ import {
   Heart,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction } from "./actions"
+import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
 
 interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
@@ -113,32 +113,46 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
-    // DIAGNOSTIC: Confirm handler is called
-    alert("DEBUG: handleGenerateAndApprove called - intake.id=" + intake.id)
-    
     setIsGenerating(true)
     setActionMessage(null)
     
     try {
-      // Use stable API route - approval is instant, delivery happens via cron
-      const response = await fetch(`/api/intakes/${intake.id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
+      // First, save the draft with current form data to ensure it's up to date
+      const updatedData: MedCertDraftData = {
+        patient_name: formData.patientName,
+        dob: formData.dob,
+        date_from: formData.dateFrom,
+        date_to: formData.dateTo,
+        reason: formData.reason,
+        work_capacity: formData.workCapacity,
+        notes: formData.notes,
+        doctor_name: "",
+        provider_number: "",
+        created_date: new Date().toISOString().split("T")[0],
+        certificate_type: certType as "work" | "uni" | "carer",
+      }
+      
+      const saveResult = await saveMedCertDraftAction(draft.id, updatedData)
+      if (!saveResult.success) {
+        setActionMessage({ type: "error", text: saveResult.error || "Failed to save draft before approval" })
+        return
+      }
 
-      const result = await response.json()
+      // Now approve using the proper action that generates PDF and sends email immediately
+      const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
 
-      if (result.ok) {
-        // Approval succeeded - DB write is complete, delivery is queued
+      if (result.success) {
         setActionMessage({ 
           type: "success", 
-          text: result.alreadyApproved 
-            ? "Certificate already issued." 
-            : "Certificate issued. Patient will receive email shortly."
+          text: result.emailStatus === "sent" 
+            ? "Certificate generated and email sent successfully!" 
+            : result.emailStatus === "failed"
+            ? "Certificate generated but email failed. Patient can download from dashboard."
+            : "Certificate generated. Email is being processed."
         })
-        setTimeout(() => router.push("/doctor/queue"), 1500)
+        setTimeout(() => router.push("/doctor/queue"), 2000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to approve" })
+        setActionMessage({ type: "error", text: result.error || "Failed to approve certificate" })
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Network error. Please try again."
@@ -304,20 +318,25 @@ export function DocumentBuilderClient({
           Save Draft
         </Button>
 
-        <Button
+        <button
           type="button"
-          onClick={handleGenerateAndApprove}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            alert("NATIVE BUTTON CLICKED - intake.id=" + intake.id)
+            handleGenerateAndApprove()
+          }}
           disabled={isGenerating || isPending || !formData.reason.trim() || !hasCredentials}
-          className="bg-emerald-600 hover:bg-emerald-700"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50 disabled:pointer-events-none"
           data-testid="approve-button"
         >
           {isGenerating ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <CheckCircle className="h-4 w-4 mr-2" />
+            <CheckCircle className="h-4 w-4" />
           )}
           Generate Certificate & Approve
-        </Button>
+        </button>
       </div>
     </div>
   )

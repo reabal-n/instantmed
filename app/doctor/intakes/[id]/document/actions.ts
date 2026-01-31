@@ -79,12 +79,15 @@ export async function generateMedCertPdfAndApproveAction(
     const draftData = draft?.data as MedCertDraftData | null
 
     // Build review data from draft
+    // Handle both 'reason' and 'reason_summary' fields for compatibility
+    const medicalReason = draftData?.reason || draftData?.reason_summary || "Medical Illness"
+    
     const reviewData: CertReviewData = {
       doctorName: doctorProfile?.full_name || "Dr.",
       consultDate: new Date().toISOString().split("T")[0],
       startDate: draftData?.date_from || new Date().toISOString().split("T")[0],
       endDate: draftData?.date_to || new Date().toISOString().split("T")[0],
-      medicalReason: draftData?.reason || "Medical Illness",
+      medicalReason,
     }
 
     // Use the approve-cert action which handles PDF generation and email
