@@ -709,6 +709,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
 
 /**
  * Reconstruct email HTML from intake/certificate data based on email_type.
+ * Also handles PDF generation for certificates that need it (needs_pdf_generation in metadata).
  */
 async function reconstructEmailContent(row: OutboxRow): Promise<{
   success: boolean
@@ -720,6 +721,15 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
 
   // Handle med_cert_patient emails
   if (row.email_type === "med_cert_patient" && row.certificate_id) {
+    // Check if PDF needs to be generated first
+    const metadata = row.metadata as { needs_pdf_generation?: boolean } | null
+    if (metadata?.needs_pdf_generation) {
+      const pdfResult = await generateAndUploadPdfForCertificate(row.certificate_id, row.metadata)
+      if (!pdfResult.success) {
+        return { success: false, error: pdfResult.error || "PDF generation failed" }
+      }
+    }
+
     // Fetch certificate and patient data
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
@@ -751,6 +761,102 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   return { 
     success: false, 
     error: `Cannot reconstruct email type '${row.email_type}' - no certificate_id or unsupported type` 
+  }
+}
+
+/**
+ * Generate PDF for a certificate and upload to storage.
+ * Called by the email dispatcher when metadata.needs_pdf_generation is true.
+ */
+async function generateAndUploadPdfForCertificate(
+  certificateId: string,
+  _metadata: Record<string, unknown> | null // Data now fetched from certificate record
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceRoleClient()
+
+  try {
+    // Fetch certificate with all needed fields
+    const { data: cert, error: certError } = await supabase
+      .from("issued_certificates")
+      .select("*")
+      .eq("id", certificateId)
+      .single()
+
+    if (certError || !cert) {
+      return { success: false, error: "Certificate not found" }
+    }
+
+    // Skip if PDF already generated (storage_path doesn't start with 'pending:')
+    if (!cert.storage_path.startsWith("pending:")) {
+      logger.info("[Email Dispatcher] PDF already exists, skipping generation", { certificateId })
+      return { success: true }
+    }
+
+    // Calculate duration days
+    const startDate = new Date(cert.start_date)
+    const endDate = new Date(cert.end_date)
+    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+    // Build render input matching CertificateRenderInput interface
+    const renderInput = {
+      certificateNumber: cert.certificate_number,
+      verificationCode: cert.verification_code,
+      certificateType: cert.certificate_type as "work" | "study" | "carer",
+      patientName: cert.patient_name,
+      patientDob: cert.patient_dob,
+      issueDate: cert.issue_date,
+      startDate: cert.start_date,
+      endDate: cert.end_date,
+      durationDays,
+      doctorProfileId: cert.doctor_id,
+      generatedAt: new Date().toISOString(),
+    }
+
+    // Generate PDF using canonical render function
+    const { renderMedCertPdf } = await import("@/lib/pdf/med-cert-render")
+    const result = await renderMedCertPdf(renderInput)
+
+    if (!result.success || !result.buffer) {
+      logger.error("[Email Dispatcher] PDF render failed", { certificateId, error: result.error })
+      return { success: false, error: result.error || "PDF render failed" }
+    }
+
+    // Upload to storage
+    const storagePath = `certificates/${cert.intake_id}/${cert.certificate_number}.pdf`
+    const { error: uploadError } = await supabase.storage
+      .from("documents")
+      .upload(storagePath, result.buffer, {
+        contentType: "application/pdf",
+        upsert: true,
+      })
+
+    if (uploadError) {
+      logger.error("[Email Dispatcher] PDF upload failed", { certificateId, error: uploadError.message })
+      return { success: false, error: `PDF upload failed: ${uploadError.message}` }
+    }
+
+    // Update certificate with real storage path and snapshots
+    const { error: updateError } = await supabase
+      .from("issued_certificates")
+      .update({ 
+        storage_path: storagePath,
+        template_config_snapshot: result.templateConfig || cert.template_config_snapshot,
+        clinic_identity_snapshot: result.clinicIdentity || cert.clinic_identity_snapshot,
+      })
+      .eq("id", certificateId)
+
+    if (updateError) {
+      logger.error("[Email Dispatcher] Certificate update failed", { certificateId, error: updateError.message })
+      // Don't fail - PDF exists, can be fixed later
+    }
+
+    logger.info("[Email Dispatcher] PDF generated and uploaded", { certificateId, storagePath })
+    return { success: true }
+
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err)
+    logger.error("[Email Dispatcher] PDF generation error", { certificateId, error })
+    return { success: false, error }
   }
 }
 

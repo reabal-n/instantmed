@@ -117,36 +117,25 @@ export function DocumentBuilderClient({
     setActionMessage(null)
     
     try {
-      // Use stable API route instead of Server Action to avoid action ID mismatch after deployments
+      // Use stable API route - approval is instant, delivery happens via cron
       const response = await fetch(`/api/intakes/${intake.id}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ draftId: draft.id }),
       })
 
       const result = await response.json()
 
-      if (result.success) {
-        // Show different message based on email status
-        if (result.emailStatus === "failed") {
-          setActionMessage({ 
-            type: "success", 
-            text: "Certificate issued. Email failed (will retry automatically)." 
-          })
-        } else if (result.emailStatus === "pending") {
-          setActionMessage({ 
-            type: "success", 
-            text: "Certificate issued. Email sending..." 
-          })
-        } else {
-          setActionMessage({ 
-            type: "success", 
-            text: "Certificate issued and sent to patient." 
-          })
-        }
-        setTimeout(() => router.push("/doctor/queue"), 2500)
+      if (result.ok) {
+        // Approval succeeded - DB write is complete, delivery is queued
+        setActionMessage({ 
+          type: "success", 
+          text: result.alreadyApproved 
+            ? "Certificate already issued." 
+            : "Certificate issued. Patient will receive email shortly."
+        })
+        setTimeout(() => router.push("/doctor/queue"), 1500)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to generate certificate" })
+        setActionMessage({ type: "error", text: result.error || "Failed to approve" })
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Network error. Please try again."

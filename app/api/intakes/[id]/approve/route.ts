@@ -1,158 +1,173 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { logger } from "@/lib/observability/logger"
-import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
-import type { CertReviewData } from "@/components/doctor/cert-review-modal"
-import type { MedCertDraftData } from "@/types/db"
-import { approveAndSendCert } from "@/app/actions/approve-cert"
+import { generateCertificateNumber, generateVerificationCode } from "@/lib/pdf/med-cert-render"
+import { generateIdempotencyKey } from "@/lib/data/issued-certificates"
+import { revalidatePath } from "next/cache"
 
 export const dynamic = "force-dynamic"
-
-interface ApproveRequestBody {
-  draftId?: string
-  reviewData?: CertReviewData
-}
-
-interface ApproveResponse {
-  success: boolean
-  error?: string
-  certificateId?: string
-  emailStatus?: "sent" | "failed" | "pending"
-  isExisting?: boolean
-}
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApproveResponse>> {
+): Promise<NextResponse> {
   const { id: intakeId } = await params
   
-  logger.info("API_APPROVE_START", { intakeId })
+  logger.info("APPROVE_API_START", { intakeId })
 
   try {
-    const { profile: doctorProfile } = await requireRole(["doctor", "admin"])
-
-    const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json({
-        success: false,
-        error: "Rate limit exceeded. Try again later.",
-      }, { status: 429 })
+    const authUser = await getAuthenticatedUserWithProfile()
+    if (!authUser) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 })
+    }
+    
+    const doctor = authUser.profile
+    if (!["doctor", "admin"].includes(doctor.role)) {
+      return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 })
     }
 
-    const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
-    if (!isDoctorIdentityComplete(doctorIdentity)) {
-      return NextResponse.json({
-        success: false,
-        error: "Your certificate credentials are not configured.",
-      }, { status: 400 })
+    const rateLimit = await checkCertificateRateLimit(doctor.id)
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ ok: false, error: "Rate limit exceeded" }, { status: 429 })
     }
 
-    let body: ApproveRequestBody = {}
-    try {
-      body = await request.json()
-    } catch {
-      // Empty body is OK
+    if (!doctor.provider_number || !doctor.ahpra_number) {
+      return NextResponse.json({ ok: false, error: "Certificate credentials not configured" }, { status: 400 })
     }
 
-    let reviewData: CertReviewData
+    const supabase = createServiceRoleClient()
 
-    if (body.reviewData) {
-      reviewData = body.reviewData
-    } else {
-      const supabase = createServiceRoleClient()
-      
-      let draft = null
-      const { data: draftByRequestId } = await supabase
-        .from("document_drafts")
-        .select("data")
-        .eq("request_id", intakeId)
-        .eq("type", "med_cert")
-        .maybeSingle()
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select("id, status, payment_status, claimed_by, patient:profiles!patient_id(id, full_name, email, date_of_birth), answers:intake_answers(answers)")
+      .eq("id", intakeId)
+      .single()
 
-      if (draftByRequestId) {
-        draft = draftByRequestId
-      } else {
-        const { data: draftByIntakeId } = await supabase
-          .from("document_drafts")
-          .select("data")
-          .eq("intake_id", intakeId)
-          .eq("type", "med_cert")
-          .maybeSingle()
-        draft = draftByIntakeId
+    if (intakeError || !intake) {
+      return NextResponse.json({ ok: false, error: "Intake not found" }, { status: 404 })
+    }
+
+    const APPROVABLE_STATES = ["paid", "in_review"]
+    if (!APPROVABLE_STATES.includes(intake.status)) {
+      if (intake.status === "approved") {
+        return NextResponse.json({ ok: true, alreadyApproved: true })
       }
+      return NextResponse.json({ ok: false, error: "Cannot approve intake in " + intake.status + " state" }, { status: 400 })
+    }
 
-      const draftData = draft?.data as MedCertDraftData | null
+    if (intake.payment_status !== "paid") {
+      return NextResponse.json({ ok: false, error: "Payment not completed" }, { status: 400 })
+    }
 
-      reviewData = {
-        doctorName: doctorProfile.full_name || "Dr.",
-        consultDate: new Date().toISOString().split("T")[0],
-        startDate: draftData?.date_from || new Date().toISOString().split("T")[0],
-        endDate: draftData?.date_to || new Date().toISOString().split("T")[0],
-        medicalReason: draftData?.reason || "Medical Illness",
+    const patientData = intake.patient as unknown as { id: string; full_name: string; email: string; date_of_birth: string }[] | { id: string; full_name: string; email: string; date_of_birth: string }; const patient = Array.isArray(patientData) ? patientData[0] : patientData
+    if (patient.id === doctor.id) {
+      return NextResponse.json({ ok: false, error: "Cannot approve your own request" }, { status: 403 })
+    }
+
+    if (intake.claimed_by !== doctor.id) {
+      const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
+        p_intake_id: intakeId,
+        p_doctor_id: doctor.id,
+        p_force: false,
+      })
+      const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
+      if (claimError || !claim?.success) {
+        return NextResponse.json({ ok: false, error: claim?.error_message || "Failed to claim intake" }, { status: 409 })
       }
     }
 
-    logger.info("API_APPROVE_CALLING_CORE", { intakeId, draftId: body.draftId })
+    const answers = (intake.answers as { answers?: Record<string, unknown> })?.answers || {}
+    const certType = (answers.cert_type as string) || "work"
+    const today = new Date().toISOString().split("T")[0]
+    
+    const { data: draft } = await supabase
+      .from("document_drafts")
+      .select("data")
+      .eq("request_id", intakeId)
+      .eq("type", "med_cert")
+      .maybeSingle()
+    
+    const draftData = draft?.data as { date_from?: string; date_to?: string } | null
+    const startDate = draftData?.date_from || today
+    const endDate = draftData?.date_to || today
 
-    const result = await approveAndSendCert(intakeId, reviewData)
+    const certificateNumber = generateCertificateNumber()
+    const verificationCode = generateVerificationCode()
+    const idempotencyKey = generateIdempotencyKey(intakeId, doctor.id, today)
 
-    if (!result.success) {
-      logger.warn("API_APPROVE_FAILED", { intakeId, error: result.error })
-      return NextResponse.json({
-        success: false,
-        error: result.error,
-      }, { status: 400 })
+    const { data: existingCert } = await supabase
+      .from("issued_certificates")
+      .select("id")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle()
+
+    if (existingCert) {
+      return NextResponse.json({ ok: true, certificateId: existingCert.id, alreadyApproved: true })
     }
 
-    let emailStatus: "sent" | "failed" | "pending" = "pending"
-    if (result.certificateId) {
-      const supabase = createServiceRoleClient()
-      const { data: outboxRow } = await supabase
-        .from("email_outbox")
-        .select("status")
-        .eq("certificate_id", result.certificateId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    const { data: certificate, error: certError } = await supabase
+      .from("issued_certificates")
+      .insert({
+        intake_id: intakeId,
+        certificate_number: certificateNumber,
+        verification_code: verificationCode,
+        idempotency_key: idempotencyKey,
+        certificate_type: certType,
+        status: "valid",
+        issue_date: today,
+        start_date: startDate,
+        end_date: endDate,
+        patient_id: patient.id,
+        patient_name: patient.full_name,
+        patient_dob: patient.date_of_birth,
+        doctor_id: doctor.id,
+        doctor_name: doctor.full_name,
+        doctor_nominals: null,
+        doctor_provider_number: doctor.provider_number,
+        doctor_ahpra_number: doctor.ahpra_number,
+        template_config_snapshot: {},
+        clinic_identity_snapshot: {},
+        storage_path: "pending:" + intakeId,
+      })
+      .select("id")
+      .single()
 
-      if (outboxRow?.status === "sent" || outboxRow?.status === "skipped_e2e") {
-        emailStatus = "sent"
-      } else if (outboxRow?.status === "failed") {
-        emailStatus = "failed"
-      }
+    if (certError || !certificate) {
+      logger.error("APPROVE_API_CERT_FAILED", { intakeId, error: certError?.message })
+      return NextResponse.json({ ok: false, error: "Failed to create certificate" }, { status: 500 })
     }
 
-    logger.info("API_APPROVE_SUCCESS", { 
-      intakeId, 
-      certificateId: result.certificateId,
-      emailStatus,
-      isExisting: result.isExisting,
+    await supabase.from("email_outbox").insert({
+      email_type: "med_cert_patient",
+      to_email: patient.email,
+      to_name: patient.full_name,
+      subject: "Your Medical Certificate is Ready",
+      status: "pending",
+      provider: "resend",
+      intake_id: intakeId,
+      patient_id: patient.id,
+      certificate_id: certificate.id,
+      metadata: { needs_pdf_generation: true },
     })
 
-    return NextResponse.json({
-      success: true,
-      certificateId: result.certificateId,
-      emailStatus,
-      isExisting: result.isExisting,
-    })
+    await supabase.from("intakes").update({ 
+      status: "approved", 
+      reviewed_by: doctor.id,
+      reviewed_at: new Date().toISOString(),
+    }).eq("id", intakeId)
+
+    revalidatePath("/doctor/intakes/" + intakeId)
+    revalidatePath("/doctor/queue")
+    revalidatePath("/patient/intakes/" + intakeId)
+
+    logger.info("APPROVE_API_SUCCESS", { intakeId, certificateId: certificate.id })
+    return NextResponse.json({ ok: true, certificateId: certificate.id })
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error("API_APPROVE_ERROR", { intakeId, error: errorMessage })
-
-    if (errorMessage.includes("Unauthorized") || errorMessage.includes("not authenticated")) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-    if (errorMessage.includes("not found")) {
-      return NextResponse.json({ success: false, error: errorMessage }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      success: false,
-      error: errorMessage || "An unexpected error occurred",
-    }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    logger.error("APPROVE_API_ERROR", { intakeId, error: msg })
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 })
   }
 }
