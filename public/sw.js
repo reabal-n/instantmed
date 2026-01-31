@@ -9,23 +9,35 @@ const CACHE_NAME = 'instantmed-v1';
 const STATIC_CACHE_NAME = 'instantmed-static-v1';
 
 // Critical assets to cache for offline use
+// Only include files that are guaranteed to exist and return 200
 const STATIC_ASSETS = [
-  '/offline',
-  '/favicon.ico',
-  '/logo.png',
+  '/icon.svg',
+  '/branding/logo.svg',
 ];
 
 // API routes that can be cached for short periods
 const CACHEABLE_API_ROUTES = [
   '/api/services',
-  '/api/medications',
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets with error handling
+// Uses individual cache.add() to prevent one missing file from breaking the whole cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+    caches.open(STATIC_CACHE_NAME).then(async (cache) => {
+      // Cache each asset individually - if one fails, others still get cached
+      const cachePromises = STATIC_ASSETS.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            await cache.put(url, response);
+          }
+        } catch (_err) {
+          // Silently skip assets that fail to fetch
+          // This prevents install from failing due to missing optional assets
+        }
+      });
+      await Promise.all(cachePromises);
     })
   );
   self.skipWaiting();

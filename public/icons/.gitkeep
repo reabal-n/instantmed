@@ -1,0 +1,8 @@
+# PWA Icons Directory
+# Add the following icon files:
+# - icon-192.png (192x192, any purpose)
+# - icon-512.png (512x512, any purpose)
+# - icon-maskable-192.png (192x192, maskable - with safe zone padding)
+# - icon-maskable-512.png (512x512, maskable - with safe zone padding)
+#
+# Generate from your logo using: https://maskable.app/editor

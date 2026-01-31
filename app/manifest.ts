@@ -32,28 +32,18 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/request?service=prescription",
       },
     ],
+    // PWA icons - using apple-icon.png as fallback until proper icons are added
+    // TODO: Add proper PWA icons at /public/icons/ (see .gitkeep for required sizes)
     icons: [
       {
-        src: "/icons/icon-192.png",
-        sizes: "192x192",
+        src: "/apple-icon.png",
+        sizes: "180x180",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icons/icon-maskable-192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/icons/icon-maskable-512.png",
-        sizes: "512x512",
+        src: "/apple-icon.png",
+        sizes: "180x180",
         type: "image/png",
         purpose: "maskable",
       },
