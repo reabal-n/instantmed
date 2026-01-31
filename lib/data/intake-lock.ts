@@ -39,13 +39,14 @@ export async function acquireIntakeLock(
   const _expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS) // Reserved for future lock metadata
 
   try {
-    // Check for existing active lock
+    // Check for existing active lock (check both reviewing_doctor_id and claimed_by)
     const { data: intake } = await supabase
       .from("intakes")
-      .select("reviewing_doctor_id, reviewing_doctor_name, review_started_at")
+      .select("reviewing_doctor_id, reviewing_doctor_name, review_started_at, claimed_by, claimed_at")
       .eq("id", intakeId)
       .single()
 
+    // Check reviewing lock
     if (intake?.reviewing_doctor_id && intake.review_started_at) {
       const lockExpiry = new Date(new Date(intake.review_started_at).getTime() + LOCK_TIMEOUT_MS)
       
@@ -64,14 +65,35 @@ export async function acquireIntakeLock(
         }
       }
     }
+    
+    // Also check claimed_by if reviewing_doctor_id not set (handles edge cases)
+    if (!intake?.reviewing_doctor_id && intake?.claimed_by && intake.claimed_at) {
+      const claimExpiry = new Date(new Date(intake.claimed_at).getTime() + LOCK_TIMEOUT_MS)
+      if (claimExpiry > now && intake.claimed_by !== doctorId) {
+        return {
+          acquired: false,
+          existingLock: {
+            intakeId,
+            lockedBy: intake.claimed_by,
+            lockedByName: "Another doctor",
+            lockedAt: intake.claimed_at,
+            expiresAt: claimExpiry.toISOString(),
+          },
+          warning: `This case is currently claimed by another doctor. You may still proceed, but be aware of potential duplicate work.`,
+        }
+      }
+    }
 
-    // Acquire the lock
+    // Acquire the lock - set BOTH reviewing fields AND claimed_by for approval flow
+    // The approval flow checks claimed_by, so we must set it here
     const { error } = await supabase
       .from("intakes")
       .update({
         reviewing_doctor_id: doctorId,
         reviewing_doctor_name: doctorName,
         review_started_at: now.toISOString(),
+        claimed_by: doctorId,
+        claimed_at: now.toISOString(),
         updated_at: now.toISOString(),
       })
       .eq("id", intakeId)
@@ -99,16 +121,21 @@ export async function releaseIntakeLock(
 
   try {
     // Only release if this doctor holds the lock
+    // Also clear claimed_by to match - but only if intake is still in reviewable state
+    // (don't clear if already approved/declined)
     const { error } = await supabase
       .from("intakes")
       .update({
         reviewing_doctor_id: null,
         reviewing_doctor_name: null,
         review_started_at: null,
+        claimed_by: null,
+        claimed_at: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
       .eq("reviewing_doctor_id", doctorId)
+      .in("status", ["paid", "in_review", "pending_info"])
 
     if (error) {
       logger.error("Failed to release intake lock", { intakeId, doctorId }, error)
