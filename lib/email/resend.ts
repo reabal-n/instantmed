@@ -359,6 +359,9 @@ interface MedCertReadyEmailParams {
 /**
  * Send email when medical certificate is approved and PDF is ready
  * Optionally attaches the PDF directly for better UX
+ * 
+ * @deprecated For med certs, use sendEmail() from lib/email/send-email.ts with MedCertPatientEmail template.
+ * This function is kept only for non-med-cert document types in lib/notifications/service.ts.
  */
 export async function sendMedCertReadyEmail(params: MedCertReadyEmailParams): Promise<EmailResult> {
   const { to, patientName, pdfUrl, verificationCode, requestId, certType = "work", pdfContent, attachPdf = true } = params
