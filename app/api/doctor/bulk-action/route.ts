@@ -107,6 +107,18 @@ export async function POST(request: NextRequest) {
           continue
         }
 
+        // STEP 3.5: BLOCK bulk approval for med certs - they MUST go through document builder
+        // Med certs require PDF generation and email sending which can't be done in bulk
+        if (action === "approve" && (intake.category === "medical_certificate" || intake.category === "med_certs")) {
+          results.push({
+            id,
+            success: false,
+            error: "Medical certificates cannot be bulk approved. Use the document builder to generate PDFs individually.",
+            previousStatus: intake.status,
+          })
+          continue
+        }
+
         // STEP 4: Perform atomic update with status check
         const newStatus = action === "approve" ? "approved" : "declined"
         const { data: updated, error: updateError } = await supabase

@@ -38,6 +38,27 @@ export async function updateStatusAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  // CRITICAL GUARD: Block direct approval of med certs - they MUST go through document builder
+  // Med certs require PDF generation and email sending via approveAndSendCert
+  if (status === "approved") {
+    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+    const supabase = createServiceRoleClient()
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("service:services(type)")
+      .eq("id", intakeId)
+      .single()
+    
+    const serviceType = (intake?.service as { type?: string } | null)?.type
+    if (serviceType === "med_certs") {
+      return { 
+        success: false, 
+        error: "Medical certificates must be approved through the document builder to generate PDFs and send emails.",
+        code: "MED_CERT_REQUIRES_DOCUMENT_BUILDER"
+      }
+    }
+  }
+
   try {
     const result = await updateIntakeStatus(intakeId, status, profile.id)
     if (!result) {
