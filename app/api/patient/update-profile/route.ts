@@ -1,7 +1,13 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
-import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
+import { z } from "zod"
+
+const updateProfileSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters").max(100).trim(),
+  phone: z.string().max(20).optional().nullable(),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD format"),
+})
 
 export async function POST(request: Request) {
   try {
@@ -12,18 +18,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const {
-      fullName,
-      phone,
-      dateOfBirth,
-    } = body
+    const parsed = updateProfileSchema.safeParse(body)
 
-    if (!fullName || !dateOfBirth) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Full name and date of birth are required" },
+        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
+
+    const { fullName, phone, dateOfBirth } = parsed.data
 
     const supabase = createServiceRoleClient()
 

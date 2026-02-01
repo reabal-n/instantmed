@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe/client"
 import { createClient } from "@supabase/supabase-js"
@@ -201,7 +202,13 @@ export async function POST(request: Request) {
 
   if (isAdminReplay) {
     // Verify admin replay secret
-    if (!adminReplaySecret || adminReplaySecret !== process.env.INTERNAL_API_SECRET) {
+    const expectedSecret = process.env.INTERNAL_API_SECRET || ""
+    if (
+      !adminReplaySecret ||
+      !expectedSecret ||
+      adminReplaySecret.length !== expectedSecret.length ||
+      !crypto.timingSafeEqual(Buffer.from(adminReplaySecret), Buffer.from(expectedSecret))
+    ) {
       log.warn("Invalid admin replay secret", { originalEventId })
       return NextResponse.json({ error: "Invalid replay credentials" }, { status: 401 })
     }

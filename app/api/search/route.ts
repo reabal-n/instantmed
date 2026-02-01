@@ -3,23 +3,33 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get("q")
   const variant = searchParams.get("variant") || "doctor"
 
-  if (!query || query.length < 2) {
+  if (!query || query.length < 2 || query.length > 100) {
     return NextResponse.json({ results: [] })
   }
 
-  // Check auth via Supabase
-  const supabase = createServiceRoleClient()
   const { userId: clerkUserId } = await auth()
-  
+
   if (!clerkUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  // Rate limit
+  const rateLimitResponse = await applyRateLimit(request, "standard", clerkUserId)
+  if (rateLimitResponse) return rateLimitResponse
+
+  const supabase = createServiceRoleClient()
 
   const results: Array<{
     id: string
@@ -71,7 +81,7 @@ export async function GET(request: NextRequest) {
         .from("profiles")
         .select("id, full_name, medicare_number, created_at")
         .eq("role", "patient")
-        .or(`full_name.ilike.%${query}%,medicare_number.ilike.%${query}%`)
+        .or(`full_name.ilike.%${escapeIlike(query)}%,medicare_number.ilike.%${escapeIlike(query)}%`)
         .order("created_at", { ascending: false })
         .limit(5)
 

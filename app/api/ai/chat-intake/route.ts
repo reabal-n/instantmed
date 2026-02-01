@@ -270,6 +270,12 @@ export async function POST(request: NextRequest) {
       if (rateLimitResponse) {
         return rateLimitResponse
       }
+    } else {
+      // Rate limit anonymous users by IP to prevent abuse
+      const rateLimitResponse = await applyRateLimit(request, 'auth')
+      if (rateLimitResponse) {
+        return rateLimitResponse
+      }
     }
 
     // Check for AI Gateway API key

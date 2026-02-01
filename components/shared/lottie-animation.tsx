@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import lottie, { type AnimationItem } from "lottie-web"
+import type { AnimationItem } from "lottie-web"
 
 interface LottieAnimationProps {
   animationData: object
@@ -24,17 +24,25 @@ export function LottieAnimation({
   useEffect(() => {
     if (!containerRef.current) return
 
-    animationRef.current = lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: "svg",
-      loop,
-      autoplay,
-      animationData,
+    let cancelled = false
+
+    import("lottie-web").then((lottieModule) => {
+      if (cancelled || !containerRef.current) return
+      const lottie = lottieModule.default
+
+      animationRef.current = lottie.loadAnimation({
+        container: containerRef.current,
+        renderer: "svg",
+        loop,
+        autoplay,
+        animationData,
+      })
+
+      animationRef.current.setSpeed(speed)
     })
 
-    animationRef.current.setSpeed(speed)
-
     return () => {
+      cancelled = true
       animationRef.current?.destroy()
     }
   }, [animationData, loop, autoplay, speed])
