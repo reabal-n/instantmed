@@ -9,7 +9,7 @@ import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import * as Sentry from "@sentry/nextjs"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient, trackIntakeFunnelStep, trackBusinessMetric } from "@/lib/posthog-server"
 
 const log = createLogger("stripe-webhook")
 
@@ -502,6 +502,16 @@ export async function POST(request: Request) {
         stripeCustomerId: stripeCustomerId,
       })
 
+      // Track funnel: payment completed
+      trackIntakeFunnelStep({
+        step: 'payment_completed',
+        intakeId: intakeId!,
+        serviceSlug: session.metadata?.service_slug || 'unknown',
+        serviceType: session.metadata?.service_type || 'unknown',
+        userId: patientId || undefined,
+        metadata: { amount_cents: session.amount_total },
+      })
+
       Sentry.addBreadcrumb({
         category: "stripe-webhook",
         message: "Intake marked as paid",
@@ -852,6 +862,18 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", intakeId)
+
+      // Track business metric: payment failed
+      trackBusinessMetric({
+        metric: 'payment_failed',
+        severity: 'warning',
+        userId: paymentIntent.metadata?.patient_id,
+        metadata: {
+          intake_id: intakeId,
+          failure_message: paymentIntent.last_payment_error?.message,
+          payment_intent_id: paymentIntent.id,
+        },
+      })
 
       // P1 FIX: Send payment failure notification to patient
       try {

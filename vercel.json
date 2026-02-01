@@ -44,6 +44,14 @@
     {
       "path": "/api/cron/email-dispatcher",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/business-alerts",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/data-retention",
+      "schedule": "0 2 * * *"
     }
   ],
   "headers": [

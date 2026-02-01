@@ -80,7 +80,7 @@ export function trackSafetyBlock(event: {
   try {
     const client = getPostHogClient()
     const distinctId = event.userId || event.sessionId || 'anonymous'
-    
+
     client.capture({
       distinctId,
       event: 'safety_block',
@@ -90,6 +90,70 @@ export function trackSafetyBlock(event: {
         block_reason: event.blockReason,
         triggered_rule_ids: event.triggeredRuleIds,
         triggered_rule_count: event.triggeredRuleIds.length,
+      },
+    })
+  } catch {
+    // Non-blocking
+  }
+}
+
+// ============================================
+// INTAKE FUNNEL ANALYTICS
+// ============================================
+
+/**
+ * Track intake funnel step for drop-off analysis.
+ * Call at each step: start → questionnaire → payment → review → approved/declined → delivered
+ */
+export function trackIntakeFunnelStep(event: {
+  step: 'intake_started' | 'questionnaire_completed' | 'payment_initiated' | 'payment_completed' | 'review_started' | 'approved' | 'declined' | 'document_delivered'
+  intakeId: string
+  serviceSlug: string
+  serviceType: string
+  userId?: string
+  sessionId?: string
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    const client = getPostHogClient()
+    const distinctId = event.userId || event.sessionId || 'anonymous'
+
+    client.capture({
+      distinctId,
+      event: `intake_funnel_${event.step}`,
+      properties: {
+        intake_id: event.intakeId,
+        service_slug: event.serviceSlug,
+        service_type: event.serviceType,
+        funnel_step: event.step,
+        ...event.metadata,
+      },
+    })
+  } catch {
+    // Non-blocking
+  }
+}
+
+/**
+ * Track business metric events for alerting and dashboards
+ */
+export function trackBusinessMetric(event: {
+  metric: 'payment_failed' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'high_risk_intake'
+  severity: 'info' | 'warning' | 'critical'
+  userId?: string
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    const client = getPostHogClient()
+    const distinctId = event.userId || 'system'
+
+    client.capture({
+      distinctId,
+      event: `business_alert_${event.metric}`,
+      properties: {
+        metric: event.metric,
+        severity: event.severity,
+        ...event.metadata,
       },
     })
   } catch {

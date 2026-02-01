@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import * as Sentry from "@sentry/nextjs"
+import { trackBusinessMetric } from "@/lib/posthog-server"
 
 const logger = createLogger("cron-stale-queue")
 
@@ -90,6 +91,11 @@ export async function GET(request: NextRequest) {
         critical_count: criticalIntakes.length,
         intake_ids: criticalIntakes.map(i => i.id),
       })
+      trackBusinessMetric({
+        metric: 'sla_breach',
+        severity: 'critical',
+        metadata: { critical_count: criticalIntakes.length, total_stale: staleCount },
+      })
     } else if (warningIntakes.length > 0) {
       Sentry.captureMessage(`Warning: ${warningIntakes.length} intakes waiting 4+ hours`, {
         level: "warning",
@@ -105,6 +111,11 @@ export async function GET(request: NextRequest) {
       logger.warn("SLA warning - intakes waiting 4+ hours", {
         stale_count: staleCount,
         oldest_wait_hours: waitTimes[0]?.hoursWaiting,
+      })
+      trackBusinessMetric({
+        metric: 'queue_backup',
+        severity: 'warning',
+        metadata: { stale_count: staleCount, oldest_wait_hours: waitTimes[0]?.hoursWaiting },
       })
     }
 

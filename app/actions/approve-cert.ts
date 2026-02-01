@@ -8,7 +8,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRoleOrNull } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { renderMedCertPdf, generateVerificationCode, generateCertificateNumber } from "@/lib/pdf/med-cert-render"
 import {
   findExistingCertificate,
@@ -41,9 +41,6 @@ export async function approveAndSendCert(
   intakeId: string,
   reviewData: CertReviewData
 ): Promise<ApproveCertResult> {
-  // DEBUG: Log at entry to prove core approval is called
-  logger.info("APPROVE_CORE_START", { intakeId })
-  
   try {
     // 1. Authenticate doctor or admin (non-redirecting for server actions)
     const authResult = await requireRoleOrNull(["doctor", "admin"])
@@ -259,13 +256,6 @@ export async function approveAndSendCert(
 
     const pdfBuffer = pdfResult.buffer
     
-    // DEBUG: Log after PDF render
-    logger.info("APPROVE_CORE_AFTER_PDF", { 
-      intakeId, 
-      certificateNumber,
-      size: pdfBuffer.length 
-    })
-
     // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
     const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
     
@@ -300,9 +290,6 @@ export async function approveAndSendCert(
       await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
       return { success: false, error: "Failed to store certificate. Please try again." }
     }
-
-    // DEBUG: Log after storage upload
-    logger.info("APPROVE_CORE_AFTER_STORAGE", { intakeId, certificateNumber, storagePath })
 
     // 5.6 Get doctor identity for snapshot
     const doctorIdentity = await getDoctorIdentity(doctorProfile.id)
@@ -362,13 +349,6 @@ export async function approveAndSendCert(
       }
     }
 
-    // DEBUG: Log after RPC
-    logger.info("APPROVE_CORE_AFTER_RPC", {
-      intakeId,
-      certificateId,
-      isExisting: atomicResult.isExisting,
-    })
-
     // 5.8 LOG CERTIFICATE EDITS for audit trail (medicolegal requirement)
     // P1 FIX: Make edit tracking blocking - audit trail must be complete
     // Compare original intake answers with review data and log any changes
@@ -409,9 +389,6 @@ export async function approveAndSendCert(
     // 6. Send email notification via centralized sendEmail (NO attachment - patient downloads from dashboard)
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
     
-    // DEBUG: Log before email
-    logger.info("APPROVE_CORE_BEFORE_EMAIL", { intakeId, to: patient.email, certificateId })
-    
     const emailResult = await sendEmail({
       to: patient.email,
       toName: patient.full_name,
@@ -436,15 +413,6 @@ export async function approveAndSendCert(
         { name: "intake_id", value: intakeId },
         { name: "cert_type", value: certificateType },
       ],
-    })
-
-    // DEBUG: Log after email
-    logger.info("APPROVE_CORE_AFTER_EMAIL", { 
-      intakeId, 
-      certificateId,
-      ok: emailResult.success, 
-      messageId: emailResult.messageId,
-      error: emailResult.error,
     })
 
     // Track email status
@@ -503,6 +471,25 @@ export async function approveAndSendCert(
         },
       })
     } catch { /* non-blocking */ }
+
+    // Track funnel: approved + document delivered
+    trackIntakeFunnelStep({
+      step: 'approved',
+      intakeId,
+      serviceSlug: service.slug,
+      serviceType: 'med_certs',
+      userId: patient.id,
+      metadata: { certificate_type: certificateType, doctor_id: doctorProfile.id },
+    })
+    if (emailResult.success) {
+      trackIntakeFunnelStep({
+        step: 'document_delivered',
+        intakeId,
+        serviceSlug: service.slug,
+        serviceType: 'med_certs',
+        userId: patient.id,
+      })
+    }
 
     // 9. Revalidate dashboard paths
     // NOTE: Removed /doctor/intakes/${intakeId} to prevent mid-action navigation.

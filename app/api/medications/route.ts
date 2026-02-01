@@ -5,6 +5,11 @@ import { checkRateLimit, incrementRateLimit, getClientIP } from "@/lib/rate-limi
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 
+/** Escape ILIKE special characters to prevent wildcard injection */
+function escapeIlike(input: string): string {
+  return input.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 export async function GET(request: NextRequest) {
   // Rate limiting using database
   const ip = await getClientIP()
@@ -104,7 +109,7 @@ export async function GET(request: NextRequest) {
         .from("medications")
         .select("id, name, brand_names, category, category_label, schedule, forms, default_form, default_strength, is_common")
         .eq("is_active", true)
-        .or(`name.ilike.%${query}%,category_label.ilike.%${query}%`)
+        .or(`name.ilike.%${escapeIlike(query)}%,category_label.ilike.%${escapeIlike(query)}%`)
         .order("is_common", { ascending: false })
         .order("display_order", { ascending: true })
         .limit(15)
