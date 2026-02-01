@@ -23,12 +23,12 @@ import type { Profile } from "@/types/db"
  * CRITICAL: Explicitly blocked in Vercel production to prevent any possible bypass.
  */
 function isE2ETestModeEnabled(): boolean {
-  // P0 SECURITY: Explicitly block E2E bypass in Vercel production
+  // P0 SECURITY: Explicitly block E2E bypass in Vercel production and preview
   // This is a defense-in-depth measure - even if PLAYWRIGHT=1 is accidentally set
-  if (process.env.VERCEL_ENV === "production") {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
     return false
   }
-  
+
   return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
 }
 
@@ -267,6 +267,35 @@ export async function requireRole(
   return authUser
 }
 
+/**
+ * Non-redirecting role check for server actions.
+ * Returns null instead of throwing redirect() on auth failure.
+ * 
+ * Use this in server actions where redirect() would propagate as a
+ * NEXT_REDIRECT error and cause unexpected client-side navigation.
+ * 
+ * @example
+ * const authResult = await requireRoleOrNull(["doctor", "admin"])
+ * if (!authResult) {
+ *   return { success: false, error: "Unauthorized or session expired" }
+ * }
+ */
+export async function requireRoleOrNull(
+  allowedRoles: Array<"patient" | "doctor" | "admin">
+): Promise<AuthenticatedUser | null> {
+  const authUser = await getAuthenticatedUserWithProfile()
+  
+  if (!authUser) {
+    return null
+  }
+  
+  const userRole = authUser.profile.role
+  if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
+    return null
+  }
+  
+  return authUser
+}
 
 /**
  * Get optional auth - returns user if logged in, null otherwise
@@ -334,10 +363,12 @@ export async function requirePatientAuth(options?: {
 }
 
 /**
- * Sign out - redirects to home page
+ * Sign out - clears Clerk session and redirects to home page.
+ * Note: Client-side sign out should use Clerk's useClerk().signOut() hook.
+ * This server-side version redirects to Clerk's sign-out endpoint.
  */
 export async function signOut() {
-  redirect("/")
+  redirect("/sign-in")
 }
 
 /**

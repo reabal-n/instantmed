@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
   Heart,
 } from "lucide-react"
 import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction } from "./actions"
+import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction } from "./actions"
 
 interface DocumentBuilderClientProps {
   intake: IntakeWithDetails
@@ -63,7 +63,6 @@ export function DocumentBuilderClient({
   hasCredentials,
 }: DocumentBuilderClientProps) {
   const router = useRouter()
-  const [isPending] = useTransition()
   const [isSaving, setIsSaving] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -113,29 +112,17 @@ export function DocumentBuilderClient({
   }
 
   const handleGenerateAndApprove = async () => {
-    console.log("APPROVE CLICK HANDLER FIRED")
     setIsGenerating(true)
     setActionMessage(null)
-    
+
     try {
-      console.log("BEFORE FETCH")
-      // Use stable API route - approval is instant, delivery happens via cron
-      const response = await fetch(`/api/intakes/${intake.id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-      console.log("AFTER FETCH", response.status)
+      const result = await generateMedCertPdfAndApproveAction(intake.id, draft.id)
 
-      const result = await response.json()
-
-      if (result.ok) {
-        // Approval succeeded - DB write is complete, delivery is queued
-        setActionMessage({ 
-          type: "success", 
-          text: result.alreadyApproved 
-            ? "Certificate already issued." 
-            : "Certificate issued. Patient will receive email shortly."
-        })
+      if (result.success) {
+        const emailNote = result.emailStatus === "sent"
+          ? "Certificate sent to patient."
+          : "Certificate issued. Patient will receive email shortly."
+        setActionMessage({ type: "success", text: emailNote })
         setTimeout(() => router.push("/doctor/queue"), 1500)
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to approve" })
@@ -293,21 +280,14 @@ export function DocumentBuilderClient({
       </Card>
 
       {/* Actions */}
-      <div 
-        className="flex items-center gap-3" 
+      <div
+        className="flex items-center gap-3"
         data-testid="document-actions"
-        onClick={(e) => {
-          // #region agent log
-          if ((e.target as HTMLElement)?.closest('[data-testid="approve-button"]')) {
-            fetch('http://127.0.0.1:7242/ingest/2df417d3-2273-4a41-8cdb-6cc4fd71b947',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'document-builder-client.tsx:313',message:'ACTIONS DIV CLICK CAPTURED',data:{target:(e.target as HTMLElement)?.tagName},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-          }
-          // #endregion
-        }}
       >
         <Button 
           variant="outline" 
           onClick={handleSaveDraft} 
-          disabled={isSaving || isPending}
+          disabled={isSaving || isGenerating}
           data-testid="save-draft-button"
         >
           {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
@@ -317,7 +297,7 @@ export function DocumentBuilderClient({
         <Button
           type="button"
           onClick={handleGenerateAndApprove}
-          disabled={isGenerating || isPending || !formData.reason.trim() || !hasCredentials}
+          disabled={isGenerating || isSaving || !formData.reason.trim() || !hasCredentials}
           className="bg-emerald-600 hover:bg-emerald-700"
           data-testid="approve-button"
         >

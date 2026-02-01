@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email/send-email"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/posthog-server"
@@ -45,8 +45,13 @@ export async function approveAndSendCert(
   logger.info("APPROVE_CORE_START", { intakeId })
   
   try {
-    // 1. Authenticate doctor or admin
-    const { profile: doctorProfile } = await requireRole(["doctor", "admin"])
+    // 1. Authenticate doctor or admin (non-redirecting for server actions)
+    const authResult = await requireRoleOrNull(["doctor", "admin"])
+    if (!authResult) {
+      logger.warn("APPROVE_CORE_UNAUTHORIZED", { intakeId })
+      return { success: false, error: "Unauthorized or session expired" }
+    }
+    const doctorProfile = authResult.profile
 
     // P0 SECURITY: Rate limiting to prevent mass-approval attacks
     const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)
@@ -262,13 +267,12 @@ export async function approveAndSendCert(
     })
 
     // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
-    const storageClient = createServiceRoleClient()
     const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
     
     // Retry upload once on failure before continuing
     let uploadError: Error | null = null
     for (let attempt = 0; attempt < 2; attempt++) {
-      const { error } = await storageClient.storage
+      const { error } = await supabase.storage
         .from("documents")
         .upload(storagePath, pdfBuffer, {
           contentType: "application/pdf",
@@ -501,9 +505,11 @@ export async function approveAndSendCert(
     } catch { /* non-blocking */ }
 
     // 9. Revalidate dashboard paths
+    // NOTE: Removed /doctor/intakes/${intakeId} to prevent mid-action navigation.
+    // The client will navigate to /doctor/queue on success anyway.
     revalidatePath("/doctor")
     revalidatePath("/doctor/dashboard")
-    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidatePath("/doctor/queue")
     revalidatePath(`/patient/intakes/${intakeId}`)
 
     return { success: true, certificateId }

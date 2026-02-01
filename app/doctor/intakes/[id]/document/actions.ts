@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth"
 import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
@@ -13,8 +13,11 @@ export async function saveMedCertDraftAction(
   data: MedCertDraftData
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Require doctor or admin role
-    await requireRole(["doctor", "admin"])
+    // Require doctor or admin role (non-redirecting for server actions)
+    const authResult = await requireRoleOrNull(["doctor", "admin"])
+    if (!authResult) {
+      return { success: false, error: "Unauthorized or session expired" }
+    }
 
     const supabase = createServiceRoleClient()
 
@@ -48,8 +51,12 @@ export async function generateMedCertPdfAndApproveAction(
   logger.info("APPROVE_ACTION_START", { intakeId, draftId })
   
   try {
-    // Require doctor or admin role
-    await requireRole(["doctor", "admin"])
+    // Require doctor or admin role (non-redirecting for server actions)
+    const authResult = await requireRoleOrNull(["doctor", "admin"])
+    if (!authResult) {
+      logger.warn("APPROVE_ACTION_UNAUTHORIZED", { intakeId, draftId })
+      return { success: false, error: "Unauthorized or session expired" }
+    }
 
     const supabase = createServiceRoleClient()
     const doctorProfile = await getCurrentProfile()

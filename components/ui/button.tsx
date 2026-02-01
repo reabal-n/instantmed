@@ -112,7 +112,22 @@ function Button({
     if (onPress) {
       onPress(e)
     } else if (onClick) {
-      onClick({} as React.MouseEvent<HTMLButtonElement>)
+      // Pass the native event from PressEvent if available, otherwise create minimal synthetic event
+      // This ensures handlers that need event properties (e.g., stopPropagation) work correctly
+      const nativeEvent = (e as { nativeEvent?: React.MouseEvent<HTMLButtonElement> }).nativeEvent
+      if (nativeEvent) {
+        onClick(nativeEvent)
+      } else {
+        // Fallback: create a minimal synthetic event with the target element
+        const syntheticEvent = {
+          target: e.target,
+          currentTarget: e.target,
+          preventDefault: () => {},
+          stopPropagation: () => {},
+          nativeEvent: {} as Event,
+        } as unknown as React.MouseEvent<HTMLButtonElement>
+        onClick(syntheticEvent)
+      }
     }
     
     // Handle form submission for type="submit" buttons
