@@ -187,6 +187,22 @@ export const FRIENDLY_ERRORS = {
   rateLimited: "Slow down a bit! Try again in a minute.",
 }
 
+/**
+ * Safe API error response — never leaks internal error details to clients.
+ * Logs the full error server-side for debugging.
+ */
+export function safeApiErrorResponse(
+  error: unknown,
+  context: string,
+  log?: { error: (msg: string, meta: Record<string, unknown>, err?: unknown) => void }
+): { message: string; status: 500 } {
+  const internal = error instanceof Error ? error.message : String(error)
+  if (log) {
+    log.error(context, { error: internal }, error instanceof Error ? error : undefined)
+  }
+  return { message: "Internal server error", status: 500 }
+}
+
 export function getFriendlyError(code: string, fallback?: string): string {
   const errorMap: Record<string, string> = {
     invalid_credentials: FRIENDLY_ERRORS.invalidCredentials,

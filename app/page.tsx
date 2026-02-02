@@ -23,6 +23,8 @@ import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
 
+export const revalidate = 3600
+
 // SEO metadata for homepage - critical for Google ranking
 export const metadata: Metadata = {
   title: 'Online Doctor Australia | Medical Certificates & Prescriptions | InstantMed',

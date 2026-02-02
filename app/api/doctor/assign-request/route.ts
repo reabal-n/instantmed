@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      log.error("Failed to assign intake", { intake_id, error: error.message })
+      return NextResponse.json({ error: "Failed to assign request" }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, intake: data })

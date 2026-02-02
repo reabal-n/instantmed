@@ -67,6 +67,22 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.blocked_medication_terms = Array.isArray(row.value) ? row.value : []
       } else if (row.key === FLAG_KEYS.SAFETY_SCREENING_SYMPTOMS) {
         flags.safety_screening_symptoms = Array.isArray(row.value) ? row.value : DEFAULT_SAFETY_SYMPTOMS
+      } else if (row.key === FLAG_KEYS.SCRIPT_TODO_ENABLED) {
+        flags.script_todo_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.BATCH_APPROVE_ENABLED) {
+        flags.batch_approve_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.CONSENT_VERSIONING_ENABLED) {
+        flags.consent_versioning_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.HEALTH_PROFILE_ENABLED) {
+        flags.health_profile_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.REALTIME_QUEUE_ENABLED) {
+        flags.realtime_queue_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.AB_TESTING_ENABLED) {
+        flags.ab_testing_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.SUPPORT_TICKETS_ENABLED) {
+        flags.support_tickets_enabled = row.value === true
+      } else if (row.key === FLAG_KEYS.CLINICAL_DECISION_SUPPORT_ENABLED) {
+        flags.clinical_decision_support_enabled = row.value === true
       }
     }
 

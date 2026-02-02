@@ -49,6 +49,7 @@ const patientNavItems: NavItem[] = [
 
 const doctorNavItems: NavItem[] = [
   { href: "/doctor", label: "Review Queue", icon: ListOrdered, badge: true },
+  { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/admin", label: "All Requests", icon: FileText },

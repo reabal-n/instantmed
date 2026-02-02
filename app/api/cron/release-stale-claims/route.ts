@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       logger.error("Failed to release stale claims", { error: error.message })
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: "Failed to release stale claims" },
         { status: 500 }
       )
     }
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     logger.error("Cron job failed", { error: error.message })
     captureCronError(error, { jobName: "release-stale-claims" })
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: "Cron job failed" },
       { status: 500 }
     )
   }

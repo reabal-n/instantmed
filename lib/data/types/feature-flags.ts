@@ -15,6 +15,14 @@ export const FLAG_KEYS = {
   DISABLE_CONSULTS: "disable_consults",
   BLOCKED_MEDICATION_TERMS: "blocked_medication_terms",
   SAFETY_SCREENING_SYMPTOMS: "safety_screening_symptoms",
+  SCRIPT_TODO_ENABLED: "script_todo_enabled",
+  BATCH_APPROVE_ENABLED: "batch_approve_enabled",
+  CONSENT_VERSIONING_ENABLED: "consent_versioning_enabled",
+  HEALTH_PROFILE_ENABLED: "health_profile_enabled",
+  REALTIME_QUEUE_ENABLED: "realtime_queue_enabled",
+  AB_TESTING_ENABLED: "ab_testing_enabled",
+  SUPPORT_TICKETS_ENABLED: "support_tickets_enabled",
+  CLINICAL_DECISION_SUPPORT_ENABLED: "clinical_decision_support_enabled",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -29,6 +37,14 @@ export interface FeatureFlags {
   disable_consults: boolean
   blocked_medication_terms: string[]
   safety_screening_symptoms: string[]
+  script_todo_enabled: boolean
+  batch_approve_enabled: boolean
+  consent_versioning_enabled: boolean
+  health_profile_enabled: boolean
+  realtime_queue_enabled: boolean
+  ab_testing_enabled: boolean
+  support_tickets_enabled: boolean
+  clinical_decision_support_enabled: boolean
 }
 
 // ============================================================================
@@ -49,6 +65,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   disable_consults: false,
   blocked_medication_terms: [],
   safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
+  script_todo_enabled: true,
+  batch_approve_enabled: false,
+  consent_versioning_enabled: false,
+  health_profile_enabled: false,
+  realtime_queue_enabled: false,
+  ab_testing_enabled: false,
+  support_tickets_enabled: false,
+  clinical_decision_support_enabled: false,
 }
 
 // ============================================================================
@@ -79,6 +103,38 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     safety_screening_symptoms: {
       label: "Safety Screening Symptoms",
       description: "Symptoms that trigger safety screening warnings",
+    },
+    script_todo_enabled: {
+      label: "Script To-Do List",
+      description: "Enable the Script To-Do list for tracking Parchment prescriptions",
+    },
+    batch_approve_enabled: {
+      label: "Batch Approve",
+      description: "Enable batch approval of intakes",
+    },
+    consent_versioning_enabled: {
+      label: "Consent Versioning",
+      description: "Enable versioned consent tracking with content hashing",
+    },
+    health_profile_enabled: {
+      label: "Health Profiles",
+      description: "Enable patient health profile management",
+    },
+    realtime_queue_enabled: {
+      label: "Realtime Queue",
+      description: "Enable real-time updates for the doctor review queue",
+    },
+    ab_testing_enabled: {
+      label: "A/B Testing",
+      description: "Enable A/B testing experiment infrastructure",
+    },
+    support_tickets_enabled: {
+      label: "Support Tickets",
+      description: "Enable the patient support ticket system",
+    },
+    clinical_decision_support_enabled: {
+      label: "Clinical Decision Support",
+      description: "Enable clinical decision support alerts for doctors",
     },
   }
   return info[key]

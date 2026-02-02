@@ -222,9 +222,11 @@ export async function POST(request: Request) {
         : "Your request has been submitted. A doctor will review it and may contact you.",
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
+    log.error("Failed to submit repeat rx", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
     return NextResponse.json(
-      { error: "Failed to submit request", details: message },
+      { error: "Failed to submit request" },
       { status: 500 }
     )
   }

@@ -197,7 +197,42 @@ export async function POST(
     } catch (complianceError) {
       log.error("Compliance logging failed (non-fatal)", {}, complianceError instanceof Error ? complianceError : new Error(String(complianceError)))
     }
-    
+
+    // After approval, create script task for Parchment dispatch
+    if (body.decision === "approved") {
+      try {
+        const { createScriptTask } = await import("@/lib/data/script-tasks")
+        // Get medication details from the request
+        const { data: rxRequest } = await supabase
+          .from("repeat_rx_requests")
+          .select("medication_display, medication_strength, medication_form, guest_email")
+          .eq("id", id)
+          .single()
+
+        // Get patient info
+        const { data: patientProfile } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", existingRequest.patient_id)
+          .single()
+
+        await createScriptTask({
+          repeat_rx_request_id: id,
+          doctor_id: profile.id,
+          patient_name: patientProfile?.full_name || "Unknown",
+          patient_email: patientProfile?.email || rxRequest?.guest_email || undefined,
+          medication_name: rxRequest?.medication_display || undefined,
+          medication_strength: rxRequest?.medication_strength || undefined,
+          medication_form: rxRequest?.medication_form || undefined,
+        })
+      } catch (scriptErr) {
+        log.error("Failed to create script task (non-fatal)", {
+          error: scriptErr instanceof Error ? scriptErr.message : "Unknown",
+          requestId: id,
+        })
+      }
+    }
+
     // Send notification to patient (email/SMS)
     try {
       // Get patient details for notification
@@ -233,9 +268,11 @@ export async function POST(
       message: `Request ${body.decision === "approved" ? "approved" : body.decision === "declined" ? "declined" : "marked for consult"}`,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
+    log.error("Failed to submit decision", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
     return NextResponse.json(
-      { error: "Failed to submit decision", details: message },
+      { error: "Failed to submit decision" },
       { status: 500 }
     )
   }

@@ -198,6 +198,7 @@ export function FileUpload({
                 className="h-8 w-8 text-white hover:bg-white/20"
                 onClick={handleRemove}
                 disabled={isUploading}
+                aria-label="Remove file"
               >
                 <X className="w-4 h-4" />
               </Button>

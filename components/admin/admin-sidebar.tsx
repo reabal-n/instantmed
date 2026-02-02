@@ -27,6 +27,11 @@ import {
   Zap,
   ListOrdered,
   Settings,
+  ShieldCheck,
+  Shield,
+  Timer,
+  HelpCircle,
+  Database,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -56,6 +61,8 @@ const configNavItems: NavItem[] = [
   { href: "/admin/doctors", label: "Doctor Profiles", icon: Stethoscope },
   { href: "/admin/services", label: "Services", icon: Cog },
   { href: "/admin/features", label: "Feature Flags", icon: ToggleLeft },
+  { href: "/admin/settings/encryption", label: "Encryption", icon: Shield },
+  { href: "/admin/performance/database", label: "Database", icon: Database },
 ]
 
 const emailNavItems: NavItem[] = [
@@ -72,6 +79,8 @@ const dashboardNavItems: NavItem[] = [
   { href: "/admin/ops", label: "Operations", icon: Activity },
   { href: "/admin/doctors/performance", label: "Doctor Performance", icon: Trophy },
   { href: "/doctor/queue", label: "Doctor Queue", icon: ClipboardList },
+  { href: "/admin/compliance", label: "Compliance", icon: ShieldCheck },
+  { href: "/admin/finance/revenue", label: "Revenue", icon: DollarSign },
 ]
 
 const opsNavItems: NavItem[] = [
@@ -80,6 +89,8 @@ const opsNavItems: NavItem[] = [
   { href: "/admin/email-queue", label: "Email Queue", icon: Mail },
   { href: "/admin/ops/email-outbox", label: "Email Outbox", icon: Send },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
+  { href: "/admin/ops/sla", label: "SLA Monitor", icon: Timer },
+  { href: "/admin/support", label: "Support", icon: HelpCircle },
 ]
 
 export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }: AdminSidebarProps) {

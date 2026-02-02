@@ -97,6 +97,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               className="h-6 w-6"
               onClick={fetchStats}
               disabled={isRefreshing}
+              aria-label="Refresh stats"
             >
               <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin")} />
             </Button>

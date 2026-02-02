@@ -69,7 +69,7 @@ export function ReferralCard({ patientId }: { patientId: string }) {
       {/* Referral link */}
       <div className="flex gap-2 mb-4">
         <Input readOnly value={referralLink} className="text-sm bg-background/50" />
-        <Button variant="outline" size="icon" onClick={copyLink} className="shrink-0 bg-transparent">
+        <Button variant="outline" size="icon" onClick={copyLink} className="shrink-0 bg-transparent" aria-label="Copy referral link">
           {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
         </Button>
       </div>

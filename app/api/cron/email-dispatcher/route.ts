@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     logger.error("Email dispatcher cron failed", { error: err.message })
     captureCronError(err, { jobName: "email-dispatcher" })
     return NextResponse.json(
-      { success: false, error: err.message },
+      { success: false, error: "Email dispatcher failed" },
       { status: 500 }
     )
   }

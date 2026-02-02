@@ -55,7 +55,7 @@ export async function GET(_request: Request) {
       .ilike("email", email)
 
     if (findError) {
-      return NextResponse.json({ error: findError.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to look up profile" }, { status: 500 })
     }
 
     if (!profiles || profiles.length === 0) {
@@ -74,7 +74,7 @@ export async function GET(_request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message },
+        { error: "Failed to update profile" },
         { status: 500 }
       )
     }

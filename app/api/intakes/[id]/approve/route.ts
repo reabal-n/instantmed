@@ -168,6 +168,6 @@ export async function POST(
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     logger.error("APPROVE_API_ERROR", { intakeId, error: msg })
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 })
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 })
   }
 }

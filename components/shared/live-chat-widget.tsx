@@ -277,6 +277,7 @@ export function LiveChatWidget() {
             onClick={() => handleSend(input)}
             disabled={!input.trim()}
             className="h-10 w-10 rounded-full"
+            aria-label="Send message"
           >
             <Send className="h-4 w-4" />
           </Button>
