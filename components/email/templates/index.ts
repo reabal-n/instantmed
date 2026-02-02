@@ -18,3 +18,6 @@ export type { ScriptSentEmailProps } from "./script-sent"
 
 export { RequestDeclinedEmail, requestDeclinedEmailSubject } from "./request-declined"
 export type { RequestDeclinedEmailProps } from "./request-declined"
+
+export { PaymentReceiptEmail, paymentReceiptEmailSubject } from "./payment-receipt"
+export type { PaymentReceiptEmailProps } from "./payment-receipt"

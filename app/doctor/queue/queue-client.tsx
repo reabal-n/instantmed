@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { UserCard, Skeleton, Tooltip, Pagination } from "@/components/uix"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -106,6 +107,8 @@ export function QueueClient({
   const [isReconnecting, setIsReconnecting] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [audioEnabled, setAudioEnabled] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("queue-audio-notifications") === "true"
@@ -386,6 +389,42 @@ export function QueueClient({
     })
     return Array.from(types)
   }, [intakes])
+
+  // Batch selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectAll = () => {
+    const allIds = new Set(filteredIntakes.map(i => i.id))
+    setSelectedIds(allIds)
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const handleBatchClaim = async () => {
+    if (selectedIds.size === 0) return
+    setIsBatchProcessing(true)
+    let successCount = 0
+    try {
+      for (const id of selectedIds) {
+        const result = await updateStatusAction(id, "in_review" as IntakeStatus, doctorId)
+        if (result?.success) successCount++
+      }
+      toast.success(`Claimed ${successCount} of ${selectedIds.size} intakes`)
+      clearSelection()
+      router.refresh()
+    } catch {
+      toast.error("Failed to claim some intakes")
+    } finally {
+      setIsBatchProcessing(false)
+    }
+  }
 
   const handleDecline = async () => {
     if (!declineDialog || !declineReasonCode) return
@@ -807,6 +846,21 @@ export function QueueClient({
         </div>
       )}
 
+      {/* Batch Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" onClick={handleBatchClaim} disabled={isBatchProcessing}>
+            {isBatchProcessing ? <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> : <Zap className="h-3 w-3 mr-1" />}
+            Claim All
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
+          <div className="ml-auto">
+            <Button size="sm" variant="ghost" onClick={selectAll}>Select All</Button>
+          </div>
+        </div>
+      )}
+
       {/* Queue List */}
       <div className="space-y-3">
         {filteredIntakes.length === 0 ? (
@@ -835,6 +889,12 @@ export function QueueClient({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-4">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0">
+                          <Checkbox
+                            checked={selectedIds.has(intake.id)}
+                            onCheckedChange={() => toggleSelect(intake.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="shrink-0"
+                          />
                           {isExpanded ? (
                             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
                           ) : (

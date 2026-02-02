@@ -87,7 +87,7 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
   }
   
   // Log warning in dev if subtype doesn't have a specific price
-  if (process.env.NODE_ENV === 'development' && subtype && !['general', 'new_medication'].includes(subtype)) {
+  if (process.env.NODE_ENV === 'development' && subtype && subtype !== 'general') {
     // eslint-disable-next-line no-console
     console.warn(`[Stripe] No specific price for consult subtype '${subtype}', using default STRIPE_PRICE_CONSULT`)
   }
@@ -150,7 +150,6 @@ export function getConsultSubtypePrice(subtype?: string): number {
     'womens_health': process.env.NEXT_PUBLIC_PRICE_CONSULT_WOMENS_HEALTH,
     'weight_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_WEIGHT_LOSS,
     'general': process.env.NEXT_PUBLIC_PRICE_CONSULT,
-    'new_medication': process.env.NEXT_PUBLIC_PRICE_CONSULT,
   }
   
   const priceStr = subtypePrices[subtype] || process.env.NEXT_PUBLIC_PRICE_CONSULT

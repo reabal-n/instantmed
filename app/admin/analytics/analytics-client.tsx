@@ -13,11 +13,11 @@ import {
   ExternalLink,
 } from "lucide-react"
 import {
-  LineChart,
+  LazyLineChart as LineChart,
+  LazyBarChart as BarChart,
+  LazyPieChart as PieChart,
   Line,
-  BarChart,
   Bar,
-  PieChart,
   Pie,
   Cell,
   XAxis,
@@ -26,7 +26,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"
+} from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
 
 interface AnalyticsData {

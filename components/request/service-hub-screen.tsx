@@ -50,50 +50,47 @@ const SERVICE_NAMES: Record<UnifiedServiceType, string> = {
 
 // Consult sub-services with call requirements and pricing
 const CONSULT_SUBTYPES = [
-  { 
-    id: 'general', 
-    label: 'General consult', 
+  {
+    id: 'general',
+    label: 'General consultation',
     icon: Stethoscope,
+    bullets: ['New prescriptions', 'General health concerns', 'Referrals & specialist letters'],
     callBadge: 'Sometimes requires a call',
     callVariant: 'secondary' as const,
     price: '$49.95',
   },
-  { 
-    id: 'new_medication', 
-    label: 'New medication', 
-    icon: Pill,
-    callBadge: 'Sometimes requires a call',
-    callVariant: 'secondary' as const,
-    price: '$49.95',
-  },
-  { 
-    id: 'ed', 
-    label: 'Erectile dysfunction', 
+  {
+    id: 'ed',
+    label: 'Erectile dysfunction',
     icon: Heart,
+    bullets: ['Sildenafil or tadalafil prescriptions', 'Discreet, no phone call needed'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
     price: '$39.95',
   },
-  { 
-    id: 'hair_loss', 
-    label: 'Hair loss', 
+  {
+    id: 'hair_loss',
+    label: 'Hair loss treatment',
     icon: Scissors,
+    bullets: ['Finasteride or minoxidil prescriptions', 'Treatment plan assessment'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
     price: '$39.95',
   },
-  { 
-    id: 'womens_health', 
-    label: "Women's health", 
+  {
+    id: 'womens_health',
+    label: "Women's health",
     icon: Sparkles,
+    bullets: ['Contraception', 'UTI treatment', 'Period & hormonal concerns'],
     callBadge: 'No call needed',
     callVariant: 'success' as const,
     price: '$59.95',
   },
-  { 
-    id: 'weight_loss', 
-    label: 'Weight loss', 
+  {
+    id: 'weight_loss',
+    label: 'Weight management',
     icon: Scale,
+    bullets: ['GLP-1 medication assessment', 'Includes brief phone consultation'],
     callBadge: 'Quick call required',
     callVariant: 'outline' as const,
     price: '$79.95',
@@ -326,12 +323,19 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                         )}
                         data-testid={`consult-subtype-${subtype.id}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <subtype.icon className="w-4 h-4 text-muted-foreground" />
-                          <div>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <subtype.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
                             <span className="text-sm font-medium block">{subtype.label}</span>
-                            <Badge 
-                              variant={subtype.callVariant} 
+                            <ul className="mt-0.5 space-y-0">
+                              {subtype.bullets.map((bullet) => (
+                                <li key={bullet} className="text-[11px] text-muted-foreground leading-relaxed">
+                                  • {bullet}
+                                </li>
+                              ))}
+                            </ul>
+                            <Badge
+                              variant={subtype.callVariant}
                               className="text-[10px] mt-1 px-1.5 py-0"
                             >
                               {subtype.callBadge}

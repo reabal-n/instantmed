@@ -216,6 +216,188 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       appUrl: "https://instantmed.com.au",
     },
   },
+  {
+    slug: "payment_receipt",
+    name: "Payment Receipt",
+    subject: "Payment confirmed — {{serviceName}}",
+    htmlTemplate: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstantMed</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; }
+    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .content { padding: 32px 24px; }
+    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
+    .receipt-table { width: 100%; border-collapse: collapse; }
+    .receipt-table td { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+    .receipt-label { color: #6b7280; }
+    .receipt-value { text-align: right; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>InstantMed</h1>
+    </div>
+    <div class="content">
+      <h2>Payment confirmed</h2>
+      <p>Hi {{patientName}},</p>
+      <p>We've received your payment of <strong>{{amount}}</strong> for <strong>{{serviceName}}</strong>. A doctor will review your request shortly.</p>
+      <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 12px 0;">Receipt Details</h3>
+        <table class="receipt-table">
+          <tr><td class="receipt-label">Service</td><td class="receipt-value">{{serviceName}}</td></tr>
+          <tr><td class="receipt-label">Amount</td><td class="receipt-value">{{amount}}</td></tr>
+          <tr><td class="receipt-label">Reference</td><td class="receipt-value" style="font-family: monospace; font-size: 13px;">{{intakeRef}}</td></tr>
+          <tr><td class="receipt-label">Date</td><td class="receipt-value">{{paidAt}}</td></tr>
+        </table>
+      </div>
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="{{dashboardUrl}}" class="button">Track Your Request</a>
+      </p>
+      <p style="font-size: 13px; color: #6b7280;">This receipt is for your records. You can view your request status on your <a href="{{dashboardUrl}}" style="color: #00C9A7;">dashboard</a>.</p>
+    </div>
+    <div class="footer">
+      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
+      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+    availableTags: ["patientName", "serviceName", "amount", "intakeRef", "paidAt", "dashboardUrl", "appUrl"],
+    sampleData: {
+      patientName: "John Smith",
+      serviceName: "Medical Certificate",
+      amount: "$19.95",
+      intakeRef: "INT-2024-ABC123",
+      paidAt: "2 Feb 2026",
+      dashboardUrl: "https://instantmed.com.au/patient",
+      appUrl: "https://instantmed.com.au",
+    },
+  },
+  {
+    slug: "request_declined",
+    name: "Request Declined",
+    subject: "Update on your {{serviceName}} request",
+    htmlTemplate: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstantMed</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; }
+    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .content { padding: 32px 24px; }
+    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>InstantMed</h1>
+    </div>
+    <div class="content">
+      <h2>Update on your request</h2>
+      <p>Hi {{patientName}},</p>
+      <p>Unfortunately, our doctor was unable to approve your <strong>{{serviceName}}</strong> request at this time.</p>
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 0 0 8px 0; font-weight: 600; color: #991b1b;">Reason</p>
+        <p style="margin: 0; color: #7f1d1d;">{{declineReason}}</p>
+      </div>
+      {{#recommendations}}
+      <h3>Doctor's recommendations</h3>
+      <p>{{recommendations}}</p>
+      {{/recommendations}}
+      <p>A full refund of <strong>{{amount}}</strong> will be processed automatically within 3-5 business days.</p>
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
+      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+    availableTags: ["patientName", "serviceName", "declineReason", "recommendations", "amount", "dashboardUrl", "appUrl"],
+    sampleData: {
+      patientName: "John Smith",
+      serviceName: "Medical Certificate",
+      declineReason: "Insufficient information provided for assessment.",
+      recommendations: "Please visit your local GP for an in-person consultation.",
+      amount: "$19.95",
+      dashboardUrl: "https://instantmed.com.au/patient",
+      appUrl: "https://instantmed.com.au",
+    },
+  },
+  {
+    slug: "script_sent",
+    name: "Prescription Sent",
+    subject: "Your eScript is ready",
+    htmlTemplate: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstantMed</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; }
+    .header { background: #00C9A7; color: white; padding: 24px; text-align: center; }
+    .content { padding: 32px 24px; }
+    .button { display: inline-block; background: #00C9A7; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .footer { background: #f9fafb; padding: 24px; text-align: center; color: #6b7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>InstantMed</h1>
+    </div>
+    <div class="content">
+      <h2>Your eScript is ready</h2>
+      <p>Hi {{patientName}},</p>
+      <p>Your doctor has approved your prescription for <strong>{{medicationName}}</strong>. An eScript token has been sent to your nominated pharmacy or is available on your dashboard.</p>
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
+      </p>
+      <h3>How to fill your eScript</h3>
+      <ul>
+        <li>Visit any pharmacy in Australia</li>
+        <li>Show your eScript token (check your SMS or dashboard)</li>
+        <li>The pharmacist will dispense your medication</li>
+      </ul>
+    </div>
+    <div class="footer">
+      <p>InstantMed Pty Ltd | ABN 64 694 559 334</p>
+      <p><a href="{{appUrl}}/privacy">Privacy Policy</a> | <a href="{{appUrl}}/contact">Contact</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `,
+    availableTags: ["patientName", "medicationName", "dashboardUrl", "appUrl"],
+    sampleData: {
+      patientName: "John Smith",
+      medicationName: "Amoxicillin 500mg",
+      dashboardUrl: "https://instantmed.com.au/patient",
+      appUrl: "https://instantmed.com.au",
+    },
+  },
 ]
 
 // ============================================================================

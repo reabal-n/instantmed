@@ -13,6 +13,7 @@ import { Suspense, lazy, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { StepErrorBoundary } from "./step-error-boundary"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
+import { SkeletonForm } from "@/components/ui/skeleton"
 
 // Lazy load step components
 const stepComponents = {
@@ -50,26 +51,7 @@ export interface StepRouterProps {
 }
 
 function StepLoadingFallback() {
-  return (
-    <div className="space-y-5 animate-pulse">
-      {/* Skeleton for form field */}
-      <div className="space-y-2">
-        <div className="h-4 w-32 bg-muted rounded" />
-        <div className="h-11 w-full bg-muted rounded-xl" />
-      </div>
-      {/* Skeleton for selection buttons */}
-      <div className="space-y-2">
-        <div className="h-4 w-40 bg-muted rounded" />
-        <div className="flex gap-2">
-          <div className="h-12 flex-1 bg-muted rounded-xl" />
-          <div className="h-12 flex-1 bg-muted rounded-xl" />
-          <div className="h-12 flex-1 bg-muted rounded-xl" />
-        </div>
-      </div>
-      {/* Skeleton for button */}
-      <div className="h-12 w-full bg-muted rounded-xl mt-4" />
-    </div>
-  )
+  return <SkeletonForm />
 }
 
 function StepNotFound({ componentPath }: { componentPath: string }) {

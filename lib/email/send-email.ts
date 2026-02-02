@@ -28,6 +28,12 @@ export type EmailType =
   | "script_sent"
   | "request_declined"
   | "needs_more_info"
+  | "prescription_approved"
+  | "ed_approved"
+  | "hair_loss_approved"
+  | "womens_health_approved"
+  | "weight_loss_approved"
+  | "consult_approved"
   | "generic"
 
 interface SendEmailParams {

@@ -107,6 +107,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           value={hairPattern}
           onValueChange={(value) => setAnswer("hairPattern", value)}
           className="space-y-2"
+          aria-label="What pattern of hair loss are you experiencing"
         >
           {PATTERN_OPTIONS.map((option) => (
             <label
@@ -141,6 +142,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           value={hairDuration}
           onValueChange={(value) => setAnswer("hairDuration", value)}
           className="space-y-2"
+          aria-label="How long have you been experiencing hair loss"
         >
           {DURATION_OPTIONS.map((option) => (
             <label
@@ -175,6 +177,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           value={hairFamilyHistory}
           onValueChange={(value) => setAnswer("hairFamilyHistory", value)}
           className="space-y-2"
+          aria-label="Do you have a family history of hair loss"
         >
           {FAMILY_HISTORY_OPTIONS.map((option) => (
             <label
@@ -209,6 +212,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           value={hairPreviousTreatment}
           onValueChange={(value) => setAnswer("hairPreviousTreatment", value)}
           className="space-y-2"
+          aria-label="Have you tried any hair loss treatments before"
         >
           {PREVIOUS_TREATMENT_OPTIONS.map((option) => (
             <label

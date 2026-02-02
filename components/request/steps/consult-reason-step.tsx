@@ -23,18 +23,16 @@ interface ConsultReasonStepProps {
 }
 
 const CONSULT_CATEGORIES = [
-  { value: "new_medication", label: "New medication", icon: "💊" },
+  { value: "general", label: "General consultation", icon: "🩺" },
   { value: "ed", label: "Erectile dysfunction", icon: "🔵" },
   { value: "hair_loss", label: "Hair loss", icon: "💇" },
   { value: "weight_loss", label: "Weight loss", icon: "⚖️" },
   { value: "womens_health", label: "Women's health", icon: "🌸" },
-  { value: "general", label: "Other / General consult", icon: "🩺" },
 ] as const
 
 // Map hub subtypes to category values
 const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
-  'new-medication': 'new_medication',
   'ed': 'ed',
   'hair-loss': 'hair_loss',
   'womens-health': 'womens_health',
@@ -47,11 +45,6 @@ const CATEGORY_GUIDANCE: Record<string, {
   helperText: string
   suggestedTopics: string[]
 }> = {
-  new_medication: {
-    placeholder: "Tell us about the medication you need and why you believe it would help...",
-    helperText: "Include any relevant symptoms, previous treatments, or why you're seeking this specific medication.",
-    suggestedTopics: ["Medication name", "Why you need it", "Relevant symptoms", "Previous treatments"],
-  },
   ed: {
     placeholder: "Describe when you first noticed symptoms, how often they occur, and any relevant health conditions...",
     helperText: "Include information about onset, frequency, and any medications you currently take.",
@@ -73,9 +66,9 @@ const CATEGORY_GUIDANCE: Record<string, {
     suggestedTopics: ["Main concern", "Symptom timing", "Current contraception", "Relevant history"],
   },
   general: {
-    placeholder: "Describe your health concern, including any symptoms, how long you've had them, and what you've tried...",
-    helperText: "The more detail you provide, the better the doctor can assess your situation.",
-    suggestedTopics: ["Main concern", "Duration", "Severity", "What you've tried"],
+    placeholder: "Describe your health concern — this could be a new prescription, referral, general health question, or anything else...",
+    helperText: "Include symptoms, duration, and any relevant history. The more detail, the better we can help.",
+    suggestedTopics: ["Main concern", "Duration", "Current medications", "What you've tried"],
   },
 }
 

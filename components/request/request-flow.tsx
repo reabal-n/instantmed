@@ -24,6 +24,7 @@ import { usePostHog } from "posthog-js/react"
 import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { SkeletonForm } from "@/components/ui/skeleton"
 import { StepRouter } from "./step-router"
 import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
@@ -207,16 +208,9 @@ function TimeRemaining({
 }
 
 // Skeleton loading component for step transitions
+// Uses shared SkeletonForm for consistency
 function StepSkeleton() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      <div className="h-12 bg-muted rounded-lg w-full" />
-      <div className="h-24 bg-muted rounded-lg w-full" />
-      <div className="h-10 bg-muted rounded-lg w-3/4" />
-      <div className="h-10 bg-muted rounded-lg w-1/2" />
-      <div className="h-12 bg-muted rounded-lg w-full mt-8" />
-    </div>
-  )
+  return <SkeletonForm />
 }
 
 // Draft restoration banner
@@ -263,12 +257,12 @@ function SubtypeMismatchBanner({
 }) {
   // Import labels for display
   const subtypeLabels: Record<string, string> = {
-    general: 'General consult',
-    new_medication: 'New medication',
+    general: 'General consultation',
+    new_medication: 'General consultation', // legacy backward compat
     ed: 'Erectile dysfunction',
-    hair_loss: 'Hair loss',
+    hair_loss: 'Hair loss treatment',
     womens_health: "Women's health",
-    weight_loss: 'Weight loss',
+    weight_loss: 'Weight management',
   }
   
   const draftLabel = subtypeLabels[draftSubtype] || draftSubtype

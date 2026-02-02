@@ -54,13 +54,26 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 }) {
   const contraceptionType = answers.contraceptionType as string | undefined
   const contraceptionCurrent = answers.contraceptionCurrent as string | undefined
+  const pregnancyStatus = answers.pregnancyStatus as string | undefined
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
+
+  // If pregnant, flag for doctor call
+  const handlePregnancyChange = (value: string) => {
+    setAnswer("pregnancyStatus", value)
+    if (value === 'yes') {
+      setAnswer("requiresCall", true)
+    } else if (answers.requiresCall) {
+      // Only clear if we were the ones who set it
+      setAnswer("requiresCall", false)
+    }
+  }
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
     if (!contraceptionType) newErrors.contraceptionType = "Please select an option"
     if (!contraceptionCurrent) newErrors.contraceptionCurrent = "Please select an option"
+    if (!pregnancyStatus) newErrors.pregnancyStatus = "Please answer this question"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -69,7 +82,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
     if (validate()) onNext()
   }
 
-  const isComplete = contraceptionType && contraceptionCurrent
+  const isComplete = contraceptionType && contraceptionCurrent && pregnancyStatus
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -84,7 +97,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
         <Label className="text-sm font-medium">
           What would you like?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup value={contraceptionType} onValueChange={(v) => setAnswer("contraceptionType", v)} className="space-y-2">
+        <RadioGroup value={contraceptionType} onValueChange={(v) => setAnswer("contraceptionType", v)} className="space-y-2" aria-label="What would you like">
           {[
             { value: 'start', label: 'Start contraception for the first time' },
             { value: 'continue', label: 'Continue / repeat my current contraception' },
@@ -103,7 +116,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
         <Label className="text-sm font-medium">
           Are you currently using any contraception?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup value={contraceptionCurrent} onValueChange={(v) => setAnswer("contraceptionCurrent", v)} className="space-y-2">
+        <RadioGroup value={contraceptionCurrent} onValueChange={(v) => setAnswer("contraceptionCurrent", v)} className="space-y-2" aria-label="Are you currently using any contraception">
           {[
             { value: 'pill', label: 'Yes, the pill' },
             { value: 'iud', label: 'Yes, IUD / implant' },
@@ -117,6 +130,39 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
           ))}
         </RadioGroup>
         {errors.contraceptionCurrent && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.contraceptionCurrent}</p>}
+      </div>
+
+      {/* Pregnancy screening */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Are you currently pregnant or think you might be?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup value={pregnancyStatus} onValueChange={handlePregnancyChange} className="space-y-2" aria-label="Are you currently pregnant or think you might be">
+          {[
+            { value: 'no', label: 'No' },
+            { value: 'not_sure', label: 'Not sure' },
+            { value: 'yes', label: 'Yes' },
+          ].map((opt) => (
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", pregnancyStatus === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+              <RadioGroupItem value={opt.value} />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </RadioGroup>
+        {errors.pregnancyStatus && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.pregnancyStatus}</p>}
+        {pregnancyStatus === 'yes' && (
+          <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+            <AlertCircle className="w-4 h-4 text-amber-600" />
+            <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+              Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
+            </AlertDescription>
+          </Alert>
+        )}
+        {pregnancyStatus === 'not_sure' && (
+          <p className="text-xs text-muted-foreground">
+            Consider taking a pregnancy test before starting contraception.
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -203,7 +249,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
         <Label className="text-sm font-medium">
           How long ago was the unprotected intercourse?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup value={hoursSinceIntercourse} onValueChange={handleHoursChange} className="space-y-2">
+        <RadioGroup value={hoursSinceIntercourse} onValueChange={handleHoursChange} className="space-y-2" aria-label="How long ago was the unprotected intercourse">
           {[
             { value: 'under_24', label: 'Less than 24 hours' },
             { value: '24_to_72', label: '24-72 hours (1-3 days)' },
@@ -248,7 +294,16 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
 }) {
   const utiSymptoms = answers.utiSymptoms as string[] | undefined
   const utiRedFlags = answers.utiRedFlags as string | undefined
+  const utiPregnant = answers.utiPregnant as string | undefined
   const utiDetails = (answers.utiDetails as string) || ""
+
+  const handlePregnancyChange = (value: string) => {
+    setAnswer("utiPregnant", value)
+    if (value === 'yes' || value === 'not_sure') {
+      setIsBlocked(true)
+      setBlockReason("UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment.")
+    }
+  }
 
   const handleRedFlagsChange = (value: string) => {
     setAnswer("utiRedFlags", value)
@@ -305,7 +360,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
     { value: 'cloudy', label: 'Cloudy or smelly urine' },
   ]
 
-  const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no'
+  const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no'
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -337,7 +392,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
         <Label className="text-sm font-medium">
           Do you have any of these symptoms: fever, back/flank pain, feeling very unwell, vomiting?<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup value={utiRedFlags} onValueChange={handleRedFlagsChange} className="space-y-2">
+        <RadioGroup value={utiRedFlags} onValueChange={handleRedFlagsChange} className="space-y-2" aria-label="Do you have red flag symptoms">
           <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", utiRedFlags === 'yes' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
             <RadioGroupItem value="yes" />
             <span className="text-sm">Yes</span>
@@ -348,6 +403,25 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
           </label>
         </RadioGroup>
         {errors.utiRedFlags && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.utiRedFlags}</p>}
+      </div>
+
+      {/* Pregnancy screening */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">
+          Are you currently pregnant?<span className="text-destructive ml-0.5">*</span>
+        </Label>
+        <RadioGroup value={utiPregnant} onValueChange={handlePregnancyChange} className="space-y-2" aria-label="Are you currently pregnant">
+          {[
+            { value: 'no', label: 'No' },
+            { value: 'not_sure', label: 'Not sure' },
+            { value: 'yes', label: 'Yes' },
+          ].map((opt) => (
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", utiPregnant === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+              <RadioGroupItem value={opt.value} />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </RadioGroup>
       </div>
 
       <div className="space-y-2">

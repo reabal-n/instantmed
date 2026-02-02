@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
+import { PulseSpinner } from "@/components/ui/spinner"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { Button } from "@/components/ui/button"
 
@@ -130,8 +131,8 @@ export function SuccessClient({
   if (isVerifying) {
     return (
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <div className="w-16 h-16 mx-auto flex items-center justify-center">
+          <PulseSpinner size="lg" />
         </div>
         <div>
           <h2 className="text-xl font-semibold">Processing payment...</h2>

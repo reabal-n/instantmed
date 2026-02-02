@@ -191,6 +191,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           value={previousAttempts}
           onValueChange={(value) => setAnswer("previousAttempts", value)}
           className="space-y-2"
+          aria-label="What have you tried before"
         >
           {PREVIOUS_ATTEMPTS_OPTIONS.map((option) => (
             <label
@@ -224,6 +225,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           value={eatingDisorderHistory}
           onValueChange={handleEatingDisorderChange}
           className="space-y-2"
+          aria-label="Eating disorder history"
         >
           <label
             className={cn(

@@ -23,14 +23,14 @@ import {
   Zap,
 } from "lucide-react"
 import {
-  BarChart,
+  LazyBarChart as BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
+} from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
 
 interface DoctorMetrics {

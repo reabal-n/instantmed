@@ -36,9 +36,8 @@ export type UnifiedStepId =
   | 'checkout'          // Payment + final consents
 
 // Consult subtype keys (used in URL and intake creation)
-export type ConsultSubtype = 
+export type ConsultSubtype =
   | 'general'
-  | 'new_medication'
   | 'ed'
   | 'hair_loss'
   | 'womens_health'
@@ -46,12 +45,11 @@ export type ConsultSubtype =
 
 // Human-readable labels for consult subtypes
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
-  general: 'General consult',
-  new_medication: 'New medication',
+  general: 'General consultation',
   ed: 'Erectile dysfunction',
-  hair_loss: 'Hair loss',
+  hair_loss: 'Hair loss treatment',
   womens_health: "Women's health",
-  weight_loss: 'Weight loss',
+  weight_loss: 'Weight management',
 }
 
 export interface StepDefinition {
@@ -344,18 +342,6 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
 const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
   // General and new_medication use existing consult-reason step
   general: [
-    {
-      id: 'consult-reason',
-      label: 'Your concern',
-      shortLabel: 'Concern',
-      componentPath: 'consult-reason-step',
-      validateFn: 'validateConsultReasonStep',
-      required: true,
-    },
-    ...CONSULT_COMMON_TAIL,
-  ],
-  
-  new_medication: [
     {
       id: 'consult-reason',
       label: 'Your concern',

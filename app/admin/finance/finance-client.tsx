@@ -15,7 +15,8 @@ import {
   Shield,
 } from "lucide-react"
 import {
-  PieChart,
+  LazyPieChart as PieChart,
+  LazyComposedChart as ComposedChart,
   Pie,
   Cell,
   XAxis,
@@ -24,10 +25,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ComposedChart,
   Area,
   Line,
-} from "recharts"
+} from "@/components/charts/lazy-charts"
 import { cn } from "@/lib/utils"
 
 interface FinanceData {

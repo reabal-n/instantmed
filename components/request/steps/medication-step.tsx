@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { Info } from "lucide-react"
+import { Info, Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
@@ -35,12 +35,31 @@ interface RecentMedication {
   pbsCode?: string
 }
 
+interface MedicationEntry {
+  product: SelectedPBSProduct | null
+  name: string
+  strength?: string
+  form?: string
+  pbsCode?: string
+}
+
 export default function MedicationStep({ onNext }: MedicationStepProps) {
-  const { answers, setAnswers } = useRequestStore()
-  
+  const { answers, setAnswers, setAnswer } = useRequestStore()
+
+  // Support both single (legacy) and multi-medication modes
+  const existingMedications = answers.medications as MedicationEntry[] | undefined
   const selectedMedication = answers.selectedMedication as SelectedPBSProduct | null
   const medicationName = (answers.medicationName as string) || ""
-  
+
+  // Initialize medications array from existing data
+  const [medications, setMedications] = useState<MedicationEntry[]>(() => {
+    if (existingMedications && existingMedications.length > 0) return existingMedications
+    if (selectedMedication || medicationName) {
+      return [{ product: selectedMedication, name: medicationName, strength: selectedMedication?.strength || "", form: selectedMedication?.form || "", pbsCode: selectedMedication?.pbs_code || "" }]
+    }
+    return [{ product: null, name: "" }]
+  })
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
 
@@ -52,53 +71,90 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     }
   }, [])
 
-  const handleMedicationSelect = (product: SelectedPBSProduct | null) => {
-    setAnswers({
-      selectedMedication: product,
-      medicationName: product?.drug_name || "",
-      medicationStrength: product?.strength || "",
-      medicationForm: product?.form || "",
+  // Sync medications to store
+  const syncToStore = useCallback((meds: MedicationEntry[]) => {
+    setMedications(meds)
+    // Always keep medications[] in answers
+    setAnswer("medications", meds)
+    // Backward compat: primary medication fields from first entry
+    const primary = meds[0]
+    if (primary) {
+      setAnswers({
+        selectedMedication: primary.product,
+        medicationName: primary.product?.drug_name || primary.name,
+        medicationStrength: primary.strength || "",
+        medicationForm: primary.form || "",
+        pbsCode: primary.pbsCode || "",
+      })
+    }
+  }, [setAnswer, setAnswers])
+
+  const handleMedicationSelect = (index: number, product: SelectedPBSProduct | null) => {
+    const updated = [...medications]
+    updated[index] = {
+      product,
+      name: product?.drug_name || "",
+      strength: product?.strength || "",
+      form: product?.form || "",
       pbsCode: product?.pbs_code || "",
-    })
+    }
+    syncToStore(updated)
   }
 
   const handleRecentMedClick = (med: RecentMedication) => {
-    setAnswers({
-      selectedMedication: null,
-      medicationName: med.name,
-      medicationStrength: med.strength || "",
-      medicationForm: med.form || "",
+    const updated = [...medications]
+    updated[0] = {
+      product: null,
+      name: med.name,
+      strength: med.strength || "",
+      form: med.form || "",
       pbsCode: med.pbsCode || "",
-    })
+    }
+    syncToStore(updated)
+  }
+
+  const addMedication = () => {
+    if (medications.length < 5) {
+      syncToStore([...medications, { product: null, name: "" }])
+    }
+  }
+
+  const removeMedication = (index: number) => {
+    if (medications.length <= 1) return
+    const updated = medications.filter((_, i) => i !== index)
+    syncToStore(updated)
   }
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
-    if (!selectedMedication && !medicationName) {
+    const hasAtLeastOne = medications.some(m => m.product || m.name)
+    if (!hasAtLeastOne) {
       newErrors.medication = "Please search for and select your medication"
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [selectedMedication, medicationName])
+  }, [medications])
 
   const handleNext = useCallback(() => {
     if (validate()) {
       // Save to recent medications
-      if (selectedMedication) {
-        addRecentMedication({
-          name: selectedMedication.drug_name,
-          strength: selectedMedication.strength || undefined,
-          form: selectedMedication.form || undefined,
-          pbsCode: selectedMedication.pbs_code || undefined,
-        })
-      } else if (medicationName) {
-        addRecentMedication({ name: medicationName })
+      for (const med of medications) {
+        if (med.product) {
+          addRecentMedication({
+            name: med.product.drug_name,
+            strength: med.product.strength || undefined,
+            form: med.product.form || undefined,
+            pbsCode: med.product.pbs_code || undefined,
+          })
+        } else if (med.name) {
+          addRecentMedication({ name: med.name })
+        }
       }
       onNext()
     }
-  }, [validate, selectedMedication, medicationName, onNext])
+  }, [validate, medications, onNext])
 
-  const isComplete = selectedMedication || medicationName
+  const isComplete = medications.some(m => m.product || m.name)
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
 
@@ -136,40 +192,69 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         </div>
       )}
 
-      {/* Medication search */}
-      <FormField
-        label="Medication name"
-        required
-        error={errors.medication}
-        hint="If you know the name, start typing to help us locate it"
-        helpContent={{ 
-          title: "Why do we ask this?", 
-          content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician." 
-        }}
-      >
-        <div className="mt-2">
-          <MedicationSearch
-            value={selectedMedication}
-            onChange={handleMedicationSelect}
-          />
-        </div>
-      </FormField>
+      {/* Medication search slots */}
+      {medications.map((med, index) => (
+        <div key={index} className="space-y-2">
+          <FormField
+            label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
+            required={index === 0}
+            error={index === 0 ? errors.medication : undefined}
+            hint={index === 0 ? "If you know the name, start typing to help us locate it" : undefined}
+            helpContent={index === 0 ? {
+              title: "Why do we ask this?",
+              content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician."
+            } : undefined}
+          >
+            <div className="mt-2 flex gap-2 items-start">
+              <div className="flex-1">
+                <MedicationSearch
+                  value={med.product}
+                  onChange={(product) => handleMedicationSelect(index, product)}
+                />
+              </div>
+              {medications.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 h-10 w-10 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeMedication(index)}
+                  aria-label={`Remove medication ${index + 1}`}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </FormField>
 
-      {/* Selected medication display */}
-      {selectedMedication && (
-        <div className="p-3 rounded-lg border bg-muted/30">
-          <p className="font-medium text-sm">{selectedMedication.drug_name}</p>
-          {selectedMedication.strength && (
-            <p className="text-xs text-muted-foreground">{selectedMedication.strength}</p>
-          )}
-          {selectedMedication.form && (
-            <p className="text-xs text-muted-foreground">{selectedMedication.form}</p>
+          {/* Selected medication display */}
+          {med.product && (
+            <div className="p-3 rounded-lg border bg-muted/30">
+              <p className="font-medium text-sm">{med.product.drug_name}</p>
+              {med.product.strength && (
+                <p className="text-xs text-muted-foreground">{med.product.strength}</p>
+              )}
+              {med.product.form && (
+                <p className="text-xs text-muted-foreground">{med.product.form}</p>
+              )}
+            </div>
           )}
         </div>
+      ))}
+
+      {/* Add another medication button */}
+      {medications.length < 5 && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addMedication}
+          className="w-full gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add another medication
+        </Button>
       )}
-
-      {/* Blocked medication warning placeholder */}
-      {/* Note: Actual blocking logic is in lib/validation/repeat-script-schema.ts */}
 
       {/* Continue button */}
       <Button 

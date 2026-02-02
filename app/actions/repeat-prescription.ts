@@ -13,6 +13,9 @@ import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { revalidatePath } from "next/cache"
+import { sendEmail } from "@/lib/email/send-email"
+import { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "@/components/email/templates/prescription-approved"
+import { env } from "@/lib/env"
 
 const log = createLogger("repeat-prescription")
 
@@ -48,7 +51,8 @@ export async function markRepeatScriptSentAction(
   // Verify intake exists and is a repeat prescription
   const { data: intake, error: fetchError } = await supabase
     .from("intakes")
-    .select("id, service_type, status, prescription_sent_at, prescription_sent_by, user_id")
+    .select(`id, service_type, status, prescription_sent_at, prescription_sent_by, user_id, answers,
+        patient:profiles!patient_id (id, auth_user_id, full_name)`)
     .eq("id", intakeId)
     .single()
 
@@ -111,20 +115,63 @@ export async function markRepeatScriptSentAction(
       },
     })
 
-    log.info("Repeat script marked as sent", { 
-      intakeId, 
-      doctorId, 
+    log.info("Repeat script marked as sent", {
+      intakeId,
+      doctorId,
       channel,
-      previousStatus: intake.status 
+      previousStatus: intake.status
     })
+
+    // Send prescription approved email to patient
+    try {
+      const patientArr = intake.patient as unknown as Array<{
+        id: string; auth_user_id: string; full_name: string | null
+      }> | null
+      const patient = patientArr?.[0] ?? null
+      if (patient?.auth_user_id) {
+        const { data: authUser } = await supabase.auth.admin.getUserById(patient.auth_user_id)
+        const patientEmail = authUser?.user?.email
+        if (patientEmail) {
+          const answers = (intake.answers || {}) as Record<string, unknown>
+          const medicationName = String(answers.medicationName || "medication")
+          const patientName = patient.full_name || "there"
+
+          await sendEmail({
+            to: patientEmail,
+            toName: patientName,
+            subject: prescriptionApprovedSubject(medicationName),
+            template: PrescriptionApprovedEmail({
+              patientName,
+              medicationName,
+              requestId: intakeId,
+              appUrl: env.appUrl,
+            }),
+            emailType: "prescription_approved",
+            intakeId,
+            patientId: patient.id,
+            metadata: { medicationName, channel },
+            tags: [
+              { name: "category", value: "prescription_approved" },
+              { name: "intake_id", value: intakeId },
+            ],
+          })
+        }
+      }
+    } catch (emailErr) {
+      // Don't fail the action if email fails — script is already marked as sent
+      log.warn("Failed to send prescription approval email", {
+        intakeId,
+        error: String(emailErr),
+      })
+    }
 
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath("/doctor/queue")
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       sentAt: now,
-      sentBy: doctorId 
+      sentBy: doctorId
     }
   } 
   

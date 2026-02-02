@@ -261,7 +261,7 @@ export function MedCertPdfDocumentV2({
       alignItems: "center",
     },
     logo: {
-      width: 100,
+      width: 150,
       height: 40,
       objectFit: "contain",
     },

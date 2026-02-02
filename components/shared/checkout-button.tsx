@@ -8,7 +8,8 @@
  */
 
 import { forwardRef } from "react"
-import { ArrowRight, Loader2, Lock } from "lucide-react"
+import { ArrowRight, Lock } from "lucide-react"
+import { DotsSpinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -58,7 +59,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <DotsSpinner size="sm" />
               {loadingLabel}
             </>
           ) : (
@@ -92,7 +93,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
           <div className="relative flex items-center justify-center gap-3 rounded-[14px] bg-primary px-6 py-4 font-semibold text-primary-foreground">
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <DotsSpinner size="default" />
                 <span>{loadingLabel}</span>
               </>
             ) : (
@@ -129,7 +130,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            <DotsSpinner size="sm" className="mr-2" />
             {loadingLabel}
           </>
         ) : (

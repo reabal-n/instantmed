@@ -5,8 +5,10 @@
  * Uses shared CheckoutButton and integrates with Stripe checkout
  */
 
-import { useState } from "react"
-import { Check, Shield, Clock, Smartphone, MessageSquare } from "lucide-react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { stagger } from "@/lib/motion"
+import { Check, Shield, Clock, Smartphone, MessageSquare, Users } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -16,6 +18,8 @@ import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { getQueueEstimate } from "@/lib/data/queue-availability"
+import { CheckoutTrustStrip } from "@/components/checkout/trust-badges"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
@@ -59,13 +63,18 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   const { answers, getIdentity, agreedToTerms, confirmedAccuracy, setConsent, chatSessionId } = useRequestStore()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [estimatedWait, setEstimatedWait] = useState("~1 hour")
+
+  useEffect(() => {
+    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {})
+  }, [])
 
   const pricing = PRICING[serviceType] || PRICING['med-cert']
-  
+
   // Get dynamic price based on service type and subtype
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
-  
+
   // Calculate price: med-cert uses duration, consult uses subtype (from env vars), others use base
   let price = pricing.base
   if (serviceType === 'med-cert' && duration === '2') {
@@ -73,6 +82,18 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   } else if (serviceType === 'consult') {
     price = getConsultSubtypePrice(consultSubtype)
   }
+
+  // Subtype-specific label for consults
+  const CONSULT_SUBTYPE_LABELS: Record<string, string> = {
+    general: 'General Consultation',
+    ed: 'ED Consultation',
+    hair_loss: 'Hair Loss Consultation',
+    womens_health: "Women's Health Consultation",
+    weight_loss: 'Weight Management Consultation',
+  }
+  const displayLabel = serviceType === 'consult' && consultSubtype
+    ? CONSULT_SUBTYPE_LABELS[consultSubtype] || pricing.label
+    : pricing.label
 
   const canCheckout = agreedToTerms && confirmedAccuracy
 
@@ -118,16 +139,21 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
   }
 
   return (
-    <div className="space-y-5 animate-in fade-in">
+    <motion.div
+      className="space-y-5"
+      variants={stagger.containerFast}
+      initial="initial"
+      animate="animate"
+    >
       {/* Summary card */}
-      <div className="p-4 rounded-xl border bg-card space-y-3">
+      <motion.div variants={stagger.item} className="p-4 rounded-xl border bg-card space-y-3">
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-green-600" />
           Request Summary
         </h3>
         
         <div className="space-y-2 pt-2 border-t">
-          <ReviewItem label="Service" value={pricing.label} />
+          <ReviewItem label="Service" value={displayLabel} />
           
           {serviceType === 'med-cert' && (
             <>
@@ -143,9 +169,17 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             </>
           )}
           
-          {(serviceType === 'prescription' || serviceType === 'repeat-script') && answers.medicationName ? (
-            <ReviewItem label="Medication" value={String(answers.medicationName)} />
-          ) : null}
+          {(serviceType === 'prescription' || serviceType === 'repeat-script') && (() => {
+            const meds = answers.medications as Array<{ name: string }> | undefined
+            if (meds && meds.length > 1) {
+              return meds.map((med, i) => (
+                <ReviewItem key={i} label={`Medication ${i + 1}`} value={med.name} />
+              ))
+            }
+            return answers.medicationName ? (
+              <ReviewItem label="Medication" value={String(answers.medicationName)} />
+            ) : null
+          })()}
         </div>
         
         <div className="pt-3 border-t">
@@ -154,19 +188,26 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             <span className="text-xl font-bold text-primary">${price.toFixed(2)}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Trust badges */}
-      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+      <motion.div variants={stagger.item} className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <Shield className="w-3.5 h-3.5" />
           AHPRA doctors
         </span>
         <span className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
-          ~1 hour review
+          {estimatedWait} review
         </span>
-      </div>
+        <span className="flex items-center gap-1">
+          <Users className="w-3.5 h-3.5" />
+          12,000+ helped
+        </span>
+      </motion.div>
+
+      {/* Security & compliance badges */}
+      <CheckoutTrustStrip variant="minimal" />
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (
@@ -194,7 +235,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       )}
 
       {/* Consents */}
-      <div className="space-y-3 p-4 rounded-xl border bg-muted/30">
+      <motion.div variants={stagger.item} className="space-y-3 p-4 rounded-xl border bg-muted/30">
         <div className="flex items-start gap-3">
           <Switch
             id="accuracy"
@@ -219,7 +260,7 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
             <a href="/privacy" className="text-primary underline" target="_blank">Privacy Policy</a>
           </Label>
         </div>
-      </div>
+      </motion.div>
 
       {/* Error message */}
       {error && (
@@ -228,23 +269,33 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
         </Alert>
       )}
 
-      {/* Checkout button */}
-      <CheckoutSection>
-        <CheckoutButton
-          onClick={handleCheckout}
-          isLoading={isProcessing}
-          disabled={!canCheckout}
-          price={`$${price.toFixed(2)}`}
-          label="Continue to payment"
-          loadingLabel="Processing..."
-          variant="prominent"
-        />
-      </CheckoutSection>
+      {/* Spacer for sticky CTA on mobile */}
+      <div className="h-36 sm:hidden" />
 
-      {/* Refund guarantee */}
-      <div className="pt-2">
+      {/* Checkout button - sticky on mobile */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
+        <div className="max-w-lg mx-auto space-y-2">
+          <CheckoutSection>
+            <CheckoutButton
+              onClick={handleCheckout}
+              isLoading={isProcessing}
+              disabled={!canCheckout}
+              price={`$${price.toFixed(2)}`}
+              label="Continue to payment"
+              loadingLabel="Processing..."
+              variant="prominent"
+            />
+          </CheckoutSection>
+          <div className="hidden sm:block pt-2">
+            <RefundGuaranteeBadge />
+          </div>
+        </div>
+      </div>
+
+      {/* Refund guarantee - visible above sticky bar on mobile */}
+      <div className="pt-2 sm:hidden">
         <RefundGuaranteeBadge />
       </div>
-    </div>
+    </motion.div>
   )
 }

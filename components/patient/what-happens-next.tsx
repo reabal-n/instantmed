@@ -18,6 +18,40 @@ import { IntakeStatusTracker } from "./intake-status-tracker"
 import Link from "next/link"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
+// Service-specific messaging for the success page
+const SERVICE_MESSAGING: Record<string, { deliveryTitle: string; deliveryDescription: string; documentTitle: string; documentDescription: string }> = {
+  "medical certificate": {
+    deliveryTitle: "Certificate via email",
+    deliveryDescription: "Your certificate will be emailed as a PDF once approved",
+    documentTitle: "Download anytime",
+    documentDescription: "Your certificate is always available in your dashboard",
+  },
+  "prescription": {
+    deliveryTitle: "eScript via SMS & email",
+    deliveryDescription: "Your eScript will be sent to your mobile and email once approved",
+    documentTitle: "Use at any pharmacy",
+    documentDescription: "Present your eScript token at any Australian pharmacy",
+  },
+  "repeat prescription": {
+    deliveryTitle: "eScript via SMS & email",
+    deliveryDescription: "Your eScript will be sent to your mobile and email once approved",
+    documentTitle: "Use at any pharmacy",
+    documentDescription: "Present your eScript token at any Australian pharmacy",
+  },
+  "consultation": {
+    deliveryTitle: "Doctor follow-up",
+    deliveryDescription: "Your doctor will contact you to discuss next steps",
+    documentTitle: "Notes in your dashboard",
+    documentDescription: "Consultation notes and any prescriptions will appear in your dashboard",
+  },
+}
+
+function getServiceMessaging(serviceName?: string) {
+  if (!serviceName) return null
+  const key = serviceName.toLowerCase()
+  return SERVICE_MESSAGING[key] || null
+}
+
 interface WhatHappensNextProps {
   intakeId: string
   initialStatus: IntakeStatus
@@ -141,17 +175,17 @@ export function WhatHappensNext({
           
           <InfoCard
             icon={<Mail className="h-4 w-4" />}
-            title="We'll email you"
-            description={patientEmail 
-              ? `Updates sent to ${patientEmail}` 
-              : "You'll get an email when your document is ready"
+            title={getServiceMessaging(serviceName)?.deliveryTitle || "We'll email you"}
+            description={patientEmail
+              ? `Updates sent to ${patientEmail}`
+              : getServiceMessaging(serviceName)?.deliveryDescription || "You'll get an email when your document is ready"
             }
           />
-          
+
           <InfoCard
             icon={<FileText className="h-4 w-4" />}
-            title="Download anytime"
-            description="Your documents are always available in your dashboard"
+            title={getServiceMessaging(serviceName)?.documentTitle || "Download anytime"}
+            description={getServiceMessaging(serviceName)?.documentDescription || "Your documents are always available in your dashboard"}
           />
         </motion.div>
 

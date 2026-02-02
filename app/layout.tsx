@@ -187,7 +187,8 @@ export default function RootLayout({
           <link rel="preconnect" href="https://central-ostrich-48.clerk.accounts.dev" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
-          
+          <link rel="manifest" href="/manifest.webmanifest" />
+
           {/* Google tag (gtag.js) */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"

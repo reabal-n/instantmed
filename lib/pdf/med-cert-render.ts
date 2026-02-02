@@ -34,6 +34,35 @@ import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("med-cert-render")
 
 // ============================================================================
+// FAILURE RATE MONITORING
+// ============================================================================
+
+const FAILURE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+const FAILURE_THRESHOLD = 3
+
+const recentFailures: number[] = []
+
+function trackRenderFailure() {
+  const now = Date.now()
+  recentFailures.push(now)
+  // Prune old entries
+  while (recentFailures.length > 0 && recentFailures[0]! < now - FAILURE_WINDOW_MS) {
+    recentFailures.shift()
+  }
+  if (recentFailures.length >= FAILURE_THRESHOLD) {
+    try {
+      const Sentry = require("@sentry/nextjs")
+      Sentry.captureMessage(
+        `PDF render failure rate elevated: ${recentFailures.length} failures in the last hour`,
+        { level: "error", tags: { subsystem: "pdf-render" } },
+      )
+    } catch {
+      // Sentry not available
+    }
+  }
+}
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -132,9 +161,14 @@ export async function renderMedCertPdf(
     }
     
     // 4. Resolve URLs for logo and signature
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
     let logoUrl: string | null = null
     if (clinicIdentity.logo_storage_path) {
       logoUrl = await getClinicLogoUrl(clinicIdentity.logo_storage_path)
+    }
+    // Fallback to wordmark if no custom logo configured
+    if (!logoUrl) {
+      logoUrl = `${siteUrl}/branding/wordmark.svg`
     }
     
     let signatureUrl: string | null = null
@@ -164,7 +198,6 @@ export async function renderMedCertPdf(
     }
     
     // 6. Build seal URL (fully qualified)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
     const sealUrl = templateConfig.seal?.show !== false 
       ? `${siteUrl}/branding/seal.svg`
       : null
@@ -196,6 +229,7 @@ export async function renderMedCertPdf(
     }
   } catch (error) {
     log.error("Failed to render certificate PDF", {}, error instanceof Error ? error : undefined)
+    trackRenderFailure()
     return {
       success: false,
       error: error instanceof Error ? error.message : "PDF rendering failed",

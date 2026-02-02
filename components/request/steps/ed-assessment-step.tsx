@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, AlertCircle } from "lucide-react"
+import { Heart, AlertCircle, ShieldCheck } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -45,6 +46,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
   const edFrequency = answers.edFrequency as string | undefined
   const edMorningErections = answers.edMorningErections as string | undefined
   const edAdditionalInfo = (answers.edAdditionalInfo as string) || ""
+  const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -69,10 +71,29 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
     }
   }
 
-  const isComplete = edOnset && edFrequency && edMorningErections
+  const isComplete = edAgeConfirmed && edOnset && edFrequency && edMorningErections
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      {/* Age gate */}
+      <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+        <ShieldCheck className="w-4 h-4 text-amber-600" />
+        <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+          This service is only available to patients aged 18 and over.
+        </AlertDescription>
+      </Alert>
+
+      <div className="flex items-start gap-3 p-4 rounded-xl border bg-muted/30">
+        <Switch
+          id="edAgeConfirmed"
+          checked={edAgeConfirmed === true}
+          onCheckedChange={(checked) => setAnswer("edAgeConfirmed", checked)}
+        />
+        <Label htmlFor="edAgeConfirmed" className="text-sm leading-relaxed cursor-pointer">
+          I confirm I am 18 years or older
+        </Label>
+      </div>
+
       {/* Info alert */}
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Heart className="w-4 h-4" />
@@ -91,6 +112,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
           value={edOnset}
           onValueChange={(value) => setAnswer("edOnset", value)}
           className="space-y-2"
+          aria-label="When did symptoms start"
         >
           {ONSET_OPTIONS.map((option) => (
             <label
@@ -125,6 +147,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
           value={edFrequency}
           onValueChange={(value) => setAnswer("edFrequency", value)}
           className="space-y-2"
+          aria-label="How often do you experience difficulty"
         >
           {FREQUENCY_OPTIONS.map((option) => (
             <label
@@ -162,6 +185,7 @@ export default function EdAssessmentStep({ onNext }: EdAssessmentStepProps) {
           value={edMorningErections}
           onValueChange={(value) => setAnswer("edMorningErections", value)}
           className="space-y-2"
+          aria-label="Do you experience morning erections"
         >
           {MORNING_ERECTION_OPTIONS.map((option) => (
             <label

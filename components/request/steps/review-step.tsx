@@ -80,10 +80,23 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []
 
   // Service info
+  const CONSULT_SUBTYPE_REVIEW_LABELS: Record<string, string> = {
+    general: 'General Consultation',
+    new_medication: 'General Consultation',
+    ed: 'ED Consultation',
+    hair_loss: 'Hair Loss Consultation',
+    womens_health: "Women's Health Consultation",
+    weight_loss: 'Weight Management Consultation',
+  }
+  const consultSubtypeForLabel = answers.consultSubtype as string | undefined
+  const serviceLabel = serviceType === 'consult' && consultSubtypeForLabel
+    ? CONSULT_SUBTYPE_REVIEW_LABELS[consultSubtypeForLabel] || SERVICE_LABELS[serviceType]
+    : SERVICE_LABELS[serviceType]
+
   sections.push({
     title: 'Request Type',
     items: [
-      { label: 'Service', value: SERVICE_LABELS[serviceType] },
+      { label: 'Service', value: serviceLabel },
     ],
   })
 
@@ -120,19 +133,30 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   // Prescription specific sections
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
+    const medications = answers.medications as Array<{ product: unknown; name: string; strength?: string; form?: string }> | undefined
     const medicationName = answers.medicationName as string
     const medicationStrength = answers.medicationStrength as string
     const medicationForm = answers.medicationForm as string
-    
-    sections.push({
-      title: 'Medication',
-      items: [
-        { label: 'Name', value: medicationName || '' },
-        { label: 'Strength', value: medicationStrength || '' },
-        { label: 'Form', value: medicationForm || '' },
-      ],
-      stepId: 'medication',
-    })
+
+    if (medications && medications.length > 1) {
+      // Multi-medication mode
+      const items = medications.flatMap((med, i) => [
+        { label: `Medication ${i + 1}`, value: med.name || '' },
+        ...(med.strength ? [{ label: `Strength`, value: med.strength }] : []),
+        ...(med.form ? [{ label: `Form`, value: med.form }] : []),
+      ])
+      sections.push({ title: 'Medications', items, stepId: 'medication' })
+    } else {
+      sections.push({
+        title: 'Medication',
+        items: [
+          { label: 'Name', value: medicationName || '' },
+          { label: 'Strength', value: medicationStrength || '' },
+          { label: 'Form', value: medicationForm || '' },
+        ],
+        stepId: 'medication',
+      })
+    }
 
     const prescriptionHistory = answers.prescriptionHistory as string
     const hasSideEffects = answers.hasSideEffects as boolean
@@ -147,12 +171,118 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     })
   }
 
+  // Consult-specific sections
+  if (serviceType === 'consult') {
+    const consultSubtype = answers.consultSubtype as string | undefined
+    const consultCategory = answers.consultCategory as string | undefined
+    const consultDetails = answers.consultDetails as string | undefined
+
+    // General / new medication consult
+    if (consultCategory || consultDetails) {
+      const CATEGORY_LABELS: Record<string, string> = {
+        general: 'General consultation',
+        new_medication: 'General consultation',
+        ed: 'Erectile dysfunction',
+        hair_loss: 'Hair loss treatment',
+        womens_health: "Women's health",
+        weight_loss: 'Weight management',
+      }
+      sections.push({
+        title: 'Consultation Details',
+        items: [
+          ...(consultCategory ? [{ label: 'Category', value: CATEGORY_LABELS[consultCategory] || consultCategory }] : []),
+          ...(consultDetails ? [{ label: 'Details', value: consultDetails.substring(0, 80) + (consultDetails.length > 80 ? '...' : '') }] : []),
+        ],
+        stepId: 'consult-reason',
+      })
+    }
+
+    // ED assessment
+    if (consultSubtype === 'ed') {
+      const ED_ONSET_LABELS: Record<string, string> = {
+        recent: 'Recently (< 3 months)',
+        moderate: '3-12 months',
+        longterm: '> 12 months',
+        always: 'Always had difficulty',
+      }
+      const ED_FREQ_LABELS: Record<string, string> = {
+        always: 'Every time',
+        often: 'Most of the time',
+        sometimes: 'Sometimes',
+        rarely: 'Rarely',
+      }
+      sections.push({
+        title: 'ED Assessment',
+        items: [
+          { label: 'Onset', value: ED_ONSET_LABELS[answers.edOnset as string] || String(answers.edOnset || '—') },
+          { label: 'Frequency', value: ED_FREQ_LABELS[answers.edFrequency as string] || String(answers.edFrequency || '—') },
+          { label: 'Morning erections', value: answers.edMorningErections === 'yes' ? 'Yes' : answers.edMorningErections === 'no' ? 'No' : '—' },
+        ],
+        stepId: 'ed-assessment',
+      })
+    }
+
+    // Hair loss assessment
+    if (consultSubtype === 'hair_loss') {
+      const PATTERN_LABELS: Record<string, string> = {
+        receding: 'Receding hairline',
+        thinning_crown: 'Thinning at crown',
+        overall: 'Overall thinning',
+        patchy: 'Patchy loss',
+        other: 'Other pattern',
+      }
+      sections.push({
+        title: 'Hair Loss Assessment',
+        items: [
+          { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '—') },
+          { label: 'Duration', value: String(answers.hairDuration || '—') },
+          { label: 'Family history', value: String(answers.hairFamilyHistory || '—') },
+        ],
+        stepId: 'hair-loss-assessment',
+      })
+    }
+
+    // Women's health assessment
+    if (consultSubtype === 'womens_health') {
+      const WH_TYPE_LABELS: Record<string, string> = {
+        contraception: 'Contraception',
+        morning_after: 'Morning-after pill',
+        uti: 'UTI treatment',
+        period_pain: 'Period pain',
+        other: 'Other concern',
+      }
+      sections.push({
+        title: "Women's Health",
+        items: [
+          { label: 'Concern', value: WH_TYPE_LABELS[answers.womensHealthOption as string] || String(answers.womensHealthOption || '—') },
+        ],
+        stepId: 'womens-health-type',
+      })
+    }
+
+    // Weight loss assessment
+    if (consultSubtype === 'weight_loss') {
+      const bmi = answers.currentWeight && answers.currentHeight
+        ? (parseFloat(String(answers.currentWeight)) / Math.pow(parseFloat(String(answers.currentHeight)) / 100, 2)).toFixed(1)
+        : null
+      sections.push({
+        title: 'Weight Loss Assessment',
+        items: [
+          { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '—' },
+          { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '—' },
+          ...(bmi ? [{ label: 'BMI', value: bmi }] : []),
+        ],
+        stepId: 'weight-loss-assessment',
+      })
+    }
+  }
+
   // Medical history section (shared)
   const hasAllergies = answers.hasAllergies as boolean
   const allergies = answers.allergies as string
   const hasConditions = answers.hasConditions as boolean
   const conditions = answers.conditions as string
-  
+
   if (hasAllergies !== undefined || hasConditions !== undefined) {
     sections.push({
       title: 'Medical History',

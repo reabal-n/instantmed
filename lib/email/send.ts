@@ -8,6 +8,7 @@ import { PaymentConfirmedEmail } from "./templates/payment-confirmed"
 import { RequestApprovedEmail } from "./templates/request-approved"
 import { NeedsMoreInfoEmail } from "./templates/needs-more-info"
 import { RequestDeclinedEmail } from "./templates/request-declined"
+import { RepeatRxReminderEmail, repeatRxReminderSubject } from "@/components/email/templates/repeat-rx-reminder"
 import { sendViaResend } from "./resend"
 import { createLogger } from "../observability/logger"
 const logger = createLogger("email-send")
@@ -25,6 +26,7 @@ export type EmailTemplate =
   | "request_approved"
   | "needs_more_info"
   | "request_declined"
+  | "repeat_rx_reminder"
 
 interface SendEmailParams {
   to: string
@@ -65,6 +67,11 @@ function renderTemplate(template: EmailTemplate, data: Record<string, unknown>):
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       element = React.createElement(RequestDeclinedEmail, data as any)
       subject = `Update on your ${data.requestType} request`
+      break
+    case "repeat_rx_reminder":
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element = React.createElement(RepeatRxReminderEmail, data as any)
+      subject = repeatRxReminderSubject(String(data.medicationName || "medication"))
       break
     default:
       throw new Error(`Unknown template: ${template}`)

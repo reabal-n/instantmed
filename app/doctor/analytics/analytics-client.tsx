@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  BarChart,
+  LazyBarChart as BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -19,7 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-} from "recharts"
+} from "@/components/charts/lazy-charts"
 import { 
   TrendingUp, 
   TrendingDown,

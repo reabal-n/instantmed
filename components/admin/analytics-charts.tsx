@@ -1,9 +1,9 @@
 "use client"
 
 import {
-  LineChart,
+  LazyLineChart as LineChart,
+  LazyPieChart as PieChart,
   Line,
-  PieChart,
   Pie,
   Cell,
   XAxis,
@@ -12,7 +12,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"
+} from "@/components/charts/lazy-charts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { DashboardAnalytics } from "@/types/db"
 
