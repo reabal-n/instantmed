@@ -356,14 +356,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Resend may send OPTIONS for CORS preflight
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, svix-id, svix-timestamp, svix-signature",
-    },
-  })
-}
+// Webhooks are server-to-server, CORS not needed
+// Resend sends POST requests directly without preflight

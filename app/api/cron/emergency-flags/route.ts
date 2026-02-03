@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendSms } from "@/lib/sms/service"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { timingSafeEqual } from "crypto"
 
 const log = createLogger("emergency-flags-cron")
 
@@ -25,9 +26,15 @@ const EMERGENCY_SMS_TEMPLATE = (patientName: string) =>
   `Hi ${patientName}, we noticed you started a health request but didn't complete it. If you're experiencing a medical emergency, please call 000. For mental health support, call Lifeline 13 11 14. We're here if you need us.`
 
 export async function GET(request: Request) {
-  // Verify cron secret
+  // Verify cron secret with timing-safe comparison
   const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret || !authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const expected = Buffer.from(`Bearer ${cronSecret}`)
+  const provided = Buffer.from(authHeader)
+  if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import { 
-  processEmailDispatch, 
+import {
+  processEmailDispatch,
   getEmailDispatcherStats,
   MAX_BATCH_SIZE,
   MAX_RETRIES,
 } from "@/lib/email/email-dispatcher"
 import { logger } from "@/lib/observability/logger"
+import { timingSafeEqual } from "crypto"
+
+function verifyOpsSecret(providedSecret: string | null, cronSecret: string | null): boolean {
+  if (!cronSecret || !providedSecret) return false
+  const expected = Buffer.from(cronSecret)
+  const provided = Buffer.from(providedSecret)
+  return expected.length === provided.length && timingSafeEqual(expected, provided)
+}
 
 /**
  * Email Dispatcher Route (OPS)
@@ -17,11 +25,11 @@ import { logger } from "@/lib/observability/logger"
  */
 
 export async function POST(request: NextRequest) {
-  // Authenticate via shared secret
+  // Authenticate via shared secret with timing-safe comparison
   const cronSecret = process.env.OPS_CRON_SECRET
   const providedSecret = request.headers.get("x-ops-cron-secret")
-  
-  if (!cronSecret || providedSecret !== cronSecret) {
+
+  if (!verifyOpsSecret(providedSecret, cronSecret ?? null)) {
     logger.warn("[Email Dispatcher OPS] Unauthorized request")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -40,8 +48,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.OPS_CRON_SECRET
   const providedSecret = request.headers.get("x-ops-cron-secret")
-  
-  if (!cronSecret || providedSecret !== cronSecret) {
+
+  if (!verifyOpsSecret(providedSecret, cronSecret ?? null)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

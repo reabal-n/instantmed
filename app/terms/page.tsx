@@ -22,7 +22,7 @@ export default function TermsPage() {
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
             Terms of Service
           </h1>
-          <p className="text-sm text-muted-foreground mb-8">Last updated: January 2025</p>
+          <p className="text-sm text-muted-foreground mb-8">Last updated: February 2026</p>
 
           <div className="prose prose-slate max-w-none">
             <section className="mb-8">

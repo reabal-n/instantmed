@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Navbar } from '@/components/shared/navbar'
 import { MarketingFooter } from '@/components/marketing/footer'
 import { Button } from '@heroui/react'
+import { SafeHtml } from '@/components/ui/safe-html'
 import { 
   ArrowRight, 
   Check, 
@@ -381,7 +382,7 @@ export default function StudyMedCertPage() {
                 {faqs.map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
-                    <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                    <SafeHtml html={faq.answer} className="text-sm text-muted-foreground" as="p" />
                   </div>
                 ))}
               </div>

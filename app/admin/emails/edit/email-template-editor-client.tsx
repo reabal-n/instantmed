@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
+import { SafeHtml } from "@/components/ui/safe-html"
 import {
   Dialog,
   DialogContent,
@@ -441,10 +442,8 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                     </p>
                   </div>
                   <div className="rounded-lg border p-4 bg-white">
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: getPreviewHtml(formData.body_html, selectedTemplate?.available_tags || []),
-                      }}
+                    <SafeHtml
+                      html={getPreviewHtml(formData.body_html, selectedTemplate?.available_tags || [])}
                     />
                   </div>
                 </div>
@@ -545,11 +544,9 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                         <Loader2 className="h-8 w-8 animate-spin" />
                       </div>
                     ) : (
-                      <div
+                      <SafeHtml
+                        html={reactPreviewHtml}
                         className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
-                        dangerouslySetInnerHTML={{
-                          __html: reactPreviewHtml,
-                        }}
                       />
                     )}
                   </div>
@@ -587,11 +584,9 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                 <div className={previewMode === "mobile" ? "w-[375px] border-x" : "max-w-[600px] w-full"}>
                   <div className="p-6">
                     {selectedTemplate && (
-                      <div
+                      <SafeHtml
+                        html={getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags)}
                         className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-800 [&_h1]:mb-4 [&_p]:text-slate-600 [&_p]:leading-relaxed [&_a]:text-blue-600 [&_a]:no-underline hover:[&_a]:underline"
-                        dangerouslySetInnerHTML={{
-                          __html: getPreviewHtml(selectedTemplate.body_html, selectedTemplate.available_tags),
-                        }}
                       />
                     )}
                   </div>

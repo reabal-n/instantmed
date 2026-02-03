@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { declineIntake } from "@/app/actions/decline-intake"
+import { timingSafeEqual } from "crypto"
 
 const log = createLogger("admin-decline")
 
@@ -36,9 +37,13 @@ export async function POST(request: Request) {
     let clerkUserId: string | null = null
     const supabase = createServiceRoleClient()
 
-    if (apiKey && authHeader === `Bearer ${apiKey}`) {
-      authorized = true
-      actorId = "system_api"
+    if (apiKey && authHeader) {
+      const expected = Buffer.from(`Bearer ${apiKey}`)
+      const provided = Buffer.from(authHeader)
+      if (expected.length === provided.length && timingSafeEqual(expected, provided)) {
+        authorized = true
+        actorId = "system_api"
+      }
     } else {
       try {
         const { userId } = await auth()
