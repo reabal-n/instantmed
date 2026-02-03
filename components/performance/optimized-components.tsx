@@ -214,6 +214,7 @@ export const OptimizedImage = memo<OptimizedImageProps>(({
           <LoadingSpinner />
         </div>
       )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageSrc}
         alt={alt}
@@ -232,8 +233,13 @@ export const OptimizedImage = memo<OptimizedImageProps>(({
 OptimizedImage.displayName = "OptimizedImage"
 
 // Optimized chart component wrapper
+interface ChartDataPoint {
+  time: string | Date
+  value: number
+}
+
 interface OptimizedChartProps {
-  data: any[]
+  data: ChartDataPoint[]
   type: "line" | "bar" | "pie"
   loading?: boolean
   error?: string

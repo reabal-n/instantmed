@@ -7,13 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -65,7 +58,7 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop")
   const [viewMode, setViewMode] = useState<"preview" | "html" | "react">("react")
   const [reactTemplates, setReactTemplates] = useState<Array<{ slug: string; name: string; availableTags: string[] }>>([])
-  const [sampleData, setSampleData] = useState<Record<string, unknown>>({})
+  const [_sampleData, setSampleData] = useState<Record<string, unknown>>({})
   const [customData, setCustomData] = useState<Record<string, unknown>>({})
   const [reactPreviewHtml, setReactPreviewHtml] = useState("")
   const [reactPreviewSubject, setReactPreviewSubject] = useState("")

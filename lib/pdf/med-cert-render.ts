@@ -51,6 +51,7 @@ function trackRenderFailure() {
   }
   if (recentFailures.length >= FAILURE_THRESHOLD) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Sentry = require("@sentry/nextjs")
       Sentry.captureMessage(
         `PDF render failure rate elevated: ${recentFailures.length} failures in the last hour`,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { createClient } from "@supabase/supabase-js"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
@@ -18,16 +18,24 @@ function getRealtimeClient() {
   return realtimeClient
 }
 
+interface RealtimePayload {
+  new: Record<string, unknown>
+  old: Record<string, unknown>
+  eventType: string
+}
+
 interface UseRealtimeOptions {
   table: string
   event?: "INSERT" | "UPDATE" | "DELETE" | "*"
   filter?: string
-  onPayload: (payload: { new: Record<string, unknown>; old: Record<string, unknown>; eventType: string }) => void
+  onPayload: (payload: RealtimePayload) => void
   enabled?: boolean
 }
 
 export function useSupabaseRealtime({ table, event = "*", filter, onPayload, enabled = true }: UseRealtimeOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null)
+  const onPayloadRef = useRef(onPayload)
+  onPayloadRef.current = onPayload
 
   useEffect(() => {
     if (!enabled) return
@@ -36,18 +44,19 @@ export function useSupabaseRealtime({ table, event = "*", filter, onPayload, ena
     const channelName = `realtime:${table}:${filter || "all"}`
 
     const channel = client.channel(channelName).on(
-      "postgres_changes" as any,
+      // @ts-expect-error -- supabase-js types don't expose postgres_changes as a literal
+      "postgres_changes",
       {
         event,
         schema: "public",
         table,
         ...(filter ? { filter } : {}),
       },
-      (payload: any) => {
-        onPayload({
-          new: payload.new || {},
-          old: payload.old || {},
-          eventType: payload.eventType || event,
+      (payload: Record<string, unknown>) => {
+        onPayloadRef.current({
+          new: (payload.new as Record<string, unknown>) || {},
+          old: (payload.old as Record<string, unknown>) || {},
+          eventType: (payload.eventType as string) || event,
         })
       }
     ).subscribe()
@@ -58,5 +67,5 @@ export function useSupabaseRealtime({ table, event = "*", filter, onPayload, ena
       channel.unsubscribe()
       channelRef.current = null
     }
-  }, [table, event, filter, enabled]) // Intentionally exclude onPayload to avoid re-subscriptions
+  }, [table, event, filter, enabled])
 }

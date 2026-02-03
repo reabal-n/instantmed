@@ -238,7 +238,7 @@ export function EmailTestClient() {
   }
 
   // Generate themed email HTML
-  const generateThemedEmail = (templateId: string, data: Record<string, string>, theme: any, customStyles: string) => {
+  const generateThemedEmail = (templateId: string, data: Record<string, string>, theme: typeof emailThemes["modern"], customStyles: string) => {
     const { colors, fonts, borderRadius, shadows, gradients } = theme
     
     const baseStyles = `
@@ -388,7 +388,7 @@ export function EmailTestClient() {
   }
 
   // Get template content based on ID
-  const getTemplateContent = (templateId: string, data: Record<string, string>, colors: any) => {
+  const getTemplateContent = (templateId: string, data: Record<string, string>, colors: Record<string, string>) => {
     switch (templateId) {
       case "med_cert_patient":
         return `

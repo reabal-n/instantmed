@@ -11,7 +11,7 @@ interface HealthProfileClientProps {
   patientId: string
 }
 
-export function HealthProfileClient({ initialProfile, patientId }: HealthProfileClientProps) {
+export function HealthProfileClient({ initialProfile, patientId: _patientId }: HealthProfileClientProps) {
   const [allergies, setAllergies] = useState<string[]>(initialProfile?.allergies || [])
   const [conditions, setConditions] = useState<string[]>(initialProfile?.conditions || [])
   const [medications, setMedications] = useState<string[]>(initialProfile?.current_medications || [])

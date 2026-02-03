@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import {
   Send,
@@ -42,7 +41,7 @@ export function EmailPreviewReactClient() {
   const [isSending, setIsSending] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
-  const [sampleData, setSampleData] = useState<Record<string, unknown>>({})
+  const [_sampleData, setSampleData] = useState<Record<string, unknown>>({})
   const [customData, setCustomData] = useState<Record<string, unknown>>({})
   const [previewHtml, setPreviewHtml] = useState("")
   const [previewSubject, setPreviewSubject] = useState("")
@@ -61,7 +60,7 @@ export function EmailPreviewReactClient() {
         } else {
           setError(result.error || "Failed to load templates")
         }
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to load templates")
       } finally {
         setIsLoading(false)
@@ -84,7 +83,7 @@ export function EmailPreviewReactClient() {
         } else {
           setError(result.error || "Failed to load sample data")
         }
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to load sample data")
       }
     }
@@ -99,7 +98,7 @@ export function EmailPreviewReactClient() {
     const generatePreview = async () => {
       setIsPreviewLoading(true)
       setError("")
-      
+
       try {
         const result = await previewAdminEmailTemplateAction(selectedTemplate, customData as Record<string, string>)
         if (result.success && result.html && result.subject) {
@@ -108,7 +107,7 @@ export function EmailPreviewReactClient() {
         } else {
           setError(result.error || "Failed to generate preview")
         }
-      } catch (err) {
+      } catch (_err) {
         setError("Failed to generate preview")
       } finally {
         setIsPreviewLoading(false)

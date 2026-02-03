@@ -23,7 +23,7 @@ export interface NotificationPayload {
   icon?: string
   badge?: string
   tag?: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   actions?: NotificationAction[]
 }
 
@@ -209,11 +209,11 @@ class PushNotificationManager {
   private handleNotificationClick(payload: NotificationPayload): void {
     // Navigate to relevant page based on notification data
     if (payload.data?.url) {
-      window.location.href = payload.data.url
+      window.location.href = String(payload.data.url)
     } else if (payload.data?.intakeId) {
-      window.location.href = `/patient/intakes/${payload.data.intakeId}`
+      window.location.href = `/patient/intakes/${String(payload.data.intakeId)}`
     } else if (payload.data?.requestId) {
-      window.location.href = `/track/${payload.data.requestId}`
+      window.location.href = `/track/${String(payload.data.requestId)}`
     }
 
     logger.info("Notification clicked", { data: payload.data })

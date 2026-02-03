@@ -6,7 +6,7 @@ const logger = createLogger("user-behavior-tracking")
 export interface UserBehaviorEvent {
   eventType: 'page_view' | 'click' | 'form_start' | 'form_complete' | 'conversion' | 'error' | 'feature_use'
   eventName: string
-  properties: Record<string, any>
+  properties: Record<string, unknown>
   timestamp: Date
   userId?: string
   sessionId?: string
@@ -18,7 +18,7 @@ export interface ConversionFunnelStep {
   stepName: string
   stepOrder: number
   eventName: string
-  properties: Record<string, any>
+  properties: Record<string, unknown>
 }
 
 export interface UserJourney {
@@ -31,9 +31,16 @@ export interface UserJourney {
   completed: boolean
 }
 
+interface PostHogClient {
+  capture: (eventName: string, properties: Record<string, unknown>) => void
+  identify: (userId: string, properties: Record<string, unknown>) => void
+  setPeopleProperties: (properties: Record<string, unknown>) => void
+  reset: () => void
+}
+
 class UserBehaviorTracker {
   private static instance: UserBehaviorTracker
-  private posthog: any = null
+  private posthog: PostHogClient | null = null
   private isEnabled: boolean
 
   private constructor() {
@@ -50,7 +57,7 @@ class UserBehaviorTracker {
   }
 
   // Track page views
-  trackPageView(pageName: string, properties: Record<string, any> = {}) {
+  trackPageView(pageName: string, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'page_view',
       eventName: `page_view_${pageName}`,
@@ -69,7 +76,7 @@ class UserBehaviorTracker {
   }
 
   // Track user interactions
-  trackClick(element: string, properties: Record<string, any> = {}) {
+  trackClick(element: string, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'click',
       eventName: `click_${element}`,
@@ -85,7 +92,7 @@ class UserBehaviorTracker {
   }
 
   // Track form interactions
-  trackFormStart(formName: string, properties: Record<string, any> = {}) {
+  trackFormStart(formName: string, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'form_start',
       eventName: `form_start_${formName}`,
@@ -99,7 +106,7 @@ class UserBehaviorTracker {
     this.sendEvent(event)
   }
 
-  trackFormComplete(formName: string, properties: Record<string, any> = {}) {
+  trackFormComplete(formName: string, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'form_complete',
       eventName: `form_complete_${formName}`,
@@ -114,7 +121,7 @@ class UserBehaviorTracker {
   }
 
   // Track conversions
-  trackConversion(conversionType: string, value?: number, properties: Record<string, any> = {}) {
+  trackConversion(conversionType: string, value?: number, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'conversion',
       eventName: `conversion_${conversionType}`,
@@ -130,7 +137,7 @@ class UserBehaviorTracker {
   }
 
   // Track feature usage
-  trackFeatureUse(featureName: string, properties: Record<string, any> = {}) {
+  trackFeatureUse(featureName: string, properties: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'feature_use',
       eventName: `feature_${featureName}`,
@@ -145,7 +152,7 @@ class UserBehaviorTracker {
   }
 
   // Track errors
-  trackError(error: Error, context: Record<string, any> = {}) {
+  trackError(error: Error, context: Record<string, unknown> = {}) {
     const event: UserBehaviorEvent = {
       eventType: 'error',
       eventName: `error_${error.name}`,
@@ -181,7 +188,7 @@ class UserBehaviorTracker {
   }
 
   // Identify user
-  identifyUser(userId: string, properties: Record<string, any> = {}) {
+  identifyUser(userId: string, properties: Record<string, unknown> = {}) {
     if (!this.isEnabled || !this.posthog) return
 
     try {
@@ -193,7 +200,7 @@ class UserBehaviorTracker {
   }
 
   // Set user properties
-  setUserProperties(properties: Record<string, any>) {
+  setUserProperties(properties: Record<string, unknown>) {
     if (!this.isEnabled || !this.posthog) return
 
     try {
@@ -303,7 +310,7 @@ export class ConversionFunnelAnalyzer {
   }
 
   // Track funnel step completion
-  trackFunnelStep(stepName: string, properties: Record<string, any> = {}) {
+  trackFunnelStep(stepName: string, properties: Record<string, unknown> = {}) {
     const step = this.getFunnelSteps().find(s => s.stepName === stepName)
     if (!step) {
       logger.warn("Unknown funnel step", { stepName })
@@ -317,7 +324,7 @@ export class ConversionFunnelAnalyzer {
   }
 
   // Calculate funnel conversion rates
-  async calculateFunnelMetrics(timeRange: { start: Date; end: Date }) {
+  async calculateFunnelMetrics(_timeRange: { start: Date; end: Date }) {
     // This would typically query your analytics data
     // For now, return mock data
     const steps = this.getFunnelSteps()

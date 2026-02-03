@@ -102,10 +102,11 @@ export function BaseLayout({ previewText, children, appUrl = DEFAULT_APP_URL }: 
         <div className="container">
           <div className="card">
             <a href={appUrl} className="logo">
-              <img 
-                src={`${appUrl}/branding/wordmark.svg`} 
-                alt="InstantMed" 
-                style={{ height: "32px", width: "auto" }} 
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${appUrl}/branding/wordmark.svg`}
+                alt="InstantMed"
+                style={{ height: "32px", width: "auto" }}
               />
             </a>
             {children}

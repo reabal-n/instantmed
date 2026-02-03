@@ -2,25 +2,23 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Activity, 
-  Clock, 
-  Zap, 
-  AlertTriangle, 
-  TrendingUp, 
-  TrendingDown,
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Activity,
+  Clock,
+  AlertTriangle,
   Server,
   Database,
-  Globe,
   Users,
   RefreshCw
 } from "lucide-react"
 import { OptimizedStatCard } from "@/components/performance/optimized-components"
 import { OptimizedChart } from "@/components/performance/optimized-components"
 import { useUserBehaviorTracking } from "@/lib/analytics/user-behavior-tracking"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("performance-dashboard")
 
 interface PerformanceMetrics {
   timestamp: Date
@@ -57,9 +55,10 @@ export default function PerformanceDashboard() {
     trackPageView('performance_dashboard')
     fetchMetrics()
     fetchSystemHealth()
-    
+
     const interval = setInterval(fetchMetrics, 30000) // Update every 30 seconds
     return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeRange])
 
   const fetchMetrics = async () => {
@@ -80,10 +79,10 @@ export default function PerformanceDashboard() {
         activeUsers: 100 + Math.floor(Math.random() * 500),
         requestsPerMinute: 20 + Math.floor(Math.random() * 100)
       }))
-      
+
       setMetrics(mockMetrics)
     } catch (error) {
-      console.error('Failed to fetch metrics:', error)
+      log.error('Failed to fetch metrics:', {}, error instanceof Error ? error : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -102,7 +101,7 @@ export default function PerformanceDashboard() {
       }
       setSystemHealth(health)
     } catch (error) {
-      console.error('Failed to fetch system health:', error)
+      log.error('Failed to fetch system health:', {}, error instanceof Error ? error : undefined)
     }
   }
 
@@ -133,7 +132,7 @@ export default function PerformanceDashboard() {
           <p className="text-muted-foreground">Real-time system performance and user experience metrics</p>
         </div>
         <div className="flex items-center gap-2">
-          <Tabs value={selectedTimeRange} onValueChange={(value) => setSelectedTimeRange(value as any)}>
+          <Tabs value={selectedTimeRange} onValueChange={(value) => setSelectedTimeRange(value as '1h' | '24h' | '7d' | '30d')}>
             <TabsList>
               <TabsTrigger value="1h">1H</TabsTrigger>
               <TabsTrigger value="24h">24H</TabsTrigger>

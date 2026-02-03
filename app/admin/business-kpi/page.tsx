@@ -3,14 +3,11 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  FileText, 
-  Calendar,
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  DollarSign,
+  Users,
+  FileText,
   Target,
   Activity,
   RefreshCw,
@@ -20,6 +17,9 @@ import {
 import { OptimizedStatCard } from "@/components/performance/optimized-components"
 import { OptimizedChart } from "@/components/performance/optimized-components"
 import { useUserBehaviorTracking } from "@/lib/analytics/user-behavior-tracking"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("business-kpi")
 
 interface BusinessKPI {
   period: string
@@ -54,6 +54,7 @@ export default function BusinessKPIDashboard() {
     trackPageView('business_kpi_dashboard')
     fetchKPIData()
     fetchFunnelData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPeriod])
 
   const fetchKPIData = async () => {
@@ -88,10 +89,10 @@ export default function BusinessKPIDashboard() {
           netPromoterScore: 68
         }
       ]
-      
+
       setKpiData(mockKPIData)
     } catch (error) {
-      console.error('Failed to fetch KPI data:', error)
+      log.error('Failed to fetch KPI data:', {}, error instanceof Error ? error : undefined)
     } finally {
       setIsLoading(false)
     }
@@ -109,10 +110,10 @@ export default function BusinessKPIDashboard() {
         { step: 'Payment Complete', visitors: 456, conversionRate: 4.56, dropOffRate: 74.7, revenue: 45678 },
         { step: 'Certificate Issued', visitors: 445, conversionRate: 4.45, dropOffRate: 2.4, revenue: 45678 }
       ]
-      
+
       setFunnelData(mockFunnelData)
     } catch (error) {
-      console.error('Failed to fetch funnel data:', error)
+      log.error('Failed to fetch funnel data:', {}, error instanceof Error ? error : undefined)
     }
   }
 
@@ -139,7 +140,7 @@ export default function BusinessKPIDashboard() {
           <p className="text-muted-foreground">Key business metrics and performance indicators</p>
         </div>
         <div className="flex items-center gap-2">
-          <Tabs value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as any)}>
+          <Tabs value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as '7d' | '30d' | '90d' | '1y')}>
             <TabsList>
               <TabsTrigger value="7d">7D</TabsTrigger>
               <TabsTrigger value="30d">30D</TabsTrigger>
@@ -229,7 +230,7 @@ export default function BusinessKPIDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {funnelData.map((step, index) => (
+            {funnelData.map((step, _index) => (
               <div key={step.step} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

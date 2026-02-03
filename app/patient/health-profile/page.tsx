@@ -6,7 +6,7 @@ import { HealthProfileClient } from "./health-profile-client"
 export const dynamic = "force-dynamic"
 
 export default async function HealthProfilePage() {
-  const authUser = await requireRole(["patient"])
+  const _authUser = await requireRole(["patient"])
   const user = await getAuthenticatedUserWithProfile()
 
   if (!user) return null

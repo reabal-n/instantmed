@@ -10,13 +10,12 @@ import { createLogger } from "@/lib/observability/logger"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  Users, 
-  BarChart3, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  Calendar,
+import {
+  Users,
+  BarChart3,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
   TrendingUp,
   Activity,
   FileText,

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 /**
  * API Key Rotation Script
  * Supports zero-downtime rotation with dual-key overlap period.

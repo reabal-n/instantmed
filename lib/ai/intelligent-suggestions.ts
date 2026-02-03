@@ -60,8 +60,8 @@ class IntelligentSuggestionsEngine {
 
   // Suggest medications based on symptoms and user input
   async suggestMedications(
-    userInput: string, 
-    symptoms: string[] = []
+    userInput: string,
+    _symptoms: string[] = []
   ): Promise<MedicationSuggestion[]> {
     if (!this.isEnabled) {
       return []
@@ -356,7 +356,7 @@ class IntelligentSuggestionsEngine {
   async suggestFormCompletion(
     fieldType: string,
     partialInput: string,
-    context: Record<string, any> = {}
+    _context: Record<string, unknown> = {}
   ): Promise<FormCompletionSuggestion[]> {
     if (!this.isEnabled) {
       return []
@@ -449,7 +449,7 @@ class IntelligentSuggestionsEngine {
 
     try {
       const tips: string[] = []
-      const { symptoms, medications, season, location } = context
+      const { symptoms, medications: _medications, season, location } = context
 
       // Seasonal tips
       if (season === 'winter') {

@@ -62,7 +62,7 @@ export async function getPBSClinicalInfo(medicationName: string): Promise<PBSCli
       pbsListed: true,
       pbsCode: item.pbs_code,
     }
-  } catch (error) {
+  } catch (_error) {
     log.error("PBS lookup failed", { medication: medicationName })
     return { pbsListed: false }
   }
