@@ -92,15 +92,16 @@ export default async function PostSignInPage({
     }
 
     // If not found by clerk_user_id, try to link a guest profile by email
+    // Check for profiles where clerk_user_id is NULL or empty string
     if (primaryEmail) {
       const { data: guestProfile } = await supabase
         .from("profiles")
         .select("id, role, onboarding_completed, clerk_user_id")
         .ilike("email", primaryEmail)
-        .is("clerk_user_id", null)
+        .or("clerk_user_id.is.null,clerk_user_id.eq.")
         .maybeSingle()
 
-      if (guestProfile) {
+      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === "")) {
         // Link the guest profile to this Clerk user
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
 
@@ -117,7 +118,6 @@ export default async function PostSignInPage({
             email_verified_at: new Date().toISOString(),
           })
           .eq("id", guestProfile.id)
-          .is("clerk_user_id", null) // Ensure we only update if still unlinked
           .select("id, role, onboarding_completed")
           .maybeSingle()
 

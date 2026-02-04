@@ -177,15 +177,16 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     .single()
 
   // If no profile found by clerk_user_id, check for guest profile to link
+  // Check for profiles where clerk_user_id is NULL or empty string
   if (!profile && primaryEmail) {
     const { data: guestProfile } = await supabase
       .from("profiles")
       .select("*")
       .ilike("email", primaryEmail)
-      .is("clerk_user_id", null)
+      .or("clerk_user_id.is.null,clerk_user_id.eq.")
       .maybeSingle()
 
-    if (guestProfile) {
+    if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === "")) {
       // Link the guest profile to this Clerk user
       const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
 
@@ -202,7 +203,6 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
           email_verified_at: new Date().toISOString(),
         })
         .eq("id", guestProfile.id)
-        .is("clerk_user_id", null) // Ensure still unlinked
         .select()
         .single()
 

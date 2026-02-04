@@ -93,14 +93,15 @@ export async function POST(req: Request) {
       }
     } else {
       // No profile by clerk_user_id - check for guest profile by email (case-insensitive)
+      // Check for profiles where clerk_user_id is NULL or empty string
       const { data: guestProfile } = await supabase
         .from('profiles')
         .select('id, clerk_user_id')
         .ilike('email', primaryEmail)
-        .is('clerk_user_id', null)
+        .or('clerk_user_id.is.null,clerk_user_id.eq.')
         .maybeSingle()
 
-      if (guestProfile) {
+      if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === '')) {
         // Link existing guest profile to Clerk user
         const { error } = await supabase
           .from('profiles')
