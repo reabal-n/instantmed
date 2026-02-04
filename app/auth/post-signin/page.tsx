@@ -54,21 +54,41 @@ export default async function PostSignInPage({
 
   // Try to find profile with retries (handles race condition with webhook)
   let profile = null
-  const maxRetries = 3
+  const maxRetries = 5
   const retryDelayMs = 500
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     // First check by clerk_user_id
-    const { data: existingProfile } = await supabase
+    const { data: existingProfile, error: lookupError } = await supabase
       .from("profiles")
       .select("id, role, onboarding_completed")
       .eq("clerk_user_id", userId)
       .maybeSingle()
 
+    if (lookupError) {
+      log.warn("Profile lookup error", { error: lookupError.message, attempt })
+    }
+
     if (existingProfile) {
       profile = existingProfile
       log.info("Found profile by clerk_user_id", { profileId: profile.id, attempt })
       break
+    }
+
+    // Also check by email with clerk_user_id (case insensitive)
+    if (primaryEmail) {
+      const { data: emailProfile } = await supabase
+        .from("profiles")
+        .select("id, role, onboarding_completed, clerk_user_id")
+        .ilike("email", primaryEmail)
+        .eq("clerk_user_id", userId)
+        .maybeSingle()
+
+      if (emailProfile) {
+        profile = emailProfile
+        log.info("Found profile by email + clerk_user_id", { profileId: profile.id, attempt })
+        break
+      }
     }
 
     // If not found by clerk_user_id, try to link a guest profile by email
@@ -200,6 +220,16 @@ export default async function PostSignInPage({
                 log.info("Linked orphaned email profile", { profileId: profile.id })
                 break
               }
+            } else {
+              // Email exists with a DIFFERENT clerk_user_id - this is a conflict
+              // This could happen if the same person signed up with different auth providers
+              log.error("Email already linked to different Clerk user", {
+                email: primaryEmail,
+                existingClerkUserId: emailProfile.clerk_user_id,
+                currentClerkUserId: userId,
+              })
+              // Don't use this profile - it belongs to a different Clerk user
+              // Continue to next retry attempt
             }
           }
         } else {
@@ -232,6 +262,49 @@ export default async function PostSignInPage({
     }
   }
 
+  // If we still don't have a profile after all attempts, show an error page
+  // DO NOT redirect to /patient as that will cause a redirect loop
+  if (!profile) {
+    log.error("Failed to create or find profile after all attempts", {
+      userId,
+      email: primaryEmail,
+    })
+
+    // Return an error page instead of redirecting to avoid the loop
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Account Setup Issue</h1>
+          <p className="text-gray-600">
+            We encountered an issue setting up your account. This is usually temporary.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="/auth/post-signin"
+              className="block w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </a>
+            <a
+              href="/"
+              className="block w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              Go to Home
+            </a>
+          </div>
+          <p className="text-sm text-gray-500">
+            If this issue persists, please contact support.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   // Determine final redirect destination
   let destination: string
 
@@ -243,27 +316,24 @@ export default async function PostSignInPage({
     if (decodedRedirect.startsWith('/') && !decodedRedirect.startsWith('//')) {
       destination = decodedRedirect
     } else {
-      destination = profile?.onboarding_completed ? "/patient" : "/patient/onboarding"
+      destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
     }
   } else if (params.intake_id) {
     // Redirect to intake success page
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
-  } else if (profile) {
+  } else {
     // Default destination based on role and onboarding status
     if (profile.role === "doctor" || profile.role === "admin") {
       destination = "/doctor"
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
     }
-  } else {
-    // Fallback
-    destination = "/patient"
   }
 
   log.info("Post sign-in complete, redirecting", {
     destination,
-    profileFound: !!profile,
-    role: profile?.role
+    profileFound: true,
+    role: profile.role
   })
 
   redirect(destination)
