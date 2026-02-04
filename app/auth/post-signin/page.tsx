@@ -266,12 +266,52 @@ export default async function PostSignInPage({
     }
   }
 
-  // If we still don't have a profile after all attempts, show an error page
+  // If we still don't have a profile after all attempts, check for conflicts
+  // and show an error page
+  let errorReason = "unknown"
+  let conflictingProfile = null
+
+  if (!profile && primaryEmail) {
+    // Check if there's a profile with this email linked to a different Clerk user
+    const { data: existingEmailProfile } = await supabase
+      .from("profiles")
+      .select("id, clerk_user_id, email")
+      .ilike("email", primaryEmail)
+      .maybeSingle()
+
+    if (existingEmailProfile) {
+      if (existingEmailProfile.clerk_user_id && existingEmailProfile.clerk_user_id !== userId) {
+        errorReason = "email_conflict"
+        conflictingProfile = existingEmailProfile
+        log.error("Email already linked to different Clerk user - cannot create profile", {
+          email: primaryEmail,
+          currentClerkUserId: userId,
+          existingClerkUserId: existingEmailProfile.clerk_user_id,
+        })
+      } else if (!existingEmailProfile.clerk_user_id) {
+        // Guest profile exists but couldn't be linked - this is unusual
+        errorReason = "link_failed"
+        log.error("Guest profile exists but could not be linked", {
+          email: primaryEmail,
+          profileId: existingEmailProfile.id,
+          currentClerkUserId: userId,
+        })
+      }
+    } else {
+      errorReason = "create_failed"
+      log.error("Failed to create profile - no existing profile found", {
+        email: primaryEmail,
+        clerkUserId: userId,
+      })
+    }
+  }
+
   // DO NOT redirect to /patient as that will cause a redirect loop
   if (!profile) {
     log.error("Failed to create or find profile after all attempts", {
       userId,
       email: primaryEmail,
+      errorReason,
     })
 
     // Return an error page instead of redirecting to avoid the loop
@@ -285,7 +325,11 @@ export default async function PostSignInPage({
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Account Setup Issue</h1>
           <p className="text-gray-600">
-            We encountered an issue setting up your account. This is usually temporary.
+            {errorReason === "email_conflict"
+              ? "This email address is already linked to another account. Please sign in with the original account or contact support."
+              : errorReason === "link_failed"
+              ? "We found your account but couldn't link it. Please try again or contact support."
+              : "We encountered an issue setting up your account. This is usually temporary."}
           </p>
           <div className="space-y-3">
             <a
@@ -303,6 +347,11 @@ export default async function PostSignInPage({
           </div>
           <p className="text-sm text-gray-500">
             If this issue persists, please contact support.
+            {process.env.NODE_ENV === "development" && (
+              <span className="block mt-2 text-xs text-gray-400">
+                Debug: {errorReason} | User: {userId?.slice(0, 8)}...
+              </span>
+            )}
           </p>
         </div>
       </div>
