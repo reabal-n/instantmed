@@ -96,7 +96,7 @@ export default async function PostSignInPage({
       const { data: guestProfile } = await supabase
         .from("profiles")
         .select("id, role, onboarding_completed, clerk_user_id")
-        .eq("email", primaryEmail.toLowerCase())
+        .ilike("email", primaryEmail)
         .is("clerk_user_id", null)
         .maybeSingle()
 
@@ -108,10 +108,13 @@ export default async function PostSignInPage({
           .from("profiles")
           .update({
             clerk_user_id: userId,
+            email: primaryEmail.toLowerCase(), // Normalize email
             full_name: fullName,
             first_name: user.firstName || null,
             last_name: user.lastName || null,
             avatar_url: user.imageUrl || null,
+            email_verified: true, // Clerk has verified the email
+            email_verified_at: new Date().toISOString(),
           })
           .eq("id", guestProfile.id)
           .is("clerk_user_id", null) // Ensure we only update if still unlinked
@@ -150,7 +153,8 @@ export default async function PostSignInPage({
 
   // If still no profile, create one with retries
   if (!profile && primaryEmail) {
-    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+    const normalizedEmail = primaryEmail.toLowerCase()
+    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || normalizedEmail.split('@')[0]
 
     // Try to create profile with retries
     for (let createAttempt = 1; createAttempt <= 3; createAttempt++) {
@@ -158,7 +162,7 @@ export default async function PostSignInPage({
         .from("profiles")
         .insert({
           clerk_user_id: userId,
-          email: primaryEmail,
+          email: normalizedEmail,
           full_name: fullName,
           first_name: user.firstName || null,
           last_name: user.lastName || null,
@@ -197,7 +201,7 @@ export default async function PostSignInPage({
           const { data: emailProfile } = await supabase
             .from("profiles")
             .select("id, role, onboarding_completed, clerk_user_id")
-            .eq("email", primaryEmail.toLowerCase())
+            .ilike("email", primaryEmail)
             .maybeSingle()
 
           if (emailProfile) {

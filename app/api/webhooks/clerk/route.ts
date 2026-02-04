@@ -54,13 +54,15 @@ export async function POST(req: Request) {
   if (eventType === 'user.created' || eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data
     
-    const primaryEmail = email_addresses?.find(e => e.id === evt.data.primary_email_address_id)?.email_address
-    
-    if (!primaryEmail) {
+    const rawEmail = email_addresses?.find(e => e.id === evt.data.primary_email_address_id)?.email_address
+
+    if (!rawEmail) {
       log.error('No primary email for user')
       return new Response('No primary email', { status: 400 })
     }
 
+    // Normalize email to lowercase for consistent storage and lookups
+    const primaryEmail = rawEmail.toLowerCase()
     const fullName = [first_name, last_name].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
     const supabase = createServiceRoleClient()
 
@@ -90,11 +92,11 @@ export async function POST(req: Request) {
         return new Response('Database error', { status: 500 })
       }
     } else {
-      // No profile by clerk_user_id - check for guest profile by email
+      // No profile by clerk_user_id - check for guest profile by email (case-insensitive)
       const { data: guestProfile } = await supabase
         .from('profiles')
         .select('id, clerk_user_id')
-        .eq('email', primaryEmail.toLowerCase())
+        .ilike('email', primaryEmail)
         .is('clerk_user_id', null)
         .maybeSingle()
 
@@ -104,10 +106,13 @@ export async function POST(req: Request) {
           .from('profiles')
           .update({
             clerk_user_id: id,
+            email: primaryEmail, // Update to normalized email
             full_name: fullName,
             first_name: first_name || null,
             last_name: last_name || null,
             avatar_url: image_url || null,
+            email_verified: true, // Clerk has verified the email
+            email_verified_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('id', guestProfile.id)
@@ -129,6 +134,9 @@ export async function POST(req: Request) {
             last_name: last_name || null,
             avatar_url: image_url || null,
             role: 'patient',
+            onboarding_completed: false,
+            email_verified: true, // Clerk has verified the email
+            email_verified_at: new Date().toISOString(),
           })
 
         if (error) {

@@ -70,10 +70,11 @@ export async function getProfileByClerkId(clerkUserId: string): Promise<ClerkPro
 /**
  * Ensure a profile exists for the current Clerk user
  * Creates one if it doesn't exist (fallback for webhook failures)
+ * Also links guest profiles by email if found
  */
 export async function ensureClerkProfile(): Promise<ClerkProfile | null> {
   const { userId } = await auth()
-  
+
   if (!userId) {
     return null
   }
@@ -84,23 +85,63 @@ export async function ensureClerkProfile(): Promise<ClerkProfile | null> {
     return existing
   }
 
-  // Profile doesn't exist - create it from Clerk user data
+  // Profile doesn't exist - get Clerk user data
   const user = await currentUser()
   if (!user) {
     return null
   }
 
-  const primaryEmail = user.emailAddresses.find(
+  const rawEmail = user.emailAddresses.find(
     (e: { id: string }) => e.id === user.primaryEmailAddressId
   )?.emailAddress
 
-  if (!primaryEmail) {
+  if (!rawEmail) {
     console.error('No primary email for Clerk user')
     return null
   }
 
+  // Normalize email to lowercase for consistent storage
+  const primaryEmail = rawEmail.toLowerCase()
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
 
+  // Check for guest profile to link (case-insensitive email match)
+  const { data: guestProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('*')
+    .ilike('email', primaryEmail)
+    .is('clerk_user_id', null)
+    .maybeSingle()
+
+  if (guestProfile) {
+    // Link the guest profile to this Clerk user
+    const { data: linkedProfile, error: linkError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        clerk_user_id: userId,
+        email: primaryEmail,
+        full_name: fullName,
+        first_name: user.firstName || null,
+        last_name: user.lastName || null,
+        avatar_url: user.imageUrl || null,
+        email_verified: true,
+        email_verified_at: new Date().toISOString(),
+      })
+      .eq('id', guestProfile.id)
+      .is('clerk_user_id', null) // Ensure still unlinked
+      .select()
+      .single()
+
+    if (!linkError && linkedProfile) {
+      return linkedProfile as ClerkProfile
+    }
+    // If linking failed, another process may have linked it - try to find it
+    const nowLinked = await getProfileByClerkId(userId)
+    if (nowLinked) {
+      return nowLinked
+    }
+  }
+
+  // No guest profile found - create new one
   const { data, error } = await supabaseAdmin
     .from('profiles')
     .insert({
@@ -111,11 +152,21 @@ export async function ensureClerkProfile(): Promise<ClerkProfile | null> {
       last_name: user.lastName || null,
       avatar_url: user.imageUrl || null,
       role: 'patient',
+      onboarding_completed: false,
+      email_verified: true,
+      email_verified_at: new Date().toISOString(),
     })
     .select()
     .single()
 
   if (error) {
+    // Handle race condition - profile might have been created by webhook
+    if (error.code === '23505') {
+      const raceProfile = await getProfileByClerkId(userId)
+      if (raceProfile) {
+        return raceProfile
+      }
+    }
     console.error('Failed to create profile:', error)
     return null
   }

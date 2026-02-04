@@ -146,10 +146,11 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
 /**
  * Get authenticated user, creating a profile if one doesn't exist.
  * Used for onboarding and first-time user flows.
+ * Also links guest profiles by email if found.
  */
 export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   const { userId } = await clerkAuth()
-  
+
   if (!userId) {
     return null
   }
@@ -159,23 +160,73 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     return null
   }
 
-  const primaryEmail = user.emailAddresses.find(
+  const rawEmail = user.emailAddresses.find(
     e => e.id === user.primaryEmailAddressId
   )?.emailAddress
 
+  // Normalize email to lowercase for consistent storage
+  const primaryEmail = rawEmail?.toLowerCase()
+
   const supabase = createServiceRoleClient()
-  
-  // Try to find existing profile
+
+  // Try to find existing profile by clerk_user_id
   let { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("clerk_user_id", userId)
     .single()
-  
-  // Create new profile if none exists
-  if (!profile) {
-    const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || null
-    
+
+  // If no profile found by clerk_user_id, check for guest profile to link
+  if (!profile && primaryEmail) {
+    const { data: guestProfile } = await supabase
+      .from("profiles")
+      .select("*")
+      .ilike("email", primaryEmail)
+      .is("clerk_user_id", null)
+      .maybeSingle()
+
+    if (guestProfile) {
+      // Link the guest profile to this Clerk user
+      const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+
+      const { data: linkedProfile, error: linkError } = await supabase
+        .from("profiles")
+        .update({
+          clerk_user_id: userId,
+          email: primaryEmail,
+          full_name: fullName,
+          first_name: user.firstName || null,
+          last_name: user.lastName || null,
+          avatar_url: user.imageUrl || null,
+          email_verified: true,
+          email_verified_at: new Date().toISOString(),
+        })
+        .eq("id", guestProfile.id)
+        .is("clerk_user_id", null) // Ensure still unlinked
+        .select()
+        .single()
+
+      if (!linkError && linkedProfile) {
+        profile = linkedProfile
+      } else {
+        // If linking failed, another process may have linked it - try to find it
+        const { data: nowLinkedProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("clerk_user_id", userId)
+          .single()
+
+        if (nowLinkedProfile) {
+          profile = nowLinkedProfile
+        }
+      }
+    }
+  }
+
+  // Create new profile if none exists and no guest profile to link
+  if (!profile && primaryEmail) {
+    const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+
     // P1 FIX: Clerk users have verified emails - mark as verified for guest profile linking security
     const { data: newProfile, error } = await supabase
       .from("profiles")
@@ -193,12 +244,27 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       })
       .select()
       .single()
-    
-    if (error || !newProfile) {
-      return null
+
+    if (error) {
+      // Handle race condition - profile might have been created by webhook
+      if (error.code === '23505') {
+        const { data: raceProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("clerk_user_id", userId)
+          .single()
+
+        if (raceProfile) {
+          profile = raceProfile
+        }
+      }
+    } else if (newProfile) {
+      profile = newProfile
     }
-    
-    profile = newProfile
+  }
+
+  if (!profile) {
+    return null
   }
 
   return {
