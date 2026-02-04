@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getScriptTasks, getScriptTaskCounts } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("doctor-scripts-api")
 
@@ -10,6 +11,10 @@ export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

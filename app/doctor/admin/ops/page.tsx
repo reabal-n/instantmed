@@ -11,8 +11,8 @@ import {
   ExternalLink
 } from "lucide-react"
 
-// External dashboard URLs
-// TODO: Set these env vars in Vercel for production
+// External dashboard URLs - configured via Vercel environment variables
+// NEXT_PUBLIC_SENTRY_PROJECT_URL and NEXT_PUBLIC_VERCEL_PROJECT_URL
 const SENTRY_URL = process.env.NEXT_PUBLIC_SENTRY_PROJECT_URL || null
 const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_PROJECT_URL || null
 const RESEND_URL = "https://resend.com/emails"

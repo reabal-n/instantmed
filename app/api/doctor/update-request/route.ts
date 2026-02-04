@@ -3,13 +3,18 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("update-intake")
 
 export async function POST(request: NextRequest) {
   let clerkUserId: string | null = null
-  
+
   try {
+    // Apply rate limiting for sensitive operations
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const { userId } = await auth()
     clerkUserId = userId
 

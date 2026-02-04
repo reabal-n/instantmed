@@ -24,17 +24,18 @@ export function CompleteAccountForm({
   const [showConfetti, setShowConfetti] = useState(false)
   
   useEffect(() => {
-    // If already signed in, redirect to success
+    // If already signed in, redirect through post-signin to ensure profile is linked
     if (isLoaded && isSignedIn && intakeId) {
       // Use a timeout to avoid synchronous setState in effect
       const confettiTimer = setTimeout(() => {
         setShowConfetti(true)
       }, 0)
-      
+
       const redirectTimer = setTimeout(() => {
-        router.push(`/patient/intakes/success?intake_id=${intakeId}`)
+        // Use post-signin handler to ensure profile linking is complete
+        router.push(`/auth/post-signin?intake_id=${intakeId}`)
       }, 1000)
-      
+
       return () => {
         clearTimeout(confettiTimer)
         clearTimeout(redirectTimer)
@@ -43,11 +44,12 @@ export function CompleteAccountForm({
   }, [isLoaded, isSignedIn, intakeId, router])
 
   const handleCreateAccount = () => {
-    // Redirect to Clerk Account Portal with redirect URL
+    // Redirect to Clerk Account Portal with post-signin handler
+    // This prevents the redirect loop by ensuring profile is linked before accessing protected routes
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://instantmed.com.au'
     const clerkSignUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || 'https://accounts.instantmed.com.au/sign-up'
-    const redirectUrl = `${appUrl}/patient/intakes/success?intake_id=${intakeId}`
-    const signUpUrl = `${clerkSignUpUrl}?redirect_url=${encodeURIComponent(redirectUrl)}`
+    const postSignInUrl = `${appUrl}/auth/post-signin?intake_id=${intakeId}`
+    const signUpUrl = `${clerkSignUpUrl}?redirect_url=${encodeURIComponent(postSignInUrl)}`
     router.push(signUpUrl)
   }
 
@@ -113,7 +115,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(`https://instantmed.com.au/patient/intakes/success?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
+        <a href={`https://accounts.instantmed.com.au/sign-in?redirect_url=${encodeURIComponent(`https://instantmed.com.au/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

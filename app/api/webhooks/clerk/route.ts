@@ -1,14 +1,16 @@
-/* eslint-disable no-console -- Webhook handlers need console for error logging */
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { createLogger } from '@/lib/observability/logger'
+
+const log = createLogger('clerk-webhook')
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
 
   if (!WEBHOOK_SECRET) {
-    console.error('Missing CLERK_WEBHOOK_SECRET')
+    log.error('Missing CLERK_WEBHOOK_SECRET')
     return new Response('Webhook secret not configured', { status: 500 })
   }
 
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
       'svix-signature': svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    console.error('Webhook verification failed:', err)
+    log.error('Webhook verification failed', {}, err instanceof Error ? err : new Error(String(err)))
     return new Response('Invalid signature', { status: 400 })
   }
 
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
     const primaryEmail = email_addresses?.find(e => e.id === evt.data.primary_email_address_id)?.email_address
     
     if (!primaryEmail) {
-      console.error('No primary email for user')
+      log.error('No primary email for user')
       return new Response('No primary email', { status: 400 })
     }
 
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
         .eq('clerk_user_id', id)
 
       if (error) {
-        console.error('Failed to update profile:', error)
+        log.error('Failed to update profile', { errorCode: error.code, errorMessage: error.message })
         return new Response('Database error', { status: 500 })
       }
     } else {
@@ -111,10 +113,10 @@ export async function POST(req: Request) {
           .eq('id', guestProfile.id)
 
         if (error) {
-          console.error('Failed to link guest profile:', error)
+          log.error('Failed to link guest profile', { errorCode: error.code, errorMessage: error.message })
           return new Response('Database error', { status: 500 })
         }
-        console.log('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id })
+        log.info('Linked guest profile to Clerk user', { clerkUserId: id, profileId: guestProfile.id })
       } else {
         // No existing profile - create new one
         const { error } = await supabase
@@ -132,9 +134,9 @@ export async function POST(req: Request) {
         if (error) {
           // Handle race condition - profile might have been created by auth callback
           if (error.code === '23505') { // Unique constraint violation
-            console.log('Profile already exists (race condition), skipping insert')
+            log.info('Profile already exists (race condition), skipping insert')
           } else {
-            console.error('Failed to create profile:', error)
+            log.error('Failed to create profile', { errorCode: error.code, errorMessage: error.message })
             return new Response('Database error', { status: 500 })
           }
         }
@@ -155,7 +157,7 @@ export async function POST(req: Request) {
       .eq('clerk_user_id', id)
 
     if (error) {
-      console.error('Failed to deactivate profile:', error)
+      log.error('Failed to deactivate profile', { errorCode: error.code, errorMessage: error.message })
       return new Response('Database error', { status: 500 })
     }
 

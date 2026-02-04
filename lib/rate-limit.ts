@@ -1,8 +1,10 @@
 /**
- * Rate Limiting Utility
- * 
+ * Rate Limiting Utility (In-Memory Fallback)
+ *
+ * @deprecated Use `@/lib/rate-limit/redis` instead for production rate limiting.
+ * This module is kept as a fallback when Redis is not available.
+ *
  * Simple in-memory rate limiter for API endpoints.
- * For production, consider using Redis-based rate limiting.
  */
 
 interface RateLimitEntry {

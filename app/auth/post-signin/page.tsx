@@ -1,0 +1,270 @@
+import { redirect } from "next/navigation"
+import { auth, currentUser } from "@clerk/nextjs/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("post-signin")
+
+export const dynamic = "force-dynamic"
+
+/**
+ * Post Sign-In Handler
+ *
+ * This page handles the transition from Clerk authentication to our app.
+ * It ensures the user's profile is properly linked before redirecting to
+ * protected routes like /patient/intakes/success.
+ *
+ * This solves the race condition where:
+ * 1. User signs in with Google
+ * 2. Clerk redirects to /patient/intakes/success (protected)
+ * 3. Profile linking (via webhook or callback) hasn't completed yet
+ * 4. requireRole can't find profile, redirects back to /sign-in
+ * 5. Loop!
+ *
+ * Solution: This page waits for profile to be linked (with retry) before
+ * redirecting to the final destination.
+ */
+export default async function PostSignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string; intake_id?: string }>
+}) {
+  const params = await searchParams
+  const { userId } = await auth()
+
+  // Not authenticated - redirect to sign in
+  if (!userId) {
+    log.info("No user ID, redirecting to sign-in")
+    redirect("/sign-in")
+  }
+
+  const user = await currentUser()
+  if (!user) {
+    log.info("No Clerk user, redirecting to sign-in")
+    redirect("/sign-in")
+  }
+
+  const primaryEmail = user.emailAddresses.find(
+    e => e.id === user.primaryEmailAddressId
+  )?.emailAddress
+
+  log.info("Post sign-in check started", { userId, email: primaryEmail })
+
+  const supabase = createServiceRoleClient()
+
+  // Try to find profile with retries (handles race condition with webhook)
+  let profile = null
+  const maxRetries = 3
+  const retryDelayMs = 500
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // First check by clerk_user_id
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id, role, onboarding_completed")
+      .eq("clerk_user_id", userId)
+      .maybeSingle()
+
+    if (existingProfile) {
+      profile = existingProfile
+      log.info("Found profile by clerk_user_id", { profileId: profile.id, attempt })
+      break
+    }
+
+    // If not found by clerk_user_id, try to link a guest profile by email
+    if (primaryEmail) {
+      const { data: guestProfile } = await supabase
+        .from("profiles")
+        .select("id, role, onboarding_completed, clerk_user_id")
+        .eq("email", primaryEmail.toLowerCase())
+        .is("clerk_user_id", null)
+        .maybeSingle()
+
+      if (guestProfile) {
+        // Link the guest profile to this Clerk user
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+
+        const { data: linkedProfile, error: linkError } = await supabase
+          .from("profiles")
+          .update({
+            clerk_user_id: userId,
+            full_name: fullName,
+            first_name: user.firstName || null,
+            last_name: user.lastName || null,
+            avatar_url: user.imageUrl || null,
+          })
+          .eq("id", guestProfile.id)
+          .is("clerk_user_id", null) // Ensure we only update if still unlinked
+          .select("id, role, onboarding_completed")
+          .maybeSingle()
+
+        if (linkedProfile) {
+          profile = linkedProfile
+          log.info("Linked guest profile to Clerk user", { profileId: profile.id, attempt })
+          break
+        } else if (linkError) {
+          log.warn("Failed to link guest profile", { error: linkError.message, attempt })
+
+          // Check if another process linked it
+          const { data: nowLinkedProfile } = await supabase
+            .from("profiles")
+            .select("id, role, onboarding_completed")
+            .eq("clerk_user_id", userId)
+            .maybeSingle()
+
+          if (nowLinkedProfile) {
+            profile = nowLinkedProfile
+            log.info("Found profile linked by another process", { profileId: profile.id, attempt })
+            break
+          }
+        }
+      }
+    }
+
+    // Wait before retry (except on last attempt)
+    if (attempt < maxRetries) {
+      log.info("Profile not found, retrying", { attempt, maxRetries })
+      await new Promise(resolve => setTimeout(resolve, retryDelayMs))
+    }
+  }
+
+  // If still no profile, create one with retries
+  if (!profile && primaryEmail) {
+    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+
+    // Try to create profile with retries
+    for (let createAttempt = 1; createAttempt <= 3; createAttempt++) {
+      const { data: newProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert({
+          clerk_user_id: userId,
+          email: primaryEmail,
+          full_name: fullName,
+          first_name: user.firstName || null,
+          last_name: user.lastName || null,
+          avatar_url: user.imageUrl || null,
+          role: "patient",
+          onboarding_completed: false,
+          email_verified: true,
+          email_verified_at: new Date().toISOString(),
+        })
+        .select("id, role, onboarding_completed")
+        .single()
+
+      if (!createError && newProfile) {
+        profile = newProfile
+        log.info("Created new profile", { profileId: profile?.id, attempt: createAttempt })
+        break
+      }
+
+      if (createError) {
+        // Handle race condition where profile was created by webhook between our checks
+        if (createError.code === '23505') {
+          // Unique constraint violation - profile was created by another process
+          const { data: raceProfile } = await supabase
+            .from("profiles")
+            .select("id, role, onboarding_completed")
+            .eq("clerk_user_id", userId)
+            .maybeSingle()
+
+          if (raceProfile) {
+            profile = raceProfile
+            log.info("Found profile created by webhook during race", { profileId: profile.id })
+            break
+          }
+
+          // Also check by email in case it was linked differently
+          const { data: emailProfile } = await supabase
+            .from("profiles")
+            .select("id, role, onboarding_completed, clerk_user_id")
+            .eq("email", primaryEmail.toLowerCase())
+            .maybeSingle()
+
+          if (emailProfile) {
+            if (emailProfile.clerk_user_id === userId) {
+              profile = emailProfile
+              log.info("Found profile by email with matching clerk_user_id", { profileId: profile.id })
+              break
+            } else if (!emailProfile.clerk_user_id) {
+              // Try to link it
+              const { data: linkedProfile } = await supabase
+                .from("profiles")
+                .update({ clerk_user_id: userId })
+                .eq("id", emailProfile.id)
+                .is("clerk_user_id", null)
+                .select("id, role, onboarding_completed")
+                .maybeSingle()
+
+              if (linkedProfile) {
+                profile = linkedProfile
+                log.info("Linked orphaned email profile", { profileId: profile.id })
+                break
+              }
+            }
+          }
+        } else {
+          log.error("Failed to create profile", {
+            errorCode: createError.code,
+            errorMessage: createError.message,
+            attempt: createAttempt
+          })
+        }
+
+        // Wait before retry
+        if (createAttempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
+    }
+  }
+
+  // Final fallback: if we still don't have a profile, try one more lookup
+  if (!profile) {
+    const { data: finalProfile } = await supabase
+      .from("profiles")
+      .select("id, role, onboarding_completed")
+      .eq("clerk_user_id", userId)
+      .maybeSingle()
+
+    if (finalProfile) {
+      profile = finalProfile
+      log.info("Found profile in final fallback lookup", { profileId: profile.id })
+    }
+  }
+
+  // Determine final redirect destination
+  let destination: string
+
+  if (params.redirect) {
+    // Use the provided redirect URL
+    const decodedRedirect = decodeURIComponent(params.redirect)
+
+    // Validate it's a safe relative path
+    if (decodedRedirect.startsWith('/') && !decodedRedirect.startsWith('//')) {
+      destination = decodedRedirect
+    } else {
+      destination = profile?.onboarding_completed ? "/patient" : "/patient/onboarding"
+    }
+  } else if (params.intake_id) {
+    // Redirect to intake success page
+    destination = `/patient/intakes/success?intake_id=${params.intake_id}`
+  } else if (profile) {
+    // Default destination based on role and onboarding status
+    if (profile.role === "doctor" || profile.role === "admin") {
+      destination = "/doctor"
+    } else {
+      destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+    }
+  } else {
+    // Fallback
+    destination = "/patient"
+  }
+
+  log.info("Post sign-in complete, redirecting", {
+    destination,
+    profileFound: !!profile,
+    role: profile?.role
+  })
+
+  redirect(destination)
+}

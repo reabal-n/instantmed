@@ -1,6 +1,9 @@
 /**
  * Redis-based Rate Limiting
- * 
+ *
+ * @deprecated Use `@/lib/rate-limit/redis` instead - this is a duplicate module.
+ * Import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+ *
  * Production-ready rate limiter using Upstash Redis.
  * Falls back to in-memory rate limiting if Redis is not configured.
  */

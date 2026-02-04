@@ -3,11 +3,16 @@ import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("patient-messages")
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const authUser = await getAuthenticatedUserWithProfile()
 
     if (!authUser) {
@@ -73,6 +78,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const authUser = await getAuthenticatedUserWithProfile()
 
     if (!authUser) {

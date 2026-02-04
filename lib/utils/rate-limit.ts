@@ -1,6 +1,9 @@
 /**
  * Simple in-memory rate limiter for API routes
- * For production, consider using Redis-based rate limiting
+ *
+ * @deprecated Use `@/lib/rate-limit/redis` instead for production rate limiting.
+ * This module provides simple in-memory rate limiting and should only be used
+ * for edge cases where Redis-based limiting is not suitable.
  */
 
 interface RateLimitEntry {

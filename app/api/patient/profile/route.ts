@@ -2,9 +2,14 @@ import { NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { revalidatePath } from "next/cache"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 export async function PATCH(request: Request) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const supabase = createServiceRoleClient()
     const { userId: clerkUserId } = await auth()
 

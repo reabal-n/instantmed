@@ -10,19 +10,32 @@ export const dynamic = "force-dynamic"
 function SignUpRedirect() {
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
-  
+
   useEffect(() => {
     // Build redirect URL with current origin
     const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://instantmed.com.au'
-    
-    // Always redirect to /auth/callback after sign-up, which handles role-based redirects
-    // Pass the original redirect as a parameter so callback can use it
-    const callbackUrl = redirectUrl 
-      ? `${currentOrigin}/auth/callback?redirect=${encodeURIComponent(redirectUrl)}`
-      : `${currentOrigin}/auth/callback`
-    
-    // Redirect to Clerk Account Portal with callback URL
-    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(callbackUrl)}`
+
+    // Extract intake_id from redirect URL if present (for guest checkout flow)
+    let intakeId: string | null = null
+    if (redirectUrl) {
+      try {
+        const redirectParsed = new URL(redirectUrl, currentOrigin)
+        intakeId = redirectParsed.searchParams.get('intake_id')
+      } catch {
+        // Invalid URL, ignore
+      }
+    }
+
+    // Redirect to /auth/post-signin which handles profile linking with retries
+    // This prevents the redirect loop when profile linking races with page load
+    const postSignInUrl = intakeId
+      ? `${currentOrigin}/auth/post-signin?intake_id=${intakeId}&redirect=${encodeURIComponent(redirectUrl)}`
+      : redirectUrl
+        ? `${currentOrigin}/auth/post-signin?redirect=${encodeURIComponent(redirectUrl)}`
+        : `${currentOrigin}/auth/post-signin`
+
+    // Redirect to Clerk Account Portal with post-signin as callback
+    const accountPortalUrl = `https://accounts.instantmed.com.au/sign-up?redirect_url=${encodeURIComponent(postSignInUrl)}`
     window.location.href = accountPortalUrl
   }, [redirectUrl])
 

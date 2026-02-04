@@ -1,4 +1,10 @@
-/* eslint-disable no-console -- Rate limiting needs console as fallback */
+/**
+ * Database-backed Rate Limiting (Legacy)
+ *
+ * @deprecated For most API routes, use `@/lib/rate-limit/redis` instead.
+ * This module uses Supabase database for rate limiting and is kept for
+ * specific use cases that require persistent database-backed limiting.
+ */
 import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { headers } from "next/headers"
@@ -134,9 +140,7 @@ export async function checkAndIncrementRateLimit(
       // Recursively call to handle the existing record
       return checkAndIncrementRateLimit(identifier, identifierType, endpoint, config)
     }
-    // Log error for debugging
-    // TODO: Add proper logger when available
-    // console.error("Rate limit insert error:", insertError)
+    // Non-critical error - rate limiting will fail open rather than blocking requests
   }
 
   const resetAt = new Date(now.getTime() + config.windowMs)
