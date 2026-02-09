@@ -2,6 +2,7 @@
 
 import { sendViaResend } from "@/lib/email/resend"
 import { logger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { z } from "zod"
 
 // ============================================
@@ -51,6 +52,13 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     }
 
     const { name, email, subject, message, reason } = validationResult.data
+
+    // Rate limit by email to prevent spam (5 submissions per hour via "sensitive" tier)
+    const rateLimit = await checkServerActionRateLimit(`contact:${email}`, "sensitive")
+    if (!rateLimit.success) {
+      logger.warn("[Contact Form] Rate limit exceeded", { email })
+      return { success: false, error: rateLimit.error || "Too many submissions. Please try again later." }
+    }
 
     // Build email HTML
     const reasonLabel = reason || "General Inquiry"

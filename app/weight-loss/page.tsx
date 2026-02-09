@@ -4,7 +4,7 @@ import { WeightLossClient } from "./weight-loss-client"
 export const metadata: Metadata = {
   title: "Weight Loss Treatment | Medical Weight Loss | InstantMed",
   description:
-    "Access clinically proven weight loss treatments online. GLP-1 medications, personalised plans, and ongoing doctor support. Start with a confidential online consultation.",
+    "GLP-1 medications, personalised plans and ongoing doctor support. Start with a confidential online consultation.",
   keywords: [
     "weight loss treatment australia",
     "GLP-1 weight loss",

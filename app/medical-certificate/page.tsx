@@ -25,6 +25,7 @@ import {
   ShimmerButton,
 } from "@/components/ui/premium-effects"
 import { GridStagger } from "@/components/effects/stagger-container"
+import { NearMeBanner } from "@/components/seo/near-me-banner"
 
 // Certificate types - 3 tiers
 // Pricing: 1-day $19.95, 2-day $29.95 (tiered based on duration selected in flow)
@@ -336,8 +337,18 @@ export default function MedicalCertificatePage() {
                     </p>
                   </motion.div>
 
+                  {/* Near Me - auto-detect location */}
+                  <motion.div
+                    className="mb-4 max-w-md lg:mx-0 mx-auto"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.38 }}
+                  >
+                    <NearMeBanner service="medical certificate" />
+                  </motion.div>
+
                   {/* Social proof indicators with urgency */}
-                  <motion.div 
+                  <motion.div
                     className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-3 mb-10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

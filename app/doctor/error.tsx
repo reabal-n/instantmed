@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, RefreshCw, LayoutDashboard, Users } from "lucide-react"
+import { AlertTriangle, RefreshCw, LayoutDashboard, Users, MessageCircle, Mail } from "lucide-react"
 
 export default function DoctorError({
   error,
@@ -53,7 +53,7 @@ export default function DoctorError({
           </Button>
         </div>
 
-        <div className="mt-6 pt-6 border-t">
+        <div className="mt-6 pt-6 border-t space-y-3">
           <Link
             href="/doctor/patients"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -61,6 +61,21 @@ export default function DoctorError({
             <Users className="h-4 w-4" />
             View patients list
           </Link>
+
+          <div className="block">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Contact support
+            </Link>
+          </div>
+
+          <p className="text-xs text-muted-foreground/60">
+            <Mail className="inline h-3 w-3 mr-1" />
+            support@instantmed.com.au
+          </p>
         </div>
       </div>
     </div>

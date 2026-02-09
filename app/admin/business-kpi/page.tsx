@@ -1,435 +1,329 @@
-"use client"
+import { redirect } from "next/navigation"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { BusinessKPIClient } from "./business-kpi-client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  DollarSign,
-  Users,
-  FileText,
-  Target,
-  Activity,
-  RefreshCw,
-  Download,
-  BarChart3
-} from "lucide-react"
-import { OptimizedStatCard } from "@/components/performance/optimized-components"
-import { OptimizedChart } from "@/components/performance/optimized-components"
-import { useUserBehaviorTracking } from "@/lib/analytics/user-behavior-tracking"
-import { createLogger } from "@/lib/observability/logger"
+export const dynamic = "force-dynamic"
 
-const log = createLogger("business-kpi")
+export default async function BusinessKPIDashboardPage() {
+  const authUser = await getAuthenticatedUserWithProfile()
 
-interface BusinessKPI {
-  period: string
-  revenue: number
-  conversions: number
-  conversionRate: number
-  activeUsers: number
-  newUsers: number
-  retentionRate: number
-  averageOrderValue: number
-  customerLifetimeValue: number
-  churnRate: number
-  netPromoterScore: number
-}
-
-interface FunnelMetrics {
-  step: string
-  visitors: number
-  conversionRate: number
-  dropOffRate: number
-  revenue: number
-}
-
-export default function BusinessKPIDashboard() {
-  const [kpiData, setKpiData] = useState<BusinessKPI[]>([])
-  const [funnelData, setFunnelData] = useState<FunnelMetrics[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d')
-  const { trackPageView, trackFeatureUse } = useUserBehaviorTracking()
-
-  useEffect(() => {
-    trackPageView('business_kpi_dashboard')
-    fetchKPIData()
-    fetchFunnelData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPeriod])
-
-  const fetchKPIData = async () => {
-    setIsLoading(true)
-    try {
-      // Mock KPI data - in production, this would fetch from your analytics service
-      const mockKPIData: BusinessKPI[] = [
-        {
-          period: 'Current',
-          revenue: 45678,
-          conversions: 234,
-          conversionRate: 15.2,
-          activeUsers: 1234,
-          newUsers: 89,
-          retentionRate: 78.5,
-          averageOrderValue: 195.20,
-          customerLifetimeValue: 892.50,
-          churnRate: 3.2,
-          netPromoterScore: 72
-        },
-        {
-          period: 'Previous',
-          revenue: 42156,
-          conversions: 198,
-          conversionRate: 13.8,
-          activeUsers: 1156,
-          newUsers: 76,
-          retentionRate: 75.2,
-          averageOrderValue: 212.90,
-          customerLifetimeValue: 856.30,
-          churnRate: 4.1,
-          netPromoterScore: 68
-        }
-      ]
-
-      setKpiData(mockKPIData)
-    } catch (error) {
-      log.error('Failed to fetch KPI data:', {}, error instanceof Error ? error : undefined)
-    } finally {
-      setIsLoading(false)
-    }
+  if (!authUser || authUser.profile.role !== "admin") {
+    redirect("/")
   }
 
-  const fetchFunnelData = async () => {
-    try {
-      // Mock funnel data
-      const mockFunnelData: FunnelMetrics[] = [
-        { step: 'Landing Page', visitors: 10000, conversionRate: 100, dropOffRate: 0, revenue: 0 },
-        { step: 'Intake Start', visitors: 3500, conversionRate: 35, dropOffRate: 65, revenue: 0 },
-        { step: 'Personal Info', visitors: 2800, conversionRate: 28, dropOffRate: 20, revenue: 0 },
-        { step: 'Symptoms Info', visitors: 2200, conversionRate: 22, dropOffRate: 21.4, revenue: 0 },
-        { step: 'Payment Page', visitors: 1800, conversionRate: 18, dropOffRate: 18.2, revenue: 0 },
-        { step: 'Payment Complete', visitors: 456, conversionRate: 4.56, dropOffRate: 74.7, revenue: 45678 },
-        { step: 'Certificate Issued', visitors: 445, conversionRate: 4.45, dropOffRate: 2.4, revenue: 45678 }
-      ]
+  const supabase = createServiceRoleClient()
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const prevWeekStart = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000)
 
-      setFunnelData(mockFunnelData)
-    } catch (error) {
-      log.error('Failed to fetch funnel data:', {}, error instanceof Error ? error : undefined)
+  // Fetch all KPI data in parallel
+  const results = await Promise.allSettled([
+    // [0] Revenue this month (all paid intakes)
+    supabase
+      .from("intakes")
+      .select("amount_cents, paid_at, service_type")
+      .not("paid_at", "is", null)
+      .gte("paid_at", monthAgo.toISOString()),
+
+    // [1] Revenue by day (last 30 days) for trend chart
+    supabase
+      .from("intakes")
+      .select("amount_cents, paid_at")
+      .not("paid_at", "is", null)
+      .gte("paid_at", monthAgo.toISOString())
+      .order("paid_at", { ascending: true }),
+
+    // [2] Med certs issued today
+    supabase
+      .from("issued_certificates")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", today.toISOString())
+      .eq("status", "valid"),
+
+    // [3] Med certs issued this week
+    supabase
+      .from("issued_certificates")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", weekAgo.toISOString())
+      .eq("status", "valid"),
+
+    // [4] SLA: approved intakes with paid_at and approved_at (last 30 days)
+    supabase
+      .from("intakes")
+      .select("paid_at, approved_at")
+      .not("paid_at", "is", null)
+      .not("approved_at", "is", null)
+      .gte("paid_at", monthAgo.toISOString()),
+
+    // [5] Active doctors count
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .in("role", ["doctor", "admin"])
+      .eq("is_active", true),
+
+    // [6] Doctor reviews this week (intakes reviewed)
+    supabase
+      .from("intakes")
+      .select("reviewed_by")
+      .not("reviewed_by", "is", null)
+      .gte("updated_at", weekAgo.toISOString())
+      .in("status", ["approved", "declined"]),
+
+    // [7] Email delivery stats (last 7 days)
+    supabase
+      .from("email_outbox")
+      .select("status")
+      .gte("created_at", weekAgo.toISOString()),
+
+    // [8] Conversion funnel: started intakes (last 30 days)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", monthAgo.toISOString()),
+
+    // [9] Conversion funnel: paid intakes (last 30 days)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", monthAgo.toISOString())
+      .not("paid_at", "is", null),
+
+    // [10] Conversion funnel: approved intakes (last 30 days)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", monthAgo.toISOString())
+      .eq("status", "approved"),
+
+    // [11] Top referral sources (UTM)
+    supabase
+      .from("intakes")
+      .select("utm_source")
+      .gte("created_at", monthAgo.toISOString())
+      .not("utm_source", "is", null),
+
+    // [12] Page views / sessions from audit_logs
+    supabase
+      .from("audit_logs")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", monthAgo.toISOString())
+      .in("action", ["page_view", "session_start"]),
+
+    // [13] Revenue previous week (for weekly trend)
+    supabase
+      .from("intakes")
+      .select("amount_cents")
+      .not("paid_at", "is", null)
+      .gte("paid_at", prevWeekStart.toISOString())
+      .lt("paid_at", weekAgo.toISOString()),
+
+    // [14] Revenue this week
+    supabase
+      .from("intakes")
+      .select("amount_cents")
+      .not("paid_at", "is", null)
+      .gte("paid_at", weekAgo.toISOString()),
+
+    // [15] SLA breaches: paid intakes not yet approved past deadline
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["paid", "in_review", "pending_info"])
+      .not("sla_deadline", "is", null)
+      .lt("sla_deadline", now.toISOString()),
+
+    // [16] Total active intakes (in queue)
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["paid", "in_review", "pending_info"]),
+
+    // [17] Refunds this month
+    supabase
+      .from("intakes")
+      .select("amount_cents")
+      .not("refunded_at", "is", null)
+      .gte("refunded_at", monthAgo.toISOString()),
+
+    // [18] Today's revenue
+    supabase
+      .from("intakes")
+      .select("amount_cents")
+      .not("paid_at", "is", null)
+      .gte("paid_at", today.toISOString()),
+  ])
+
+  // Helper to extract data safely
+  const get = <T,>(index: number, fallback: T): T => {
+    const r = results[index]
+    if (r.status === "fulfilled" && "data" in r.value && r.value.data !== null) {
+      return r.value.data as T
     }
+    return fallback
+  }
+  const getCount = (index: number): number => {
+    const r = results[index]
+    if (r.status === "fulfilled" && "count" in r.value) return r.value.count || 0
+    return 0
   }
 
-  const getCurrentKPI = () => kpiData[0] || {} as BusinessKPI
-  const getPreviousKPI = () => kpiData[1] || {} as BusinessKPI
+  // === REVENUE METRICS ===
+  const revenueData = get<Array<{ amount_cents: number; paid_at: string; service_type: string }>>(0, [])
+  const totalRevenueMonth = revenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
 
-  const calculateTrend = (current: number, previous: number) => {
-    if (previous === 0) return { value: 0, direction: 'up' as const }
-    const change = ((current - previous) / previous) * 100
-    return {
-      value: Math.abs(change),
-      direction: change >= 0 ? 'up' as const : 'down' as const
+  const todayRevenueData = get<Array<{ amount_cents: number }>>(18, [])
+  const todayRevenue = todayRevenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
+
+  const thisWeekRevenueData = get<Array<{ amount_cents: number }>>(14, [])
+  const thisWeekRevenue = thisWeekRevenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
+
+  const prevWeekRevenueData = get<Array<{ amount_cents: number }>>(13, [])
+  const prevWeekRevenue = prevWeekRevenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
+
+  const weeklyRevenueTrend = prevWeekRevenue > 0
+    ? Math.round(((thisWeekRevenue - prevWeekRevenue) / prevWeekRevenue) * 100)
+    : thisWeekRevenue > 0 ? 100 : 0
+
+  // Revenue by day for chart
+  const revenueByDayRaw = get<Array<{ amount_cents: number; paid_at: string }>>(1, [])
+  const dailyRevenueMap: Record<string, number> = {}
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
+    dailyRevenueMap[d.toISOString().split("T")[0]] = 0
+  }
+  for (const item of revenueByDayRaw) {
+    if (item.paid_at) {
+      const key = item.paid_at.split("T")[0]
+      if (dailyRevenueMap[key] !== undefined) {
+        dailyRevenueMap[key] += (item.amount_cents || 0) / 100
+      }
     }
   }
+  const dailyRevenue = Object.entries(dailyRevenueMap).map(([date, revenue]) => ({ date, revenue }))
 
-  const current = getCurrentKPI()
-  const previous = getPreviousKPI()
+  // === MED CERTS ===
+  const certsToday = getCount(2)
+  const certsThisWeek = getCount(3)
 
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Business KPI Dashboard</h1>
-          <p className="text-muted-foreground">Key business metrics and performance indicators</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={selectedPeriod} onValueChange={(value) => setSelectedPeriod(value as '7d' | '30d' | '90d' | '1y')}>
-            <TabsList>
-              <TabsTrigger value="7d">7D</TabsTrigger>
-              <TabsTrigger value="30d">30D</TabsTrigger>
-              <TabsTrigger value="90d">90D</TabsTrigger>
-              <TabsTrigger value="1y">1Y</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button variant="outline" size="sm" onClick={() => {
-            fetchKPIData()
-            fetchFunnelData()
-            trackFeatureUse('refresh_kpi')
-          }}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => trackFeatureUse('export_kpi')}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+  // === SLA METRICS ===
+  const slaData = get<Array<{ paid_at: string; approved_at: string }>>(4, [])
+  let avgSlaMinutes = 0
+  if (slaData.length > 0) {
+    const totalMinutes = slaData.reduce((sum, item) => {
+      const paid = new Date(item.paid_at).getTime()
+      const approved = new Date(item.approved_at).getTime()
+      return sum + (approved - paid) / 60000
+    }, 0)
+    avgSlaMinutes = Math.round(totalMinutes / slaData.length)
+  }
+  const slaBreaches = getCount(15)
+  const activeQueueSize = getCount(16)
 
-      {/* Key Business Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <OptimizedStatCard
-          label="Revenue"
-          value={`$${current.revenue?.toLocaleString() || 0}`}
-          trend={calculateTrend(current.revenue || 0, previous.revenue || 0)}
-          status={current.revenue > previous.revenue ? 'success' : 'warning'}
-        />
-        <OptimizedStatCard
-          label="Conversions"
-          value={current.conversions || 0}
-          trend={calculateTrend(current.conversions || 0, previous.conversions || 0)}
-          status={current.conversions > previous.conversions ? 'success' : 'warning'}
-        />
-        <OptimizedStatCard
-          label="Conversion Rate"
-          value={`${current.conversionRate?.toFixed(1) || 0}%`}
-          trend={calculateTrend(current.conversionRate || 0, previous.conversionRate || 0)}
-          status={current.conversionRate > previous.conversionRate ? 'success' : 'warning'}
-        />
-        <OptimizedStatCard
-          label="Active Users"
-          value={current.activeUsers?.toLocaleString() || 0}
-          trend={calculateTrend(current.activeUsers || 0, previous.activeUsers || 0)}
-          status={current.activeUsers > previous.activeUsers ? 'success' : 'warning'}
-        />
-      </div>
+  // === DOCTOR UTILIZATION ===
+  const activeDoctors = getCount(5)
+  const doctorReviews = get<Array<{ reviewed_by: string }>>(6, [])
+  const uniqueReviewers = new Set(doctorReviews.map(r => r.reviewed_by)).size
+  const doctorUtilizationRate = activeDoctors > 0
+    ? Math.round((uniqueReviewers / activeDoctors) * 100)
+    : 0
 
-      {/* Secondary Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <OptimizedStatCard
-          label="New Users"
-          value={current.newUsers || 0}
-          trend={calculateTrend(current.newUsers || 0, previous.newUsers || 0)}
-          status="info"
-        />
-        <OptimizedStatCard
-          label="Retention Rate"
-          value={`${current.retentionRate?.toFixed(1) || 0}%`}
-          trend={calculateTrend(current.retentionRate || 0, previous.retentionRate || 0)}
-          status={current.retentionRate > 75 ? 'success' : current.retentionRate > 60 ? 'warning' : 'error'}
-        />
-        <OptimizedStatCard
-          label="Avg Order Value"
-          value={`$${current.averageOrderValue?.toFixed(2) || 0}`}
-          trend={calculateTrend(current.averageOrderValue || 0, previous.averageOrderValue || 0)}
-          status="neutral"
-        />
-        <OptimizedStatCard
-          label="NPS Score"
-          value={current.netPromoterScore || 0}
-          trend={calculateTrend(current.netPromoterScore || 0, previous.netPromoterScore || 0)}
-          status={current.netPromoterScore > 70 ? 'success' : current.netPromoterScore > 50 ? 'warning' : 'error'}
-        />
-      </div>
+  // === EMAIL DELIVERY ===
+  const emailData = get<Array<{ status: string }>>(7, [])
+  const emailSent = emailData.filter(e => e.status === "sent" || e.status === "skipped_e2e").length
+  const emailFailed = emailData.filter(e => e.status === "failed").length
+  const emailTotal = emailSent + emailFailed
+  const emailDeliveryRate = emailTotal > 0 ? Math.round((emailSent / emailTotal) * 1000) / 10 : 100
 
-      {/* Conversion Funnel */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Conversion Funnel
-          </CardTitle>
-          <CardDescription>User journey from landing to conversion</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {funnelData.map((step, _index) => (
-              <div key={step.step} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{step.step}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {step.visitors.toLocaleString()} visitors
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium">
-                      {step.conversionRate.toFixed(1)}%
-                    </span>
-                    {step.dropOffRate > 0 && (
-                      <span className="text-sm text-red-500">
-                        -{step.dropOffRate.toFixed(1)}%
-                      </span>
-                    )}
-                    {step.revenue > 0 && (
-                      <span className="text-sm font-medium text-green-600">
-                        ${step.revenue.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div 
-                    className="h-2 rounded-full bg-linear-to-r from-blue-500 to-green-500"
-                    style={{ width: `${step.conversionRate}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+  // === CONVERSION FUNNEL ===
+  const pageViews = getCount(12)
+  const intakesStarted = getCount(8)
+  const intakesPaid = getCount(9)
+  const intakesApproved = getCount(10)
+  const conversionRate = intakesStarted > 0
+    ? Math.round((intakesPaid / intakesStarted) * 1000) / 10
+    : 0
 
-      {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Revenue Trend
-            </CardTitle>
-            <CardDescription>Revenue over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OptimizedChart 
-              data={[
-                { time: 'Week 1', value: 42000 },
-                { time: 'Week 2', value: 45000 },
-                { time: 'Week 3', value: 43500 },
-                { time: 'Week 4', value: 45678 }
-              ]}
-              type="line"
-              loading={isLoading}
-            />
-          </CardContent>
-        </Card>
+  // === REFERRAL SOURCES ===
+  const utmData = get<Array<{ utm_source: string }>>(11, [])
+  const sourceCounts: Record<string, number> = {}
+  for (const item of utmData) {
+    const src = item.utm_source || "direct"
+    sourceCounts[src] = (sourceCounts[src] || 0) + 1
+  }
+  const referralSources = Object.entries(sourceCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .map(([source, count]) => ({ source, count }))
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              User Growth
-            </CardTitle>
-            <CardDescription>New user acquisition over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OptimizedChart 
-              data={[
-                { time: 'Week 1', value: 65 },
-                { time: 'Week 2', value: 78 },
-                { time: 'Week 3', value: 82 },
-                { time: 'Week 4', value: 89 }
-              ]}
-              type="bar"
-              loading={isLoading}
-            />
-          </CardContent>
-        </Card>
+  // === REFUNDS ===
+  const refundData = get<Array<{ amount_cents: number }>>(17, [])
+  const totalRefundsMonth = refundData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
+  const refundRate = revenueData.length > 0
+    ? Math.round((refundData.length / revenueData.length) * 1000) / 10
+    : 0
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Conversion Rate
-            </CardTitle>
-            <CardDescription>Conversion rate trends</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OptimizedChart 
-              data={[
-                { time: 'Week 1', value: 12.5 },
-                { time: 'Week 2', value: 13.8 },
-                { time: 'Week 3', value: 14.2 },
-                { time: 'Week 4', value: 15.2 }
-              ]}
-              type="line"
-              loading={isLoading}
-            />
-          </CardContent>
-        </Card>
+  // === LAUNCH READINESS ===
+  const checks = {
+    hasRevenue: totalRevenueMonth > 0,
+    hasCertificates: certsThisWeek > 0,
+    slaHealthy: slaBreaches === 0,
+    emailHealthy: emailDeliveryRate >= 95,
+    doctorsActive: activeDoctors > 0,
+    queueManageable: activeQueueSize <= 20,
+    refundRateLow: refundRate < 10,
+  }
+  const passedChecks = Object.values(checks).filter(Boolean).length
+  const totalChecks = Object.values(checks).length
+  const readinessScore = Math.round((passedChecks / totalChecks) * 100)
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Customer Retention
-            </CardTitle>
-            <CardDescription>Customer retention trends</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OptimizedChart 
-              data={[
-                { time: 'Month 1', value: 72.5 },
-                { time: 'Month 2', value: 75.2 },
-                { time: 'Month 3', value: 78.5 }
-              ]}
-              type="line"
-              loading={isLoading}
-            />
-          </CardContent>
-        </Card>
-      </div>
+  const kpiData = {
+    revenue: {
+      today: todayRevenue,
+      thisWeek: thisWeekRevenue,
+      thisMonth: totalRevenueMonth,
+      weeklyTrend: weeklyRevenueTrend,
+      daily: dailyRevenue,
+    },
+    certs: {
+      today: certsToday,
+      thisWeek: certsThisWeek,
+    },
+    sla: {
+      avgMinutes: avgSlaMinutes,
+      breaches: slaBreaches,
+      queueSize: activeQueueSize,
+    },
+    doctors: {
+      active: activeDoctors,
+      utilizationRate: doctorUtilizationRate,
+      reviewsThisWeek: doctorReviews.length,
+    },
+    email: {
+      deliveryRate: emailDeliveryRate,
+      sentThisWeek: emailSent,
+      failedThisWeek: emailFailed,
+    },
+    funnel: {
+      pageViews,
+      started: intakesStarted,
+      paid: intakesPaid,
+      approved: intakesApproved,
+      conversionRate,
+    },
+    referrals: referralSources,
+    refunds: {
+      totalMonth: totalRefundsMonth,
+      rate: refundRate,
+    },
+    launchReadiness: {
+      score: readinessScore,
+      checks,
+    },
+  }
 
-      {/* Detailed KPI Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Detailed KPI Analysis
-          </CardTitle>
-          <CardDescription>Comprehensive business metrics breakdown</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <h4 className="font-medium">Revenue Metrics</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Total Revenue</span>
-                    <span className="text-sm font-medium">${current.revenue?.toLocaleString() || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Average Order Value</span>
-                    <span className="text-sm font-medium">${current.averageOrderValue?.toFixed(2) || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Customer Lifetime Value</span>
-                    <span className="text-sm font-medium">${current.customerLifetimeValue?.toFixed(2) || 0}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h4 className="font-medium">User Metrics</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Active Users</span>
-                    <span className="text-sm font-medium">{current.activeUsers?.toLocaleString() || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">New Users</span>
-                    <span className="text-sm font-medium">{current.newUsers || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Retention Rate</span>
-                    <span className="text-sm font-medium">{current.retentionRate?.toFixed(1) || 0}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Churn Rate</span>
-                    <span className="text-sm font-medium">{current.churnRate?.toFixed(1) || 0}%</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h4 className="font-medium">Performance Metrics</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Conversions</span>
-                    <span className="text-sm font-medium">{current.conversions || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                    <span className="text-sm font-medium">{current.conversionRate?.toFixed(1) || 0}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Net Promoter Score</span>
-                    <span className="text-sm font-medium">{current.netPromoterScore || 0}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+  return <BusinessKPIClient data={kpiData} />
 }

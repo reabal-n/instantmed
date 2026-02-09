@@ -19,8 +19,8 @@ import {
 import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 export const metadata: Metadata = {
-  title: 'Medical Certificate for Work | Sick Note Online | InstantMed',
-  description: 'Get a valid medical certificate for work absence. Reviewed by AHPRA-registered doctors. Accepted by all Australian employers. Most requests sorted in under an hour.',
+  title: 'Medical Certificate for Work | Sick Note',
+  description: 'Valid medical certificate for work absence from AHPRA-registered doctors. Accepted by all Australian employers. Sorted in under an hour.',
   openGraph: {
     title: 'Medical Certificate for Work | InstantMed',
     description: 'Valid sick certificate for your employer. Reviewed by a doctor, delivered to your email.',

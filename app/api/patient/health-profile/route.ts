@@ -3,11 +3,26 @@ import { auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { z } from "zod"
 
 const log = createLogger("patient-health-profile")
 
+const healthProfileSchema = z.object({
+  allergies: z.array(z.string().max(200)).max(50).default([]),
+  conditions: z.array(z.string().max(200)).max(50).default([]),
+  current_medications: z.array(z.string().max(200)).max(50).default([]),
+  blood_type: z.string().max(10).optional(),
+  emergency_contact_name: z.string().max(100).optional(),
+  emergency_contact_phone: z.string().max(20).optional(),
+  notes: z.string().max(2000).optional(),
+})
+
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "standard")
+    if (rateLimitResponse) return rateLimitResponse
+
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -25,15 +40,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const success = await upsertHealthProfile(profile.id, {
-      allergies: body.allergies || [],
-      conditions: body.conditions || [],
-      current_medications: body.current_medications || [],
-      blood_type: body.blood_type,
-      emergency_contact_name: body.emergency_contact_name,
-      emergency_contact_phone: body.emergency_contact_phone,
-      notes: body.notes,
-    })
+    const parsed = healthProfileSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 })
+    }
+
+    const success = await upsertHealthProfile(profile.id, parsed.data)
 
     if (!success) {
       return NextResponse.json({ error: "Failed to save" }, { status: 500 })

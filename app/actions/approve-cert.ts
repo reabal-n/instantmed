@@ -21,6 +21,7 @@ import {
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { createNotification } from "@/lib/notifications/service"
 import { checkCertificateRateLimit } from "@/lib/security/rate-limit"
+import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/components/doctor/cert-review-modal"
 
 interface ApproveCertResult {
@@ -149,6 +150,7 @@ export async function approveAndSendCert(
     } else {
       // P0 FIX: Use atomic claim RPC with row locking to prevent race condition
       // This prevents two doctors from claiming the same intake simultaneously
+      Sentry.addBreadcrumb({ category: "cert.flow", message: "Claiming intake for review", level: "info", data: { intakeId } })
       const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
         p_intake_id: intakeId,
         p_doctor_id: doctorProfile.id,
@@ -229,6 +231,7 @@ export async function approveAndSendCert(
     const verificationCode = generateVerificationCode(certificateNumber)
 
     // 4. Generate PDF Buffer using new config-driven renderer
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating PDF", level: "info", data: { intakeId, certificateNumber, certificateType } })
     logger.info("Generating PDF for medical certificate", { intakeId, certificateNumber })
     
     const pdfResult = await renderMedCertPdf({
@@ -257,6 +260,7 @@ export async function approveAndSendCert(
     const pdfBuffer = pdfResult.buffer
     
     // 5.5 Store PDF in Supabase Storage (P0 fix - allow patient re-download)
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Uploading PDF to storage", level: "info", data: { intakeId, pdfSizeBytes: pdfBuffer.length } })
     const storagePath = `med-certs/${patient.id}/${certificateNumber}.pdf`
     
     // Retry upload once on failure before continuing
@@ -299,6 +303,7 @@ export async function approveAndSendCert(
 
     // 5.7 ATOMIC APPROVAL: Create certificate, document record, and update status in single transaction
     // This ensures consistency - either all operations succeed or all fail
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Atomic approval transaction", level: "info", data: { intakeId, certificateNumber } })
     const atomicResult = await atomicApproveCertificate({
       intake_id: intakeId,
       certificate_number: certificateNumber,
@@ -387,6 +392,7 @@ export async function approveAndSendCert(
     }
 
     // 6. Send email notification via centralized sendEmail (NO attachment - patient downloads from dashboard)
+    Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
     const dashboardUrl = `${env.appUrl}/patient/intakes/${intakeId}`
     
     const emailResult = await sendEmail({
@@ -508,7 +514,6 @@ export async function approveAndSendCert(
     })
     
     // Sentry capture with useful tags for clinical workflow failures
-    const Sentry = await import("@sentry/nextjs")
     Sentry.captureException(error, {
       tags: {
         action: "approve_med_cert",

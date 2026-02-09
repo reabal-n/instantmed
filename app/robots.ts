@@ -22,6 +22,7 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",        // Admin dashboard
           "/api/",          // API routes
           "/auth/",         // Auth flow (sign-in, callback)
+          "/medications/",  // Compliance - no drug names indexed
           "/*?*",           // Parameterized URLs
           "/search",        // Internal search
           "/*/search",      // Category search pages

@@ -6,9 +6,23 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Online Doctor Australia | All Locations | InstantMed",
+  title: "Online Doctor | All Australian Locations",
   description:
-    "InstantMed serves all of Australia. Find telehealth services in Sydney, Melbourne, Brisbane, Perth, Adelaide, and more.",
+    "Telehealth in Sydney, Melbourne, Brisbane, Perth, Adelaide & 20+ more cities. AHPRA-registered doctors Australia-wide.",
+  openGraph: {
+    title: "Online Doctor | All Australian Locations",
+    description: "Telehealth in 25+ Australian cities. Med certs, scripts and consults from AHPRA-registered doctors.",
+    url: "https://instantmed.com.au/locations",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Online Doctor | All Australian Locations",
+    description: "Telehealth in 25+ Australian cities. Med certs, scripts and consults from AHPRA-registered doctors.",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/locations",
+  },
 }
 
 const cities = [

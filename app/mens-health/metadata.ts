@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Men's Health Consultation Online Australia | InstantMed",
   description:
-    "Discreet men's health consultations with Australian doctors. Doctor-led assessment and treatment planning. Consultation completed in 15 minutes, no awkward conversations.",
+    "Discreet men's health consults with Australian doctors. Doctor-led assessment in 15 minutes, no awkward conversations.",
   keywords: [
     "mens health online australia",
     "men's health consultation",

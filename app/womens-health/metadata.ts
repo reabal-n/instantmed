@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Women's Health Online Australia | UTI Treatment & Birth Control | InstantMed",
+  title: "Women's Health Online | UTI & Contraception",
   description:
-    "Discreet women's health consultations with Australian doctors. UTI treatment, contraception renewals, morning-after pill. Script in 15 minutes. Request a female doctor.",
+    "UTI treatment, contraception renewals, morning-after pill online. Script in 15 minutes. Request a female doctor.",
   keywords: [
     "womens health online australia",
     "UTI treatment online",

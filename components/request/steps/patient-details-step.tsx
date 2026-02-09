@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -326,9 +326,21 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         )}
       </FormField>
 
+      {/* Data security reassurance */}
+      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground py-1">
+        <span className="flex items-center gap-1">
+          <Lock className="w-3 h-3 text-green-600" />
+          256-bit encrypted
+        </span>
+        <span className="flex items-center gap-1">
+          <EyeOff className="w-3 h-3 text-blue-600" />
+          Never shared with third parties
+        </span>
+      </div>
+
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!canContinue}
       >

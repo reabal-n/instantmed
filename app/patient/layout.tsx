@@ -1,15 +1,11 @@
 import type React from "react"
+import type { Metadata } from "next"
 import { requireRole } from "@/lib/auth"
 import { PatientShell } from "./patient-shell"
 
-/**
- * Patient Layout - Now uses panel-based AuthenticatedShell
- * 
- * Uses requireRole(["patient"]) which handles:
- * - Authentication (redirects to /sign-in if not logged in)
- * - Role check (redirects doctors/admins to /doctor)
- * - Onboarding check (redirects to /patient/onboarding if incomplete)
- */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function PatientLayout({
   children,

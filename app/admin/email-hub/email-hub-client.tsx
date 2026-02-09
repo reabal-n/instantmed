@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -20,9 +21,9 @@ import {
   RefreshCw,
   MailOpen,
   MailCheck,
-  Plus,
   Database,
   Activity,
+  Loader2,
 } from "lucide-react"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 
@@ -62,12 +63,27 @@ function sanitizeEmail(email: string): string {
 interface EmailHubClientProps {
   initialStats: EmailStats
   initialActivity: RecentEmailActivity[]
+  templateCounts: { active: number; total: number }
+  yesterdayEmailCount: number
 }
 
-export function EmailHubClient({ initialStats, initialActivity }: EmailHubClientProps) {
+export function EmailHubClient({ initialStats, initialActivity, templateCounts, yesterdayEmailCount }: EmailHubClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [stats] = useState(initialStats)
   const [activity] = useState(initialActivity)
+  const [isRefreshing, startRefresh] = useTransition()
+  const router = useRouter()
+
+  const handleRefresh = () => {
+    startRefresh(() => {
+      router.refresh()
+    })
+  }
+
+  // Calculate real trend: compare today vs yesterday
+  const emailTrendPct = yesterdayEmailCount > 0
+    ? Math.round(((stats.emailsSentToday - yesterdayEmailCount) / yesterdayEmailCount) * 100)
+    : stats.emailsSentToday > 0 ? 100 : 0
 
   return (
     <div className="space-y-6">
@@ -83,14 +99,16 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            {isRefreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            New Template
-          </Button>
+          <Link href="/admin/emails">
+            <Button size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Manage Templates
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -115,7 +133,7 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
               <CardContent>
                 <div className="text-2xl font-bold">{stats.emailsSentToday.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from yesterday
+                  {emailTrendPct >= 0 ? "+" : ""}{emailTrendPct}% from yesterday ({yesterdayEmailCount})
                 </p>
               </CardContent>
             </Card>
@@ -127,7 +145,7 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
               <CardContent>
                 <div className="text-2xl font-bold">{stats.deliveryRate}%</div>
                 <p className="text-xs text-muted-foreground">
-                  -0.3% from last week
+                  {stats.emailsSentWeek} sent this week
                 </p>
               </CardContent>
             </Card>
@@ -139,7 +157,7 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
               <CardContent>
                 <div className="text-2xl font-bold">{stats.pendingEmails}</div>
                 <p className="text-xs text-muted-foreground">
-                  8 critical
+                  {stats.pendingEmails === 0 ? "Queue clear" : "Awaiting delivery"}
                 </p>
               </CardContent>
             </Card>
@@ -173,7 +191,7 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      8 of 12 active
+                      {templateCounts.active} of {templateCounts.total} active
                     </span>
                     <Badge variant="secondary">Manage</Badge>
                   </div>
@@ -356,9 +374,11 @@ export function EmailHubClient({ initialStats, initialActivity }: EmailHubClient
                 )}
               </div>
               <div className="mt-4 pt-4 border-t">
-                <Button variant="outline" size="sm" className="w-full">
-                  View All Activity
-                </Button>
+                <Link href="/admin/ops/email-outbox">
+                  <Button variant="outline" size="sm" className="w-full">
+                    View All Activity
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

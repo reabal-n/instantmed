@@ -330,6 +330,31 @@ export async function getDoctorQueue(
 }
 
 /**
+ * Get the next intake ID in the queue after the current one.
+ * Used for auto-advancing to the next case after approve/decline.
+ */
+export async function getNextQueueIntakeId(currentIntakeId: string): Promise<string | null> {
+  const supabase = createServiceRoleClient()
+
+  // Fetch the next intake in queue order (same ordering as getDoctorQueue)
+  const { data, error } = await supabase
+    .from("intakes")
+    .select("id")
+    .in("status", ["paid", "in_review", "pending_info"])
+    .neq("id", currentIntakeId)
+    .order("is_priority", { ascending: false })
+    .order("sla_deadline", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+
+  if (error || !data || data.length === 0) {
+    return null
+  }
+
+  return data[0].id
+}
+
+/**
  * Fetch a single intake with its answers and documents.
  * Used for the doctor detail view.
  */

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { siteConfig, footerLinks } from '@/lib/marketing/homepage'
-import { MapPin, Mail, Lock, Shield, Award, Eye } from 'lucide-react'
+import { MapPin, Mail, Lock, Shield, Award, Eye, Pill } from 'lucide-react'
 import { PaymentMethodIcons, StripeBadge } from '@/components/checkout/trust-badges'
 
 /**
@@ -29,6 +29,10 @@ function FooterTrustBadges() {
         <div className="flex items-center gap-1.5">
           <Award className="w-3.5 h-3.5 text-emerald-600" />
           <span>AHPRA Doctors</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Pill className="w-3.5 h-3.5 text-blue-600" />
+          <span>TGA Compliant</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5" />

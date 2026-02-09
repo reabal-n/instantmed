@@ -1,10 +1,15 @@
 import type React from "react"
+import type { Metadata } from "next"
 import { requireRole } from "@/lib/auth"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { DoctorShell } from "./doctor-shell"
 import { DoctorOnboardingBanner } from "@/components/doctor/onboarding-banner"
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 const log = createLogger("doctor-layout")
 

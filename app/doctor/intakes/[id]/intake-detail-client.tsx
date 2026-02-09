@@ -45,6 +45,7 @@ import {
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, markAsRefundedAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
 import { regenerateCertificateAction } from "@/app/actions/regenerate-certificate"
+import { generateMedCertPdfAndApproveAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
@@ -55,6 +56,7 @@ import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { ChatTranscriptPanel } from "@/components/doctor/chat-transcript-panel"
 import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescription-checklist"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
+import { toast } from "sonner"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithDetails
@@ -63,6 +65,8 @@ interface IntakeDetailClientProps {
   previousIntakes?: IntakeWithPatient[]
   initialAction?: string
   aiDrafts?: AIDraft[]
+  nextIntakeId?: string | null
+  draftId?: string | null
 }
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
@@ -134,6 +138,8 @@ export function IntakeDetailClient({
   previousIntakes = [],
   initialAction,
   aiDrafts = [],
+  nextIntakeId,
+  draftId,
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -237,7 +243,7 @@ export function IntakeDetailClient({
     onApprove: () => {
       if (intake.status === "paid" && !isPending) {
         if (service?.type === "med_certs") {
-          router.push(`/doctor/intakes/${intake.id}/document`)
+          handleMedCertApprove()
         } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
           handleStatusChange("awaiting_script")
         } else {
@@ -260,22 +266,58 @@ export function IntakeDetailClient({
     disabled: isPending,
   })
 
+  // Auto-advance: go to next intake in queue, or back to queue if none
+  const advanceToNext = () => {
+    if (nextIntakeId) {
+      router.push(`/doctor/intakes/${nextIntakeId}`)
+    } else {
+      router.push("/doctor/queue")
+    }
+  }
+
+  // 1-click med cert approval: uses existing draft data to generate PDF + email atomically
+  const handleMedCertApprove = async () => {
+    // P0 SAFETY: Block approval if red flags not acknowledged
+    if (hasRedFlags && !redFlagsAcknowledged) {
+      toast.error("Review and acknowledge safety flags before approving.")
+      return
+    }
+
+    // P1 RK-1: Require clinical notes before approval
+    if (doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
+      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      notesRef.current?.focus()
+      return
+    }
+
+    startTransition(async () => {
+      // Save notes first
+      await saveDoctorNotesAction(intake.id, doctorNotes)
+
+      const result = await generateMedCertPdfAndApproveAction(intake.id, draftId || "")
+      if (result.success) {
+        const emailNote = result.emailStatus === "sent"
+          ? "Certificate approved and sent to patient."
+          : "Certificate approved. Email will be sent shortly."
+        toast.success(emailNote)
+        setTimeout(advanceToNext, 1000)
+      } else {
+        toast.error(result.error || "Failed to approve certificate")
+      }
+    })
+  }
+
   const handleStatusChange = async (status: IntakeStatus) => {
     // P0 SAFETY: Block approval if red flags not acknowledged
     if ((status === "approved" || status === "awaiting_script") && hasRedFlags && !redFlagsAcknowledged) {
-      setActionMessage({
-        type: "error",
-        text: "This case has safety flags that require acknowledgment before approval. Please review and acknowledge the flags below.",
-      })
+      toast.error("Review and acknowledge safety flags before approving.")
       return
     }
-    
+
     // P1 RK-1: Require clinical notes before approval per MEDICOLEGAL_AUDIT_REPORT
     if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
-      setActionMessage({
-        type: "error",
-        text: `Clinical notes required before approval. Please add at least ${MIN_CLINICAL_NOTES_LENGTH} characters documenting your clinical reasoning.`,
-      })
+      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      notesRef.current?.focus()
       return
     }
 
@@ -287,13 +329,10 @@ export function IntakeDetailClient({
 
       const result = await updateStatusAction(intake.id, status, intake.patient_id)
       if (result.success) {
-        setActionMessage({
-          type: "success",
-          text: `Case ${status === "approved" ? "approved" : "updated"}`,
-        })
-        setTimeout(() => router.push("/doctor/queue"), 2000)
+        toast.success(status === "approved" ? "Case approved" : "Case updated")
+        setTimeout(advanceToNext, 1000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to update status" })
+        toast.error(result.error || "Failed to update status")
       }
     })
   }
@@ -304,10 +343,10 @@ export function IntakeDetailClient({
       const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
       if (result.success) {
         setShowDeclineDialog(false)
-        setActionMessage({ type: "success", text: "Case declined" })
-        setTimeout(() => router.push("/doctor/queue"), 2000)
+        toast.success("Case declined and patient notified")
+        setTimeout(advanceToNext, 1000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to decline" })
+        toast.error(result.error || "Failed to decline")
       }
     })
   }
@@ -319,7 +358,7 @@ export function IntakeDetailClient({
         setNoteSaved(true)
         setTimeout(() => setNoteSaved(false), 3000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to save notes" })
+        toast.error(result.error || "Failed to save notes")
       }
     })
   }
@@ -329,10 +368,10 @@ export function IntakeDetailClient({
       const result = await markScriptSentAction(intake.id, parchmentReference || undefined)
       if (result.success) {
         setShowScriptDialog(false)
-        setActionMessage({ type: "success", text: "Script marked as sent" })
-        setTimeout(() => router.push("/doctor/queue"), 2000)
+        toast.success("Script marked as sent")
+        setTimeout(advanceToNext, 1000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to mark script sent" })
+        toast.error(result.error || "Failed to mark script sent")
       }
     })
   }
@@ -342,10 +381,10 @@ export function IntakeDetailClient({
       const result = await markAsRefundedAction(intake.id, refundReason || undefined)
       if (result.success) {
         setShowRefundDialog(false)
-        setActionMessage({ type: "success", text: "Marked as refunded" })
-        setTimeout(() => router.push("/doctor/queue"), 2000)
+        toast.success("Marked as refunded")
+        setTimeout(advanceToNext, 1000)
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to mark as refunded" })
+        toast.error(result.error || "Failed to mark as refunded")
       }
     })
   }
@@ -354,24 +393,24 @@ export function IntakeDetailClient({
     startTransition(async () => {
       const result = await resendCertificateAdmin(intake.id)
       if (result.success) {
-        setActionMessage({ type: "success", text: "Certificate email resent to patient" })
+        toast.success("Certificate email resent to patient")
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to resend certificate" })
+        toast.error(result.error || "Failed to resend certificate")
       }
     })
   }
 
   const handleRegenerateCertificate = () => {
     startTransition(async () => {
-      const result = await regenerateCertificateAction({ 
+      const result = await regenerateCertificateAction({
         intakeId: intake.id,
         reason: "Doctor requested regeneration"
       })
       if (result.success) {
-        setActionMessage({ type: "success", text: "Certificate regeneration initiated" })
+        toast.success("Certificate regeneration initiated")
         router.refresh()
       } else {
-        setActionMessage({ type: "error", text: result.error || "Failed to regenerate certificate" })
+        toast.error(result.error || "Failed to regenerate certificate")
       }
     })
   }
@@ -688,13 +727,11 @@ export function IntakeDetailClient({
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            {/* For med certs - go to document builder */}
+            {/* For med certs - 1-click approve: generates PDF + emails patient */}
             {service?.type === "med_certs" && intake.status !== "approved" && (
-              <Button asChild className="bg-primary hover:bg-primary/90">
-                <Link href={`/doctor/intakes/${intake.id}/document`}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve & Generate Certificate
-                </Link>
+              <Button onClick={handleMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending}>
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
               </Button>
             )}
 

@@ -2,29 +2,34 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { auth as _auth } from "@clerk/nextjs/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { z } from "zod"
 
-interface RefillRequest {
-  prescription_id: string
-  quantity?: number
-}
+const refillSchema = z.object({
+  prescription_id: z.string().uuid(),
+  quantity: z.number().int().min(1).max(10).default(1),
+})
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
+    if (rateLimitResponse) return rateLimitResponse
+
     const authUser = await getAuthenticatedUserWithProfile()
 
     if (!authUser || authUser.profile.role !== "patient") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body: RefillRequest = await request.json()
-    const { prescription_id, quantity = 1 } = body
-
-    if (!prescription_id) {
+    const body = await request.json()
+    const parsed = refillSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Prescription ID is required" },
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
+    const { prescription_id, quantity } = parsed.data
 
     const supabase = createServiceRoleClient()
 

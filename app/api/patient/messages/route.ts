@@ -4,8 +4,14 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { z } from "zod"
 
 const log = createLogger("patient-messages")
+
+const messageSchema = z.object({
+  intakeId: z.string().uuid(),
+  content: z.string().min(1, "Message cannot be empty").max(5000).transform(s => s.trim()),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,14 +25,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { intakeId, content } = await request.json()
-
-    if (!intakeId || !content?.trim()) {
+    const body = await request.json()
+    const parsed = messageSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
+    const { intakeId, content } = parsed.data
 
     const supabase = createServiceRoleClient()
     const patientId = authUser.profile.id

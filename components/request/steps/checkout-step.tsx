@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, Users } from "lucide-react"
+import { Check, Shield, Clock, Smartphone, MessageSquare, RefreshCw, Lock } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -19,7 +19,6 @@ import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
-import { CheckoutTrustStrip } from "@/components/checkout/trust-badges"
 
 interface CheckoutStepProps {
   serviceType: UnifiedServiceType
@@ -191,23 +190,24 @@ export default function CheckoutStep({ serviceType }: CheckoutStepProps) {
       </motion.div>
 
       {/* Trust badges */}
-      <motion.div variants={stagger.item} className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+      <motion.div variants={stagger.item} className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
-          <Shield className="w-3.5 h-3.5" />
-          AHPRA doctors
+          <Shield className="w-3.5 h-3.5 text-emerald-600" />
+          AHPRA-registered doctors
         </span>
         <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
+          <Clock className="w-3.5 h-3.5 text-primary" />
           {estimatedWait} review
         </span>
         <span className="flex items-center gap-1">
-          <Users className="w-3.5 h-3.5" />
-          12,000+ helped
+          <RefreshCw className="w-3.5 h-3.5 text-green-600" />
+          Money-back guarantee
+        </span>
+        <span className="flex items-center gap-1">
+          <Lock className="w-3.5 h-3.5 text-green-600" />
+          256-bit encrypted
         </span>
       </motion.div>
-
-      {/* Security & compliance badges */}
-      <CheckoutTrustStrip variant="minimal" />
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (

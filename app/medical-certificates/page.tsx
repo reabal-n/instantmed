@@ -6,7 +6,7 @@ import { medCertFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: 'Online Medical Certificates | Same-Day Delivery | InstantMed',
+  title: 'Online Medical Certificates | Same Day',
   description: 'Get a valid medical certificate from an Australian doctor in under an hour. Accepted by all employers. No appointments, no waiting rooms.',
   openGraph: {
     title: 'Online Medical Certificates | InstantMed',

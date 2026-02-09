@@ -53,11 +53,11 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "InstantMed - Online Doctor Consultations Australia | Med Certs & Scripts",
+    default: "InstantMed | Online Doctor Australia",
     template: "%s | InstantMed",
   },
   description:
-    "An asynchronous telehealth platform for Australians to get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) online. AHPRA-registered doctors review requests asynchronously (no video calls). Mobile-optimized, Medicare-friendly, with built-in safety features and secure payment processing.",
+    "Get medical certificates, prescriptions & doctor consults online from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
@@ -82,9 +82,9 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: "https://instantmed.com.au",
     siteName: "InstantMed",
-    title: "InstantMed - Online Doctor Consultations Australia",
+    title: "InstantMed | Online Doctor Australia",
     description:
-      "An asynchronous telehealth platform for Australians. Get medical certificates ($19.95), repeat prescriptions ($29.95), and new consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls, mobile-optimized, Medicare-friendly.",
+      "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
     images: [
       {
         url: "/og-image.png",
@@ -96,8 +96,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "InstantMed - Online Doctor Consultations Australia",
-    description: "Asynchronous telehealth platform for Australians. Medical certificates ($19.95), prescriptions ($29.95), and consultations ($49.95) reviewed by AHPRA-registered doctors. No video calls required.",
+    title: "InstantMed | Online Doctor Australia",
+    description: "Med certs, scripts & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
     images: ["/og-image.png"],
   },
   robots: {

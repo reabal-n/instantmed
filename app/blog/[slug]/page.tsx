@@ -52,6 +52,7 @@ const legacyPosts: Record<
     image: "/woman-sick-at-home-laptop.jpg",
     relatedLinks: [
       { href: "/medical-certificate/request", text: "Get a Medical Certificate" },
+      { href: "/locations", text: "Find your city" },
       { href: "/faq", text: "FAQs" },
     ],
   },
@@ -78,6 +79,7 @@ const legacyPosts: Record<
     image: "/prescription-medication-pharmacy.jpg",
     relatedLinks: [
       { href: "/request?service=prescription", text: "Request a Prescription" },
+      { href: "/locations", text: "Available in 25+ cities" },
       { href: "/faq", text: "FAQs" },
     ],
   },
@@ -104,6 +106,7 @@ const legacyPosts: Record<
     image: "/doctor-video-call-telehealth.jpg",
     relatedLinks: [
       { href: "/how-it-works", text: "How InstantMed Works" },
+      { href: "/locations", text: "Serving 25+ Australian cities" },
       { href: "/faq", text: "FAQs" },
     ],
   },

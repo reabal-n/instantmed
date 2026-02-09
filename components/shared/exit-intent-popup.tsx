@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
-import { X, Save, ArrowRight, Mail, Clock, Star, Shield } from "lucide-react"
+import { X, Save, ArrowRight, Mail, Clock, Star, Shield, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
@@ -16,6 +16,10 @@ interface ExitIntentPopupProps {
   formData?: Record<string, unknown>
   /** Callback when user saves for later */
   onSaveForLater?: (email: string) => void
+  /** Show a first-time discount offer */
+  showDiscount?: boolean
+  /** Discount code to display */
+  discountCode?: string
 }
 
 // Service-specific testimonials for exit intent
@@ -59,11 +63,13 @@ const SERVICE_MESSAGES = {
   },
 }
 
-export function ExitIntentPopup({ 
+export function ExitIntentPopup({
   variant = 'discount',
   service = 'med-cert',
   formData,
-  onSaveForLater 
+  onSaveForLater,
+  showDiscount = false,
+  discountCode = 'WELCOME10',
 }: ExitIntentPopupProps) {
   const isClient = useSyncExternalStore(
     () => () => {},
@@ -226,13 +232,25 @@ export function ExitIntentPopup({
           </div>
 
           <h3 className="text-lg font-semibold mb-2">
-            {messages.heading}
+            {showDiscount ? "Wait — here's 10% off" : messages.heading}
           </h3>
 
           <p className="text-sm text-muted-foreground mb-4">
-            {messages.subheading}
+            {showDiscount
+              ? "First time? Use this code at checkout for 10% off your first request."
+              : messages.subheading}
           </p>
-          
+
+          {/* Discount code banner */}
+          {showDiscount && (
+            <div className="flex items-center justify-center gap-2 px-4 py-3 mb-4 rounded-xl bg-primary/5 border border-primary/20">
+              <Tag className="w-4 h-4 text-primary" />
+              <span className="font-mono text-lg font-bold tracking-wider text-primary">
+                {discountCode}
+              </span>
+            </div>
+          )}
+
           {/* Mini testimonial - service-specific */}
           <div className="bg-muted/30 rounded-xl p-4 mb-5 text-left">
             <div className="flex gap-0.5 mb-2">

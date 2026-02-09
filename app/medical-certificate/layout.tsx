@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
-  title: "Online Medical Certificate Australia | Same Day Sick Note | InstantMed",
+  title: "Online Medical Certificate | Same Day $19.95",
   description:
-    "Get an online medical certificate in under an hour. Valid for work, uni, or carer's leave. $19.95 flat fee. 100% online. AHPRA-registered Australian doctors.",
+    "Get a medical certificate in under an hour. Valid for work, uni or carer's leave. $19.95 flat fee. AHPRA-registered Australian doctors.",
   keywords: [
     "online medical certificate",
     "sick certificate online",

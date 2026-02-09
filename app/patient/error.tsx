@@ -7,13 +7,14 @@ import Link from "next/link"
 import * as Sentry from "@sentry/nextjs"
 import { Button } from "@/components/ui/button"
 import {
-  AlertTriangle, 
-  Home, 
-  RefreshCw, 
-  FileText, 
+  AlertTriangle,
+  Home,
+  RefreshCw,
+  FileText,
   MessageCircle,
   WifiOff,
   LogIn,
+  Mail,
 } from "lucide-react"
 
 // Detect error type for better messaging
@@ -139,6 +140,11 @@ export default function PatientError({
               Contact support
             </Link>
           </div>
+
+          <p className="text-xs text-muted-foreground/60">
+            <Mail className="inline h-3 w-3 mr-1" />
+            support@instantmed.com.au
+          </p>
         </div>
       </div>
     </div>

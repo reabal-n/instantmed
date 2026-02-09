@@ -70,6 +70,49 @@ export async function GET() {
     }
   }
 
+  // Check Resend (email delivery)
+  try {
+    const resendStart = Date.now()
+    if (process.env.RESEND_API_KEY) {
+      const res = await fetch("https://api.resend.com/domains", {
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+        signal: AbortSignal.timeout(5000),
+      })
+      checks.resend = res.ok
+        ? { status: "ok", latencyMs: Date.now() - resendStart }
+        : { status: "error", error: `HTTP ${res.status}` }
+    } else {
+      checks.resend = { status: "error", error: "RESEND_API_KEY not configured" }
+    }
+  } catch (err) {
+    checks.resend = {
+      status: "error",
+      error: err instanceof Error ? err.message : "Resend API unreachable",
+    }
+  }
+
+  // Check Clerk (auth provider)
+  try {
+    const clerkStart = Date.now()
+    if (process.env.CLERK_SECRET_KEY) {
+      const res = await fetch("https://api.clerk.com/v1/clients", {
+        headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+        signal: AbortSignal.timeout(5000),
+      })
+      // 401 means key is wrong, 200/4xx means Clerk is reachable
+      checks.clerk = res.status !== 401
+        ? { status: "ok", latencyMs: Date.now() - clerkStart }
+        : { status: "error", error: "Invalid CLERK_SECRET_KEY" }
+    } else {
+      checks.clerk = { status: "error", error: "CLERK_SECRET_KEY not configured" }
+    }
+  } catch (err) {
+    checks.clerk = {
+      status: "error",
+      error: err instanceof Error ? err.message : "Clerk API unreachable",
+    }
+  }
+
   // Check environment variables
   const requiredEnvVars = [
     "NEXT_PUBLIC_SUPABASE_URL",

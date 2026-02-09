@@ -22,13 +22,14 @@ import { FAQSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { ExitIntentPopup } from '@/components/shared/exit-intent-popup'
+import { SocialProofToast } from '@/components/shared/social-proof-toast'
 
 export const revalidate = 3600
 
 // SEO metadata for homepage - critical for Google ranking
 export const metadata: Metadata = {
-  title: 'Online Doctor Australia | Medical Certificates & Prescriptions | InstantMed',
-  description: 'Get medical certificates (from $19.95) and repeat prescriptions ($29.95) from AHPRA-registered Australian doctors in under 30 minutes. 100% online. Reviewed by real GPs.',
+  title: 'Online Doctor Australia | Med Certs & Scripts',
+  description: 'Medical certificates from $19.95, prescriptions from $29.95. AHPRA-registered Australian GPs. Results in under an hour, 100% online.',
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -87,7 +88,10 @@ export default function HomePage() {
       <HashScrollHandler />
       
       {/* Exit intent popup for abandoning users */}
-      <ExitIntentPopup variant="discount" />
+      <ExitIntentPopup variant="discount" showDiscount />
+
+      {/* Social proof notifications */}
+      <SocialProofToast />
       
       
       {/* Returning patient recognition */}

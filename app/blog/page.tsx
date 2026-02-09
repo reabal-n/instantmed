@@ -7,10 +7,13 @@ import { allArticles } from "@/lib/blog/articles"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { ArticlesPage } from "@/components/blog/articles-page"
 
+// Revalidate every 12 hours — blog index updates occasionally
+export const revalidate = 43200
+
 export const metadata: Metadata = {
-  title: "Health Guides | Medical Certificates & Telehealth | InstantMed",
+  title: "Health Guides | Telehealth Resources",
   description:
-    "Doctor-reviewed health guides for Australians. Learn about medical certificates, telehealth, prescriptions, and common health conditions from AHPRA-registered doctors.",
+    "Doctor-reviewed health guides on med certs, telehealth and prescriptions. Written by AHPRA-registered Australian GPs.",
   openGraph: {
     title: "InstantMed Health Guides",
     description: "Doctor-reviewed health guides from Australian medical professionals.",

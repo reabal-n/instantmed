@@ -15,7 +15,9 @@ import {
   Building2,
   HeartPulse,
   Briefcase,
+  BadgeCheck,
 } from "lucide-react"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const metadata: Metadata = {
   title: "Our Doctors | AHPRA-Registered Australian GPs | InstantMed",
@@ -28,7 +30,27 @@ export const metadata: Metadata = {
   },
 }
 
-export default function OurDoctorsPage() {
+interface DoctorProfile {
+  id: string
+  full_name: string
+  nominals: string | null
+  ahpra_number: string | null
+}
+
+export default async function OurDoctorsPage() {
+  // Fetch verified doctors with AHPRA numbers
+  const supabase = createServiceRoleClient()
+  const { data: doctors } = await supabase
+    .from("profiles")
+    .select("id, full_name, nominals, ahpra_number")
+    .in("role", ["doctor", "admin"])
+    .eq("is_active", true)
+    .not("ahpra_number", "is", null)
+    .order("full_name")
+
+  const verifiedDoctors: DoctorProfile[] = (doctors || []).filter(
+    (d) => d.full_name && d.ahpra_number
+  )
   const credentials = [
     {
       icon: Shield,
@@ -161,8 +183,59 @@ export default function OurDoctorsPage() {
           </div>
         </section>
 
+        {/* Verified Doctor Profiles */}
+        {verifiedDoctors.length > 0 && (
+          <section className="py-16 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <div className="max-w-3xl mx-auto text-center mb-12">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                  Our consulting doctors
+                </h2>
+                <p className="text-muted-foreground">
+                  Each doctor&apos;s AHPRA registration can be independently verified
+                  on the public register.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {verifiedDoctors.map((doctor) => (
+                  <div
+                    key={doctor.id}
+                    className="bg-card rounded-2xl border p-6 text-center hover:shadow-md transition-shadow"
+                    itemScope
+                    itemType="https://schema.org/Physician"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-4">
+                      <Stethoscope className="w-7 h-7 text-emerald-600" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-1" itemProp="name">
+                      Dr {doctor.full_name}
+                    </h3>
+                    {doctor.nominals && (
+                      <p className="text-sm text-muted-foreground mb-2" itemProp="qualifications">
+                        {doctor.nominals}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 mb-3">
+                      <BadgeCheck className="w-3.5 h-3.5" />
+                      <span>AHPRA Verified</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {doctor.ahpra_number}
+                    </p>
+                    <meta itemProp="medicalSpecialty" content="General Practice" />
+                    <link
+                      itemProp="sameAs"
+                      href={`https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Experience Areas */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">

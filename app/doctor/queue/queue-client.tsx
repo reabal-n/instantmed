@@ -53,9 +53,11 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  Loader2,
 } from "lucide-react"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
 import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
+import { generateMedCertPdfAndApproveAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { MessageSquare } from "lucide-react"
 import {
   Select,
@@ -96,7 +98,7 @@ export function QueueClient({
   const [flagDialog, setFlagDialog] = useState<string | null>(null)
   const [flagReason, setFlagReason] = useState("")
   const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({})
-  const [sortOption, setSortOption] = useState<"flagged" | "wait" | "service">("flagged")
+  const [sortOption, setSortOption] = useState<"sla" | "flagged" | "wait" | "service">("sla")
   const [filterService, setFilterService] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [patientHistory, setPatientHistory] = useState<Record<string, { intakes: Array<{ id: string; status: string; created_at: string; service_type: string }> }>>({})
@@ -274,18 +276,28 @@ export function QueueClient({
 
 
   const handleApprove = async (intakeId: string, serviceType?: string | null) => {
-    // For med certs - DO NOT set status here, navigate to document builder
-    // The document builder handles PDF generation + approval atomically
+    // For med certs - 1-click approval: generate PDF + approve atomically
     if (serviceType === "med_certs") {
-      router.push(`/doctor/intakes/${intakeId}/document`)
+      startTransition(async () => {
+        const result = await generateMedCertPdfAndApproveAction(intakeId, "")
+        if (result.success) {
+          setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
+          const emailNote = result.emailStatus === "sent"
+            ? "Certificate approved and sent to patient."
+            : "Certificate approved. Email will be sent shortly."
+          toast.success(emailNote)
+        } else {
+          toast.error(result.error || "Failed to approve certificate")
+        }
+      })
       return
     }
 
     startTransition(async () => {
       // For prescriptions, set status to awaiting_script (external Parchment entry needed)
       // For other services, set to approved directly
-      const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx" 
-        ? "awaiting_script" 
+      const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx"
+        ? "awaiting_script"
         : "approved"
       const result = await updateStatusAction(intakeId, newStatus, doctorId)
       if (result.success) {
@@ -506,6 +518,21 @@ export function QueueClient({
       
       // Then apply selected sort
       switch (sortOption) {
+        case "sla": {
+          // SLA urgency: breached first, then approaching deadline, then by wait time
+          const aSla = a.sla_deadline ? new Date(a.sla_deadline).getTime() : Infinity
+          const bSla = b.sla_deadline ? new Date(b.sla_deadline).getTime() : Infinity
+          // Flagged cases bubble up within SLA sort
+          const aFlagged = hasRedFlags(a)
+          const bFlagged = hasRedFlags(b)
+          if (aFlagged && !bFlagged) return -1
+          if (!aFlagged && bFlagged) return 1
+          // Then sort by SLA deadline (earliest/breached first)
+          if (aSla !== bSla) return aSla - bSla
+          // Fallback: longest wait first
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        }
+
         case "flagged": {
           // Flagged cases first
           const aFlagged = hasRedFlags(a)
@@ -515,11 +542,11 @@ export function QueueClient({
           // Then by wait time
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         }
-        
+
         case "wait":
           // Longest wait first
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        
+
         case "service": {
           // Group by service type
           const aService = (a.service as { type?: string })?.type || ""
@@ -527,7 +554,7 @@ export function QueueClient({
           if (aService !== bService) return aService.localeCompare(bService)
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         }
-        
+
         default:
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       }
@@ -808,6 +835,7 @@ export function QueueClient({
                 <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="sla">SLA Urgency</SelectItem>
                 <SelectItem value="flagged">Flagged first</SelectItem>
                 <SelectItem value="wait">Longest wait</SelectItem>
                 <SelectItem value="service">By service type</SelectItem>
@@ -1152,8 +1180,8 @@ export function QueueClient({
                           className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50"
                           title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                         >
-                          <CheckCircle className="h-4 w-4 mr-1.5" />
-                          {service?.type === "common_scripts" ? "Approve Script" : "Approve & Generate"}
+                          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                          {isPending && service?.type === "med_certs" ? "Generating..." : service?.type === "common_scripts" ? "Approve Script" : "Approve & Send"}
                         </Button>
                         <Button variant="destructive" onClick={() => setDeclineDialog(intake.id)} disabled={isPending}>
                           <XCircle className="h-4 w-4 mr-1.5" />

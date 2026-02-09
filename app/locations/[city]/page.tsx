@@ -1,10 +1,106 @@
 import { Navbar } from "@/components/shared/navbar"
 import { Footer } from "@/components/shared/footer"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2 } from "lucide-react"
+import { ArrowRight, MapPin, Clock, Shield, Star, CheckCircle2, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+
+// Geo coordinates for each city (latitude, longitude)
+const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
+  sydney: { lat: "-33.8688", lng: "151.2093" },
+  melbourne: { lat: "-37.8136", lng: "144.9631" },
+  brisbane: { lat: "-27.4705", lng: "153.0260" },
+  perth: { lat: "-31.9514", lng: "115.8617" },
+  adelaide: { lat: "-34.9285", lng: "138.6007" },
+  "gold-coast": { lat: "-28.0167", lng: "153.4000" },
+  canberra: { lat: "-35.2802", lng: "149.1310" },
+  newcastle: { lat: "-32.9283", lng: "151.7817" },
+  hobart: { lat: "-42.8821", lng: "147.3272" },
+  darwin: { lat: "-12.4634", lng: "130.8456" },
+  "sunshine-coast": { lat: "-26.6500", lng: "153.0667" },
+  wollongong: { lat: "-34.4248", lng: "150.8931" },
+  geelong: { lat: "-38.1499", lng: "144.3617" },
+  townsville: { lat: "-19.2590", lng: "146.8169" },
+  cairns: { lat: "-16.9186", lng: "145.7781" },
+  toowoomba: { lat: "-27.5598", lng: "151.9507" },
+  ballarat: { lat: "-37.5622", lng: "143.8503" },
+  bendigo: { lat: "-36.7570", lng: "144.2794" },
+  launceston: { lat: "-41.4332", lng: "147.1441" },
+  mackay: { lat: "-21.1411", lng: "149.1861" },
+  rockhampton: { lat: "-23.3791", lng: "150.5100" },
+  bunbury: { lat: "-33.3271", lng: "115.6414" },
+  "wagga-wagga": { lat: "-35.1082", lng: "147.3598" },
+  "albury-wodonga": { lat: "-36.0737", lng: "146.9135" },
+  "hervey-bay": { lat: "-25.2882", lng: "152.8531" },
+}
+
+// City-specific content paragraphs for unique SEO value
+const CITY_CONTENT: Record<string, string> = {
+  sydney: "Sydney residents can skip crowded CBD clinics and long waits at bulk-billing practices. Whether you're in the Eastern Suburbs, Inner West or out in Parramatta, InstantMed connects you with a doctor from anywhere with phone signal.",
+  melbourne: "From Brunswick to Brighton, Melbourne's notoriously long GP wait times are a thing of the past. InstantMed lets you see a doctor without braving the weather or the traffic — perfect for those days when you really can't leave the house.",
+  brisbane: "Brisbane's growing population means longer GP wait times across the city. From the CBD to the suburbs, InstantMed gives you access to Australian-registered doctors without the queue — even during school holidays and peak flu season.",
+  perth: "Perth's isolation means fewer GP options, especially in outer suburbs. InstantMed works on WA time and connects you with doctors who understand the unique needs of Western Australian patients, no matter where you are in the metro area.",
+  adelaide: "Adelaide patients can avoid the scramble for same-day GP appointments. InstantMed is ideal for when you need a quick med cert or script without driving across the city — from Glenelg to the Adelaide Hills.",
+  "gold-coast": "Whether you're a local or visiting the Gold Coast, getting a GP appointment at short notice can be tricky. InstantMed lets you sort a med cert or script from Broadbeach, Burleigh or anywhere along the coast.",
+  canberra: "Canberra's limited bulk-billing options and long wait times make telehealth a practical choice for public servants and students alike. InstantMed is available across the ACT, from Civic to Tuggeranong.",
+  newcastle: "Newcastle and the Hunter Valley can face long waits for same-day GP availability. InstantMed gives you access to Australian doctors from anywhere in the region — from Merewether to Maitland.",
+  hobart: "Hobart and Southern Tasmania have limited after-hours GP options. InstantMed bridges the gap, giving you access to Australian-registered doctors seven days a week without leaving your home.",
+  darwin: "In the Top End, extreme weather and distance can make GP visits difficult. InstantMed works on NT time and is available whether you're in the CBD, Palmerston, or further afield.",
+  "sunshine-coast": "The Sunshine Coast's popularity means GP clinics are often overloaded, especially in peak season. From Noosa to Caloundra, InstantMed offers a quick alternative to long clinic waits.",
+  wollongong: "Illawarra residents often face the choice of a long wait locally or driving to Sydney for a GP. InstantMed lets you stay in the Gong and get sorted from your couch.",
+  geelong: "Geelong is growing fast, and GP availability hasn't kept up. InstantMed gives you same-day access to doctors without the drive to Melbourne or the wait at a walk-in clinic.",
+  townsville: "North Queensland's limited specialist availability makes telehealth essential. InstantMed connects Townsville patients with Australian GPs for everyday health needs, rain or shine.",
+  cairns: "Far North Queensland can be challenging for GP access, especially in the wet season. InstantMed keeps you connected to healthcare from anywhere in the Cairns region.",
+  toowoomba: "Toowoomba and the Darling Downs can face GP shortages, especially outside business hours. InstantMed gives you flexible access to Australian doctors when you need them.",
+  ballarat: "Ballarat and regional Victoria have fewer GP options than Melbourne. InstantMed lets you get medical certificates and scripts without the drive or the wait.",
+  bendigo: "Bendigo's growing population means GP wait times are increasing. InstantMed provides an alternative that works around your schedule — no appointments needed.",
+  launceston: "Northern Tasmania's GP availability can be limited. InstantMed bridges the gap with same-day access to Australian-registered doctors, seven days a week.",
+  mackay: "The Mackay region, including the mining communities of the Bowen Basin, can face limited GP access. InstantMed is designed to work around shift patterns and remote schedules.",
+  rockhampton: "Central Queensland's vast distances make GP visits time-consuming. InstantMed lets Rockhampton residents get healthcare sorted without the drive.",
+  bunbury: "South-West WA has fewer GP options than Perth. InstantMed gives Bunbury and surrounding area residents access to doctors without a trip to the city.",
+  "wagga-wagga": "The Riverina's GP shortages are well documented. InstantMed gives Wagga residents the same access to healthcare as metro patients — fast and from home.",
+  "albury-wodonga": "Straddling the NSW-Victoria border can complicate healthcare. InstantMed serves the whole Albury-Wodonga region regardless of which side of the Murray you're on.",
+  "hervey-bay": "Hervey Bay and the Fraser Coast have a growing retiree population and limited GP availability. InstantMed offers a simple, affordable alternative for everyday health needs.",
+}
+
+// City-specific FAQ items
+const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
+  sydney: [
+    { q: "Can I use InstantMed if I live in Western Sydney?", a: "Yes — InstantMed is available anywhere in Greater Sydney, from Penrith to Bondi. All you need is an internet connection." },
+    { q: "Are InstantMed certificates accepted by NSW employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers, including NSW government agencies." },
+    { q: "How fast can I get a medical certificate in Sydney?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it via email as a PDF." },
+  ],
+  melbourne: [
+    { q: "Is InstantMed available across all of Melbourne?", a: "Yes — from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
+    { q: "Can I get an eScript filled at a Melbourne pharmacy?", a: "Yes. Your eScript can be filled at any pharmacy in Melbourne. Just show the QR code on your phone." },
+    { q: "Do I need a Medicare card to use InstantMed in Victoria?", a: "No Medicare card is required. InstantMed is a private service with transparent flat-fee pricing." },
+  ],
+  brisbane: [
+    { q: "Does InstantMed work in Greater Brisbane?", a: "Yes — we serve all Brisbane suburbs, from the CBD to Logan, Ipswich and Redcliffe." },
+    { q: "Are certificates valid for Queensland employers?", a: "Yes. Our AHPRA-registered doctors issue certificates accepted by all Australian employers." },
+    { q: "Can I get a repeat script through InstantMed in Brisbane?", a: "Yes. If you have an existing prescription, we can arrange a repeat via eScript sent to your phone." },
+  ],
+  perth: [
+    { q: "Does InstantMed account for WA time zones?", a: "Yes. Our platform is available 7 days a week and our doctors work across all Australian time zones, including AWST." },
+    { q: "Can I use InstantMed in regional WA?", a: "Yes — anywhere in Western Australia with internet access. We serve Perth metro and all regional areas." },
+    { q: "How do eScripts work in Western Australia?", a: "eScripts work the same way across Australia. You receive a QR code via SMS that any pharmacy can scan." },
+  ],
+  adelaide: [
+    { q: "Is InstantMed available in South Australia?", a: "Yes — we serve all of Adelaide and regional SA. All you need is an internet connection." },
+    { q: "Are your doctors registered in South Australia?", a: "Our doctors are AHPRA-registered, which means they can practise anywhere in Australia, including SA." },
+    { q: "How much does a medical certificate cost in Adelaide?", a: "Medical certificates start from $19.95. The same price applies regardless of your location." },
+  ],
+}
+
+// Fallback FAQs for cities without specific ones
+const DEFAULT_FAQS = [
+  { q: "Is InstantMed available in my area?", a: "Yes — InstantMed works anywhere in Australia with an internet connection. No matter your location, our doctors can help." },
+  { q: "Are your medical certificates accepted by employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all Australian employers and educational institutions." },
+  { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it as a PDF via email." },
+]
 
 // Local SEO Pages - Top 25 Australian cities & regions
 const cities: Record<
@@ -221,8 +317,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!cityData) return {}
 
   return {
-    title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state} | InstantMed`,
-    description: `Get online doctor consultations in ${cityData.name}. Medical certificates and prescriptions from AHPRA-registered doctors. Serving all of ${cityData.state}.`,
+    title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state}`,
+    description: `Online doctor consults in ${cityData.name}. Med certs & scripts from AHPRA-registered doctors. Serving ${cityData.state}.`,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,
       `telehealth ${cityData.name.toLowerCase()}`,
@@ -230,6 +326,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `online prescription ${cityData.name.toLowerCase()}`,
     ],
     openGraph: {
+      title: `Online Doctor ${cityData.name} | InstantMed`,
+      description: `Telehealth consultations for ${cityData.name} residents. Fast, affordable, and convenient.`,
+      url: `https://instantmed.com.au/locations/${city}`,
+    },
+    twitter: {
+      card: "summary_large_image",
       title: `Online Doctor ${cityData.name} | InstantMed`,
       description: `Telehealth consultations for ${cityData.name} residents. Fast, affordable, and convenient.`,
     },
@@ -250,6 +352,10 @@ export default async function CityPage({ params }: PageProps) {
   if (!cityData) {
     notFound()
   }
+
+  const geo = GEO_COORDS[city] || GEO_COORDS.sydney
+  const faqs = CITY_FAQS[city] || DEFAULT_FAQS
+  const cityContent = CITY_CONTENT[city]
 
   // Enhanced Local Business Schema for SEO
   const localSchema = {
@@ -273,8 +379,8 @@ export default async function CityPage({ params }: PageProps) {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: "-33.8688",
-      longitude: "151.2093"
+      latitude: geo.lat,
+      longitude: geo.lng,
     },
     address: {
       "@type": "PostalAddress",
@@ -328,9 +434,29 @@ export default async function CityPage({ params }: PageProps) {
     isAcceptingNewPatients: true
   }
 
+  // FAQ Schema for SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.a,
+      },
+    })),
+  }
+
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://instantmed.com.au" },
+        { name: "Locations", url: "https://instantmed.com.au/locations" },
+        { name: cityData.name, url: `https://instantmed.com.au/locations/${city}` },
+      ]} />
 
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar variant="marketing" />
@@ -375,6 +501,17 @@ export default async function CityPage({ params }: PageProps) {
               </div>
             </div>
           </section>
+
+          {/* City-specific content */}
+          {cityContent && (
+            <section className="px-4 py-10">
+              <div className="mx-auto max-w-2xl">
+                <p className="text-muted-foreground leading-relaxed text-center">
+                  {cityContent}
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* Services */}
           <section className="px-4 py-12">
@@ -467,8 +604,26 @@ export default async function CityPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* CTA */}
+          {/* FAQ Section */}
           <section className="px-4 py-12">
+            <div className="mx-auto max-w-2xl">
+              <h2 className="text-xl font-bold mb-6 text-center flex items-center justify-center gap-2">
+                <HelpCircle className="h-5 w-5 text-primary" />
+                Frequently Asked Questions — {cityData.name}
+              </h2>
+              <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                  <div key={i} className="p-4 rounded-xl border bg-card">
+                    <h3 className="font-semibold text-sm mb-2">{faq.q}</h3>
+                    <p className="text-sm text-muted-foreground">{faq.a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-xl text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
               <p className="text-muted-foreground mb-6">
@@ -483,6 +638,30 @@ export default async function CityPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* Related Blog Posts - internal linking */}
+          <section className="px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">Related Resources</h3>
+              <div className="flex flex-wrap justify-center gap-3 text-sm">
+                <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-primary hover:underline">
+                  How to Get a Med Cert Online
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
+                  Telehealth vs GP
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link href="/medical-certificate" className="text-primary hover:underline">
+                  Medical Certificates
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link href="/prescriptions" className="text-primary hover:underline">
+                  Prescriptions
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* Other Cities */}
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl">
@@ -490,7 +669,7 @@ export default async function CityPage({ params }: PageProps) {
                 Also serving:{" "}
                 {Object.values(cities)
                   .filter((c) => c.slug !== city)
-                  .slice(0, 5)
+                  .slice(0, 8)
                   .map((c, i, arr) => (
                     <span key={c.slug}>
                       <Link href={`/locations/${c.slug}`} className="text-primary hover:underline">
@@ -499,6 +678,10 @@ export default async function CityPage({ params }: PageProps) {
                       {i < arr.length - 1 && " • "}
                     </span>
                   ))}
+                {" • "}
+                <Link href="/locations" className="text-primary hover:underline font-medium">
+                  View all locations
+                </Link>
               </p>
             </div>
           </section>

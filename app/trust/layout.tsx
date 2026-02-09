@@ -1,10 +1,13 @@
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
+// Revalidate every 24 hours — trust content is mostly static
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "Why Trust InstantMed? | AHPRA Registered Doctors",
   description:
-    "Learn about our doctor verification process, data security, Medicare compliance, and how we ensure safe, legitimate telehealth consultations. 100% Australian-based with AHPRA registered doctors.",
+    "Doctor verification, data security and Medicare compliance. 100% Australian-based with AHPRA-registered doctors. Bank-level encryption.",
   keywords: [
     "AHPRA registered telehealth",
     "Australian online doctor",

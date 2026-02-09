@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { requireRole } from "@/lib/auth"
-import { getIntakeWithDetails, getPatientIntakes } from "@/lib/data/intakes"
+import { getIntakeWithDetails, getPatientIntakes, getNextQueueIntakeId } from "@/lib/data/intakes"
+import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
@@ -33,8 +34,15 @@ export default async function DoctorIntakeDetailPage({
   const { data: patientHistory } = await getPatientIntakes(intake.patient.id, { pageSize: 6 })
   const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
-  // Fetch AI drafts for this intake
-  const aiDrafts = await getAIDraftsForIntake(id)
+  // Fetch AI drafts and next intake ID in parallel
+  const [aiDrafts, nextIntakeId, medCertDraft] = await Promise.all([
+    getAIDraftsForIntake(id),
+    getNextQueueIntakeId(id),
+    // Pre-fetch or create med cert draft if it's a med cert service
+    (intake.service as { type?: string } | undefined)?.type === "med_certs"
+      ? getOrCreateMedCertDraftForIntake(id)
+      : Promise.resolve(null),
+  ])
 
   // Calculate patient age from DOB
   const calculateAge = (dob: string): number => {
@@ -67,6 +75,8 @@ export default async function DoctorIntakeDetailPage({
       previousIntakes={previousIntakes}
       initialAction={action}
       aiDrafts={aiDrafts}
+      nextIntakeId={nextIntakeId}
+      draftId={medCertDraft?.id || null}
     />
   )
 }

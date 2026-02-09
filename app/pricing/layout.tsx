@@ -1,10 +1,13 @@
 import type { Metadata } from "next"
 import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
+// Revalidate every 24 hours — pricing rarely changes
+export const revalidate = 86400
+
 export const metadata: Metadata = {
-  title: "Telehealth Pricing Australia | No Subscriptions | InstantMed",
+  title: "Telehealth Pricing | No Hidden Fees",
   description:
-    "Simple, transparent telehealth pricing. Medical certificates from $19.95, repeat prescriptions from $29.95. No subscriptions, no hidden fees. Pay only when you need care.",
+    "Med certs from $19.95, prescriptions from $29.95. No subscriptions, no hidden fees. Full refund if we can't help.",
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",

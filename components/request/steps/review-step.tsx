@@ -5,7 +5,7 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, Edit2 } from "lucide-react"
+import { Check, Edit2, Shield, Clock, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRequestStore } from "../store"
@@ -328,6 +328,22 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             onEdit={section.stepId ? () => goToStep(section.stepId as Parameters<typeof goToStep>[0]) : undefined}
           />
         ))}
+      </div>
+
+      {/* Reassurance micro-copy */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground py-2">
+        <span className="flex items-center gap-1">
+          <Shield className="w-3.5 h-3.5 text-emerald-600" />
+          Reviewed by a real Australian doctor
+        </span>
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5 text-primary" />
+          Most certs issued within 30 minutes
+        </span>
+        <span className="flex items-center gap-1">
+          <RefreshCw className="w-3.5 h-3.5 text-green-600" />
+          Full refund if we can&apos;t help
+        </span>
       </div>
 
       {/* Continue button */}

@@ -6,7 +6,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: "About Us | Australian Telehealth | InstantMed",
-  description: "InstantMed is an Australian telehealth platform connecting patients with AHPRA-registered doctors for medical certificates, prescriptions, and consultations.",
+  description: "Australian telehealth platform connecting patients with AHPRA-registered doctors for med certs, scripts and consults.",
   openGraph: {
     title: "About InstantMed | Australian Telehealth",
     description: "Learn about InstantMed - connecting Australians with AHPRA-registered doctors for fast, secure online healthcare.",

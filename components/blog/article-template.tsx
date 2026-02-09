@@ -445,11 +445,30 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
 
       {/* Related articles */}
       {relatedArticles && relatedArticles.length > 0 && (
-        <RelatedArticles 
+        <RelatedArticles
           articles={relatedArticles}
           currentSlug={article.slug}
         />
       )}
+
+      {/* Location cross-links for local SEO */}
+      <div className="mt-8 py-4 border-t">
+        <p className="text-xs text-muted-foreground text-center">
+          Available in{" "}
+          {["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"].map((city, i, arr) => (
+            <span key={city}>
+              <Link href={`/locations/${city.toLowerCase()}`} className="text-primary hover:underline">
+                {city}
+              </Link>
+              {i < arr.length - 1 && ", "}
+            </span>
+          ))}
+          {" "}and{" "}
+          <Link href="/locations" className="text-primary hover:underline font-medium">
+            20+ more cities
+          </Link>
+        </p>
+      </div>
         </article>
 
         {/* Sidebar */}
