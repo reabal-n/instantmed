@@ -259,8 +259,9 @@ export async function approveAndSendCert(
 
     if (!pdfResult.success || !pdfResult.buffer) {
       logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
-      // Revert the claim since we can't proceed
+      // Revert the claim and release intake since we can't proceed
       await supabase.from("intakes").update({ status: "paid", reviewed_by: null, updated_at: new Date().toISOString() }).eq("id", intakeId)
+      await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
       return { success: false, error: pdfResult.error || "Failed to generate certificate PDF" }
     }
 

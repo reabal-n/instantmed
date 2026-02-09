@@ -1025,14 +1025,6 @@ main > div {
   box-shadow: 0 4px 24px rgba(37, 99, 235, 0.15);
 }
 
-/* Legacy mint classes mapped to new colors */
-.glow-mint {
-  box-shadow: 0 0 30px rgba(37, 99, 235, 0.25), 0 0 60px rgba(79, 70, 229, 0.15);
-}
-
-.glow-mint-subtle {
-  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.15);
-}
 
 /* ================================
    PREMIUM ANIMATIONS
@@ -1133,16 +1125,6 @@ main > div {
   }
 }
 
-/* Legacy mint pulse mapped to primary */
-@keyframes pulse-mint {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(37, 99, 235, 0.5);
-  }
-}
 
 /* Button shimmer sweep */
 @keyframes shimmer {
@@ -1154,14 +1136,6 @@ main > div {
   }
 }
 
-@keyframes shimmer-sweep {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
 
 /* Confetti burst */
 @keyframes confetti-fall {
@@ -1509,9 +1483,6 @@ main > div {
   animation: float 6s ease-in-out infinite;
 }
 
-.animate-pulse-mint {
-  animation: pulse-mint 2.5s ease-in-out infinite;
-}
 
 .animate-success-bounce {
   animation: success-bounce 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -3508,8 +3479,56 @@ button:not(.no-micro):active:not(:disabled),
     animation: none;
     opacity: 1;
   }
-  
+
   .dashboard-spotlight::after {
     display: none;
+  }
+}
+
+/* ================================
+   NIGHT SKY - CSS STAR ANIMATIONS
+   Replaces framer-motion for better perf
+   ================================ */
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes shooting-star {
+  0% {
+    width: 0;
+    opacity: 0;
+    transform: rotate(35deg) translate(0, 0);
+  }
+  30% {
+    width: 80px;
+    opacity: 1;
+  }
+  100% {
+    width: 120px;
+    opacity: 0;
+    transform: rotate(35deg) translate(200px, 100px);
+  }
+}
+
+.animate-shooting-star {
+  animation: shooting-star 1s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-twinkle,
+  .animate-shooting-star {
+    animation: none !important;
   }
 }

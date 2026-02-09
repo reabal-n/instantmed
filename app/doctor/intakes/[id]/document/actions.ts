@@ -85,15 +85,21 @@ export async function generateMedCertPdfAndApproveAction(
 
     const draftData = draft?.data as MedCertDraftData | null
 
+    // P1 FIX: Require draft data with dates - don't silently fall back to today's date
+    if (!draftData?.date_from || !draftData?.date_to) {
+      logger.warn("Draft data missing or incomplete - cannot approve without valid dates", { intakeId, hasDraft: !!draft, hasDraftData: !!draftData })
+      return { success: false, error: "Certificate draft is missing required date information. Please review the certificate details before approving." }
+    }
+
     // Build review data from draft
     // Handle both 'reason' and 'reason_summary' fields for compatibility
-    const medicalReason = draftData?.reason || draftData?.reason_summary || "Medical Illness"
-    
+    const medicalReason = draftData.reason || draftData.reason_summary || "Medical Illness"
+
     const reviewData: CertReviewData = {
       doctorName: doctorProfile?.full_name || "Dr.",
       consultDate: new Date().toISOString().split("T")[0],
-      startDate: draftData?.date_from || new Date().toISOString().split("T")[0],
-      endDate: draftData?.date_to || new Date().toISOString().split("T")[0],
+      startDate: draftData.date_from,
+      endDate: draftData.date_to,
       medicalReason,
     }
 

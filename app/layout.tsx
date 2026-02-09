@@ -5,22 +5,19 @@ import { ClerkProvider } from "@clerk/nextjs"
 import { Analytics } from "@vercel/analytics/next"
 import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
 import { Toaster } from "@/components/ui/sonner"
-import { SocialProofPopup } from "@/components/shared/social-proof-popup"
-import { StickyCTABar } from "@/components/shared/sticky-cta-bar"
 import { SkipToContent } from "@/components/shared/skip-to-content"
 import { SkyBackground } from "@/components/ui/sky-background"
 import { NightSkyBackground } from "@/components/ui/night-sky-background"
 import { ScrollProgress } from "@/components/ui/scroll-progress"
 import { ThemeProvider } from "next-themes"
 import { HeroUIProviderWrapper } from "@/components/providers/heroui-provider"
-// SupabaseAuthProvider removed - using Clerk for auth
 import { OrganizationSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { PostHogIdentify } from "@/components/analytics/posthog-identify"
 import { PostHogProvider } from "@/components/providers/posthog-provider"
-import { ChatIntakeButton } from "@/components/chat/chat-intake"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { CookieBanner } from "@/components/shared/cookie-banner"
+import { LazyOverlays } from "@/components/shared/lazy-overlays"
 import Script from "next/script"
 import "./globals.css"
 
@@ -28,27 +25,28 @@ const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 })
 
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
 })
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
+  weight: ["400"],
 })
 
 const caveat = Caveat({
   subsets: ["latin"],
   variable: "--font-handwritten",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "700"],
 })
 
 export const metadata: Metadata = {
@@ -219,9 +217,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <Toaster position="top-center" richColors />
-                <SocialProofPopup />
-                <StickyCTABar />
-                <ChatIntakeButton />
+                <LazyOverlays />
                 <Analytics />
                 <WebVitalsReporter />
                 <PostHogIdentify />
