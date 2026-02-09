@@ -81,11 +81,17 @@ export async function approveAndSendCert(
 
     const supabase = createServiceRoleClient()
 
-    // 2. Fetch the intake with patient details and service info
+    // 2. Fetch the intake with patient details, service info, and answers
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select(`
         *,
+        service:services!service_id(
+          id,
+          slug,
+          name,
+          type
+        ),
         patient:profiles!patient_id(
           id,
           full_name,
@@ -105,8 +111,9 @@ export async function approveAndSendCert(
     }
 
     // Verify it's a medical certificate service
-    const service = intake.service as { slug: string; type: string } | null
+    const service = intake.service as { id: string; slug: string; name: string; type: string } | null
     if (!service || service.type !== "med_certs") {
+      logger.warn("Intake is not a medical certificate service", { intakeId, serviceType: service?.type, serviceSlug: service?.slug })
       return { success: false, error: "This action is only for medical certificate intakes" }
     }
 

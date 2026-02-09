@@ -130,10 +130,18 @@ export async function uploadClinicLogo(
   const fileName = `clinic-logo-${Date.now()}.${fileExt}`
   const storagePath = `branding/${fileName}`
 
+  // Convert File to Buffer for reliable server-side upload
+  // File objects from FormData may lose their prototype chain during
+  // Next.js server action serialization, causing Supabase upload failures
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const contentType = file.type || (fileExt === "png" ? "image/png" : fileExt === "svg" ? "image/svg+xml" : "image/jpeg")
+
   const { error } = await supabase.storage
     .from("documents")
-    .upload(storagePath, file, {
-      contentType: file.type,
+    .upload(storagePath, buffer, {
+      contentType,
       upsert: false,
     })
 

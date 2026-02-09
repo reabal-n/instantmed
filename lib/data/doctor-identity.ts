@@ -141,10 +141,18 @@ export async function uploadDoctorSignature(
   const fileName = `signature-${profileId}-${Date.now()}.${fileExt}`
   const storagePath = `signatures/${fileName}`
 
+  // Convert File to Buffer for reliable server-side upload
+  // File objects from FormData may lose their prototype chain during
+  // Next.js server action serialization, causing Supabase upload failures
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const contentType = file.type || (fileExt === "png" ? "image/png" : "image/jpeg")
+
   const { error } = await supabase.storage
     .from("documents")
-    .upload(storagePath, file, {
-      contentType: file.type,
+    .upload(storagePath, buffer, {
+      contentType,
       upsert: false,
     })
 

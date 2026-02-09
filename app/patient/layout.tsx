@@ -12,8 +12,9 @@ export default async function PatientLayout({
 }: {
   children: React.ReactNode
 }) {
-  // requireRole handles auth, role check, and onboarding enforcement
-  const authUser = await requireRole(["patient"])
+  // allowIncompleteOnboarding: true so the /patient/onboarding page can render.
+  // Individual child pages (e.g. /patient/page.tsx) enforce onboarding themselves.
+  const authUser = await requireRole(["patient"], { allowIncompleteOnboarding: true })
 
   return (
     <PatientShell

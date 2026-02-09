@@ -109,10 +109,10 @@ export async function getPatientIntakes(
     return { data: [], total: 0, page, pageSize }
   }
 
-  // Build data query
+  // Build data query with service join for UI display
   let query = supabase
     .from("intakes")
-    .select(`*`)
+    .select(`*, service:services!service_id(id, name, short_name, type, slug)`)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -483,7 +483,8 @@ export async function getAllIntakesForAdmin(
       declined_at,
       reviewed_by,
       reviewed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state)
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, phone, suburb, state),
+      service:services!service_id (id, name, short_name, type, slug)
     `)
 
   // Apply same filters as count query

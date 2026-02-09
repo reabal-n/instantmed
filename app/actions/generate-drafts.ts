@@ -199,12 +199,18 @@ export async function generateDraftsForIntake(
       await deleteDrafts(intakeId)
     }
 
-    // Fetch intake with answers
+    // Fetch intake with answers and service details
     const supabase = getServiceClient()
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select(`
         *,
+        service:services!service_id(
+          id,
+          slug,
+          name,
+          type
+        ),
         patient:profiles!patient_id(
           id,
           full_name,
